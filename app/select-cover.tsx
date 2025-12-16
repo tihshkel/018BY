@@ -7,6 +7,8 @@ import {
   ScrollView,
   Platform,
   Dimensions,
+  Modal,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -19,6 +21,9 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -35,6 +40,10 @@ interface CoverType {
 export default function SelectCoverScreen() {
   const { celebration } = useLocalSearchParams<{ celebration: string }>();
   const containerOpacity = useSharedValue(0);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
+  const [dueDate, setDueDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Получаем все альбомы и преобразуем их в обложки
   const albumTemplates = getAllAlbumTemplates();
@@ -77,18 +86,125 @@ export default function SelectCoverScreen() {
     };
   });
 
+  // Запрашиваем разрешения на уведомления при монтировании
+  React.useEffect(() => {
+    if (celebration === 'pregnancy') {
+      Notifications.requestPermissionsAsync().catch(console.error);
+    }
+  }, [celebration]);
+
+  const schedulePregnancyReminders = async (dueDate: Date) => {
+    try {
+      // Создаем напоминания на основе даты родов
+      const reminders = [
+        {
+          id: `pregnancy_${Date.now()}_1`,
+          categoryId: 'pregnancy',
+          categoryName: 'Беременность',
+          title: 'Предварительная дата родов',
+          description: `Ваша предварительная дата родов: ${dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+          date: dueDate.toISOString(),
+          enabled: true,
+        },
+      ];
+
+      // Загружаем существующие напоминания
+      const existingReminders = await AsyncStorage.getItem('@reminders');
+      let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+
+      // Удаляем старые напоминания о беременности (если есть)
+      allReminders = allReminders.filter((r: any) => r.categoryId !== 'pregnancy' || !r.title.includes('Предварительная дата родов'));
+
+      // Добавляем новое напоминание
+      allReminders.push(reminders[0]);
+
+      // Сохраняем
+      await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+
+      // Планируем уведомление
+      const now = new Date();
+      if (dueDate > now) {
+        let trigger: any;
+        if (Platform.OS === 'ios') {
+          trigger = { date: dueDate };
+        } else {
+          const seconds = Math.floor((dueDate.getTime() - now.getTime()) / 1000);
+          if (seconds > 0) {
+            trigger = seconds;
+          }
+        }
+
+        if (trigger) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Предварительная дата родов',
+              body: `Сегодня ваша предварительная дата родов!`,
+              sound: true,
+            },
+            trigger,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error scheduling pregnancy reminders:', error);
+    }
+  };
+
   const handleCoverSelect = (coverId: string) => {
     if (!celebration) return;
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // Сразу переходим на страницу выбора действия
-    router.push({
-      pathname: '/select-action',
-      params: { 
-        celebration,
-        coverType: coverId
-      }
-    });
+    
+    // Для беременности показываем модальное окно выбора даты
+    if (celebration === 'pregnancy') {
+      setSelectedCoverId(coverId);
+      setShowDateModal(true);
+      // Устанавливаем дату по умолчанию на 9 месяцев вперед
+      const defaultDueDate = new Date();
+      defaultDueDate.setMonth(defaultDueDate.getMonth() + 9);
+      setDueDate(defaultDueDate);
+    } else {
+      // Для остальных категорий сразу переходим
+      router.push({
+        pathname: '/select-action',
+        params: { 
+          celebration,
+          coverType: coverId
+        }
+      });
+    }
+  };
+
+  const handleDateConfirm = async () => {
+    if (!selectedCoverId || !celebration) return;
+
+    try {
+      // Сохраняем дату родов как напоминание
+      await schedulePregnancyReminders(dueDate);
+
+      // Закрываем модальное окно
+      setShowDateModal(false);
+
+      // Переходим на страницу выбора действия
+      router.push({
+        pathname: '/select-action',
+        params: { 
+          celebration,
+          coverType: selectedCoverId,
+          dueDate: dueDate.toISOString(),
+        }
+      });
+
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      console.error('Error saving due date:', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить дату родов');
+    }
+  };
+
+  const handleDateCancel = () => {
+    setShowDateModal(false);
+    setSelectedCoverId(null);
   };
 
   const handleBack = () => {
@@ -183,6 +299,104 @@ export default function SelectCoverScreen() {
           ))}
         </ScrollView>
       </Animated.View>
+
+      {/* Модальное окно выбора даты родов */}
+      <Modal
+        visible={showDateModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleDateCancel}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Предварительная дата родов</Text>
+              <TouchableOpacity onPress={handleDateCancel}>
+                <Ionicons name="close" size={24} color="#8B6F5F" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={styles.modalDescription}>
+                Выберите предварительную дату родов. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.dateButton}
+                onPress={() => setShowDatePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
+                <View style={styles.dateButtonTextContainer}>
+                  <Text style={styles.dateButtonLabel}>Дата родов</Text>
+                  <Text style={styles.dateButtonText}>
+                    {dueDate.toLocaleDateString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dueDate}
+                  mode="date"
+                  display={Platform.select({
+                    ios: 'spinner',
+                    android: 'default',
+                    default: 'default',
+                  })}
+                  minimumDate={new Date()}
+                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
+                  onChange={(event, date) => {
+                    if (Platform.OS === 'android') {
+                      setShowDatePicker(false);
+                    }
+                    if (date && event.type !== 'dismissed') {
+                      setDueDate(date);
+                    }
+                  }}
+                  locale="ru-RU"
+                  themeVariant="light"
+                  textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                />
+              )}
+
+              {Platform.OS === 'ios' && showDatePicker && (
+                <View style={styles.iosDatePickerButtons}>
+                  <TouchableOpacity
+                    style={styles.iosDatePickerButton}
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.iosDatePickerButtonText}>Готово</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={handleDateCancel}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelButtonText}>Отмена</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleDateConfirm}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.confirmButtonText}>Сохранить</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -302,5 +516,150 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 24,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+  },
+  modalBody: {
+    marginBottom: 24,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    gap: 12,
+  },
+  dateButtonTextContainer: {
+    flex: 1,
+  },
+  dateButtonLabel: {
+    fontSize: 12,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+    fontWeight: '400',
+    marginBottom: 4,
+  },
+  dateButtonText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: '#C9A89A',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+  },
+  iosDatePickerButtons: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0E8E0',
+    marginTop: 12,
+  },
+  iosDatePickerButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  iosDatePickerButtonText: {
+    fontSize: 16,
+    color: '#C9A89A',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
   },
 });

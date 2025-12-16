@@ -22,7 +22,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
@@ -67,6 +67,7 @@ export default function ExportPdfScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0 });
   const opacity = useSharedValue(0);
   const loadingRotation = useSharedValue(0);
 
@@ -151,9 +152,11 @@ export default function ExportPdfScreen() {
       const contentWidth = pageWidth - (margin * 2);
       const contentHeight = pageHeight - (margin * 2);
 
-      // Функция для конвертации изображения в base64
-      const convertImageToBase64 = async (uri: string): Promise<string> => {
+      // Функция для конвертации изображения в base64 с обработкой ошибок
+      const convertImageToBase64 = async (uri: string, imageIndex: number): Promise<string | null> => {
         try {
+          console.log(`[PDF Export] Обработка изображения ${imageIndex + 1}: ${uri.substring(0, 50)}...`);
+          
           if (uri.startsWith('data:')) {
             return uri; // Уже в формате base64
           }
@@ -169,6 +172,9 @@ export default function ExportPdfScreen() {
             // Для веб-версии используем fetch
             if (Platform.OS === 'web') {
               const response = await fetch(uri);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
               const blob = await response.blob();
               return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -184,13 +190,29 @@ export default function ExportPdfScreen() {
               });
             } else {
               // Для мобильных устройств загружаем через FileSystem
-              const downloadResult = await FileSystem.downloadAsync(
-                uri,
-                FileSystem.cacheDirectory + `temp_${Date.now()}.png`
-              );
+              const tempFileName = `temp_${Date.now()}_${imageIndex}.png`;
+              const tempPath = FileSystem.cacheDirectory + tempFileName;
+              
+              const downloadResult = await FileSystem.downloadAsync(uri, tempPath);
+              
+              if (!downloadResult.uri) {
+                throw new Error('Download failed: no URI returned');
+              }
+              
               const base64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
                 encoding: FileSystem.EncodingType.Base64,
               });
+              
+              // Очищаем временный файл после использования
+              try {
+                const fileInfo = await FileSystem.getInfoAsync(tempPath);
+                if (fileInfo.exists) {
+                  await FileSystem.deleteAsync(tempPath, { idempotent: true });
+                }
+              } catch (cleanupError) {
+                console.warn(`[PDF Export] Не удалось удалить временный файл ${tempPath}:`, cleanupError);
+              }
+              
               return `data:image/png;base64,${base64}`;
             }
           }
@@ -201,59 +223,115 @@ export default function ExportPdfScreen() {
           });
           return `data:image/png;base64,${base64}`;
         } catch (error) {
-          console.warn('Не удалось конвертировать изображение в base64:', error);
-          return uri; // Возвращаем оригинальный URI как fallback
+          console.error(`[PDF Export] Ошибка при конвертации изображения ${imageIndex + 1}:`, error);
+          return null; // Возвращаем null для пропуска проблемного изображения
         }
       };
 
       // Создаем HTML для PDF с изображениями и аннотациями
+      // Обрабатываем изображения последовательно для оптимизации памяти
       let htmlPages = '';
+      let processedCount = 0;
+      let skippedCount = 0;
+      const totalImages = images.length;
+      
+      setGenerationProgress({ current: 0, total: totalImages });
+      console.log(`[PDF Export] Начало обработки ${totalImages} изображений...`);
 
       for (let pageIndex = 0; pageIndex < images.length; pageIndex++) {
         const pageNumber = pageIndex + 1;
         const imageUri = images[pageIndex];
         
-        // Конвертируем изображение страницы в base64
-        const imageSrc = await convertImageToBase64(imageUri);
-
-        // Фильтруем аннотации для текущей страницы
-        const pageAnnotations = annotations.filter(ann => (ann.page || 1) === pageNumber);
-
-        // Создаем HTML для страницы
-        let pageHtml = `
-          <div class="page" style="width: ${pageWidth}pt; height: ${pageHeight}pt; position: relative; margin: ${margin}pt; background: #FFFFFF;">
-            <img src="${imageSrc}" style="width: ${contentWidth}pt; height: auto; max-height: ${contentHeight}pt; object-fit: contain; display: block;" />
-        `;
-
-        // Добавляем аннотации (сортируем по zIndex для правильного порядка)
-        const sortedAnnotations = [...pageAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-        
-        for (const ann of sortedAnnotations) {
-          if (ann.type === 'text' && ann.content) {
-            // Текст без фона, как в приложении
-            pageHtml += `
-              <div style="position: absolute; left: ${ann.x}pt; top: ${ann.y}pt; width: ${ann.width}pt; min-height: ${ann.height}pt; 
-                color: ${ann.color || '#000000'}; font-size: ${ann.fontSize || 16}pt; 
-                background: transparent; padding: 4pt; 
-                word-wrap: break-word; overflow: visible; white-space: pre-wrap; z-index: ${ann.zIndex || 1};">
-                ${(ann.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}
-              </div>
-            `;
-          } else if (ann.type === 'image' && ann.imageUri) {
-            // Конвертируем изображение-аннотацию в base64
-            const annotationImageSrc = await convertImageToBase64(ann.imageUri);
-            pageHtml += `
-              <img src="${annotationImageSrc}" style="position: absolute; left: ${ann.x}pt; top: ${ann.y}pt; 
-                width: ${ann.width}pt; height: ${ann.height}pt; border-radius: 6pt; 
-                border: 2pt solid #C9A89A; object-fit: cover; z-index: ${ann.zIndex || 1};" />
-            `;
+        try {
+          // Обновляем прогресс
+          setGenerationProgress({ current: pageIndex + 1, total: totalImages });
+          console.log(`[PDF Export] Обработка страницы ${pageNumber}/${totalImages}...`);
+          
+          // Конвертируем изображение страницы в base64
+          const imageSrc = await convertImageToBase64(imageUri, pageIndex);
+          
+          // Пропускаем страницу, если изображение не удалось загрузить
+          if (!imageSrc) {
+            console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось загрузить изображение`);
+            skippedCount++;
+            continue;
           }
-        }
 
-        pageHtml += `</div>`;
-        htmlPages += pageHtml;
+          // Фильтруем аннотации для текущей страницы
+          const pageAnnotations = annotations.filter(ann => (ann.page || 1) === pageNumber);
+
+          // Создаем HTML для страницы
+          let pageHtml = `
+            <div class="page" style="width: ${pageWidth}pt; height: ${pageHeight}pt; position: relative; margin: ${margin}pt; background: #FFFFFF;">
+              <img src="${imageSrc}" style="width: ${contentWidth}pt; height: auto; max-height: ${contentHeight}pt; object-fit: contain; display: block;" />
+          `;
+
+          // Добавляем аннотации (сортируем по zIndex для правильного порядка)
+          const sortedAnnotations = [...pageAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+          
+          for (let annIndex = 0; annIndex < sortedAnnotations.length; annIndex++) {
+            const ann = sortedAnnotations[annIndex];
+            
+            try {
+              if (ann.type === 'text' && ann.content) {
+                // Текст без фона, как в приложении
+                pageHtml += `
+                  <div style="position: absolute; left: ${ann.x}pt; top: ${ann.y}pt; width: ${ann.width}pt; min-height: ${ann.height}pt; 
+                    color: ${ann.color || '#000000'}; font-size: ${ann.fontSize || 16}pt; 
+                    background: transparent; padding: 4pt; 
+                    word-wrap: break-word; overflow: visible; white-space: pre-wrap; z-index: ${ann.zIndex || 1};">
+                    ${(ann.content || '').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}
+                  </div>
+                `;
+              } else if (ann.type === 'image' && ann.imageUri) {
+                // Конвертируем изображение-аннотацию в base64
+                const annotationImageSrc = await convertImageToBase64(ann.imageUri, pageIndex * 1000 + annIndex);
+                
+                if (annotationImageSrc) {
+                  pageHtml += `
+                    <img src="${annotationImageSrc}" style="position: absolute; left: ${ann.x}pt; top: ${ann.y}pt; 
+                      width: ${ann.width}pt; height: ${ann.height}pt; border-radius: 6pt; 
+                      border: 2pt solid #C9A89A; object-fit: cover; z-index: ${ann.zIndex || 1};" />
+                  `;
+                } else {
+                  console.warn(`[PDF Export] Пропуск аннотации-изображения на странице ${pageNumber}`);
+                }
+              }
+            } catch (annError) {
+              console.error(`[PDF Export] Ошибка при обработке аннотации ${annIndex} на странице ${pageNumber}:`, annError);
+              // Продолжаем обработку остальных аннотаций
+            }
+          }
+
+          pageHtml += `</div>`;
+          htmlPages += pageHtml;
+          processedCount++;
+          
+          // Освобождаем память: очищаем ссылку на base64 строку после добавления в HTML
+          // (в JavaScript это происходит автоматически, но явно указываем намерение)
+          
+        } catch (pageError) {
+          console.error(`[PDF Export] Ошибка при обработке страницы ${pageNumber}:`, pageError);
+          skippedCount++;
+          // Продолжаем обработку следующих страниц
+        }
+      }
+      
+      console.log(`[PDF Export] Обработка завершена: ${processedCount} страниц обработано, ${skippedCount} пропущено`);
+      
+      if (processedCount === 0) {
+        throw new Error('Не удалось обработать ни одного изображения');
+      }
+      
+      if (skippedCount > 0) {
+        Alert.alert(
+          'Предупреждение',
+          `Обработано ${processedCount} из ${totalImages} страниц. ${skippedCount} страниц пропущено из-за ошибок.`
+        );
       }
 
+      console.log(`[PDF Export] Генерация HTML (${htmlPages.length} символов)...`);
+      
       const html = `
         <!DOCTYPE html>
         <html>
@@ -280,12 +358,15 @@ export default function ExportPdfScreen() {
         </html>
       `;
 
+      console.log(`[PDF Export] Создание PDF файла...`);
       const { uri } = await Print.printToFileAsync({
         html,
         base64: false,
         width: pageWidth,
         height: pageHeight,
       });
+      
+      console.log(`[PDF Export] PDF успешно создан: ${uri}`);
 
       setPdfUri(uri);
       setShowPreview(true);
@@ -304,6 +385,7 @@ export default function ExportPdfScreen() {
       const fileName = `project_${projectId}_${Date.now()}.pdf`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
       
+      // Используем legacy API для совместимости
       await FileSystem.copyAsync({
         from: pdfUri,
         to: fileUri,
@@ -439,7 +521,21 @@ export default function ExportPdfScreen() {
                     <Animated.View style={loadingAnimatedStyle}>
                       <Ionicons name="refresh" size={24} color="#FFFFFF" />
                     </Animated.View>
-                    <Text style={styles.createButtonText}>Создание PDF...</Text>
+                    <View style={styles.progressContainer}>
+                      <Text style={styles.createButtonText}>
+                        Создание PDF... {generationProgress.total > 0 && `${generationProgress.current}/${generationProgress.total}`}
+                      </Text>
+                      {generationProgress.total > 0 && (
+                        <View style={styles.progressBar}>
+                          <View 
+                            style={[
+                              styles.progressBarFill, 
+                              { width: `${(generationProgress.current / generationProgress.total) * 100}%` }
+                            ]} 
+                          />
+                        </View>
+                      )}
+                    </View>
                   </View>
                 ) : (
                   <>
@@ -669,9 +765,27 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   loadingContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     gap: 12,
+    width: '100%',
+  },
+  progressContainer: {
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+  },
+  progressBar: {
+    width: '100%',
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
   },
   createButtonText: {
     color: '#FFFFFF',
