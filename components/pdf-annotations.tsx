@@ -10,6 +10,8 @@ import {
   Modal,
   Platform,
   ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -78,6 +80,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const [showZIndexMenu, setShowZIndexMenu] = useState(false);
   const [zIndexAnnotationId, setZIndexAnnotationId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const panResponders = useRef<{ [key: string]: any }>({});
 
   // Автоматически открываем редактирование для нового текста
@@ -96,6 +99,23 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   useEffect(() => {
     onEditingStateChange?.(!!editingAnnotation, editingAnnotation);
   }, [editingAnnotation]);
+
+  // Отслеживаем видимость клавиатуры
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   const createPanResponder = (annotation: Annotation) => {
     // Не создаем PanResponder для текста, который редактируется
@@ -196,6 +216,15 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   };
 
   const handleTextChange = (text: string) => {
+    // Если пользователь начинает стирать стандартный текст "Новый текст", удаляем его целиком
+    if (editingText === 'Новый текст' && text.length < editingText.length) {
+      setEditingText('');
+      if (editingAnnotation) {
+        onAnnotationUpdate(editingAnnotation, { content: '' });
+      }
+      return;
+    }
+    
     setEditingText(text);
     // Сохраняем изменения в реальном времени
     if (editingAnnotation) {
@@ -279,64 +308,54 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           ]}
         >
           {isEditingText ? (
-            <View style={styles.textEditingContainer} pointerEvents="box-none">
-              <TextInput
-                style={[
-                  styles.textAnnotation,
-                  styles.textInput,
-                  {
-                    color: currentColor,
-                    fontSize: currentFontSize,
-                  },
-                ]}
-                value={editingText}
-                onChangeText={handleTextChange}
-                onSubmitEditing={handleTextSubmit}
-                onBlur={handleTextSubmit}
-                autoFocus
-                multiline
-                placeholder="Введите текст..."
-                placeholderTextColor={currentColor + '80'}
-                editable={true}
-                selectTextOnFocus={false}
-              />
-              <View style={styles.textControls}>
-                <TouchableOpacity
-                  style={styles.controlButton}
-                  onPress={() => setShowColorPicker(true)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.colorPreview, { backgroundColor: currentColor }]} />
-                  <Ionicons name="color-palette-outline" size={18} color="#8B6F5F" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.controlButton}
-                  onPress={() => setShowFontSizePicker(true)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="text-outline" size={18} color="#8B6F5F" />
-                  <Text style={styles.controlButtonText}>{currentFontSize}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.controlButton, styles.deleteButton]}
-                  onPress={() => {
-                    onAnnotationDelete(annotation.id);
-                    setEditingAnnotation(null);
-                    setEditingText('');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={18} color="#FF4444" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.controlButton, styles.closeButton]}
-                  onPress={handleCloseEditing}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="checkmark-circle" size={18} color="#4ECDC4" />
-                </TouchableOpacity>
+            <>
+              <View style={styles.textEditingContainer} pointerEvents="box-none">
+                <View style={styles.textInputWrapper}>
+                  <TextInput
+                    style={[
+                      styles.textAnnotation,
+                      styles.textInput,
+                      {
+                        color: currentColor,
+                        fontSize: currentFontSize,
+                      },
+                    ]}
+                    value={editingText}
+                    onChangeText={handleTextChange}
+                    onSubmitEditing={handleTextSubmit}
+                    onBlur={handleTextSubmit}
+                    autoFocus
+                    multiline
+                    placeholder="Введите текст..."
+                    placeholderTextColor={currentColor + '80'}
+                    editable={true}
+                    selectTextOnFocus={false}
+                  />
+                  {/* Кнопки Принять и Удалить рядом с текстом */}
+                  <View style={styles.textActionButtons}>
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.acceptButton]}
+                      onPress={handleCloseEditing}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.removeButton]}
+                      onPress={() => {
+                        onAnnotationDelete(annotation.id);
+                        setEditingAnnotation(null);
+                        setEditingText('');
+                        Keyboard.dismiss();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
-            </View>
+            </>
           ) : (
             <TouchableOpacity
               style={styles.textContainer}
@@ -428,6 +447,34 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       <View style={styles.container}>
         {annotations.map(renderAnnotation)}
       </View>
+
+      {/* Панель выбора цвета и размера над клавиатурой - показывается только при редактировании текста */}
+      {editingAnnotation && isKeyboardVisible && currentEditingAnnotation && (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          style={styles.keyboardToolbar}
+        >
+          <View style={styles.toolbarContent}>
+            <TouchableOpacity
+              style={styles.toolbarButton}
+              onPress={() => setShowColorPicker(true)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.colorPreview, { backgroundColor: currentEditingAnnotation.color || '#000000' }]} />
+              <Text style={styles.toolbarButtonText}>Цвет</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.toolbarButton}
+              onPress={() => setShowFontSizePicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="text-outline" size={20} color="#8B6F5F" />
+              <Text style={styles.toolbarButtonText}>{currentEditingAnnotation.fontSize || 16}px</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      )}
 
       {/* Модальное окно выбора цвета */}
       <Modal
@@ -618,6 +665,81 @@ const styles = StyleSheet.create({
   textEditingContainer: {
     flex: 1,
     minWidth: 200,
+  },
+  textInputWrapper: {
+    position: 'relative',
+  },
+  textActionButtons: {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  acceptButton: {
+    backgroundColor: '#4ECDC4',
+  },
+  removeButton: {
+    backgroundColor: '#FF4444',
+  },
+  keyboardToolbar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F0E8E0',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  toolbarContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  toolbarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+    gap: 8,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  toolbarButtonText: {
+    fontSize: 14,
+    color: '#8B6F5F',
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
   textControls: {
     flexDirection: 'row',
