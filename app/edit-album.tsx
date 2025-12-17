@@ -67,7 +67,13 @@ export default function EditAlbumScreen() {
           
           // Получаем ID альбома
           if (project.isReadyMadeAlbum) {
-            foundAlbumId = project.albumId || id;
+            const originalAlbumId = project.albumId || id;
+            // Для детских альбомов используем единый ID для загрузки изображений
+            if (project.category === 'kids') {
+              foundAlbumId = 'kids_48';
+            } else {
+              foundAlbumId = originalAlbumId;
+            }
           } else {
             foundAlbumId = project.albumId || null;
           }
@@ -86,13 +92,23 @@ export default function EditAlbumScreen() {
         const albumTemplate = getAlbumTemplateById(coverType);
         if (albumTemplate) {
           foundAlbumName = albumTemplate.name;
-          foundAlbumId = coverType;
+          // Для детских альбомов используем единый ID для загрузки изображений
+          if (albumTemplate.category === 'kids') {
+            foundAlbumId = 'kids_48';
+          } else {
+            foundAlbumId = coverType;
+          }
         }
       }
       
       // Если альбом не найден, используем дефолтный
       if (!foundAlbumId) {
-        foundAlbumId = 'pregnancy_60';
+        // Если это категория kids, используем kids_48
+        if (celebration === 'kids') {
+          foundAlbumId = 'kids_48';
+        } else {
+          foundAlbumId = 'pregnancy_60';
+        }
       }
       
       setAlbumId(foundAlbumId);

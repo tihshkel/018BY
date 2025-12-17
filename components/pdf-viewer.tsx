@@ -31,6 +31,7 @@ const PDF_ASSETS = {
   // Основные PDF файлы
   'Блок БЕРЕМЕННОСТЬ 60 стр.pdf': require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
   'Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf': require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
+  'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf': require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf'),
   // Preview версии PDF файлов
   'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf'),
   'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf'),

@@ -54,13 +54,22 @@ export default function SelectActionScreen() {
         },
       });
     } else {
-      // Для остальных категорий сразу в редактирование
+      // Для остальных категорий (включая kids) сразу в редактирование
+      // Для kids внутренняя часть одна для всех обложек, поэтому выбор не нужен
+      // Автоматически устанавливаем interiorType для kids
+      const params: any = {
+        celebration,
+        coverType,
+      };
+      
+      // Для kids устанавливаем единую внутреннюю часть
+      if (celebration === 'kids') {
+        params.interiorType = 'kids_48';
+      }
+      
       router.push({
         pathname: '/edit-album',
-        params: {
-          celebration,
-          coverType,
-        },
+        params,
       });
     }
   };
@@ -70,8 +79,9 @@ export default function SelectActionScreen() {
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Ищем ссылку на WB по изображению обложки (более точное сопоставление)
-    const wbLink = getWildberriesLink(albumTemplate.name, albumTemplate.thumbnailPath);
+    // Ищем ссылку на WB по изображению обложки, ID альбома и названию
+    // Для детских альбомов используем ID для точного сопоставления (dfa_7 -> DFA7)
+    const wbLink = getWildberriesLink(albumTemplate.name, albumTemplate.thumbnailPath, albumTemplate.id);
     
     if (wbLink) {
       try {
@@ -84,7 +94,7 @@ export default function SelectActionScreen() {
       }
     } else {
       // Если ссылка не найдена, можно показать сообщение пользователю
-      console.warn('Ссылка на Wildberries не найдена для:', albumTemplate.name);
+      console.warn('Ссылка на Wildberries не найдена для:', albumTemplate.name, 'ID:', albumTemplate.id);
     }
   };
 

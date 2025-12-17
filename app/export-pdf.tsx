@@ -27,6 +27,9 @@ import * as Sharing from 'expo-sharing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { Annotation } from '@/components/pdf-annotations';
+import { getCoverForExport } from '@/utils/coverMapping';
+import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
+import { Asset } from 'expo-asset';
 
 interface FormatOption {
   id: string;
@@ -104,8 +107,11 @@ export default function ExportPdfScreen() {
 
     try {
       let albumId: string | null = null;
+      let projectCategory: string | null = null;
       let images: string[] = [];
       let annotations: Annotation[] = [];
+      let coverImage: any = null;
+      let coverPdf: any = null;
 
       // Если есть projectId, пытаемся загрузить данные проекта
       if (projectId) {
@@ -113,6 +119,17 @@ export default function ExportPdfScreen() {
         if (projectData) {
           const project = JSON.parse(projectData);
           albumId = project.albumId || projectId;
+          projectCategory = project.category || null;
+
+          // Получаем PDF обложку для экспорта (приоритет для беременности)
+          if (projectCategory === 'pregnancy') {
+            coverPdf = getCoverPdfForExport(albumId, projectCategory);
+          }
+          
+          // Если PDF обложка не найдена, используем изображение обложки
+          if (!coverPdf) {
+            coverImage = getCoverForExport(albumId, projectCategory);
+          }
 
           // Загружаем изображения - сначала проверяем сохраненные изменения
           const savedImages = await AsyncStorage.getItem(`@project_images_${projectId}`);
@@ -134,6 +151,17 @@ export default function ExportPdfScreen() {
       // Если проект не найден или нет projectId, используем значения по умолчанию
       if (!albumId) {
         albumId = 'pregnancy_60'; // Значение по умолчанию
+        projectCategory = 'pregnancy';
+      }
+
+      // Если обложка еще не получена, пытаемся получить по albumId
+      if (!coverPdf && !coverImage && albumId) {
+        if (projectCategory === 'pregnancy') {
+          coverPdf = getCoverPdfForExport(albumId, projectCategory);
+        }
+        if (!coverPdf) {
+          coverImage = getCoverForExport(albumId, projectCategory);
+        }
       }
 
       if (images.length === 0) {
@@ -228,23 +256,141 @@ export default function ExportPdfScreen() {
         }
       };
 
+      // Функция для конвертации require() модуля в base64
+      const convertRequireImageToBase64 = async (imageModule: any, imageIndex: number): Promise<string | null> => {
+        try {
+          if (typeof imageModule === 'number') {
+            // Это require() модуль, используем Asset API
+            const asset = Asset.fromModule(imageModule);
+            await asset.downloadAsync();
+            
+            if (asset.localUri) {
+              return await convertImageToBase64(asset.localUri, imageIndex);
+            } else if (asset.uri) {
+              return await convertImageToBase64(asset.uri, imageIndex);
+            }
+          } else if (typeof imageModule === 'string') {
+            // Это строка URI
+            return await convertImageToBase64(imageModule, imageIndex);
+          }
+          
+          return null;
+        } catch (error) {
+          console.error(`[PDF Export] Ошибка при конвертации require() изображения:`, error);
+          return null;
+        }
+      };
+
+      // Функция для конвертации PDF обложки в base64 изображение
+      // Для expo-print лучше всего конвертировать первую страницу PDF в изображение
+      // Но так как это сложно без нативных модулей, используем PDF напрямую через data URI
+      const convertPdfCoverToBase64 = async (pdfModule: any): Promise<string | null> => {
+        try {
+          if (!pdfModule) return null;
+          
+          // Загружаем PDF через Asset API
+          const asset = Asset.fromModule(pdfModule);
+          await asset.downloadAsync();
+          
+          const pdfUri = asset.localUri || asset.uri;
+          if (!pdfUri) return null;
+          
+          // Читаем PDF файл как base64
+          const pdfBytes = await FileSystem.readAsStringAsync(pdfUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          // Возвращаем data URI для PDF
+          // expo-print может использовать это через embed или iframe
+          return `data:application/pdf;base64,${pdfBytes}`;
+        } catch (error) {
+          console.error(`[PDF Export] Ошибка при конвертации PDF обложки:`, error);
+          return null;
+        }
+      };
+
       // Создаем HTML для PDF с изображениями и аннотациями
       // Обрабатываем изображения последовательно для оптимизации памяти
       let htmlPages = '';
       let processedCount = 0;
       let skippedCount = 0;
       const totalImages = images.length;
+      const hasCover = coverPdf !== null || coverImage !== null;
+      const totalPages = totalImages + (hasCover ? 1 : 0);
       
-      setGenerationProgress({ current: 0, total: totalImages });
-      console.log(`[PDF Export] Начало обработки ${totalImages} изображений...`);
+      setGenerationProgress({ current: 0, total: totalPages });
+      console.log(`[PDF Export] Начало обработки ${totalPages} страниц (${totalImages} изображений + ${hasCover ? '1 обложка' : '0 обложек'})...`);
 
+      // Добавляем обложку в начало, если она есть (только для беременности)
+      if (hasCover && projectCategory === 'pregnancy') {
+        try {
+          console.log(`[PDF Export] Обработка обложки...`);
+          setGenerationProgress({ current: 1, total: totalPages });
+          
+          let coverSrc: string | null = null;
+          
+          // Приоритет: сначала пытаемся использовать PDF обложку
+          if (coverPdf) {
+            console.log(`[PDF Export] Использование PDF обложки...`);
+            coverSrc = await convertPdfCoverToBase64(coverPdf);
+            
+            if (coverSrc) {
+              // Создаем HTML для PDF обложки
+              // Используем object для вставки PDF (expo-print поддерживает это)
+              // Если object не работает, можно использовать iframe как fallback
+              const coverHtml = `
+                <div class="page" style="width: ${pageWidth}pt; height: ${pageHeight}pt; position: relative; margin: 0; background: #FFFFFF; overflow: hidden; page-break-after: always;">
+                  <object data="${coverSrc}#page=1" type="application/pdf" style="width: 100%; height: 100%; border: none; display: block;">
+                    <iframe src="${coverSrc}#page=1" style="width: 100%; height: 100%; border: none; display: block;" type="application/pdf"></iframe>
+                  </object>
+                </div>
+              `;
+              htmlPages += coverHtml;
+              processedCount++;
+              console.log(`[PDF Export] PDF обложка добавлена (${pageWidth}x${pageHeight}pt)`);
+            } else {
+              console.warn(`[PDF Export] Не удалось загрузить PDF обложку, пробуем изображение...`);
+            }
+          }
+          
+          // Если PDF обложка не загрузилась, используем изображение обложки
+          if (!coverSrc && coverImage) {
+            console.log(`[PDF Export] Использование изображения обложки...`);
+            coverSrc = await convertRequireImageToBase64(coverImage, -1);
+            
+            if (coverSrc) {
+              // Создаем HTML для обложки (полная страница без полей)
+              const coverHtml = `
+                <div class="page" style="width: ${pageWidth}pt; height: ${pageHeight}pt; position: relative; margin: 0; background: #FFFFFF; overflow: hidden;">
+                  <img src="${coverSrc}" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+                </div>
+              `;
+              htmlPages += coverHtml;
+              processedCount++;
+              console.log(`[PDF Export] Обложка-изображение добавлена (${pageWidth}x${pageHeight}pt)`);
+            } else {
+              console.warn(`[PDF Export] Не удалось загрузить обложку`);
+              skippedCount++;
+            }
+          } else if (!coverSrc) {
+            console.warn(`[PDF Export] Не удалось загрузить обложку`);
+            skippedCount++;
+          }
+        } catch (coverError) {
+          console.error(`[PDF Export] Ошибка при обработке обложки:`, coverError);
+          skippedCount++;
+        }
+      }
+
+      // Обрабатываем страницы альбома
       for (let pageIndex = 0; pageIndex < images.length; pageIndex++) {
         const pageNumber = pageIndex + 1;
         const imageUri = images[pageIndex];
         
         try {
-          // Обновляем прогресс
-          setGenerationProgress({ current: pageIndex + 1, total: totalImages });
+          // Обновляем прогресс (учитываем обложку)
+          const currentPageNumber = hasCover ? pageIndex + 2 : pageIndex + 1;
+          setGenerationProgress({ current: currentPageNumber, total: totalPages });
           console.log(`[PDF Export] Обработка страницы ${pageNumber}/${totalImages}...`);
           
           // Конвертируем изображение страницы в base64
@@ -326,7 +472,7 @@ export default function ExportPdfScreen() {
       if (skippedCount > 0) {
         Alert.alert(
           'Предупреждение',
-          `Обработано ${processedCount} из ${totalImages} страниц. ${skippedCount} страниц пропущено из-за ошибок.`
+          `Обработано ${processedCount} из ${totalPages} страниц. ${skippedCount} страниц пропущено из-за ошибок.`
         );
       }
 

@@ -37,6 +37,14 @@ interface CoverType {
   gradient: string[];
 }
 
+interface CategoryInfo {
+  name: string;
+  title: string;
+  description: string;
+  notificationTitle: string;
+  notificationBody: string;
+}
+
 export default function SelectCoverScreen() {
   const { celebration } = useLocalSearchParams<{ celebration: string }>();
   const containerOpacity = useSharedValue(0);
@@ -86,49 +94,123 @@ export default function SelectCoverScreen() {
     };
   });
 
-  // Запрашиваем разрешения на уведомления при монтировании
+  // Запрашиваем разрешения на уведомления при монтировании для всех категорий
   React.useEffect(() => {
-    if (celebration === 'pregnancy') {
+    if (celebration) {
       Notifications.requestPermissionsAsync().catch(console.error);
     }
   }, [celebration]);
 
-  const schedulePregnancyReminders = async (dueDate: Date) => {
+  // Получаем информацию о категории для напоминаний
+  const getCategoryInfo = (categoryId: string): CategoryInfo => {
+    const categoryMap: { [key: string]: CategoryInfo } = {
+      pregnancy: {
+        name: 'Беременность',
+        title: 'Предварительная дата родов',
+        description: 'Выберите предварительную дату родов. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
+        notificationTitle: 'Предварительная дата родов',
+        notificationBody: 'Сегодня ваша предварительная дата родов!',
+      },
+      kids: {
+        name: 'Детство',
+        title: 'Дата рождения ребенка',
+        description: 'Выберите дату рождения ребенка. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления о важных моментах.',
+        notificationTitle: 'День рождения ребенка',
+        notificationBody: 'Сегодня день рождения вашего ребенка!',
+      },
+      wedding: {
+        name: 'Свадьба',
+        title: 'Дата свадьбы',
+        description: 'Выберите дату свадьбы. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
+        notificationTitle: 'День свадьбы',
+        notificationBody: 'Сегодня годовщина вашей свадьбы!',
+      },
+      family: {
+        name: 'Семья',
+        title: 'Дата важного события',
+        description: 'Выберите дату важного семейного события. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
+        notificationTitle: 'Важное семейное событие',
+        notificationBody: 'Сегодня важная дата для вашей семьи!',
+      },
+      travel: {
+        name: 'Путешествия',
+        title: 'Дата поездки',
+        description: 'Выберите дату начала поездки. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
+        notificationTitle: 'Начало поездки',
+        notificationBody: 'Сегодня начинается ваше путешествие!',
+      },
+    };
+    return categoryMap[categoryId] || categoryMap.pregnancy;
+  };
+
+  // Получаем дату по умолчанию для категории
+  const getDefaultDate = (categoryId: string): Date => {
+    const defaultDate = new Date();
+    switch (categoryId) {
+      case 'pregnancy':
+        // 9 месяцев вперед
+        defaultDate.setMonth(defaultDate.getMonth() + 9);
+        break;
+      case 'kids':
+        // Текущая дата (может быть в прошлом)
+        break;
+      case 'wedding':
+        // 1 год вперед
+        defaultDate.setFullYear(defaultDate.getFullYear() + 1);
+        break;
+      case 'family':
+        // 6 месяцев вперед
+        defaultDate.setMonth(defaultDate.getMonth() + 6);
+        break;
+      case 'travel':
+        // 3 месяца вперед
+        defaultDate.setMonth(defaultDate.getMonth() + 3);
+        break;
+      default:
+        break;
+    }
+    return defaultDate;
+  };
+
+  // Универсальная функция для сохранения напоминаний
+  const scheduleReminder = async (eventDate: Date, categoryId: string) => {
     try {
-      // Создаем напоминания на основе даты родов
-      const reminders = [
-        {
-          id: `pregnancy_${Date.now()}_1`,
-          categoryId: 'pregnancy',
-          categoryName: 'Беременность',
-          title: 'Предварительная дата родов',
-          description: `Ваша предварительная дата родов: ${dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-          date: dueDate.toISOString(),
-          enabled: true,
-        },
-      ];
+      const categoryInfo = getCategoryInfo(categoryId);
+      
+      // Создаем напоминание
+      const reminder = {
+        id: `${categoryId}_${Date.now()}_1`,
+        categoryId: categoryId,
+        categoryName: categoryInfo.name,
+        title: categoryInfo.title,
+        description: `${categoryInfo.title}: ${eventDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+        date: eventDate.toISOString(),
+        enabled: true,
+      };
 
       // Загружаем существующие напоминания
       const existingReminders = await AsyncStorage.getItem('@reminders');
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 
-      // Удаляем старые напоминания о беременности (если есть)
-      allReminders = allReminders.filter((r: any) => r.categoryId !== 'pregnancy' || !r.title.includes('Предварительная дата родов'));
+      // Удаляем старые напоминания для этой категории с таким же заголовком (если есть)
+      allReminders = allReminders.filter((r: any) => 
+        r.categoryId !== categoryId || r.title !== categoryInfo.title
+      );
 
       // Добавляем новое напоминание
-      allReminders.push(reminders[0]);
+      allReminders.push(reminder);
 
       // Сохраняем
       await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
 
-      // Планируем уведомление
+      // Планируем уведомление (только если дата в будущем)
       const now = new Date();
-      if (dueDate > now) {
+      if (eventDate > now) {
         let trigger: any;
         if (Platform.OS === 'ios') {
-          trigger = { date: dueDate };
+          trigger = { date: eventDate };
         } else {
-          const seconds = Math.floor((dueDate.getTime() - now.getTime()) / 1000);
+          const seconds = Math.floor((eventDate.getTime() - now.getTime()) / 1000);
           if (seconds > 0) {
             trigger = seconds;
           }
@@ -137,8 +219,8 @@ export default function SelectCoverScreen() {
         if (trigger) {
           await Notifications.scheduleNotificationAsync({
             content: {
-              title: 'Предварительная дата родов',
-              body: `Сегодня ваша предварительная дата родов!`,
+              title: categoryInfo.notificationTitle,
+              body: categoryInfo.notificationBody,
               sound: true,
             },
             trigger,
@@ -146,7 +228,7 @@ export default function SelectCoverScreen() {
         }
       }
     } catch (error) {
-      console.error('Error scheduling pregnancy reminders:', error);
+      console.error(`Error scheduling ${categoryId} reminder:`, error);
     }
   };
 
@@ -155,32 +237,19 @@ export default function SelectCoverScreen() {
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Для беременности показываем модальное окно выбора даты
-    if (celebration === 'pregnancy') {
-      setSelectedCoverId(coverId);
-      setShowDateModal(true);
-      // Устанавливаем дату по умолчанию на 9 месяцев вперед
-      const defaultDueDate = new Date();
-      defaultDueDate.setMonth(defaultDueDate.getMonth() + 9);
-      setDueDate(defaultDueDate);
-    } else {
-      // Для остальных категорий сразу переходим
-      router.push({
-        pathname: '/select-action',
-        params: { 
-          celebration,
-          coverType: coverId
-        }
-      });
-    }
+    // Для всех категорий показываем модальное окно выбора даты
+    setSelectedCoverId(coverId);
+    setShowDateModal(true);
+    // Устанавливаем дату по умолчанию в зависимости от категории
+    setDueDate(getDefaultDate(celebration));
   };
 
   const handleDateConfirm = async () => {
     if (!selectedCoverId || !celebration) return;
 
     try {
-      // Сохраняем дату родов как напоминание
-      await schedulePregnancyReminders(dueDate);
+      // Сохраняем дату события как напоминание
+      await scheduleReminder(dueDate, celebration);
 
       // Закрываем модальное окно
       setShowDateModal(false);
@@ -191,14 +260,15 @@ export default function SelectCoverScreen() {
         params: { 
           celebration,
           coverType: selectedCoverId,
-          dueDate: dueDate.toISOString(),
+          eventDate: dueDate.toISOString(),
         }
       });
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (error) {
-      console.error('Error saving due date:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить дату родов');
+      console.error('Error saving event date:', error);
+      const categoryInfo = getCategoryInfo(celebration);
+      Alert.alert('Ошибка', `Не удалось сохранить ${categoryInfo.title.toLowerCase()}`);
     }
   };
 
@@ -300,103 +370,110 @@ export default function SelectCoverScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Модальное окно выбора даты родов */}
-      <Modal
-        visible={showDateModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={handleDateCancel}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Предварительная дата родов</Text>
-              <TouchableOpacity onPress={handleDateCancel}>
-                <Ionicons name="close" size={24} color="#8B6F5F" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalBody}>
-              <Text style={styles.modalDescription}>
-                Выберите предварительную дату родов. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.
-              </Text>
-
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowDatePicker(true)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
-                <View style={styles.dateButtonTextContainer}>
-                  <Text style={styles.dateButtonLabel}>Дата родов</Text>
-                  <Text style={styles.dateButtonText}>
-                    {dueDate.toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
-              </TouchableOpacity>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={dueDate}
-                  mode="date"
-                  display={Platform.select({
-                    ios: 'spinner',
-                    android: 'default',
-                    default: 'default',
-                  })}
-                  minimumDate={new Date()}
-                  maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
-                  onChange={(event, date) => {
-                    if (Platform.OS === 'android') {
-                      setShowDatePicker(false);
-                    }
-                    if (date && event.type !== 'dismissed') {
-                      setDueDate(date);
-                    }
-                  }}
-                  locale="ru-RU"
-                  themeVariant="light"
-                  textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
-                />
-              )}
-
-              {Platform.OS === 'ios' && showDatePicker && (
-                <View style={styles.iosDatePickerButtons}>
-                  <TouchableOpacity
-                    style={styles.iosDatePickerButton}
-                    onPress={() => setShowDatePicker(false)}
-                  >
-                    <Text style={styles.iosDatePickerButtonText}>Готово</Text>
+      {/* Модальное окно выбора даты события */}
+      {showDateModal && celebration && (() => {
+        const categoryInfo = getCategoryInfo(celebration);
+        const isPastDateAllowed = celebration === 'kids'; // Для детства можно выбрать дату в прошлом
+        
+        return (
+          <Modal
+            visible={showDateModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={handleDateCancel}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>{categoryInfo.title}</Text>
+                  <TouchableOpacity onPress={handleDateCancel}>
+                    <Ionicons name="close" size={24} color="#8B6F5F" />
                   </TouchableOpacity>
                 </View>
-              )}
-            </View>
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={handleDateCancel}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelButtonText}>Отмена</Text>
-              </TouchableOpacity>
+                <View style={styles.modalBody}>
+                  <Text style={styles.modalDescription}>
+                    {categoryInfo.description}
+                  </Text>
 
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleDateConfirm}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.confirmButtonText}>Сохранить</Text>
-              </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.dateButton}
+                    onPress={() => setShowDatePicker(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
+                    <View style={styles.dateButtonTextContainer}>
+                      <Text style={styles.dateButtonLabel}>{categoryInfo.title}</Text>
+                      <Text style={styles.dateButtonText}>
+                        {dueDate.toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  </TouchableOpacity>
+
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={dueDate}
+                      mode="date"
+                      display={Platform.select({
+                        ios: 'spinner',
+                        android: 'default',
+                        default: 'default',
+                      })}
+                      minimumDate={isPastDateAllowed ? undefined : new Date()}
+                      maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+                      onChange={(event, date) => {
+                        if (Platform.OS === 'android') {
+                          setShowDatePicker(false);
+                        }
+                        if (date && event.type !== 'dismissed') {
+                          setDueDate(date);
+                        }
+                      }}
+                      locale="ru-RU"
+                      themeVariant="light"
+                      textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                    />
+                  )}
+
+                  {Platform.OS === 'ios' && showDatePicker && (
+                    <View style={styles.iosDatePickerButtons}>
+                      <TouchableOpacity
+                        style={styles.iosDatePickerButton}
+                        onPress={() => setShowDatePicker(false)}
+                      >
+                        <Text style={styles.iosDatePickerButtonText}>Готово</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={handleDateCancel}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.cancelButtonText}>Отмена</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={handleDateConfirm}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.confirmButtonText}>Сохранить</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
-      </Modal>
+          </Modal>
+        );
+      })()}
     </SafeAreaView>
   );
 }

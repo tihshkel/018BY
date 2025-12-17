@@ -61,10 +61,10 @@ export function getGiftItemByAlbumName(albumName: string): GiftItem | null {
 }
 
 /**
- * Получает ссылку на Wildberries для альбома по названию
- * Пытается найти по изображению, если не найдено - по названию
+ * Получает ссылку на Wildberries для альбома
+ * Пытается найти по изображению, по ID альбома (для детских), или по названию
  */
-export function getWildberriesLink(albumName: string, thumbnailPath?: ImageSourcePropType): string | null {
+export function getWildberriesLink(albumName: string, thumbnailPath?: ImageSourcePropType, albumId?: string): string | null {
   // Сначала пытаемся найти по изображению (более точное сопоставление)
   if (thumbnailPath) {
     const giftItemByImage = getGiftItemByImage(thumbnailPath);
@@ -73,7 +73,17 @@ export function getWildberriesLink(albumName: string, thumbnailPath?: ImageSourc
     }
   }
   
-  // Если не найдено по изображению, ищем по названию
+  // Для детских альбомов (dfa_*) пытаемся найти по ID альбома
+  // Преобразуем dfa_7 -> DFA7, dfa_8 -> DFA8 и т.д.
+  if (albumId && albumId.startsWith('dfa_')) {
+    const sku = albumId.replace('dfa_', 'DFA').toUpperCase();
+    const giftItemBySku = getGiftItemBySku(sku);
+    if (giftItemBySku?.link) {
+      return giftItemBySku.link;
+    }
+  }
+  
+  // Если не найдено по изображению или ID, ищем по названию
   const giftItem = getGiftItemByAlbumName(albumName);
   return giftItem?.link || null;
 }

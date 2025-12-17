@@ -126,8 +126,18 @@ export default function SelectCelebrationScreen() {
     if (selectedCelebration) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
+      // Для беременности и детей всегда переходим к выбору обложки
+      // (идеальная последовательность: выбор категории → выбор обложки → выбор действия → редактирование)
+      if (selectedCelebration === 'pregnancy' || selectedCelebration === 'kids') {
+        router.push({
+          pathname: '/select-cover',
+          params: { celebration: selectedCelebration }
+        });
+        return;
+      }
+      
       try {
-        // Находим первый альбом с PDF для выбранной категории
+        // Для остальных категорий проверяем наличие PDF
         const albums = getAlbumTemplatesByCategory(selectedCelebration as any);
         const albumWithPdf = albums.find(album => album.pdfPath && album.hasPdfTemplate);
         

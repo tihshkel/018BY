@@ -91,10 +91,17 @@ export default function ProjectTemplatesScreen() {
     return productsByCategory[categoryId] ?? [];
   }, [categoryId, productsByCategory]);
 
-  // Для беременности получаем альбомы вместо продуктов
+  // Для беременности и kids получаем альбомы вместо продуктов
   const pregnancyAlbums = useMemo(() => {
     if (categoryId === 'pregnancy') {
       return getAlbumTemplatesByCategory('pregnancy');
+    }
+    return [];
+  }, [categoryId]);
+
+  const kidsAlbums = useMemo(() => {
+    if (categoryId === 'kids') {
+      return getAlbumTemplatesByCategory('kids');
     }
     return [];
   }, [categoryId]);
@@ -110,9 +117,13 @@ export default function ProjectTemplatesScreen() {
         try {
           let imagesToPreload: any[] = [];
 
-          // Для беременности загружаем изображения альбомов
+          // Для беременности и kids загружаем изображения альбомов
           if (categoryId === 'pregnancy' && pregnancyAlbums.length > 0) {
             imagesToPreload = pregnancyAlbums
+              .filter(album => album.thumbnailPath)
+              .map(album => album.thumbnailPath!);
+          } else if (categoryId === 'kids' && kidsAlbums.length > 0) {
+            imagesToPreload = kidsAlbums
               .filter(album => album.thumbnailPath)
               .map(album => album.thumbnailPath!);
           } else if (categoryProducts.length > 0) {
@@ -145,7 +156,7 @@ export default function ProjectTemplatesScreen() {
       };
 
       preloadCategoryImages();
-    }, [categoryId, categoryProducts, pregnancyAlbums])
+    }, [categoryId, categoryProducts, pregnancyAlbums, kidsAlbums])
   );
 
   // Дополнительная предзагрузка при изменении категории
@@ -192,12 +203,12 @@ export default function ProjectTemplatesScreen() {
   );
 
   const handleCoverSelect = useCallback((album: AlbumTemplate) => {
-    // Для беременности при выборе обложки сразу переходим на выбор действия
-    if (categoryId === 'pregnancy') {
+    // Для беременности и детей при выборе обложки переходим на выбор действия
+    if (categoryId === 'pregnancy' || categoryId === 'kids') {
       router.push({
         pathname: '/select-action',
         params: {
-          celebration: 'pregnancy',
+          celebration: categoryId,
           coverType: album.id,
         },
       });
@@ -275,10 +286,10 @@ export default function ProjectTemplatesScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <Text style={styles.subtitle}>
-            {categoryId === 'pregnancy' ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
+            {(categoryId === 'pregnancy' || categoryId === 'kids') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
           </Text>
 
-          {/* Для беременности показываем альбомы */}
+          {/* Для беременности и kids показываем альбомы */}
           {categoryId === 'pregnancy' ? (
             pregnancyAlbums.length === 0 ? (
               <View style={styles.emptyStateInline}>
@@ -303,6 +314,50 @@ export default function ProjectTemplatesScreen() {
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={pregnancyAlbums.indexOf(album) < 5 ? "high" : "normal"}
+                        cachePolicy="disk"
+                        transition={0}
+                        fadeDuration={0}
+                        recyclingKey={album.id}
+                      />
+                    ) : (
+                      <Ionicons name='book' size={48} color='#C9A89A' />
+                    )}
+                  </View>
+                  <View style={styles.productContent}>
+                    <Text style={styles.productName}>{album.name}</Text>
+                    <Text style={styles.productDescription}>
+                      {album.description}
+                    </Text>
+                  </View>
+                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
+                </TouchableOpacity>
+              ))
+            )
+          ) : categoryId === 'kids' ? (
+            /* Для kids показываем альбомы */
+            kidsAlbums.length === 0 ? (
+              <View style={styles.emptyStateInline}>
+                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
+                <Text style={styles.emptyStateInlineText}>
+                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
+                  другую тему.
+                </Text>
+              </View>
+            ) : (
+              kidsAlbums.map(album => (
+                <TouchableOpacity
+                  key={album.id}
+                  style={styles.productCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleCoverSelect(album)}
+                >
+                  <View style={styles.productImage}>
+                    {album.thumbnailPath ? (
+                      <Image
+                        source={album.thumbnailPath}
+                        style={styles.productImageContent}
+                        contentFit="cover"
+                        priority={kidsAlbums.indexOf(album) < 5 ? "high" : "normal"}
                         cachePolicy="disk"
                         transition={0}
                         fadeDuration={0}
