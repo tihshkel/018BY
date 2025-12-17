@@ -130,6 +130,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     let startX = 0;
     let startY = 0;
     let isDraggingStarted = false;
+    let pressStartTime = 0;
+    let pressStartX = 0;
+    let pressStartY = 0;
 
     const panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => {
@@ -146,12 +149,18 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         }
         
         // Начинаем перетаскивание только если движение достаточно большое
+        // Уменьшаем порог для более отзывчивого перетаскивания
         if (isEditing && !isDraggingStarted) {
           const { dx, dy } = gestureState;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance > 10) {
+          // Уменьшили порог с 10 до 5 пикселей для более быстрого начала перетаскивания
+          if (distance > 5) {
             isDraggingStarted = true;
             setIsDragging(true);
+            // Отменяем выбор при начале перетаскивания
+            if (selectedAnnotation === annotation.id) {
+              setSelectedAnnotation(null);
+            }
             return true;
           }
         }
@@ -160,18 +169,36 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       onPanResponderGrant: (evt) => {
         startX = annotation.x;
         startY = annotation.y;
-        setSelectedAnnotation(annotation.id);
-        setIsDragging(true);
+        pressStartTime = Date.now();
+        pressStartX = evt.nativeEvent.pageX;
+        pressStartY = evt.nativeEvent.pageY;
+        // Не выбираем аннотацию сразу - только если не началось перетаскивание
       },
       onPanResponderMove: (evt, gestureState) => {
-        if (isEditing) {
+        if (isEditing && isDraggingStarted) {
           const newX = Math.max(0, Math.min(startX + gestureState.dx, SCREEN_WIDTH - annotation.width));
           const newY = Math.max(0, Math.min(startY + gestureState.dy, SCREEN_HEIGHT - annotation.height));
           onAnnotationUpdate(annotation.id, { x: newX, y: newY });
         }
       },
-      onPanResponderRelease: () => {
-        setSelectedAnnotation(null);
+      onPanResponderRelease: (evt) => {
+        const pressDuration = Date.now() - pressStartTime;
+        const pressDistance = Math.sqrt(
+          Math.pow(evt.nativeEvent.pageX - pressStartX, 2) + 
+          Math.pow(evt.nativeEvent.pageY - pressStartY, 2)
+        );
+        
+        // Если это был короткий тап без движения - выбираем аннотацию (но не открываем редактор)
+        if (!isDraggingStarted && pressDuration < 300 && pressDistance < 10) {
+          if (annotation.type === 'text') {
+            // Для текста - просто выбираем, не открываем редактор
+            setSelectedAnnotation(annotation.id);
+          } else {
+            setSelectedAnnotation(annotation.id);
+          }
+        }
+        
+        setSelectedAnnotation(prev => prev === annotation.id ? prev : null);
         setIsDragging(false);
         isDraggingStarted = false;
       },
@@ -189,10 +216,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const handleAnnotationPress = (annotation: Annotation) => {
     if (!isEditing) return;
     
-    if (annotation.type === 'text') {
-      setEditingAnnotation(annotation.id);
-      setEditingText(annotation.content || '');
-    }
+    // Обычное нажатие - просто выбираем аннотацию (для текста не открываем редактор)
+    setSelectedAnnotation(annotation.id);
   };
 
   const handleAnnotationLongPress = (annotation: Annotation) => {
@@ -202,9 +227,18 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setZIndexAnnotationId(annotation.id);
       setShowZIndexMenu(true);
     } else if (annotation.type === 'text') {
-      // Для текста долгое нажатие также открывает редактирование
+      // Для текста долгое нажатие открывает редактирование
       setEditingAnnotation(annotation.id);
       setEditingText(annotation.content || '');
+      setSelectedAnnotation(null); // Убираем выбор при открытии редактора
+    }
+  };
+
+  const handleEditText = (annotation: Annotation) => {
+    if (annotation.type === 'text') {
+      setEditingAnnotation(annotation.id);
+      setEditingText(annotation.content || '');
+      setSelectedAnnotation(null);
     }
   };
 
@@ -357,30 +391,62 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               </View>
             </>
           ) : (
-            <TouchableOpacity
+            <View
               style={styles.textContainer}
-              onPress={() => handleAnnotationPress(annotation)}
-              onLongPress={() => handleAnnotationLongPress(annotation)}
-              activeOpacity={0.7}
+              {...(panResponder?.panHandlers || {})}
             >
-              <Text
-                style={[
-                  styles.textAnnotation,
-                  {
-                    color: currentColor,
-                    fontSize: currentFontSize,
-                  },
-                ]}
+              <TouchableOpacity
+                style={styles.textContent}
+                onLongPress={() => handleAnnotationLongPress(annotation)}
+                activeOpacity={0.7}
+                delayLongPress={400}
               >
-                {annotation.content || ''}
-              </Text>
-              {isSelected && isEditing && (
-                <View style={styles.dragIndicator}>
-                  <Ionicons name="move-outline" size={16} color="#C9A89A" />
-                  <Text style={styles.dragHint}>Перетащите</Text>
+                <Text
+                  style={[
+                    styles.textAnnotation,
+                    {
+                      color: currentColor,
+                      fontSize: currentFontSize,
+                    },
+                    isSelected && styles.textSelected,
+                  ]}
+                >
+                  {annotation.content || ''}
+                </Text>
+              </TouchableOpacity>
+              {isSelected && isEditing && !isDragging && (
+                <View style={styles.textControlsOverlay}>
+                  <View style={styles.dragIndicator}>
+                    <Ionicons name="move-outline" size={16} color="#FFFFFF" />
+                    <Text style={styles.dragHint}>Перетащите</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => handleEditText(annotation)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+                    <Text style={styles.editButtonText}>Редактировать</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteTextButton}
+                    onPress={() => {
+                      onAnnotationDelete(annotation.id);
+                      setSelectedAnnotation(null);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               )}
-            </TouchableOpacity>
+              {isDragging && isSelected && (
+                <View style={styles.dragIndicator}>
+                  <Ionicons name="move-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.dragHint}>Перетаскивание...</Text>
+                </View>
+              )}
+            </View>
           )}
         </View>
       );
@@ -647,6 +713,59 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'flex-start',
+    position: 'relative',
+  },
+  textContent: {
+    flex: 1,
+    width: '100%',
+  },
+  textSelected: {
+    backgroundColor: 'rgba(201, 168, 154, 0.1)',
+    borderRadius: 4,
+    padding: 2,
+  },
+  textControlsOverlay: {
+    position: 'absolute',
+    top: -50,
+    left: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(139, 111, 95, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(201, 168, 154, 0.8)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
+  },
+  editButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  deleteTextButton: {
+    backgroundColor: 'rgba(255, 68, 68, 0.8)',
+    padding: 6,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textAnnotation: {
     backgroundColor: 'transparent',
