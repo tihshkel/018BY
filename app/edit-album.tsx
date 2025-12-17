@@ -27,11 +27,12 @@ import { Annotation } from '@/components/pdf-annotations';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function EditAlbumScreen() {
-  const { id, celebration, coverType, interiorType } = useLocalSearchParams<{ 
+  const { id, celebration, coverType, interiorType, eventDate } = useLocalSearchParams<{ 
     id?: string;
     celebration?: string;
     coverType?: string;
     interiorType?: string;
+    eventDate?: string;
   }>();
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -137,6 +138,66 @@ export default function EditAlbumScreen() {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
           setAnnotations(JSON.parse(savedAnnotations));
+        }
+      }
+      
+      // Если проекта нет, создаем его при первом открытии
+      if (!id && (coverType || interiorType) && celebration) {
+        const newProjectId = Date.now().toString();
+        const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
+        
+        const projectData: any = {
+          id: newProjectId,
+          title: albumTemplate?.name || foundAlbumName || getCelebrationTitle(celebration),
+          category: celebration,
+          albumId: foundAlbumId,
+          createdAt: new Date().toISOString(),
+          isReadyMadeAlbum: true,
+        };
+        
+        // Сохраняем дату события, если она передана
+        if (eventDate) {
+          projectData.reminderDate = eventDate;
+        }
+        
+        // Сохраняем информацию о проекте
+        await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
+        
+        // Сохраняем в список проектов
+        const existingProjects = await AsyncStorage.getItem('@user_projects');
+        const projects = existingProjects ? JSON.parse(existingProjects) : [];
+        projects.push(projectData);
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+        
+        // Обновляем URL с новым ID проекта
+        router.replace({
+          pathname: '/edit-album',
+          params: {
+            id: newProjectId,
+            celebration,
+            coverType,
+            interiorType,
+            eventDate,
+          }
+        });
+      } else if (id && eventDate) {
+        // Если проект существует и передана новая дата, обновляем её
+        const projectData = await AsyncStorage.getItem(`@project_${id}`);
+        if (projectData) {
+          const project = JSON.parse(projectData);
+          project.reminderDate = eventDate;
+          await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(project));
+          
+          // Обновляем в списке проектов
+          const existingProjects = await AsyncStorage.getItem('@user_projects');
+          if (existingProjects) {
+            const projects = JSON.parse(existingProjects);
+            const projectIndex = projects.findIndex((p: any) => p.id === id);
+            if (projectIndex !== -1) {
+              projects[projectIndex].reminderDate = eventDate;
+              await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+            }
+          }
         }
       }
       

@@ -46,12 +46,26 @@ interface CategoryInfo {
 }
 
 export default function SelectCoverScreen() {
-  const { celebration } = useLocalSearchParams<{ celebration: string }>();
+  const params = useLocalSearchParams<{ celebration: string | string[] }>();
+  // Нормализуем celebration - может быть строкой или массивом
+  const celebration = Array.isArray(params.celebration) 
+    ? params.celebration[0] 
+    : params.celebration;
+  
   const containerOpacity = useSharedValue(0);
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  
+  // Логирование для отладки
+  React.useEffect(() => {
+    console.log('[Select Cover] Celebration value:', celebration, 'Type:', typeof celebration);
+  }, [celebration]);
+  
+  React.useEffect(() => {
+    console.log('[Select Cover] showDateModal state:', showDateModal);
+  }, [showDateModal]);
 
   // Получаем все альбомы и преобразуем их в обложки
   const albumTemplates = getAllAlbumTemplates();
@@ -203,9 +217,44 @@ export default function SelectCoverScreen() {
       // Сохраняем
       await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
 
-      // Планируем уведомление (только если дата в будущем)
+      // Планируем уведомление
+      // Для kids (день рождения) планируем ежегодное уведомление
+      // Для других категорий - одноразовое уведомление на выбранную дату
       const now = new Date();
-      if (eventDate > now) {
+      
+      if (categoryId === 'kids') {
+        // Для дня рождения планируем уведомление на следующий год (если дата в прошлом)
+        // или на выбранную дату (если в будущем)
+        let notificationDate = eventDate;
+        if (eventDate <= now) {
+          // Если дата в прошлом, планируем на следующий год
+          notificationDate = new Date(eventDate);
+          notificationDate.setFullYear(now.getFullYear() + 1);
+        }
+        
+        // Планируем уведомление
+        let trigger: any;
+        if (Platform.OS === 'ios') {
+          trigger = { date: notificationDate };
+        } else {
+          const seconds = Math.floor((notificationDate.getTime() - now.getTime()) / 1000);
+          if (seconds > 0) {
+            trigger = seconds;
+          }
+        }
+
+        if (trigger) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: categoryInfo.notificationTitle,
+              body: categoryInfo.notificationBody,
+              sound: true,
+            },
+            trigger,
+          });
+        }
+      } else if (eventDate > now) {
+        // Для других категорий планируем только если дата в будущем
         let trigger: any;
         if (Platform.OS === 'ios') {
           trigger = { date: eventDate };
@@ -233,15 +282,34 @@ export default function SelectCoverScreen() {
   };
 
   const handleCoverSelect = (coverId: string) => {
-    if (!celebration) return;
+    if (!celebration) {
+      console.log('[Select Cover] No celebration provided');
+      return;
+    }
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Для всех категорий показываем модальное окно выбора даты
-    setSelectedCoverId(coverId);
-    setShowDateModal(true);
-    // Устанавливаем дату по умолчанию в зависимости от категории
-    setDueDate(getDefaultDate(celebration));
+    console.log('[Select Cover] Cover selected:', coverId, 'Celebration:', celebration, 'Type:', typeof celebration);
+    
+    // Для беременности и детей показываем модальное окно выбора даты
+    if (celebration === 'pregnancy' || celebration === 'kids') {
+      console.log('[Select Cover] Showing date modal for:', celebration);
+      setSelectedCoverId(coverId);
+      setShowDateModal(true);
+      console.log('[Select Cover] showDateModal set to:', true);
+      // Устанавливаем дату по умолчанию в зависимости от категории
+      setDueDate(getDefaultDate(celebration));
+    } else {
+      console.log('[Select Cover] Skipping date modal, celebration:', celebration);
+      // Для остальных категорий сразу переходим к выбору действия
+      router.push({
+        pathname: '/select-action',
+        params: { 
+          celebration,
+          coverType: coverId,
+        }
+      });
+    }
   };
 
   const handleDateConfirm = async () => {
@@ -370,8 +438,8 @@ export default function SelectCoverScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Модальное окно выбора даты события */}
-      {showDateModal && celebration && (() => {
+      {/* Модальное окно выбора даты события - только для беременности и детей */}
+      {showDateModal && celebration && typeof celebration === 'string' && (celebration === 'pregnancy' || celebration === 'kids') && (() => {
         const categoryInfo = getCategoryInfo(celebration);
         const isPastDateAllowed = celebration === 'kids'; // Для детства можно выбрать дату в прошлом
         

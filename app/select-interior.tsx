@@ -46,9 +46,10 @@ const INTERIOR_OPTIONS: InteriorOption[] = [
 ];
 
 export default function SelectInteriorScreen() {
-  const { celebration, coverType } = useLocalSearchParams<{
+  const { celebration, coverType, eventDate } = useLocalSearchParams<{
     celebration: string;
     coverType: string;
+    eventDate?: string;
   }>();
   const [selectedInterior, setSelectedInterior] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
@@ -70,13 +71,20 @@ export default function SelectInteriorScreen() {
     if (selectedInterior && celebration && coverType) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
+      const params: any = {
+        celebration,
+        coverType,
+        interiorType: selectedInterior,
+      };
+      
+      // Передаем дату события, если она есть
+      if (eventDate) {
+        params.eventDate = eventDate;
+      }
+      
       router.push({
         pathname: '/edit-album',
-        params: {
-          celebration,
-          coverType,
-          interiorType: selectedInterior,
-        },
+        params,
       });
     }
   };

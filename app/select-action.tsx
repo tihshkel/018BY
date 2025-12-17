@@ -22,9 +22,10 @@ import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 
 export default function SelectActionScreen() {
-  const { celebration, coverType } = useLocalSearchParams<{
+  const { celebration, coverType, eventDate } = useLocalSearchParams<{
     celebration: string;
     coverType: string;
+    eventDate?: string;
   }>();
   const containerOpacity = useSharedValue(0);
 
@@ -46,12 +47,17 @@ export default function SelectActionScreen() {
     
     // Для беременности показываем выбор внутренней части
     if (isPregnancy) {
+      const params: any = {
+        celebration,
+        coverType,
+      };
+      // Передаем дату события, если она есть
+      if (eventDate) {
+        params.eventDate = eventDate;
+      }
       router.push({
         pathname: '/select-interior',
-        params: {
-          celebration,
-          coverType,
-        },
+        params,
       });
     } else {
       // Для остальных категорий (включая kids) сразу в редактирование
@@ -65,6 +71,11 @@ export default function SelectActionScreen() {
       // Для kids устанавливаем единую внутреннюю часть
       if (celebration === 'kids') {
         params.interiorType = 'kids_48';
+      }
+      
+      // Передаем дату события, если она есть
+      if (eventDate) {
+        params.eventDate = eventDate;
       }
       
       router.push({
