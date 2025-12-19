@@ -2,83 +2,85 @@ import { getAlbumTemplateById } from '@/albums';
 
 /**
  * Маппинг PDF разверток обложек для беременности
- * Ключ - ID альбома, значение - путь к PDF развертке из папки albums
+ * Ключ - ID альбома, значение - имя файла PDF развертки (без расширения)
+ * PDF файлы загружаются динамически, так как их нет в папке albums
  * Используются развертки DB1.pdf, DB2.pdf, DB3.pdf, DB4.pdf, DB5.pdf, DB6.pdf
  */
-const PREGNANCY_COVER_PDF_MAPPING: Record<string, any> = {
-  'pregnancy_60': require('../albums/DB1.pdf'),
-  'pregnancy_a5': require('../albums/DB1.pdf'),
-  'pregnancy_db2': require('../albums/DB2.pdf'),
-  'pregnancy_db2_soft': require('../albums/DB2.pdf'),
-  'pregnancy_db3': require('../albums/DB3.pdf'),
-  'pregnancy_db3_soft': require('../albums/DB3.pdf'),
-  'pregnancy_db4': require('../albums/DB4.pdf'),
-  'pregnancy_db4_soft': require('../albums/DB4.pdf'),
-  'pregnancy_db5': require('../albums/DB5.pdf'),
-  'pregnancy_db5_soft': require('../albums/DB5.pdf'),
-  'pregnancy_2': require('../albums/DB6.pdf'),
-  'pregnancy_2_3': require('../albums/DB6.pdf'),
+const PREGNANCY_COVER_PDF_MAPPING: Record<string, string | null> = {
+  'pregnancy_60': 'DB1',
+  'pregnancy_a5': 'DB1',
+  'pregnancy_db2': 'DB2',
+  'pregnancy_db2_soft': 'DB2',
+  'pregnancy_db3': 'DB3',
+  'pregnancy_db3_soft': 'DB3',
+  'pregnancy_db4': 'DB4',
+  'pregnancy_db4_soft': 'DB4',
+  'pregnancy_db5': 'DB5',
+  'pregnancy_db5_soft': 'DB5',
+  'pregnancy_2': 'DB6',
+  'pregnancy_2_3': 'DB6',
 };
 
 /**
  * Маппинг PDF разверток обложек для детей (kids)
- * Ключ - ID альбома, значение - объект с путями к PDF разверткам (твердый переплет и пружина)
- * Используются развертки DFA{номер}_{тип}.pdf из папки albums
+ * Ключ - ID альбома, значение - объект с именами папок PDF разверток (твердый переплет и пружина)
+ * PDF файлы загружаются динамически, так как их нет в папке albums
+ * Используются папки DFA{номер}_{тип} из папки albums
  */
-const KIDS_COVER_PDF_MAPPING: Record<string, { hard?: any; soft?: any }> = {
-  'dfa_5': { hard: require('../albums/DFA5_твердый переплет.pdf'), soft: require('../albums/DFA5_пружина.pdf') },
-  'dfa_7': { hard: require('../albums/DFA7_твердый переплет.pdf'), soft: require('../albums/DFA7_пружина.pdf') },
-  'dfa_8': { hard: require('../albums/DFA8_твердый переплет.pdf'), soft: require('../albums/DFA8_пружина.pdf') },
-  'dfa_9': { hard: require('../albums/DFA9_твердый переплет.pdf'), soft: require('../albums/DFA9_пружина.pdf') },
-  'dfa_12': { hard: require('../albums/DFA12_твердый переплет.pdf'), soft: require('../albums/DFA12_пружина.pdf') },
-  'dfa_14': { hard: undefined, soft: undefined }, // Нет файла в папке albums
-  'dfa_15': { hard: require('../albums/DFA15_твердый переплет.pdf'), soft: require('../albums/DFA15_пружина.pdf') },
-  'dfa_16': { hard: require('../albums/DFA16_твердый переплет.pdf'), soft: require('../albums/DFA16_пружина.pdf') },
-  'dfa_19': { hard: require('../albums/DFA19_твердый переплет.pdf'), soft: require('../albums/DFA19_пружина.pdf') },
-  'dfa_21': { hard: require('../albums/DFA21_твердый переплет.pdf'), soft: require('../albums/DFA21_пружина.pdf') },
-  'dfa_22': { hard: require('../albums/DFA22_твердый переплет.pdf'), soft: require('../albums/DFA22_пружина.pdf') },
-  'dfa_23': { hard: require('../albums/DFA23_твердый переплет.pdf'), soft: require('../albums/DFA23_пружина.pdf') },
-  'dfa_24': { hard: require('../albums/DFA24_твердый переплет.pdf'), soft: require('../albums/DFA24_пружина.pdf') },
-  'dfa_25': { hard: require('../albums/DFA25_твердый переплет.pdf'), soft: require('../albums/DFA25_пружина.pdf') },
-  'dfa_26': { hard: require('../albums/DFA26_твердый переплет.pdf'), soft: require('../albums/DFA26_пружина.pdf') },
-  'dfa_27': { hard: require('../albums/DFA27_твердый переплет.pdf'), soft: require('../albums/DFA27_пружина.pdf') },
-  'dfa_28': { hard: require('../albums/DFA28_твердый переплет.pdf'), soft: require('../albums/DFA28_пружина.pdf') },
-  'dfa_29': { hard: require('../albums/DFA29_твердый переплет.pdf'), soft: require('../albums/DFA29_пружина.pdf') },
-  'dfa_30': { hard: require('../albums/DFA30_твердый переплет.pdf'), soft: require('../albums/DFA30_пружина.pdf') },
-  'dfa_31': { hard: require('../albums/DFA31_твердый переплет.pdf'), soft: require('../albums/DFA31_пружина.pdf') },
-  'dfa_43': { hard: require('../albums/dfa43_твердый переплет.pdf'), soft: require('../albums/dfa43_пружина.pdf') },
-  'dfa_46': { hard: require('../albums/DFA46_твердый переплет.pdf'), soft: require('../albums/DFA46_пружина.pdf') },
-  'dfa_47': { hard: require('../albums/DFA47_твердый переплет.pdf'), soft: require('../albums/DFA47_пружина.pdf') },
-  'dfa_50': { hard: require('../albums/DFA50_твердый переплет.pdf'), soft: require('../albums/DFA50_пружина.pdf') },
-  'dfa_52': { hard: require('../albums/DFA52_твердый переплет.pdf'), soft: require('../albums/DFA52_пружина.pdf') },
-  'dfa_53': { hard: require('../albums/DFA53_твердый переплет.pdf'), soft: require('../albums/DFA53_пружина.pdf') },
-  'dfa_57': { hard: undefined, soft: undefined }, // Нет файла в папке albums
-  'dfa_59': { hard: require('../albums/DFA59_твердый переплет.pdf'), soft: require('../albums/DFA59_пружина.pdf') },
-  'dfa_60': { hard: require('../albums/DFA60_твердый переплет.pdf'), soft: require('../albums/DFA60_пружина.pdf') },
-  'dfa_71': { hard: require('../albums/DFA71_твердый переплет.pdf'), soft: require('../albums/DFA71_пружина.pdf') },
-  'dfa_72': { hard: require('../albums/DFA72_твердый переплет.pdf'), soft: require('../albums/DFA72_пружина.pdf') },
-  'dfa_74': { hard: require('../albums/DFA74_твердый переплет.pdf'), soft: require('../albums/DFA74_пружина.pdf') },
-  'dfa_205': { hard: require('../albums/DFA205_твердый переплет.pdf'), soft: require('../albums/DFA205_пружина.pdf') },
-  'dfa_206': { hard: require('../albums/DFA206_твердый переплет.pdf'), soft: require('../albums/DFA206_пружина.pdf') },
-  'dfa_207': { hard: require('../albums/DFA207_твердый переплет.pdf'), soft: require('../albums/DFA207_пружина.pdf') },
-  'dfa_208': { hard: require('../albums/DFA208_твердый переплет.pdf'), soft: require('../albums/DFA208_пружина.pdf') },
-  'dfa_300': { hard: undefined, soft: undefined }, // Нет файла в папке albums
-  'dfa_301': { hard: require('../albums/DFA301_твердый переплет.pdf'), soft: require('../albums/DFA301_пружина.pdf') },
-  'dfa_302': { hard: require('../albums/DFA302_твердый переплет.pdf'), soft: require('../albums/DFA302_пружина.pdf') },
-  'dfa_304': { hard: require('../albums/DFA304_твердый переплет.pdf'), soft: require('../albums/DFA304_пружина.pdf') },
-  'dfa_305': { hard: require('../albums/DFA305_твердый переплет.pdf'), soft: require('../albums/DFA305_пружина.pdf') },
-  'dfa_306': { hard: require('../albums/DFA306_твердый переплет.pdf'), soft: require('../albums/DFA306_пружина.pdf') },
-  'dfa_307': { hard: require('../albums/DFA307_твердый переплет.pdf'), soft: require('../albums/DFA307_пружина.pdf') },
-  'dfa_308': { hard: undefined, soft: undefined }, // Нет файла в папке albums
-  'dfa_309': { hard: require('../albums/DFA309_твердый переплет.pdf'), soft: require('../albums/DFA309_пружина.pdf') },
+const KIDS_COVER_PDF_MAPPING: Record<string, { hard?: string | null; soft?: string | null }> = {
+  'dfa_5': { hard: 'DFA5_твердый переплет', soft: 'DFA5_пружина' },
+  'dfa_7': { hard: 'DFA7_твердый переплет', soft: 'DFA7_пружина' },
+  'dfa_8': { hard: 'DFA8_твердый переплет', soft: 'DFA8_пружина' },
+  'dfa_9': { hard: 'DFA9_твердый переплет', soft: 'DFA9_пружина' },
+  'dfa_12': { hard: 'DFA12_твердый переплет', soft: 'DFA12_пружина' },
+  'dfa_14': { hard: null, soft: null }, // Нет файла в папке albums
+  'dfa_15': { hard: 'DFA15_твердый переплет', soft: 'DFA15_пружина' },
+  'dfa_16': { hard: 'DFA16_твердый переплет', soft: 'DFA16_пружина' },
+  'dfa_19': { hard: 'DFA19_твердый переплет', soft: 'DFA19_пружина' },
+  'dfa_21': { hard: 'DFA21_твердый переплет', soft: 'DFA21_пружина' },
+  'dfa_22': { hard: 'DFA22_твердый переплет', soft: 'DFA22_пружина' },
+  'dfa_23': { hard: 'DFA23_твердый переплет', soft: 'DFA23_пружина' },
+  'dfa_24': { hard: 'DFA24_твердый переплет', soft: 'DFA24_пружина' },
+  'dfa_25': { hard: 'DFA25_твердый переплет', soft: 'DFA25_пружина' },
+  'dfa_26': { hard: 'DFA26_твердый переплет', soft: 'DFA26_пружина' },
+  'dfa_27': { hard: 'DFA27_твердый переплет', soft: 'DFA27_пружина' },
+  'dfa_28': { hard: 'DFA28_твердый переплет', soft: 'DFA28_пружина' },
+  'dfa_29': { hard: 'DFA29_твердый переплет', soft: 'DFA29_пружина' },
+  'dfa_30': { hard: 'DFA30_твердый переплет', soft: 'DFA30_пружина' },
+  'dfa_31': { hard: 'DFA31_твердый переплет', soft: 'DFA31_пружина' },
+  'dfa_43': { hard: 'dfa43_твердый переплет', soft: 'dfa43_пружина' },
+  'dfa_46': { hard: 'DFA46_твердый переплет', soft: 'DFA46_пружина' },
+  'dfa_47': { hard: 'DFA47_твердый переплет', soft: 'DFA47_пружина' },
+  'dfa_50': { hard: 'DFA50_твердый переплет', soft: 'DFA50_пружина' },
+  'dfa_52': { hard: 'DFA52_твердый переплет', soft: 'DFA52_пружина' },
+  'dfa_53': { hard: 'DFA53_твердый переплет', soft: 'DFA53_пружина' },
+  'dfa_57': { hard: null, soft: null }, // Нет файла в папке albums
+  'dfa_59': { hard: 'DFA59_твердый переплет', soft: 'DFA59_пружина' },
+  'dfa_60': { hard: 'DFA60_твердый переплет', soft: 'DFA60_пружина' },
+  'dfa_71': { hard: 'DFA71_твердый переплет', soft: 'DFA71_пружина' },
+  'dfa_72': { hard: 'DFA72_твердый переплет', soft: 'DFA72_пружина' },
+  'dfa_74': { hard: 'DFA74_твердый переплет', soft: 'DFA74_пружина' },
+  'dfa_205': { hard: 'DFA205_твердый переплет', soft: 'DFA205_пружина' },
+  'dfa_206': { hard: 'DFA206_твердый переплет', soft: 'DFA206_пружина' },
+  'dfa_207': { hard: 'DFA207_твердый переплет', soft: 'DFA207_пружина' },
+  'dfa_208': { hard: 'DFA208_твердый переплет', soft: 'DFA208_пружина' },
+  'dfa_300': { hard: null, soft: null }, // Нет файла в папке albums
+  'dfa_301': { hard: 'DFA301_твердый переплет', soft: 'DFA301_пружина' },
+  'dfa_302': { hard: 'DFA302_твердый переплет', soft: 'DFA302_пружина' },
+  'dfa_304': { hard: 'DFA304_твердый переплет', soft: 'DFA304_пружина' },
+  'dfa_305': { hard: 'DFA305_твердый переплет', soft: 'DFA305_пружина' },
+  'dfa_306': { hard: 'DFA306_твердый переплет', soft: 'DFA306_пружина' },
+  'dfa_307': { hard: 'DFA307_твердый переплет', soft: 'DFA307_пружина' },
+  'dfa_308': { hard: null, soft: null }, // Нет файла в папке albums
+  'dfa_309': { hard: 'DFA309_твердый переплет', soft: 'DFA309_пружина' },
 };
 
 /**
- * Получает PDF обложку для альбома беременности по ID альбома
+ * Получает имя папки PDF обложки для альбома беременности по ID альбома
  * @param albumId - ID альбома
- * @returns Путь к PDF обложке или null, если не найдено
+ * @returns Имя папки PDF обложки или null, если не найдено
  */
-export function getPregnancyCoverPdf(albumId: string | null): any | null {
+export function getPregnancyCoverPdf(albumId: string | null): string | null {
   if (!albumId) return null;
   
   // Прямой поиск в маппинге
@@ -112,12 +114,12 @@ export function isPregnancyAlbum(albumId: string | null): boolean {
 }
 
 /**
- * Получает PDF развертку обложки для альбома детей по ID альбома и типу обложки
+ * Получает имя папки PDF развертки обложки для альбома детей по ID альбома и типу обложки
  * @param albumId - ID альбома
  * @param coverType - Тип обложки: 'hard' (твердый переплет) или 'soft' (пружина)
- * @returns Путь к PDF развертке или null, если не найдено
+ * @returns Имя папки PDF развертки или null, если не найдено
  */
-export function getKidsCoverPdf(albumId: string | null, coverType: 'hard' | 'soft' = 'hard'): any | null {
+export function getKidsCoverPdf(albumId: string | null, coverType: 'hard' | 'soft' = 'hard'): string | null {
   if (!albumId) return null;
   
   // Нормализуем ID (dfa_7 -> dfa_7)
@@ -166,13 +168,16 @@ export function isKidsAlbum(albumId: string | null): boolean {
 }
 
 /**
- * Получает PDF развертку обложки для экспорта по ID альбома, категории и типу обложки
+ * Получает имя папки PDF развертки обложки для экспорта по ID альбома, категории и типу обложки
  * @param albumId - ID альбома
  * @param category - Категория альбома (опционально)
  * @param coverType - Тип обложки: 'hard' (твердый переплет) или 'soft' (пружина) (опционально)
- * @returns Путь к PDF развертке или null
+ * @returns Имя папки PDF развертки или null
+ * 
+ * Примечание: PDF файлы не существуют в папке albums, поэтому возвращается имя папки.
+ * Фактическая загрузка PDF должна происходить динамически или через другой механизм.
  */
-export function getCoverPdfForExport(albumId: string | null, category?: string, coverType: 'hard' | 'soft' = 'hard'): any | null {
+export function getCoverPdfForExport(albumId: string | null, category?: string, coverType: 'hard' | 'soft' = 'hard'): string | null {
   if (!albumId) return null;
   
   // Для беременности используем специальный маппинг PDF разверток

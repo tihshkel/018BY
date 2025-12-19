@@ -7,6 +7,7 @@ import {
   Platform,
   Dimensions,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,10 +20,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageViewer from '@/components/image-viewer';
+import CoverViewer from '@/components/cover-viewer';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { getAlbumTemplateById } from '@/albums';
 import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
-import { Annotation } from '@/components/pdf-annotations';
+import { Annotation, PdfAnnotationsRef } from '@/components/pdf-annotations';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -45,6 +47,12 @@ export default function EditAlbumScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentTool, setCurrentTool] = useState<'text' | 'image' | 'drawing' | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [viewMode, setViewMode] = useState<'pages' | 'cover'>('pages');
+  const [coverAnnotations, setCoverAnnotations] = useState<Annotation[]>([]);
+  const [isAddingText, setIsAddingText] = useState(false);
+  const [editingTextAnnotationId, setEditingTextAnnotationId] = useState<string | null>(null);
+  const [currentTextAnnotation, setCurrentTextAnnotation] = useState<Annotation | null>(null);
+  const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const containerOpacity = useSharedValue(0);
 
   useEffect(() => {
@@ -138,6 +146,12 @@ export default function EditAlbumScreen() {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
           setAnnotations(JSON.parse(savedAnnotations));
+        }
+        
+        // Загружаем аннотации обложки
+        const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
+        if (savedCoverAnnotations) {
+          setCoverAnnotations(JSON.parse(savedCoverAnnotations));
         }
       }
       
@@ -246,12 +260,14 @@ export default function EditAlbumScreen() {
       // Сохраняем текущие изображения и аннотации
       await AsyncStorage.setItem(`@project_images_${tempProjectId}`, JSON.stringify(images));
       await AsyncStorage.setItem(`@project_annotations_${tempProjectId}`, JSON.stringify(annotations));
+      await AsyncStorage.setItem(`@project_cover_annotations_${tempProjectId}`, JSON.stringify(coverAnnotations));
       
       router.push(`/export-pdf?id=${tempProjectId}`);
     } else {
       // Сохраняем текущие данные перед экспортом
       await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
       await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
+      await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
       
       router.push(`/export-pdf?id=${id}`);
     }
@@ -327,6 +343,39 @@ export default function EditAlbumScreen() {
 
   const handleToolReset = () => {
     setCurrentTool(null);
+    setIsAddingText(false);
+    setEditingTextAnnotationId(null);
+    setCurrentTextAnnotation(null);
+  };
+
+  const handleTextEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
+    setIsAddingText(isEditing);
+    setEditingTextAnnotationId(annotationId);
+    
+    if (annotationId) {
+      // Находим текущую аннотацию для отображения в верхней панели
+      const annotation = viewMode === 'cover' 
+        ? coverAnnotations.find(ann => ann.id === annotationId)
+        : annotations.find(ann => ann.id === annotationId);
+      setCurrentTextAnnotation(annotation || null);
+    } else {
+      setCurrentTextAnnotation(null);
+    }
+  };
+
+  const handleColorButtonPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    annotationsRef.current?.openColorPicker?.();
+  };
+
+  const handleFontSizeButtonPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    annotationsRef.current?.openFontSizePicker?.();
+  };
+
+  const handleFontButtonPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    annotationsRef.current?.openFontPicker?.();
   };
 
   const handleToggleEdit = () => {
@@ -334,6 +383,63 @@ export default function EditAlbumScreen() {
     setIsEditing(prev => !prev);
     if (isEditing) {
       setCurrentTool(null);
+      // При выходе из режима редактирования сохраняем аннотации обложки
+      if (viewMode === 'cover' && id) {
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+      }
+    }
+  };
+
+  const handleViewModeToggle = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    if (viewMode === 'pages') {
+      // Переключаемся на обложку - сохраняем аннотации страниц
+      if (id) {
+        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
+      }
+      setViewMode('cover');
+    } else {
+      // Переключаемся на страницы - сохраняем аннотации обложки
+      if (id) {
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+      }
+      setViewMode('pages');
+    }
+    // Сбрасываем инструмент при переключении режимов
+    setCurrentTool(null);
+  };
+
+  const handleCoverAnnotationAdd = (annotation: Annotation) => {
+    const newAnnotation = { ...annotation, page: 'cover' };
+    const updatedAnnotations = [...coverAnnotations, newAnnotation];
+    setCoverAnnotations(updatedAnnotations);
+    
+    // Сохраняем аннотации обложки
+    if (id) {
+      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
+    }
+  };
+
+  const handleCoverAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
+    const updatedAnnotations = coverAnnotations.map(ann =>
+      ann.id === annotationId ? { ...ann, ...updates } : ann
+    );
+    setCoverAnnotations(updatedAnnotations);
+    
+    // Сохраняем аннотации обложки
+    if (id) {
+      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
+    }
+  };
+
+  const handleCoverAnnotationDelete = (annotationId: string) => {
+    const updatedAnnotations = coverAnnotations.filter(ann => ann.id !== annotationId);
+    setCoverAnnotations(updatedAnnotations);
+    
+    // Сохраняем аннотации обложки
+    if (id) {
+      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
     }
   };
 
@@ -445,11 +551,16 @@ export default function EditAlbumScreen() {
           
           <View style={styles.titleContainer}>
             <Text style={styles.albumTitle} numberOfLines={1}>
-              {albumName || getCelebrationTitle(celebration || '')}
+              {viewMode === 'cover' ? 'Развертка обложки' : (albumName || getCelebrationTitle(celebration || ''))}
             </Text>
-            {!isLoading && images.length > 0 && (
+            {!isLoading && images.length > 0 && viewMode === 'pages' && (
               <Text style={styles.pageInfo}>
                 Страница {currentPage} из {totalPages}
+              </Text>
+            )}
+            {viewMode === 'cover' && (
+              <Text style={styles.pageInfo}>
+                Редактирование развертки
               </Text>
             )}
           </View>
@@ -466,8 +577,8 @@ export default function EditAlbumScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Панель масштабирования */}
-        {!isLoading && images.length > 0 && (
+        {/* Панель масштабирования - показывается только когда не добавляется текст */}
+        {!isLoading && images.length > 0 && viewMode === 'pages' && !isAddingText && (
           <View style={styles.zoomControls}>
             <TouchableOpacity
               style={styles.zoomButton}
@@ -502,9 +613,69 @@ export default function EditAlbumScreen() {
           </View>
         )}
 
-        {/* Image Viewer */}
+        {/* Панель редактирования текста - показывается только когда добавляется текст */}
+        {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && (
+          <View style={styles.textEditControlsPanel}>
+            {/* Кнопка цвета */}
+            <TouchableOpacity
+              style={styles.textEditControlButton}
+              onPress={handleColorButtonPress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Изменить цвет текста"
+            >
+              <View style={[styles.textColorPreview, { backgroundColor: currentTextAnnotation.color || '#000000' }]} />
+              <Text style={styles.textEditControlButtonText}>Цвет</Text>
+            </TouchableOpacity>
+            
+            {/* Кнопка размера */}
+            <TouchableOpacity
+              style={styles.textEditControlButton}
+              onPress={handleFontSizeButtonPress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Изменить размер шрифта"
+            >
+              <Ionicons name="text-outline" size={18} color="#8B6F5F" />
+              <Text style={styles.textEditControlButtonText}>{currentTextAnnotation.fontSize || 16}px</Text>
+            </TouchableOpacity>
+            
+            {/* Кнопка шрифта */}
+            <TouchableOpacity
+              style={styles.textEditControlButton}
+              onPress={handleFontButtonPress}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Изменить шрифт"
+            >
+              <Ionicons name="brush-outline" size={18} color="#8B6F5F" />
+              <Text style={styles.textEditControlButtonText} numberOfLines={1}>
+                {currentTextAnnotation.fontFamily ? 
+                  (currentTextAnnotation.fontFamily === 'default' ? 'Системный' : currentTextAnnotation.fontFamily) : 
+                  'Системный'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Image Viewer или Cover Viewer */}
         <View style={styles.pdfContainer}>
-          {isLoading ? (
+          {viewMode === 'cover' ? (
+            <CoverViewer
+              albumId={coverType || albumId}
+              category={celebration}
+              coverType={coverType}
+              annotations={coverAnnotations}
+              onAnnotationAdd={handleCoverAnnotationAdd}
+              onAnnotationUpdate={handleCoverAnnotationUpdate}
+              onAnnotationDelete={handleCoverAnnotationDelete}
+              isEditing={isEditing}
+              currentTool={currentTool}
+              onToolReset={handleToolReset}
+              onTextEditingStateChange={handleTextEditingStateChange}
+              annotationsRef={annotationsRef}
+            />
+          ) : isLoading ? (
             <PdfSkeletonLoader />
           ) : images.length > 0 ? (
             <ImageViewer
@@ -521,6 +692,9 @@ export default function EditAlbumScreen() {
               onPageDuplicate={handlePageDuplicate}
               onPageDelete={handlePageDelete}
               onToolReset={handleToolReset}
+              onTextEditingStateChange={handleTextEditingStateChange}
+              annotationsRef={annotationsRef}
+              zoomLevel={zoomLevel}
             />
           ) : (
             <View style={styles.errorContainer}>
@@ -545,7 +719,12 @@ export default function EditAlbumScreen() {
 
         {/* Нижняя панель инструментов */}
         <View style={styles.bottomPanel}>
-          <View style={styles.toolsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.toolsContainer}
+            style={styles.toolsScrollView}
+          >
             <TouchableOpacity
               style={[
                 styles.toolButton,
@@ -564,7 +743,10 @@ export default function EditAlbumScreen() {
                   color={isEditing ? '#FFFFFF' : '#C9A89A'} 
                 />
               </View>
-              <Text style={[styles.toolButtonText, isEditing && styles.toolButtonTextActive]}>
+              <Text 
+                style={[styles.toolButtonText, isEditing && styles.toolButtonTextActive]}
+                numberOfLines={1}
+              >
                 {isEditing ? 'Готово' : 'Редактировать'}
               </Text>
             </TouchableOpacity>
@@ -574,49 +756,111 @@ export default function EditAlbumScreen() {
                 <TouchableOpacity
                   style={[
                     styles.toolButton,
-                    currentTool === 'text' && styles.toolButtonActive
+                    viewMode === 'cover' && styles.toolButtonActive
                   ]}
-                  onPress={() => handleToolSelect('text')}
+                  onPress={handleViewModeToggle}
                   activeOpacity={0.8}
                   accessibilityRole="button"
-                  accessibilityLabel="Добавить текст"
+                  accessibilityLabel={viewMode === 'cover' ? "Переключить на страницы" : "Переключить на обложку"}
                 >
                   <View style={styles.toolIconContainer}>
                     <Ionicons 
-                      name="text-outline" 
+                      name={viewMode === 'cover' ? "book-outline" : "book"} 
                       size={22} 
-                      color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
+                      color={viewMode === 'cover' ? '#FFFFFF' : '#8B6F5F'} 
                     />
                   </View>
-                  <Text style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}>
-                    Текст
+                  <Text 
+                    style={[styles.toolButtonText, viewMode === 'cover' && styles.toolButtonTextActive]}
+                    numberOfLines={1}
+                  >
+                    Обложка
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[
-                    styles.toolButton,
-                    currentTool === 'image' && styles.toolButtonActive
-                  ]}
-                  onPress={() => handleToolSelect('image')}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Добавить фото"
-                >
-                  <View style={styles.toolIconContainer}>
-                    <Ionicons 
-                      name="image-outline" 
-                      size={22} 
-                      color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
-                    />
-                  </View>
-                  <Text style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}>
-                    Фото
-                  </Text>
-                </TouchableOpacity>
+                {viewMode === 'pages' && (
+                  <>
+                    <TouchableOpacity
+                      style={[
+                        styles.toolButton,
+                        currentTool === 'text' && styles.toolButtonActive
+                      ]}
+                      onPress={() => handleToolSelect('text')}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Добавить текст"
+                    >
+                      <View style={styles.toolIconContainer}>
+                        <Ionicons 
+                          name="text-outline" 
+                          size={22} 
+                          color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
+                        />
+                      </View>
+                      <Text 
+                        style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
+                        numberOfLines={1}
+                      >
+                        Текст
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.toolButton,
+                        currentTool === 'image' && styles.toolButtonActive
+                      ]}
+                      onPress={() => handleToolSelect('image')}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Добавить фото"
+                    >
+                      <View style={styles.toolIconContainer}>
+                        <Ionicons 
+                          name="image-outline" 
+                          size={22} 
+                          color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
+                        />
+                      </View>
+                      <Text 
+                        style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}
+                        numberOfLines={1}
+                      >
+                        Фото
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
+                {viewMode === 'cover' && (
+                  <TouchableOpacity
+                    style={[
+                      styles.toolButton,
+                      currentTool === 'text' && styles.toolButtonActive
+                    ]}
+                    onPress={() => handleToolSelect('text')}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Добавить текст"
+                  >
+                    <View style={styles.toolIconContainer}>
+                      <Ionicons 
+                        name="text-outline" 
+                        size={22} 
+                        color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
+                      />
+                    </View>
+                    <Text 
+                      style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
+                      numberOfLines={1}
+                    >
+                      Текст
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </>
             )}
-          </View>
+          </ScrollView>
         </View>
       </Animated.View>
     </SafeAreaView>
@@ -785,6 +1029,91 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
   },
+  textEditControlsPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F0EB',
+    gap: 20,
+  },
+  textEditControlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
+    minWidth: 80,
+  },
+  textColorPreview: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8D5C7',
+  },
+  textEditControlButtonText: {
+    fontSize: 14,
+    color: '#8B6F5F',
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  textEditControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  textControlButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  colorPreviewButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8D5C7',
+  },
+  textControlButtonText: {
+    fontSize: 12,
+    color: '#8B6F5F',
+    fontWeight: '500',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
   pdfContainer: {
     flex: 1,
     backgroundColor: '#FAF8F5',
@@ -873,17 +1202,20 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
+  toolsScrollView: {
+    flexGrow: 0,
+  },
   toolsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 4,
     gap: 12,
   },
   toolButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
     paddingVertical: 14,
     paddingHorizontal: 16,
     backgroundColor: '#FAF8F5',

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import PdfAnnotations, { Annotation } from './pdf-annotations';
+import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
 import * as ImagePicker from 'expo-image-picker';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -31,6 +31,9 @@ interface ImageViewerProps {
   onPageDuplicate?: (pageIndex: number) => void;
   onPageDelete?: (pageIndex: number) => void;
   onToolReset?: () => void; // Callback для сброса инструмента
+  onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void; // Callback для отслеживания состояния редактирования текста
+  annotationsRef?: React.RefObject<PdfAnnotationsRef>; // Ref для доступа к методам PdfAnnotations
+  zoomLevel?: number; // Уровень масштабирования
 }
 
 export default function ImageViewer({
@@ -47,6 +50,9 @@ export default function ImageViewer({
   onPageDuplicate,
   onPageDelete,
   onToolReset,
+  onTextEditingStateChange,
+  annotationsRef: externalAnnotationsRef,
+  zoomLevel = 1,
 }: ImageViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
@@ -54,7 +60,8 @@ export default function ImageViewer({
   const [selectedPageIndex, setSelectedPageIndex] = useState<number | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
-  const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
+  const internalAnnotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
+  const annotationsRef = externalAnnotationsRef || internalAnnotationsRef;
   const scrollViewRef = React.useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -126,6 +133,8 @@ export default function ImageViewer({
   const handleEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
     setIsTextEditing(isEditing);
     setEditingAnnotationId(annotationId);
+    // Передаем состояние редактирования в родительский компонент
+    onTextEditingStateChange?.(isEditing, annotationId);
   };
 
   const handleImageLongPress = (pageIndex: number) => {
@@ -257,6 +266,11 @@ export default function ImageViewer({
           const pageAnnotations = annotations.filter(
             (ann) => (ann.page || 1) === pageNumber
           );
+          
+          // Определяем, редактируется ли текст на этой странице
+          const isEditingOnThisPage = editingAnnotationId 
+            ? pageAnnotations.some(ann => ann.id === editingAnnotationId)
+            : false;
 
           return (
             <View 
@@ -267,40 +281,67 @@ export default function ImageViewer({
                 index === images.length - 1 && styles.lastPageContainer
               ]}
             >
-              <TouchableOpacity
-                style={styles.imageContainer}
-                activeOpacity={1}
-                onPress={(e) => {
-                  const { locationX, locationY } = e.nativeEvent;
-                  handleImagePress(locationX, locationY);
-                }}
-                onLongPress={() => handleImageLongPress(index)}
-                delayLongPress={500}
-              >
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.image}
-                  contentFit="contain"
-                  contentPosition="center"
-                  transition={200}
-                  cachePolicy="disk"
-                  priority={index < 3 ? 'high' : 'normal'}
-                />
-              </TouchableOpacity>
+              <View style={styles.zoomContainer}>
+                <TouchableOpacity
+                  style={styles.imageContainer}
+                  activeOpacity={1}
+                  onPress={(e) => {
+                    // Корректируем координаты с учетом масштаба
+                    const { locationX, locationY } = e.nativeEvent;
+                    handleImagePress(locationX / zoomLevel, locationY / zoomLevel);
+                  }}
+                  onLongPress={() => handleImageLongPress(index)}
+                  delayLongPress={500}
+                >
+                  <View
+                    style={{
+                      width: SCREEN_WIDTH,
+                      height: containerHeight,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      transform: [{ scale: zoomLevel }],
+                    }}
+                  >
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.image}
+                      contentFit="contain"
+                      contentPosition="center"
+                      transition={200}
+                      cachePolicy="disk"
+                      priority={index < 3 ? 'high' : 'normal'}
+                    />
+                  </View>
+                </TouchableOpacity>
 
-              {/* Аннотации для этой страницы */}
-              {pageAnnotations.length > 0 && (
-                <PdfAnnotations
-                  ref={annotationsRef}
-                  annotations={pageAnnotations}
-                  onAnnotationAdd={onAnnotationAdd || (() => {})}
-                  onAnnotationUpdate={onAnnotationUpdate || (() => {})}
-                  onAnnotationDelete={onAnnotationDelete || (() => {})}
-                  isEditing={isEditing}
-                  currentTool={currentTool}
-                  onEditingStateChange={handleEditingStateChange}
-                />
-              )}
+                {/* Аннотации для этой страницы */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: SCREEN_WIDTH,
+                    height: containerHeight,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    transform: [{ scale: zoomLevel }],
+                  }}
+                >
+                  <PdfAnnotations
+                    ref={isEditingOnThisPage ? annotationsRef : null}
+                    annotations={pageAnnotations}
+                    onAnnotationAdd={onAnnotationAdd || (() => {})}
+                    onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                    onAnnotationDelete={onAnnotationDelete || (() => {})}
+                    isEditing={isEditing}
+                    currentTool={currentTool}
+                    onEditingStateChange={handleEditingStateChange}
+                    zoomLevel={zoomLevel}
+                  />
+                </View>
+              </View>
             </View>
           );
         })}
@@ -386,6 +427,21 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     marginBottom: 0,
     borderBottomWidth: 0,
+    overflow: 'hidden',
+  },
+  zoomContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  zoomWrapper: {
+    width: SCREEN_WIDTH,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
   lastPageContainer: {
     paddingBottom: 0,

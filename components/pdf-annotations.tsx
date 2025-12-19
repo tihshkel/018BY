@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useFonts } from 'expo-font';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -34,6 +35,31 @@ const APP_COLORS = [
 // Размеры шрифта
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
 
+// Доступные шрифты из папки assets/fonts
+export interface FontOption {
+  id: string;
+  name: string;
+  file: any; // require() модуль
+  displayName: string;
+}
+
+export const AVAILABLE_FONTS: FontOption[] = [
+  { id: 'default', name: 'System', file: null, displayName: 'Системный' },
+  { id: 'AmaticSC-Regular', name: 'AmaticSC-Regular', file: require('@/assets/fonts/AmaticSC-Regular.ttf'), displayName: 'Amatic SC' },
+  { id: 'AmaticSC-Bold', name: 'AmaticSC-Bold', file: require('@/assets/fonts/AmaticSC-Bold.ttf'), displayName: 'Amatic SC Bold' },
+  { id: 'inspiration', name: 'inspiration', file: require('@/assets/fonts/inspiration.ttf'), displayName: 'Inspiration' },
+  { id: 'Nefelibata-Brush', name: 'Nefelibata-Brush', file: require('@/assets/fonts/Nefelibata-Brush.otf'), displayName: 'Nefelibata Brush' },
+  { id: 'Nefelibata-BrushCanvas', name: 'Nefelibata-BrushCanvas', file: require('@/assets/fonts/Nefelibata-BrushCanvas.otf'), displayName: 'Nefelibata Brush Canvas' },
+  { id: 'Nefelibata-Extras', name: 'Nefelibata-Extras', file: require('@/assets/fonts/Nefelibata-Extras.otf'), displayName: 'Nefelibata Extras' },
+  { id: 'Nefelibata-PenSans', name: 'Nefelibata-PenSans', file: require('@/assets/fonts/Nefelibata-PenSans.otf'), displayName: 'Nefelibata Pen Sans' },
+  { id: 'Nefelibata-Sans', name: 'Nefelibata-Sans', file: require('@/assets/fonts/Nefelibata-Sans.otf'), displayName: 'Nefelibata Sans' },
+  { id: 'Nefelibata-SansCanvas', name: 'Nefelibata-SansCanvas', file: require('@/assets/fonts/Nefelibata-SansCanvas.otf'), displayName: 'Nefelibata Sans Canvas' },
+  { id: 'Nefelibata-SansCd', name: 'Nefelibata-SansCd', file: require('@/assets/fonts/Nefelibata-SansCd.otf'), displayName: 'Nefelibata Sans Cd' },
+  { id: 'Nefelibata-SansCdCanvas', name: 'Nefelibata-SansCdCanvas', file: require('@/assets/fonts/Nefelibata-SansCdCanvas.otf'), displayName: 'Nefelibata Sans Cd Canvas' },
+  { id: 'Nefelibata-Script', name: 'Nefelibata-Script', file: require('@/assets/fonts/Nefelibata-Script.otf'), displayName: 'Nefelibata Script' },
+  { id: 'SvyaznoyRF', name: 'SvyaznoyRF', file: require('@/assets/fonts/SvyaznoyRF.ttf'), displayName: 'Svyaznoy RF' },
+];
+
 export interface Annotation {
   id: string;
   type: 'text' | 'image' | 'drawing';
@@ -45,12 +71,16 @@ export interface Annotation {
   imageUri?: string;
   color?: string;
   fontSize?: number;
+  fontFamily?: string; // ID шрифта из AVAILABLE_FONTS
   zIndex: number;
-  page?: number;
+  page?: number | string;
 }
 
 export interface PdfAnnotationsRef {
   closeEditing: () => void;
+  openColorPicker: () => void;
+  openFontSizePicker: () => void;
+  openFontPicker: () => void;
 }
 
 interface PdfAnnotationsProps {
@@ -61,6 +91,7 @@ interface PdfAnnotationsProps {
   isEditing: boolean;
   currentTool: 'text' | 'image' | 'drawing' | null;
   onEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void;
+  zoomLevel?: number; // Уровень масштабирования
 }
 
 const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(({
@@ -71,17 +102,33 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   isEditing,
   currentTool,
   onEditingStateChange,
+  zoomLevel = 1,
 }, ref) => {
+  // Загружаем все шрифты через expo-font
+  const [fontsLoaded] = useFonts(
+    AVAILABLE_FONTS.reduce((acc, font) => {
+      if (font.file && font.id !== 'default') {
+        acc[font.name] = font.file;
+      }
+      return acc;
+    }, {} as Record<string, any>)
+  );
+
   const [editingAnnotation, setEditingAnnotation] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSizePicker, setShowFontSizePicker] = useState(false);
+  const [showFontPicker, setShowFontPicker] = useState(false);
   const [showZIndexMenu, setShowZIndexMenu] = useState(false);
   const [zIndexAnnotationId, setZIndexAnnotationId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingWhileEditing, setIsDraggingWhileEditing] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const panResponders = useRef<{ [key: string]: any }>({});
+  const editingDragResponder = useRef<any>(null);
+  const editingDragStartPos = useRef<{ x: number; y: number } | null>(null);
+  const editingDragState = useRef<{ startX: number; startY: number; isDraggingStarted: boolean } | null>(null);
 
   // Автоматически открываем редактирование для нового текста
   useEffect(() => {
@@ -98,6 +145,23 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   // Уведомляем родительский компонент об изменении состояния редактирования
   useEffect(() => {
     onEditingStateChange?.(!!editingAnnotation, editingAnnotation);
+  }, [editingAnnotation]);
+
+  // Обновляем editingText при открытии редактирования (для сохранения текста при повторном открытии)
+  const previousEditingAnnotation = useRef<string | null>(null);
+  useEffect(() => {
+    if (editingAnnotation && editingAnnotation !== previousEditingAnnotation.current) {
+      // Открывается новое редактирование - загружаем текст из аннотации
+      const annotation = annotations.find(ann => ann.id === editingAnnotation);
+      if (annotation && annotation.type === 'text') {
+        // Загружаем текущий текст из аннотации при открытии редактирования
+        // Это позволяет продолжить редактирование существующего текста
+        setEditingText(annotation.content || '');
+      }
+      previousEditingAnnotation.current = editingAnnotation;
+    } else if (!editingAnnotation) {
+      previousEditingAnnotation.current = null;
+    }
   }, [editingAnnotation]);
 
   // Отслеживаем видимость клавиатуры
@@ -135,8 +199,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     let pressStartY = 0;
 
     const panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => {
+      onStartShouldSetPanResponder: (evt) => {
         // Для текста - только если не редактируется
+        if (annotation.type === 'text' && editingAnnotation === annotation.id) {
+          return false;
+        }
+        // Активируем PanResponder сразу для возможности перетаскивания
+        return isEditing;
+      },
+      onStartShouldSetPanResponderCapture: () => {
+        // Перехватываем события для более быстрой реакции
         if (annotation.type === 'text' && editingAnnotation === annotation.id) {
           return false;
         }
@@ -149,17 +221,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         }
         
         // Начинаем перетаскивание только если движение достаточно большое
-        // Уменьшаем порог для более отзывчивого перетаскивания
         if (isEditing && !isDraggingStarted) {
           const { dx, dy } = gestureState;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          // Уменьшили порог с 10 до 5 пикселей для более быстрого начала перетаскивания
+          // Порог 5 пикселей - чтобы отличить перетаскивание от обычного тапа
           if (distance > 5) {
             isDraggingStarted = true;
             setIsDragging(true);
-            // Отменяем выбор при начале перетаскивания
-            if (selectedAnnotation === annotation.id) {
-              setSelectedAnnotation(null);
+            // При начале перетаскивания выбираем текст для показа прямоугольника
+            if (annotation.type === 'text') {
+              setSelectedAnnotation(annotation.id);
             }
             return true;
           }
@@ -172,12 +243,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         pressStartTime = Date.now();
         pressStartX = evt.nativeEvent.pageX;
         pressStartY = evt.nativeEvent.pageY;
-        // Не выбираем аннотацию сразу - только если не началось перетаскивание
+        // Не выбираем текст сразу - будем различать тап и перетаскивание
       },
       onPanResponderMove: (evt, gestureState) => {
         if (isEditing && isDraggingStarted) {
-          const newX = Math.max(0, Math.min(startX + gestureState.dx, SCREEN_WIDTH - annotation.width));
-          const newY = Math.max(0, Math.min(startY + gestureState.dy, SCREEN_HEIGHT - annotation.height));
+          const newX = Math.max(0, Math.min(startX + gestureState.dx, SCREEN_WIDTH - (annotation.width || 200)));
+          const newY = Math.max(0, Math.min(startY + gestureState.dy, SCREEN_HEIGHT - (annotation.height || 40)));
           onAnnotationUpdate(annotation.id, { x: newX, y: newY });
         }
       },
@@ -188,17 +259,25 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           Math.pow(evt.nativeEvent.pageY - pressStartY, 2)
         );
         
-        // Если это был короткий тап без движения - выбираем аннотацию (но не открываем редактор)
+        // Если это был короткий тап без движения - открываем редактирование
         if (!isDraggingStarted && pressDuration < 300 && pressDistance < 10) {
           if (annotation.type === 'text') {
-            // Для текста - просто выбираем, не открываем редактор
+            // Короткий тап - открываем редактирование текста
+            setEditingAnnotation(annotation.id);
+            setEditingText(annotation.content || '');
+            setSelectedAnnotation(null);
+          } else {
+            setSelectedAnnotation(annotation.id);
+          }
+        } else if (isDraggingStarted) {
+          // После перетаскивания выбираем текст (показываем прямоугольник)
+          if (annotation.type === 'text') {
             setSelectedAnnotation(annotation.id);
           } else {
             setSelectedAnnotation(annotation.id);
           }
         }
         
-        setSelectedAnnotation(prev => prev === annotation.id ? prev : null);
         setIsDragging(false);
         isDraggingStarted = false;
       },
@@ -272,6 +351,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       onAnnotationUpdate(editingAnnotation, { content: editingText });
       setEditingAnnotation(null);
       setEditingText('');
+      setIsDraggingWhileEditing(false);
+      editingDragResponder.current = null;
+      editingDragState.current = null;
       onEditingStateChange?.(false, null);
     }
   };
@@ -279,6 +361,21 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   // Публичная функция для закрытия редактирования извне
   React.useImperativeHandle(ref, () => ({
     closeEditing: handleCloseEditing,
+    openColorPicker: () => {
+      if (editingAnnotation) {
+        setShowColorPicker(true);
+      }
+    },
+    openFontSizePicker: () => {
+      if (editingAnnotation) {
+        setShowFontSizePicker(true);
+      }
+    },
+    openFontPicker: () => {
+      if (editingAnnotation) {
+        setShowFontPicker(true);
+      }
+    },
   }), [editingAnnotation, editingText, onAnnotationUpdate, onEditingStateChange]);
 
   const handleColorSelect = (color: string) => {
@@ -292,6 +389,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     if (editingAnnotation) {
       onAnnotationUpdate(editingAnnotation, { fontSize: size });
       setShowFontSizePicker(false);
+    }
+  };
+
+  const handleFontSelect = (fontId: string) => {
+    if (editingAnnotation) {
+      onAnnotationUpdate(editingAnnotation, { fontFamily: fontId });
+      setShowFontPicker(false);
     }
   };
 
@@ -316,18 +420,114 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     setZIndexAnnotationId(null);
   };
 
+  // Создаем PanResponder для перетаскивания во время редактирования
+  const createEditingDragResponder = (annotation: Annotation) => {
+    // Создаем PanResponder всегда, когда редактируется текст
+    // Он будет активен только когда isDraggingWhileEditing === true
+
+    // Пересоздаем PanResponder при каждом вызове, чтобы получить актуальные данные аннотации
+    // Инициализируем состояние перетаскивания
+    if (!editingDragState.current) {
+      editingDragState.current = {
+        startX: annotation.x,
+        startY: annotation.y,
+        isDraggingStarted: false,
+      };
+    }
+
+    // Создаем PanResponder только один раз и переиспользуем
+    if (!editingDragResponder.current) {
+      editingDragResponder.current = PanResponder.create({
+        onStartShouldSetPanResponder: () => {
+          // Активируем только если режим перетаскивания активен
+          return isDraggingWhileEditing;
+        },
+        onStartShouldSetPanResponderCapture: () => {
+          // Перехватываем события только если режим перетаскивания активен
+          return isDraggingWhileEditing;
+        },
+      onMoveShouldSetPanResponder: () => {
+        // Активируем только если режим перетаскивания активен
+        return isDraggingWhileEditing;
+      },
+      onMoveShouldSetPanResponderCapture: () => {
+        // Перехватываем движение только если режим перетаскивания активен
+        return isDraggingWhileEditing;
+      },
+      onPanResponderGrant: (evt) => {
+        // Получаем актуальные координаты из аннотации
+        const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+        if (editingDragState.current) {
+          if (currentAnnotation) {
+            editingDragState.current.startX = currentAnnotation.x;
+            editingDragState.current.startY = currentAnnotation.y;
+          } else {
+            editingDragState.current.startX = annotation.x;
+            editingDragState.current.startY = annotation.y;
+          }
+          editingDragState.current.isDraggingStarted = true;
+        }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        if (!editingDragState.current || !editingDragState.current.isDraggingStarted) return;
+        
+        // Получаем актуальную аннотацию для правильного расчета границ
+        const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+        const ann = currentAnnotation || annotation;
+        
+        const newX = Math.max(0, Math.min(
+          editingDragState.current.startX + gestureState.dx, 
+          SCREEN_WIDTH - (ann.width || 200)
+        ));
+        const newY = Math.max(0, Math.min(
+          editingDragState.current.startY + gestureState.dy, 
+          SCREEN_HEIGHT - (ann.height || 40)
+        ));
+        onAnnotationUpdate(annotation.id, { x: newX, y: newY });
+      },
+      onPanResponderRelease: () => {
+        if (editingDragState.current) {
+          editingDragState.current.isDraggingStarted = false;
+        }
+        // После перетаскивания не отключаем режим сразу - пользователь может продолжить перетаскивать
+        // Режим отключается только при отпускании оранжевой кнопки (onPressOut)
+      },
+      onPanResponderTerminate: () => {
+        if (editingDragState.current) {
+          editingDragState.current.isDraggingStarted = false;
+        }
+        // Не сбрасываем isDraggingWhileEditing здесь - это делается в onPressOut кнопки
+      },
+      });
+    }
+
+    return editingDragResponder.current;
+  };
+
+  // Получаем имя шрифта для React Native из ID шрифта
+  const getFontFamilyName = (fontId?: string): string | undefined => {
+    if (!fontId || fontId === 'default') return undefined;
+    const font = AVAILABLE_FONTS.find(f => f.id === fontId);
+    if (!font) return undefined;
+    // В React Native с expo-font шрифты доступны по имени, указанному в useFonts
+    // Используем font.name, которое соответствует ключу в useFonts
+    // Если шрифты еще не загружены, все равно возвращаем имя - React Native попытается использовать его
+    return font.name;
+  };
+
   const renderAnnotation = (annotation: Annotation) => {
     const isEditingText = editingAnnotation === annotation.id;
     const isSelected = selectedAnnotation === annotation.id;
     const panResponder = createPanResponder(annotation);
     const currentColor = annotation.color || '#000000';
     const currentFontSize = annotation.fontSize || 16;
+    const currentFontFamily = getFontFamilyName(annotation.fontFamily);
 
     if (annotation.type === 'text') {
       return (
         <View
           key={annotation.id}
-          {...(panResponder?.panHandlers || {})}
+          {...(isEditingText ? (createEditingDragResponder(annotation)?.panHandlers || {}) : panResponder?.panHandlers || {})}
           style={[
             styles.annotation,
             {
@@ -343,8 +543,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         >
           {isEditingText ? (
             <>
-              <View style={styles.textEditingContainer} pointerEvents="box-none">
-                <View style={styles.textInputWrapper}>
+              <View 
+                style={styles.textEditingContainer} 
+                pointerEvents={isDraggingWhileEditing ? "box-none" : "box-none"}
+              >
+                <View pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
                   <TextInput
                     style={[
                       styles.textAnnotation,
@@ -352,41 +555,76 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       {
                         color: currentColor,
                         fontSize: currentFontSize,
+                        fontFamily: currentFontFamily,
                       },
                     ]}
                     value={editingText}
                     onChangeText={handleTextChange}
                     onSubmitEditing={handleTextSubmit}
                     onBlur={handleTextSubmit}
-                    autoFocus
+                    autoFocus={!isDraggingWhileEditing}
                     multiline
                     placeholder="Введите текст..."
                     placeholderTextColor={currentColor + '80'}
-                    editable={true}
+                    editable={!isDraggingWhileEditing}
                     selectTextOnFocus={false}
                   />
-                  {/* Кнопки Принять и Удалить рядом с текстом */}
-                  <View style={styles.textActionButtons}>
+                </View>
+                {/* Кнопки: Перетащить (оранжевая), Принять и Удалить за полем ввода */}
+                <View style={styles.textActionButtons}>
+                  <View
+                    style={[styles.actionButton, styles.dragButton]}
+                  >
                     <TouchableOpacity
-                      style={[styles.actionButton, styles.acceptButton]}
-                      onPress={handleCloseEditing}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.removeButton]}
-                      onPress={() => {
-                        onAnnotationDelete(annotation.id);
-                        setEditingAnnotation(null);
-                        setEditingText('');
+                      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+                      onPressIn={() => {
+                        // Активируем режим перетаскивания при зажатии кнопки
+                        setIsDraggingWhileEditing(true);
                         Keyboard.dismiss();
                       }}
-                      activeOpacity={0.7}
+                      onPressOut={() => {
+                        // Деактивируем режим перетаскивания при отпускании кнопки
+                        setIsDraggingWhileEditing(false);
+                        if (editingDragState.current) {
+                          editingDragState.current.isDraggingStarted = false;
+                        }
+                        editingDragState.current = null;
+                      }}
+                      activeOpacity={1}
+                      delayPressIn={0}
                     >
-                      <Ionicons name="trash" size={18} color="#FFFFFF" />
+                      <Ionicons name="move" size={18} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton, 
+                      styles.acceptButton,
+                      isDraggingWhileEditing && styles.buttonDisabled
+                    ]}
+                    onPress={handleCloseEditing}
+                    activeOpacity={0.7}
+                    disabled={isDraggingWhileEditing}
+                  >
+                    <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton, 
+                      styles.removeButton,
+                      isDraggingWhileEditing && styles.buttonDisabled
+                    ]}
+                    onPress={() => {
+                      onAnnotationDelete(annotation.id);
+                      setEditingAnnotation(null);
+                      setEditingText('');
+                      Keyboard.dismiss();
+                    }}
+                    activeOpacity={0.7}
+                    disabled={isDraggingWhileEditing}
+                  >
+                    <Ionicons name="trash" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
                 </View>
               </View>
             </>
@@ -395,31 +633,38 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               style={styles.textContainer}
               {...(panResponder?.panHandlers || {})}
             >
-              <TouchableOpacity
+              <View
                 style={styles.textContent}
-                onLongPress={() => handleAnnotationLongPress(annotation)}
-                activeOpacity={0.7}
-                delayLongPress={400}
+                onStartShouldSetResponder={() => false}
+                onMoveShouldSetResponder={() => false}
               >
-                <Text
-                  style={[
-                    styles.textAnnotation,
-                    {
-                      color: currentColor,
-                      fontSize: currentFontSize,
-                    },
-                    isSelected && styles.textSelected,
-                  ]}
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onLongPress={() => handleAnnotationLongPress(annotation)}
+                  delayLongPress={400}
+                  disabled={isDragging || isSelected}
                 >
-                  {annotation.content || ''}
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.textAnnotation,
+                      {
+                        color: currentColor,
+                        fontSize: currentFontSize,
+                        fontFamily: currentFontFamily,
+                      },
+                    ]}
+                  >
+                    {annotation.content || ''}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {/* Прямоугольник с обводкой при выборе текста - показывается всегда при выборе */}
+              {isSelected && isEditing && (
+                <View style={styles.textSelectionBorder} />
+              )}
+              {/* Кнопки редактирования при долгом нажатии */}
               {isSelected && isEditing && !isDragging && (
                 <View style={styles.textControlsOverlay}>
-                  <View style={styles.dragIndicator}>
-                    <Ionicons name="move-outline" size={16} color="#FFFFFF" />
-                    <Text style={styles.dragHint}>Перетащите</Text>
-                  </View>
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditText(annotation)}
@@ -510,7 +755,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   return (
     <>
-      <View style={styles.container}>
+      <View 
+        style={[
+          styles.container,
+          // Когда инструмент активен и нет редактируемых аннотаций, убеждаемся что события проходят
+          currentTool && !editingAnnotation && { pointerEvents: 'box-none' }
+        ]}
+      >
         {annotations.map(renderAnnotation)}
       </View>
 
@@ -537,6 +788,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             >
               <Ionicons name="text-outline" size={20} color="#8B6F5F" />
               <Text style={styles.toolbarButtonText}>{currentEditingAnnotation.fontSize || 16}px</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.toolbarButton}
+              onPress={() => setShowFontPicker(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="brush-outline" size={20} color="#8B6F5F" />
+              <Text style={styles.toolbarButtonText} numberOfLines={1}>
+                {AVAILABLE_FONTS.find(f => f.id === (currentEditingAnnotation.fontFamily || 'default'))?.displayName || 'Системный'}
+              </Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -636,6 +897,64 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         </TouchableOpacity>
       </Modal>
 
+      {/* Модальное окно выбора шрифта */}
+      <Modal
+        visible={showFontPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFontPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowFontPicker(false)}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <Text style={styles.modalTitle}>Выберите шрифт</Text>
+            <ScrollView style={styles.fontList} showsVerticalScrollIndicator={false}>
+              {AVAILABLE_FONTS.map((font) => (
+                <TouchableOpacity
+                  key={font.id}
+                  style={[
+                    styles.fontOption,
+                    (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
+                      styles.fontOptionSelected,
+                  ]}
+                  onPress={() => handleFontSelect(font.id)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.fontOptionText,
+                      {
+                        fontFamily: font.id === 'default' 
+                          ? Platform.select({
+                              ios: 'System',
+                              android: 'sans-serif',
+                              default: 'sans-serif',
+                            })
+                          : font.name,
+                      },
+                      (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
+                        styles.fontOptionTextSelected,
+                    ]}
+                  >
+                    {font.displayName}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowFontPicker(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.modalCancelButtonText}>Готово</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Модальное окно изменения z-index */}
       <Modal
         visible={showZIndexMenu}
@@ -719,10 +1038,17 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
   },
-  textSelected: {
-    backgroundColor: 'rgba(201, 168, 154, 0.1)',
+  textSelectionBorder: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderWidth: 2,
+    borderColor: '#C9A89A',
     borderRadius: 4,
-    padding: 2,
+    borderStyle: 'dashed',
+    pointerEvents: 'none',
   },
   textControlsOverlay: {
     position: 'absolute',
@@ -785,15 +1111,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 200,
   },
-  textInputWrapper: {
-    position: 'relative',
-  },
   textActionButtons: {
-    position: 'absolute',
-    right: 8,
-    top: 8,
     flexDirection: 'row',
     gap: 8,
+    marginTop: 8,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   actionButton: {
     width: 36,
@@ -807,11 +1130,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  dragButton: {
+    backgroundColor: '#FF8C42',
+  },
   acceptButton: {
     backgroundColor: '#4ECDC4',
   },
   removeButton: {
     backgroundColor: '#FF4444',
+  },
+  buttonDisabled: {
+    opacity: 0.3,
   },
   keyboardToolbar: {
     position: 'absolute',
@@ -1044,6 +1373,38 @@ const styles = StyleSheet.create({
     color: '#8B6F5F',
     fontWeight: '600',
   },
+  fontList: {
+    maxHeight: 400,
+    marginBottom: 24,
+  },
+  fontOption: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#FAF8F5',
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+  },
+  fontOptionSelected: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C9A89A',
+    borderWidth: 2,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  fontOptionText: {
+    color: '#8B6F5F',
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  fontOptionTextSelected: {
+    color: '#8B6F5F',
+    fontWeight: '600',
+  },
   zIndexActions: {
     gap: 12,
     marginBottom: 24,
@@ -1095,5 +1456,46 @@ const styles = StyleSheet.create({
       android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
+  },
+  fontList: {
+    maxHeight: 400,
+    marginBottom: 24,
+  },
+  fontOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#FAF8F5',
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+  },
+  fontOptionSelected: {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#C9A89A',
+    borderWidth: 2,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  fontOptionText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontWeight: '500',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    flex: 1,
+  },
+  fontOptionTextSelected: {
+    color: '#8B6F5F',
+    fontWeight: '600',
   },
 });
