@@ -23,8 +23,51 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
+
+// Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+// Функция для безопасной загрузки expo-notifications (только при необходимости)
+let notificationHandlerInitialized = false;
+let notificationsModule: typeof import('expo-notifications') | null = null;
+
+const getNotifications = (): typeof import('expo-notifications') | null => {
+  // В Expo Go не загружаем модуль вообще, чтобы избежать ошибок
+  if (isExpoGo) {
+    return null;
+  }
+
+  // Если модуль уже загружен, возвращаем его
+  if (notificationsModule) {
+    return notificationsModule;
+  }
+
+  try {
+    // Используем require только внутри функции, чтобы избежать загрузки при импорте файла
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Notifications = require('expo-notifications');
+    
+    // Настраиваем обработчик только один раз
+    if (Notifications && !notificationHandlerInitialized) {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+      notificationHandlerInitialized = true;
+    }
+    
+    notificationsModule = Notifications;
+    return Notifications;
+  } catch (error) {
+    // Модуль недоступен - это нормально
+    return null;
+  }
+};
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -111,7 +154,12 @@ export default function SelectCoverScreen() {
   // Запрашиваем разрешения на уведомления при монтировании для всех категорий
   React.useEffect(() => {
     if (celebration) {
-      Notifications.requestPermissionsAsync().catch(console.error);
+      const Notifications = getNotifications();
+      if (Notifications) {
+        Notifications.requestPermissionsAsync().catch(() => {
+          // Игнорируем ошибки в Expo Go
+        });
+      }
     }
   }, [celebration]);
 
@@ -244,14 +292,17 @@ export default function SelectCoverScreen() {
         }
 
         if (trigger) {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: categoryInfo.notificationTitle,
-              body: categoryInfo.notificationBody,
-              sound: true,
-            },
-            trigger,
-          });
+          const Notifications = getNotifications();
+          if (Notifications) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: categoryInfo.notificationTitle,
+                body: categoryInfo.notificationBody,
+                sound: true,
+              },
+              trigger,
+            });
+          }
         }
       } else if (eventDate > now) {
         // Для других категорий планируем только если дата в будущем
@@ -266,14 +317,17 @@ export default function SelectCoverScreen() {
         }
 
         if (trigger) {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: categoryInfo.notificationTitle,
-              body: categoryInfo.notificationBody,
-              sound: true,
-            },
-            trigger,
-          });
+          const Notifications = getNotifications();
+          if (Notifications) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: categoryInfo.notificationTitle,
+                body: categoryInfo.notificationBody,
+                sound: true,
+              },
+              trigger,
+            });
+          }
         }
       }
     } catch (error) {

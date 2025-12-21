@@ -83,13 +83,17 @@ export default function SelectAlbumScreen() {
             .filter(album => album.thumbnailPath)
             .map(album => album.thumbnailPath!);
           
-          // Предзагружаем все изображения параллельно для мгновенной загрузки
+          // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
           await Promise.all(
-            imagesToPreload.map(imageSource => 
-              Image.prefetch(imageSource as number).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения альбома:', err);
-              })
-            )
+            imagesToPreload.map(imageSource => {
+              if (typeof imageSource === 'string') {
+                return Image.prefetch(imageSource).catch(err => {
+                  console.warn('⚠️ Ошибка предзагрузки изображения альбома:', err);
+                });
+              }
+              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+              return Promise.resolve();
+            })
           );
           
           console.log('✅ Изображения альбомов предзагружены');

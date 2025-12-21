@@ -110,11 +110,15 @@ export default function PaperCatalogTemplatesScreen() {
             .map(item => item.cover!);
 
           await Promise.all(
-            imagesToPreload.map(imageSource => 
-              Image.prefetch(imageSource as number).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения:', err);
-              })
-            )
+            imagesToPreload.map(imageSource => {
+              if (typeof imageSource === 'string') {
+                return Image.prefetch(imageSource).catch(err => {
+                  console.warn('⚠️ Ошибка предзагрузки изображения:', err);
+                });
+              }
+              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+              return Promise.resolve();
+            })
           );
           
           console.log(`✅ Все изображения категории "${categoryName}" предзагружены`);

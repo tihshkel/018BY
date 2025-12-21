@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  InteractionManager,
 } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import { router } from 'expo-router';
@@ -16,6 +17,7 @@ import Animated, {
   withTiming,
   withSpring,
   withDelay,
+  Easing,
 } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -65,16 +67,23 @@ const onboardingData: OnboardingSlide[] = [
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const textOpacity = useSharedValue(0);
+  const imageOpacity = useSharedValue(1);
+  const slideTranslateX = useSharedValue(0);
+  const imageScale = useSharedValue(1);
   const progress = useSharedValue(33.33);
 
   // Предзагрузка всех изображений онбординга при монтировании
   useEffect(() => {
     const preloadAllOnboardingImages = async () => {
       try {
-        // Предзагружаем все изображения слайдов параллельно
-        const preloadPromises = onboardingData.map(slide => 
-          Image.prefetch(slide.image as number)
-        );
+        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
+        const preloadPromises = onboardingData.map(slide => {
+          if (typeof slide.image === 'string') {
+            return Image.prefetch(slide.image);
+          }
+          // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+          return Promise.resolve();
+        });
         await Promise.all(preloadPromises);
       } catch (error) {
         console.warn('⚠️ Ошибка предзагрузки изображений онбординга:', error);
@@ -86,16 +95,70 @@ export default function OnboardingScreen() {
   }, []);
 
   useEffect(() => {
-    const newProgress = ((currentIndex + 1) / onboardingData.length) * 100;
-    progress.value = withTiming(newProgress, {
-      duration: 400,
-    });
-    textOpacity.value = withDelay(100, withTiming(1, { duration: 400 }));
+    const animateSlide = () => {
+      const newProgress = ((currentIndex + 1) / onboardingData.length) * 100;
+      const progressDuration = Platform.OS === 'android' ? 300 : 400;
+      const imageDelay = Platform.OS === 'android' ? 50 : 100;
+      const imageDuration = Platform.OS === 'android' ? 400 : 500;
+      const textDelay = Platform.OS === 'android' ? 200 : 300;
+      const textDuration = Platform.OS === 'android' ? 300 : 400;
+
+      progress.value = withTiming(newProgress, {
+        duration: progressDuration,
+        easing: Easing.out(Easing.ease),
+      });
+      
+      // Анимация появления нового слайда
+      imageOpacity.value = 0;
+      imageScale.value = 0.9;
+      slideTranslateX.value = 50;
+      
+      imageOpacity.value = withDelay(imageDelay, withTiming(1, { 
+        duration: imageDuration,
+        easing: Easing.out(Easing.ease),
+      }));
+      imageScale.value = withDelay(imageDelay, withSpring(1, { 
+        damping: Platform.OS === 'android' ? 18 : 15, 
+        stiffness: Platform.OS === 'android' ? 180 : 150,
+      }));
+      slideTranslateX.value = withDelay(imageDelay, withSpring(0, { 
+        damping: Platform.OS === 'android' ? 18 : 15, 
+        stiffness: Platform.OS === 'android' ? 180 : 150,
+      }));
+      textOpacity.value = withDelay(textDelay, withTiming(1, { 
+        duration: textDuration,
+        easing: Easing.out(Easing.ease),
+      }));
+    };
+
+    if (Platform.OS === 'android' && currentIndex > 0) {
+      // На Android для последующих слайдов используем InteractionManager
+      InteractionManager.runAfterInteractions(() => {
+        animateSlide();
+      });
+    } else {
+      animateSlide();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
   const handleNext = async () => {
-    textOpacity.value = withTiming(0, { duration: 200 });
+    const hideDuration = Platform.OS === 'android' ? 250 : 200;
+    const transitionDelay = Platform.OS === 'android' ? 250 : 200;
+    
+    // Анимация исчезновения текущего слайда
+    textOpacity.value = withTiming(0, { 
+      duration: hideDuration,
+      easing: Easing.in(Easing.ease),
+    });
+    imageOpacity.value = withTiming(0, { 
+      duration: hideDuration,
+      easing: Easing.in(Easing.ease),
+    });
+    slideTranslateX.value = withTiming(-50, { 
+      duration: hideDuration,
+      easing: Easing.in(Easing.ease),
+    });
     
     setTimeout(async () => {
       if (currentIndex < onboardingData.length - 1) {
@@ -107,9 +170,16 @@ export default function OnboardingScreen() {
         } catch (error) {
           console.error('Error saving onboarding status:', error);
         }
-        router.replace('/activation');
+        
+        if (Platform.OS === 'android') {
+          InteractionManager.runAfterInteractions(() => {
+            router.replace('/activation');
+          });
+        } else {
+          router.replace('/activation');
+        }
       }
-    }, 200);
+    }, transitionDelay);
   };
 
   const currentSlide = onboardingData[currentIndex];
@@ -117,6 +187,17 @@ export default function OnboardingScreen() {
   const textAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: textOpacity.value,
+      transform: [{ translateX: slideTranslateX.value * 0.3 }],
+    };
+  });
+
+  const imageAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: imageOpacity.value,
+      transform: [
+        { translateX: slideTranslateX.value },
+        { scale: imageScale.value },
+      ],
     };
   });
 
@@ -129,7 +210,7 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.slide}>
-        <View style={styles.imageWrapper}>
+        <Animated.View style={[styles.imageWrapper, imageAnimatedStyle]}>
           <Image
             key={currentSlide.id}
             source={currentSlide.image}
@@ -142,7 +223,7 @@ export default function OnboardingScreen() {
             placeholderContentFit="cover"
             recyclingKey={currentSlide.id.toString()}
           />
-        </View>
+        </Animated.View>
 
         <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
           <Text style={styles.title}>{currentSlide.title}</Text>

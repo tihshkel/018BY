@@ -794,14 +794,17 @@ export default function GiftsScreen() {
           // Собираем все уникальные изображения из COVER_BY_SKU
           const imageAssets = Object.values(COVER_BY_SKU);
           
-          // Предзагружаем ВСЕ изображения параллельно для мгновенной загрузки
-          // Это гарантирует, что изображения будут готовы сразу при открытии экрана
+          // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
           await Promise.all(
-            imageAssets.map(imageSource => 
-              Image.prefetch(imageSource as number).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения подарка:', err);
-              })
-            )
+            imageAssets.map(imageSource => {
+              if (typeof imageSource === 'string') {
+                return Image.prefetch(imageSource).catch(err => {
+                  console.warn('⚠️ Ошибка предзагрузки изображения подарка:', err);
+                });
+              }
+              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+              return Promise.resolve();
+            })
           );
           
           console.log('✅ Все изображения подарков предзагружены');
@@ -825,13 +828,17 @@ export default function GiftsScreen() {
           .filter(item => item.cover)
           .map(item => item.cover!);
 
-        // Предзагружаем изображения для текущего фильтра
+        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
         await Promise.all(
-          imagesToPreload.map(imageSource => 
-            Image.prefetch(imageSource as number).catch(err => {
-              console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
-            })
-          )
+          imagesToPreload.map(imageSource => {
+            if (typeof imageSource === 'string') {
+              return Image.prefetch(imageSource).catch(err => {
+                console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
+              });
+            }
+            // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+            return Promise.resolve();
+          })
         );
       } catch (error) {
         // Игнорируем ошибки, изображения загрузятся по требованию

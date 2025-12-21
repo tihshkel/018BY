@@ -20,8 +20,52 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { projectCategories } from '@/constants/projectTemplates';
+
+// Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+// Функция для безопасной загрузки expo-notifications (только при необходимости)
+// Это предотвращает автоматическую регистрацию push token listener при загрузке модуля
+let notificationHandlerInitialized = false;
+let notificationsModule: typeof import('expo-notifications') | null = null;
+
+const getNotifications = (): typeof import('expo-notifications') | null => {
+  // В Expo Go не загружаем модуль вообще, чтобы избежать ошибок
+  if (isExpoGo) {
+    return null;
+  }
+
+  // Если модуль уже загружен, возвращаем его
+  if (notificationsModule) {
+    return notificationsModule;
+  }
+
+  try {
+    // Используем require только внутри функции, чтобы избежать загрузки при импорте файла
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Notifications = require('expo-notifications');
+    
+    // Настраиваем обработчик только один раз
+    if (Notifications && !notificationHandlerInitialized) {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+      notificationHandlerInitialized = true;
+    }
+    
+    notificationsModule = Notifications;
+    return Notifications;
+  } catch (error) {
+    // Модуль недоступен - это нормально
+    return null;
+  }
+};
 
 interface Reminder {
   id: string;
@@ -33,15 +77,6 @@ interface Reminder {
   enabled: boolean;
   notificationId?: string;
 }
-
-// Настройка уведомлений
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
 
 export default function RemindersListScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -60,13 +95,25 @@ export default function RemindersListScreen() {
   }, []);
 
   const requestPermissions = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Разрешения',
-        'Для работы напоминаний необходимо разрешение на уведомления',
-        [{ text: 'OK' }]
-      );
+    const Notifications = getNotifications();
+    if (!Notifications) {
+      // В Expo Go уведомления не работают - это нормально
+      return;
+    }
+    try {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Разрешения',
+          'Для работы напоминаний необходимо разрешение на уведомления',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      // Игнорируем ошибки в Expo Go
+      if (__DEV__ && !error?.message?.includes('Expo Go')) {
+        console.warn('Ошибка при запросе разрешений на уведомления:', error);
+      }
     }
   };
 
@@ -76,6 +123,11 @@ export default function RemindersListScreen() {
     body: string,
     date: Date
   ): Promise<string | null> => {
+    const Notifications = getNotifications();
+    if (!Notifications) {
+      // В Expo Go уведомления не работают - это нормально
+      return null;
+    }
     try {
       // Проверяем, что дата в будущем
       const now = new Date();
@@ -183,6 +235,11 @@ export default function RemindersListScreen() {
   };
 
   const cancelNotification = async (notificationId: string) => {
+    const Notifications = getNotifications();
+    if (!Notifications) {
+      // В Expo Go уведомления не работают - это нормально
+      return;
+    }
     try {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
     } catch (error) {

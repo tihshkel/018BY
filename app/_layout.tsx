@@ -21,6 +21,9 @@ export default function RootLayout() {
         screenOptions={{ 
           headerShown: false,
           contentStyle: { backgroundColor: '#FFFFFF' },
+          animation: 'default',
+          animationDuration: 300,
+          animationTypeForReplace: 'push',
         }}
       >
         <Stack.Screen name="index" />
@@ -34,7 +37,6 @@ export default function RootLayout() {
         <Stack.Screen name="edit-project" />
         <Stack.Screen name="edit-album" />
         <Stack.Screen name="export-pdf" />
-        <Stack.Screen name="gifts" />
         <Stack.Screen name="help" />
         <Stack.Screen name="reminders-list" />
         <Stack.Screen name="export-history" />

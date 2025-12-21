@@ -90,12 +90,16 @@ export default function SelectCelebrationScreen() {
   useEffect(() => {
     const preloadImages = async () => {
       try {
-        // Предзагружаем все изображения через Image.prefetch (быстрее)
-        const preloadPromises = celebrations.map(celebration => 
-          Image.prefetch(celebration.image as number).catch(err => {
-            console.warn('⚠️ Ошибка предзагрузки изображения:', err);
-          })
-        );
+        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
+        const preloadPromises = celebrations.map(celebration => {
+          if (typeof celebration.image === 'string') {
+            return Image.prefetch(celebration.image).catch(err => {
+              console.warn('⚠️ Ошибка предзагрузки изображения:', err);
+            });
+          }
+          // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+          return Promise.resolve();
+        });
         await Promise.all(preloadPromises);
         console.log('✅ Изображения праздников предзагружены');
       } catch (error) {

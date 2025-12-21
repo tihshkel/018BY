@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
+  InteractionManager,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import Animated, {
   withTiming,
   withSpring,
   withDelay,
+  Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,46 +25,123 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ActivationScreen() {
   const [showOptions, setShowOptions] = useState(false);
+  const [buttonsEnabled, setButtonsEnabled] = useState(false);
   const logoOpacity = useSharedValue(0);
   const logoY = useSharedValue(-20);
+  const logoShiftY = useSharedValue(0);
   const textOpacity = useSharedValue(0);
   const textY = useSharedValue(10);
+  const textShiftY = useSharedValue(0);
   const option1Opacity = useSharedValue(0);
   const option1Y = useSharedValue(20);
   const option2Opacity = useSharedValue(0);
   const option2Y = useSharedValue(20);
 
   useEffect(() => {
-    // Анимация появления логотипа
-    logoOpacity.value = withTiming(1, { duration: 800 });
-    logoY.value = withSpring(0, { damping: 15, stiffness: 100 });
+    const startAnimations = () => {
+      // Адаптируем длительность анимаций для Android
+      const logoDuration = Platform.OS === 'android' ? 1500 : 2500;
+      const textDelay = Platform.OS === 'android' ? 600 : 1000;
+      const textDuration = Platform.OS === 'android' ? 1300 : 2200;
+      const buttonsDelay = Platform.OS === 'android' ? 2500 : 4000;
+      const shiftDuration = Platform.OS === 'android' ? 1800 : 2800;
+      const buttonDuration = Platform.OS === 'android' ? 1800 : 3000;
+      const buttonsEnableDelay = Platform.OS === 'android' ? 2800 : 4200;
 
-    // Анимация появления текста
-    textOpacity.value = withDelay(300, withTiming(1, { duration: 600 }));
-    textY.value = withDelay(300, withSpring(0, { damping: 15, stiffness: 100 }));
+      // Очень плавное появление логотипа
+      logoOpacity.value = withTiming(1, { 
+        duration: logoDuration,
+        easing: Platform.OS === 'android' 
+          ? Easing.out(Easing.ease) 
+          : Easing.bezier(0.2, 0, 0.2, 1),
+      });
+      logoY.value = withSpring(0, { 
+        damping: Platform.OS === 'android' ? 25 : 30, 
+        stiffness: Platform.OS === 'android' ? 50 : 40,
+      });
 
-    // Показ вариантов через 1.5 секунды
-    setTimeout(() => {
+      // Плавное появление текста после логотипа
+      textOpacity.value = withDelay(textDelay, withTiming(1, { 
+        duration: textDuration,
+        easing: Platform.OS === 'android' 
+          ? Easing.out(Easing.ease) 
+          : Easing.bezier(0.2, 0, 0.2, 1),
+      }));
+      textY.value = withDelay(textDelay, withSpring(0, { 
+        damping: Platform.OS === 'android' ? 25 : 30, 
+        stiffness: Platform.OS === 'android' ? 50 : 40,
+      }));
+
+      // Показываем кнопки сразу, но они будут невидимыми
       setShowOptions(true);
-      option1Opacity.value = withDelay(100, withTiming(1, { duration: 500 }));
-      option1Y.value = withDelay(100, withSpring(0, { damping: 12, stiffness: 100 }));
       
-      option2Opacity.value = withDelay(200, withTiming(1, { duration: 500 }));
-      option2Y.value = withDelay(200, withSpring(0, { damping: 12, stiffness: 100 }));
-    }, 1500);
+      // Очень плавное появление кнопок после того как логотип и текст полностью появились
+      setTimeout(() => {
+        // Плавно сдвигаем логотип и текст вверх одновременно с появлением кнопок
+        logoShiftY.value = withTiming(-90, {
+          duration: shiftDuration,
+          easing: Platform.OS === 'android' 
+            ? Easing.out(Easing.ease) 
+            : Easing.bezier(0.16, 1, 0.3, 1),
+        });
+        textShiftY.value = withTiming(-90, {
+          duration: shiftDuration,
+          easing: Platform.OS === 'android' 
+            ? Easing.out(Easing.ease) 
+            : Easing.bezier(0.16, 1, 0.3, 1),
+        });
+        
+        // Включаем кнопки сразу, когда они начинают появляться
+        setButtonsEnabled(true);
+        
+        // Очень плавное появление первой кнопки с задержкой
+        option1Opacity.value = withDelay(200, withTiming(1, { 
+          duration: buttonDuration,
+          easing: Platform.OS === 'android' 
+            ? Easing.out(Easing.ease) 
+            : Easing.bezier(0.16, 1, 0.3, 1),
+        }));
+        option1Y.value = withDelay(200, withSpring(0, { 
+          damping: Platform.OS === 'android' ? 35 : 40, 
+          stiffness: Platform.OS === 'android' ? 30 : 25,
+          mass: Platform.OS === 'android' ? 1.0 : 1.2,
+        }));
+        
+        // Очень плавное появление второй кнопки с большей задержкой
+        option2Opacity.value = withDelay(600, withTiming(1, { 
+          duration: buttonDuration,
+          easing: Platform.OS === 'android' 
+            ? Easing.out(Easing.ease) 
+            : Easing.bezier(0.16, 1, 0.3, 1),
+        }));
+        option2Y.value = withDelay(600, withSpring(0, { 
+          damping: Platform.OS === 'android' ? 35 : 40, 
+          stiffness: Platform.OS === 'android' ? 30 : 25,
+          mass: Platform.OS === 'android' ? 1.0 : 1.2,
+        }));
+      }, buttonsDelay);
+    };
+
+    if (Platform.OS === 'android') {
+      InteractionManager.runAfterInteractions(() => {
+        startAnimations();
+      });
+    } else {
+      startAnimations();
+    }
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: logoOpacity.value,
-      transform: [{ translateY: logoY.value }],
+      transform: [{ translateY: logoY.value + logoShiftY.value }],
     };
   });
 
   const textAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: textOpacity.value,
-      transform: [{ translateY: textY.value }],
+      transform: [{ translateY: textY.value + textShiftY.value }],
     };
   });
 
@@ -81,44 +160,48 @@ export default function ActivationScreen() {
   });
 
   const handleHasCode = () => {
+    if (!buttonsEnabled) return;
     router.push('/code-input');
   };
 
   const handleWantToBuy = () => {
+    if (!buttonsEnabled) return;
     router.push('/purchase');
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.content}>
-        {/* Логотип */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <Image
-            source={require('@/assets/images/logo-for-activaty-page.png')}
-            style={styles.logoImage}
-            contentFit="contain"
-            priority="high"
-            cachePolicy="disk"
-            transition={0}
-            fadeDuration={0}
-          />
-        </Animated.View>
+        {/* Логотип и текст - по центру экрана */}
+        <View style={styles.centerContent}>
+          <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+            <Image
+              source={require('@/assets/images/logo-for-activaty-page.png')}
+              style={styles.logoImage}
+              contentFit="contain"
+              priority="high"
+              cachePolicy="disk"
+              transition={0}
+              fadeDuration={0}
+            />
+          </Animated.View>
 
-        {/* Текст */}
-        <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
-          <Text style={styles.subtitle}>
-            Сохраняйте моменты, которые хочется пережить снова
-          </Text>
-        </Animated.View>
+          <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
+            <Text style={styles.subtitle}>
+              Сохраняйте моменты, которые хочется пережить снова
+            </Text>
+          </Animated.View>
+        </View>
 
-        {/* Варианты действий */}
+        {/* Варианты действий - внизу */}
         {showOptions && (
           <View style={styles.optionsContainer}>
             <Animated.View style={option1AnimatedStyle}>
               <TouchableOpacity
                 style={styles.optionCard}
                 onPress={handleHasCode}
-                activeOpacity={0.85}
+                activeOpacity={Platform.OS === 'ios' ? 0.6 : 0.85}
+                disabled={!buttonsEnabled}
               >
                 <View style={styles.optionIconContainer}>
                   <Ionicons name="key-outline" size={28} color="#C9A89A" />
@@ -135,7 +218,8 @@ export default function ActivationScreen() {
               <TouchableOpacity
                 style={styles.optionCard}
                 onPress={handleWantToBuy}
-                activeOpacity={0.85}
+                activeOpacity={Platform.OS === 'ios' ? 0.6 : 0.85}
+                disabled={!buttonsEnabled}
               >
                 <View style={styles.optionIconContainer}>
                   <Ionicons name="storefront-outline" size={28} color="#C9A89A" />
@@ -161,9 +245,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+  },
+  centerContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoContainer: {
     alignItems: 'center',
@@ -175,7 +267,6 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     alignItems: 'center',
-    marginBottom: 64,
     paddingHorizontal: 20,
     maxWidth: 320,
   },
@@ -194,9 +285,15 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   optionsContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 24,
+    right: 24,
     width: '100%',
     maxWidth: 400,
+    alignSelf: 'center',
     gap: 12,
+    paddingBottom: 40,
   },
   optionCard: {
     backgroundColor: '#FFFFFF',
@@ -204,8 +301,7 @@ const styles = StyleSheet.create({
     padding: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderWidth: 0,
     shadowColor: '#8B6F5F',
     shadowOffset: {
       width: 0,

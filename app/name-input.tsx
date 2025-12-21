@@ -1,38 +1,120 @@
-import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
+  InteractionManager,
+  Keyboard,
+  Platform,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Platform,
-  Keyboard,
-  KeyboardAvoidingView,
-  ScrollView,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
-  useSharedValue,
+  Easing,
   useAnimatedStyle,
+  useSharedValue,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NameInputScreen() {
   const [name, setName] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
   const containerOpacity = useSharedValue(0);
   const greetingOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(0);
+  const keyboardShownRef = useRef(false);
 
   useEffect(() => {
-    containerOpacity.value = withTiming(1, { duration: 400 });
+    // Используем InteractionManager для Android, чтобы анимации запускались после завершения всех взаимодействий
+    const runAnimation = () => {
+      containerOpacity.value = withTiming(1, { 
+        duration: Platform.OS === 'android' ? 500 : 400,
+        easing: Easing.out(Easing.ease),
+      });
+    };
+
+    if (Platform.OS === 'android') {
+      InteractionManager.runAfterInteractions(() => {
+        runAnimation();
+      });
+    } else {
+      runAnimation();
+    }
+    
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        // Поднимаем сразу до финальной позиции только один раз
+        if (!keyboardShownRef.current) {
+          keyboardShownRef.current = true;
+          const offset = Platform.OS === 'android' ? -85 : -110;
+          
+          // Используем одинаковую плавную spring-анимацию для Android и iOS
+          contentTranslateY.value = withSpring(offset, {
+            damping: 30,
+            stiffness: 40,
+            mass: 0.8,
+          });
+        }
+      }
+    );
+    
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        keyboardShownRef.current = false;
+        
+        // Используем одинаковую плавную spring-анимацию для Android и iOS
+        contentTranslateY.value = withSpring(0, {
+          damping: 30,
+          stiffness: 40,
+          mass: 0.8,
+        });
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
   }, []);
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
   }));
+
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: contentTranslateY.value }],
+  }));
+
+  const greetingAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: greetingOpacity.value,
+  }));
+
+  const handleDismissKeyboard = () => {
+    Keyboard.dismiss();
+    
+    if (Platform.OS === 'android') {
+      // Для Android используем очень плавную timing-анимацию с bezier кривой
+      contentTranslateY.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.bezier(0.25, 0.1, 0.25, 1), // Плавная кривая как на iOS
+      });
+    } else {
+      // Для iOS используем плавную spring-анимацию
+      contentTranslateY.value = withSpring(0, {
+        damping: 30,
+        stiffness: 40,
+        mass: 0.8,
+      });
+    }
+  };
 
   const handleContinue = async () => {
     if (name.trim().length === 0) {
@@ -41,19 +123,46 @@ export default function NameInputScreen() {
 
     // Скрываем клавиатуру перед запуском анимации
     Keyboard.dismiss();
+    
+    // Используем одинаковую плавную spring-анимацию для Android и iOS
+    contentTranslateY.value = withSpring(0, {
+      damping: 30,
+      stiffness: 40,
+      mass: 0.8,
+    });
 
     try {
       const trimmedName = name.trim();
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
       setShowGreeting(true);
-      greetingOpacity.value = withTiming(1, { duration: 350 });
+      
+      const greetingShowDuration = Platform.OS === 'android' ? 400 : 350;
+      const greetingHideDuration = Platform.OS === 'android' ? 300 : 250;
+      const greetingDelay = Platform.OS === 'android' ? 1200 : 1000;
+      const navigationDelay = Platform.OS === 'android' ? 350 : 260;
+      
+      greetingOpacity.value = withTiming(1, { 
+        duration: greetingShowDuration,
+        easing: Easing.out(Easing.ease),
+      });
+      
       setTimeout(() => {
-        greetingOpacity.value = withTiming(0, { duration: 250 });
+        greetingOpacity.value = withTiming(0, { 
+          duration: greetingHideDuration,
+          easing: Easing.in(Easing.ease),
+        });
         setTimeout(() => {
-          router.replace('/(tabs)');
-        }, 260);
-      }, 1000);
+          if (Platform.OS === 'android') {
+            // Небольшая задержка для плавного перехода на Android
+            InteractionManager.runAfterInteractions(() => {
+              router.replace('/(tabs)');
+            });
+          } else {
+            router.replace('/(tabs)');
+          }
+        }, navigationDelay);
+      }, greetingDelay);
     } catch (error) {
       console.error('Error saving name:', error);
     }
@@ -68,63 +177,59 @@ export default function NameInputScreen() {
         end={{ x: 1, y: 1 }}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Animated.View style={[styles.content, containerAnimatedStyle]}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Как вас зовут?</Text>
-              <Text style={styles.subtitle}>
-                Мы хотим знать, как обращаться к вам в приложении
-              </Text>
-            </View>
+      <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+        <Animated.View style={[styles.content, containerAnimatedStyle]}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.innerContent}>
+              <Animated.View style={[styles.header, inputAnimatedStyle]}>
+                <Text style={styles.title}>Как вас зовут?</Text>
+                <Text style={styles.subtitle}>
+                  Мы хотим знать, как обращаться к вам в приложении
+                </Text>
+              </Animated.View>
 
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Введите ваше имя"
-                placeholderTextColor="#B8A89A"
-                autoFocus
-                autoCapitalize="words"
-                autoCorrect={false}
-                onSubmitEditing={handleContinue}
-              />
-            </View>
+              <Animated.View style={[styles.inputContainer, inputAnimatedStyle]}>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Введите ваше имя"
+                  placeholderTextColor="#B8A89A"
+                  autoFocus
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  onSubmitEditing={handleContinue}
+                />
+              </Animated.View>
 
-            <TouchableOpacity
-              style={[
-                styles.continueButton,
-                name.trim().length > 0 && styles.continueButtonActive,
-              ]}
-              onPress={handleContinue}
-              activeOpacity={0.7}
-              disabled={name.trim().length === 0}
-            >
-              <Text
-                style={[
-                  styles.continueButtonText,
-                  name.trim().length > 0 && styles.continueButtonTextActive,
-                ]}
-              >
-                Продолжить
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+              <Animated.View style={inputAnimatedStyle}>
+                <TouchableOpacity
+                  style={[
+                    styles.continueButton,
+                    name.trim().length > 0 && styles.continueButtonActive,
+                  ]}
+                  onPress={handleContinue}
+                  activeOpacity={0.7}
+                  disabled={name.trim().length === 0}
+                >
+                  <Text
+                    style={[
+                      styles.continueButtonText,
+                      name.trim().length > 0 && styles.continueButtonTextActive,
+                    ]}
+                  >
+                    Продолжить
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Animated.View>
+      </TouchableWithoutFeedback>
 
       <Animated.View
         pointerEvents={showGreeting ? 'auto' : 'none'}
-        style={[styles.greetingOverlay, { opacity: greetingOpacity }]}
+        style={[styles.greetingOverlay, greetingAnimatedStyle]}
       >
         <LinearGradient
           colors={['rgba(250, 248, 245, 0.98)', 'rgba(245, 239, 233, 0.98)']}
@@ -144,18 +249,15 @@ export default function NameInputScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 40,
-    minHeight: '100%',
+    backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
   },
   content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  innerContent: {
     width: '100%',
     alignItems: 'center',
   },
@@ -259,7 +361,9 @@ const styles = StyleSheet.create({
   greetingContent: {
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
+    paddingVertical: 30,
+    paddingTop: 40,
   },
   greetingTitle: {
     fontSize: 28,
@@ -271,6 +375,13 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
+    lineHeight: 40,
+    paddingTop: Platform.OS === 'ios' ? 8 : 4,
+    ...(Platform.OS === 'android' && {
+      includeFontPadding: false,
+      textAlignVertical: 'center',
+      paddingTop: 8,
+    }),
   },
   greetingName: {
     fontSize: 40,

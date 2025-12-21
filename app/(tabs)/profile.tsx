@@ -57,15 +57,40 @@ export default function ProfileScreen() {
   };
 
   const handleAvatarPress = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    // Проверяем текущий статус разрешения
+    const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
     
-    if (permissionResult.granted === false) {
-      Alert.alert('Доступ к галерее запрещён');
+    let finalStatus = existingStatus;
+    
+    // Если разрешение не предоставлено, запрашиваем его
+    if (existingStatus !== 'granted') {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      finalStatus = status;
+    }
+    
+    if (finalStatus !== 'granted') {
+      Alert.alert(
+        'Доступ к галерее',
+        'Для загрузки фото профиля необходимо разрешить доступ к галерее. Пожалуйста, разрешите доступ в настройках приложения.',
+        [
+          { text: 'Отмена', style: 'cancel' },
+          {
+            text: 'Настройки',
+            onPress: () => {
+              if (Platform.OS === 'ios') {
+                Linking.openURL('app-settings:');
+              } else {
+                Linking.openSettings();
+              }
+            },
+          },
+        ]
+      );
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaType.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
