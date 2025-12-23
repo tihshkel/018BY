@@ -12,6 +12,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Keyboard,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -104,6 +105,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   onEditingStateChange,
   zoomLevel = 1,
 }, ref) => {
+  // Получаем актуальные размеры экрана
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  
   // Загружаем все шрифты через expo-font
   const [fontsLoaded] = useFonts(
     AVAILABLE_FONTS.reduce((acc, font) => {
@@ -125,27 +129,46 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingWhileEditing, setIsDraggingWhileEditing] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [adjustedEditingPosition, setAdjustedEditingPosition] = useState<{ x: number; y: number } | null>(null);
+  const editingContainerLayout = useRef<{ width: number; height: number } | null>(null);
   const panResponders = useRef<{ [key: string]: any }>({});
   const editingDragResponder = useRef<any>(null);
   const editingDragStartPos = useRef<{ x: number; y: number } | null>(null);
   const editingDragState = useRef<{ startX: number; startY: number; isDraggingStarted: boolean } | null>(null);
+  const isDraggingWhileEditingRef = useRef(false);
+  const adjustedEditingPositionRef = useRef<{ x: number; y: number } | null>(null);
 
   // Автоматически открываем редактирование для нового текста
   useEffect(() => {
+    if (!isEditing) return;
+    
     const newTextAnnotation = annotations.find(
       ann => ann.type === 'text' && ann.content === 'Новый текст' && !editingAnnotation
     );
-    if (newTextAnnotation && isEditing) {
-      setEditingAnnotation(newTextAnnotation.id);
-      setEditingText('Новый текст');
-      onEditingStateChange?.(true, newTextAnnotation.id);
+    if (newTextAnnotation) {
+      // Небольшая задержка для корректного открытия редактирования
+      setTimeout(() => {
+        setEditingAnnotation(newTextAnnotation.id);
+        setEditingText('Новый текст');
+        setAdjustedEditingPosition(null); // Сбрасываем скорректированную позицию
+        onEditingStateChange?.(true, newTextAnnotation.id);
+      }, 100);
     }
-  }, [annotations]);
+  }, [annotations, isEditing, editingAnnotation]);
 
   // Уведомляем родительский компонент об изменении состояния редактирования
   useEffect(() => {
     onEditingStateChange?.(!!editingAnnotation, editingAnnotation);
   }, [editingAnnotation]);
+
+  // Синхронизируем ref с состоянием для использования в PanResponder
+  useEffect(() => {
+    isDraggingWhileEditingRef.current = isDraggingWhileEditing;
+  }, [isDraggingWhileEditing]);
+
+  useEffect(() => {
+    adjustedEditingPositionRef.current = adjustedEditingPosition;
+  }, [adjustedEditingPosition]);
 
   // Обновляем editingText при открытии редактирования (для сохранения текста при повторном открытии)
   const previousEditingAnnotation = useRef<string | null>(null);
@@ -266,6 +289,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             setEditingAnnotation(annotation.id);
             setEditingText(annotation.content || '');
             setSelectedAnnotation(null);
+            // Сбрасываем скорректированную позицию - она будет вычислена после получения размеров контейнера
+            setAdjustedEditingPosition(null);
           } else {
             setSelectedAnnotation(annotation.id);
           }
@@ -310,7 +335,47 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setEditingAnnotation(annotation.id);
       setEditingText(annotation.content || '');
       setSelectedAnnotation(null); // Убираем выбор при открытии редактора
+      // Сбрасываем скорректированную позицию - она будет вычислена после получения размеров контейнера
+      setAdjustedEditingPosition(null);
     }
+  };
+
+  // Функция для вычисления корректной позиции с учетом границ экрана
+  const calculateAdjustedPosition = (
+    annotation: Annotation,
+    containerWidth: number,
+    containerHeight: number
+  ): { x: number; y: number } => {
+    const padding = 16; // Отступ от краев экрана
+    const minX = padding;
+    const minY = padding;
+    const maxX = windowWidth - containerWidth - padding;
+    const maxY = windowHeight - containerHeight - padding;
+
+    let adjustedX = annotation.x;
+    let adjustedY = annotation.y;
+
+    // Проверяем правую границу
+    if (annotation.x + containerWidth > windowWidth - padding) {
+      adjustedX = Math.max(minX, windowWidth - containerWidth - padding);
+    }
+
+    // Проверяем левую границу
+    if (annotation.x < padding) {
+      adjustedX = minX;
+    }
+
+    // Проверяем нижнюю границу
+    if (annotation.y + containerHeight > windowHeight - padding) {
+      adjustedY = Math.max(minY, windowHeight - containerHeight - padding);
+    }
+
+    // Проверяем верхнюю границу
+    if (annotation.y < padding) {
+      adjustedY = minY;
+    }
+
+    return { x: adjustedX, y: adjustedY };
   };
 
   const handleEditText = (annotation: Annotation) => {
@@ -318,6 +383,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setEditingAnnotation(annotation.id);
       setEditingText(annotation.content || '');
       setSelectedAnnotation(null);
+      // Сбрасываем скорректированную позицию - она будет вычислена после получения размеров контейнера
+      setAdjustedEditingPosition(null);
     }
   };
 
@@ -352,8 +419,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setEditingAnnotation(null);
       setEditingText('');
       setIsDraggingWhileEditing(false);
+      setAdjustedEditingPosition(null);
+      editingContainerLayout.current = null;
       editingDragResponder.current = null;
       editingDragState.current = null;
+      isDraggingWhileEditingRef.current = false;
+      adjustedEditingPositionRef.current = null;
       onEditingStateChange?.(false, null);
     }
   };
@@ -422,82 +493,84 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   // Создаем PanResponder для перетаскивания во время редактирования
   const createEditingDragResponder = (annotation: Annotation) => {
-    // Создаем PanResponder всегда, когда редактируется текст
-    // Он будет активен только когда isDraggingWhileEditing === true
-
-    // Пересоздаем PanResponder при каждом вызове, чтобы получить актуальные данные аннотации
-    // Инициализируем состояние перетаскивания
-    if (!editingDragState.current) {
-      editingDragState.current = {
-        startX: annotation.x,
-        startY: annotation.y,
-        isDraggingStarted: false,
-      };
-    }
-
-    // Создаем PanResponder только один раз и переиспользуем
+    // Создаем PanResponder один раз и переиспользуем
+    // Используем ref для доступа к актуальному состоянию
     if (!editingDragResponder.current) {
       editingDragResponder.current = PanResponder.create({
         onStartShouldSetPanResponder: () => {
           // Активируем только если режим перетаскивания активен
-          return isDraggingWhileEditing;
+          return isDraggingWhileEditingRef.current;
         },
         onStartShouldSetPanResponderCapture: () => {
           // Перехватываем события только если режим перетаскивания активен
-          return isDraggingWhileEditing;
+          // Это важно для обработки событий, начатых на дочерних элементах (кнопках)
+          return isDraggingWhileEditingRef.current;
         },
-      onMoveShouldSetPanResponder: () => {
-        // Активируем только если режим перетаскивания активен
-        return isDraggingWhileEditing;
-      },
-      onMoveShouldSetPanResponderCapture: () => {
-        // Перехватываем движение только если режим перетаскивания активен
-        return isDraggingWhileEditing;
-      },
-      onPanResponderGrant: (evt) => {
-        // Получаем актуальные координаты из аннотации
-        const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
-        if (editingDragState.current) {
-          if (currentAnnotation) {
-            editingDragState.current.startX = currentAnnotation.x;
-            editingDragState.current.startY = currentAnnotation.y;
-          } else {
-            editingDragState.current.startX = annotation.x;
-            editingDragState.current.startY = annotation.y;
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+          // Активируем при движении, если режим перетаскивания активен
+          if (isDraggingWhileEditingRef.current) {
+            // Активируем сразу при любом движении
+            return true;
           }
-          editingDragState.current.isDraggingStarted = true;
-        }
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        if (!editingDragState.current || !editingDragState.current.isDraggingStarted) return;
-        
-        // Получаем актуальную аннотацию для правильного расчета границ
-        const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
-        const ann = currentAnnotation || annotation;
-        
-        const newX = Math.max(0, Math.min(
-          editingDragState.current.startX + gestureState.dx, 
-          SCREEN_WIDTH - (ann.width || 200)
-        ));
-        const newY = Math.max(0, Math.min(
-          editingDragState.current.startY + gestureState.dy, 
-          SCREEN_HEIGHT - (ann.height || 40)
-        ));
-        onAnnotationUpdate(annotation.id, { x: newX, y: newY });
-      },
-      onPanResponderRelease: () => {
-        if (editingDragState.current) {
-          editingDragState.current.isDraggingStarted = false;
-        }
-        // После перетаскивания не отключаем режим сразу - пользователь может продолжить перетаскивать
-        // Режим отключается только при отпускании оранжевой кнопки (onPressOut)
-      },
-      onPanResponderTerminate: () => {
-        if (editingDragState.current) {
-          editingDragState.current.isDraggingStarted = false;
-        }
-        // Не сбрасываем isDraggingWhileEditing здесь - это делается в onPressOut кнопки
-      },
+          return false;
+        },
+        onMoveShouldSetPanResponderCapture: () => {
+          // Перехватываем движение только если режим перетаскивания активен
+          return isDraggingWhileEditingRef.current;
+        },
+        onPanResponderGrant: (evt) => {
+          // Получаем актуальные координаты из аннотации или скорректированной позиции
+          const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+          const currentPos = adjustedEditingPositionRef.current;
+          const startX = currentPos?.x ?? (currentAnnotation?.x ?? annotation.x);
+          const startY = currentPos?.y ?? (currentAnnotation?.y ?? annotation.y);
+          
+          // Инициализируем состояние перетаскивания
+          editingDragState.current = {
+            startX,
+            startY,
+            isDraggingStarted: true,
+          };
+        },
+        onPanResponderMove: (evt, gestureState) => {
+          if (!editingDragState.current || !editingDragState.current.isDraggingStarted) return;
+          
+          // Получаем актуальную аннотацию для правильного расчета границ
+          const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+          const ann = currentAnnotation || annotation;
+          
+          // Используем размеры контейнера редактирования, если они известны
+          const containerWidth = editingContainerLayout.current?.width || ann.width || 200;
+          const containerHeight = editingContainerLayout.current?.height || ann.height || 40;
+          
+          const padding = 16;
+          const newX = Math.max(padding, Math.min(
+            editingDragState.current.startX + gestureState.dx, 
+            windowWidth - containerWidth - padding
+          ));
+          const newY = Math.max(padding, Math.min(
+            editingDragState.current.startY + gestureState.dy, 
+            windowHeight - containerHeight - padding
+          ));
+          
+          // Обновляем позицию аннотации
+          onAnnotationUpdate(annotation.id, { x: newX, y: newY });
+          // Обновляем скорректированную позицию
+          setAdjustedEditingPosition({ x: newX, y: newY });
+        },
+        onPanResponderRelease: () => {
+          if (editingDragState.current) {
+            editingDragState.current.isDraggingStarted = false;
+          }
+          // После перетаскивания не отключаем режим сразу - пользователь может продолжить перетаскивать
+          // Режим отключается только при отпускании оранжевой кнопки (onPressOut)
+        },
+        onPanResponderTerminate: () => {
+          if (editingDragState.current) {
+            editingDragState.current.isDraggingStarted = false;
+          }
+          // Не сбрасываем isDraggingWhileEditing здесь - это делается в onPressOut кнопки
+        },
       });
     }
 
@@ -524,28 +597,70 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const currentFontFamily = getFontFamilyName(annotation.fontFamily);
 
     if (annotation.type === 'text') {
+      // Используем скорректированные координаты при редактировании, если они есть
+      const displayX = isEditingText && adjustedEditingPosition 
+        ? adjustedEditingPosition.x 
+        : annotation.x;
+      const displayY = isEditingText && adjustedEditingPosition 
+        ? adjustedEditingPosition.y 
+        : annotation.y;
+
       return (
-        <View
-          key={annotation.id}
-          {...(isEditingText ? (createEditingDragResponder(annotation)?.panHandlers || {}) : panResponder?.panHandlers || {})}
-          style={[
-            styles.annotation,
-            {
-              left: annotation.x,
-              top: annotation.y,
-              width: annotation.width,
-              height: annotation.height,
-              zIndex: annotation.zIndex,
-            },
-            isSelected && styles.annotationSelected,
-            isDragging && isSelected && styles.annotationDragging,
-          ]}
-        >
+      <View
+        key={annotation.id}
+        {...(isEditingText ? (createEditingDragResponder(annotation)?.panHandlers || {}) : panResponder?.panHandlers || {})}
+        style={[
+          styles.annotation,
+          {
+            left: displayX,
+            top: displayY,
+            width: annotation.width,
+            height: annotation.height,
+            // Используем очень высокий z-index для редактируемого текста, чтобы он был поверх всех страниц
+            zIndex: isEditingText ? 99999 : annotation.zIndex,
+          },
+          isSelected && styles.annotationSelected,
+          isDragging && isSelected && styles.annotationDragging,
+        ]}
+        pointerEvents={isEditingText && isDraggingWhileEditing ? "auto" : "box-none"}
+      >
           {isEditingText ? (
             <>
               <View 
                 style={styles.textEditingContainer} 
-                pointerEvents={isDraggingWhileEditing ? "box-none" : "box-none"}
+                pointerEvents={isDraggingWhileEditing ? "auto" : "box-none"}
+                onLayout={(event) => {
+                  const { width, height } = event.nativeEvent.layout;
+                  const previousLayout = editingContainerLayout.current;
+                  // Сохраняем размеры контейнера
+                  editingContainerLayout.current = { width, height };
+                  
+                  // Вычисляем корректную позицию с учетом границ экрана
+                  // Пересчитываем, если позиция еще не вычислена или размеры контейнера изменились
+                  const needsRecalculation = !adjustedEditingPosition || 
+                    !previousLayout || 
+                    previousLayout.width !== width || 
+                    previousLayout.height !== height;
+                  
+                  if (needsRecalculation) {
+                    // Получаем актуальную позицию аннотации
+                    const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+                    const currentX = currentAnnotation?.x ?? annotation.x;
+                    const currentY = currentAnnotation?.y ?? annotation.y;
+                    
+                    const adjusted = calculateAdjustedPosition(
+                      { ...annotation, x: currentX, y: currentY },
+                      width,
+                      height
+                    );
+                    setAdjustedEditingPosition(adjusted);
+                    
+                    // Обновляем позицию аннотации, если она была скорректирована
+                    if (adjusted.x !== currentX || adjusted.y !== currentY) {
+                      onAnnotationUpdate(annotation.id, { x: adjusted.x, y: adjusted.y });
+                    }
+                  }
+                }}
               >
                 <View pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
                   <TextInput
@@ -571,31 +686,37 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   />
                 </View>
                 {/* Кнопки: Перетащить (оранжевая), Принять и Удалить за полем ввода */}
-                <View style={styles.textActionButtons}>
-                  <View
-                    style={[styles.actionButton, styles.dragButton]}
-                  >
-                    <TouchableOpacity
-                      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-                      onPressIn={() => {
-                        // Активируем режим перетаскивания при зажатии кнопки
+                <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.dragButton, isDraggingWhileEditing && { opacity: 0.8 }]}
+                    onPress={() => {
+                      // Переключаем режим перетаскивания при нажатии на кнопку
+                      if (!isDraggingWhileEditing) {
+                        // Активируем режим перетаскивания
                         setIsDraggingWhileEditing(true);
+                        isDraggingWhileEditingRef.current = true;
                         Keyboard.dismiss();
-                      }}
-                      onPressOut={() => {
-                        // Деактивируем режим перетаскивания при отпускании кнопки
+                        // Инициализируем состояние перетаскивания
+                        const currentAnnotation = annotations.find(ann => ann.id === annotation.id);
+                        editingDragState.current = {
+                          startX: adjustedEditingPosition?.x ?? (currentAnnotation?.x ?? annotation.x),
+                          startY: adjustedEditingPosition?.y ?? (currentAnnotation?.y ?? annotation.y),
+                          isDraggingStarted: false,
+                        };
+                      } else {
+                        // Деактивируем режим перетаскивания
                         setIsDraggingWhileEditing(false);
+                        isDraggingWhileEditingRef.current = false;
                         if (editingDragState.current) {
                           editingDragState.current.isDraggingStarted = false;
                         }
                         editingDragState.current = null;
-                      }}
-                      activeOpacity={1}
-                      delayPressIn={0}
-                    >
-                      <Ionicons name="move" size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </View>
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="move" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.actionButton, 
@@ -758,7 +879,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       <View 
         style={[
           styles.container,
-          // Когда инструмент активен и нет редактируемых аннотаций, убеждаемся что события проходят
+          // Когда инструмент активен и нет редактируемых аннотаций, пропускаем события через контейнер
+          // чтобы они дошли до TouchableOpacity в ImageViewer
           currentTool && !editingAnnotation && { pointerEvents: 'box-none' }
         ]}
       >

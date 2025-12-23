@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -60,9 +61,13 @@ export default function ImageViewer({
   const [selectedPageIndex, setSelectedPageIndex] = useState<number | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
   const internalAnnotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const annotationsRef = externalAnnotationsRef || internalAnnotationsRef;
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const savedScrollPosition = useRef<number | null>(null);
+  const keyboardHeight = useRef<number>(0);
+  const currentScrollY = useRef<number>(0);
 
   useEffect(() => {
     if (onPageChange) {
@@ -70,9 +75,84 @@ export default function ImageViewer({
     }
   }, [currentPage, images.length]);
 
+  // Отслеживаем изменения клавиатуры
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (event) => {
+        keyboardHeight.current = event.endCoordinates.height;
+      }
+    );
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        keyboardHeight.current = 0;
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
+
+  // Автоматическая прокрутка при открытии редактирования текста
+  useEffect(() => {
+    if (isTextEditing && editingAnnotationId && scrollViewRef.current) {
+      // Находим аннотацию, которая редактируется
+      const editingAnnotation = annotations.find(ann => ann.id === editingAnnotationId);
+      
+      if (editingAnnotation && editingAnnotation.page) {
+        const pageNumber = typeof editingAnnotation.page === 'number' 
+          ? editingAnnotation.page 
+          : parseInt(editingAnnotation.page.toString()) || 1;
+        
+        // Вычисляем позицию аннотации относительно страницы
+        const annotationY = editingAnnotation.y;
+        const annotationHeight = editingAnnotation.height || 100;
+        const annotationBottom = annotationY + annotationHeight;
+        
+        // Вычисляем, находится ли аннотация в нижней части экрана (где может перекрыть клавиатура)
+        // Клавиатура обычно занимает около 250-350px внизу экрана
+        const screenBottom = containerHeight;
+        
+        // Если аннотация находится в нижней части экрана (ниже 60% высоты), прокручиваем
+        const threshold = screenBottom * 0.6;
+        
+        if (annotationBottom > threshold) {
+          // Вычисляем нужную позицию прокрутки, чтобы аннотация была видна над клавиатурой
+          // Прокручиваем так, чтобы аннотация была в верхней части видимой области
+          const pageOffset = (pageNumber - 1) * containerHeight;
+          // Прокручиваем так, чтобы аннотация была на 150px от верха видимой области
+          const targetScrollY = pageOffset + Math.max(0, annotationY - 150);
+          
+          // Прокручиваем с небольшой задержкой, чтобы клавиатура успела открыться
+          setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+              y: targetScrollY,
+              animated: true,
+            });
+          }, Platform.OS === 'ios' ? 200 : 400);
+        }
+      }
+    } else if (!isTextEditing && savedScrollPosition.current !== null && scrollViewRef.current) {
+      // Возвращаемся в исходное положение при закрытии редактирования
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: savedScrollPosition.current!,
+          animated: true,
+        });
+        savedScrollPosition.current = null;
+      }, Platform.OS === 'ios' ? 100 : 200);
+    }
+  }, [isTextEditing, editingAnnotationId, annotations, containerHeight]);
+
 
   const handleScroll = (event: any) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    currentScrollY.current = offsetY;
+    setScrollY(offsetY); // Обновляем состояние для перерисовки отдельного слоя
     const page = Math.round(offsetY / containerHeight) + 1;
     const clampedPage = Math.max(1, Math.min(page, images.length));
     if (clampedPage !== currentPage && clampedPage >= 1 && clampedPage <= images.length) {
@@ -100,7 +180,10 @@ export default function ImageViewer({
       return;
     }
 
-    if (!isEditing || !currentTool) return;
+    // Если не в режиме редактирования или инструмент не выбран, ничего не делаем
+    if (!isEditing || !currentTool) {
+      return;
+    }
 
     if (currentTool === 'text' && onAnnotationAdd) {
       const maxZIndex = annotations.length > 0 
@@ -131,6 +214,11 @@ export default function ImageViewer({
   };
 
   const handleEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
+    // Сохраняем позицию прокрутки перед началом редактирования
+    if (isEditing && !isTextEditing) {
+      savedScrollPosition.current = currentScrollY.current;
+    }
+    
     setIsTextEditing(isEditing);
     setEditingAnnotationId(annotationId);
     // Передаем состояние редактирования в родительский компонент
@@ -259,17 +347,20 @@ export default function ImageViewer({
         contentInsetAdjustmentBehavior="never"
         snapToAlignment="start"
         bounces={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
       >
         {images.map((imageUri, index) => {
           const pageNumber = index + 1;
           // Фильтруем аннотации для текущей страницы
+          // Исключаем редактируемый текст, так как он рендерится в отдельном слое
           const pageAnnotations = annotations.filter(
-            (ann) => (ann.page || 1) === pageNumber
+            (ann) => (ann.page || 1) === pageNumber && ann.id !== editingAnnotationId
           );
           
           // Определяем, редактируется ли текст на этой странице
           const isEditingOnThisPage = editingAnnotationId 
-            ? pageAnnotations.some(ann => ann.id === editingAnnotationId)
+            ? annotations.some(ann => ann.id === editingAnnotationId && (ann.page || 1) === pageNumber)
             : false;
 
           return (
@@ -278,7 +369,12 @@ export default function ImageViewer({
               style={[
                 styles.pageContainer,
                 { height: containerHeight },
-                index === images.length - 1 && styles.lastPageContainer
+                index === images.length - 1 && styles.lastPageContainer,
+                // Используем очень высокий z-index для страницы с редактируемым текстом
+                isEditingOnThisPage && {
+                  zIndex: 10000,
+                  elevation: 10000, // Для Android
+                }
               ]}
             >
               <View style={styles.zoomContainer}>
@@ -327,10 +423,14 @@ export default function ImageViewer({
                     justifyContent: 'center',
                     alignItems: 'center',
                     transform: [{ scale: zoomLevel }],
+                    pointerEvents: 'box-none', // Пропускаем события через этот контейнер
+                    // Используем очень высокий z-index для страницы с редактируемым текстом
+                    zIndex: isEditingOnThisPage ? 10000 : 1,
+                    elevation: isEditingOnThisPage ? 10000 : 1, // Для Android
                   }}
                 >
                   <PdfAnnotations
-                    ref={isEditingOnThisPage ? annotationsRef : null}
+                    ref={pageNumber === currentPage && isEditing ? annotationsRef : null}
                     annotations={pageAnnotations}
                     onAnnotationAdd={onAnnotationAdd || (() => {})}
                     onAnnotationUpdate={onAnnotationUpdate || (() => {})}
@@ -346,6 +446,62 @@ export default function ImageViewer({
           );
         })}
       </ScrollView>
+
+      {/* Отдельный слой для редактируемого текста и кнопок поверх всех страниц */}
+      {isTextEditing && editingAnnotationId && (() => {
+        const editingAnnotation = annotations.find(ann => ann.id === editingAnnotationId);
+        if (!editingAnnotation || editingAnnotation.type !== 'text' || !editingAnnotation.page) {
+          return null;
+        }
+
+        const pageNumber = typeof editingAnnotation.page === 'number' 
+          ? editingAnnotation.page 
+          : parseInt(editingAnnotation.page.toString()) || 1;
+        
+        // Вычисляем позицию с учетом прокрутки
+        const pageOffset = (pageNumber - 1) * containerHeight;
+        const scrollOffset = scrollY;
+        const relativeY = pageOffset - scrollOffset;
+
+        return (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 999999,
+              elevation: 999999, // Для Android
+              pointerEvents: 'box-none', // Пропускаем события, кроме редактируемого текста
+            }}
+          >
+            <View
+              style={{
+                position: 'absolute',
+                top: relativeY,
+                left: 0,
+                width: SCREEN_WIDTH,
+                height: containerHeight,
+                transform: [{ scale: zoomLevel }],
+                pointerEvents: 'box-none',
+              }}
+            >
+              <PdfAnnotations
+                ref={annotationsRef}
+                annotations={[editingAnnotation]}
+                onAnnotationAdd={() => {}}
+                onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                onAnnotationDelete={onAnnotationDelete || (() => {})}
+                isEditing={isEditing}
+                currentTool={currentTool}
+                onEditingStateChange={handleEditingStateChange}
+                zoomLevel={zoomLevel}
+              />
+            </View>
+          </View>
+        );
+      })()}
 
       {/* Модальное окно с опциями страницы */}
       <Modal

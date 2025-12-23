@@ -19,6 +19,8 @@ export default function Index() {
           '@user_projects',
           '@activation_code',
           '@user_avatar',
+          '@user_access_code',
+          '@has_seen_access_code',
         ]);
         console.log('Прогресс пользователя сброшен');
         

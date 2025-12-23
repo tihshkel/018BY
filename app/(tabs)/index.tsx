@@ -22,7 +22,9 @@ import Animated, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import * as Clipboard from 'expo-clipboard';
 import { getAlbumTemplateById } from '@/albums';
+import { generateAccessCode } from '@/utils/accessCodeGenerator';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.75;
@@ -59,17 +61,24 @@ interface Project {
   thumbnailPath?: any;
 }
 
+const ACCESS_CODE_KEY = '@user_access_code';
+const HAS_SEEN_ACCESS_CODE_KEY = '@has_seen_access_code';
+
 export default function HomeScreen() {
   const [userName, setUserName] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedProjectForAction, setSelectedProjectForAction] = useState<Project | null>(null);
+  const [showAccessCodeModal, setShowAccessCodeModal] = useState(false);
+  const [showAccessCodeInfoModal, setShowAccessCodeInfoModal] = useState(false);
+  const [accessCode, setAccessCode] = useState('');
   const opacity = useSharedValue(0);
 
   useEffect(() => {
     loadUserData();
     loadProjects();
+    checkFirstTimeAccess();
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
 
@@ -86,6 +95,73 @@ export default function HomeScreen() {
       if (name) setUserName(name);
     } catch (error) {
       console.error('Error loading user name:', error);
+    }
+  };
+
+  const checkFirstTimeAccess = async () => {
+    try {
+      // Проверяем, что пользователь активирован
+      const isActivated = await AsyncStorage.getItem('@is_activated');
+      if (isActivated !== 'true') {
+        return;
+      }
+
+      const hasSeenCode = await AsyncStorage.getItem(HAS_SEEN_ACCESS_CODE_KEY);
+      const existingCode = await AsyncStorage.getItem(ACCESS_CODE_KEY);
+      
+      console.log('Check first time access:', { hasSeenCode, existingCode, isActivated });
+      
+      // Если код уже был показан, не показываем модальное окно
+      if (hasSeenCode === 'true') {
+        console.log('Access code already shown, skipping modal');
+        return;
+      }
+      
+      // Если кода нет, генерируем новый
+      let code = existingCode;
+      if (!code) {
+        code = generateAccessCode();
+        await AsyncStorage.setItem(ACCESS_CODE_KEY, code);
+        console.log('Generated new access code:', code);
+      } else {
+        console.log('Using existing access code:', code);
+      }
+      
+      // Показываем модальное окно с кодом
+      if (code) {
+        setAccessCode(code);
+        // Небольшая задержка для плавного появления после загрузки страницы
+        setTimeout(() => {
+          console.log('Showing access code modal with code:', code);
+          setShowAccessCodeModal(true);
+        }, 800);
+      } else {
+        console.error('No access code to show');
+      }
+    } catch (error) {
+      console.error('Error checking first time access:', error);
+    }
+  };
+
+  const handleCopyAccessCode = async () => {
+    try {
+      await Clipboard.setStringAsync(accessCode);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('Код скопирован', 'Код доступа скопирован в буфер обмена');
+    } catch (error) {
+      console.error('Error copying access code:', error);
+      Alert.alert('Ошибка', 'Не удалось скопировать код');
+    }
+  };
+
+  const handleCloseAccessCodeModal = async () => {
+    try {
+      await AsyncStorage.setItem(HAS_SEEN_ACCESS_CODE_KEY, 'true');
+      setShowAccessCodeModal(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error saving access code seen status:', error);
+      setShowAccessCodeModal(false);
     }
   };
 
@@ -448,6 +524,147 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.cancelButtonText}>Отмена</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Модальное окно с кодом доступа */}
+      <Modal
+        visible={showAccessCodeModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseAccessCodeModal}
+      >
+        <View style={styles.accessCodeModalOverlay}>
+          <View style={styles.accessCodeModalContent}>
+            {/* Иконка */}
+            <View style={styles.accessCodeIconContainer}>
+              <Ionicons name="key-outline" size={40} color="#C9A89A" />
+            </View>
+            
+            <Text style={styles.accessCodeModalTitle}>
+              Ваш код доступа
+            </Text>
+            
+            <Text style={styles.accessCodeModalSubtitle}>
+              Сохраните этот код в безопасном месте. Он понадобится вам для входа в аккаунт при смене телефона или окончании сессии.
+            </Text>
+            
+            {/* Код доступа */}
+            <TouchableOpacity
+              style={styles.accessCodeContainer}
+              onPress={handleCopyAccessCode}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.accessCodeText}>{accessCode}</Text>
+              <View style={styles.copyIconContainer}>
+                <Ionicons name="copy-outline" size={18} color="#C9A89A" />
+              </View>
+            </TouchableOpacity>
+            <Text style={styles.copyHintText}>Нажмите на код, чтобы скопировать</Text>
+            
+            <TouchableOpacity
+              style={styles.accessCodeWarningContainer}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                // Закрываем основное модальное окно и открываем информационное
+                setShowAccessCodeModal(false);
+                setTimeout(() => {
+                  setShowAccessCodeInfoModal(true);
+                }, 300);
+              }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="information-circle-outline" size={18} color="#8B6F5F" />
+              <Text style={styles.accessCodeWarningText}>
+                Обязательно запомните этот код!
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.accessCodeButton}
+              onPress={handleCloseAccessCodeModal}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.accessCodeButtonText}>Понятно</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Модальное окно с информацией о коде доступа */}
+      <Modal
+        visible={showAccessCodeInfoModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAccessCodeInfoModal(false)}
+      >
+        <View style={styles.accessCodeModalOverlay}>
+          <View style={styles.accessCodeInfoModalContent}>
+            <View style={styles.accessCodeInfoHeader}>
+              <Text style={styles.accessCodeInfoTitle}>
+                Зачем нужен код доступа?
+              </Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowAccessCodeInfoModal(false)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={24} color="#9B8E7F" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.accessCodeInfoScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Раздел о важности кода */}
+              <View style={styles.infoSection}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons name="key" size={24} color="#C9A89A" />
+                </View>
+                <Text style={styles.infoSectionTitle}>
+                  Вход в приложение
+                </Text>
+                <Text style={styles.infoSectionText}>
+                  Код доступа необходим для входа в приложение. По нему вы сможете войти в свой аккаунт при смене телефона или окончании сессии. Без него вы не сможете получить доступ к своим альбомам и проектам.
+                </Text>
+              </View>
+
+              {/* Раздел о забытом коде */}
+              <View style={styles.infoSection}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons name="help-circle" size={24} color="#C9A89A" />
+                </View>
+                <Text style={styles.infoSectionTitle}>
+                  Забыли код?
+                </Text>
+                <Text style={styles.infoSectionText}>
+                  Если вы забыли свой код доступа, обратитесь в техническую поддержку. Наши специалисты помогут вам восстановить доступ к аккаунту.
+                </Text>
+              </View>
+
+              {/* Раздел о QR-коде */}
+              <View style={styles.infoSection}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons name="qr-code" size={24} color="#C9A89A" />
+                </View>
+                <Text style={styles.infoSectionTitle}>
+                  Альтернативный способ входа
+                </Text>
+                <Text style={styles.infoSectionText}>
+                  Если вам нужно войти в аккаунт на новом устройстве, но вы забыли код, вы можете отсканировать QR-код на старом телефоне. Для этого откройте приложение на старом устройстве, перейдите в раздел "Профиль" и найдите пункт "Отсканировать QR-код" под разделом "Оценить приложение".
+                </Text>
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.accessCodeButton}
+              onPress={() => setShowAccessCodeInfoModal(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.accessCodeButtonText}>Понятно</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -938,5 +1155,254 @@ const styles = StyleSheet.create({
       android: 'sans-serif',
       default: 'sans-serif',
     }),
+  },
+  // Стили для модального окна с кодом доступа
+  accessCodeModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  accessCodeModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 360,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F5F0EB',
+    alignItems: 'center',
+  },
+  accessCodeIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FAF8F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  accessCodeModalTitle: {
+    fontSize: 22,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  accessCodeModalSubtitle: {
+    fontSize: 14,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  accessCodeContainer: {
+    backgroundColor: '#FAF8F5',
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    marginBottom: 8,
+    width: '100%',
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  accessCodeText: {
+    fontSize: 28,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'monospace',
+      default: 'monospace',
+    }),
+    fontWeight: '600',
+    letterSpacing: 3,
+  },
+  copyIconContainer: {
+    position: 'absolute',
+    right: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  copyHintText: {
+    fontSize: 12,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  accessCodeWarningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 24,
+    width: '100%',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  accessCodeWarningText: {
+    fontSize: 13,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '500',
+    flex: 1,
+  },
+  accessCodeButton: {
+    backgroundColor: '#C9A89A',
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: 16,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  accessCodeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  // Стили для модального окна с информацией о коде
+  accessCodeInfoModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F5F0EB',
+  },
+  accessCodeInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  accessCodeInfoTitle: {
+    fontSize: 22,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    flex: 1,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FAF8F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  accessCodeInfoScroll: {
+    maxHeight: 400,
+    marginBottom: 20,
+  },
+  infoSection: {
+    marginBottom: 24,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E8E0',
+  },
+  infoIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FAF8F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  infoSectionTitle: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  infoSectionText: {
+    fontSize: 14,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    lineHeight: 20,
   },
 });

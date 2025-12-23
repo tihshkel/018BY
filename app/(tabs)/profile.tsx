@@ -20,6 +20,8 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 
 interface MenuItem {
   id: string;
@@ -29,10 +31,13 @@ interface MenuItem {
   action?: () => void;
 }
 
+const ACCESS_CODE_KEY = '@user_access_code';
+
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [accessStatus, setAccessStatus] = useState('Полный доступ активирован');
+  const [accessCode, setAccessCode] = useState<string | null>(null);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -45,14 +50,29 @@ export default function ProfileScreen() {
       const name = await AsyncStorage.getItem('@user_name');
       const avatar = await AsyncStorage.getItem('@user_avatar');
       const activated = await AsyncStorage.getItem('@is_activated');
+      const code = await AsyncStorage.getItem(ACCESS_CODE_KEY);
       
       if (name) setUserName(name);
       if (avatar) setAvatarUri(avatar);
+      if (code) setAccessCode(code);
       if (activated !== 'true') {
         setAccessStatus('Ограниченный доступ');
       }
     } catch (error) {
       console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleCopyAccessCode = async () => {
+    if (!accessCode) return;
+    
+    try {
+      await Clipboard.setStringAsync(accessCode);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('Код скопирован', 'Код доступа скопирован в буфер обмена');
+    } catch (error) {
+      console.error('Error copying access code:', error);
+      Alert.alert('Ошибка', 'Не удалось скопировать код');
     }
   };
 
@@ -161,6 +181,12 @@ export default function ProfileScreen() {
       icon: 'star-outline',
       action: handleRateApp,
     },
+    {
+      id: 'qr-scan',
+      title: 'Отсканировать QR-код',
+      icon: 'qr-code-outline',
+      route: '/qr-scan',
+    },
   ];
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -206,6 +232,22 @@ export default function ProfileScreen() {
               <Ionicons name="checkmark-circle" size={16} color="#C9A89A" />
               <Text style={styles.statusText}>{accessStatus}</Text>
             </View>
+            
+            {/* Код доступа */}
+            {accessCode && (
+              <View style={styles.accessCodeSection}>
+                <Text style={styles.accessCodeLabel}>Код доступа</Text>
+                <TouchableOpacity
+                  style={styles.accessCodeContainer}
+                  onPress={handleCopyAccessCode}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.accessCodeText}>{accessCode}</Text>
+                  <Ionicons name="copy-outline" size={18} color="#C9A89A" />
+                </TouchableOpacity>
+                <Text style={styles.accessCodeHint}>Нажмите, чтобы скопировать</Text>
+              </View>
+            )}
           </View>
 
           {/* Меню */}
@@ -326,6 +368,60 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '500',
+  },
+  accessCodeSection: {
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
+  },
+  accessCodeLabel: {
+    fontSize: 12,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  accessCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+    gap: 12,
+    minWidth: 200,
+  },
+  accessCodeText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'monospace',
+      default: 'monospace',
+    }),
+    fontWeight: '600',
+    letterSpacing: 2,
+  },
+  accessCodeHint: {
+    fontSize: 11,
+    color: '#B8A89A',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    marginTop: 6,
+    textAlign: 'center',
   },
   menuSection: {
     paddingHorizontal: 24,

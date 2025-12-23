@@ -1,25 +1,25 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Linking,
-  ScrollView,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { router, useLocalSearchParams } from 'expo-router';
+import React from 'react';
+import {
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SelectActionScreen() {
   const { celebration, coverType, eventDate } = useLocalSearchParams<{
@@ -92,7 +92,11 @@ export default function SelectActionScreen() {
     
     // Ищем ссылку на WB по изображению обложки, ID альбома и названию
     // Для детских альбомов используем ID для точного сопоставления (dfa_7 -> DFA7)
-    const wbLink = getWildberriesLink(albumTemplate.name, albumTemplate.thumbnailPath, albumTemplate.id);
+    const wbLink = getWildberriesLink(
+      albumTemplate.name, 
+      albumTemplate.thumbnailPath as any, 
+      albumTemplate.id
+    );
     
     if (wbLink) {
       try {
@@ -163,9 +167,10 @@ export default function SelectActionScreen() {
                     style={styles.coverImage}
                     contentFit="cover"
                     priority="high"
-                    cachePolicy="disk"
+                    cachePolicy="memory-disk"
                     transition={0}
                     fadeDuration={0}
+                    placeholderContentFit="cover"
                   />
                 )}
               </View>

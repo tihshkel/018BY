@@ -241,35 +241,82 @@ export default function EditAlbumScreen() {
   };
 
   const handleExport = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
-    // Убеждаемся, что проект сохранен перед экспортом
-    if (!id) {
-      // Создаем временный проект для экспорта
-      const tempProjectId = Date.now().toString();
-      const projectData = {
-        id: tempProjectId,
-        title: albumName || getCelebrationTitle(celebration || ''),
-        albumId: albumId || 'pregnancy_60',
-        createdAt: new Date().toISOString(),
-        isReadyMadeAlbum: true,
-      };
+    try {
+      console.log('[Export] Начало экспорта');
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
-      await AsyncStorage.setItem(`@project_${tempProjectId}`, JSON.stringify(projectData));
+      // Закрываем редактирование текста, если оно активно
+      if (isAddingText && annotationsRef.current) {
+        annotationsRef.current?.closeEditing?.();
+        setIsAddingText(false);
+        setEditingTextAnnotationId(null);
+        setCurrentTextAnnotation(null);
+      }
       
-      // Сохраняем текущие изображения и аннотации
-      await AsyncStorage.setItem(`@project_images_${tempProjectId}`, JSON.stringify(images));
-      await AsyncStorage.setItem(`@project_annotations_${tempProjectId}`, JSON.stringify(annotations));
-      await AsyncStorage.setItem(`@project_cover_annotations_${tempProjectId}`, JSON.stringify(coverAnnotations));
+      // Определяем правильный albumId для экспорта
+      const exportAlbumId = albumId || interiorType || coverType || (celebration === 'kids' ? 'kids_48' : 'pregnancy_60');
+      console.log('[Export] albumId:', exportAlbumId, 'celebration:', celebration);
       
-      router.push(`/export-pdf?id=${tempProjectId}`);
-    } else {
-      // Сохраняем текущие данные перед экспортом
-      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
-      await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
-      await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
-      
-      router.push(`/export-pdf?id=${id}`);
+      // Убеждаемся, что проект сохранен перед экспортом
+      if (!id) {
+        // Создаем временный проект для экспорта
+        const tempProjectId = Date.now().toString();
+        const projectData = {
+          id: tempProjectId,
+          title: albumName || getCelebrationTitle(celebration || ''),
+          albumId: exportAlbumId,
+          category: celebration || null,
+          createdAt: new Date().toISOString(),
+          isReadyMadeAlbum: true,
+        };
+        
+        console.log('[Export] Создание временного проекта:', tempProjectId);
+        await AsyncStorage.setItem(`@project_${tempProjectId}`, JSON.stringify(projectData));
+        
+        // Сохраняем текущие изображения и аннотации
+        await AsyncStorage.setItem(`@project_images_${tempProjectId}`, JSON.stringify(images));
+        await AsyncStorage.setItem(`@project_annotations_${tempProjectId}`, JSON.stringify(annotations));
+        await AsyncStorage.setItem(`@project_cover_annotations_${tempProjectId}`, JSON.stringify(coverAnnotations));
+        
+        console.log('[Export] Переход на страницу экспорта');
+        router.push(`/export-pdf?id=${tempProjectId}`);
+      } else {
+        // Обновляем данные проекта перед экспортом
+        const projectData = await AsyncStorage.getItem(`@project_${id}`);
+        if (projectData) {
+          const project = JSON.parse(projectData);
+          // Обновляем проект с актуальными данными
+          const updatedProject = {
+            ...project,
+            albumId: exportAlbumId,
+            category: celebration || project.category || null,
+            title: albumName || project.title || getCelebrationTitle(celebration || ''),
+          };
+          await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(updatedProject));
+        } else {
+          // Если проекта нет, создаем новый
+          const newProjectData = {
+            id,
+            title: albumName || getCelebrationTitle(celebration || ''),
+            albumId: exportAlbumId,
+            category: celebration || null,
+            createdAt: new Date().toISOString(),
+            isReadyMadeAlbum: true,
+          };
+          await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(newProjectData));
+        }
+        
+        // Сохраняем текущие данные перед экспортом
+        await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
+        await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
+        await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+        
+        console.log('[Export] Переход на страницу экспорта для проекта:', id);
+        router.push(`/export-pdf?id=${id}`);
+      }
+    } catch (error) {
+      console.error('[Export] Ошибка при экспорте:', error);
+      Alert.alert('Ошибка', 'Не удалось начать экспорт. Попробуйте снова.');
     }
   };
 
@@ -536,20 +583,21 @@ export default function EditAlbumScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
         {/* Верхняя панель с градиентом */}
-        <View style={styles.topBar}>
+        <View style={styles.topBar} pointerEvents="box-none">
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Назад"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <View style={styles.backButtonInner}>
               <Ionicons name="chevron-back" size={22} color="#8B6F5F" />
             </View>
           </TouchableOpacity>
           
-          <View style={styles.titleContainer}>
+          <View style={styles.titleContainer} pointerEvents="none">
             <Text style={styles.albumTitle} numberOfLines={1}>
               {viewMode === 'cover' ? 'Развертка обложки' : (albumName || getCelebrationTitle(celebration || ''))}
             </Text>
@@ -568,9 +616,14 @@ export default function EditAlbumScreen() {
           <TouchableOpacity
             style={styles.exportButton}
             onPress={handleExport}
+            onPressIn={() => {
+              console.log('[Export] Кнопка нажата');
+            }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Экспорт PDF"
+            disabled={isLoading}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons name="download-outline" size={20} color="#FFFFFF" />
             <Text style={styles.exportButtonText}>Экспорт</Text>
@@ -888,7 +941,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 10,
+    zIndex: 1000,
   },
   backButton: {
     width: 40,
@@ -947,6 +1001,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
     elevation: 3,
+    zIndex: 1000,
   },
   exportButtonText: {
     color: '#FFFFFF',

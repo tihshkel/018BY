@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Asset } from 'expo-asset';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 
@@ -83,28 +84,64 @@ export default function SelectAlbumScreen() {
             .filter(album => album.thumbnailPath)
             .map(album => album.thumbnailPath!);
           
-          // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
+          // Предзагружаем все изображения (и строковые URI, и локальные ресурсы)
           await Promise.all(
-            imagesToPreload.map(imageSource => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch(err => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения альбома:', err);
-                });
+            imagesToPreload.map(async (imageSource) => {
+              try {
+                if (typeof imageSource === 'string') {
+                  // Строковые URI (удаленные изображения)
+                  await Image.prefetch(imageSource);
+                } else {
+                  // Локальные ресурсы (require модули) - используем Asset API для предзагрузки
+                  const asset = Asset.fromModule(imageSource);
+                  await asset.downloadAsync();
+                }
+              } catch (err) {
+                console.warn('⚠️ Ошибка предзагрузки изображения альбома:', err);
               }
-              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-              return Promise.resolve();
             })
           );
           
-          console.log('✅ Изображения альбомов предзагружены');
+          console.log(`✅ Предзагружено ${imagesToPreload.length} изображений альбомов`);
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений альбомов:', error);
         }
       };
 
+      // Запускаем предзагрузку сразу при фокусе
       preloadAlbumImages();
     }, [filteredAlbums])
   );
+
+  // Также предзагружаем при монтировании компонента
+  useEffect(() => {
+    const preloadOnMount = async () => {
+      try {
+        const imagesToPreload = filteredAlbums
+          .filter(album => album.thumbnailPath)
+          .map(album => album.thumbnailPath!);
+        
+        await Promise.all(
+          imagesToPreload.map(async (imageSource) => {
+            try {
+              if (typeof imageSource === 'string') {
+                await Image.prefetch(imageSource);
+              } else {
+                const asset = Asset.fromModule(imageSource);
+                await asset.downloadAsync();
+              }
+            } catch (err) {
+              // Игнорируем ошибки отдельных изображений
+            }
+          })
+        );
+      } catch (error) {
+        // Игнорируем общие ошибки
+      }
+    };
+
+    preloadOnMount();
+  }, [filteredAlbums]);
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 400 });
@@ -206,11 +243,12 @@ export default function SelectAlbumScreen() {
                     source={album.thumbnailPath}
                     style={styles.albumImage}
                     contentFit="cover"
-                    priority={filteredAlbums.indexOf(album) < 5 ? "high" : "normal"}
-                    cachePolicy="disk"
+                    priority="high"
+                    cachePolicy="memory-disk"
                     transition={0}
                     fadeDuration={0}
                     recyclingKey={album.id}
+                    placeholderContentFit="cover"
                   />
                 ) : (
                   <View style={styles.albumIcon}>

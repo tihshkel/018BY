@@ -174,9 +174,17 @@ export default function CoverViewer({
       return;
     }
 
-    if (!isEditing || !currentTool) return;
+    // Если не в режиме редактирования или инструмент не выбран, ничего не делаем
+    if (!isEditing || !currentTool) {
+      return;
+    }
 
     const { locationX, locationY } = event.nativeEvent || event;
+    
+    // Проверяем, что координаты валидны
+    if (typeof locationX !== 'number' || typeof locationY !== 'number') {
+      return;
+    }
     
     if (currentTool === 'text' && onAnnotationAdd) {
       const maxZIndex = annotations.length > 0 
@@ -254,30 +262,34 @@ export default function CoverViewer({
       >
         {coverImages.map((imageUri, index) => (
           <View key={index} style={styles.imageContainer}>
-            <TouchableOpacity
-              style={styles.imageWrapper}
-              activeOpacity={1}
-              onPress={handleImagePress}
-            >
-              <Image
-                source={{ uri: imageUri }}
-                style={styles.coverImage}
-                contentFit="contain"
-                transition={200}
-              />
+            <View style={styles.imageWrapper}>
+              <TouchableOpacity
+                style={styles.imageTouchable}
+                activeOpacity={1}
+                onPress={handleImagePress}
+              >
+                <Image
+                  source={{ uri: imageUri }}
+                  style={styles.coverImage}
+                  contentFit="contain"
+                  transition={200}
+                />
+              </TouchableOpacity>
               
-              {/* Аннотации поверх изображения */}
-              <PdfAnnotations
-                ref={editingAnnotationId && annotations.some(ann => ann.id === editingAnnotationId && ann.page === 'cover') ? annotationsRef : null}
-                annotations={annotations.filter(ann => ann.page === 'cover')}
-                onAnnotationAdd={onAnnotationAdd}
-                onAnnotationUpdate={onAnnotationUpdate}
-                onAnnotationDelete={onAnnotationDelete}
-                isEditing={isEditing}
-                currentTool={currentTool}
-                onEditingStateChange={handleEditingStateChange}
-              />
-            </TouchableOpacity>
+              {/* Аннотации поверх изображения - вынесены наружу для правильной обработки событий */}
+              <View style={styles.annotationsContainer}>
+                <PdfAnnotations
+                  ref={editingAnnotationId && annotations.some(ann => ann.id === editingAnnotationId && ann.page === 'cover') ? annotationsRef : null}
+                  annotations={annotations.filter(ann => ann.page === 'cover')}
+                  onAnnotationAdd={onAnnotationAdd}
+                  onAnnotationUpdate={onAnnotationUpdate}
+                  onAnnotationDelete={onAnnotationDelete}
+                  isEditing={isEditing}
+                  currentTool={currentTool}
+                  onEditingStateChange={handleEditingStateChange}
+                />
+              </View>
+            </View>
           </View>
         ))}
       </ScrollView>
@@ -321,6 +333,18 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: '#F5F0EB',
+  },
+  imageTouchable: {
+    width: '100%',
+    height: '100%',
+  },
+  annotationsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'box-none',
   },
   coverImage: {
     width: '100%',
