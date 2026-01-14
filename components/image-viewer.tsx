@@ -1,25 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
+  FlatList,
   Dimensions,
   Platform,
   TouchableOpacity,
   Modal,
   Alert,
+  Keyboard,
+  Animated,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
 import * as ImagePicker from 'expo-image-picker';
+import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { createId } from '@/utils/id';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
+const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
+const TEXT_EDITING_MIN_HEIGHT = 50;
+const TEXT_EDITING_ACTIONS_HEIGHT = 36;
+const TEXT_EDITING_ACTIONS_MARGIN_TOP = 8;
+const TEXT_EDITING_EXTRA_VERTICAL_PADDING = 16;
+const TEXT_EDITING_ESTIMATED_HEIGHT =
+  TEXT_EDITING_MIN_HEIGHT +
+  TEXT_EDITING_ACTIONS_MARGIN_TOP +
+  TEXT_EDITING_ACTIONS_HEIGHT +
+  TEXT_EDITING_EXTRA_VERTICAL_PADDING;
+
+const KEYBOARD_AVOID_MARGIN = 12;
+
+function clamp(value: number, min: number, max: number) {
+  if (Number.isNaN(value)) return min;
+  if (max < min) return min;
+  return Math.min(Math.max(value, min), max);
+}
+
+function mapScreenPointToUnscaledPagePoint(params: {
+  locationX: number;
+  locationY: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  zoomLevel: number;
+}) {
+  const { locationX, locationY, viewportWidth, viewportHeight, zoomLevel } = params;
+  const safeZoom = zoomLevel > 0 ? zoomLevel : 1;
+  const centerX = viewportWidth / 2;
+  const centerY = viewportHeight / 2;
+
+  return {
+    x: centerX + (locationX - centerX) / safeZoom,
+    y: centerY + (locationY - centerY) / safeZoom,
+  };
+}
 
 interface ImageViewerProps {
   images: string[]; // Массив URI изображений
   albumName: string;
+  lineGuideId?: string;
   onPageChange?: (page: number, total: number) => void;
   onError?: (error: any) => void;
   annotations?: Annotation[];
@@ -31,14 +78,18 @@ interface ImageViewerProps {
   onPageDuplicate?: (pageIndex: number) => void;
   onPageDelete?: (pageIndex: number) => void;
   onToolReset?: () => void; // Callback для сброса инструмента
+  onToolDeactivate?: () => void; // Мягкий сброс (только выключить выбранный инструмент)
   onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void; // Callback для отслеживания состояния редактирования текста
   annotationsRef?: React.RefObject<PdfAnnotationsRef>; // Ref для доступа к методам PdfAnnotations
   zoomLevel?: number; // Уровень масштабирования
+  onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта (координаты)
+  defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
 }
 
 export default function ImageViewer({
   images,
   albumName,
+  lineGuideId,
   onPageChange,
   onError,
   annotations = [],
@@ -50,9 +101,12 @@ export default function ImageViewer({
   onPageDuplicate,
   onPageDelete,
   onToolReset,
+  onToolDeactivate,
   onTextEditingStateChange,
   annotationsRef: externalAnnotationsRef,
   zoomLevel = 1,
+  onViewportChange,
+  defaultTextStyle,
 }: ImageViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
@@ -60,15 +114,92 @@ export default function ImageViewer({
   const [selectedPageIndex, setSelectedPageIndex] = useState<number | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
+  const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
   const internalAnnotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const annotationsRef = externalAnnotationsRef || internalAnnotationsRef;
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const flatListRef = React.useRef<FlatList<string>>(null);
+  const pageShiftY = React.useRef(new Animated.Value(0)).current;
+
+  // Загружаем последние настройки текста при монтировании
+  useEffect(() => {
+    const loadLastTextStyle = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('@last_text_style');
+        if (saved) {
+          setLastTextStyle(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error('Error loading last text style:', error);
+      }
+    };
+    loadLastTextStyle();
+  }, []);
+
+  const annotationsByPage = useMemo(() => {
+    const map = new Map<number, Annotation[]>();
+    for (const ann of annotations) {
+      const page = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
+      if (!Number.isFinite(page) || page < 1) continue;
+      const bucket = map.get(page) || [];
+      bucket.push(ann);
+      if (!map.has(page)) map.set(page, bucket);
+    }
+    return map;
+  }, [annotations]);
 
   useEffect(() => {
     if (onPageChange) {
       onPageChange(currentPage, images.length);
     }
   }, [currentPage, images.length]);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (event: any) => {
+      const height = event?.endCoordinates?.height ?? 0;
+      setKeyboardHeight(typeof height === 'number' ? height : 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Если редактирование закрыто — возвращаем страницу на место
+    if (!isTextEditing || !editingAnnotationId || keyboardHeight <= 0) {
+      Animated.timing(pageShiftY, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }).start();
+      return;
+    }
+
+    const activeAnnotation = annotations.find(
+      ann => ann.id === editingAnnotationId && (ann.page || 1) === currentPage
+    );
+    if (!activeAnnotation) return;
+
+    const editorBottomY = activeAnnotation.y + TEXT_EDITING_ESTIMATED_HEIGHT;
+    const visibleBottomY = containerHeight - keyboardHeight - KEYBOARD_AVOID_MARGIN;
+    const requiredShift = Math.max(0, editorBottomY - visibleBottomY);
+    const clampedShift = clamp(requiredShift, 0, containerHeight);
+
+    Animated.timing(pageShiftY, {
+      toValue: -clampedShift,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [isTextEditing, editingAnnotationId, keyboardHeight, containerHeight, annotations, currentPage, pageShiftY]);
 
 
   const handleScroll = (event: any) => {
@@ -84,19 +215,22 @@ export default function ImageViewer({
     const { height } = event.nativeEvent.layout;
     if (height > 0 && height !== containerHeight) {
       setContainerHeight(height);
+      onViewportChange?.({ width: SCREEN_WIDTH, height });
     }
   };
 
   const handleImagePress = (x: number, y: number) => {
-    // Если редактируется текст, закрываем редактирование и сбрасываем инструмент
-    if (isTextEditing && annotationsRef.current) {
-      annotationsRef.current?.closeEditing?.();
-      setIsTextEditing(false);
-      setEditingAnnotationId(null);
-      // Сбрасываем инструмент после закрытия редактирования
-      if (onToolReset) {
-        onToolReset();
-      }
+    // Если редактируется текст — тап по пустому месту должен просто закрыть клавиатуру,
+    // а редактирование оставить (чтобы можно было нажать галочку после)
+    if (isTextEditing) {
+      Keyboard.dismiss();
+      return;
+    }
+
+    // Если мы в режиме редактирования, но инструмент не выбран — тап по пустому месту
+    // должен закрывать выделение (рамку/ручки/корзину) у фото/аннотаций.
+    if (isEditing && !currentTool) {
+      annotationsRef.current?.clearSelection?.();
       return;
     }
 
@@ -106,20 +240,42 @@ export default function ImageViewer({
       const maxZIndex = annotations.length > 0 
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
+
+      const viewportWidth = SCREEN_WIDTH;
+      const viewportHeight = containerHeight;
+      // Ставим центр текстового блока ровно в точку нажатия (как "прицел")
+      const proposedX = x - TEXT_ANNOTATION_DEFAULT_WIDTH / 2;
+      const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
+      const nextX = clamp(proposedX, 0, viewportWidth - TEXT_ANNOTATION_DEFAULT_WIDTH);
+      const clampedY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+      const snappedY = snapYToNearestTemplateLine({
+        lineGuideId,
+        page: currentPage,
+        y: clampedY,
+        viewportHeight,
+      });
+      const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+
       const newAnnotation: Annotation = {
-        id: Date.now().toString(),
+        id: createId('ann'),
         type: 'text',
-        x,
-        y,
-        width: 200,
-        height: 40,
+        x: nextX,
+        y: nextY,
+        width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+        height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
         content: 'Новый текст',
-        color: '#000000',
-        fontSize: 16,
+        color: lastTextStyle?.color || defaultTextStyle?.color || '#000000',
+        fontSize: lastTextStyle?.fontSize || defaultTextStyle?.fontSize || 16,
+        ...(lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily ? { fontFamily: lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily } : {}),
         zIndex: maxZIndex + 1,
         page: currentPage,
       };
       onAnnotationAdd(newAnnotation);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          annotationsRef.current?.startEditing?.(newAnnotation.id);
+        });
+      });
       // Сбрасываем инструмент после добавления текста
       if (onToolReset) {
         onToolReset();
@@ -187,24 +343,34 @@ export default function ImageViewer({
 
   const handlePickImage = async (x: number, y: number) => {
     try {
+      const hasPermission = await ensureMediaLibraryPermission();
+      if (!hasPermission) return;
+
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+        mediaTypes: getImagePickerImagesMediaTypes(),
+        allowsEditing: false,
+        // Важно: не ухудшаем качество пользовательских фото
+        quality: 1,
       });
 
       if (!result.canceled && result.assets[0] && onAnnotationAdd) {
         const maxZIndex = annotations.length > 0 
           ? Math.max(...annotations.map(ann => ann.zIndex), 0)
           : 0;
+        const defaultSize = 120;
+        const viewportWidth = SCREEN_WIDTH;
+        const viewportHeight = containerHeight;
+        const proposedX = x - defaultSize / 2;
+        const proposedY = y - defaultSize / 2;
+        const nextX = clamp(proposedX, 0, viewportWidth - defaultSize);
+        const nextY = clamp(proposedY, 0, viewportHeight - defaultSize);
         const newAnnotation: Annotation = {
-          id: Date.now().toString(),
+          id: createId('ann'),
           type: 'image',
-          x,
-          y,
-          width: 150,
-          height: 150,
+          x: nextX,
+          y: nextY,
+          width: defaultSize,
+          height: defaultSize,
           imageUri: result.assets[0].uri,
           zIndex: maxZIndex + 1,
           page: currentPage,
@@ -224,12 +390,11 @@ export default function ImageViewer({
   };
 
   const scrollToPage = (page: number) => {
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({
-        y: (page - 1) * containerHeight,
-        animated: true,
-      });
-    }
+    if (!flatListRef.current) return;
+    flatListRef.current.scrollToOffset({
+      offset: (page - 1) * containerHeight,
+      animated: true,
+    });
   };
 
   if (images.length === 0) {
@@ -246,9 +411,13 @@ export default function ImageViewer({
       style={styles.container}
       onLayout={handleContainerLayout}
     >
-      <ScrollView
-        ref={scrollViewRef}
+      <FlatList
+        ref={flatListRef}
+        data={images}
+        keyExtractor={(_, index) => `page-${index}`}
+        keyboardShouldPersistTaps="always"
         pagingEnabled
+        scrollEnabled={!isInteractingWithAnnotation}
         showsVerticalScrollIndicator={true}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -259,93 +428,100 @@ export default function ImageViewer({
         contentInsetAdjustmentBehavior="never"
         snapToAlignment="start"
         bounces={false}
-      >
-        {images.map((imageUri, index) => {
+        initialNumToRender={1}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        removeClippedSubviews={true}
+        updateCellsBatchingPeriod={16}
+        getItemLayout={(_, index) => ({
+          length: containerHeight,
+          offset: containerHeight * index,
+          index,
+        })}
+        renderItem={({ item: imageUri, index }) => {
           const pageNumber = index + 1;
-          // Фильтруем аннотации для текущей страницы
-          const pageAnnotations = annotations.filter(
-            (ann) => (ann.page || 1) === pageNumber
-          );
-          
-          // Определяем, редактируется ли текст на этой странице
-          const isEditingOnThisPage = editingAnnotationId 
-            ? pageAnnotations.some(ann => ann.id === editingAnnotationId)
+          const pageAnnotations = annotationsByPage.get(pageNumber) || [];
+          const isEditingOnThisPage = editingAnnotationId
+            ? pageAnnotations.some((ann) => ann.id === editingAnnotationId)
             : false;
 
           return (
-            <View 
-              key={`page-${index}`} 
+            <View
               style={[
                 styles.pageContainer,
                 { height: containerHeight },
-                index === images.length - 1 && styles.lastPageContainer
+                index === images.length - 1 && styles.lastPageContainer,
               ]}
             >
               <View style={styles.zoomContainer}>
-                <TouchableOpacity
-                  style={styles.imageContainer}
-                  activeOpacity={1}
-                  onPress={(e) => {
-                    // Корректируем координаты с учетом масштаба
-                    const { locationX, locationY } = e.nativeEvent;
-                    handleImagePress(locationX / zoomLevel, locationY / zoomLevel);
-                  }}
-                  onLongPress={() => handleImageLongPress(index)}
-                  delayLongPress={500}
+                <Animated.View
+                  style={[
+                    styles.imageContainer,
+                    isEditingOnThisPage && { transform: [{ translateY: pageShiftY }] },
+                  ]}
                 >
-                  <View
-                    style={{
-                      width: SCREEN_WIDTH,
-                      height: containerHeight,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      transform: [{ scale: zoomLevel }],
+                  <TouchableOpacity
+                    style={styles.imageContainerInner}
+                    activeOpacity={1}
+                    onPress={(e) => {
+                      const { locationX, locationY } = e.nativeEvent;
+                      const { x, y } = mapScreenPointToUnscaledPagePoint({
+                        locationX,
+                        locationY,
+                        viewportWidth: SCREEN_WIDTH,
+                        viewportHeight: containerHeight,
+                        zoomLevel,
+                      });
+                      handleImagePress(x, y);
                     }}
+                    onLongPress={() => handleImageLongPress(index)}
+                    delayLongPress={500}
                   >
-                    <Image
-                      source={{ uri: imageUri }}
-                      style={styles.image}
-                      contentFit="contain"
-                      contentPosition="center"
-                      transition={200}
-                      cachePolicy="disk"
-                      priority={index < 3 ? 'high' : 'normal'}
-                    />
-                  </View>
-                </TouchableOpacity>
+                    <View
+                      style={{
+                        width: SCREEN_WIDTH,
+                        height: containerHeight,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        transform: [{ scale: zoomLevel }],
+                      }}
+                    >
+                      <Image
+                        source={{ uri: imageUri }}
+                        style={styles.image}
+                        contentFit="contain"
+                        contentPosition="center"
+                        // Важно для плавности: убираем fade transition при ререндере/виртуализации
+                        transition={0}
+                        fadeDuration={0}
+                        cachePolicy="disk"
+                        priority={index < 3 ? 'high' : 'normal'}
+                      />
 
-                {/* Аннотации для этой страницы */}
-                <View
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    width: SCREEN_WIDTH,
-                    height: containerHeight,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transform: [{ scale: zoomLevel }],
-                  }}
-                >
-                  <PdfAnnotations
-                    ref={isEditingOnThisPage ? annotationsRef : null}
-                    annotations={pageAnnotations}
-                    onAnnotationAdd={onAnnotationAdd || (() => {})}
-                    onAnnotationUpdate={onAnnotationUpdate || (() => {})}
-                    onAnnotationDelete={onAnnotationDelete || (() => {})}
-                    isEditing={isEditing}
-                    currentTool={currentTool}
-                    onEditingStateChange={handleEditingStateChange}
-                    zoomLevel={zoomLevel}
-                  />
-                </View>
+                      <PdfAnnotations
+                        ref={pageNumber === currentPage ? annotationsRef : null}
+                        annotations={pageAnnotations}
+                        onAnnotationAdd={onAnnotationAdd || (() => {})}
+                        onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                        onAnnotationDelete={onAnnotationDelete || (() => {})}
+                        isEditing={isEditing}
+                        currentTool={currentTool}
+                        onToolDeactivate={onToolDeactivate}
+                        onEditingStateChange={handleEditingStateChange}
+                        onInteractionChange={setIsInteractingWithAnnotation}
+                        zoomLevel={zoomLevel}
+                        viewportWidth={SCREEN_WIDTH}
+                        viewportHeight={containerHeight}
+                        lineGuideId={lineGuideId}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
             </View>
           );
-        })}
-      </ScrollView>
+        }}
+      />
 
       {/* Модальное окно с опциями страницы */}
       <Modal
@@ -448,6 +624,15 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   imageContainer: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    overflow: 'hidden',
+  },
+  imageContainerInner: {
     width: '100%',
     height: '100%',
     justifyContent: 'flex-start',

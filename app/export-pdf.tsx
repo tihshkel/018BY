@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,9 @@ import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
 import { Asset } from 'expo-asset';
 import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
+import * as ImageManipulator from 'expo-image-manipulator';
+import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -77,12 +80,34 @@ export default function ExportPdfScreen() {
   const [pdfUri, setPdfUri] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0 });
+  const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   const loadingRotation = useSharedValue(0);
+  
+  // Для рендера страниц в фото (PageRenderer)
+  const [renderingPage, setRenderingPage] = useState<{
+    imageUri: string;
+    annotations: Annotation[];
+    pageNumber: number;
+    viewport: { width: number; height: number };
+  } | null>(null);
+  const pageRendererRef = useRef<PageRendererRef>(null);
+  const [pageRendererReady, setPageRendererReady] = useState(false);
+  const pageSnapshotPromiseRef = useRef<{
+    resolve: (uri: string | null) => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+  const captureSettingsRef = useRef<{ scale: number; quality: number }>({ scale: 1.35, quality: 0.92 });
+  
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
+
+  // Логи в экспорте могут сильно тормозить. Используем локальные no-op, не ломая глобальный console.
+  const log = (..._args: any[]) => {};
+  const warn = (..._args: any[]) => {};
+  const errorLog = (..._args: any[]) => {};
 
   useEffect(() => {
     if (isGenerating) {
@@ -96,6 +121,34 @@ export default function ExportPdfScreen() {
       );
     }
   }, [isGenerating]);
+  
+  // Обработчик готовности PageRenderer
+  useEffect(() => {
+    if (pageRendererReady && pageRendererRef.current && pageSnapshotPromiseRef.current) {
+      const captureSnapshot = async () => {
+        try {
+          // небольшая пауза на рендер аннотаций
+          await new Promise(resolve => setTimeout(resolve, 150));
+          const uri = await pageRendererRef.current?.capture();
+          if (pageSnapshotPromiseRef.current) {
+            pageSnapshotPromiseRef.current.resolve(uri || null);
+            pageSnapshotPromiseRef.current = null;
+          }
+        } catch (error) {
+          if (pageSnapshotPromiseRef.current) {
+            pageSnapshotPromiseRef.current.reject(error as Error);
+            pageSnapshotPromiseRef.current = null;
+          }
+        } finally {
+          setPageRendererReady(false);
+          setRenderingPage(null);
+        }
+      };
+      captureSnapshot();
+    }
+  }, [pageRendererReady]);
+
+  // Убрали автоматический запуск - пользователь должен сам выбрать формат и нажать кнопку
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -105,11 +158,14 @@ export default function ExportPdfScreen() {
     transform: [{ rotate: `${loadingRotation.value}deg` }],
   }));
 
-  const handleCreatePdf = async () => {
-    if (!selectedFormat) return;
+  const handleCreatePdfWithFormat = async (format?: FormatOption) => {
+    const formatToUse = format || selectedFormat;
+    if (!formatToUse) return;
 
     setIsGenerating(true);
     setShowPreview(false);
+    setGenerationStatus('Подготовка…');
+    setGenerationProgress({ current: 0, total: 100 });
 
     try {
       let albumId: string | null = null;
@@ -137,7 +193,7 @@ export default function ExportPdfScreen() {
             console.log(`[PDF Export] Получено изображение обложки: albumId=${albumId}, category=${projectCategory}, coverImage=${!!coverImage}`);
             
             // Также получаем PDF развертку для возможной будущей конвертации (пока не используется)
-            const coverType = selectedFormat?.type || 'hard';
+            const coverType = formatToUse?.type || 'hard';
             coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
             console.log(`[PDF Export] PDF развертка получена (для справки): coverPdf=${!!coverPdf}`);
           } else {
@@ -165,6 +221,32 @@ export default function ExportPdfScreen() {
         }
       }
 
+      // ВАЖНО: берём реальные размеры viewport редактора, чтобы экспорт был 1:1
+      // (эти значения сохраняются в `app/edit-album.tsx`)
+      const defaultViewport = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT };
+      let pagesViewport = defaultViewport;
+      let coverViewport = defaultViewport;
+      if (projectId) {
+        try {
+          const raw = await AsyncStorage.getItem(`@project_viewport_${projectId}`);
+          if (raw) {
+            const parsed = JSON.parse(raw) as any;
+            if (typeof parsed?.width === 'number' && typeof parsed?.height === 'number' && parsed.width > 0 && parsed.height > 0) {
+              pagesViewport = { width: parsed.width, height: parsed.height };
+            }
+          }
+        } catch {}
+        try {
+          const raw = await AsyncStorage.getItem(`@project_cover_viewport_${projectId}`);
+          if (raw) {
+            const parsed = JSON.parse(raw) as any;
+            if (typeof parsed?.width === 'number' && typeof parsed?.height === 'number' && parsed.width > 0 && parsed.height > 0) {
+              coverViewport = { width: parsed.width, height: parsed.height };
+            }
+          }
+        } catch {}
+      }
+
       // Если проект не найден или нет projectId, используем значения по умолчанию
       if (!albumId) {
         albumId = 'pregnancy_60'; // Значение по умолчанию
@@ -173,7 +255,7 @@ export default function ExportPdfScreen() {
 
       // Если PDF развертка обложки еще не получена, пытаемся получить по albumId
       if ((projectCategory === 'pregnancy' || projectCategory === 'kids') && !coverPdf && albumId) {
-        const coverType = selectedFormat?.type || 'hard';
+            const coverType = formatToUse?.type || 'hard';
         coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
         // Если PDF развертка не найдена, используем изображение обложки
         if (!coverPdf) {
@@ -199,12 +281,82 @@ export default function ExportPdfScreen() {
       }
 
       // Определяем размеры страницы
-      const isA5 = selectedFormat.type === 'soft';
+      const isA5 = formatToUse.type === 'soft';
       const pageWidth = isA5 ? 420 : 595; // A5: 148mm = 420pt, A4: 210mm = 595pt
       const pageHeight = isA5 ? 595 : 842; // A5: 210mm = 595pt, A4: 297mm = 842pt
-      const margin = selectedFormat.type === 'hard' ? 42.5 : 28.3; // 15mm = 42.5pt, 10mm = 28.3pt
+      // Уменьшаем поля для более крупных страниц альбома
+      const margin = formatToUse.type === 'hard' ? 21.25 : 14.15; // 7.5mm = 21.25pt, 5mm = 14.15pt (уменьшено в 2 раза)
       const contentWidth = pageWidth - (margin * 2);
       const contentHeight = pageHeight - (margin * 2);
+
+      const withTimeout = async <T,>(params: {
+        label: string;
+        timeoutMs: number;
+        task: () => Promise<T>;
+      }): Promise<T> => {
+        const { label, timeoutMs, task } = params;
+        if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return task();
+        let timeoutHandle: any = null;
+        try {
+          const timeoutPromise = new Promise<T>((_, reject) => {
+            timeoutHandle = setTimeout(() => reject(new Error(`[PDF Export] Timeout: ${label}`)), timeoutMs);
+          });
+          return await Promise.race([task(), timeoutPromise]);
+        } finally {
+          if (timeoutHandle) clearTimeout(timeoutHandle);
+        }
+      };
+
+      const hashStringToHex = (value: string) => {
+        // FNV-1a 32-bit
+        let hash = 0x811c9dc5;
+        for (let i = 0; i < value.length; i++) {
+          hash ^= value.charCodeAt(i);
+          hash = (hash * 0x01000193) >>> 0;
+        }
+        return hash.toString(16);
+      };
+
+      // Оптимизация для скорости: лёгкий ресайз до разумного предела, без заметной потери качества
+      // A4: 595x842 pt ~ 8.27x11.69", 220-260 DPI => ~1800-2400 px (макс сторона 2000-2400)
+      const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover') => {
+        if (!uri) return uri;
+        if (Platform.OS === 'web') return uri;
+        if (!uri.startsWith('file://') && !uri.startsWith('/')) return uri;
+
+        // Нормализуем путь без схемы
+        let normalizedUri = uri.startsWith('/') ? `file://${uri}` : uri;
+
+        const maxSide = kind === 'cover' ? 2400 : 2000;
+        const quality = 0.9; // почти без потерь, быстрее
+
+        const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}`);
+        const outUri = `${FileSystem.cacheDirectory}pdf_fast_${kind}_${cacheKey}.jpg`;
+        try {
+          const existing = await FileSystem.getInfoAsync(outUri);
+          if (existing.exists) return outUri;
+        } catch {
+          // ignore
+        }
+
+        try {
+          const result = await withTimeout({
+            label: `ImageManipulator(${kind})`,
+            timeoutMs: 6000,
+            task: async () =>
+              ImageManipulator.manipulateAsync(
+                normalizedUri,
+                [{ resize: { width: maxSide } }],
+                { compress: quality, format: ImageManipulator.SaveFormat.JPEG }
+              ),
+          });
+          if (result?.uri) return result.uri;
+        } catch {
+          // ignore
+        }
+
+        return normalizedUri;
+      };
 
       // Функция для конвертации изображения в base64 с обработкой ошибок
       const convertImageToBase64 = async (uri: string, imageIndex: number): Promise<string | null> => {
@@ -216,10 +368,17 @@ export default function ExportPdfScreen() {
           }
           
           if (uri.startsWith('file://')) {
-            const base64 = await FileSystem.readAsStringAsync(uri, {
-              encoding: FileSystem.EncodingType.Base64,
+            const optimizedUri = await optimizeImageForExport(uri, 'page');
+            const base64 = await withTimeout({
+              label: `readAsString(file://) ${imageIndex + 1}`,
+              timeoutMs: 25000,
+              task: async () =>
+                FileSystem.readAsStringAsync(optimizedUri, {
+                  encoding: FileSystem.EncodingType.Base64,
+                }),
             });
-            return `data:image/png;base64,${base64}`;
+            // после оптимизации это JPEG
+            return `data:image/jpeg;base64,${base64}`;
           }
           
           if (uri.startsWith('http://') || uri.startsWith('https://')) {
@@ -247,26 +406,41 @@ export default function ExportPdfScreen() {
               const tempFileName = `temp_${Date.now()}_${imageIndex}.png`;
               const tempPath = FileSystem.cacheDirectory + tempFileName;
               
-              const downloadResult = await FileSystem.downloadAsync(uri, tempPath);
+              const downloadResult = await withTimeout({
+                label: `download ${imageIndex + 1}`,
+                timeoutMs: 30000,
+                task: async () => FileSystem.downloadAsync(uri, tempPath),
+              });
               
               if (!downloadResult.uri) {
                 throw new Error('Download failed: no URI returned');
               }
               
-              const base64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
-                encoding: FileSystem.EncodingType.Base64,
+              const optimizedUri = await optimizeImageForExport(downloadResult.uri, 'page');
+              const base64 = await withTimeout({
+                label: `readAsString(downloaded) ${imageIndex + 1}`,
+                timeoutMs: 25000,
+                task: async () =>
+                  FileSystem.readAsStringAsync(optimizedUri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                  }),
               });
               
               // Удаляем временный файл асинхронно в фоне (не ждем завершения для ускорения)
               FileSystem.deleteAsync(tempPath, { idempotent: true }).catch(() => {});
               
-              return `data:image/png;base64,${base64}`;
+              return `data:image/jpeg;base64,${base64}`;
             }
           }
           
           // Пытаемся прочитать как локальный файл
-          const base64 = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
+          const base64 = await withTimeout({
+            label: `readAsString(fallback) ${imageIndex + 1}`,
+            timeoutMs: 25000,
+            task: async () =>
+              FileSystem.readAsStringAsync(uri, {
+                encoding: FileSystem.EncodingType.Base64,
+              }),
           });
           return `data:image/png;base64,${base64}`;
         } catch (error) {
@@ -389,43 +563,105 @@ export default function ExportPdfScreen() {
       // Функция для конвертации изображения в байты для pdf-lib (оптимизированная)
       const loadImageAsBytes = async (uri: string): Promise<Uint8Array | null> => {
         try {
+          if (!uri) {
+            console.warn(`[PDF Export] Пустой URI изображения`);
+            return null;
+          }
+
+          // Если путь абсолютный без схемы (iOS tmp), добавляем file://
+          if (uri.startsWith('/')) {
+            uri = `file://${uri}`;
+          }
+
           if (uri.startsWith('data:image')) {
             // Извлекаем base64 из data URI
             const base64 = uri.split(',')[1];
+            if (!base64) {
+              console.warn(`[PDF Export] Не удалось извлечь base64 из data URI`);
+              return null;
+            }
             return base64ToUint8Array(base64);
           }
           
           if (uri.startsWith('file://')) {
+            // Проверяем существование файла
+            const fileInfo = await FileSystem.getInfoAsync(uri);
+            if (!fileInfo.exists) {
+              console.warn(`[PDF Export] Файл не существует: ${uri}`);
+              return null;
+            }
+            
             const base64 = await FileSystem.readAsStringAsync(uri, {
               encoding: FileSystem.EncodingType.Base64,
             });
+            if (!base64 || base64.length === 0) {
+              console.warn(`[PDF Export] Пустой base64 для файла: ${uri}`);
+              return null;
+            }
             return base64ToUint8Array(base64);
           }
           
           if (uri.startsWith('http://') || uri.startsWith('https://')) {
             if (Platform.OS === 'web') {
               const response = await fetch(uri);
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
               const arrayBuffer = await response.arrayBuffer();
               return new Uint8Array(arrayBuffer);
             } else {
-              const tempFileName = `temp_img_${Date.now()}.png`;
+              const tempFileName = `temp_img_${Date.now()}_${Math.random().toString(36).substring(7)}.png`;
               const tempPath = FileSystem.cacheDirectory + tempFileName;
-              const downloadResult = await FileSystem.downloadAsync(uri, tempPath);
               
-              if (downloadResult.uri) {
-                const base64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
-                  encoding: FileSystem.EncodingType.Base64,
-                });
-                // Удаляем файл асинхронно в фоне (не ждем завершения)
+              try {
+                const downloadResult = await FileSystem.downloadAsync(uri, tempPath);
+                
+                if (downloadResult.uri) {
+                  const base64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                  });
+                  // Удаляем файл асинхронно в фоне (не ждем завершения)
+                  FileSystem.deleteAsync(tempPath, { idempotent: true }).catch(() => {});
+                  
+                  if (!base64 || base64.length === 0) {
+                    console.warn(`[PDF Export] Пустой base64 после скачивания: ${uri}`);
+                    return null;
+                  }
+                  
+                  return base64ToUint8Array(base64);
+                } else {
+                  console.warn(`[PDF Export] downloadResult.uri пуст для: ${uri}`);
+                  return null;
+                }
+              } catch (downloadError) {
+                console.error(`[PDF Export] Ошибка скачивания изображения ${uri}:`, downloadError);
+                // Пытаемся удалить временный файл в случае ошибки
                 FileSystem.deleteAsync(tempPath, { idempotent: true }).catch(() => {});
-                return base64ToUint8Array(base64);
+                return null;
               }
             }
           }
           
+          // Пытаемся прочитать как require() модуль
+          if (typeof uri === 'number') {
+            const asset = Asset.fromModule(uri);
+            await asset.downloadAsync();
+            
+            if (asset.localUri) {
+              const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+                encoding: FileSystem.EncodingType.Base64,
+              });
+              return base64ToUint8Array(base64);
+            } else if (asset.uri) {
+              // Рекурсивно вызываем для URI
+              return await loadImageAsBytes(asset.uri);
+            }
+          }
+          
+          console.warn(`[PDF Export] Неподдерживаемый формат URI: ${uri}`);
           return null;
         } catch (error) {
-          console.error(`[PDF Export] Ошибка при загрузке изображения:`, error);
+          console.error(`[PDF Export] Ошибка при загрузке изображения ${uri}:`, error);
           return null;
         }
       };
@@ -504,122 +740,117 @@ export default function ExportPdfScreen() {
       // Используем pdf-lib для создания PDF с разверткой обложки из папки albums
       // Создаем новый PDF документ
       const pdfDoc = await PDFDocument.create();
+      
+      // Регистрируем fontkit для поддержки кастомных шрифтов
+      try {
+        pdfDoc.registerFontkit(fontkit);
+      } catch (fontkitError) {
+        console.warn('[PDF Export] Не удалось зарегистрировать fontkit, кастомные шрифты могут не работать:', fontkitError);
+      }
       let processedCount = 0;
       let skippedCount = 0;
       const totalImages = images.length;
       const hasCover = coverPdf !== null;
       const totalPages = totalImages + (hasCover ? 1 : 0);
       
-      setGenerationProgress({ current: 0, total: totalPages });
-      console.log(`[PDF Export] Начало обработки ${totalPages} страниц (${totalImages} изображений + ${hasCover ? '1 развертка обложки' : '0 обложек'})...`);
-      console.log(`[PDF Export] Параметры: albumId=${albumId}, projectCategory=${projectCategory}, hasCover=${hasCover}, coverPdf=${!!coverPdf}`);
+      setGenerationProgress({ current: 0, total: 100 });
+      setGenerationStatus('Подготовка…');
+      log(`[PDF Export] Начало обработки ${totalPages} страниц (${totalImages} изображений + ${hasCover ? '1 развертка обложки' : '0 обложек'})...`);
+      log(`[PDF Export] Параметры: albumId=${albumId}, projectCategory=${projectCategory}, hasCover=${hasCover}, coverPdf=${!!coverPdf}`);
 
-      // Предзагружаем все данные параллельно для максимальной скорости
-      console.log(`[PDF Export] Параллельная предзагрузка всех данных...`);
-      
-      // Собираем все промисы для параллельной загрузки
-      const preloadPromises: Promise<any>[] = [];
-      
-      // 1. Предзагружаем изображения развертки обложки (если есть)
-      let coverImages: string[] = [];
-      let coverPagesCount = 0;
-      if (hasCover && (projectCategory === 'pregnancy' || projectCategory === 'kids') && coverPdf) {
-        console.log(`[PDF Export] Начало загрузки изображений развертки обложки из папки: ${coverPdf}...`);
-        const coverPromise = (async () => {
-          try {
-            // coverPdf теперь это название папки (строка), а не PDF файл
-            const images = await getCoverImageUris(coverPdf);
-            if (images && images.length > 0) {
-              coverImages = images;
-              coverPagesCount = images.length;
-              console.log(`[PDF Export] ✓ Загружено ${coverPagesCount} изображений развертки обложки`);
-            } else {
-              console.warn(`[PDF Export] ✗ Изображения развертки обложки не найдены для папки: ${coverPdf}`);
+      // Быстрый и стабильный пайплайн:
+      // - оптимизируем страницы батчами (кэш в FileSystem.cacheDirectory)
+      // - загружаем изображения-аннотации батчами (без оптимизации, чтобы не мылить)
+      // - обложку (если есть) оптимизируем и грузим батчами
+      setGenerationStatus('Оптимизация и загрузка…');
+      setGenerationProgress({ current: 3, total: 100 });
+
+      const isLargeDoc = images.length >= (Platform.OS === 'android' ? 42 : 36);
+      captureSettingsRef.current = {
+        scale: isLargeDoc ? 1.2 : 1.35,
+        quality: isLargeDoc ? 0.88 : 0.92,
+      };
+
+      // 1) Оптимизируем все страницы батчами
+      const optimizedPageUris: string[] = new Array(images.length);
+      for (let i = 0; i < images.length; i += 3) {
+        const batch = images.slice(i, i + 3);
+        const results = await Promise.all(
+          batch.map(async (uri) => {
+            try {
+              return await optimizeImageForExport(uri, 'page');
+            } catch {
+              return uri;
             }
-          } catch (error) {
-            console.warn(`[PDF Export] ✗ Ошибка загрузки изображений развертки обложки:`, error);
-          }
-        })();
-        preloadPromises.push(coverPromise);
-      }
-      
-      // 2. Предзагружаем все изображения страниц
-      console.log(`[PDF Export] Начало загрузки ${totalImages} изображений...`);
-      const imageBytesPromises = images.map((imageUri, index) => 
-        loadImageAsBytes(imageUri).catch((error) => {
-          console.warn(`[PDF Export] Ошибка загрузки изображения ${index + 1}:`, error);
-          return null;
-        })
-      );
-      preloadPromises.push(...imageBytesPromises);
-      
-      // 3. Предзагружаем все изображения-аннотации
-      const annotationImageUris = new Set<string>();
-      annotations.forEach(ann => {
-        if (ann.type === 'image' && ann.imageUri) {
-          annotationImageUris.add(ann.imageUri);
-        }
-      });
-      
-      const annotationImagePromises = Array.from(annotationImageUris).map(uri =>
-        loadImageAsBytes(uri).catch((error) => {
-          console.warn(`[PDF Export] Ошибка загрузки изображения-аннотации:`, error);
-          return null;
-        })
-      );
-      preloadPromises.push(...annotationImagePromises);
-      
-      // Загружаем все параллельно батчами для оптимизации памяти
-      const allPromises = preloadPromises;
-      const totalToLoad = allPromises.length;
-      // Увеличиваем размер батча для максимальной скорости (больше параллельных операций)
-      const batchSize = Math.min(30, Math.max(15, Math.ceil(totalToLoad / 4))); // Динамический размер батча
-      let loadedCount = 0;
-      
-      // Загружаем батчами с оптимизацией
-      const loadedResults: any[] = [];
-      const progressUpdateInterval = Math.max(1, Math.floor(totalToLoad / 20)); // Обновляем прогресс реже
-      for (let i = 0; i < allPromises.length; i += batchSize) {
-        const batch = allPromises.slice(i, i + batchSize);
-        const batchResults = await Promise.all(batch);
-        loadedResults.push(...batchResults);
-        loadedCount = Math.min(i + batchSize, totalToLoad);
-        
-        // Обновляем прогресс только периодически для уменьшения overhead
-        if (i % progressUpdateInterval === 0 || i + batchSize >= totalToLoad) {
-          const progress = Math.floor((loadedCount / totalToLoad) * 50); // 50% на загрузку
-          setGenerationProgress({ current: progress, total: 100 });
-        }
-      }
-      
-      // Извлекаем результаты
-      let resultIndex = 0;
-      // coverImages уже загружены отдельно, не нужно пропускать результат
-      
-      const loadedImageBytes: (Uint8Array | null)[] = loadedResults.slice(resultIndex, resultIndex + totalImages);
-      resultIndex += totalImages;
-      
-      // Загружаем байты изображений развертки обложки
-      let coverImageBytes: (Uint8Array | null)[] = [];
-      if (coverImages.length > 0) {
-        console.log(`[PDF Export] Загрузка байтов ${coverImages.length} изображений развертки обложки...`);
-        const coverImageBytesPromises = coverImages.map((imageUri, index) =>
-          loadImageAsBytes(imageUri).catch((error) => {
-            console.warn(`[PDF Export] Ошибка загрузки изображения развертки ${index + 1}:`, error);
-            return null;
           })
         );
-        coverImageBytes = await Promise.all(coverImageBytesPromises);
-        console.log(`[PDF Export] ✓ Загружено ${coverImageBytes.filter(b => b !== null).length} из ${coverImages.length} изображений развертки`);
+        for (let j = 0; j < batch.length; j++) optimizedPageUris[i + j] = results[j];
+        const done = Math.min(images.length, i + batch.length);
+        setGenerationProgress({ current: 3 + Math.floor((done / Math.max(1, images.length)) * 10), total: 100 }); // 3..13
       }
-      
-      // Создаем маппинг изображений-аннотаций
+
+      // 2) Обложка (если есть)
+      let coverImages: string[] = [];
+      let coverPagesCount = 0;
+      let coverImageBytes: (Uint8Array | null)[] = [];
+      if (hasCover && (projectCategory === 'pregnancy' || projectCategory === 'kids') && coverPdf) {
+        try {
+          coverImages = await getCoverImageUris(coverPdf);
+          coverPagesCount = coverImages.length;
+          if (coverPagesCount > 0) {
+            const bytes: (Uint8Array | null)[] = [];
+            for (let i = 0; i < coverImages.length; i += 3) {
+              const batch = coverImages.slice(i, i + 3);
+              const results = await Promise.all(
+                batch.map(async (uri) => {
+                  try {
+                    const optimized = await optimizeImageForExport(uri, 'cover');
+                    return await loadImageAsBytes(optimized);
+                  } catch {
+                    return null;
+                  }
+                })
+              );
+              bytes.push(...results);
+            }
+            coverImageBytes = bytes;
+          }
+        } catch {
+          coverImages = [];
+          coverPagesCount = 0;
+          coverImageBytes = [];
+        }
+      }
+
+      // 3) Изображения-аннотации (без оптимизации)
+      const annotationImageUris = new Set<string>();
+      for (const ann of annotations) {
+        if (ann.type === 'image' && ann.imageUri) annotationImageUris.add(ann.imageUri);
+      }
       const annotationImageMap = new Map<string, Uint8Array | null>();
-      Array.from(annotationImageUris).forEach((uri, index) => {
-        annotationImageMap.set(uri, loadedResults[resultIndex + index] || null);
-      });
-      
-      console.log(`[PDF Export] ✓ Предзагрузка завершена, начинаем создание PDF...`);
+      const annUris = Array.from(annotationImageUris);
+      for (let i = 0; i < annUris.length; i += 4) {
+        const batch = annUris.slice(i, i + 4);
+        const results = await Promise.all(
+          batch.map(async (uri) => {
+            try {
+              return await withTimeout({
+                label: `load annotation image`,
+                timeoutMs: 20000,
+                task: async () => loadImageAsBytes(uri),
+              });
+            } catch {
+              return null;
+            }
+          })
+        );
+        for (let j = 0; j < batch.length; j++) annotationImageMap.set(batch[j], results[j] ?? null);
+      }
+
+      setGenerationProgress({ current: 14, total: 100 });
+      setGenerationStatus('Создание PDF…');
+
+      // NOTE: optimizedPageUris нужен ниже в цикле страниц
       
       // Предзагружаем шрифты для PDF
       console.log(`[PDF Export] Предзагрузка шрифтов...`);
@@ -640,7 +871,8 @@ export default function ExportPdfScreen() {
       // Обложка всегда должна быть первой в PDF файле
       if (coverImageBytes.length > 0 && coverPagesCount > 0) {
         try {
-          setGenerationProgress({ current: 50, total: 100 });
+          setGenerationStatus('Добавление обложки…');
+          setGenerationProgress({ current: 18, total: 100 });
           
           // Создаем страницы PDF из изображений развертки обложки
           for (let coverPageIndex = 0; coverPageIndex < coverImageBytes.length; coverPageIndex++) {
@@ -657,11 +889,16 @@ export default function ExportPdfScreen() {
             // Встраиваем изображение в PDF
             let embeddedImage;
             try {
-              embeddedImage = isPng 
-                ? await pdfDoc.embedPng(imageBytes)
-                : isJpg 
-                  ? await pdfDoc.embedJpg(imageBytes)
-                  : await pdfDoc.embedPng(imageBytes);
+              embeddedImage = await withTimeout({
+                label: `embed cover ${coverPageIndex + 1}`,
+                timeoutMs: 20000,
+                task: async () =>
+                  isJpg
+                    ? pdfDoc.embedJpg(imageBytes)
+                    : isPng
+                      ? pdfDoc.embedPng(imageBytes)
+                      : pdfDoc.embedPng(imageBytes),
+              });
             } catch (embedError) {
               console.warn(`[PDF Export] Ошибка встраивания изображения развертки ${coverPageIndex + 1}:`, embedError);
               continue;
@@ -672,15 +909,35 @@ export default function ExportPdfScreen() {
             const imageWidth = imageDims.width;
             const imageHeight = imageDims.height;
             
-            // Создаем страницу с размерами изображения
-            const coverPage = pdfDoc.addPage([imageWidth, imageHeight]);
+            // Создаем страницу с теми же размерами, что и страницы альбома
+            const coverPage = pdfDoc.addPage([pageWidth, pageHeight]);
+            
+            // Вычисляем размеры изображения с учетом полей (как для страниц альбома)
+            const imageAspectRatio = imageWidth / imageHeight;
+            const contentAspectRatio = contentWidth / contentHeight;
+            
+            // Вычисляем реальные размеры изображения на странице
+            let actualImageWidth = contentWidth;
+            let actualImageHeight = contentHeight;
+            
+            if (imageAspectRatio > contentAspectRatio) {
+              // Изображение шире - подгоняем по ширине
+              actualImageHeight = contentWidth / imageAspectRatio;
+            } else {
+              // Изображение выше - подгоняем по высоте
+              actualImageWidth = contentHeight * imageAspectRatio;
+            }
+            
+            // Центрируем изображение на странице
+            const offsetX = margin + (contentWidth - actualImageWidth) / 2;
+            const offsetY = pageHeight - margin - actualImageHeight - (contentHeight - actualImageHeight) / 2;
             
             // Рисуем изображение на странице
             coverPage.drawImage(embeddedImage, {
-              x: 0,
-              y: 0,
-              width: imageWidth,
-              height: imageHeight,
+              x: offsetX,
+              y: offsetY,
+              width: actualImageWidth,
+              height: actualImageHeight,
             });
             
             // Применяем аннотации обложки к текущей странице развертки
@@ -691,18 +948,18 @@ export default function ExportPdfScreen() {
             // Сортируем аннотации по zIndex
             const sortedAnnotations = [...pageCoverAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
             
-            // Масштабируем координаты аннотаций относительно размеров PDF страницы
-            const scaleX = imageWidth / SCREEN_WIDTH;
-            const scaleY = imageHeight / SCREEN_HEIGHT;
+            // Масштабируем координаты аннотаций относительно реальных размеров изображения на странице
+            const scaleX = actualImageWidth / coverViewport.width;
+            const scaleY = actualImageHeight / coverViewport.height;
             
             // Применяем текстовые аннотации
             for (const ann of sortedAnnotations) {
               if (ann.type === 'text' && ann.content) {
                 try {
-                  // Масштабируем координаты
-                  const scaledX = ann.x * scaleX;
+                  // Масштабируем координаты относительно реального изображения на странице
+                  const scaledX = offsetX + (ann.x * scaleX);
                   const fontSize = (ann.fontSize || 16) * scaleY;
-                  const scaledY = imageHeight - (ann.y * scaleY) - fontSize;
+                  const scaledY = offsetY + actualImageHeight - (ann.y * scaleY) - fontSize;
                   
                   // Оптимизированная конвертация цвета
                   const color = ann.color || '#000000';
@@ -740,150 +997,222 @@ export default function ExportPdfScreen() {
       // ВАЖНО: После обложки добавляем внутренние страницы альбома
       // Порядок: 1) Обложка, 2) Страницы альбома
       const actualCoverPagesCount = coverImageBytes.length > 0 ? coverPagesCount : 0;
-      const progressStart = 50; // Начало прогресса обработки страниц (50% уже на загрузку)
-      const progressRange = 45; // 45% на обработку страниц, 5% на сохранение
+      // Гладкий прогресс (проценты): подготовка/оптимизация ~0..18, страницы ~18..94, сохранение 95..100
+      const progressStart = coverImageBytes.length > 0 ? 22 : 18;
+      const progressRange = 72;
+
+      const embeddedImagesCache = new Map<string, any>();
       
       for (let pageIndex = 0; pageIndex < images.length; pageIndex++) {
         const pageNumber = pageIndex + 1;
         const imageUri = images[pageIndex];
-        const imageBytes = loadedImageBytes[pageIndex];
+        const optimizedPageUri = optimizedPageUris[pageIndex] || imageUri;
         
         try {
-          // Обновляем прогресс реже для уменьшения overhead (каждые 3 страницы или последняя)
-          if (pageIndex % 3 === 0 || pageIndex === images.length - 1) {
-            const progress = progressStart + Math.floor((pageIndex / images.length) * progressRange);
-            setGenerationProgress({ current: progress, total: 100 });
-          }
+          // Обновляем прогресс на каждой странице, чтобы он рос плавно (1,3,5,...)
+          const rawProgress = progressStart + Math.floor(((pageIndex + 1) / images.length) * progressRange);
+          const oddProgress = rawProgress % 2 === 0 ? rawProgress + 1 : rawProgress;
+          const cappedProgress = Math.min(99, oddProgress);
+          setGenerationProgress({ current: cappedProgress, total: 100 });
+          setGenerationStatus(`Создание PDF… ${pageNumber}/${images.length}`);
           
           // Логируем реже для производительности (каждые 10 страниц)
           if (pageIndex % 10 === 0) {
             console.log(`[PDF Export] Обработка страницы ${pageNumber}/${totalImages}...`);
           }
           
-          // Пропускаем страницу, если изображение не удалось загрузить
-          if (!imageBytes) {
-            console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось загрузить изображение`);
-            skippedCount++;
-            continue;
-          }
-          
-          // Предварительно определяем формат изображения для оптимизации
-          const isPng = imageBytes[0] === 0x89 && imageBytes[1] === 0x50 && imageBytes[2] === 0x4E && imageBytes[3] === 0x47;
-          const isJpg = imageBytes[0] === 0xFF && imageBytes[1] === 0xD8;
-
           // Фильтруем аннотации для текущей страницы
           const pageAnnotations = annotations.filter(ann => (ann.page || 1) === pageNumber);
 
           // Создаем новую страницу в PDF
           const page = pdfDoc.addPage([pageWidth, pageHeight]);
           
-          // Встраиваем изображение в PDF (оптимизированная обработка формата)
-          let embeddedImage;
+          // Попытка сделать быстрый скриншот страницы редактора (PageRenderer), если не успевает — fallback
+          let pageSnapshotUri: string | null = null;
           try {
-            // Используем предварительно определенный формат для ускорения
-            embeddedImage = isPng 
-              ? await pdfDoc.embedPng(imageBytes)
-              : isJpg 
-                ? await pdfDoc.embedJpg(imageBytes)
-                : await pdfDoc.embedPng(imageBytes); // Fallback на PNG
-          } catch (embedError) {
-            // Если первая попытка не сработала, пробуем альтернативный формат
+            pageSnapshotUri = await withTimeout({
+              label: `PageRenderer capture ${pageNumber}`,
+              timeoutMs: 3500,
+              task: async () =>
+                new Promise<string | null>((resolve, reject) => {
+                  pageSnapshotPromiseRef.current = { resolve, reject };
+                  setRenderingPage({
+                    imageUri: optimizedPageUri,
+                    annotations: pageAnnotations,
+                    pageNumber,
+                    viewport: pagesViewport,
+                  });
+                  // Safety timeout (если onReady не сработает)
+                  setTimeout(() => {
+                    if (pageSnapshotPromiseRef.current) {
+                      pageSnapshotPromiseRef.current.resolve(null);
+                      pageSnapshotPromiseRef.current = null;
+                    }
+                    setRenderingPage(null);
+                    setPageRendererReady(false);
+                  }, 3200);
+                }),
+            });
+          } catch {
+            pageSnapshotUri = null;
+            setRenderingPage(null);
+            setPageRendererReady(false);
+          }
+
+          if (pageSnapshotUri) {
             try {
-              embeddedImage = isPng 
-                ? await pdfDoc.embedJpg(imageBytes)
-                : await pdfDoc.embedPng(imageBytes);
-            } catch (jpgError) {
-              // Тихо пропускаем проблемные изображения для ускорения
-              skippedCount++;
-              continue;
+              // снапшот уже jpeg (PageRenderer), но дополнительно прогоняем через оптимизацию+кэш
+              const optimizedSnapshotUri = await optimizeImageForExport(pageSnapshotUri, 'page');
+              const snapshotBytes = await loadImageAsBytes(optimizedSnapshotUri);
+              if (snapshotBytes) {
+                const embeddedSnapshot = await withTimeout({
+                  label: `embed snapshot ${pageNumber}`,
+                  timeoutMs: 20000,
+                  task: async () => pdfDoc.embedJpg(snapshotBytes),
+                });
+                
+                const snapshotDims = embeddedSnapshot.scale(1);
+                const snapshotAspectRatio = snapshotDims.width / snapshotDims.height;
+                const contentAspectRatio = contentWidth / contentHeight;
+
+                let snapshotWidth = contentWidth;
+                let snapshotHeight = contentHeight;
+
+                if (snapshotAspectRatio > contentAspectRatio) {
+                  snapshotHeight = contentWidth / snapshotAspectRatio;
+                } else {
+                  snapshotWidth = contentHeight * snapshotAspectRatio;
+                }
+
+                const snapshotX = margin + (contentWidth - snapshotWidth) / 2;
+                const snapshotY = pageHeight - margin - contentHeight + (contentHeight - snapshotHeight) / 2;
+                
+                page.drawImage(embeddedSnapshot, {
+                  x: snapshotX,
+                  y: snapshotY,
+                  width: snapshotWidth,
+                  height: snapshotHeight,
+                });
+
+                FileSystem.deleteAsync(pageSnapshotUri, { idempotent: true }).catch(() => {});
+                
+                processedCount++;
+                continue;
+              }
+            } catch {
+              // fallback пойдет ниже
             }
           }
           
-          // Вычисляем размеры изображения с учетом полей
+          // Быстрый прямой подход - загружаем изображение страницы на лету
+          let embeddedImage;
+          try {
+            const pageImageBytes = await loadImageAsBytes(optimizedPageUri);
+            if (!pageImageBytes) {
+              console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось загрузить изображение`);
+              skippedCount++;
+              continue;
+            }
+            const isJpg = pageImageBytes[0] === 0xFF && pageImageBytes[1] === 0xD8;
+            embeddedImage = await withTimeout({
+              label: `embed page ${pageNumber}`,
+              timeoutMs: 20000,
+              task: async () => (isJpg ? pdfDoc.embedJpg(pageImageBytes) : pdfDoc.embedPng(pageImageBytes)),
+            });
+          } catch (embedError) {
+            console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось встроить изображение`, embedError);
+            skippedCount++;
+            continue;
+          }
+          
+          // Вычисляем размеры изображения с учетом полей (ТОЧНО как в редакторе)
           const imageDims = embeddedImage.scale(1);
           const imageAspectRatio = imageDims.width / imageDims.height;
           const contentAspectRatio = contentWidth / contentHeight;
           
-          let drawWidth = contentWidth;
-          let drawHeight = contentHeight;
+          // Вычисляем реальные размеры изображения на странице (как в редакторе)
+          let actualImageWidth = contentWidth;
+          let actualImageHeight = contentHeight;
           
           if (imageAspectRatio > contentAspectRatio) {
             // Изображение шире - подгоняем по ширине
-            drawHeight = contentWidth / imageAspectRatio;
+            actualImageHeight = contentWidth / imageAspectRatio;
           } else {
             // Изображение выше - подгоняем по высоте
-            drawWidth = contentHeight * imageAspectRatio;
+            actualImageWidth = contentHeight * imageAspectRatio;
           }
           
           // Центрируем изображение на странице
-          const x = margin + (contentWidth - drawWidth) / 2;
-          const y = pageHeight - margin - drawHeight - (contentHeight - drawHeight) / 2;
+          const offsetX = margin + (contentWidth - actualImageWidth) / 2;
+          const offsetY = pageHeight - margin - actualImageHeight - (contentHeight - actualImageHeight) / 2;
           
           // Рисуем изображение на странице
           page.drawImage(embeddedImage, {
-            x,
-            y,
-            width: drawWidth,
-            height: drawHeight,
+            x: offsetX,
+            y: offsetY,
+            width: actualImageWidth,
+            height: actualImageHeight,
           });
           
           // Добавляем аннотации (предварительно отсортированные для оптимизации)
-          // Сортируем один раз перед циклом для ускорения
           const sortedAnnotations = pageAnnotations.length > 0 
             ? [...pageAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
             : [];
           
-          // Кэш для встроенных изображений-аннотаций (избегаем повторного встраивания)
-          const embeddedImagesCache = new Map<string, any>();
+          const scaleX = actualImageWidth / pagesViewport.width;
+          const scaleY = actualImageHeight / pagesViewport.height;
           
           for (const ann of sortedAnnotations) {
             try {
               if (ann.type === 'text' && ann.content) {
-                // Добавляем текстовую аннотацию (оптимизированная конвертация цвета)
+                const scaledX = offsetX + (ann.x * scaleX);
+                const scaledY = offsetY + actualImageHeight - (ann.y * scaleY) - ((ann.height || 20) * scaleY);
+                const scaledFontSize = (ann.fontSize || 16) * scaleY;
+                
                 const color = ann.color || '#000000';
                 const r = parseInt(color.substring(1, 3), 16) / 255;
                 const g = parseInt(color.substring(3, 5), 16) / 255;
                 const b = parseInt(color.substring(5, 7), 16) / 255;
                 
-                // Получаем шрифт для текста
                 const fontId = ann.fontFamily || 'default';
                 const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
                 
                 page.drawText(ann.content, {
-                  x: ann.x,
-                  y: pageHeight - ann.y - (ann.height || 20), // Инвертируем Y координату
-                  size: ann.fontSize || 16,
+                  x: scaledX,
+                  y: scaledY,
+                  size: scaledFontSize,
                   color: rgb(r, g, b),
-                  font: font, // Применяем выбранный шрифт или используем стандартный
+                  font: font,
                 });
               } else if (ann.type === 'image' && ann.imageUri) {
-                // Используем предзагруженное изображение-аннотацию с кэшированием
+                const scaledX = offsetX + (ann.x * scaleX);
+                const scaledY = offsetY + actualImageHeight - (ann.y * scaleY) - (ann.height * scaleY);
+                const scaledWidth = ann.width * scaleX;
+                const scaledHeight = ann.height * scaleY;
+                
                 const annImageBytes = annotationImageMap.get(ann.imageUri);
                 if (annImageBytes) {
                   try {
-                    // Проверяем кэш перед встраиванием
                     let embeddedAnnImage = embeddedImagesCache.get(ann.imageUri);
                     if (!embeddedAnnImage) {
-                      const isPng = annImageBytes[0] === 0x89 && annImageBytes[1] === 0x50;
-                      embeddedAnnImage = isPng 
-                        ? await pdfDoc.embedPng(annImageBytes)
-                        : await pdfDoc.embedJpg(annImageBytes);
+                      const isJpg = annImageBytes[0] === 0xFF && annImageBytes[1] === 0xD8;
+                      embeddedAnnImage = isJpg ? await pdfDoc.embedJpg(annImageBytes) : await pdfDoc.embedPng(annImageBytes);
                       embeddedImagesCache.set(ann.imageUri, embeddedAnnImage);
                     }
                     
                     page.drawImage(embeddedAnnImage, {
-                      x: ann.x,
-                      y: pageHeight - ann.y - ann.height, // Инвертируем Y координату
-                      width: ann.width,
-                      height: ann.height,
+                      x: scaledX,
+                      y: scaledY,
+                      width: scaledWidth,
+                      height: scaledHeight,
                     });
                   } catch (annEmbedError) {
-                    // Тихо пропускаем ошибки для ускорения
+                    // ignore
                   }
                 }
               }
             } catch (annError) {
-              // Тихо пропускаем ошибки для ускорения обработки
+              // ignore
             }
           }
           
@@ -892,7 +1221,6 @@ export default function ExportPdfScreen() {
         } catch (pageError) {
           console.error(`[PDF Export] Ошибка при обработке страницы ${pageNumber}:`, pageError);
           skippedCount++;
-          // Продолжаем обработку следующих страниц
         }
       }
       
@@ -910,44 +1238,116 @@ export default function ExportPdfScreen() {
       }
 
       console.log(`[PDF Export] Сохранение PDF файла...`);
+      setGenerationStatus('Сохранение PDF…');
       setGenerationProgress({ current: 95, total: 100 });
-      
-      // Сохраняем PDF документ в байты с максимальной оптимизацией производительности
-      const pdfBytes = await pdfDoc.save({
-        useObjectStreams: false, // Отключаем object streams для ускорения
-        addDefaultPage: false,
-      });
-      
-      setGenerationProgress({ current: 98, total: 100 });
-      
+
+      const uint8ToBase64 = (bytes: Uint8Array): string => {
+        // Быстрый путь (в RN часто доступен Buffer через полифиллы)
+        // eslint-disable-next-line no-undef
+        if (typeof Buffer !== 'undefined') {
+          // eslint-disable-next-line no-undef
+          return Buffer.from(bytes).toString('base64');
+        }
+
+        // Fallback: чанки покрупнее (меньше конкатенаций) — заметно быстрее
+        const chunkSize = 32768;
+        const chunks: string[] = [];
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.slice(i, i + chunkSize);
+          chunks.push(String.fromCharCode.apply(null, Array.from(chunk)));
+        }
+        return btoa(chunks.join(''));
+      };
+
       // Сохраняем PDF в файл
       const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-      
-      // Конвертируем Uint8Array в base64 для сохранения (оптимизированный метод)
-      // Используем более эффективный способ для больших файлов
-      let base64: string;
-      if (pdfBytes.length > 100000) {
-        // Для больших файлов используем блочный метод
-        const chunkSize = 8192;
-        const chunks: string[] = [];
-        for (let i = 0; i < pdfBytes.length; i += chunkSize) {
-          const chunk = pdfBytes.slice(i, i + chunkSize);
-          chunks.push(String.fromCharCode.apply(null, Array.from(chunk)));
-        }
-        base64 = btoa(chunks.join(''));
-      } else {
-        // Для маленьких файлов используем стандартный метод
-        base64 = btoa(String.fromCharCode.apply(null, Array.from(pdfBytes)));
+
+      // Самое “узкое место” по скорости: save + конвертация в base64 + write.
+      // 1) Пытаемся получить base64 напрямую из pdf-lib (обычно быстрее, чем ручная конвертация).
+      // 2) Если недоступно — делаем save() в Uint8Array и кодируем максимально быстро.
+      let base64: string | null = null;
+      try {
+        base64 = await withTimeout({
+          label: 'pdfDoc.saveAsBase64',
+          timeoutMs: 60000,
+          task: async () =>
+            (pdfDoc as any).saveAsBase64({
+              dataUri: false,
+              useObjectStreams: false,
+              addDefaultPage: false,
+            }),
+        });
+      } catch {
+        base64 = null;
       }
-      
-      await FileSystem.writeAsStringAsync(fileUri, base64, {
-        encoding: FileSystem.EncodingType.Base64,
+
+      if (!base64) {
+        const pdfBytes = await withTimeout({
+          label: 'pdfDoc.save',
+          timeoutMs: 60000,
+          task: async () =>
+            pdfDoc.save({
+              useObjectStreams: false,
+              addDefaultPage: false,
+            }),
+        });
+        base64 = uint8ToBase64(pdfBytes);
+      }
+
+      setGenerationProgress({ current: 98, total: 100 });
+
+      await withTimeout({
+        label: 'write pdf file',
+        timeoutMs: 45000,
+        task: async () =>
+          FileSystem.writeAsStringAsync(fileUri, base64!, {
+            encoding: FileSystem.EncodingType.Base64,
+          }),
       });
       
       setGenerationProgress({ current: 100, total: 100 });
       
       console.log(`[PDF Export] PDF успешно создан: ${fileUri}`);
+
+      // Сохраняем экспорт в историю (привязанную к коду пользователя)
+      try {
+        // Получаем код доступа пользователя для привязки истории
+        const accessCode = await AsyncStorage.getItem('@access_code');
+        if (!accessCode) {
+          console.warn('[PDF Export] Код доступа не найден, история экспорта не будет сохранена');
+        } else {
+          let projectName = 'Проект';
+          if (projectId) {
+            const projectData = await AsyncStorage.getItem(`@project_${projectId}`);
+            if (projectData) {
+              const project = JSON.parse(projectData);
+              projectName = project.title || project.name || 'Проект';
+            }
+          }
+
+          const exportRecord = {
+            id: `${projectId || 'export'}_${Date.now()}`,
+            projectId: projectId || null,
+            projectName,
+            format: formatToUse.name,
+            date: new Date().toISOString(),
+            fileUri,
+            fileName,
+          };
+
+          // История экспорта привязана к коду пользователя
+          const historyKey = `@export_history_${accessCode}`;
+          const existingHistory = await AsyncStorage.getItem(historyKey);
+          const history: any[] = existingHistory ? JSON.parse(existingHistory) : [];
+          history.push(exportRecord);
+          // Оставляем только последние 100 экспортов, чтобы не засорять хранилище
+          const trimmedHistory = history.slice(-100);
+          await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
+        }
+      } catch (historyError) {
+        console.warn('[PDF Export] Не удалось сохранить в историю:', historyError);
+      }
 
       setPdfUri(fileUri);
       setShowPreview(true);
@@ -956,6 +1356,7 @@ export default function ExportPdfScreen() {
       Alert.alert('Ошибка', 'Не удалось создать PDF файл. ' + (error as Error).message);
     } finally {
       setIsGenerating(false);
+      setGenerationStatus(null);
     }
   };
 
@@ -963,19 +1364,86 @@ export default function ExportPdfScreen() {
     if (!pdfUri) return;
 
     try {
-      const fileName = `project_${projectId}_${Date.now()}.pdf`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       
-      // Используем legacy API для совместимости
-      await FileSystem.copyAsync({
-        from: pdfUri,
-        to: fileUri,
-      });
-
-      Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
+      if (Platform.OS === 'android') {
+        // Для Android используем react-native-blob-util для сохранения в папку Downloads
+        try {
+          const RNBlobUtil = require('react-native-blob-util').default;
+          const { fs, config } = RNBlobUtil;
+          
+          // Читаем файл как base64
+          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          // Сохраняем в папку Downloads через DownloadManager
+          const downloadOptions = {
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              notification: true,
+              title: fileName,
+              description: 'PDF файл',
+              mime: 'application/pdf',
+              mediaScannable: true,
+              path: `${fs.dirs.DownloadDir}/${fileName}`,
+            },
+          };
+          
+          // Создаем временный файл и скачиваем его через DownloadManager
+          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
+          await fs.writeFile(tempPath, base64, 'base64');
+          
+          // Используем config для правильного сохранения через DownloadManager
+          const response = await config(downloadOptions).fetch('GET', `file://${tempPath}`);
+          
+          // Удаляем временный файл
+          fs.unlink(tempPath).catch(() => {});
+          
+          Alert.alert('Успешно', `Файл сохранён в папку "Загрузки": ${fileName}`);
+        } catch (blobError) {
+          // Fallback: используем стандартный метод
+          console.warn('react-native-blob-util failed, using fallback:', blobError);
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
+        }
+      } else if (Platform.OS === 'ios') {
+        // Для iOS используем Sharing API для сохранения в Files app
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(pdfUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Сохранить PDF',
+            UTI: 'com.adobe.pdf',
+          });
+        } else {
+          // Fallback: сохраняем в документы
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
+        }
+      } else {
+        // Для веб просто скачиваем файл
+        const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${base64}`;
+        link.download = fileName;
+        link.click();
+        Alert.alert('Успешно', `Файл скачан: ${fileName}`);
+      }
     } catch (error) {
       console.error('Error downloading PDF:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить файл');
+      Alert.alert('Ошибка', 'Не удалось сохранить файл: ' + (error as Error).message);
     }
   };
 
@@ -983,15 +1451,117 @@ export default function ExportPdfScreen() {
     if (!pdfUri) return;
 
     try {
-      const isAvailable = await Sharing.isAvailableAsync();
-      if (isAvailable) {
-        await Sharing.shareAsync(pdfUri);
+      // Проверяем существование файла
+      const fileInfo = await FileSystem.getInfoAsync(pdfUri);
+      if (!fileInfo.exists) {
+        Alert.alert('Ошибка', 'PDF файл не найден');
+        return;
+      }
+
+      if (Platform.OS === 'web') {
+        // Для веб используем Web Share API
+        const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const blob = await fetch(`data:application/pdf;base64,${base64}`).then(r => r.blob());
+        const file = new File([blob], `project_${projectId || 'export'}_${Date.now()}.pdf`, { type: 'application/pdf' });
+        
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'PDF файл',
+          });
+        } else {
+          Alert.alert('Недоступно', 'Функция отправки недоступна в этом браузере');
+        }
       } else {
-        Alert.alert('Недоступно', 'Функция отправки недоступна на этом устройстве');
+        // Для мобильных устройств используем expo-sharing
+        // expo-sharing работает с URI с префиксом file:// или без него
+        
+        // Проверяем доступность sharing
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (!isAvailable) {
+          Alert.alert('Недоступно', 'Функция отправки недоступна на этом устройстве');
+          return;
+        }
+        
+        // Используем оригинальный URI - expo-sharing сам обработает его правильно
+        // На iOS и Android expo-sharing принимает URI с file:// префиксом
+        let shareUri = pdfUri;
+        
+        // Убеждаемся, что URI имеет правильный формат
+        if (!shareUri.startsWith('file://') && !shareUri.startsWith('http://') && !shareUri.startsWith('https://')) {
+          shareUri = `file://${shareUri}`;
+        }
+        
+        // Для Android получаем content:// URI, чтобы мессенджеры (в т.ч. Telegram) точно приняли файл
+        if (Platform.OS === 'android') {
+          try {
+            shareUri = await FileSystem.getContentUriAsync(shareUri);
+          } catch (contentErr) {
+            // Если не удалось, остаемся на file://
+          }
+        }
+        
+        try {
+          // expo-sharing shareAsync принимает URI и опциональные параметры
+          // Для PDF файлов указываем mimeType
+          const shareOptions = {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Отправить PDF',
+            ...(Platform.OS === 'ios' && { UTI: 'com.adobe.pdf' }),
+          };
+          
+          // Вызываем shareAsync - это откроет системный диалог отправки
+          await Sharing.shareAsync(shareUri, shareOptions);
+        } catch (sharingError) {
+          
+          // Проверяем, не отменил ли пользователь отправку
+          const errorMessage = (sharingError as Error).message || String(sharingError);
+          const errorCode = (sharingError as any)?.code;
+          
+          if (
+            errorMessage.includes('canceled') || 
+            errorMessage.includes('Canceled') || 
+            errorMessage.includes('User canceled') ||
+            errorMessage.includes('cancelled') ||
+            errorCode === 'ERR_CANCELED' ||
+            errorCode === 'USER_CANCELED' ||
+            errorCode === 'CANCELED'
+          ) {
+            // Пользователь отменил отправку - это нормально, не показываем ошибку
+            return;
+          }
+          
+          // Показываем ошибку с предложением сохранить файл
+          Alert.alert(
+            'Ошибка отправки',
+            `Не удалось отправить файл.\n\nОшибка: ${errorMessage}\n\nПопробуйте сохранить файл и отправить его вручную через приложение.`,
+            [
+              { text: 'ОК', style: 'default' },
+              {
+                text: 'Сохранить',
+                onPress: () => handleDownload(),
+              },
+            ]
+          );
+        }
       }
     } catch (error) {
-      console.error('Error sharing PDF:', error);
-      Alert.alert('Ошибка', 'Не удалось отправить файл');
+      console.error('Error in handleShare:', error);
+      const errorMessage = (error as Error).message || String(error);
+      
+      // Если пользователь отменил отправку, не показываем ошибку
+      if (
+        errorMessage.includes('canceled') || 
+        errorMessage.includes('Canceled') || 
+        errorMessage.includes('User canceled') ||
+        errorMessage.includes('cancelled')
+      ) {
+        return;
+      }
+      
+      Alert.alert('Ошибка', 'Не удалось отправить файл: ' + errorMessage);
     }
   };
 
@@ -1012,8 +1582,50 @@ export default function ExportPdfScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        {/* Оверлей генерации — как на "старом" экране (центральная плашка) */}
+        {isGenerating ? (
+          <View style={styles.exportOverlay} pointerEvents="auto">
+            <View style={styles.exportOverlayCard}>
+              <Animated.View style={loadingAnimatedStyle}>
+                <Ionicons name="refresh" size={28} color="#C9A89A" />
+              </Animated.View>
+              <Text style={styles.exportOverlayTitle}>Создание PDF…</Text>
+              {generationStatus ? (
+                <Text style={styles.exportOverlaySubtitle}>{generationStatus}</Text>
+              ) : null}
+              {generationProgress.total > 0 ? (
+                <Text style={styles.exportOverlaySubtitle}>
+                  {generationProgress.current}/{generationProgress.total}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        {/* Скрытый рендерер страницы для “1 в 1” экспорта через снапшот */}
+        {renderingPage ? (
+          <View style={{ position: 'absolute', left: -10000, top: -10000, opacity: 0 }}>
+            <PageRenderer
+              ref={pageRendererRef}
+              imageUri={renderingPage.imageUri}
+              annotations={renderingPage.annotations}
+              width={renderingPage.viewport.width}
+              height={renderingPage.viewport.height}
+              captureFormat="jpg"
+              captureScale={captureSettingsRef.current.scale}
+              captureQuality={captureSettingsRef.current.quality}
+              onReady={() => setPageRendererReady(true)}
+            />
+          </View>
+        ) : null}
+
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.replace('/(tabs)')}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="На главный экран"
+          >
             <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
           </TouchableOpacity>
           <Text style={styles.title}>Экспорт в PDF</Text>
@@ -1093,7 +1705,11 @@ export default function ExportPdfScreen() {
                   styles.createButton,
                   (!selectedFormat || isGenerating) && styles.createButtonDisabled,
                 ]}
-                onPress={handleCreatePdf}
+                onPress={() => {
+                  if (selectedFormat) {
+                    handleCreatePdfWithFormat(selectedFormat);
+                  }
+                }}
                 disabled={!selectedFormat || isGenerating}
                 activeOpacity={0.7}
               >
@@ -1367,6 +1983,46 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 2,
+  },
+  exportOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    elevation: 50,
+    backgroundColor: 'rgba(250, 248, 245, 0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  exportOverlayCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E8D5C7',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 10,
+  },
+  exportOverlayTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#8B6F5F',
+  },
+  exportOverlaySubtitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9B8E7F',
   },
   createButtonText: {
     color: '#FFFFFF',

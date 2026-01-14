@@ -30,7 +30,8 @@ export default function SimplePdfScreen() {
       setIsLoading(true);
       
       // Получаем URI файла из assets
-      const pdfUri = FileSystem.documentDirectory + 'Блок БЕРЕМЕННОСТЬ 60 стр.pdf';
+      const documentDirectory = (FileSystem as any).documentDirectory as string | undefined;
+      const pdfUri = `${documentDirectory ?? ''}Блок БЕРЕМЕННОСТЬ 60 стр.pdf`;
       
       // Копируем файл из assets в документы
       const assetUri = require('@/assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf');

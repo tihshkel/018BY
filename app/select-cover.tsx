@@ -438,7 +438,7 @@ export default function SelectCoverScreen() {
           <View style={styles.headerText}>
             <Text style={styles.title}>Выберите обложку</Text>
             <Text style={styles.subtitle}>
-              Для альбома "{getCelebrationTitle(celebration || '')}"
+              Для альбома &quot;{getCelebrationTitle(celebration || '')}&quot;
             </Text>
           </View>
         </View>

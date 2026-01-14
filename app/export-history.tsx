@@ -6,8 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -16,13 +17,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 
 interface ExportRecord {
   id: string;
+  projectId?: string | null;
   projectName: string;
   format: string;
   date: string;
-  fileSize: string;
+  fileUri: string;
+  fileName?: string;
+  fileSize?: string;
 }
 
 export default function ExportHistoryScreen() {
@@ -34,15 +40,170 @@ export default function ExportHistoryScreen() {
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
 
+  // Обновляем список при возврате на экран
+  useFocusEffect(
+    React.useCallback(() => {
+      loadExportHistory();
+    }, [])
+  );
+
   const loadExportHistory = async () => {
     try {
-      const saved = await AsyncStorage.getItem('@export_history');
+      // Загружаем историю экспорта, привязанную к коду пользователя
+      const accessCode = await AsyncStorage.getItem('@access_code');
+      if (!accessCode) {
+        setExports([]);
+        return;
+      }
+
+      const historyKey = `@export_history_${accessCode}`;
+      const saved = await AsyncStorage.getItem(historyKey);
       if (saved) {
-        setExports(JSON.parse(saved));
+        const allExports: ExportRecord[] = JSON.parse(saved);
+        // Сортируем по дате (новые сверху)
+        const sorted = allExports.sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateB - dateA;
+        });
+        setExports(sorted);
+      } else {
+        setExports([]);
       }
     } catch (error) {
       console.error('Error loading export history:', error);
+      setExports([]);
     }
+  };
+
+  const handleExportPress = (exportItem: ExportRecord) => {
+    Alert.alert(
+      exportItem.projectName,
+      `Формат: ${exportItem.format}\nДата: ${new Date(exportItem.date).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`,
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Поделиться',
+          onPress: () => handleShare(exportItem),
+        },
+        {
+          text: 'Удалить',
+          style: 'destructive',
+          onPress: () => handleDelete(exportItem),
+        },
+      ]
+    );
+  };
+
+  const handleShare = async (exportItem: ExportRecord) => {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(exportItem.fileUri);
+      if (!fileInfo.exists) {
+        Alert.alert('Ошибка', 'PDF файл не найден');
+        return;
+      }
+
+      if (Platform.OS === 'web') {
+        const base64 = await FileSystem.readAsStringAsync(exportItem.fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const blob = await fetch(`data:application/pdf;base64,${base64}`).then(r => r.blob());
+        const file = new File([blob], exportItem.fileName || 'export.pdf', { type: 'application/pdf' });
+        
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: 'PDF файл',
+          });
+        } else {
+          Alert.alert('Недоступно', 'Функция отправки недоступна в этом браузере');
+        }
+      } else {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (!isAvailable) {
+          Alert.alert('Недоступно', 'Функция отправки недоступна на этом устройстве');
+          return;
+        }
+
+        let shareUri = exportItem.fileUri;
+        if (!shareUri.startsWith('file://') && !shareUri.startsWith('http://') && !shareUri.startsWith('https://')) {
+          shareUri = `file://${shareUri}`;
+        }
+
+        if (Platform.OS === 'android') {
+          try {
+            shareUri = await FileSystem.getContentUriAsync(shareUri);
+          } catch (contentErr) {
+            // Если не удалось, остаемся на file://
+          }
+        }
+
+        await Sharing.shareAsync(shareUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Отправить PDF',
+          ...(Platform.OS === 'ios' && { UTI: 'com.adobe.pdf' }),
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing export:', error);
+      const errorMessage = (error as Error).message || String(error);
+      if (!errorMessage.includes('canceled') && !errorMessage.includes('Canceled')) {
+        Alert.alert('Ошибка', 'Не удалось отправить файл');
+      }
+    }
+  };
+
+  const handleDelete = async (exportItem: ExportRecord) => {
+    Alert.alert(
+      'Удалить экспорт',
+      `Вы уверены, что хотите удалить экспорт "${exportItem.projectName}"?`,
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Удалить',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Удаляем файл
+              try {
+                const fileInfo = await FileSystem.getInfoAsync(exportItem.fileUri);
+                if (fileInfo.exists) {
+                  await FileSystem.deleteAsync(exportItem.fileUri, { idempotent: true });
+                }
+              } catch (fileError) {
+                console.warn('Error deleting file:', fileError);
+              }
+
+              // Удаляем из истории (привязанной к коду пользователя)
+              const accessCode = await AsyncStorage.getItem('@access_code');
+              if (accessCode) {
+                const historyKey = `@export_history_${accessCode}`;
+                const saved = await AsyncStorage.getItem(historyKey);
+                if (saved) {
+                  const allExports: ExportRecord[] = JSON.parse(saved);
+                  const filtered = allExports.filter(item => item.id !== exportItem.id);
+                  await AsyncStorage.setItem(historyKey, JSON.stringify(filtered));
+                  setExports(filtered.sort((a, b) => {
+                    const dateA = new Date(a.date).getTime();
+                    const dateB = new Date(b.date).getTime();
+                    return dateB - dateA;
+                  }));
+                }
+              }
+            } catch (error) {
+              console.error('Error deleting export:', error);
+              Alert.alert('Ошибка', 'Не удалось удалить экспорт');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -73,7 +234,12 @@ export default function ExportHistoryScreen() {
             </View>
           ) : (
             exports.map((item) => (
-              <View key={item.id} style={styles.exportCard}>
+              <TouchableOpacity
+                key={item.id}
+                style={styles.exportCard}
+                onPress={() => handleExportPress(item)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.exportIcon}>
                   <Ionicons name="document-text" size={32} color="#C9A89A" />
                 </View>
@@ -89,7 +255,7 @@ export default function ExportHistoryScreen() {
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>

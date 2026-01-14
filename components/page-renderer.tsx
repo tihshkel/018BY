@@ -1,0 +1,154 @@
+import React, { useRef, useEffect, useState } from 'react';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { Image } from 'expo-image';
+import { captureRef } from 'react-native-view-shot';
+import PdfAnnotations, { type Annotation } from './pdf-annotations';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+export interface PageRendererRef {
+  capture: () => Promise<string | null>;
+}
+
+type CaptureFormat = 'png' | 'jpg';
+
+interface PageRendererProps {
+  imageUri: string;
+  annotations: Annotation[];
+  width?: number;
+  height?: number;
+  onReady?: () => void;
+  captureScale?: number;
+  captureFormat?: CaptureFormat;
+  captureQuality?: number;
+}
+
+/**
+ * Компонент для рендеринга страницы редактора для экспорта
+ * Рендерит страницу точно так же, как в редакторе, и может делать скриншот
+ */
+const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
+  ({
+    imageUri,
+    annotations,
+    width = SCREEN_WIDTH,
+    height = SCREEN_HEIGHT,
+    onReady,
+    captureScale = 1.35,
+    captureFormat = 'jpg',
+    captureQuality = 0.92,
+  }, ref) => {
+  const viewRef = useRef<View>(null);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    if (isImageLoaded && onReady) {
+      // Небольшая задержка, чтобы убедиться, что все отрендерилось
+      setTimeout(() => {
+        onReady();
+      }, 100);
+    }
+  }, [isImageLoaded, onReady]);
+
+  // Функция для создания скриншота с максимальным качеством
+  const capture = async (): Promise<string | null> => {
+    if (!viewRef.current || !isImageLoaded) {
+      return null;
+    }
+
+    try {
+      const uri = await captureRef(viewRef, {
+        format: captureFormat,
+        quality: captureQuality,
+        result: 'tmpfile',
+        width: width * captureScale,
+        height: height * captureScale,
+        snapshotContentContainer: false, // Захватываем весь View
+      });
+      
+      return uri || null;
+    } catch (error) {
+      console.error('[PageRenderer] Ошибка при создании скриншота:', error);
+      return null;
+    }
+  };
+
+  // Экспортируем функцию capture через ref
+  React.useImperativeHandle(ref, () => ({
+    capture,
+  }));
+
+  return (
+    <View
+      ref={viewRef}
+      style={[
+        styles.container,
+        {
+          width,
+          height,
+        },
+      ]}
+      collapsable={false}
+    >
+      <View
+        style={[
+          styles.imageContainer,
+          {
+            width,
+            height,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.image}
+          contentFit="contain"
+          contentPosition="center"
+          transition={0}
+          fadeDuration={0}
+          cachePolicy="disk"
+          priority="high"
+          // Используем максимальное качество для четких изображений
+          allowDownscaling={false}
+          onLoad={() => setIsImageLoaded(true)}
+        />
+
+        {isImageLoaded && (
+          <PdfAnnotations
+            annotations={annotations}
+            onAnnotationAdd={() => {}}
+            onAnnotationUpdate={() => {}}
+            onAnnotationDelete={() => {}}
+            isEditing={false}
+            currentTool={null}
+            zoomLevel={1}
+            viewportWidth={width}
+            viewportHeight={height}
+          />
+        )}
+      </View>
+    </View>
+  );
+  }
+);
+
+PageRenderer.displayName = 'PageRenderer';
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+});
+
+export default PageRenderer;
+

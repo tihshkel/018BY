@@ -15,6 +15,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -54,6 +56,7 @@ interface Block {
 }
 
 export default function EditProjectScreen() {
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
   const params = useLocalSearchParams();
   const projectId = params.id as string;
   
@@ -170,15 +173,11 @@ export default function EditProjectScreen() {
   };
 
   const handleAddPhoto = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Доступ к галерее запрещён');
-      return;
-    }
+    const hasPermission = await ensureMediaLibraryPermission();
+    if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: getImagePickerImagesMediaTypes(),
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,

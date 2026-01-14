@@ -161,7 +161,7 @@ export default function ActivationScreen() {
 
   const handleHasCode = () => {
     if (!buttonsEnabled) return;
-    router.push('/code-input');
+    router.push('/code-type-selection');
   };
 
   const handleWantToBuy = () => {

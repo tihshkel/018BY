@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import type { Annotation } from './pdf-annotations';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 
 interface PdfEditorToolsProps {
   onToolSelect: (tool: 'text' | 'image' | 'drawing' | null) => void;
@@ -43,17 +44,14 @@ export default function PdfEditorTools({
   const [showFontSizePicker, setShowFontSizePicker] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [selectedFontSize, setSelectedFontSize] = useState(16);
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
 
   const handleImagePicker = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Доступ к галерее запрещён');
-      return;
-    }
+    const hasPermission = await ensureMediaLibraryPermission();
+    if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: getImagePickerImagesMediaTypes(),
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

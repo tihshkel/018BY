@@ -10,6 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 // import { BlurView } from 'expo-blur';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,6 +27,7 @@ const FloatingAddButton: React.FC<FloatingAddButtonProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [animation] = useState(new Animated.Value(0));
   const [tapPosition, setTapPosition] = useState({ x: 0, y: 0 });
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
 
   const toggleExpanded = () => {
     const toValue = isExpanded ? 0 : 1;
@@ -43,15 +46,11 @@ const FloatingAddButton: React.FC<FloatingAddButtonProps> = ({
     const { locationX, locationY } = event.nativeEvent;
     setTapPosition({ x: locationX, y: locationY });
 
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Доступ к галерее запрещён', 'Разрешите доступ к галерее для добавления фотографий');
-      return;
-    }
+    const hasPermission = await ensureMediaLibraryPermission();
+    if (!hasPermission) return;
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: getImagePickerImagesMediaTypes(),
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,

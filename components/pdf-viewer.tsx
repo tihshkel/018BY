@@ -1,16 +1,21 @@
-import React, { useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Alert,
-  Platform,
-  Linking,
-} from 'react-native';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { createId } from '@/utils/id';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Linking,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import PdfAnnotations, { type Annotation } from './pdf-annotations';
 import PdfSkeletonLoader from './pdf-skeleton-loader';
 
@@ -47,9 +52,53 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [pdfSource, setPdfSource] = useState<any>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
+  const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
 
-  // Отладочная информация
+  // Загружаем последние настройки текста при монтировании
+  useEffect(() => {
+    const loadLastTextStyle = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('@last_text_style');
+        if (saved) {
+          setLastTextStyle(JSON.parse(saved));
+        }
+      } catch (error) {
+        console.error('Error loading last text style:', error);
+      }
+    };
+    loadLastTextStyle();
+  }, []);
+
+  // Сохраняем настройки текста при их изменении
+  const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
+    setAnnotations((prev) => {
+      const updated = prev.map((ann) => (ann.id === id ? { ...ann, ...updates } : ann));
+      
+      // Если обновляются настройки текста (цвет, размер, шрифт), сохраняем их
+      if (updates.color || updates.fontSize || updates.fontFamily) {
+        const textAnnotation = updated.find((ann) => ann.id === id && ann.type === 'text');
+        if (textAnnotation) {
+          const newStyle = {
+            color: textAnnotation.color,
+            fontSize: textAnnotation.fontSize,
+            fontFamily: textAnnotation.fontFamily,
+          };
+          setLastTextStyle(newStyle);
+          AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
+            console.error('Error saving last text style:', error);
+          });
+        }
+      }
+      
+      return updated;
+    });
+  };
+
+  // Отладочная информация (в dev). Логи в рантайме могут ощутимо лагать на девайсе.
   React.useEffect(() => {
+    if (!__DEV__) return;
     console.log('PdfViewer mounted with pdfPath:', pdfPath);
     console.log('pdfPath type:', typeof pdfPath);
     console.log('Available PDF assets:', Object.keys(PDF_ASSETS));
@@ -69,7 +118,7 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
   }, [pdfPath]);
 
   const handleLoadComplete = () => {
-    console.log('PDF load completed successfully');
+    if (__DEV__) console.log('PDF load completed successfully');
     setIsLoading(false);
   };
 
@@ -99,16 +148,54 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
     setAnnotations(prev => [...prev, annotation]);
   };
 
-  const handleAnnotationUpdate = (id: string, updates: Partial<Annotation>) => {
-    setAnnotations(prev => 
-      prev.map(annotation => 
-        annotation.id === id ? { ...annotation, ...updates } : annotation
-      )
-    );
-  };
-
   const handleAnnotationDelete = (id: string) => {
     setAnnotations(prev => prev.filter(annotation => annotation.id !== id));
+  };
+
+  const handlePickImage = async (x: number, y: number) => {
+    try {
+      const hasPermission = await ensureMediaLibraryPermission();
+      if (!hasPermission) return;
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: getImagePickerImagesMediaTypes(),
+        allowsEditing: false,
+        // Важно: не ухудшаем качество пользовательских фото
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const maxZIndex = annotations.length > 0 
+          ? Math.max(...annotations.map(ann => ann.zIndex), 0)
+          : 0;
+        const defaultSize = 120;
+        const proposedX = x - defaultSize / 2;
+        const proposedY = y - defaultSize / 2;
+        const nextX = Math.max(0, Math.min(proposedX, SCREEN_WIDTH - defaultSize));
+        const nextY = Math.max(0, Math.min(proposedY, SCREEN_HEIGHT - defaultSize));
+        
+        const newAnnotation: Annotation = {
+          id: createId('ann'),
+          type: 'image',
+          x: nextX,
+          y: nextY,
+          width: defaultSize,
+          height: defaultSize,
+          imageUri: result.assets[0].uri,
+          zIndex: maxZIndex + 1,
+          page: currentPage,
+        };
+        handleAnnotationAdd(newAnnotation);
+        // Автоматически выбираем изображение после добавления для изменения размера
+        setTimeout(() => {
+          // Используем ref для доступа к PdfAnnotations, если нужно
+          // Пока просто добавляем в annotations, выбор произойдет автоматически при следующем рендере
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      onError?.(error);
+    }
   };
 
   const handleOpenInExternalApp = async () => {
@@ -221,7 +308,7 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
         // Если pdfPath - это число (asset ID), используем его напрямую
         if (typeof pdfPath === 'number') {
           source = pdfPath;
-          console.log('Loading PDF from asset ID:', pdfPath);
+          if (__DEV__) console.log('Loading PDF from asset ID:', pdfPath);
         } else {
           // Для файлов из assets используем маппинг
           fileName = typeof pdfPath === 'string' ? pdfPath.split('/').pop() || pdfPath : String(pdfPath);
@@ -235,8 +322,8 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
           // Проверяем наличие файла в маппинге (основной или preview)
           if (fileName && PDF_ASSETS[fileName as keyof typeof PDF_ASSETS]) {
             source = PDF_ASSETS[fileName as keyof typeof PDF_ASSETS];
-            console.log('Loading PDF from assets:', fileName);
-            console.log('PDF source set to:', source);
+            if (__DEV__) console.log('Loading PDF from assets:', fileName);
+            if (__DEV__) console.log('PDF source set to:', source);
             
             // Предзагружаем PDF для быстрого отображения
             if (Platform.OS !== 'web') {
@@ -245,10 +332,10 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
                 const asset = PDF_ASSETS[fileName as keyof typeof PDF_ASSETS];
                 if (asset && typeof asset === 'number') {
                   // Это локальный ассет, он уже оптимизирован
-                  console.log('PDF asset preloaded');
+                  if (__DEV__) console.log('PDF asset preloaded');
                 }
               } catch (preloadError) {
-                console.log('PDF preload failed, continuing with normal load');
+                if (__DEV__) console.log('PDF preload failed, continuing with normal load');
               }
             }
           } else {
@@ -262,16 +349,16 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
                 'Cache-Control': 'max-age=31536000', // 1 год кэширования
               },
             };
-            console.log('Loading PDF from URI:', source.uri);
+            if (__DEV__) console.log('Loading PDF from URI:', source.uri);
           }
         }
         
-        console.log('Setting PDF source:', source);
+        if (__DEV__) console.log('Setting PDF source:', source);
         setPdfSource(source);
         
         // Для локальных assets сразу сбрасываем loading, так как они загружаются мгновенно
         if (typeof pdfPath === 'number' || (typeof pdfPath === 'string' && fileName && PDF_ASSETS[fileName as keyof typeof PDF_ASSETS])) {
-          console.log('Local asset detected, setting loading to false');
+          if (__DEV__) console.log('Local asset detected, setting loading to false');
           setTimeout(() => {
             setIsLoading(false);
           }, 100); // Небольшая задержка для рендера
@@ -280,7 +367,7 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
         // Добавляем таймаут для загрузки PDF
         const loadTimeout = setTimeout(() => {
           if (isLoading) {
-            console.warn('PDF loading timeout, forcing load complete');
+            if (__DEV__) console.warn('PDF loading timeout, forcing load complete');
             setIsLoading(false);
           }
         }, 10000); // 10 секунд таймаут
@@ -318,8 +405,19 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
     );
   }
 
-  // Отладочная информация для рендера
-  console.log('PdfViewer render - isLoading:', isLoading, 'pdfSource:', !!pdfSource, 'error:', error, 'pdfPath:', pdfPath);
+  // Отладочная информация для рендера (dev only)
+  if (__DEV__) {
+    console.log(
+      'PdfViewer render - isLoading:',
+      isLoading,
+      'pdfSource:',
+      !!pdfSource,
+      'error:',
+      error,
+      'pdfPath:',
+      pdfPath
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -348,16 +446,20 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
               ) : (
                 // Мобильная версия без нативных модулей
                 <>
-                  <NativePdfViewer
-                    source={pdfSource}
-                    style={styles.pdf}
+                  <View 
+                    style={styles.pdfWrapper}
+                    pointerEvents={isInteractingWithAnnotation ? 'none' : 'auto'}
+                  >
+                    <NativePdfViewer
+                      source={pdfSource}
+                      style={styles.pdf}
                     onLoadComplete={(numberOfPages, filePath) => {
-                      console.log(`PDF loaded: ${numberOfPages} pages`);
+                      if (__DEV__) console.log(`PDF loaded: ${numberOfPages} pages`);
                       setTotalPages(numberOfPages);
                       handleLoadComplete();
                     }}
                     onPageChanged={(page, numberOfPages) => {
-                      console.log(`Current page: ${page}`);
+                      if (__DEV__) console.log(`Current page: ${page}`);
                       setCurrentPage(page);
                       onPageChange?.(page, numberOfPages);
                     }}
@@ -369,17 +471,21 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
                       if (isEditing && currentTool === 'text') {
                         const { locationX, locationY } = event;
                         handleAnnotationAdd({
-                          id: Date.now().toString(),
+                          id: createId('ann'),
                           type: 'text',
                           x: locationX - 100,
                           y: locationY - 20,
                           width: 200,
                           height: 40,
                           content: 'Новый текст',
-                          color: '#000000',
-                          fontSize: 16,
+                          color: lastTextStyle?.color || '#000000',
+                          fontSize: lastTextStyle?.fontSize || 16,
+                          ...(lastTextStyle?.fontFamily ? { fontFamily: lastTextStyle.fontFamily } : {}),
                           zIndex: annotations.length + 1,
                         });
+                      } else if (isEditing && currentTool === 'image') {
+                        const { locationX, locationY } = event;
+                        handlePickImage(locationX, locationY);
                       }
                     }}
                     enablePaging={true}
@@ -394,14 +500,15 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
                     horizontal={false}
                     page={1}
                     onLoadProgress={(percent) => {
-                      console.log(`PDF loading progress: ${percent}%`);
+                      if (__DEV__) console.log(`PDF loading progress: ${percent}%`);
                       setLoadingProgress(percent);
                     }}
-                    enableDoubleTapZoom={true}
-                    enableSingleTapZoom={true}
-                    enableSwipe={true}
+                    enableDoubleTapZoom={!isInteractingWithAnnotation}
+                    enableSingleTapZoom={!isInteractingWithAnnotation}
+                    enableSwipe={!isInteractingWithAnnotation}
                     swipeHorizontal={false}
                   />
+                  </View>
 
                   {/* Аннотации поверх PDF */}
                   <PdfAnnotations
@@ -411,6 +518,7 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
                     onAnnotationDelete={handleAnnotationDelete}
                     isEditing={isEditing}
                     currentTool={currentTool}
+                    onInteractionChange={setIsInteractingWithAnnotation}
                   />
                 </>
               )}
@@ -513,6 +621,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
     fontWeight: '500',
+  },
+  pdfInfoBox: {
+    backgroundColor: '#F5F0EB',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 16,
   },
   pdfDescription: {
     fontSize: 14,

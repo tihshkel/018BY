@@ -40,12 +40,14 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
   const [error, setError] = React.useState<any>(null);
   const webViewRef = React.useRef<WebView>(null);
   
-  console.log('NativePdfViewer render - Platform:', Platform.OS, 'source:', !!props.source);
+  if (__DEV__) {
+    console.log('NativePdfViewer render - Platform:', Platform.OS, 'source:', !!props.source);
+  }
   
   React.useEffect(() => {
     const loadPdf = async () => {
       if (!props.source) {
-        console.log('NativePdfViewer: No source provided');
+        if (__DEV__) console.log('NativePdfViewer: No source provided');
         setError(new Error('PDF source not provided'));
         return;
       }
@@ -57,21 +59,23 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
         
         // Если это локальный ассет, конвертируем в URI
         if (typeof props.source === 'number') {
-          console.log('NativePdfViewer: Loading asset ID:', props.source);
+          if (__DEV__) console.log('NativePdfViewer: Loading asset ID:', props.source);
           // Для локальных ассетов используем expo-asset
           const { Asset } = await import('expo-asset');
           const asset = Asset.fromModule(props.source);
-          console.log('NativePdfViewer: Asset module loaded:', asset);
+          if (__DEV__) console.log('NativePdfViewer: Asset module loaded:', asset);
           
           // Загружаем ассет
           await asset.downloadAsync();
-          console.log('NativePdfViewer: Asset downloaded');
+          if (__DEV__) console.log('NativePdfViewer: Asset downloaded');
           
           // Получаем URI - предпочитаем localUri для мобильных устройств
           fileUri = asset.localUri || asset.uri;
-          console.log('NativePdfViewer: PDF URI:', fileUri);
-          console.log('NativePdfViewer: Local URI:', asset.localUri);
-          console.log('NativePdfViewer: Remote URI:', asset.uri);
+          if (__DEV__) {
+            console.log('NativePdfViewer: PDF URI:', fileUri);
+            console.log('NativePdfViewer: Local URI:', asset.localUri);
+            console.log('NativePdfViewer: Remote URI:', asset.uri);
+          }
           
           if (!fileUri) {
             throw new Error('Failed to get PDF URI from asset');
@@ -101,12 +105,12 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
             encodedUri = encodeURI(fileUri);
           }
           
-          console.log('NativePdfViewer: Final PDF URI:', encodedUri);
+          if (__DEV__) console.log('NativePdfViewer: Final PDF URI:', encodedUri);
           
           setPdfUri(encodedUri);
         } else if (props.source && typeof props.source === 'object' && props.source.uri) {
           fileUri = props.source.uri;
-          console.log('NativePdfViewer: Using provided URI:', fileUri);
+          if (__DEV__) console.log('NativePdfViewer: Using provided URI:', fileUri);
           setPdfUri(fileUri);
         } else {
           console.error('NativePdfViewer: Unknown source type:', typeof props.source, props.source);
@@ -115,7 +119,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
 
         // Устанавливаем маркер загрузки
         if (fileUri) {
-          console.log('NativePdfViewer: PDF URI ready:', fileUri);
+          if (__DEV__) console.log('NativePdfViewer: PDF URI ready:', fileUri);
           setPdfBase64('loaded'); // Устанавливаем маркер загрузки
           // Для react-native-pdf можно использовать URI напрямую
           // Компонент перерендерится с новым pdfUri
@@ -134,7 +138,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
   }, [props.source]);
 
   if (Platform.OS === 'web') {
-    console.log('NativePdfViewer: Web platform detected, not rendering');
+    if (__DEV__) console.log('NativePdfViewer: Web platform detected, not rendering');
     return null;
   }
 
@@ -147,7 +151,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
   }
 
   if (error) {
-    console.log('NativePdfViewer: Error state:', error);
+    if (__DEV__) console.log('NativePdfViewer: Error state:', error);
     return (
       <View style={styles.fallbackContainer}>
         <Ionicons name="alert-circle-outline" size={64} color="#FF6B6B" />
@@ -163,9 +167,11 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
   }
 
   if (!props.source || !pdfUri) {
-    console.log('NativePdfViewer: No source or pdfUri provided');
-    console.log('NativePdfViewer: source:', props.source);
-    console.log('NativePdfViewer: pdfUri:', pdfUri);
+    if (__DEV__) {
+      console.log('NativePdfViewer: No source or pdfUri provided');
+      console.log('NativePdfViewer: source:', props.source);
+      console.log('NativePdfViewer: pdfUri:', pdfUri);
+    }
     return (
       <View style={styles.fallbackContainer}>
         <Ionicons name="document-outline" size={64} color="#FF6B6B" />
@@ -352,7 +358,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
   // Используем WebView с HTML для отображения PDF
   // Это более надежный способ для Expo Go
   if (pdfUri && pdfBase64) {
-    console.log('NativePdfViewer: Rendering PDF with HTML WebView, URI:', pdfUri);
+    if (__DEV__) console.log('NativePdfViewer: Rendering PDF with HTML WebView, URI:', pdfUri);
     
     // Создаем HTML с правильным embed для PDF
     const pdfHtmlContent = `
@@ -463,7 +469,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
           source={{ html: pdfHtmlContent }}
           style={styles.webview}
           onLoadEnd={() => {
-            console.log('NativePdfViewer: PDF HTML WebView loaded successfully');
+            if (__DEV__) console.log('NativePdfViewer: PDF HTML WebView loaded successfully');
             setIsLoading(false);
             if (props.onLoadComplete) {
               props.onLoadComplete(60, pdfUri);
@@ -496,7 +502,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
                 props.onPageChanged(data.page, data.totalPages);
               }
             } catch (e) {
-              console.log('Error parsing WebView message:', e);
+              if (__DEV__) console.log('Error parsing WebView message:', e);
             }
           }}
         />

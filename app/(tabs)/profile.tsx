@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   Alert,
+  Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import { useFocusEffect } from 'expo-router';
 
 interface MenuItem {
   id: string;
@@ -33,6 +35,7 @@ export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [accessStatus, setAccessStatus] = useState('Полный доступ активирован');
+  const [accessCode, setAccessCode] = useState<string | null>(null);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -40,19 +43,39 @@ export default function ProfileScreen() {
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
 
+  // Обновляем данные при возврате на вкладку профиля
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
   const loadUserData = async () => {
     try {
       const name = await AsyncStorage.getItem('@user_name');
       const avatar = await AsyncStorage.getItem('@user_avatar');
       const activated = await AsyncStorage.getItem('@is_activated');
+      const storedAccessCode = await AsyncStorage.getItem('@access_code');
       
       if (name) setUserName(name);
       if (avatar) setAvatarUri(avatar);
       if (activated !== 'true') {
         setAccessStatus('Ограниченный доступ');
       }
+      setAccessCode(storedAccessCode || null);
     } catch (error) {
       console.error('Error loading user data:', error);
+    }
+  };
+
+  const handleCopyAccessCode = () => {
+    if (!accessCode) return;
+    try {
+      Clipboard.setString(accessCode);
+      Alert.alert('Скопировано', 'Код доступа скопирован в буфер обмена');
+    } catch (error) {
+      console.error('Error copying access code:', error);
+      Alert.alert('Ошибка', 'Не удалось скопировать код доступа');
     }
   };
 
@@ -90,7 +113,7 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ImagePicker.MediaType?.Images ? [ImagePicker.MediaType.Images] : undefined,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -206,6 +229,23 @@ export default function ProfileScreen() {
               <Ionicons name="checkmark-circle" size={16} color="#C9A89A" />
               <Text style={styles.statusText}>{accessStatus}</Text>
             </View>
+
+            {!!accessCode && (
+              <View style={styles.accessCodeSection}>
+                <Text style={styles.accessCodeLabel}>Код доступа</Text>
+                <TouchableOpacity
+                  style={styles.accessCodeField}
+                  onPress={handleCopyAccessCode}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Скопировать код доступа"
+                >
+                  <Text style={styles.accessCodeText}>{accessCode}</Text>
+                  <Ionicons name="copy-outline" size={18} color="#8B6F5F" />
+                </TouchableOpacity>
+                <Text style={styles.accessCodeHint}>Нажмите, чтобы скопировать</Text>
+              </View>
+            )}
           </View>
 
           {/* Меню */}
@@ -326,6 +366,56 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '500',
+  },
+  accessCodeSection: {
+    width: '100%',
+    marginTop: 18,
+    alignItems: 'center',
+  },
+  accessCodeLabel: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  accessCodeField: {
+    width: '100%',
+    backgroundColor: '#FAF8F5',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  accessCodeText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+    letterSpacing: 1.5,
+  },
+  accessCodeHint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
   },
   menuSection: {
     paddingHorizontal: 24,

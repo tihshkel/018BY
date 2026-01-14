@@ -24,7 +24,8 @@ import CoverViewer from '@/components/cover-viewer';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { getAlbumTemplateById } from '@/albums';
 import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
-import { Annotation, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import { Annotation, PdfAnnotationsRef, AVAILABLE_FONTS } from '@/components/pdf-annotations';
+import { createId, ensureUniqueIds } from '@/utils/id';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -49,16 +50,70 @@ export default function EditAlbumScreen() {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [viewMode, setViewMode] = useState<'pages' | 'cover'>('pages');
   const [coverAnnotations, setCoverAnnotations] = useState<Annotation[]>([]);
+  const [pagesViewport, setPagesViewport] = useState<{ width: number; height: number } | null>(null);
+  const [coverViewport, setCoverViewport] = useState<{ width: number; height: number } | null>(null);
   const [isAddingText, setIsAddingText] = useState(false);
   const [editingTextAnnotationId, setEditingTextAnnotationId] = useState<string | null>(null);
   const [currentTextAnnotation, setCurrentTextAnnotation] = useState<Annotation | null>(null);
+  const [lastTextStyle, setLastTextStyle] = useState<{
+    color: string;
+    fontSize: number;
+    fontFamily?: string;
+  }>({ color: '#000000', fontSize: 16 });
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const containerOpacity = useSharedValue(0);
+
+  const getFontDisplayName = (fontId?: string) => {
+    if (!fontId || fontId === 'default') return 'Системный';
+    const match = AVAILABLE_FONTS.find(f => f.id === fontId);
+    return match?.displayName || fontId;
+  };
 
   useEffect(() => {
     containerOpacity.value = withTiming(1, { duration: 400 });
     loadImagesData();
   }, [id, coverType, interiorType]);
+
+  useEffect(() => {
+    if (!id) return;
+    AsyncStorage.getItem(`@project_last_text_style_${id}`)
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw) as any;
+        const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+        const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+        const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
+        setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
+      })
+      .catch(() => {});
+  }, [id]);
+
+  // Синхронизируем текущую редактируемую аннотацию для верхней панели (цвет/размер/шрифт),
+  // чтобы она обновлялась сразу после изменения через модалки.
+  useEffect(() => {
+    if (!editingTextAnnotationId) {
+      setCurrentTextAnnotation(null);
+      return;
+    }
+
+    const nextAnnotation =
+      viewMode === 'cover'
+        ? coverAnnotations.find(ann => ann.id === editingTextAnnotationId) || null
+        : annotations.find(ann => ann.id === editingTextAnnotationId) || null;
+
+    setCurrentTextAnnotation(nextAnnotation);
+  }, [editingTextAnnotationId, viewMode, annotations, coverAnnotations]);
+
+  // Сохраняем viewport размеров редактора — это нужно, чтобы экспорт маппил координаты 1:1
+  useEffect(() => {
+    if (!id || !pagesViewport) return;
+    AsyncStorage.setItem(`@project_viewport_${id}`, JSON.stringify(pagesViewport)).catch(() => {});
+  }, [id, pagesViewport]);
+
+  useEffect(() => {
+    if (!id || !coverViewport) return;
+    AsyncStorage.setItem(`@project_cover_viewport_${id}`, JSON.stringify(coverViewport)).catch(() => {});
+  }, [id, coverViewport]);
 
   const loadImagesData = async () => {
     try {
@@ -145,13 +200,23 @@ export default function EditAlbumScreen() {
       if (id) {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
-          setAnnotations(JSON.parse(savedAnnotations));
+          const parsed = JSON.parse(savedAnnotations) as Annotation[];
+          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          setAnnotations(items);
+          if (changed) {
+            await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
+          }
         }
         
         // Загружаем аннотации обложки
         const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
         if (savedCoverAnnotations) {
-          setCoverAnnotations(JSON.parse(savedCoverAnnotations));
+          const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
+          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          setCoverAnnotations(items);
+          if (changed) {
+            await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
+          }
         }
       }
       
@@ -288,36 +353,50 @@ export default function EditAlbumScreen() {
   };
 
   const handleAnnotationAdd = (annotation: Annotation) => {
-    const newAnnotation = { ...annotation, page: currentPage };
-    const updatedAnnotations = [...annotations, newAnnotation];
-    setAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации
-    if (id) {
-      AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(updatedAnnotations));
-    }
+    setAnnotations(prev => {
+      const existingIds = new Set(prev.map(a => a.id));
+      const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
+      const newAnnotation = { ...annotation, id: safeId, page: currentPage };
+      const next = [...prev, newAnnotation];
+      if (id) {
+        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
   };
 
   const handleAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
-    const updatedAnnotations = annotations.map(ann =>
-      ann.id === annotationId ? { ...ann, ...updates } : ann
-    );
-    setAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации
-    if (id) {
-      AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(updatedAnnotations));
+    setAnnotations(prev => {
+      const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
+      if (id) {
+        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
+
+    if (updates.color || updates.fontSize || updates.fontFamily) {
+      setLastTextStyle((prev) => {
+        const nextStyle = {
+          color: updates.color ?? prev.color,
+          fontSize: updates.fontSize ?? prev.fontSize,
+          fontFamily: updates.fontFamily ?? prev.fontFamily,
+        };
+        if (id) {
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+        }
+        return nextStyle;
+      });
     }
   };
 
   const handleAnnotationDelete = (annotationId: string) => {
-    const updatedAnnotations = annotations.filter(ann => ann.id !== annotationId);
-    setAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации
-    if (id) {
-      AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(updatedAnnotations));
-    }
+    setAnnotations(prev => {
+      const next = prev.filter(ann => ann.id !== annotationId);
+      if (id) {
+        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
   };
 
   const handleBack = () => {
@@ -341,11 +420,26 @@ export default function EditAlbumScreen() {
     setIsEditing(true);
   };
 
+  const handleToolToggle = (tool: 'text' | 'image' | 'drawing') => {
+    // Если инструмент уже выбран — выключаем его (выход из режима добавления)
+    if (currentTool === tool) {
+      handleToolReset();
+      return;
+    }
+    handleToolSelect(tool);
+  };
+
   const handleToolReset = () => {
     setCurrentTool(null);
     setIsAddingText(false);
     setEditingTextAnnotationId(null);
     setCurrentTextAnnotation(null);
+  };
+
+  const handleToolDeactivate = () => {
+    // Мягкий сброс: просто выключаем выбранный инструмент (например "Текст"),
+    // не трогая состояние активного редактирования.
+    setCurrentTool(null);
   };
 
   const handleTextEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
@@ -358,6 +452,19 @@ export default function EditAlbumScreen() {
         ? coverAnnotations.find(ann => ann.id === annotationId)
         : annotations.find(ann => ann.id === annotationId);
       setCurrentTextAnnotation(annotation || null);
+
+      // Запоминаем стиль, чтобы новые тексты создавались сразу с ним
+      if (annotation && annotation.type === 'text') {
+        const nextStyle = {
+          color: annotation.color || '#000000',
+          fontSize: annotation.fontSize || 16,
+          fontFamily: annotation.fontFamily,
+        };
+        setLastTextStyle(nextStyle);
+        if (id) {
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+        }
+      }
     } else {
       setCurrentTextAnnotation(null);
     }
@@ -411,36 +518,50 @@ export default function EditAlbumScreen() {
   };
 
   const handleCoverAnnotationAdd = (annotation: Annotation) => {
-    const newAnnotation = { ...annotation, page: 'cover' };
-    const updatedAnnotations = [...coverAnnotations, newAnnotation];
-    setCoverAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации обложки
-    if (id) {
-      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
-    }
+    setCoverAnnotations(prev => {
+      const existingIds = new Set(prev.map(a => a.id));
+      const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
+      const newAnnotation = { ...annotation, id: safeId, page: 'cover' };
+      const next = [...prev, newAnnotation];
+      if (id) {
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
   };
 
   const handleCoverAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
-    const updatedAnnotations = coverAnnotations.map(ann =>
-      ann.id === annotationId ? { ...ann, ...updates } : ann
-    );
-    setCoverAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации обложки
-    if (id) {
-      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
+    setCoverAnnotations(prev => {
+      const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
+      if (id) {
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
+
+    if (updates.color || updates.fontSize || updates.fontFamily) {
+      setLastTextStyle((prev) => {
+        const nextStyle = {
+          color: updates.color ?? prev.color,
+          fontSize: updates.fontSize ?? prev.fontSize,
+          fontFamily: updates.fontFamily ?? prev.fontFamily,
+        };
+        if (id) {
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+        }
+        return nextStyle;
+      });
     }
   };
 
   const handleCoverAnnotationDelete = (annotationId: string) => {
-    const updatedAnnotations = coverAnnotations.filter(ann => ann.id !== annotationId);
-    setCoverAnnotations(updatedAnnotations);
-    
-    // Сохраняем аннотации обложки
-    if (id) {
-      AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(updatedAnnotations));
-    }
+    setCoverAnnotations(prev => {
+      const next = prev.filter(ann => ann.id !== annotationId);
+      if (id) {
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+      }
+      return next;
+    });
   };
 
   const handlePageDuplicate = (pageIndex: number) => {
@@ -459,7 +580,7 @@ export default function EditAlbumScreen() {
     const pageAnnotations = annotations.filter(ann => (ann.page || 1) === pageIndex + 1);
     const newAnnotations = pageAnnotations.map(ann => ({
       ...ann,
-      id: Date.now().toString() + Math.random(),
+      id: createId('ann'),
       page: pageIndex + 2, // Новая страница будет следующей
     }));
     
@@ -618,7 +739,7 @@ export default function EditAlbumScreen() {
           <View style={styles.textEditControlsPanel}>
             {/* Кнопка цвета */}
             <TouchableOpacity
-              style={styles.textEditControlButton}
+              style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
               onPress={handleColorButtonPress}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -630,7 +751,7 @@ export default function EditAlbumScreen() {
             
             {/* Кнопка размера */}
             <TouchableOpacity
-              style={styles.textEditControlButton}
+              style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
               onPress={handleFontSizeButtonPress}
               activeOpacity={0.7}
               accessibilityRole="button"
@@ -642,18 +763,25 @@ export default function EditAlbumScreen() {
             
             {/* Кнопка шрифта */}
             <TouchableOpacity
-              style={styles.textEditControlButton}
+              style={[styles.textEditControlButton, styles.textEditControlButtonFlex]}
               onPress={handleFontButtonPress}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Изменить шрифт"
             >
               <Ionicons name="brush-outline" size={18} color="#8B6F5F" />
-              <Text style={styles.textEditControlButtonText} numberOfLines={1}>
-                {currentTextAnnotation.fontFamily ? 
-                  (currentTextAnnotation.fontFamily === 'default' ? 'Системный' : currentTextAnnotation.fontFamily) : 
-                  'Системный'}
-              </Text>
+              {/* Если название длинное — оно скроллится внутри, не сдвигая "Цвет" и "Размер" */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.fontNameScroll}
+                contentContainerStyle={styles.fontNameScrollContent}
+                keyboardShouldPersistTaps="always"
+              >
+                <Text style={styles.textEditControlButtonText} numberOfLines={1}>
+                  {getFontDisplayName(currentTextAnnotation.fontFamily)}
+                </Text>
+              </ScrollView>
             </TouchableOpacity>
           </View>
         )}
@@ -672,8 +800,11 @@ export default function EditAlbumScreen() {
               isEditing={isEditing}
               currentTool={currentTool}
               onToolReset={handleToolReset}
+              onToolDeactivate={handleToolDeactivate}
               onTextEditingStateChange={handleTextEditingStateChange}
               annotationsRef={annotationsRef}
+              onViewportChange={setCoverViewport}
+              defaultTextStyle={lastTextStyle}
             />
           ) : isLoading ? (
             <PdfSkeletonLoader />
@@ -681,6 +812,7 @@ export default function EditAlbumScreen() {
             <ImageViewer
               images={images}
               albumName={albumName || getCelebrationTitle(celebration || '')}
+              lineGuideId={albumId || undefined}
               onPageChange={handlePageChange}
               onError={handleError}
               annotations={annotations}
@@ -692,9 +824,12 @@ export default function EditAlbumScreen() {
               onPageDuplicate={handlePageDuplicate}
               onPageDelete={handlePageDelete}
               onToolReset={handleToolReset}
+              onToolDeactivate={handleToolDeactivate}
               onTextEditingStateChange={handleTextEditingStateChange}
               annotationsRef={annotationsRef}
               zoomLevel={zoomLevel}
+              onViewportChange={setPagesViewport}
+              defaultTextStyle={lastTextStyle}
             />
           ) : (
             <View style={styles.errorContainer}>
@@ -785,7 +920,7 @@ export default function EditAlbumScreen() {
                         styles.toolButton,
                         currentTool === 'text' && styles.toolButtonActive
                       ]}
-                      onPress={() => handleToolSelect('text')}
+                      onPress={() => handleToolToggle('text')}
                       activeOpacity={0.8}
                       accessibilityRole="button"
                       accessibilityLabel="Добавить текст"
@@ -810,7 +945,7 @@ export default function EditAlbumScreen() {
                         styles.toolButton,
                         currentTool === 'image' && styles.toolButtonActive
                       ]}
-                      onPress={() => handleToolSelect('image')}
+                      onPress={() => handleToolToggle('image')}
                       activeOpacity={0.8}
                       accessibilityRole="button"
                       accessibilityLabel="Добавить фото"
@@ -838,7 +973,7 @@ export default function EditAlbumScreen() {
                       styles.toolButton,
                       currentTool === 'text' && styles.toolButtonActive
                     ]}
-                    onPress={() => handleToolSelect('text')}
+                    onPress={() => handleToolToggle('text')}
                     activeOpacity={0.8}
                     accessibilityRole="button"
                     accessibilityLabel="Добавить текст"
@@ -1032,7 +1167,9 @@ const styles = StyleSheet.create({
   textEditControlsPanel: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    // Важно: фиксируем начало строки слева, чтобы "Цвет" не сдвигался
+    // при длинном названии шрифта.
+    justifyContent: 'flex-start',
     paddingVertical: 14,
     paddingHorizontal: 20,
     backgroundColor: '#FFFFFF',
@@ -1056,6 +1193,23 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
     minWidth: 80,
+  },
+  textEditControlButtonFixed: {
+    flexShrink: 0,
+    minWidth: 96,
+  },
+  textEditControlButtonFlex: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fontNameScroll: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fontNameScrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingRight: 8,
   },
   textColorPreview: {
     width: 20,

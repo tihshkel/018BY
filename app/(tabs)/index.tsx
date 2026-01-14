@@ -49,6 +49,7 @@ interface Project {
   id: string;
   title: string;
   category: string;
+  albumId?: string | null;
   coverImage?: string;
   pagesCount: number;
   photosCount: number;
@@ -57,6 +58,8 @@ interface Project {
   isReadyMadeAlbum?: boolean;
   hasPdfTemplate?: boolean;
   thumbnailPath?: any;
+  reminderDate?: string | null;
+  date?: string | null;
 }
 
 export default function HomeScreen() {
@@ -92,31 +95,105 @@ export default function HomeScreen() {
   const loadProjects = async () => {
     try {
       const savedProjects = await AsyncStorage.getItem('@user_projects');
-      if (savedProjects) {
-        const parsedProjects = JSON.parse(savedProjects);
-        const formattedProjects: Project[] = parsedProjects.map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          category: p.category,
-          pagesCount: 0, // Можно добавить подсчёт из сохранённых данных
-          photosCount: 0,
-          remindersCount: p.reminderDate || p.date ? 1 : 0,
-          dateStarted: p.createdAt || new Date().toISOString(),
-          isReadyMadeAlbum: p.isReadyMadeAlbum || false,
-          hasPdfTemplate: p.hasPdfTemplate || false,
-          thumbnailPath: p.thumbnailPath || null,
-        }));
-        setProjects(formattedProjects);
-        if (formattedProjects.length > 0) {
-          setSelectedProject(formattedProjects[0]);
-        }
-      } else {
-        // Если проектов нет, показываем пустое состояние
+      if (!savedProjects) {
         setProjects([]);
+        setSelectedProject(null);
+        return;
       }
+
+      const parsedProjects = JSON.parse(savedProjects) as any[];
+      if (!Array.isArray(parsedProjects) || parsedProjects.length === 0) {
+        setProjects([]);
+        setSelectedProject(null);
+        return;
+      }
+
+      const safeParseArray = (raw: string | null): any[] => {
+        if (!raw) return [];
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      };
+
+      const countPhotoAnnotations = (items: any[]): number => {
+        if (!Array.isArray(items) || items.length === 0) return 0;
+        return items.filter((ann) => ann?.type === 'image' && typeof ann?.imageUri === 'string' && ann.imageUri.length > 0).length;
+      };
+
+      const hydrateProject = async (p: any): Promise<Project> => {
+        const projectId = String(p?.id ?? '');
+        const albumId = typeof p?.albumId === 'string' ? p.albumId : null;
+        const createdAt = typeof p?.createdAt === 'string' ? p.createdAt : new Date().toISOString();
+
+        const remindersCount = p?.reminderDate || p?.date ? 1 : 0;
+
+        const keys = [
+          `@project_images_${projectId}`,
+          `@project_annotations_${projectId}`,
+          `@project_cover_annotations_${projectId}`,
+        ] as const;
+
+        let pagesCount = 0;
+        let photosCount = 0;
+
+        try {
+          const results = await AsyncStorage.multiGet(keys as unknown as string[]);
+          const imagesRaw = results.find(([k]) => k === keys[0])?.[1] ?? null;
+          const annotationsRaw = results.find(([k]) => k === keys[1])?.[1] ?? null;
+          const coverAnnotationsRaw = results.find(([k]) => k === keys[2])?.[1] ?? null;
+
+          const savedImages = safeParseArray(imagesRaw);
+          pagesCount = savedImages.length;
+
+          // fallback: если ещё не сохранено — берём из шаблона
+          if (pagesCount === 0 && albumId) {
+            const template = getAlbumTemplateById(albumId);
+            if (typeof template?.pages === 'number') pagesCount = template.pages;
+          }
+
+          const anns = safeParseArray(annotationsRaw);
+          const coverAnns = safeParseArray(coverAnnotationsRaw);
+          photosCount = countPhotoAnnotations(anns) + countPhotoAnnotations(coverAnns);
+        } catch {
+          // ignore – оставим 0, но UI не упадёт
+        }
+
+        return {
+          id: projectId,
+          title: String(p?.title ?? ''),
+          category: String(p?.category ?? ''),
+          albumId,
+          pagesCount,
+          photosCount,
+          remindersCount,
+          dateStarted: createdAt,
+          isReadyMadeAlbum: !!p?.isReadyMadeAlbum,
+          hasPdfTemplate: !!p?.hasPdfTemplate,
+          thumbnailPath: p?.thumbnailPath || null,
+          reminderDate: p?.reminderDate ?? null,
+          date: p?.date ?? null,
+        };
+      };
+
+      const formattedProjects = await Promise.all(parsedProjects.map(hydrateProject));
+
+      setProjects(formattedProjects);
+
+      // сохраняем выбор, если возможно
+      setSelectedProject((prev) => {
+        if (prev) {
+          const stillExists = formattedProjects.find((x) => x.id === prev.id);
+          if (stillExists) return stillExists;
+        }
+        return formattedProjects[0] ?? null;
+      });
     } catch (error) {
       console.error('Error loading projects:', error);
       setProjects([]);
+      setSelectedProject(null);
     }
   };
 

@@ -1,5 +1,5 @@
 import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { PDFFont } from 'pdf-lib';
 import { AVAILABLE_FONTS, type FontOption } from '@/components/pdf-annotations';
@@ -92,12 +92,14 @@ export async function loadFontBytes(fontOption: FontOption): Promise<Uint8Array 
       // Это require() модуль, используем Asset API
       const asset = Asset.fromModule(fontOption.file);
       await asset.downloadAsync();
+
+      const base64Encoding: any = (FileSystem as any)?.EncodingType?.Base64 ?? 'base64';
       
       if (asset.localUri) {
         try {
           // Читаем файл как base64 и конвертируем в байты (оптимизированно)
           const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
-            encoding: FileSystem.EncodingType.Base64,
+            encoding: base64Encoding,
           });
           
           if (!base64 || base64.length === 0) {
@@ -133,7 +135,7 @@ export async function loadFontBytes(fontOption: FontOption): Promise<Uint8Array 
             
             if (downloadResult.uri) {
               const base64 = await FileSystem.readAsStringAsync(downloadResult.uri, {
-                encoding: FileSystem.EncodingType.Base64,
+                encoding: base64Encoding,
               });
               // Удаляем файл асинхронно в фоне
               FileSystem.deleteAsync(tempPath, { idempotent: true }).catch(() => {});

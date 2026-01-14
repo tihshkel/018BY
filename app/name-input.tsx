@@ -2,6 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import { generateAccessCode } from '@/utils/accessCode';
+import { logUserRegistration } from '@/utils/registration-logger';
+import { ensureDeviceRegistered } from '@/utils/account-transfer';
 import {
   InteractionManager,
   Keyboard,
@@ -133,8 +136,29 @@ export default function NameInputScreen() {
 
     try {
       const trimmedName = name.trim();
+      // Генерируем код доступа, если его еще нет
+      let accessCode = await AsyncStorage.getItem('@access_code');
+      if (!accessCode) {
+        accessCode = generateAccessCode();
+        await AsyncStorage.setItem('@access_code', accessCode);
+        
+        // Записываем данные регистрации в файл для технической поддержки
+        await logUserRegistration({
+          userName: trimmedName,
+          accessCode: accessCode,
+        });
+        
+        // Регистрируем устройство для этого кода доступа
+        await ensureDeviceRegistered({
+          accessCode: accessCode,
+          maxDevices: 4,
+          validityMonths: 100 * 12, // 100 лет для бесконечной сессии
+        });
+      }
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
+      // Помечаем, что нужно показать модальное окно с кодом доступа
+      await AsyncStorage.setItem('@show_access_code_modal', 'true');
       setShowGreeting(true);
       
       const greetingShowDuration = Platform.OS === 'android' ? 400 : 350;

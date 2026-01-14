@@ -17,9 +17,11 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withSequence,
   withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,6 +35,106 @@ const CODE_INPUT_SIZE = Math.min(
   (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CODE_GAP * (CODE_LENGTH - 1)) /
     CODE_LENGTH
 );
+
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+
+function CodeCell(props: {
+  index: number;
+  value: string;
+  hasError: boolean;
+  autoFocus?: boolean;
+  onChangeText: (value: string, index: number) => void;
+  onKeyPress: (key: string, index: number) => void;
+  onFocusAny: () => void;
+  setRef: (ref: TextInput | null, index: number) => void;
+}) {
+  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef } = props;
+
+  const fill = useSharedValue(value ? 1 : 0);
+  const focus = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const errorProgress = useSharedValue(hasError ? 1 : 0);
+
+  const prevValueRef = useRef(value);
+
+  useEffect(() => {
+    errorProgress.value = withTiming(hasError ? 1 : 0, { duration: 180 });
+  }, [hasError, errorProgress]);
+
+  useEffect(() => {
+    const prev = prevValueRef.current || '';
+    const next = value || '';
+    prevValueRef.current = next;
+
+    const isFilled = !!next;
+    fill.value = withTiming(isFilled ? 1 : 0, {
+      duration: 160,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    if (!prev && next) {
+      // Мягкий "pop" при вводе
+      scale.value = withSequence(
+        withSpring(1.08, { damping: 18, stiffness: 220 }),
+        withSpring(1, { damping: 18, stiffness: 220 })
+      );
+    } else if (prev && !next) {
+      // Мягкое "сжатие" при удалении
+      scale.value = withSequence(
+        withTiming(0.985, { duration: 120, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 180, easing: Easing.out(Easing.cubic) })
+      );
+    }
+  }, [value, fill, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const baseBorder = interpolateColor(fill.value, [0, 1], ['#D4C4B5', '#C9A89A']);
+    const focusBorder = interpolateColor(focus.value, [0, 1], [baseBorder, '#8B6F5F']);
+    const borderColor =
+      errorProgress.value > 0 ? '#D9776C' : (focusBorder as string);
+
+    const bg = interpolateColor(fill.value, [0, 1], ['#FFFFFF', '#FAF8F5']);
+    const bgFocused = interpolateColor(focus.value, [0, 1], [bg, '#FFFDFC']);
+
+    return {
+      borderColor,
+      backgroundColor: bgFocused as string,
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  return (
+    <AnimatedTextInput
+      ref={(ref) => setRef(ref, index)}
+      style={[styles.codeInput, animatedStyle]}
+      value={value}
+      onChangeText={(v) => onChangeText(v, index)}
+      onKeyPress={({ nativeEvent }) => onKeyPress(nativeEvent.key, index)}
+      onFocus={() => {
+        onFocusAny();
+        focus.value = withTiming(1, { duration: 160 });
+      }}
+      onBlur={() => {
+        focus.value = withTiming(0, { duration: 160 });
+      }}
+      keyboardType="default"
+      maxLength={1}
+      autoCapitalize="characters"
+      autoCorrect={false}
+      autoFocus={autoFocus}
+      // Убираем резкие эффекты выделения/курсора при автопереходах фокуса (особенно при backspace),
+      // чтобы ввод/удаление ощущались как "плавная бегущая строка".
+      selectTextOnFocus={false}
+      contextMenuHidden
+      caretHidden
+      selectionColor="transparent"
+      underlineColorAndroid="transparent"
+      textContentType={Platform.OS === 'ios' ? 'oneTimeCode' : undefined}
+      autoComplete={Platform.OS === 'ios' ? 'one-time-code' : undefined}
+      textAlignVertical="center"
+    />
+  );
+}
 
 export default function CodeInputScreen() {
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
@@ -97,6 +199,7 @@ export default function CodeInputScreen() {
     };
   }, []);
 
+
   const containerAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: containerOpacity.value,
@@ -159,9 +262,19 @@ export default function CodeInputScreen() {
   };
 
   const handleKeyPress = (key: string, index: number) => {
-    if (key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (key !== 'Backspace') return;
+
+    // Если текущая ячейка уже пустая — делаем удаление "в один шаг":
+    // переносим фокус назад и сразу очищаем предыдущую ячейку.
+    if (code[index]) return;
+    if (index <= 0) return;
+
+    const prevIndex = index - 1;
+    const nextCode = [...code];
+    nextCode[prevIndex] = '';
+    setCode(nextCode);
+    setError(false);
+    inputRefs.current[prevIndex]?.focus();
   };
 
   const handleDismissKeyboard = () => {
@@ -264,27 +377,18 @@ export default function CodeInputScreen() {
               {/* Поля ввода кода */}
               <Animated.View style={[styles.codeContainer, inputAnimatedStyle]}>
                 {code.map((digit, index) => (
-                  <TextInput
+                  <CodeCell
                     key={index}
-                    ref={(ref) => {
-                      inputRefs.current[index] = ref;
-                    }}
-                    style={[
-                      styles.codeInput,
-                      error && styles.codeInputError,
-                      code[index] && styles.codeInputFilled,
-                    ]}
+                    index={index}
                     value={digit}
-                    onChangeText={(value) => handleCodeChange(value, index)}
-                    onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
-                    onFocus={handleInputFocus}
-                    keyboardType="default"
-                    maxLength={1}
-                    autoCapitalize="characters"
-                    autoCorrect={false}
+                    hasError={error}
                     autoFocus={index === 0}
-                    selectTextOnFocus
-                    textAlignVertical="center"
+                    onChangeText={handleCodeChange}
+                    onKeyPress={handleKeyPress}
+                    onFocusAny={handleInputFocus}
+                    setRef={(ref, i) => {
+                      inputRefs.current[i] = ref;
+                    }}
                   />
                 ))}
               </Animated.View>
