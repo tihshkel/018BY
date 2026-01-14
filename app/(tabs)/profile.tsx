@@ -6,7 +6,7 @@ import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -38,25 +38,41 @@ export default function ProfileScreen() {
   const [accessStatus, setAccessStatus] = useState('Полный доступ активирован');
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const opacity = useSharedValue(0);
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    loadUserData();
+    // Запускаем анимацию сразу, не дожидаясь загрузки данных
     opacity.value = withTiming(1, { duration: 400 });
+    loadUserData();
+    isInitialMount.current = false;
   }, []);
 
   // Обновляем данные при возврате на вкладку профиля
   useFocusEffect(
     useCallback(() => {
-      loadUserData();
+      // Загружаем данные только если это не первое монтирование
+      if (!isInitialMount.current) {
+        loadUserData();
+      }
     }, [])
   );
 
   const loadUserData = async () => {
     try {
-      const name = await AsyncStorage.getItem('@user_name');
-      const avatar = await AsyncStorage.getItem('@user_avatar');
-      const activated = await AsyncStorage.getItem('@is_activated');
-      const storedAccessCode = await AsyncStorage.getItem('@access_code');
+      // Используем multiGet для оптимизации - один запрос вместо четырех
+      const results = await AsyncStorage.multiGet([
+        '@user_name',
+        '@user_avatar',
+        '@is_activated',
+        '@access_code',
+      ]);
+      
+      // Преобразуем результаты в удобный формат
+      const dataMap = new Map(results);
+      const name = dataMap.get('@user_name');
+      const avatar = dataMap.get('@user_avatar');
+      const activated = dataMap.get('@is_activated');
+      const storedAccessCode = dataMap.get('@access_code');
       
       if (name) setUserName(name);
       if (avatar) setAvatarUri(avatar);

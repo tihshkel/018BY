@@ -136,25 +136,22 @@ export default function NameInputScreen() {
 
     try {
       const trimmedName = name.trim();
-      // Генерируем код доступа, если его еще нет
-      let accessCode = await AsyncStorage.getItem('@access_code');
-      if (!accessCode) {
-        accessCode = generateAccessCode();
-        await AsyncStorage.setItem('@access_code', accessCode);
-        
-        // Записываем данные регистрации в файл для технической поддержки
-        await logUserRegistration({
-          userName: trimmedName,
-          accessCode: accessCode,
-        });
-        
-        // Регистрируем устройство для этого кода доступа
-        await ensureDeviceRegistered({
-          accessCode: accessCode,
-          maxDevices: 4,
-          validityMonths: 100 * 12, // 100 лет для бесконечной сессии
-        });
-      }
+      // Всегда генерируем новый код доступа при регистрации
+      const accessCode = generateAccessCode();
+      await AsyncStorage.setItem('@access_code', accessCode);
+      
+      // Записываем данные регистрации в файл для технической поддержки
+      await logUserRegistration({
+        userName: trimmedName,
+        accessCode: accessCode,
+      });
+      
+      // Регистрируем устройство для этого кода доступа
+      await ensureDeviceRegistered({
+        accessCode: accessCode,
+        maxDevices: 4,
+        validityMonths: 100 * 12, // 100 лет для бесконечной сессии
+      });
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
       // Помечаем, что нужно показать модальное окно с кодом доступа

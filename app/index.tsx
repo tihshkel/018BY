@@ -20,7 +20,9 @@ export default function Index() {
           '@activation_code',
           '@user_avatar',
           '@user_access_code',
+          '@access_code',
           '@has_seen_access_code',
+          '@show_access_code_modal',
         ]);
         console.log('Прогресс пользователя сброшен');
         

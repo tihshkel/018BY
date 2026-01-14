@@ -22,8 +22,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImageViewer from '@/components/image-viewer';
 import CoverViewer from '@/components/cover-viewer';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
+import { Asset } from 'expo-asset';
 import { getAlbumTemplateById } from '@/albums';
-import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
+import { getAlbumImageUris, getAlbumPageCount, getAlbumImages } from '@/utils/albumImages';
 import { Annotation, PdfAnnotationsRef, AVAILABLE_FONTS } from '@/components/pdf-annotations';
 import { createId, ensureUniqueIds } from '@/utils/id';
 
@@ -74,18 +75,74 @@ export default function EditAlbumScreen() {
     loadImagesData();
   }, [id, coverType, interiorType]);
 
+  // Загружаем последний стиль текста: сначала из проекта, потом из глобального
   useEffect(() => {
-    if (!id) return;
-    AsyncStorage.getItem(`@project_last_text_style_${id}`)
-      .then((raw) => {
-        if (!raw) return;
-        const parsed = JSON.parse(raw) as any;
-        const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
-        const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
-        const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
-        setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
-      })
-      .catch(() => {});
+    const loadLastTextStyle = async () => {
+      try {
+        // Сначала пробуем загрузить из проекта
+        if (id) {
+          const projectStyle = await AsyncStorage.getItem(`@project_last_text_style_${id}`);
+          if (projectStyle) {
+            const parsed = JSON.parse(projectStyle) as any;
+            const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+            const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+            const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
+            setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
+            return;
+          }
+        }
+        
+        // Если нет в проекте, загружаем из глобального ключа
+        const globalStyle = await AsyncStorage.getItem('@last_text_style');
+        if (globalStyle) {
+          const parsed = JSON.parse(globalStyle) as any;
+          const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+          const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+          const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
+          setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
+          
+          // Синхронизируем с проектом
+          if (id) {
+            AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
+          }
+        }
+      } catch {
+        // Игнорируем ошибки
+      }
+    };
+    
+    loadLastTextStyle();
+    
+    // Слушаем изменения глобального стиля (когда меняется через pdf-annotations)
+    const interval = setInterval(() => {
+      AsyncStorage.getItem('@last_text_style').then((globalStyle) => {
+        if (globalStyle) {
+          try {
+            const parsed = JSON.parse(globalStyle) as any;
+            const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+            const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+            const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
+            
+            setLastTextStyle((prev) => {
+              // Обновляем только если изменилось
+              if (prev.color !== nextColor || prev.fontSize !== nextFontSize || prev.fontFamily !== nextFontFamily) {
+                const newStyle = { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
+                // Синхронизируем с проектом
+                if (id) {
+                  AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
+                }
+                return newStyle;
+              }
+              return prev;
+            });
+          } catch {
+            // Игнорируем ошибки парсинга
+          }
+        }
+      }).catch(() => {});
+    }, 500); // Проверяем каждые 500мс
+    
+    return () => clearInterval(interval);
   }, [id]);
 
   // Синхронизируем текущую редактируемую аннотацию для верхней панели (цвет/размер/шрифт),
@@ -102,7 +159,35 @@ export default function EditAlbumScreen() {
         : annotations.find(ann => ann.id === editingTextAnnotationId) || null;
 
     setCurrentTextAnnotation(nextAnnotation);
-  }, [editingTextAnnotationId, viewMode, annotations, coverAnnotations]);
+    
+    // Синхронизируем стиль из глобального ключа при изменении аннотации
+    // (когда пользователь меняет стиль через модальные окна в pdf-annotations)
+    AsyncStorage.getItem('@last_text_style').then((globalStyle) => {
+      if (globalStyle && nextAnnotation && nextAnnotation.type === 'text') {
+        try {
+          const parsed = JSON.parse(globalStyle) as any;
+          const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+          const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+          const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
+          
+          setLastTextStyle((prev) => {
+            // Обновляем только если изменилось
+            if (prev.color !== nextColor || prev.fontSize !== nextFontSize || prev.fontFamily !== nextFontFamily) {
+              const newStyle = { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
+              // Синхронизируем с проектом
+              if (id) {
+                AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
+              }
+              return newStyle;
+            }
+            return prev;
+          });
+        } catch {
+          // Игнорируем ошибки парсинга
+        }
+      }
+    }).catch(() => {});
+  }, [editingTextAnnotationId, viewMode, annotations, coverAnnotations, id]);
 
   // Сохраняем viewport размеров редактора — это нужно, чтобы экспорт маппил координаты 1:1
   useEffect(() => {
@@ -180,21 +265,117 @@ export default function EditAlbumScreen() {
       
       // Загружаем изображения для альбома
       let imageUris: string[] = [];
-      
+      const pageCount = getAlbumPageCount(foundAlbumId);
+      // Устанавливаем totalPages сразу, чтобы пагинация работала правильно
+      setTotalPages(pageCount);
+
       if (id) {
-        // Проверяем, есть ли сохраненные изменения в изображениях
-        const savedImages = await AsyncStorage.getItem(`@project_images_${id}`);
+        // СУПЕР БЫСТРАЯ проверка сохраненных изображений - используем их МГНОВЕННО
+        // Используем Promise.race для максимальной скорости
+        const savedImagesPromise = AsyncStorage.getItem(`@project_images_${id}`);
+        const savedImages = await savedImagesPromise;
+        
         if (savedImages) {
-          imageUris = JSON.parse(savedImages);
-        } else {
-          imageUris = await getAlbumImageUris(foundAlbumId);
+          try {
+            const parsed = JSON.parse(savedImages);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              imageUris = parsed;
+              // Устанавливаем данные СРАЗУ, не ждем ничего
+              setImages(imageUris);
+              setTotalPages(imageUris.length);
+              setIsLoading(false);
+              
+              // Параллельно загружаем остальные страницы в фоне (не блокируем)
+              if (parsed.length < pageCount) {
+                // Используем requestIdleCallback для фоновой загрузки
+                Promise.resolve().then(async () => {
+                  try {
+                    const full = await getAlbumImageUris(foundAlbumId);
+                    if (full.length > parsed.length) {
+                      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(full));
+                      setImages(full);
+                      setTotalPages(full.length);
+                    }
+                  } catch (err) {
+                    // Игнорируем ошибки
+                  }
+                });
+              }
+              return; // Выходим сразу - данные уже установлены
+            }
+          } catch {
+            // Если ошибка парсинга, продолжаем обычную загрузку
+          }
         }
-      } else {
-        imageUris = await getAlbumImageUris(foundAlbumId);
       }
-      
-      setImages(imageUris);
-      setTotalPages(imageUris.length);
+
+      // МАКСИМАЛЬНО БЫСТРАЯ загрузка первых страниц
+      const imageModules = getAlbumImages(foundAlbumId);
+      if (imageModules.length > 0) {
+        // Показываем экран МГНОВЕННО - не ждем ничего
+        setIsLoading(false);
+        
+        // Загружаем первую страницу СУПЕР БЫСТРО
+        const firstImage = imageModules[0];
+        if (firstImage) {
+          try {
+            const asset = Asset.fromModule(firstImage);
+            // Используем URI сразу если доступен
+            const immediateUri = asset.localUri || asset.uri;
+            if (immediateUri) {
+              setImages([immediateUri]);
+            }
+            
+            // Параллельно догружаем и обновляем
+            asset.downloadAsync().then(() => {
+              const finalUri = asset.localUri || asset.uri;
+              if (finalUri && finalUri !== immediateUri) {
+                setImages([finalUri]);
+              }
+            }).catch(() => {});
+          } catch {
+            // Игнорируем ошибки
+          }
+        }
+
+        // Параллельно загружаем следующие 9 страниц (первые 10 всего) для быстрого скролла
+        const nextImages = imageModules.slice(1, 10);
+        Promise.all(
+          nextImages.map(async (image) => {
+            try {
+              const asset = Asset.fromModule(image);
+              await asset.downloadAsync();
+              return asset.localUri || asset.uri;
+            } catch {
+              return null;
+            }
+          })
+        ).then((nextUris) => {
+          const filtered = nextUris.filter((uri): uri is string => uri !== null);
+          setImages((prev) => {
+            const combined = [...prev, ...filtered];
+            const unique = combined.filter((uri, idx) => combined.indexOf(uri) === idx);
+            return unique;
+          });
+        }).catch(() => {});
+
+        // Фоновая предзагрузка ВСЕХ остальных страниц (не блокирует UI)
+        Promise.resolve().then(async () => {
+          try {
+            const full = await getAlbumImageUris(foundAlbumId);
+            if (full.length > 0) {
+              const storageKey = id ? `@project_images_${id}` : `@project_images_${foundAlbumId}`;
+              await AsyncStorage.setItem(storageKey, JSON.stringify(full));
+              setImages(full);
+              setTotalPages(full.length);
+            }
+          } catch (err) {
+            // Игнорируем ошибки фоновой загрузки
+          }
+        });
+      } else {
+        setIsLoading(false);
+      }
       
       // Загружаем сохраненные аннотации
       if (id) {
@@ -428,9 +609,12 @@ export default function EditAlbumScreen() {
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
+        // Сохраняем и в проект, и в глобальный ключ для синхронизации
+        const styleJson = JSON.stringify(nextStyle);
         if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
         }
+        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
         return nextStyle;
       });
     }
@@ -508,9 +692,12 @@ export default function EditAlbumScreen() {
           fontFamily: annotation.fontFamily,
         };
         setLastTextStyle(nextStyle);
+        // Сохраняем и в проект, и в глобальный ключ для синхронизации
+        const styleJson = JSON.stringify(nextStyle);
         if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
         }
+        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
       }
     } else {
       setCurrentTextAnnotation(null);
@@ -593,9 +780,12 @@ export default function EditAlbumScreen() {
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
+        // Сохраняем и в проект, и в глобальный ключ для синхронизации
+        const styleJson = JSON.stringify(nextStyle);
         if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, JSON.stringify(nextStyle)).catch(() => {});
+          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
         }
+        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
         return nextStyle;
       });
     }

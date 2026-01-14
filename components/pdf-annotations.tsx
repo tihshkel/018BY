@@ -5,20 +5,20 @@ import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  Easing,
-  Keyboard,
-  Modal,
-  PanResponder,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  useWindowDimensions,
-  View
+    Animated,
+    Dimensions,
+    Easing,
+    Keyboard,
+    Modal,
+    PanResponder,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
 } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -1488,15 +1488,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         color: currentColor,
                         fontSize: alignedFontSize,
                         fontFamily: currentFontFamily,
+                        // Единый базовый стиль для всех PDF
+                        lineHeight: alignedFontSize * 1.2, // Небольшие отступы между строками
+                        includeFontPadding: false, // Единый размер курсора
+                        textAlignVertical: 'center', // Центрирование текста по вертикали
+                        paddingTop: 0,
+                        paddingBottom: 0,
                       },
-                      alignedLineHeight
-                        ? {
-                            lineHeight: alignedLineHeight,
-                            includeFontPadding: false,
-                            paddingTop: 0,
-                            paddingBottom: 0,
-                          }
-                        : null,
                     ]}
                     value={editingText}
                     onChangeText={handleTextChange}
@@ -1575,8 +1573,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         fontFamily: currentFontFamily,
                         maxWidth: annotation.width || 360, // Ограничиваем ширину для автоматического переноса
                         textAlign: 'left', // Выравниваем текст по левому краю для правильного переноса
+                        // Единый базовый стиль для всех PDF
+                        lineHeight: alignedFontSize * 1.2, // Небольшие отступы между строками
+                        includeFontPadding: false, // Единый размер для всех
                       },
-                      alignedLineHeight ? { lineHeight: alignedLineHeight, includeFontPadding: false } : null,
                     ]}
                     onLayout={(event) => {
                       const { width, height } = event.nativeEvent.layout;
@@ -2092,7 +2092,9 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     minHeight: 50,
-    textAlignVertical: 'top',
+    textAlignVertical: 'center', // Центрирование по умолчанию для всех
+    includeFontPadding: false, // Единый размер курсора для всех
+    paddingVertical: 8, // Небольшие вертикальные отступы
   },
   textEditingContainer: {
     flex: 1,

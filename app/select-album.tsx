@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
+import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
 import { projectCategories } from '@/constants/projectTemplates';
 
 interface LocalParams {
@@ -64,6 +65,8 @@ export default function SelectAlbumScreen() {
 
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
   const opacity = useSharedValue(0);
+  // Кеш для предзагруженных первых страниц альбомов
+  const preloadedFirstPages = useRef<Map<string, string>>(new Map());
 
   const albumTemplates = useMemo(() => getAllAlbumTemplates(), []);
 
@@ -74,55 +77,17 @@ export default function SelectAlbumScreen() {
     return albumTemplates.filter(album => matchAlbumWithCategory(album, categoryId));
   }, [albumTemplates, categoryId]);
 
-  // Предзагрузка всех изображений альбомов при монтировании и фокусе экрана
+  // МАКСИМАЛЬНАЯ предзагрузка: миниатюры + первые страницы всех альбомов
   useFocusEffect(
     React.useCallback(() => {
-      const preloadAlbumImages = async () => {
+      const preloadEverything = async () => {
         try {
-          // Предзагружаем изображения всех отфильтрованных альбомов
-          const imagesToPreload = filteredAlbums
+          // 1. Предзагружаем миниатюры альбомов
+          const thumbnails = filteredAlbums
             .filter(album => album.thumbnailPath)
             .map(album => album.thumbnailPath!);
           
-          // Предзагружаем все изображения (и строковые URI, и локальные ресурсы)
-          await Promise.all(
-            imagesToPreload.map(async (imageSource) => {
-              try {
-                if (typeof imageSource === 'string') {
-                  // Строковые URI (удаленные изображения)
-                  await Image.prefetch(imageSource);
-                } else {
-                  // Локальные ресурсы (require модули) - используем Asset API для предзагрузки
-                  const asset = Asset.fromModule(imageSource);
-                  await asset.downloadAsync();
-                }
-              } catch (err) {
-                console.warn('⚠️ Ошибка предзагрузки изображения альбома:', err);
-              }
-            })
-          );
-          
-          console.log(`✅ Предзагружено ${imagesToPreload.length} изображений альбомов`);
-        } catch (error) {
-          console.error('❌ Ошибка предзагрузки изображений альбомов:', error);
-        }
-      };
-
-      // Запускаем предзагрузку сразу при фокусе
-      preloadAlbumImages();
-    }, [filteredAlbums])
-  );
-
-  // Также предзагружаем при монтировании компонента
-  useEffect(() => {
-    const preloadOnMount = async () => {
-      try {
-        const imagesToPreload = filteredAlbums
-          .filter(album => album.thumbnailPath)
-          .map(album => album.thumbnailPath!);
-        
-        await Promise.all(
-          imagesToPreload.map(async (imageSource) => {
+          const thumbnailPromises = thumbnails.map(async (imageSource) => {
             try {
               if (typeof imageSource === 'string') {
                 await Image.prefetch(imageSource);
@@ -131,12 +96,61 @@ export default function SelectAlbumScreen() {
                 await asset.downloadAsync();
               }
             } catch (err) {
-              // Игнорируем ошибки отдельных изображений
+              // Игнорируем ошибки
             }
-          })
-        );
+          });
+
+          // 2. Параллельно предзагружаем ПЕРВЫЕ СТРАНИЦЫ всех альбомов для мгновенного отображения
+          const firstPagePromises = filteredAlbums.map(async (album) => {
+            try {
+              const imageModules = getAlbumImages(album.id);
+              if (imageModules.length > 0) {
+                const firstImage = imageModules[0];
+                const asset = Asset.fromModule(firstImage);
+                await asset.downloadAsync();
+                const uri = asset.localUri || asset.uri;
+                if (uri) {
+                  preloadedFirstPages.current.set(album.id, uri);
+                }
+              }
+            } catch (err) {
+              // Игнорируем ошибки
+            }
+          });
+
+          // Запускаем все параллельно
+          await Promise.all([...thumbnailPromises, ...firstPagePromises]);
+          
+          console.log(`✅ Предзагружено ${thumbnails.length} миниатюр и ${filteredAlbums.length} первых страниц`);
+        } catch (error) {
+          // Игнорируем общие ошибки
+        }
+      };
+
+      // Запускаем предзагрузку сразу при фокусе
+      preloadEverything();
+    }, [filteredAlbums])
+  );
+
+  // Предзагрузка при монтировании (дублируем для надежности)
+  useEffect(() => {
+    const preloadOnMount = async () => {
+      try {
+        // Предзагружаем первые страницы всех альбомов
+        filteredAlbums.forEach((album) => {
+          const imageModules = getAlbumImages(album.id);
+          if (imageModules.length > 0 && !preloadedFirstPages.current.has(album.id)) {
+            const firstImage = imageModules[0];
+            Asset.fromModule(firstImage).downloadAsync().then((asset) => {
+              const uri = asset.localUri || asset.uri;
+              if (uri) {
+                preloadedFirstPages.current.set(album.id, uri);
+              }
+            }).catch(() => {});
+          }
+        });
       } catch (error) {
-        // Игнорируем общие ошибки
+        // Игнорируем ошибки
       }
     };
 
@@ -186,8 +200,78 @@ export default function SelectAlbumScreen() {
       projects.push(projectData);
       await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
 
-      // Переходим к редактированию готового PDF-альбома
+      // МАКСИМАЛЬНО БЫСТРАЯ загрузка: используем предзагруженную первую страницу из кеша
+      let firstPageUri: string | null = null;
+      
+      // Проверяем кеш предзагруженных страниц
+      if (preloadedFirstPages.current.has(album.id)) {
+        firstPageUri = preloadedFirstPages.current.get(album.id)!;
+        // Сохраняем в AsyncStorage сразу
+        AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([firstPageUri])).catch(() => {});
+      } else {
+        // Если нет в кеше, загружаем быстро
+        const imageModules = getAlbumImages(album.id);
+        if (imageModules.length > 0) {
+          const firstImage = imageModules[0];
+          if (firstImage) {
+            try {
+              const asset = Asset.fromModule(firstImage);
+              const immediateUri = asset.localUri || asset.uri;
+              
+              if (immediateUri) {
+                firstPageUri = immediateUri;
+                AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([immediateUri])).catch(() => {});
+              }
+              
+              // Догружаем если нужно
+              asset.downloadAsync().then(() => {
+                const finalUri = asset.localUri || asset.uri;
+                if (finalUri && finalUri !== immediateUri) {
+                  AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([finalUri])).catch(() => {});
+                }
+              }).catch(() => {});
+            } catch {
+              // Игнорируем ошибки
+            }
+          }
+        }
+      }
+
+      // Переходим к редактированию СРАЗУ
       router.push(`/edit-album?id=${projectId}`);
+
+      // Фоновая предзагрузка остальных страниц (не блокируем переход)
+      (async () => {
+        try {
+          // Загружаем первые 10 страниц параллельно для быстрого доступа
+          const imageModules = getAlbumImages(album.id);
+          const firstTenImages = imageModules.slice(0, 10);
+          const firstTenUris = await Promise.all(
+            firstTenImages.map(async (image) => {
+              try {
+                const asset = Asset.fromModule(image);
+                await asset.downloadAsync();
+                return asset.localUri || asset.uri;
+              } catch {
+                return null;
+              }
+            })
+          );
+          
+          const filtered = firstTenUris.filter((uri): uri is string => uri !== null);
+          if (filtered.length > 0) {
+            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(filtered));
+          }
+          
+          // Затем загружаем все остальные страницы в фоне
+          const imageUris = await getAlbumImageUris(album.id);
+          if (imageUris && imageUris.length > 0) {
+            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
+          }
+        } catch (preloadError) {
+          // Игнорируем ошибки фоновой загрузки
+        }
+      })();
     } catch (error) {
       console.error('Error loading album template:', error);
       Alert.alert(
@@ -235,6 +319,21 @@ export default function SelectAlbumScreen() {
                 selectedAlbum === album.id && styles.albumCardSelected,
               ]}
               onPress={() => handleSelectAlbum(album)}
+              onPressIn={() => {
+                // АГРЕССИВНАЯ предзагрузка при нажатии - начинаем загружать СРАЗУ
+                if (!preloadedFirstPages.current.has(album.id)) {
+                  const imageModules = getAlbumImages(album.id);
+                  if (imageModules.length > 0) {
+                    const firstImage = imageModules[0];
+                    Asset.fromModule(firstImage).downloadAsync().then((asset) => {
+                      const uri = asset.localUri || asset.uri;
+                      if (uri) {
+                        preloadedFirstPages.current.set(album.id, uri);
+                      }
+                    }).catch(() => {});
+                  }
+                }
+              }}
               activeOpacity={0.85}
             >
               <View style={styles.albumThumbnail}>

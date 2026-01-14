@@ -153,17 +153,35 @@ export default function NewProjectScreen() {
   };
 
   const handleSystemDateChange = (event: any, date?: Date) => {
-    if (event.type === 'set' && date) {
-      setSelectedDate(date);
-    } else if (event.type === 'dismissed') {
-      // Пользователь отменил выбор даты
-      console.log('Date picker dismissed');
+    if (Platform.OS === 'android') {
+      // На Android календарь закрывается автоматически после выбора
+      setShowSystemDatePicker(false);
+      if (event.type === 'set' && date) {
+        setSelectedDate(date);
+        // После выбора даты снова открываем модальное окно
+        setTimeout(() => {
+          setShowDatePicker(true);
+        }, 300);
+      }
+    } else {
+      // На iOS обновляем дату при каждом изменении
+      if (date) {
+        setSelectedDate(date);
+      }
     }
-    setShowSystemDatePicker(false);
   };
 
   const handleDatePreviewPress = () => {
-    setShowSystemDatePicker(true);
+    if (Platform.OS === 'android') {
+      // На Android закрываем модальное окно и показываем календарь отдельно
+      setShowDatePicker(false);
+      setTimeout(() => {
+        setShowSystemDatePicker(true);
+      }, 300);
+    } else {
+      // На iOS показываем календарь внутри модального окна
+      setShowSystemDatePicker(true);
+    }
   };
 
   const currentProducts = selectedCategory ? products[selectedCategory] || [] : [];
@@ -272,25 +290,56 @@ export default function NewProjectScreen() {
                 Эта дата станет основой для всех напоминаний и рекомендаций
               </Text>
 
-              <TouchableOpacity 
-                style={styles.datePreview}
-                onPress={handleDatePreviewPress}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.datePreviewText}>
-                  {selectedDate && !isNaN(selectedDate.getTime()) 
-                    ? selectedDate.toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })
-                    : 'Выберите дату'
-                  }
-                </Text>
-                <Text style={styles.datePreviewHint}>
-                  Выберите дату в системном календаре
-                </Text>
-              </TouchableOpacity>
+              {Platform.OS === 'ios' && showSystemDatePicker ? (
+                <View style={styles.datePickerContainer}>
+                  <View style={styles.datePickerHeader}>
+                    <TouchableOpacity
+                      onPress={() => setShowSystemDatePicker(false)}
+                      style={styles.datePickerCancelButton}
+                    >
+                      <Text style={styles.datePickerCancelText}>Отмена</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.datePickerHeaderTitle}>Выберите дату</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowSystemDatePicker(false)}
+                      style={styles.datePickerDoneButton}
+                    >
+                      <Text style={styles.datePickerDoneText}>Готово</Text>
+                    </TouchableOpacity>
+                  </View>
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="spinner" // wheels иногда падает на старых iOS, spinner стабильнее
+                  onChange={handleSystemDateChange}
+                  locale="ru-RU"
+                  maximumDate={new Date(2030, 11, 31)}
+                  minimumDate={new Date(1900, 0, 1)}
+                  themeVariant="light"
+                  textColor="#8B6F5F"
+                />
+                </View>
+              ) : (
+                <TouchableOpacity 
+                  style={styles.datePreview}
+                  onPress={handleDatePreviewPress}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.datePreviewText}>
+                    {selectedDate && !isNaN(selectedDate.getTime()) 
+                      ? selectedDate.toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })
+                      : 'Выберите дату'
+                    }
+                  </Text>
+                  <Text style={styles.datePreviewHint}>
+                    Выберите дату в системном календаре
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <View style={styles.modalButtons}>
                 <TouchableOpacity
@@ -315,18 +364,19 @@ export default function NewProjectScreen() {
           </View>
         </Modal>
 
-        {/* Системный календарь */}
-        {showSystemDatePicker && (
+        {/* Календарь для Android (показывается отдельно) */}
+        {Platform.OS === 'android' && showSystemDatePicker && (
           <DateTimePicker
             value={selectedDate}
             mode="date"
-            display={Platform.OS === 'ios' ? 'default' : 'default'}
+            display="default"
             onChange={handleSystemDateChange}
             locale="ru_RU"
             maximumDate={new Date(2030, 11, 31)}
             minimumDate={new Date(1900, 0, 1)}
           />
         )}
+
       </Animated.View>
     </SafeAreaView>
   );
@@ -619,6 +669,67 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '300',
+  },
+  datePickerContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  datePickerModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  datePickerModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 20,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8D5C7',
+  },
+  datePickerHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  datePickerCancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  datePickerCancelText: {
+    color: '#9B8E7F',
+    fontSize: 16,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  datePickerDoneButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  datePickerDoneText: {
+    color: '#C9A89A',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
 });
 

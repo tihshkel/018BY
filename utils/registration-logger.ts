@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 
 const REGISTRATION_LOG_FILE = `${FileSystem.documentDirectory}user_registrations.txt`;
