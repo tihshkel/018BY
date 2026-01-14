@@ -1,42 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  Share,
-  Linking,
-  Dimensions,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withRepeat,
-  withSequence,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Print from 'expo-print';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
+import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
+import { getAlbumImageUris } from '@/utils/albumImages';
+import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
-import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
-import { Asset } from 'expo-asset';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
-import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
+import { router, useLocalSearchParams } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import { PDFDocument, rgb } from 'pdf-lib';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Linking,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -795,7 +792,8 @@ export default function ExportPdfScreen() {
       let coverImageBytes: (Uint8Array | null)[] = [];
       if (hasCover && (projectCategory === 'pregnancy' || projectCategory === 'kids') && coverPdf) {
         try {
-          coverImages = await getCoverImageUris(coverPdf);
+          const coverImagesResult = await getCoverImageUris(coverPdf);
+          coverImages = coverImagesResult || [];
           coverPagesCount = coverImages.length;
           if (coverPagesCount > 0) {
             const bytes: (Uint8Array | null)[] = [];

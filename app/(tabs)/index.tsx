@@ -64,8 +64,6 @@ interface Project {
   date?: string | null;
 }
 
-const ACCESS_CODE_KEY = '@user_access_code';
-const HAS_SEEN_ACCESS_CODE_KEY = '@has_seen_access_code';
 
 export default function HomeScreen() {
   const [userName, setUserName] = useState('');
@@ -73,9 +71,6 @@ export default function HomeScreen() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedProjectForAction, setSelectedProjectForAction] = useState<Project | null>(null);
-  const [showAccessCodeModal, setShowAccessCodeModal] = useState(false);
-  const [showAccessCodeInfoModal, setShowAccessCodeInfoModal] = useState(false);
-  const [accessCode, setAccessCode] = useState('');
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -109,64 +104,29 @@ export default function HomeScreen() {
         return;
       }
 
-      const hasSeenCode = await AsyncStorage.getItem(HAS_SEEN_ACCESS_CODE_KEY);
-      const existingCode = await AsyncStorage.getItem(ACCESS_CODE_KEY);
-      
-      console.log('Check first time access:', { hasSeenCode, existingCode, isActivated });
+      // Используем AccessCodeModalManager вместо собственного модального окна
+      // Устанавливаем флаг для показа модального окна через AccessCodeModalManager
+      const hasSeenCode = await AsyncStorage.getItem('@has_seen_access_code');
+      const existingCode = await AsyncStorage.getItem('@access_code');
       
       // Если код уже был показан, не показываем модальное окно
       if (hasSeenCode === 'true') {
-        console.log('Access code already shown, skipping modal');
         return;
       }
       
-      // Если кода нет, генерируем новый
-      let code = existingCode;
-      if (!code) {
-        code = generateAccessCode();
-        await AsyncStorage.setItem(ACCESS_CODE_KEY, code);
-        console.log('Generated new access code:', code);
+      // Если кода нет, генерируем новый и сохраняем в правильном ключе
+      if (!existingCode) {
+        const code = generateAccessCode();
+        await AsyncStorage.setItem('@access_code', code);
+        await AsyncStorage.setItem('@show_access_code_modal', 'true');
       } else {
-        console.log('Using existing access code:', code);
-      }
-      
-      // Показываем модальное окно с кодом
-      if (code) {
-        setAccessCode(code);
-        // Небольшая задержка для плавного появления после загрузки страницы
-        setTimeout(() => {
-          console.log('Showing access code modal with code:', code);
-          setShowAccessCodeModal(true);
-        }, 800);
-      } else {
-        console.error('No access code to show');
+        await AsyncStorage.setItem('@show_access_code_modal', 'true');
       }
     } catch (error) {
       console.error('Error checking first time access:', error);
     }
   };
 
-  const handleCopyAccessCode = async () => {
-    try {
-      await Clipboard.setStringAsync(accessCode);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Код скопирован', 'Код доступа скопирован в буфер обмена');
-    } catch (error) {
-      console.error('Error copying access code:', error);
-      Alert.alert('Ошибка', 'Не удалось скопировать код');
-    }
-  };
-
-  const handleCloseAccessCodeModal = async () => {
-    try {
-      await AsyncStorage.setItem(HAS_SEEN_ACCESS_CODE_KEY, 'true');
-      setShowAccessCodeModal(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.error('Error saving access code seen status:', error);
-      setShowAccessCodeModal(false);
-    }
-  };
 
   const loadProjects = async () => {
     try {
@@ -288,7 +248,8 @@ export default function HomeScreen() {
   };
 
   const handleNewProject = () => {
-    router.push('/projects');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/new-project');
   };
 
   const handleLongPress = (project: Project) => {
@@ -606,146 +567,6 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-      {/* Модальное окно с кодом доступа */}
-      <Modal
-        visible={showAccessCodeModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCloseAccessCodeModal}
-      >
-        <View style={styles.accessCodeModalOverlay}>
-          <View style={styles.accessCodeModalContent}>
-            {/* Иконка */}
-            <View style={styles.accessCodeIconContainer}>
-              <Ionicons name="key-outline" size={40} color="#C9A89A" />
-            </View>
-            
-            <Text style={styles.accessCodeModalTitle}>
-              Ваш код доступа
-            </Text>
-            
-            <Text style={styles.accessCodeModalSubtitle}>
-              Сохраните этот код в безопасном месте. Он понадобится вам для входа в аккаунт при смене телефона или окончании сессии.
-            </Text>
-            
-            {/* Код доступа */}
-            <TouchableOpacity
-              style={styles.accessCodeContainer}
-              onPress={handleCopyAccessCode}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.accessCodeText}>{accessCode}</Text>
-              <View style={styles.copyIconContainer}>
-                <Ionicons name="copy-outline" size={18} color="#C9A89A" />
-              </View>
-            </TouchableOpacity>
-            <Text style={styles.copyHintText}>Нажмите на код, чтобы скопировать</Text>
-            
-            <TouchableOpacity
-              style={styles.accessCodeWarningContainer}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                // Закрываем основное модальное окно и открываем информационное
-                setShowAccessCodeModal(false);
-                setTimeout(() => {
-                  setShowAccessCodeInfoModal(true);
-                }, 300);
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="information-circle-outline" size={18} color="#8B6F5F" />
-              <Text style={styles.accessCodeWarningText}>
-                Обязательно запомните этот код!
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.accessCodeButton}
-              onPress={handleCloseAccessCodeModal}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.accessCodeButtonText}>Понятно</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Модальное окно с информацией о коде доступа */}
-      <Modal
-        visible={showAccessCodeInfoModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowAccessCodeInfoModal(false)}
-      >
-        <View style={styles.accessCodeModalOverlay}>
-          <View style={styles.accessCodeInfoModalContent}>
-            <View style={styles.accessCodeInfoHeader}>
-              <Text style={styles.accessCodeInfoTitle}>
-                Зачем нужен код доступа?
-              </Text>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setShowAccessCodeInfoModal(false)}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="close" size={24} color="#9B8E7F" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              style={styles.accessCodeInfoScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Раздел о важности кода */}
-              <View style={styles.infoSection}>
-                <View style={styles.infoIconContainer}>
-                  <Ionicons name="key" size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.infoSectionTitle}>
-                  Вход в приложение
-                </Text>
-                <Text style={styles.infoSectionText}>
-                  Код доступа необходим для входа в приложение. По нему вы сможете войти в свой аккаунт при смене телефона или окончании сессии. Без него вы не сможете получить доступ к своим альбомам и проектам.
-                </Text>
-              </View>
-
-              {/* Раздел о забытом коде */}
-              <View style={styles.infoSection}>
-                <View style={styles.infoIconContainer}>
-                  <Ionicons name="help-circle" size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.infoSectionTitle}>
-                  Забыли код?
-                </Text>
-                <Text style={styles.infoSectionText}>
-                  Если вы забыли свой код доступа, обратитесь в техническую поддержку. Наши специалисты помогут вам восстановить доступ к аккаунту.
-                </Text>
-              </View>
-
-              {/* Раздел о QR-коде */}
-              <View style={styles.infoSection}>
-                <View style={styles.infoIconContainer}>
-                  <Ionicons name="qr-code" size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.infoSectionTitle}>
-                  Альтернативный способ входа
-                </Text>
-                <Text style={styles.infoSectionText}>
-                  Если вам нужно войти в аккаунт на новом устройстве, но вы забыли код, вы можете отсканировать QR-код на старом телефоне. Для этого откройте приложение на старом устройстве, перейдите в раздел "Профиль" и найдите пункт "Отсканировать QR-код" под разделом "Оценить приложение".
-                </Text>
-              </View>
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.accessCodeButton}
-              onPress={() => setShowAccessCodeInfoModal(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.accessCodeButtonText}>Понятно</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -1240,6 +1061,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    pointerEvents: 'auto',
   },
   accessCodeModalContent: {
     backgroundColor: '#FFFFFF',

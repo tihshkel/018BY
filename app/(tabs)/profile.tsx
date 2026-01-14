@@ -1,29 +1,27 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Image,
-  Alert,
-  Clipboard,
-} from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
-import { useFocusEffect } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import { Image as ExpoImage } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import * as Linking from 'expo-linking';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface MenuItem {
   id: string;
@@ -118,7 +116,7 @@ export default function ProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType?.Images ? [ImagePicker.MediaType.Images] : undefined,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -136,7 +134,7 @@ export default function ProfileScreen() {
 
   const handleMenuPress = (item: MenuItem) => {
     if (item.route) {
-      router.push(item.route);
+      router.push(item.route as any);
     } else if (item.action) {
       item.action();
     }
@@ -189,12 +187,6 @@ export default function ProfileScreen() {
       icon: 'star-outline',
       action: handleRateApp,
     },
-    {
-      id: 'qr-scan',
-      title: 'Отсканировать QR-код',
-      icon: 'qr-code-outline',
-      route: '/qr-transfer',
-    },
   ];
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -217,7 +209,7 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               {avatarUri ? (
-                <Image 
+                <ExpoImage 
                   source={{ uri: avatarUri }} 
                   style={styles.avatar}
                   priority="high"
