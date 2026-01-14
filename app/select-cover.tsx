@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,6 +24,7 @@ import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
@@ -144,6 +145,70 @@ export default function SelectCoverScreen() {
   React.useEffect(() => {
     containerOpacity.value = withTiming(1, { duration: 400 });
   }, []);
+
+  // Предзагрузка всех изображений обложек при монтировании и фокусе экрана
+  useFocusEffect(
+    React.useCallback(() => {
+      const preloadCoverImages = async () => {
+        try {
+          const imagesToPreload = coverTypes
+            .filter(cover => cover.image)
+            .map(cover => cover.image!);
+          
+          await Promise.all(
+            imagesToPreload.map(async (imageSource) => {
+              try {
+                if (typeof imageSource === 'string') {
+                  await Image.prefetch(imageSource);
+                } else {
+                  const asset = Asset.fromModule(imageSource);
+                  await asset.downloadAsync();
+                }
+              } catch (err) {
+                // Игнорируем ошибки отдельных изображений
+              }
+            })
+          );
+          
+          console.log(`✅ Предзагружено ${imagesToPreload.length} изображений обложек`);
+        } catch (error) {
+          // Игнорируем общие ошибки
+        }
+      };
+
+      preloadCoverImages();
+    }, [coverTypes])
+  );
+
+  // Также предзагружаем при монтировании
+  React.useEffect(() => {
+    const preloadOnMount = async () => {
+      try {
+        const imagesToPreload = coverTypes
+          .filter(cover => cover.image)
+          .map(cover => cover.image!);
+        
+        await Promise.all(
+          imagesToPreload.map(async (imageSource) => {
+            try {
+              if (typeof imageSource === 'string') {
+                await Image.prefetch(imageSource);
+              } else {
+                const asset = Asset.fromModule(imageSource);
+                await asset.downloadAsync();
+              }
+            } catch (err) {
+              // Игнорируем ошибки
+            }
+          })
+        );
+      } catch (error) {
+        // Игнорируем ошибки
+      }
+    };
+
+    preloadOnMount();
+  }, [coverTypes]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -468,11 +533,12 @@ export default function SelectCoverScreen() {
                       source={cover.image}
                       style={styles.cardImage}
                       contentFit="cover"
-                      priority={coverTypes.indexOf(cover) < 5 ? "high" : "normal"}
-                      cachePolicy="disk"
+                      priority="high"
+                      cachePolicy="memory-disk"
                       transition={0}
                       fadeDuration={0}
                       recyclingKey={cover.id}
+                      placeholderContentFit="cover"
                     />
                   </View>
                   

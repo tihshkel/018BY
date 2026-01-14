@@ -75,6 +75,7 @@ export default function RootLayout() {
             <Stack.Screen name="help" />
             <Stack.Screen name="reminders-list" />
             <Stack.Screen name="export-history" />
+            <Stack.Screen name="qr-transfer" />
             <Stack.Screen name="(tabs)" />
           </Stack>
           <StatusBar style="auto" />

@@ -22,6 +22,8 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { useFocusEffect } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 
 interface MenuItem {
   id: string;
@@ -30,6 +32,7 @@ interface MenuItem {
   route?: string;
   action?: () => void;
 }
+
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
@@ -68,14 +71,16 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleCopyAccessCode = () => {
+  const handleCopyAccessCode = async () => {
     if (!accessCode) return;
+    
     try {
-      Clipboard.setString(accessCode);
-      Alert.alert('Скопировано', 'Код доступа скопирован в буфер обмена');
+      await Clipboard.setStringAsync(accessCode);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert('Код скопирован', 'Код доступа скопирован в буфер обмена');
     } catch (error) {
       console.error('Error copying access code:', error);
-      Alert.alert('Ошибка', 'Не удалось скопировать код доступа');
+      Alert.alert('Ошибка', 'Не удалось скопировать код');
     }
   };
 
@@ -183,6 +188,12 @@ export default function ProfileScreen() {
       title: 'Оценить приложение',
       icon: 'star-outline',
       action: handleRateApp,
+    },
+    {
+      id: 'qr-scan',
+      title: 'Отсканировать QR-код',
+      icon: 'qr-code-outline',
+      route: '/qr-transfer',
     },
   ];
 
