@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import Animated, {
   Easing,
@@ -25,6 +26,7 @@ import Animated, {
   withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { validateAndUseActivationKey } from '@/utils/activationKeyValidator';
 
 const CODE_LENGTH = 6;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -139,6 +141,7 @@ function CodeCell(props: {
 export default function CodeInputScreen() {
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const containerOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(0);
@@ -306,48 +309,74 @@ export default function CodeInputScreen() {
       mass: 0.8,
     });
 
-    // Временная проверка кода (в реальном приложении это будет запрос к API)
-    // Пример: правильный код "ABCDEF" или "123456"
-    const validCodes = ['ABCDEF', '123456', '000000'];
-    
-    // На Android ждем завершения анимации перед переходом
-    const navigateToNameInput = async () => {
-      try {
-        await AsyncStorage.setItem('@activation_code', fullCode);
-        if (Platform.OS === 'android') {
-          // Небольшая задержка для плавного перехода на Android
+    setIsLoading(true);
+    setError(false);
+
+    try {
+      // Проверяем и используем ключ активации из activation-keys.json
+      const result = await validateAndUseActivationKey(fullCode);
+      
+      if (result.valid) {
+        // Ключ валиден и помечен как использованный
+        // Сохраняем код и переходим к вводу имени
+        try {
+          await AsyncStorage.setItem('@activation_code', fullCode);
+          await AsyncStorage.setItem('@is_activated', 'true');
+          
+          // Небольшая задержка для завершения spring-анимации
           setTimeout(() => {
-            router.replace('/name-input');
-          }, 100);
-        } else {
-          router.replace('/name-input');
+            if (Platform.OS === 'android') {
+              setTimeout(() => {
+                router.replace('/name-input');
+              }, 100);
+            } else {
+              router.replace('/name-input');
+            }
+          }, 300);
+        } catch (err) {
+          console.error('Error saving code:', err);
+          setIsLoading(false);
+          Alert.alert('Ошибка', 'Не удалось сохранить код активации');
         }
-      } catch (err) {
-        console.error('Error saving code:', err);
+      } else {
+        // Ключ невалиден или уже использован
+        setIsLoading(false);
+        const errorMessage = result.message || 'Код активации неверен или уже был использован';
+        
+        Alert.alert(
+          'Неверный код',
+          errorMessage + '\n\nПроверьте код или купите доступ за $10',
+          [
+            {
+              text: 'Попробовать снова',
+              style: 'cancel',
+              onPress: () => {
+                setCode(Array(CODE_LENGTH).fill(''));
+                setError(true);
+                inputRefs.current[0]?.focus();
+              },
+            },
+            {
+              text: 'Купить доступ',
+              onPress: () => router.replace('/purchase'),
+            },
+          ]
+        );
       }
-    };
-    
-    if (validCodes.includes(fullCode)) {
-      // Сохраняем код и переходим к вводу имени
-      // Небольшая задержка для завершения spring-анимации
-      setTimeout(navigateToNameInput, 300);
-    } else {
+    } catch (error) {
+      console.error('Error validating activation key:', error);
+      setIsLoading(false);
       Alert.alert(
-        'Неверный код',
-        'Проверьте код или купите доступ за $10',
+        'Ошибка',
+        'Не удалось проверить код активации. Попробуйте позже.',
         [
           {
-            text: 'Попробовать снова',
-            style: 'cancel',
+            text: 'OK',
             onPress: () => {
               setCode(Array(CODE_LENGTH).fill(''));
               setError(true);
               inputRefs.current[0]?.focus();
             },
-          },
-          {
-            text: 'Купить доступ',
-            onPress: () => router.replace('/purchase'),
           },
         ]
       );
@@ -399,19 +428,24 @@ export default function CodeInputScreen() {
                   style={[
                     styles.activateButton,
                     code.join('').length === CODE_LENGTH && styles.activateButtonActive,
+                    isLoading && styles.activateButtonLoading,
                   ]}
                   onPress={handleActivate}
                   activeOpacity={0.7}
-                  disabled={code.join('').length !== CODE_LENGTH}
+                  disabled={code.join('').length !== CODE_LENGTH || isLoading}
                 >
-                  <Text
-                    style={[
-                      styles.activateButtonText,
-                      code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
-                    ]}
-                  >
-                    Активировать
-                  </Text>
+                  {isLoading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.activateButtonText,
+                        code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
+                      ]}
+                    >
+                      Активировать
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>
@@ -542,6 +576,9 @@ const styles = StyleSheet.create({
   },
   activateButtonTextActive: {
     color: '#FFFFFF',
+  },
+  activateButtonLoading: {
+    opacity: 0.8,
   },
 });
 

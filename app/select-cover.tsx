@@ -26,6 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Asset } from 'expo-asset';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
+import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -49,7 +50,7 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
     // Используем require только внутри функции, чтобы избежать загрузки при импорте файла
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Notifications = require('expo-notifications');
-    
+
     // Настраиваем обработчик только один раз
     if (Notifications && !notificationHandlerInitialized) {
       Notifications.setNotificationHandler({
@@ -61,7 +62,7 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
       });
       notificationHandlerInitialized = true;
     }
-    
+
     notificationsModule = Notifications;
     return Notifications;
   } catch (error) {
@@ -92,28 +93,28 @@ interface CategoryInfo {
 export default function SelectCoverScreen() {
   const params = useLocalSearchParams<{ celebration: string | string[] }>();
   // Нормализуем celebration - может быть строкой или массивом
-  const celebration = Array.isArray(params.celebration) 
-    ? params.celebration[0] 
+  const celebration = Array.isArray(params.celebration)
+    ? params.celebration[0]
     : params.celebration;
-  
+
   const containerOpacity = useSharedValue(0);
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  
+
   // Логирование для отладки
   React.useEffect(() => {
     console.log('[Select Cover] Celebration value:', celebration, 'Type:', typeof celebration);
   }, [celebration]);
-  
+
   React.useEffect(() => {
     console.log('[Select Cover] showDateModal state:', showDateModal);
   }, [showDateModal]);
 
   // Получаем все альбомы и преобразуем их в обложки
   const albumTemplates = getAllAlbumTemplates();
-  
+
   const coverTypes: CoverType[] = useMemo(() => {
     // Генерация градиентов на основе категорий
     const categoryGradients: { [key: string]: string[] } = {
@@ -125,7 +126,7 @@ export default function SelectCoverScreen() {
     };
 
     // Фильтруем альбомы по категории, если указана
-    const filteredAlbums = celebration 
+    const filteredAlbums = celebration
       ? albumTemplates.filter(album => album.category === celebration)
       : albumTemplates;
 
@@ -154,7 +155,7 @@ export default function SelectCoverScreen() {
           const imagesToPreload = coverTypes
             .filter(cover => cover.image)
             .map(cover => cover.image!);
-          
+
           await Promise.all(
             imagesToPreload.map(async (imageSource) => {
               try {
@@ -169,7 +170,7 @@ export default function SelectCoverScreen() {
               }
             })
           );
-          
+
           console.log(`✅ Предзагружено ${imagesToPreload.length} изображений обложек`);
         } catch (error) {
           // Игнорируем общие ошибки
@@ -187,7 +188,7 @@ export default function SelectCoverScreen() {
         const imagesToPreload = coverTypes
           .filter(cover => cover.image)
           .map(cover => cover.image!);
-        
+
         await Promise.all(
           imagesToPreload.map(async (imageSource) => {
             try {
@@ -303,7 +304,7 @@ export default function SelectCoverScreen() {
   const scheduleReminder = async (eventDate: Date, categoryId: string) => {
     try {
       const categoryInfo = getCategoryInfo(categoryId);
-      
+
       // Создаем напоминание
       const reminder = {
         id: `${categoryId}_${Date.now()}_1`,
@@ -320,7 +321,7 @@ export default function SelectCoverScreen() {
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 
       // Удаляем старые напоминания для этой категории с таким же заголовком (если есть)
-      allReminders = allReminders.filter((r: any) => 
+      allReminders = allReminders.filter((r: any) =>
         r.categoryId !== categoryId || r.title !== categoryInfo.title
       );
 
@@ -334,7 +335,7 @@ export default function SelectCoverScreen() {
       // Для kids (день рождения) планируем ежегодное уведомление
       // Для других категорий - одноразовое уведомление на выбранную дату
       const now = new Date();
-      
+
       if (categoryId === 'kids') {
         // Для дня рождения планируем уведомление на следующий год (если дата в прошлом)
         // или на выбранную дату (если в будущем)
@@ -344,7 +345,7 @@ export default function SelectCoverScreen() {
           notificationDate = new Date(eventDate);
           notificationDate.setFullYear(now.getFullYear() + 1);
         }
-        
+
         // Планируем уведомление
         let trigger: any;
         if (Platform.OS === 'ios') {
@@ -405,11 +406,11 @@ export default function SelectCoverScreen() {
       console.log('[Select Cover] No celebration provided');
       return;
     }
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
+
     console.log('[Select Cover] Cover selected:', coverId, 'Celebration:', celebration, 'Type:', typeof celebration);
-    
+
     // Для беременности и детей показываем модальное окно выбора даты
     if (celebration === 'pregnancy' || celebration === 'kids') {
       console.log('[Select Cover] Showing date modal for:', celebration);
@@ -423,7 +424,7 @@ export default function SelectCoverScreen() {
       // Для остальных категорий сразу переходим к выбору действия
       router.push({
         pathname: '/select-action',
-        params: { 
+        params: {
           celebration,
           coverType: coverId,
         }
@@ -438,13 +439,20 @@ export default function SelectCoverScreen() {
       // Сохраняем дату события как напоминание
       await scheduleReminder(dueDate, celebration);
 
+      // Для беременности планируем все уведомления (42 недели + триместры + ПДР и т.д.)
+      if (celebration === 'pregnancy') {
+        const projectId = `pregnancy_${Date.now()}`;
+        console.log('[SelectCover] Scheduling pregnancy notifications for due date:', dueDate.toLocaleDateString());
+        await schedulePregnancyNotifications(dueDate, projectId);
+      }
+
       // Закрываем модальное окно
       setShowDateModal(false);
 
       // Переходим на страницу выбора действия
       router.push({
         pathname: '/select-action',
-        params: { 
+        params: {
           celebration,
           coverType: selectedCoverId,
           eventDate: dueDate.toISOString(),
@@ -499,7 +507,7 @@ export default function SelectCoverScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#8B6F5F" />
           </TouchableOpacity>
-          
+
           <View style={styles.headerText}>
             <Text style={styles.title}>Выберите обложку</Text>
             <Text style={styles.subtitle}>
@@ -509,7 +517,7 @@ export default function SelectCoverScreen() {
         </View>
 
         {/* Список типов обложек */}
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -541,7 +549,7 @@ export default function SelectCoverScreen() {
                       placeholderContentFit="cover"
                     />
                   </View>
-                  
+
                   <View style={styles.cardTextContainer}>
                     <Text style={styles.cardTitle}>
                       {cover.title}
@@ -562,7 +570,7 @@ export default function SelectCoverScreen() {
       {showDateModal && celebration && typeof celebration === 'string' && (celebration === 'pregnancy' || celebration === 'kids') && (() => {
         const categoryInfo = getCategoryInfo(celebration);
         const isPastDateAllowed = celebration === 'kids'; // Для детства можно выбрать дату в прошлом
-        
+
         return (
           <Modal
             visible={showDateModal}

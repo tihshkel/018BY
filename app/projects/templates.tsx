@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   projectCategories,
@@ -24,6 +25,7 @@ import {
   type ProjectProduct,
 } from '@/constants/projectTemplates';
 import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
+import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 
 interface LocalParams {
   category?: string | string[];
@@ -60,6 +62,44 @@ const getReminderPrompt = (categoryId: string | null) => {
   return 'Укажите дату события';
 };
 
+interface CategoryInfo {
+  name: string;
+  title: string;
+  description: string;
+  notificationTitle: string;
+  notificationBody: string;
+}
+
+const getCategoryInfo = (categoryId: string): CategoryInfo => {
+  const categoryMap: { [key: string]: CategoryInfo } = {
+    pregnancy: {
+      name: 'Беременность',
+      title: 'Предварительная дата родов',
+      description: 'Выберите предварительную дату родов. Эта дата будет сохранена в напоминаниях.',
+      notificationTitle: 'Предварительная дата родов',
+      notificationBody: 'Сегодня ваша предварительная дата родов!',
+    },
+    kids: {
+      name: 'Детство',
+      title: 'Дата рождения ребенка',
+      description: 'Выберите дату рождения ребенка. Эта дата будет сохранена в напоминаниях.',
+      notificationTitle: 'День рождения ребенка',
+      notificationBody: 'Сегодня день рождения вашего ребенка!',
+    },
+  };
+  return categoryMap[categoryId] || categoryMap.pregnancy;
+};
+
+const getDefaultDate = (categoryId: string): Date => {
+  const defaultDate = new Date();
+  if (categoryId === 'pregnancy') {
+    // 9 месяцев вперед
+    defaultDate.setMonth(defaultDate.getMonth() + 9);
+  }
+  // Для kids текущая дата (может быть в прошлом)
+  return defaultDate;
+};
+
 export default function ProjectTemplatesScreen() {
   const params = useLocalSearchParams();
   const categoryId = formatCategoryId(params.category);
@@ -71,6 +111,11 @@ export default function ProjectTemplatesScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showActionModal, setShowActionModal] = useState(false);
+  // State for pregnancy/kids date modal
+  const [selectedAlbumForDate, setSelectedAlbumForDate] = useState<AlbumTemplate | null>(null);
+  const [showCoverDateModal, setShowCoverDateModal] = useState(false);
+  const [coverDate, setCoverDate] = useState(new Date());
+  const [showCoverDatePicker, setShowCoverDatePicker] = useState(false);
 
   const opacity = useSharedValue(0);
 
@@ -148,7 +193,7 @@ export default function ProjectTemplatesScreen() {
               return Promise.resolve();
             })
           );
-          
+
           console.log(`✅ Все изображения категории "${categoryId}" предзагружены`);
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений:', error);
@@ -174,7 +219,7 @@ export default function ProjectTemplatesScreen() {
         await Promise.all(
           imagesToPreload.map(imageSource => {
             if (typeof imageSource === 'string') {
-              return Image.prefetch(imageSource).catch(() => {});
+              return Image.prefetch(imageSource).catch(() => { });
             }
             // Для require() изображений они уже загружены
             return Promise.resolve();
@@ -202,9 +247,44 @@ export default function ProjectTemplatesScreen() {
     []
   );
 
+  // Save reminder to AsyncStorage
+  const scheduleReminder = async (eventDate: Date, catId: string) => {
+    try {
+      const categoryInfo = getCategoryInfo(catId);
+
+      const reminder = {
+        id: `${catId}_${Date.now()}_1`,
+        categoryId: catId,
+        categoryName: categoryInfo.name,
+        title: categoryInfo.title,
+        description: `${categoryInfo.title}: ${eventDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+        date: eventDate.toISOString(),
+        enabled: true,
+      };
+
+      const existingReminders = await AsyncStorage.getItem('@reminders');
+      let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+
+      // Remove old reminders for this category with same title
+      allReminders = allReminders.filter((r: any) =>
+        r.categoryId !== catId || r.title !== categoryInfo.title
+      );
+
+      allReminders.push(reminder);
+      await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+    } catch (error) {
+      console.error(`Error scheduling ${catId} reminder:`, error);
+    }
+  };
+
   const handleCoverSelect = useCallback((album: AlbumTemplate) => {
-    // Для беременности и детей при выборе обложки переходим на выбор действия
+    // Для беременности и детей показываем модальное окно с датой
     if (categoryId === 'pregnancy' || categoryId === 'kids') {
+      setSelectedAlbumForDate(album);
+      setCoverDate(getDefaultDate(categoryId));
+      setShowCoverDateModal(true);
+    } else {
+      // Для остальных категорий сразу переходим на выбор действия
       router.push({
         pathname: '/select-action',
         params: {
@@ -214,6 +294,41 @@ export default function ProjectTemplatesScreen() {
       });
     }
   }, [categoryId]);
+
+  const handleCoverDateConfirm = useCallback(async () => {
+    if (!selectedAlbumForDate || !categoryId) return;
+
+    try {
+      // Save reminder
+      await scheduleReminder(coverDate, categoryId);
+
+      // Для беременности планируем все уведомления
+      if (categoryId === 'pregnancy') {
+        const projectId = `pregnancy_${Date.now()}`;
+        console.log('[Templates] Scheduling pregnancy notifications for due date:', coverDate.toLocaleDateString());
+        await schedulePregnancyNotifications(coverDate, projectId);
+      }
+
+      setShowCoverDateModal(false);
+
+      // Navigate to select-action
+      router.push({
+        pathname: '/select-action',
+        params: {
+          celebration: categoryId,
+          coverType: selectedAlbumForDate.id,
+          eventDate: coverDate.toISOString(),
+        },
+      });
+    } catch (error) {
+      console.error('Error saving event date:', error);
+    }
+  }, [selectedAlbumForDate, categoryId, coverDate]);
+
+  const handleCoverDateCancel = useCallback(() => {
+    setShowCoverDateModal(false);
+    setSelectedAlbumForDate(null);
+  }, []);
 
   const handleProductSelect = useCallback((product: ProjectProduct) => {
     setSelectedProduct(product);
@@ -436,6 +551,111 @@ export default function ProjectTemplatesScreen() {
           )}
         </ScrollView>
       </Animated.View>
+
+      {/* Date modal for pregnancy/kids covers */}
+      {showCoverDateModal && categoryId && (categoryId === 'pregnancy' || categoryId === 'kids') && (() => {
+        const categoryInfo = getCategoryInfo(categoryId);
+        const isPastDateAllowed = categoryId === 'kids';
+
+        return (
+          <Modal
+            visible={showCoverDateModal}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={handleCoverDateCancel}
+          >
+            <View style={styles.coverDateModalOverlay}>
+              <View style={styles.coverDateModalContent}>
+                <View style={styles.coverDateModalHeader}>
+                  <Text style={styles.coverDateModalTitle}>{categoryInfo.title}</Text>
+                  <TouchableOpacity onPress={handleCoverDateCancel}>
+                    <Ionicons name="close" size={24} color="#8B6F5F" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.coverDateModalBody}>
+                  <Text style={styles.coverDateModalDescription}>
+                    {categoryInfo.description}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.coverDateButton}
+                    onPress={() => setShowCoverDatePicker(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
+                    <View style={styles.coverDateButtonTextContainer}>
+                      <Text style={styles.coverDateButtonLabel}>{categoryInfo.title}</Text>
+                      <Text style={styles.coverDateButtonText}>
+                        {coverDate.toLocaleDateString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  </TouchableOpacity>
+
+                  {showCoverDatePicker && (
+                    <DateTimePicker
+                      value={coverDate}
+                      mode="date"
+                      display={Platform.select({
+                        ios: 'spinner',
+                        android: 'default',
+                        default: 'default',
+                      })}
+                      minimumDate={isPastDateAllowed ? undefined : new Date()}
+                      maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+                      onChange={(event, date) => {
+                        if (Platform.OS === 'android') {
+                          setShowCoverDatePicker(false);
+                        }
+                        if (date && event.type !== 'dismissed') {
+                          setCoverDate(date);
+                        }
+                      }}
+                      locale="ru-RU"
+                      themeVariant="light"
+                      textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                    />
+                  )}
+
+                  {Platform.OS === 'ios' && showCoverDatePicker && (
+                    <View style={styles.iosCoverDatePickerButtons}>
+                      <TouchableOpacity
+                        style={styles.iosCoverDatePickerButton}
+                        onPress={() => setShowCoverDatePicker(false)}
+                      >
+                        <Text style={styles.iosCoverDatePickerButtonText}>Готово</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.coverDateModalButtons}>
+                  <TouchableOpacity
+                    style={styles.coverDateCancelButton}
+                    onPress={handleCoverDateCancel}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.coverDateCancelButtonText}>Отмена</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.coverDateConfirmButton}
+                    onPress={handleCoverDateConfirm}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.coverDateConfirmButtonText}>Сохранить</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        );
+      })()}
 
       {/* Дата */}
       <DateSelectionModal
@@ -831,6 +1051,152 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+  },
+  // Cover date modal styles for pregnancy/kids
+  coverDateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  coverDateModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    maxHeight: '80%',
+  },
+  coverDateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  coverDateModalTitle: {
+    fontSize: 20,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+  },
+  coverDateModalBody: {
+    marginBottom: 24,
+  },
+  coverDateModalDescription: {
+    fontSize: 15,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  coverDateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF8F5',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E8D5C7',
+  },
+  coverDateButtonTextContainer: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  coverDateButtonLabel: {
+    fontSize: 12,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+    fontWeight: '400',
+    marginBottom: 4,
+  },
+  coverDateButtonText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '500',
+  },
+  iosCoverDatePickerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  iosCoverDatePickerButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#C9A89A',
+    borderRadius: 12,
+  },
+  iosCoverDatePickerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  coverDateModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  coverDateCancelButton: {
+    flex: 1,
+    backgroundColor: '#F5F0EB',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  coverDateCancelButtonText: {
+    color: '#8B6F5F',
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  coverDateConfirmButton: {
+    flex: 1,
+    backgroundColor: '#C9A89A',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  coverDateConfirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
   },
