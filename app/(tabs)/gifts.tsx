@@ -1,24 +1,24 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  Linking,
-  FlatList,
-  TextInput,
-  Pressable,
-  ImageSourcePropType,
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  FlatList,
+  ImageSourcePropType,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export interface GiftItem {
   id: string;
@@ -27,6 +27,10 @@ export interface GiftItem {
   link: string;
   celebrations: string[];
   cover?: ImageSourcePropType;
+  price?: number;
+  originalPrice?: number;
+  salePrice?: number;
+  available?: boolean;
 }
 
 const CATEGORY_FILTERS = [
@@ -819,35 +823,6 @@ export default function GiftsScreen() {
     }, [])
   );
 
-  // Предзагрузка изображений для отфильтрованных элементов при смене фильтра
-  useEffect(() => {
-    const preloadFilteredImages = async () => {
-      try {
-        // Собираем изображения только для отфильтрованных элементов
-        const imagesToPreload = filteredItems
-          .filter(item => item.cover)
-          .map(item => item.cover!);
-
-        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
-        await Promise.all(
-          imagesToPreload.map(imageSource => {
-            if (typeof imageSource === 'string') {
-              return Image.prefetch(imageSource).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
-              });
-            }
-            // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-            return Promise.resolve();
-          })
-        );
-      } catch (error) {
-        // Игнорируем ошибки, изображения загрузятся по требованию
-      }
-    };
-
-    preloadFilteredImages();
-  }, [filteredItems]);
-
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 350 });
   }, [opacity]);
@@ -929,6 +904,35 @@ export default function GiftsScreen() {
       return false;
     });
   }, [searchQuery, activeCategory]);
+
+  // Предзагрузка изображений для отфильтрованных элементов при смене фильтра
+  useEffect(() => {
+    const preloadFilteredImages = async () => {
+      try {
+        // Собираем изображения только для отфильтрованных элементов
+        const imagesToPreload = filteredItems
+          .filter(item => item.cover)
+          .map(item => item.cover!);
+
+        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
+        await Promise.all(
+          imagesToPreload.map(imageSource => {
+            if (typeof imageSource === 'string') {
+              return Image.prefetch(imageSource).catch(err => {
+                console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
+              });
+            }
+            // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+            return Promise.resolve();
+          })
+        );
+      } catch (error) {
+        // Игнорируем ошибки, изображения загрузятся по требованию
+      }
+    };
+
+    preloadFilteredImages();
+  }, [filteredItems]);
 
   const renderFilter = useCallback(
     (filter: CategoryFilter) => {
