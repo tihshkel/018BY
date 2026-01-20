@@ -62,7 +62,7 @@ export function getGiftItemByAlbumName(albumName: string): GiftItem | null {
 
 /**
  * Получает ссылку на Wildberries для альбома
- * Пытается найти по изображению, по ID альбома (для детских), или по названию
+ * Пытается найти по изображению, по ID альбома (для детских), по SKU (для дневников), или по названию
  */
 export function getWildberriesLink(albumName: string, thumbnailPath?: ImageSourcePropType, albumId?: string): string | null {
   // Сначала пытаемся найти по изображению (более точное сопоставление)
@@ -70,6 +70,31 @@ export function getWildberriesLink(albumName: string, thumbnailPath?: ImageSourc
     const giftItemByImage = getGiftItemByImage(thumbnailPath);
     if (giftItemByImage?.link) {
       return giftItemByImage.link;
+    }
+  }
+  
+  // Для дневников (diary_*) или если albumId является SKU дневника (DD1-DD21)
+  // Пытаемся найти по SKU
+  if (albumId) {
+    // Если albumId начинается с diary_, извлекаем SKU из названия
+    if (albumId.startsWith('diary_')) {
+      // Извлекаем номер из diary_dd1 -> DD1, diary_dd21 -> DD21
+      const match = albumId.match(/diary_dd(\d+)/i);
+      if (match) {
+        const sku = `DD${match[1]}`;
+        const giftItemBySku = getGiftItemBySku(sku);
+        if (giftItemBySku?.link) {
+          return giftItemBySku.link;
+        }
+      }
+    }
+    // Если albumId уже является SKU дневника (DD1, DD2, ..., DD21)
+    else if (/^DD\d+$/i.test(albumId)) {
+      const sku = albumId.toUpperCase();
+      const giftItemBySku = getGiftItemBySku(sku);
+      if (giftItemBySku?.link) {
+        return giftItemBySku.link;
+      }
     }
   }
   

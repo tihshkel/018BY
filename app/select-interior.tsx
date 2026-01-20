@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -18,6 +18,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Asset } from 'expo-asset';
+import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface InteriorOption {
@@ -28,7 +30,7 @@ interface InteriorOption {
   previewImagePath: any;
 }
 
-const INTERIOR_OPTIONS: InteriorOption[] = [
+const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
   {
     id: 'pregnancy_60',
     title: 'Блок БЕРЕМЕННОСТЬ 60 стр',
@@ -45,6 +47,21 @@ const INTERIOR_OPTIONS: InteriorOption[] = [
   },
 ];
 
+// Функция для получения вариантов внутренних частей в зависимости от категории
+function getInteriorOptions(celebration: string): InteriorOption[] {
+  if (celebration === 'diary') {
+    const diaryInteriors = getAllDiaryInteriors();
+    return diaryInteriors.map((interior) => ({
+      id: interior.id,
+      title: interior.name,
+      description: interior.description,
+      pdfPath: null, // Для дневников не используем PDF
+      previewImagePath: interior.images[0] || null,
+    }));
+  }
+  return PREGNANCY_INTERIOR_OPTIONS;
+}
+
 export default function SelectInteriorScreen() {
   const { celebration, coverType, eventDate } = useLocalSearchParams<{
     celebration: string;
@@ -53,6 +70,11 @@ export default function SelectInteriorScreen() {
   }>();
   const [selectedInterior, setSelectedInterior] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
+  
+  // Получаем варианты внутренних частей в зависимости от категории
+  const interiorOptions = useMemo(() => {
+    return celebration ? getInteriorOptions(celebration) : PREGNANCY_INTERIOR_OPTIONS;
+  }, [celebration]);
 
   React.useEffect(() => {
     containerOpacity.value = withTiming(1, { duration: 400 });
@@ -61,6 +83,39 @@ export default function SelectInteriorScreen() {
   const containerAnimatedStyle = useAnimatedStyle(() => ({
     opacity: containerOpacity.value,
   }));
+
+  // Предзагрузка превью изображений внутренних частей для максимально быстрой загрузки
+  useFocusEffect(
+    React.useCallback(() => {
+      const preloadInteriorPreviews = async () => {
+        try {
+          const previewPromises = interiorOptions
+            .filter(option => option.previewImagePath)
+            .map(async (option) => {
+              try {
+                if (typeof option.previewImagePath === 'number') {
+                  // Для require() модулей предзагружаем через Asset API
+                  const asset = Asset.fromModule(option.previewImagePath);
+                  await asset.downloadAsync();
+                } else if (typeof option.previewImagePath === 'string') {
+                  // Для URI используем prefetch
+                  await Image.prefetch(option.previewImagePath);
+                }
+              } catch (err) {
+                // Игнорируем ошибки отдельных изображений
+              }
+            });
+
+          await Promise.all(previewPromises);
+          console.log(`✅ Предзагружено ${previewPromises.length} превью внутренних частей`);
+        } catch (error) {
+          // Игнорируем общие ошибки
+        }
+      };
+
+      preloadInteriorPreviews();
+    }, [interiorOptions])
+  );
 
   const handleInteriorSelect = (interiorId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -94,8 +149,6 @@ export default function SelectInteriorScreen() {
     router.back();
   };
 
-  const selectedInteriorData = INTERIOR_OPTIONS.find(i => i.id === selectedInterior);
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
@@ -123,7 +176,7 @@ export default function SelectInteriorScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {INTERIOR_OPTIONS.map((interior) => (
+          {interiorOptions.map((interior) => (
             <TouchableOpacity
               key={interior.id}
               style={[
@@ -142,15 +195,17 @@ export default function SelectInteriorScreen() {
                 <View style={styles.cardContent}>
                   {/* Превью изображения */}
                   <View style={styles.previewContainer}>
-                    <Image
-                      source={interior.previewImagePath}
-                      style={styles.previewImage}
-                      contentFit="cover"
-                      priority={INTERIOR_OPTIONS.indexOf(interior) < 2 ? "high" : "normal"}
-                      cachePolicy="disk"
-                      transition={0}
-                      fadeDuration={0}
-                    />
+                    {interior.previewImagePath && (
+                      <Image
+                        source={interior.previewImagePath}
+                        style={styles.previewImage}
+                        contentFit="cover"
+                        priority={interiorOptions.indexOf(interior) < 2 ? "high" : "normal"}
+                        cachePolicy="disk"
+                        transition={0}
+                        fadeDuration={0}
+                      />
+                    )}
                     {selectedInterior === interior.id && (
                       <View style={styles.selectedOverlay}>
                         <Ionicons name="checkmark-circle" size={32} color="#FFFFFF" />

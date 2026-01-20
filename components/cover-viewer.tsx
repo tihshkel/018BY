@@ -61,6 +61,7 @@ interface CoverViewerProps {
   annotationsRef?: React.RefObject<PdfAnnotationsRef>;
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта
   defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
+  firstPageImage?: string; // Первое изображение из массива images для категорий pregnancy, kids, diary
 }
 
 export default function CoverViewer({
@@ -79,6 +80,7 @@ export default function CoverViewer({
   annotationsRef: externalAnnotationsRef,
   onViewportChange,
   defaultTextStyle,
+  firstPageImage,
 }: CoverViewerProps) {
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 
@@ -138,6 +140,14 @@ export default function CoverViewer({
         setIsLoading(true);
         setError(null);
 
+        // Для категорий pregnancy, kids и diary используем первое изображение из массива images
+        if (firstPageImage && category && (category === 'pregnancy' || category === 'kids' || category === 'diary')) {
+          setCoverImages([firstPageImage]);
+          setCurrentPage(0);
+          setIsLoading(false);
+          return;
+        }
+
         if (!albumId) {
           setError('ID альбома не указан');
           setIsLoading(false);
@@ -193,7 +203,7 @@ export default function CoverViewer({
     };
 
     loadCoverImages();
-  }, [albumId, category, coverType]);
+  }, [albumId, category, coverType, firstPageImage]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';

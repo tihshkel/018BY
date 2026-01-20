@@ -1,0 +1,730 @@
+import { Asset } from 'expo-asset';
+import { getPregnancyCoverPdf } from './coverPdfMapping';
+
+/**
+ * Извлекает номер DFA из albumId
+ * @param albumId - ID альбома (например, 'dfa_5', 'dfa_7')
+ * @returns Номер DFA в формате 'DFA5', 'DFA7' или null
+ */
+function extractDFANumber(albumId: string): string | null {
+  if (!albumId) return null;
+  
+  const normalizedId = albumId.toLowerCase();
+  
+  // Извлекаем номер из формата dfa_5, dfa_7 и т.д.
+  const match = normalizedId.match(/dfa[_\s]?(\d+)/);
+  if (match && match[1]) {
+    const number = match[1];
+    // Для dfa_43 возвращаем dfa43 (в нижнем регистре)
+    if (number === '43') {
+      return 'dfa43';
+    }
+    return `DFA${number}`;
+  }
+  
+  return null;
+}
+
+/**
+ * Статический маппинг require() модулей для первой и последней страницы альбомов детей
+ */
+const KIDS_FIRST_LAST_PAGES_MAPPING: Record<string, { firstPage: any | null; lastPage: any | null }> = {
+  'DFA5': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA5/first_page.png'),
+        lastPage: require('@/albums/kids/DFA5/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA7': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA7/first_page.png'),
+        lastPage: require('@/albums/kids/DFA7/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA8': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA8/first_page.png'),
+        lastPage: require('@/albums/kids/DFA8/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA9': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA9/first_page.png'),
+        lastPage: require('@/albums/kids/DFA9/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA12': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA12/first_page.png'),
+        lastPage: require('@/albums/kids/DFA12/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA15': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA15/first_page.png'),
+        lastPage: require('@/albums/kids/DFA15/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA16': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA16/first_page.png'),
+        lastPage: require('@/albums/kids/DFA16/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA19': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA19/first_page.png'),
+        lastPage: require('@/albums/kids/DFA19/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA21': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA21/first_page.png'),
+        lastPage: require('@/albums/kids/DFA21/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA22': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA22/first_page.png'),
+        lastPage: require('@/albums/kids/DFA22/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA23': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA23/first_page.png'),
+        lastPage: require('@/albums/kids/DFA23/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA24': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA24/first_page.png'),
+        lastPage: require('@/albums/kids/DFA24/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA25': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA25/first_page.png'),
+        lastPage: require('@/albums/kids/DFA25/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA26': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA26/first_page.png'),
+        lastPage: require('@/albums/kids/DFA26/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA27': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA27/first_page.png'),
+        lastPage: require('@/albums/kids/DFA27/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA28': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA28/first_page.png'),
+        lastPage: require('@/albums/kids/DFA28/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA29': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA29/first_page.png'),
+        lastPage: require('@/albums/kids/DFA29/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA30': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA30/first_page.png'),
+        lastPage: require('@/albums/kids/DFA30/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA31': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA31/first_page.png'),
+        lastPage: require('@/albums/kids/DFA31/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'dfa43': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA43/first_page.png'),
+        lastPage: require('@/albums/kids/DFA43/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA46': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA46/first_page.png'),
+        lastPage: require('@/albums/kids/DFA46/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA47': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA47/first_page.png'),
+        lastPage: require('@/albums/kids/DFA47/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA50': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA50/first_page.png'),
+        lastPage: require('@/albums/kids/DFA50/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA52': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA52/first_page.png'),
+        lastPage: require('@/albums/kids/DFA52/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA53': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA53/first_page.png'),
+        lastPage: require('@/albums/kids/DFA53/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA59': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA59/first_page.png'),
+        lastPage: require('@/albums/kids/DFA59/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA60': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA60/first_page.png'),
+        lastPage: require('@/albums/kids/DFA60/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA71': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA71/first_page.png'),
+        lastPage: require('@/albums/kids/DFA71/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA72': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA72/first_page.png'),
+        lastPage: require('@/albums/kids/DFA72/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA74': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA74/first_page.png'),
+        lastPage: require('@/albums/kids/DFA74/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA205': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA205/first_page.png'),
+        lastPage: require('@/albums/kids/DFA205/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA206': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA206/first_page.png'),
+        lastPage: require('@/albums/kids/DFA206/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA207': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA207/first_page.png'),
+        lastPage: require('@/albums/kids/DFA207/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA208': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA208/first_page.png'),
+        lastPage: require('@/albums/kids/DFA208/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA301': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA301/first_page.png'),
+        lastPage: require('@/albums/kids/DFA301/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA302': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA302/first_page.png'),
+        lastPage: require('@/albums/kids/DFA302/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA304': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA304/first_page.png'),
+        lastPage: require('@/albums/kids/DFA304/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA305': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA305/first_page.png'),
+        lastPage: require('@/albums/kids/DFA305/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA306': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA306/first_page.png'),
+        lastPage: require('@/albums/kids/DFA306/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA307': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA307/first_page.png'),
+        lastPage: require('@/albums/kids/DFA307/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+  'DFA309': (() => {
+    try {
+      return {
+        firstPage: require('@/albums/kids/DFA309/first_page.png'),
+        lastPage: require('@/albums/kids/DFA309/last_page.png'),
+      };
+    } catch {
+      return { firstPage: null, lastPage: null };
+    }
+  })(),
+};
+
+/**
+ * Статический маппинг require() модулей для первой и последней страницы альбомов беременности
+ * Ключ: 'DB{N}_{format}' где format = 'hard' или 'soft'
+ */
+const PREGNANCY_FIRST_LAST_PAGES_MAPPING: Record<string, { firstPage: any | null; lastPages: any[] }> = {
+  // DB1 - hard (180х240)
+  'DB1_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB1_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB1_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB1 - soft (А5)
+  'DB1_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB1_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB1_А5/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB2 - hard
+  'DB2_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB2_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB2_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB2 - soft
+  'DB2_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB2_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB2_А5/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB3 - hard
+  'DB3_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB3_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB3_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB3 - soft (может быть несколько страниц)
+  'DB3_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB3_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_001.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_002.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_003.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_004.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB4 - hard
+  'DB4_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB4_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB4_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB4 - soft (может быть несколько страниц)
+  'DB4_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB4_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_001.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_002.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_003.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_004.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB5 - hard
+  'DB5_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB5_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB5_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB5 - soft (может быть несколько страниц)
+  'DB5_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB5_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_001.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_002.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_003.png')); } catch {}
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_004.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB6 - hard
+  'DB6_hard': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB6_60стр/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB6_60стр/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+  // DB6 - soft (если есть)
+  'DB6_soft': (() => {
+    const firstPage = (() => {
+      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB6_А5/page_001.png'); } catch { return null; }
+    })();
+    const lastPages = (() => {
+      const pages: any[] = [];
+      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB6_А5/page_001.png')); } catch {}
+      return pages;
+    })();
+    return { firstPage, lastPages };
+  })(),
+};
+
+/**
+ * Получает первую и последнюю страницу для альбома детей
+ * @param albumId - ID альбома (например, 'dfa_5', 'dfa_7')
+ * @param coverType - Тип обложки (не используется для kids, но оставлен для совместимости)
+ * @returns Объект с URI первой и последней страницы или null
+ */
+export async function getKidsFirstLastPages(
+  albumId: string | null,
+  coverType: 'hard' | 'soft' = 'hard'
+): Promise<{ firstPage: string | null; lastPage: string | null }> {
+  if (!albumId) {
+    return { firstPage: null, lastPage: null };
+  }
+
+  const dfaNumber = extractDFANumber(albumId);
+  if (!dfaNumber) {
+    console.warn(`[First/Last Pages] Не удалось извлечь номер DFA из albumId: ${albumId}`);
+    return { firstPage: null, lastPage: null };
+  }
+
+  const mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber];
+  if (!mapping || (!mapping.firstPage && !mapping.lastPage)) {
+    console.warn(`[First/Last Pages] Не найдены страницы для DFA: ${dfaNumber}`);
+    return { firstPage: null, lastPage: null };
+  }
+
+  try {
+    const result: { firstPage: string | null; lastPage: string | null } = {
+      firstPage: null,
+      lastPage: null,
+    };
+
+    // Загружаем первую страницу
+    if (mapping.firstPage) {
+      try {
+        const asset = Asset.fromModule(mapping.firstPage);
+        await asset.downloadAsync();
+        result.firstPage = asset.localUri || asset.uri;
+      } catch (error) {
+        console.warn(`[First/Last Pages] Ошибка загрузки первой страницы для ${dfaNumber}:`, error);
+      }
+    }
+
+    // Загружаем последнюю страницу
+    if (mapping.lastPage) {
+      try {
+        const asset = Asset.fromModule(mapping.lastPage);
+        await asset.downloadAsync();
+        result.lastPage = asset.localUri || asset.uri;
+      } catch (error) {
+        console.warn(`[First/Last Pages] Ошибка загрузки последней страницы для ${dfaNumber}:`, error);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`[First/Last Pages] Ошибка при загрузке страниц для ${dfaNumber}:`, error);
+    return { firstPage: null, lastPage: null };
+  }
+}
+
+/**
+ * Получает первую и последнюю страницу для альбома беременности
+ * @param albumId - ID альбома (например, 'pregnancy_60', 'pregnancy_db2')
+ * @param formatType - Тип формата: 'hard' (180х240) или 'soft' (А5)
+ * @returns Объект с URI первой страницы и массивом URI последних страниц
+ */
+export async function getPregnancyFirstLastPages(
+  albumId: string | null,
+  formatType: 'hard' | 'soft' = 'hard'
+): Promise<{ firstPage: string | null; lastPages: string[] }> {
+  if (!albumId) {
+    return { firstPage: null, lastPages: [] };
+  }
+
+  const dbNumber = getPregnancyCoverPdf(albumId);
+  if (!dbNumber) {
+    console.warn(`[First/Last Pages] Не удалось получить номер DB для albumId: ${albumId}`);
+    return { firstPage: null, lastPages: [] };
+  }
+
+  const mappingKey = `${dbNumber}_${formatType}`;
+  const mapping = PREGNANCY_FIRST_LAST_PAGES_MAPPING[mappingKey];
+  if (!mapping || (!mapping.firstPage && mapping.lastPages.length === 0)) {
+    console.warn(`[First/Last Pages] Не найдены страницы для ${mappingKey}`);
+    return { firstPage: null, lastPages: [] };
+  }
+
+  try {
+    const result: { firstPage: string | null; lastPages: string[] } = {
+      firstPage: null,
+      lastPages: [],
+    };
+
+    // Загружаем первую страницу
+    if (mapping.firstPage) {
+      try {
+        const asset = Asset.fromModule(mapping.firstPage);
+        await asset.downloadAsync();
+        result.firstPage = asset.localUri || asset.uri;
+      } catch (error) {
+        console.warn(`[First/Last Pages] Ошибка загрузки первой страницы для ${mappingKey}:`, error);
+      }
+    }
+
+    // Загружаем все последние страницы
+    for (const lastPageModule of mapping.lastPages) {
+      if (lastPageModule) {
+        try {
+          const asset = Asset.fromModule(lastPageModule);
+          await asset.downloadAsync();
+          const uri = asset.localUri || asset.uri;
+          if (uri) {
+            result.lastPages.push(uri);
+          }
+        } catch (error) {
+          console.warn(`[First/Last Pages] Ошибка загрузки последней страницы для ${mappingKey}:`, error);
+        }
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`[First/Last Pages] Ошибка при загрузке страниц для ${mappingKey}:`, error);
+    return { firstPage: null, lastPages: [] };
+  }
+}

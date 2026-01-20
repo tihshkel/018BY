@@ -80,523 +80,712 @@ export async function getCoverImagesForViewer(
 /**
  * Создает массив require() модулей для изображений развертки обложки
  * Это статический маппинг для всех возможных папок
+ * В React Native require() должен быть статическим, поэтому используем прямые вызовы
  */
 const COVER_IMAGES_MAPPING: Record<string, any[]> = {
   // DB1 - Беременность
-  'DB1': [
-    require('@/albums/DB1/page_001.png'),
-  ],
+  'DB1': (() => {
+    try {
+      return [require('@/albums/DB1/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DB2 - Беременность
-  'DB2': [
-    require('@/albums/DB2/page_001.png'),
-  ],
+  'DB2': (() => {
+    try {
+      return [require('@/albums/DB2/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DB3 - Беременность
-  'DB3': [
-    require('@/albums/DB3/page_001.png'),
-  ],
+  'DB3': (() => {
+    try {
+      return [require('@/albums/DB3/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DB4 - Беременность
-  'DB4': [
-    require('@/albums/DB4/page_001.png'),
-  ],
+  'DB4': (() => {
+    try {
+      return [require('@/albums/DB4/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DB5 - Беременность
-  'DB5': [
-    require('@/albums/DB5/page_001.png'),
-  ],
+  'DB5': (() => {
+    try {
+      return [require('@/albums/DB5/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DB6 - Беременность
-  'DB6': [
-    require('@/albums/DB6/page_001.png'),
-  ],
+  'DB6': (() => {
+    try {
+      return [require('@/albums/DB6/page_001.png')];
+    } catch {
+      return [];
+    }
+  })(),
   // DFA5
-  'DFA5_твердый переплет': [
-    require('@/albums/DFA5_твердый переплет/page_001.png'),
-    require('@/albums/DFA5_твердый переплет/page_002.png'),
-    require('@/albums/DFA5_твердый переплет/page_003.png'),
-  ],
-  'DFA5_пружина': [
-    require('@/albums/DFA5_пружина/page_001.png'),
-    require('@/albums/DFA5_пружина/page_002.png'),
-    require('@/albums/DFA5_пружина/page_003.png'),
-    require('@/albums/DFA5_пружина/page_004.png'),
-  ],
+  'DFA5_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA5_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA5_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA5_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA5_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA5_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA5_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA5_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA5_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA7
-  'DFA7_твердый переплет': [
-    require('@/albums/DFA7_твердый переплет/page_001.png'),
-    require('@/albums/DFA7_твердый переплет/page_002.png'),
-    require('@/albums/DFA7_твердый переплет/page_003.png'),
-  ],
-  'DFA7_пружина': [
-    require('@/albums/DFA7_пружина/page_001.png'),
-    require('@/albums/DFA7_пружина/page_002.png'),
-    require('@/albums/DFA7_пружина/page_003.png'),
-    require('@/albums/DFA7_пружина/page_004.png'),
-  ],
+  'DFA7_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA7_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA7_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA7_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA7_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA7_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA7_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA7_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA7_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA8
-  'DFA8_твердый переплет': [
-    require('@/albums/DFA8_твердый переплет/page_001.png'),
-    require('@/albums/DFA8_твердый переплет/page_002.png'),
-    require('@/albums/DFA8_твердый переплет/page_003.png'),
-  ],
-  'DFA8_пружина': [
-    require('@/albums/DFA8_пружина/page_001.png'),
-    require('@/albums/DFA8_пружина/page_002.png'),
-    require('@/albums/DFA8_пружина/page_003.png'),
-    require('@/albums/DFA8_пружина/page_004.png'),
-  ],
+  'DFA8_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA8_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA8_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA8_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA8_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA8_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA8_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA8_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA8_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA9
-  'DFA9_твердый переплет': [
-    require('@/albums/DFA9_твердый переплет/page_001.png'),
-    require('@/albums/DFA9_твердый переплет/page_002.png'),
-    require('@/albums/DFA9_твердый переплет/page_003.png'),
-  ],
-  'DFA9_пружина': [
-    require('@/albums/DFA9_пружина/page_001.png'),
-    require('@/albums/DFA9_пружина/page_002.png'),
-    require('@/albums/DFA9_пружина/page_003.png'),
-    require('@/albums/DFA9_пружина/page_004.png'),
-  ],
+  'DFA9_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA9_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA9_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA9_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA9_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA9_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA9_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA9_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA9_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA12
-  'DFA12_твердый переплет': [
-    require('@/albums/DFA12_твердый переплет/page_001.png'),
-    require('@/albums/DFA12_твердый переплет/page_002.png'),
-    require('@/albums/DFA12_твердый переплет/page_003.png'),
-  ],
-  'DFA12_пружина': [
-    require('@/albums/DFA12_пружина/page_001.png'),
-    require('@/albums/DFA12_пружина/page_002.png'),
-    require('@/albums/DFA12_пружина/page_003.png'),
-    require('@/albums/DFA12_пружина/page_004.png'),
-  ],
+  'DFA12_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA12_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA12_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA12_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA12_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA12_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA12_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA12_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA12_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA15
-  'DFA15_твердый переплет': [
-    require('@/albums/DFA15_твердый переплет/page_001.png'),
-    require('@/albums/DFA15_твердый переплет/page_002.png'),
-    require('@/albums/DFA15_твердый переплет/page_003.png'),
-  ],
-  'DFA15_пружина': [
-    require('@/albums/DFA15_пружина/page_001.png'),
-    require('@/albums/DFA15_пружина/page_002.png'),
-    require('@/albums/DFA15_пружина/page_003.png'),
-    require('@/albums/DFA15_пружина/page_004.png'),
-  ],
+  'DFA15_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA15_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA15_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA15_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA15_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA15_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA15_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA15_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA15_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA16
-  'DFA16_твердый переплет': [
-    require('@/albums/DFA16_твердый переплет/page_001.png'),
-    require('@/albums/DFA16_твердый переплет/page_002.png'),
-    require('@/albums/DFA16_твердый переплет/page_003.png'),
-  ],
-  'DFA16_пружина': [
-    require('@/albums/DFA16_пружина/page_001.png'),
-    require('@/albums/DFA16_пружина/page_002.png'),
-    require('@/albums/DFA16_пружина/page_003.png'),
-    require('@/albums/DFA16_пружина/page_004.png'),
-  ],
+  'DFA16_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA16_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA16_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA16_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA16_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA16_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA16_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA16_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA16_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // Добавляем остальные папки на основе KIDS_COVER_PDF_MAPPING
   // DFA19
-  'DFA19_твердый переплет': [
-    require('@/albums/DFA19_твердый переплет/page_001.png'),
-    require('@/albums/DFA19_твердый переплет/page_002.png'),
-    require('@/albums/DFA19_твердый переплет/page_003.png'),
-  ],
-  'DFA19_пружина': [
-    require('@/albums/DFA19_пружина/page_001.png'),
-    require('@/albums/DFA19_пружина/page_002.png'),
-    require('@/albums/DFA19_пружина/page_003.png'),
-    require('@/albums/DFA19_пружина/page_004.png'),
-  ],
+  'DFA19_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA19_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA19_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA19_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA19_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA19_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA19_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA19_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA19_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA21
-  'DFA21_твердый переплет': [
-    require('@/albums/DFA21_твердый переплет/page_001.png'),
-    require('@/albums/DFA21_твердый переплет/page_002.png'),
-    require('@/albums/DFA21_твердый переплет/page_003.png'),
-  ],
-  'DFA21_пружина': [
-    require('@/albums/DFA21_пружина/page_001.png'),
-    require('@/albums/DFA21_пружина/page_002.png'),
-    require('@/albums/DFA21_пружина/page_003.png'),
-    require('@/albums/DFA21_пружина/page_004.png'),
-  ],
+  'DFA21_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA21_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA21_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA21_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA21_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA21_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA21_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA21_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA21_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA22
-  'DFA22_твердый переплет': [
-    require('@/albums/DFA22_твердый переплет/page_001.png'),
-    require('@/albums/DFA22_твердый переплет/page_002.png'),
-    require('@/albums/DFA22_твердый переплет/page_003.png'),
-  ],
-  'DFA22_пружина': [
-    require('@/albums/DFA22_пружина/page_001.png'),
-    require('@/albums/DFA22_пружина/page_002.png'),
-    require('@/albums/DFA22_пружина/page_003.png'),
-    require('@/albums/DFA22_пружина/page_004.png'),
-  ],
+  'DFA22_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA22_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA22_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA22_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA22_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA22_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA22_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA22_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA22_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA23
-  'DFA23_твердый переплет': [
-    require('@/albums/DFA23_твердый переплет/page_001.png'),
-    require('@/albums/DFA23_твердый переплет/page_002.png'),
-    require('@/albums/DFA23_твердый переплет/page_003.png'),
-  ],
-  'DFA23_пружина': [
-    require('@/albums/DFA23_пружина/page_001.png'),
-    require('@/albums/DFA23_пружина/page_002.png'),
-    require('@/albums/DFA23_пружина/page_003.png'),
-    require('@/albums/DFA23_пружина/page_004.png'),
-  ],
+  'DFA23_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA23_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA23_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA23_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA23_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA23_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA23_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA23_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA23_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA24
-  'DFA24_твердый переплет': [
-    require('@/albums/DFA24_твердый переплет/page_001.png'),
-    require('@/albums/DFA24_твердый переплет/page_002.png'),
-    require('@/albums/DFA24_твердый переплет/page_003.png'),
-  ],
-  'DFA24_пружина': [
-    require('@/albums/DFA24_пружина/page_001.png'),
-    require('@/albums/DFA24_пружина/page_002.png'),
-    require('@/albums/DFA24_пружина/page_003.png'),
-    require('@/albums/DFA24_пружина/page_004.png'),
-  ],
+  'DFA24_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA24_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA24_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA24_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA24_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA24_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA24_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA24_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA24_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA25
-  'DFA25_твердый переплет': [
-    require('@/albums/DFA25_твердый переплет/page_001.png'),
-    require('@/albums/DFA25_твердый переплет/page_002.png'),
-    require('@/albums/DFA25_твердый переплет/page_003.png'),
-  ],
-  'DFA25_пружина': [
-    require('@/albums/DFA25_пружина/page_001.png'),
-    require('@/albums/DFA25_пружина/page_002.png'),
-    require('@/albums/DFA25_пружина/page_003.png'),
-    require('@/albums/DFA25_пружина/page_004.png'),
-  ],
+  'DFA25_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA25_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA25_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA25_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA25_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA25_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA25_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA25_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA25_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA26
-  'DFA26_твердый переплет': [
-    require('@/albums/DFA26_твердый переплет/page_001.png'),
-    require('@/albums/DFA26_твердый переплет/page_002.png'),
-    require('@/albums/DFA26_твердый переплет/page_003.png'),
-  ],
-  'DFA26_пружина': [
-    require('@/albums/DFA26_пружина/page_001.png'),
-    require('@/albums/DFA26_пружина/page_002.png'),
-    require('@/albums/DFA26_пружина/page_003.png'),
-    require('@/albums/DFA26_пружина/page_004.png'),
-  ],
+  'DFA26_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA26_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA26_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA26_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA26_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA26_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA26_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA26_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA26_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA27
-  'DFA27_твердый переплет': [
-    require('@/albums/DFA27_твердый переплет/page_001.png'),
-    require('@/albums/DFA27_твердый переплет/page_002.png'),
-    require('@/albums/DFA27_твердый переплет/page_003.png'),
-  ],
-  'DFA27_пружина': [
-    require('@/albums/DFA27_пружина/page_001.png'),
-    require('@/albums/DFA27_пружина/page_002.png'),
-    require('@/albums/DFA27_пружина/page_003.png'),
-    require('@/albums/DFA27_пружина/page_004.png'),
-  ],
+  'DFA27_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA27_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA27_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA27_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA27_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA27_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA27_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA27_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA27_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA28
-  'DFA28_твердый переплет': [
-    require('@/albums/DFA28_твердый переплет/page_001.png'),
-    require('@/albums/DFA28_твердый переплет/page_002.png'),
-  ],
-  'DFA28_пружина': [
-    require('@/albums/DFA28_пружина/page_001.png'),
-    require('@/albums/DFA28_пружина/page_002.png'),
-    require('@/albums/DFA28_пружина/page_003.png'),
-    require('@/albums/DFA28_пружина/page_004.png'),
-  ],
+  'DFA28_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA28_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA28_твердый переплет/page_002.png')); } catch {}
+    return images;
+  })(),
+  'DFA28_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA28_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA28_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA28_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA28_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA29
-  'DFA29_твердый переплет': [
-    require('@/albums/DFA29_твердый переплет/page_001.png'),
-    require('@/albums/DFA29_твердый переплет/page_002.png'),
-    require('@/albums/DFA29_твердый переплет/page_003.png'),
-  ],
-  'DFA29_пружина': [
-    require('@/albums/DFA29_пружина/page_001.png'),
-    require('@/albums/DFA29_пружина/page_002.png'),
-    require('@/albums/DFA29_пружина/page_003.png'),
-    require('@/albums/DFA29_пружина/page_004.png'),
-  ],
+  'DFA29_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA29_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA29_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA29_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA29_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA29_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA29_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA29_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA29_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA30
-  'DFA30_твердый переплет': [
-    require('@/albums/DFA30_твердый переплет/page_001.png'),
-    require('@/albums/DFA30_твердый переплет/page_002.png'),
-    require('@/albums/DFA30_твердый переплет/page_003.png'),
-  ],
-  'DFA30_пружина': [
-    require('@/albums/DFA30_пружина/page_001.png'),
-    require('@/albums/DFA30_пружина/page_002.png'),
-    require('@/albums/DFA30_пружина/page_003.png'),
-    require('@/albums/DFA30_пружина/page_004.png'),
-  ],
+  'DFA30_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA30_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA30_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA30_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA30_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA30_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA30_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA30_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA30_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA31
-  'DFA31_твердый переплет': [
-    require('@/albums/DFA31_твердый переплет/page_001.png'),
-    require('@/albums/DFA31_твердый переплет/page_002.png'),
-    require('@/albums/DFA31_твердый переплет/page_003.png'),
-  ],
-  'DFA31_пружина': [
-    require('@/albums/DFA31_пружина/page_001.png'),
-    require('@/albums/DFA31_пружина/page_002.png'),
-    require('@/albums/DFA31_пружина/page_003.png'),
-    require('@/albums/DFA31_пружина/page_004.png'),
-  ],
+  'DFA31_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA31_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA31_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA31_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA31_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA31_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA31_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA31_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA31_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // dfa43
-  'dfa43_твердый переплет': [
-    require('@/albums/dfa43_твердый переплет/page_001.png'),
-    require('@/albums/dfa43_твердый переплет/page_002.png'),
-    require('@/albums/dfa43_твердый переплет/page_003.png'),
-  ],
-  'dfa43_пружина': [
-    require('@/albums/dfa43_пружина/page_001.png'),
-    require('@/albums/dfa43_пружина/page_002.png'),
-    require('@/albums/dfa43_пружина/page_003.png'),
-    require('@/albums/dfa43_пружина/page_004.png'),
-  ],
+  'dfa43_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/dfa43_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/dfa43_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/dfa43_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'dfa43_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/dfa43_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/dfa43_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/dfa43_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/dfa43_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA46
-  'DFA46_твердый переплет': [
-    require('@/albums/DFA46_твердый переплет/page_001.png'),
-    require('@/albums/DFA46_твердый переплет/page_002.png'),
-    require('@/albums/DFA46_твердый переплет/page_003.png'),
-  ],
-  'DFA46_пружина': [
-    require('@/albums/DFA46_пружина/page_001.png'),
-    require('@/albums/DFA46_пружина/page_002.png'),
-    require('@/albums/DFA46_пружина/page_003.png'),
-    require('@/albums/DFA46_пружина/page_004.png'),
-  ],
+  'DFA46_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA46_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA46_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA46_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA46_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA46_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA46_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA46_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA46_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA47
-  'DFA47_твердый переплет': [
-    require('@/albums/DFA47_твердый переплет/page_001.png'),
-    require('@/albums/DFA47_твердый переплет/page_002.png'),
-    require('@/albums/DFA47_твердый переплет/page_003.png'),
-  ],
-  'DFA47_пружина': [
-    require('@/albums/DFA47_пружина/page_001.png'),
-    require('@/albums/DFA47_пружина/page_002.png'),
-    require('@/albums/DFA47_пружина/page_003.png'),
-    require('@/albums/DFA47_пружина/page_004.png'),
-  ],
+  'DFA47_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA47_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA47_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA47_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA47_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA47_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA47_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA47_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA47_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA50
-  'DFA50_твердый переплет': [
-    require('@/albums/DFA50_твердый переплет/page_001.png'),
-    require('@/albums/DFA50_твердый переплет/page_002.png'),
-    require('@/albums/DFA50_твердый переплет/page_003.png'),
-  ],
-  'DFA50_пружина': [
-    require('@/albums/DFA50_пружина/page_001.png'),
-    require('@/albums/DFA50_пружина/page_002.png'),
-    require('@/albums/DFA50_пружина/page_003.png'),
-    require('@/albums/DFA50_пружина/page_004.png'),
-  ],
+  'DFA50_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA50_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA50_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA50_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA50_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA50_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA50_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA50_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA50_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA52
-  'DFA52_твердый переплет': [
-    require('@/albums/DFA52_твердый переплет/page_001.png'),
-    require('@/albums/DFA52_твердый переплет/page_002.png'),
-    require('@/albums/DFA52_твердый переплет/page_003.png'),
-  ],
-  'DFA52_пружина': [
-    require('@/albums/DFA52_пружина/page_001.png'),
-    require('@/albums/DFA52_пружина/page_002.png'),
-    require('@/albums/DFA52_пружина/page_003.png'),
-    require('@/albums/DFA52_пружина/page_004.png'),
-  ],
+  'DFA52_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA52_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA52_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA52_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA52_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA52_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA52_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA52_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA52_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA53
-  'DFA53_твердый переплет': [
-    require('@/albums/DFA53_твердый переплет/page_001.png'),
-    require('@/albums/DFA53_твердый переплет/page_002.png'),
-  ],
-  'DFA53_пружина': [
-    require('@/albums/DFA53_пружина/page_001.png'),
-    require('@/albums/DFA53_пружина/page_002.png'),
-    require('@/albums/DFA53_пружина/page_003.png'),
-    require('@/albums/DFA53_пружина/page_004.png'),
-  ],
+  'DFA53_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA53_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA53_твердый переплет/page_002.png')); } catch {}
+    return images;
+  })(),
+  'DFA53_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA53_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA53_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA53_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA53_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA59
-  'DFA59_твердый переплет': [
-    require('@/albums/DFA59_твердый переплет/page_001.png'),
-    require('@/albums/DFA59_твердый переплет/page_002.png'),
-    require('@/albums/DFA59_твердый переплет/page_003.png'),
-  ],
-  'DFA59_пружина': [
-    require('@/albums/DFA59_пружина/page_001.png'),
-    require('@/albums/DFA59_пружина/page_002.png'),
-    require('@/albums/DFA59_пружина/page_003.png'),
-    require('@/albums/DFA59_пружина/page_004.png'),
-  ],
+  'DFA59_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA59_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA59_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA59_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA59_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA59_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA59_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA59_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA59_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA60
-  'DFA60_твердый переплет': [
-    require('@/albums/DFA60_твердый переплет/page_001.png'),
-    require('@/albums/DFA60_твердый переплет/page_002.png'),
-    require('@/albums/DFA60_твердый переплет/page_003.png'),
-  ],
-  'DFA60_пружина': [
-    require('@/albums/DFA60_пружина/page_001.png'),
-    require('@/albums/DFA60_пружина/page_002.png'),
-    require('@/albums/DFA60_пружина/page_003.png'),
-    require('@/albums/DFA60_пружина/page_004.png'),
-  ],
+  'DFA60_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA60_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA60_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA60_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA60_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA60_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA60_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA60_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA60_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA71
-  'DFA71_твердый переплет': [
-    require('@/albums/DFA71_твердый переплет/page_001.png'),
-    require('@/albums/DFA71_твердый переплет/page_002.png'),
-    require('@/albums/DFA71_твердый переплет/page_003.png'),
-  ],
-  'DFA71_пружина': [
-    require('@/albums/DFA71_пружина/page_001.png'),
-    require('@/albums/DFA71_пружина/page_002.png'),
-    require('@/albums/DFA71_пружина/page_003.png'),
-    require('@/albums/DFA71_пружина/page_004.png'),
-  ],
+  'DFA71_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA71_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA71_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA71_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA71_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA71_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA71_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA71_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA71_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA72
-  'DFA72_твердый переплет': [
-    require('@/albums/DFA72_твердый переплет/page_001.png'),
-    require('@/albums/DFA72_твердый переплет/page_002.png'),
-    require('@/albums/DFA72_твердый переплет/page_003.png'),
-  ],
-  'DFA72_пружина': [
-    require('@/albums/DFA72_пружина/page_001.png'),
-    require('@/albums/DFA72_пружина/page_002.png'),
-    require('@/albums/DFA72_пружина/page_003.png'),
-    require('@/albums/DFA72_пружина/page_004.png'),
-  ],
+  'DFA72_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA72_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA72_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA72_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA72_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA72_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA72_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA72_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA72_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA74
-  'DFA74_твердый переплет': [
-    require('@/albums/DFA74_твердый переплет/page_001.png'),
-    require('@/albums/DFA74_твердый переплет/page_002.png'),
-    require('@/albums/DFA74_твердый переплет/page_003.png'),
-  ],
-  'DFA74_пружина': [
-    require('@/albums/DFA74_пружина/page_001.png'),
-    require('@/albums/DFA74_пружина/page_002.png'),
-    require('@/albums/DFA74_пружина/page_003.png'),
-    require('@/albums/DFA74_пружина/page_004.png'),
-  ],
+  'DFA74_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA74_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA74_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA74_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA74_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA74_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA74_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA74_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA74_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA205
-  'DFA205_твердый переплет': [
-    require('@/albums/DFA205_твердый переплет/page_001.png'),
-    require('@/albums/DFA205_твердый переплет/page_002.png'),
-    require('@/albums/DFA205_твердый переплет/page_003.png'),
-  ],
-  'DFA205_пружина': [
-    require('@/albums/DFA205_пружина/page_001.png'),
-    require('@/albums/DFA205_пружина/page_002.png'),
-    require('@/albums/DFA205_пружина/page_003.png'),
-    require('@/albums/DFA205_пружина/page_004.png'),
-  ],
+  'DFA205_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA205_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA205_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA205_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA205_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA205_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA205_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA205_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA205_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA206
-  'DFA206_твердый переплет': [
-    require('@/albums/DFA206_твердый переплет/page_001.png'),
-    require('@/albums/DFA206_твердый переплет/page_002.png'),
-    require('@/albums/DFA206_твердый переплет/page_003.png'),
-  ],
-  'DFA206_пружина': [
-    require('@/albums/DFA206_пружина/page_001.png'),
-    require('@/albums/DFA206_пружина/page_002.png'),
-    require('@/albums/DFA206_пружина/page_003.png'),
-    require('@/albums/DFA206_пружина/page_004.png'),
-  ],
+  'DFA206_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA206_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA206_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA206_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA206_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA206_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA206_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA206_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA206_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA207
-  'DFA207_твердый переплет': [
-    require('@/albums/DFA207_твердый переплет/page_001.png'),
-    require('@/albums/DFA207_твердый переплет/page_002.png'),
-    require('@/albums/DFA207_твердый переплет/page_003.png'),
-  ],
-  'DFA207_пружина': [
-    require('@/albums/DFA207_пружина/page_001.png'),
-    require('@/albums/DFA207_пружина/page_002.png'),
-    require('@/albums/DFA207_пружина/page_003.png'),
-    require('@/albums/DFA207_пружина/page_004.png'),
-  ],
+  'DFA207_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA207_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA207_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA207_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA207_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA207_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA207_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA207_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA207_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA208
-  'DFA208_твердый переплет': [
-    require('@/albums/DFA208_твердый переплет/page_001.png'),
-    require('@/albums/DFA208_твердый переплет/page_002.png'),
-    require('@/albums/DFA208_твердый переплет/page_003.png'),
-  ],
-  'DFA208_пружина': [
-    require('@/albums/DFA208_пружина/page_001.png'),
-    require('@/albums/DFA208_пружина/page_002.png'),
-    require('@/albums/DFA208_пружина/page_003.png'),
-    require('@/albums/DFA208_пружина/page_004.png'),
-  ],
+  'DFA208_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA208_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA208_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA208_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA208_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA208_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA208_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA208_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA208_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA301
-  'DFA301_твердый переплет': [
-    require('@/albums/DFA301_твердый переплет/page_001.png'),
-    require('@/albums/DFA301_твердый переплет/page_002.png'),
-    require('@/albums/DFA301_твердый переплет/page_003.png'),
-  ],
-  'DFA301_пружина': [
-    require('@/albums/DFA301_пружина/page_001.png'),
-    require('@/albums/DFA301_пружина/page_002.png'),
-    require('@/albums/DFA301_пружина/page_003.png'),
-    require('@/albums/DFA301_пружина/page_004.png'),
-  ],
+  'DFA301_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA301_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA301_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA301_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA301_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA301_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA301_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA301_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA301_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA302
-  'DFA302_твердый переплет': [
-    require('@/albums/DFA302_твердый переплет/page_001.png'),
-    require('@/albums/DFA302_твердый переплет/page_002.png'),
-    require('@/albums/DFA302_твердый переплет/page_003.png'),
-  ],
-  'DFA302_пружина': [
-    require('@/albums/DFA302_пружина/page_001.png'),
-    require('@/albums/DFA302_пружина/page_002.png'),
-    require('@/albums/DFA302_пружина/page_003.png'),
-    require('@/albums/DFA302_пружина/page_004.png'),
-  ],
+  'DFA302_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA302_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA302_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA302_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA302_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA302_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA302_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA302_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA302_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA304
-  'DFA304_твердый переплет': [
-    require('@/albums/DFA304_твердый переплет/page_001.png'),
-    require('@/albums/DFA304_твердый переплет/page_002.png'),
-    require('@/albums/DFA304_твердый переплет/page_003.png'),
-  ],
-  'DFA304_пружина': [
-    require('@/albums/DFA304_пружина/page_001.png'),
-    require('@/albums/DFA304_пружина/page_002.png'),
-    require('@/albums/DFA304_пружина/page_003.png'),
-    require('@/albums/DFA304_пружина/page_004.png'),
-  ],
+  'DFA304_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA304_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA304_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA304_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA304_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA304_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA304_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA304_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA304_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA305
-  'DFA305_твердый переплет': [
-    require('@/albums/DFA305_твердый переплет/page_001.png'),
-    require('@/albums/DFA305_твердый переплет/page_002.png'),
-    require('@/albums/DFA305_твердый переплет/page_003.png'),
-  ],
-  'DFA305_пружина': [
-    require('@/albums/DFA305_пружина/page_001.png'),
-    require('@/albums/DFA305_пружина/page_002.png'),
-    require('@/albums/DFA305_пружина/page_003.png'),
-    require('@/albums/DFA305_пружина/page_004.png'),
-  ],
+  'DFA305_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA305_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA305_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA305_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA305_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA305_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA305_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA305_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA305_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA306
-  'DFA306_твердый переплет': [
-    require('@/albums/DFA306_твердый переплет/page_001.png'),
-    require('@/albums/DFA306_твердый переплет/page_002.png'),
-    require('@/albums/DFA306_твердый переплет/page_003.png'),
-  ],
-  'DFA306_пружина': [
-    require('@/albums/DFA306_пружина/page_001.png'),
-    require('@/albums/DFA306_пружина/page_002.png'),
-    require('@/albums/DFA306_пружина/page_003.png'),
-    require('@/albums/DFA306_пружина/page_004.png'),
-  ],
+  'DFA306_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA306_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA306_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA306_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA306_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA306_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA306_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA306_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA306_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA307
-  'DFA307_твердый переплет': [
-    require('@/albums/DFA307_твердый переплет/page_001.png'),
-    require('@/albums/DFA307_твердый переплет/page_002.png'),
-    require('@/albums/DFA307_твердый переплет/page_003.png'),
-  ],
-  'DFA307_пружина': [
-    require('@/albums/DFA307_пружина/page_001.png'),
-    require('@/albums/DFA307_пружина/page_002.png'),
-    require('@/albums/DFA307_пружина/page_003.png'),
-    require('@/albums/DFA307_пружина/page_004.png'),
-  ],
+  'DFA307_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA307_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA307_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA307_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA307_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA307_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA307_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA307_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA307_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
   // DFA309
-  'DFA309_твердый переплет': [
-    require('@/albums/DFA309_твердый переплет/page_001.png'),
-    require('@/albums/DFA309_твердый переплет/page_002.png'),
-    require('@/albums/DFA309_твердый переплет/page_003.png'),
-  ],
-  'DFA309_пружина': [
-    require('@/albums/DFA309_пружина/page_001.png'),
-    require('@/albums/DFA309_пружина/page_002.png'),
-    require('@/albums/DFA309_пружина/page_003.png'),
-    require('@/albums/DFA309_пружина/page_004.png'),
-  ],
+  'DFA309_твердый переплет': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA309_твердый переплет/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA309_твердый переплет/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA309_твердый переплет/page_003.png')); } catch {}
+    return images;
+  })(),
+  'DFA309_пружина': (() => {
+    const images: any[] = [];
+    try { images.push(require('@/albums/DFA309_пружина/page_001.png')); } catch {}
+    try { images.push(require('@/albums/DFA309_пружина/page_002.png')); } catch {}
+    try { images.push(require('@/albums/DFA309_пружина/page_003.png')); } catch {}
+    try { images.push(require('@/albums/DFA309_пружина/page_004.png')); } catch {}
+    return images;
+  })(),
 };
 
 /**
@@ -608,7 +797,11 @@ export function getCoverImageModules(folderName: string | null): any[] | null {
   if (!folderName) return null;
   
   const images = COVER_IMAGES_MAPPING[folderName];
-  return images || null;
+  if (!images) return null;
+  
+  // Фильтруем null значения (для несуществующих файлов)
+  const validImages = images.filter((img): img is any => img !== null);
+  return validImages.length > 0 ? validImages : null;
 }
 
 /**

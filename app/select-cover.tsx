@@ -27,6 +27,8 @@ import Constants from 'expo-constants';
 import { Asset } from 'expo-asset';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { getAlbumImages } from '@/utils/albumImages';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -114,6 +116,7 @@ export default function SelectCoverScreen() {
 
   // Получаем все альбомы и преобразуем их в обложки
   const albumTemplates = getAllAlbumTemplates();
+  const diaryCovers = getAllDiaryCovers();
 
   const coverTypes: CoverType[] = useMemo(() => {
     // Генерация градиентов на основе категорий
@@ -123,7 +126,23 @@ export default function SelectCoverScreen() {
       family: ['#D4A574', '#C9A89A'],
       wedding: ['#F093FB', '#F5576C'],
       travel: ['#FFD89B', '#19547B'],
+      diary: ['#C9A89A', '#A68B5B'],
     };
+
+    // Для дневников используем специальные обложки
+    if (celebration === 'diary') {
+      return diaryCovers.map((cover) => {
+        const gradient = categoryGradients.diary;
+        return {
+          id: cover.id,
+          title: cover.name,
+          description: 'Личный дневник для записи мыслей и воспоминаний',
+          image: cover.image,
+          color: gradient[0],
+          gradient,
+        };
+      });
+    }
 
     // Фильтруем альбомы по категории, если указана
     const filteredAlbums = celebration
@@ -141,13 +160,13 @@ export default function SelectCoverScreen() {
         gradient,
       };
     });
-  }, [albumTemplates, celebration]);
+  }, [albumTemplates, celebration, diaryCovers]);
 
   React.useEffect(() => {
     containerOpacity.value = withTiming(1, { duration: 400 });
   }, []);
 
-  // Предзагрузка всех изображений обложек при монтировании и фокусе экрана
+  // МАКСИМАЛЬНАЯ предзагрузка всех изображений обложек и внутренних страниц
   useFocusEffect(
     React.useCallback(() => {
       const preloadCoverImages = async () => {
@@ -172,16 +191,61 @@ export default function SelectCoverScreen() {
           );
 
           console.log(`✅ Предзагружено ${imagesToPreload.length} изображений обложек`);
+          
+          // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы для pregnancy, kids и diary
+          Promise.resolve().then(async () => {
+            try {
+              if (celebration === 'pregnancy') {
+                const pregnancyImages = getAlbumImages('pregnancy_60');
+                if (pregnancyImages.length > 0) {
+                  await Promise.all(
+                    pregnancyImages.map(async (imageModule) => {
+                      try {
+                        const asset = Asset.fromModule(imageModule);
+                        await asset.downloadAsync();
+                      } catch (err) {
+                        // Игнорируем ошибки
+                      }
+                    })
+                  );
+                  console.log(`✅ Предзагружено ${pregnancyImages.length} внутренних страниц беременности`);
+                }
+              } else if (celebration === 'kids') {
+                const kidsImages = getAlbumImages('kids_48');
+                if (kidsImages.length > 0) {
+                  await Promise.all(
+                    kidsImages.map(async (imageModule) => {
+                      try {
+                        const asset = Asset.fromModule(imageModule);
+                        await asset.downloadAsync();
+                      } catch (err) {
+                        // Игнорируем ошибки
+                      }
+                    })
+                  );
+                  console.log(`✅ Предзагружено ${kidsImages.length} внутренних страниц kids`);
+                }
+              } else if (celebration === 'diary') {
+                // Предзагружаем оба варианта внутренних страниц дневников
+                const brownUris = await getDiaryInteriorImageUris('diary_interior_brown');
+                const purpleUris = await getDiaryInteriorImageUris('diary_interior_purple');
+                const totalPages = (brownUris?.length || 0) + (purpleUris?.length || 0);
+                console.log(`✅ Предзагружено ${totalPages} внутренних страниц дневников (коричневый: ${brownUris?.length || 0}, фиолетовый: ${purpleUris?.length || 0})`);
+              }
+            } catch (err) {
+              // Игнорируем ошибки фоновой загрузки
+            }
+          });
         } catch (error) {
           // Игнорируем общие ошибки
         }
       };
 
       preloadCoverImages();
-    }, [coverTypes])
+    }, [coverTypes, celebration])
   );
 
-  // Также предзагружаем при монтировании
+  // Также предзагружаем при монтировании (дублируем логику для максимальной скорости)
   React.useEffect(() => {
     const preloadOnMount = async () => {
       try {
@@ -203,13 +267,53 @@ export default function SelectCoverScreen() {
             }
           })
         );
+        
+        // МАКСИМАЛЬНАЯ загрузка: предзагружаем внутренние страницы при монтировании
+        Promise.resolve().then(async () => {
+          try {
+            if (celebration === 'pregnancy') {
+              const pregnancyImages = getAlbumImages('pregnancy_60');
+              if (pregnancyImages.length > 0) {
+                await Promise.all(
+                  pregnancyImages.map(async (imageModule) => {
+                    try {
+                      const asset = Asset.fromModule(imageModule);
+                      await asset.downloadAsync();
+                    } catch (err) {
+                      // Игнорируем ошибки
+                    }
+                  })
+                );
+              }
+            } else if (celebration === 'kids') {
+              const kidsImages = getAlbumImages('kids_48');
+              if (kidsImages.length > 0) {
+                await Promise.all(
+                  kidsImages.map(async (imageModule) => {
+                    try {
+                      const asset = Asset.fromModule(imageModule);
+                      await asset.downloadAsync();
+                    } catch (err) {
+                      // Игнорируем ошибки
+                    }
+                  })
+                );
+              }
+            } else if (celebration === 'diary') {
+              await getDiaryInteriorImageUris('diary_interior_brown');
+              await getDiaryInteriorImageUris('diary_interior_purple');
+            }
+          } catch (err) {
+            // Игнорируем ошибки фоновой загрузки
+          }
+        });
       } catch (error) {
         // Игнорируем ошибки
       }
     };
 
     preloadOnMount();
-  }, [coverTypes]);
+  }, [coverTypes, celebration]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -266,6 +370,13 @@ export default function SelectCoverScreen() {
         description: 'Выберите дату начала поездки. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
         notificationTitle: 'Начало поездки',
         notificationBody: 'Сегодня начинается ваше путешествие!',
+      },
+      diary: {
+        name: 'Дневники',
+        title: 'Дата начала дневника',
+        description: 'Выберите дату начала ведения дневника. Эта дата будет сохранена в напоминаниях.',
+        notificationTitle: 'Начало дневника',
+        notificationBody: 'Сегодня начало вашего дневника!',
       },
     };
     return categoryMap[categoryId] || categoryMap.pregnancy;
@@ -421,7 +532,7 @@ export default function SelectCoverScreen() {
       setDueDate(getDefaultDate(celebration));
     } else {
       console.log('[Select Cover] Skipping date modal, celebration:', celebration);
-      // Для остальных категорий сразу переходим к выбору действия
+      // Для остальных категорий (включая diary) сразу переходим к выбору действия
       router.push({
         pathname: '/select-action',
         params: {
@@ -484,6 +595,7 @@ export default function SelectCoverScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
   };

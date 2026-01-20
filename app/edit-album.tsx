@@ -25,6 +25,7 @@ import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { Asset } from 'expo-asset';
 import { getAlbumTemplateById } from '@/albums';
 import { getAlbumImageUris, getAlbumPageCount, getAlbumImages } from '@/utils/albumImages';
+import { getDiaryInteriorById, getDiaryInteriorImageUris, getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
 import { Annotation, PdfAnnotationsRef, AVAILABLE_FONTS } from '@/components/pdf-annotations';
 import { createId, ensureUniqueIds } from '@/utils/id';
 
@@ -230,7 +231,14 @@ export default function EditAlbumScreen() {
       } else if (interiorType) {
         // Если передан interiorType, используем соответствующий альбом
         foundAlbumId = interiorType;
-        if (coverType) {
+        
+        // Для дневников получаем название из обложки
+        if (celebration === 'diary' && coverType) {
+          const diaryCover = getDiaryCoverById(coverType);
+          if (diaryCover) {
+            foundAlbumName = diaryCover.name;
+          }
+        } else if (coverType) {
           const albumTemplate = getAlbumTemplateById(coverType);
           if (albumTemplate) {
             foundAlbumName = albumTemplate.name;
@@ -255,6 +263,9 @@ export default function EditAlbumScreen() {
         // Если это категория kids, используем kids_48
         if (celebration === 'kids') {
           foundAlbumId = 'kids_48';
+        } else if (celebration === 'diary') {
+          // Для дневников используем коричневый блок по умолчанию
+          foundAlbumId = 'diary_interior_brown';
         } else {
           foundAlbumId = 'pregnancy_60';
         }
@@ -265,7 +276,143 @@ export default function EditAlbumScreen() {
       
       // Загружаем изображения для альбома
       let imageUris: string[] = [];
-      const pageCount = getAlbumPageCount(foundAlbumId);
+      let pageCount = 0;
+      
+      // Для дневников используем специальную логику загрузки
+      if (celebration === 'diary' && foundAlbumId.startsWith('diary_interior_')) {
+        const interior = getDiaryInteriorById(foundAlbumId);
+        if (interior) {
+          pageCount = interior.pages;
+          setTotalPages(pageCount);
+          
+          // ВАЖНО: Сначала проверяем сохраненные изображения для существующего проекта
+          if (id) {
+            const savedImages = await AsyncStorage.getItem(`@project_images_${id}`);
+            if (savedImages) {
+              try {
+                const parsed = JSON.parse(savedImages);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  // Используем сохраненные изображения (могут содержать пользовательские фото)
+                  imageUris = parsed;
+                  setImages(imageUris);
+                  setTotalPages(imageUris.length);
+                  setIsLoading(false);
+                  
+                  // Загружаем сохраненные аннотации
+                  const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
+                  if (savedAnnotations) {
+                    const parsed = JSON.parse(savedAnnotations) as Annotation[];
+                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    setAnnotations(items);
+                    if (changed) {
+                      await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
+                    }
+                  }
+                  
+                  // Загружаем аннотации обложки
+                  const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
+                  if (savedCoverAnnotations) {
+                    const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
+                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    setCoverAnnotations(items);
+                    if (changed) {
+                      await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
+                    }
+                  }
+                  
+                  return; // Выходим - используем сохраненные данные
+                }
+              } catch {
+                // Если ошибка парсинга, продолжаем загрузку оригинальных изображений
+              }
+            }
+          }
+          
+          // Если сохраненных изображений нет, загружаем оригинальные
+          const interiorUris = await getDiaryInteriorImageUris(foundAlbumId);
+          if (interiorUris && interiorUris.length > 0) {
+            imageUris = interiorUris;
+            setImages(imageUris);
+            setIsLoading(false);
+            
+            // Сохраняем изображения в кеш только если это новый проект
+            if (id) {
+              await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(imageUris));
+            }
+            
+            // Загружаем сохраненные аннотации
+            if (id) {
+              const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
+              if (savedAnnotations) {
+                const parsed = JSON.parse(savedAnnotations) as Annotation[];
+                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                setAnnotations(items);
+                if (changed) {
+                  await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
+                }
+              }
+              
+              // Загружаем аннотации обложки
+              const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
+              if (savedCoverAnnotations) {
+                const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
+                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                setCoverAnnotations(items);
+                if (changed) {
+                  await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
+                }
+              }
+            }
+            
+            // Если проекта нет, создаем его
+            if (!id && (coverType || interiorType) && celebration) {
+              const newProjectId = Date.now().toString();
+              const diaryCover = coverType ? getDiaryCoverById(coverType) : null;
+              
+              const projectData: any = {
+                id: newProjectId,
+                title: diaryCover?.name || foundAlbumName || getCelebrationTitle(celebration),
+                category: celebration,
+                albumId: foundAlbumId,
+                createdAt: new Date().toISOString(),
+                isReadyMadeAlbum: true,
+              };
+              
+              // Сохраняем обложку дневника для отображения на главной странице
+              if (celebration === 'diary' && diaryCover) {
+                projectData.thumbnailPath = diaryCover.image;
+              }
+              
+              if (eventDate) {
+                projectData.reminderDate = eventDate;
+              }
+              
+              await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
+              
+              const existingProjects = await AsyncStorage.getItem('@user_projects');
+              const projects = existingProjects ? JSON.parse(existingProjects) : [];
+              projects.push(projectData);
+              await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+              
+              router.replace({
+                pathname: '/edit-album',
+                params: {
+                  id: newProjectId,
+                  celebration,
+                  coverType,
+                  interiorType,
+                  eventDate,
+                }
+              });
+            }
+            
+            return; // Выходим, так как загрузка завершена
+          }
+        }
+      }
+      
+      // Для остальных категорий используем стандартную логику
+      pageCount = getAlbumPageCount(foundAlbumId);
       // Устанавливаем totalPages сразу, чтобы пагинация работала правильно
       setTotalPages(pageCount);
 
@@ -285,16 +432,44 @@ export default function EditAlbumScreen() {
               setTotalPages(imageUris.length);
               setIsLoading(false);
               
+              // Загружаем сохраненные аннотации ПЕРЕД выходом
+              const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
+              if (savedAnnotations) {
+                const parsed = JSON.parse(savedAnnotations) as Annotation[];
+                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                setAnnotations(items);
+                if (changed) {
+                  await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
+                }
+              }
+              
+              // Загружаем аннотации обложки
+              const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
+              if (savedCoverAnnotations) {
+                const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
+                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                setCoverAnnotations(items);
+                if (changed) {
+                  await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
+                }
+              }
+              
               // Параллельно загружаем остальные страницы в фоне (не блокируем)
+              // ВАЖНО: Догружаем только если сохраненных страниц меньше оригинальных
+              // Но не перезаписываем, если пользователь специально удалил страницы
               if (parsed.length < pageCount) {
                 // Используем requestIdleCallback для фоновой загрузки
                 Promise.resolve().then(async () => {
                   try {
                     const full = await getAlbumImageUris(foundAlbumId);
+                    // Догружаем только недостающие страницы, не перезаписывая существующие
                     if (full.length > parsed.length) {
-                      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(full));
-                      setImages(full);
-                      setTotalPages(full.length);
+                      // Объединяем сохраненные и недостающие страницы
+                      const missingPages = full.slice(parsed.length);
+                      const combined = [...parsed, ...missingPages];
+                      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(combined));
+                      setImages(combined);
+                      setTotalPages(combined.length);
                     }
                   } catch (err) {
                     // Игнорируем ошибки
@@ -310,12 +485,57 @@ export default function EditAlbumScreen() {
       }
 
       // МАКСИМАЛЬНО БЫСТРАЯ загрузка первых страниц
+      // ВАЖНО: Для существующих проектов не загружаем оригинальные изображения,
+      // если сохраненные данные уже загружены или загружаются
       const imageModules = getAlbumImages(foundAlbumId);
       if (imageModules.length > 0) {
+        // Для существующих проектов проверяем, не загружаются ли уже сохраненные данные
+        if (id) {
+          // Дополнительная проверка: возможно сохраненные данные загружаются асинхронно
+          const doubleCheckSaved = await AsyncStorage.getItem(`@project_images_${id}`);
+          if (doubleCheckSaved) {
+            try {
+              const parsed = JSON.parse(doubleCheckSaved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                // Используем сохраненные данные
+                setImages(parsed);
+                setTotalPages(parsed.length);
+                setIsLoading(false);
+                
+                // Загружаем аннотации
+                const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
+                if (savedAnnotations) {
+                  const parsed = JSON.parse(savedAnnotations) as Annotation[];
+                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  setAnnotations(items);
+                  if (changed) {
+                    await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
+                  }
+                }
+                
+                // Загружаем аннотации обложки
+                const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
+                if (savedCoverAnnotations) {
+                  const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
+                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  setCoverAnnotations(items);
+                  if (changed) {
+                    await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
+                  }
+                }
+                
+                return; // Выходим - используем сохраненные данные
+              }
+            } catch {
+              // Если ошибка парсинга, продолжаем загрузку оригинальных
+            }
+          }
+        }
+        
         // Показываем экран МГНОВЕННО - не ждем ничего
         setIsLoading(false);
         
-        // Загружаем первую страницу СУПЕР БЫСТРО
+        // Загружаем первую страницу СУПЕР БЫСТРО (только для новых проектов или если нет сохраненных)
         const firstImage = imageModules[0];
         if (firstImage) {
           try {
@@ -323,14 +543,26 @@ export default function EditAlbumScreen() {
             // Используем URI сразу если доступен
             const immediateUri = asset.localUri || asset.uri;
             if (immediateUri) {
-              setImages([immediateUri]);
+              // Не перезаписываем, если уже есть сохраненные изображения
+              setImages((prev) => {
+                if (prev.length === 0) {
+                  return [immediateUri];
+                }
+                return prev;
+              });
             }
             
             // Параллельно догружаем и обновляем
             asset.downloadAsync().then(() => {
               const finalUri = asset.localUri || asset.uri;
               if (finalUri && finalUri !== immediateUri) {
-                setImages([finalUri]);
+                // Не перезаписываем, если уже есть сохраненные изображения
+                setImages((prev) => {
+                  if (prev.length === 0 || (prev.length === 1 && prev[0] === immediateUri)) {
+                    return [finalUri];
+                  }
+                  return prev;
+                });
               }
             }).catch(() => {});
           } catch {
@@ -339,34 +571,53 @@ export default function EditAlbumScreen() {
         }
 
         // Параллельно загружаем следующие 9 страниц (первые 10 всего) для быстрого скролла
-        const nextImages = imageModules.slice(1, 10);
-        Promise.all(
-          nextImages.map(async (image) => {
-            try {
-              const asset = Asset.fromModule(image);
-              await asset.downloadAsync();
-              return asset.localUri || asset.uri;
-            } catch {
-              return null;
-            }
-          })
-        ).then((nextUris) => {
-          const filtered = nextUris.filter((uri): uri is string => uri !== null);
-          setImages((prev) => {
-            const combined = [...prev, ...filtered];
-            const unique = combined.filter((uri, idx) => combined.indexOf(uri) === idx);
-            return unique;
-          });
-        }).catch(() => {});
+        // Только если это новый проект (нет id) или нет сохраненных данных
+        if (!id) {
+          const nextImages = imageModules.slice(1, 10);
+          Promise.all(
+            nextImages.map(async (image) => {
+              try {
+                const asset = Asset.fromModule(image);
+                await asset.downloadAsync();
+                return asset.localUri || asset.uri;
+              } catch {
+                return null;
+              }
+            })
+          ).then((nextUris) => {
+            const filtered = nextUris.filter((uri): uri is string => uri !== null);
+            setImages((prev) => {
+              const combined = [...prev, ...filtered];
+              const unique = combined.filter((uri, idx) => combined.indexOf(uri) === idx);
+              return unique;
+            });
+          }).catch(() => {});
+        }
 
         // Фоновая предзагрузка ВСЕХ остальных страниц (не блокирует UI)
+        // ВАЖНО: Не перезаписываем сохраненные изображения для существующих проектов
         Promise.resolve().then(async () => {
           try {
+            // Для существующих проектов не перезаписываем сохраненные изображения
+            if (id) {
+              const savedImages = await AsyncStorage.getItem(`@project_images_${id}`);
+              if (savedImages) {
+                // Если есть сохраненные изображения, не перезаписываем их
+                return;
+              }
+            }
+            
             const full = await getAlbumImageUris(foundAlbumId);
             if (full.length > 0) {
               const storageKey = id ? `@project_images_${id}` : `@project_images_${foundAlbumId}`;
               await AsyncStorage.setItem(storageKey, JSON.stringify(full));
-              setImages(full);
+              // Обновляем только если это новый проект или если текущих изображений меньше
+              setImages((prev) => {
+                if (prev.length < full.length) {
+                  return full;
+                }
+                return prev;
+              });
               setTotalPages(full.length);
             }
           } catch (err) {
@@ -482,6 +733,7 @@ export default function EditAlbumScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
   };
@@ -630,8 +882,30 @@ export default function EditAlbumScreen() {
     });
   };
 
-  const handleBack = () => {
+  // Функция для сохранения всех данных проекта
+  const saveAllData = async () => {
+    if (!id) return;
+    
+    try {
+      // Сохраняем все данные параллельно для максимальной скорости
+      await Promise.all([
+        // Сохраняем изображения
+        AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images)),
+        // Сохраняем аннотации страниц
+        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations)),
+        // Сохраняем аннотации обложки
+        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations)),
+      ]);
+    } catch (error) {
+      console.error('Ошибка при сохранении данных проекта:', error);
+      // Не блокируем выход, даже если сохранение не удалось
+    }
+  };
+
+  const handleBack = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Сохраняем все данные перед выходом
+    await saveAllData();
     router.back();
   };
 
@@ -719,15 +993,13 @@ export default function EditAlbumScreen() {
     annotationsRef.current?.openFontPicker?.();
   };
 
-  const handleToggleEdit = () => {
+  const handleToggleEdit = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsEditing(prev => !prev);
     if (isEditing) {
       setCurrentTool(null);
-      // При выходе из режима редактирования сохраняем аннотации обложки
-      if (viewMode === 'cover' && id) {
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
-      }
+      // При выходе из режима редактирования сохраняем все данные
+      await saveAllData();
     }
   };
 
@@ -1048,6 +1320,11 @@ export default function EditAlbumScreen() {
               annotationsRef={annotationsRef}
               onViewportChange={setCoverViewport}
               defaultTextStyle={lastTextStyle}
+              firstPageImage={
+                (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
+                  ? images[0]
+                  : undefined
+              }
             />
           ) : isLoading ? (
             <PdfSkeletonLoader />

@@ -1,6 +1,7 @@
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
 import { getAlbumImageUris } from '@/utils/albumImages';
+import { getKidsFirstLastPages, getPregnancyFirstLastPages } from '@/utils/albumFirstLastPages';
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
@@ -275,6 +276,52 @@ export default function ExportPdfScreen() {
       
       if (images.length === 0) {
         throw new Error('Изображения не найдены');
+      }
+
+      // Добавляем первую и последнюю страницу для альбомов беременности и детей
+      if (projectCategory === 'kids' || projectCategory === 'pregnancy') {
+        try {
+          const coverType = formatToUse?.type || 'hard';
+          
+          if (projectCategory === 'kids') {
+            // Загружаем первую и последнюю страницу для альбомов детей
+            const { firstPage, lastPage } = await getKidsFirstLastPages(albumId, coverType);
+            
+            if (firstPage) {
+              images.unshift(firstPage);
+              console.log(`[PDF Export] Добавлена первая страница для kids альбома: ${albumId}`);
+            } else {
+              console.warn(`[PDF Export] Первая страница не найдена для kids альбома: ${albumId}`);
+            }
+            
+            if (lastPage) {
+              images.push(lastPage);
+              console.log(`[PDF Export] Добавлена последняя страница для kids альбома: ${albumId}`);
+            } else {
+              console.warn(`[PDF Export] Последняя страница не найдена для kids альбома: ${albumId}`);
+            }
+          } else if (projectCategory === 'pregnancy') {
+            // Загружаем первую и последнюю страницу для альбомов беременности
+            const { firstPage, lastPages } = await getPregnancyFirstLastPages(albumId, coverType);
+            
+            if (firstPage) {
+              images.unshift(firstPage);
+              console.log(`[PDF Export] Добавлена первая страница для pregnancy альбома: ${albumId}`);
+            } else {
+              console.warn(`[PDF Export] Первая страница не найдена для pregnancy альбома: ${albumId}`);
+            }
+            
+            if (lastPages.length > 0) {
+              images.push(...lastPages);
+              console.log(`[PDF Export] Добавлено ${lastPages.length} последних страниц для pregnancy альбома: ${albumId}`);
+            } else {
+              console.warn(`[PDF Export] Последние страницы не найдены для pregnancy альбома: ${albumId}`);
+            }
+          }
+        } catch (error) {
+          // Не прерываем экспорт, если первая/последняя страница не найдена
+          console.warn(`[PDF Export] Ошибка при загрузке первой/последней страницы:`, error);
+        }
       }
 
       // Определяем размеры страницы

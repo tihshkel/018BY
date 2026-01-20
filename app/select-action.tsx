@@ -1,5 +1,6 @@
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
+import { getDiaryCoverById, extractSkuFromFilename } from '@/utils/diaryAlbumsLoader';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -38,15 +39,17 @@ export default function SelectActionScreen() {
   }));
 
   const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
+  const diaryCover = coverType && celebration === 'diary' ? getDiaryCoverById(coverType) : null;
   const isPregnancy = celebration === 'pregnancy';
+  const isDiary = celebration === 'diary';
 
   const handleEdit = () => {
     if (!coverType || !celebration) return;
     
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Для беременности показываем выбор внутренней части
-    if (isPregnancy) {
+    // Для беременности и дневников показываем выбор внутренней части
+    if (isPregnancy || isDiary) {
       const params: any = {
         celebration,
         coverType,
@@ -86,17 +89,25 @@ export default function SelectActionScreen() {
   };
 
   const handleBuy = async () => {
-    if (!albumTemplate) return;
-    
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    // Ищем ссылку на WB по изображению обложки, ID альбома и названию
-    // Для детских альбомов используем ID для точного сопоставления (dfa_7 -> DFA7)
-    const wbLink = getWildberriesLink(
-      albumTemplate.name, 
-      albumTemplate.thumbnailPath as any, 
-      albumTemplate.id
-    );
+    let wbLink: string | null = null;
+    
+    // Для дневников используем SKU для поиска ссылки
+    if (isDiary && diaryCover) {
+      wbLink = getWildberriesLink(
+        diaryCover.name,
+        diaryCover.image as any,
+        diaryCover.sku
+      );
+    } else if (albumTemplate) {
+      // Для остальных категорий используем стандартную логику
+      wbLink = getWildberriesLink(
+        albumTemplate.name, 
+        albumTemplate.thumbnailPath as any, 
+        albumTemplate.id
+      );
+    }
     
     if (wbLink) {
       try {
@@ -109,7 +120,9 @@ export default function SelectActionScreen() {
       }
     } else {
       // Если ссылка не найдена, можно показать сообщение пользователю
-      console.warn('Ссылка на Wildberries не найдена для:', albumTemplate.name, 'ID:', albumTemplate.id);
+      const itemName = isDiary && diaryCover ? diaryCover.name : (albumTemplate?.name || '');
+      const itemId = isDiary && diaryCover ? diaryCover.sku : (albumTemplate?.id || '');
+      console.warn('Ссылка на Wildberries не найдена для:', itemName, 'ID:', itemId);
     }
   };
 
@@ -125,6 +138,7 @@ export default function SelectActionScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
   };
@@ -152,7 +166,7 @@ export default function SelectActionScreen() {
         </View>
 
         {/* Показываем выбранную обложку и кнопки действий */}
-        {albumTemplate && (
+        {(albumTemplate || diaryCover) && (
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -161,9 +175,9 @@ export default function SelectActionScreen() {
             {/* Карточка с выбранной обложкой */}
             <View style={styles.coverCard}>
               <View style={styles.coverImageContainer}>
-                {albumTemplate.thumbnailPath && (
+                {(isDiary && diaryCover ? diaryCover.image : albumTemplate?.thumbnailPath) && (
                   <Image
-                    source={albumTemplate.thumbnailPath}
+                    source={isDiary && diaryCover ? diaryCover.image : albumTemplate!.thumbnailPath!}
                     style={styles.coverImage}
                     contentFit="cover"
                     priority="high"
@@ -175,9 +189,11 @@ export default function SelectActionScreen() {
                 )}
               </View>
               <View style={styles.coverInfo}>
-                <Text style={styles.coverName}>{albumTemplate.name}</Text>
+                <Text style={styles.coverName}>
+                  {isDiary && diaryCover ? diaryCover.name : albumTemplate!.name}
+                </Text>
                 <Text style={styles.coverDescription}>
-                  {albumTemplate.description}
+                  {isDiary && diaryCover ? 'Личный дневник для записи мыслей и воспоминаний' : albumTemplate!.description}
                 </Text>
               </View>
             </View>

@@ -22,7 +22,7 @@ export const projectCategories: ProjectCategory[] = [
   { id: 'kids', name: 'Дети 0–7 лет', icon: 'flower-outline' },
   { id: 'wedding', name: 'Свадьба', icon: 'diamond-outline' },
   { id: 'family', name: 'Семья', icon: 'people-outline' },
-  { id: 'holidays', name: 'Праздники', icon: 'gift-outline' },
+  { id: 'diary', name: 'Дневники', icon: 'book-outline' },
 ];
 
 export const buildProjectProducts = () => {
@@ -33,7 +33,7 @@ export const buildProjectProducts = () => {
     kids: [],
     wedding: [],
     family: [],
-    holidays: [],
+    diary: [],
   };
 
   albumTemplates.forEach(album => {
@@ -52,7 +52,7 @@ export const buildProjectProducts = () => {
     };
 
     if (album.category === 'travel') {
-      productsMap.holidays.push(projectProduct);
+      productsMap.diary.push(projectProduct);
       return;
     }
 

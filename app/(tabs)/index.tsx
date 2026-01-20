@@ -249,7 +249,8 @@ export default function HomeScreen() {
 
   const handleNewProject = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push('/new-project');
+    // Переходим на таб "Проекты" с экраном выбора категории
+    router.push('/projects');
   };
 
   const handleLongPress = (project: Project) => {
@@ -396,17 +397,14 @@ export default function HomeScreen() {
                   )}
                 </View>
                 <Text style={styles.projectTitle}>{selectedProject?.title}</Text>
-                <Text style={styles.projectCategory}>{selectedProject?.category}</Text>
+                {selectedProject?.category !== 'diary' && (
+                  <Text style={styles.projectCategory}>{selectedProject?.category}</Text>
+                )}
               </Pressable>
               <View style={styles.projectStats}>
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>{selectedProject?.pagesCount}</Text>
                   <Text style={styles.statLabel}>страниц</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{selectedProject?.photosCount}</Text>
-                  <Text style={styles.statLabel}>фото</Text>
                 </View>
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
@@ -465,10 +463,12 @@ export default function HomeScreen() {
                       )}
                     </View>
                     <Text style={styles.cardTitle}>{project.title}</Text>
-                    <Text style={styles.cardCategory}>{project.category}</Text>
+                    {project.category !== 'diary' && (
+                      <Text style={styles.cardCategory}>{project.category}</Text>
+                    )}
                     <View style={styles.cardStats}>
                       <Text style={styles.cardStatText}>
-                        {project.pagesCount} стр. • {project.photosCount} фото
+                        {project.pagesCount} стр.
                       </Text>
                     </View>
                   </Pressable>

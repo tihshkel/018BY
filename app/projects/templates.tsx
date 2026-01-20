@@ -26,6 +26,9 @@ import {
 } from '@/constants/projectTemplates';
 import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { Asset } from 'expo-asset';
+import { getAlbumImages, getAlbumImageUris } from '@/utils/albumImages';
 
 interface LocalParams {
   category?: string | string[];
@@ -151,7 +154,15 @@ export default function ProjectTemplatesScreen() {
     return [];
   }, [categoryId]);
 
-  // Предзагрузка всех изображений для выбранной категории
+  // Для дневников получаем обложки из специального загрузчика
+  const diaryCovers = useMemo(() => {
+    if (categoryId === 'diary') {
+      return getAllDiaryCovers();
+    }
+    return [];
+  }, [categoryId]);
+
+  // МАКСИМАЛЬНАЯ предзагрузка всех изображений для выбранной категории
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
@@ -161,16 +172,77 @@ export default function ProjectTemplatesScreen() {
 
         try {
           let imagesToPreload: any[] = [];
+          let interiorPagesToPreload: Promise<any>[] = [];
 
           // Для беременности и kids загружаем изображения альбомов
           if (categoryId === 'pregnancy' && pregnancyAlbums.length > 0) {
             imagesToPreload = pregnancyAlbums
               .filter(album => album.thumbnailPath)
               .map(album => album.thumbnailPath!);
+            
+            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы беременности
+            Promise.resolve().then(async () => {
+              try {
+                const pregnancyImages = getAlbumImages('pregnancy_60');
+                if (pregnancyImages.length > 0) {
+                  await Promise.all(
+                    pregnancyImages.map(async (imageModule) => {
+                      try {
+                        const asset = Asset.fromModule(imageModule);
+                        await asset.downloadAsync();
+                      } catch (err) {
+                        // Игнорируем ошибки
+                      }
+                    })
+                  );
+                  console.log(`✅ Предзагружено ${pregnancyImages.length} внутренних страниц беременности`);
+                }
+              } catch (err) {
+                // Игнорируем ошибки фоновой загрузки
+              }
+            });
           } else if (categoryId === 'kids' && kidsAlbums.length > 0) {
             imagesToPreload = kidsAlbums
               .filter(album => album.thumbnailPath)
               .map(album => album.thumbnailPath!);
+            
+            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы kids
+            Promise.resolve().then(async () => {
+              try {
+                const kidsImages = getAlbumImages('kids_48');
+                if (kidsImages.length > 0) {
+                  await Promise.all(
+                    kidsImages.map(async (imageModule) => {
+                      try {
+                        const asset = Asset.fromModule(imageModule);
+                        await asset.downloadAsync();
+                      } catch (err) {
+                        // Игнорируем ошибки
+                      }
+                    })
+                  );
+                  console.log(`✅ Предзагружено ${kidsImages.length} внутренних страниц kids`);
+                }
+              } catch (err) {
+                // Игнорируем ошибки фоновой загрузки
+              }
+            });
+          } else if (categoryId === 'diary' && diaryCovers.length > 0) {
+            imagesToPreload = diaryCovers
+              .filter(cover => cover.image)
+              .map(cover => cover.image!);
+            
+            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы дневников (оба варианта)
+            Promise.resolve().then(async () => {
+              try {
+                const brownUris = await getDiaryInteriorImageUris('diary_interior_brown');
+                const purpleUris = await getDiaryInteriorImageUris('diary_interior_purple');
+                const totalPages = (brownUris?.length || 0) + (purpleUris?.length || 0);
+                console.log(`✅ Предзагружено ${totalPages} внутренних страниц дневников (коричневый: ${brownUris?.length || 0}, фиолетовый: ${purpleUris?.length || 0})`);
+              } catch (err) {
+                // Игнорируем ошибки фоновой загрузки
+              }
+            });
           } else if (categoryProducts.length > 0) {
             // Для других категорий загружаем изображения продуктов
             imagesToPreload = categoryProducts
@@ -182,26 +254,31 @@ export default function ProjectTemplatesScreen() {
             return;
           }
 
-          // Предзагружаем все изображения параллельно
+          // Предзагружаем все обложки параллельно (и строки, и require модули)
           await Promise.all(
-            imagesToPreload.map(imageSource => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch(err => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения:', err);
-                });
+            imagesToPreload.map(async (imageSource) => {
+              try {
+                if (typeof imageSource === 'string') {
+                  await Image.prefetch(imageSource);
+                } else {
+                  // Для require() модулей используем Asset API
+                  const asset = Asset.fromModule(imageSource);
+                  await asset.downloadAsync();
+                }
+              } catch (err) {
+                console.warn('⚠️ Ошибка предзагрузки изображения:', err);
               }
-              return Promise.resolve();
             })
           );
 
-          console.log(`✅ Все изображения категории "${categoryId}" предзагружены`);
+          console.log(`✅ Все обложки категории "${categoryId}" предзагружены (${imagesToPreload.length} шт.)`);
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений:', error);
         }
       };
 
       preloadCategoryImages();
-    }, [categoryId, categoryProducts, pregnancyAlbums, kidsAlbums])
+    }, [categoryId, categoryProducts, pregnancyAlbums, kidsAlbums, diaryCovers])
   );
 
   // Дополнительная предзагрузка при изменении категории
@@ -277,14 +354,16 @@ export default function ProjectTemplatesScreen() {
     }
   };
 
-  const handleCoverSelect = useCallback((album: AlbumTemplate) => {
+  const handleCoverSelect = useCallback((album: AlbumTemplate | { id: string; name: string }) => {
     // Для беременности и детей показываем модальное окно с датой
     if (categoryId === 'pregnancy' || categoryId === 'kids') {
-      setSelectedAlbumForDate(album);
-      setCoverDate(getDefaultDate(categoryId));
-      setShowCoverDateModal(true);
+      if ('thumbnailPath' in album) {
+        setSelectedAlbumForDate(album as AlbumTemplate);
+        setCoverDate(getDefaultDate(categoryId));
+        setShowCoverDateModal(true);
+      }
     } else {
-      // Для остальных категорий сразу переходим на выбор действия
+      // Для остальных категорий (включая diary) сразу переходим на выбор действия
       router.push({
         pathname: '/select-action',
         params: {
@@ -401,10 +480,10 @@ export default function ProjectTemplatesScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <Text style={styles.subtitle}>
-            {(categoryId === 'pregnancy' || categoryId === 'kids') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
+            {(categoryId === 'pregnancy' || categoryId === 'kids' || categoryId === 'diary') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
           </Text>
 
-          {/* Для беременности и kids показываем альбомы */}
+          {/* Для беременности, kids и diary показываем альбомы/обложки */}
           {categoryId === 'pregnancy' ? (
             pregnancyAlbums.length === 0 ? (
               <View style={styles.emptyStateInline}>
@@ -486,6 +565,50 @@ export default function ProjectTemplatesScreen() {
                     <Text style={styles.productName}>{album.name}</Text>
                     <Text style={styles.productDescription}>
                       {album.description}
+                    </Text>
+                  </View>
+                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
+                </TouchableOpacity>
+              ))
+            )
+          ) : categoryId === 'diary' ? (
+            /* Для дневников показываем обложки */
+            diaryCovers.length === 0 ? (
+              <View style={styles.emptyStateInline}>
+                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
+                <Text style={styles.emptyStateInlineText}>
+                  Пока нет готовых дневников для этой категории. Попробуйте выбрать
+                  другую тему.
+                </Text>
+              </View>
+            ) : (
+              diaryCovers.map((cover) => (
+                <TouchableOpacity
+                  key={cover.id}
+                  style={styles.productCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleCoverSelect(cover)}
+                >
+                  <View style={styles.productImage}>
+                    {cover.image ? (
+                      <Image
+                        source={cover.image}
+                        style={styles.productImageContent}
+                        contentFit="cover"
+                        priority={diaryCovers.indexOf(cover) < 5 ? "high" : "normal"}
+                        cachePolicy="disk"
+                        transition={0}
+                        fadeDuration={0}
+                        recyclingKey={cover.id}
+                      />
+                    ) : (
+                      <Ionicons name='book' size={48} color='#C9A89A' />
+                    )}
+                  </View>
+                  <View style={styles.productContent}>
+                    <Text style={styles.productName}>{cover.name}</Text>
+                    <Text style={styles.productDescription}>
+                      Личный дневник для записи мыслей и воспоминаний
                     </Text>
                   </View>
                   <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
