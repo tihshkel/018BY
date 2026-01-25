@@ -269,11 +269,11 @@ export function AccessCodeModalManager({ isEligibleToShow }: AccessCodeModalMana
                     </View>
                   </View>
                   <View style={styles.infoModalTextContainer}>
-                    <Text style={styles.infoModalSectionTitle}>Вход в приложение</Text>
+                    <Text style={styles.infoModalSectionTitle}>Важность кода доступа</Text>
                     <Text style={styles.infoModalSectionText}>
-                      Код доступа необходим для входа в приложение. По нему вы сможете войти в свой
-                      аккаунт при смене телефона или окончании сессии. Без него вы не сможете
-                      получить доступ к своим альбомам и проектам.
+                      Код доступа — это ваш персональный пароль для входа в аккаунт. Он крайне важен
+                      для безопасности ваших данных. Если вы захотите войти в свой аккаунт на другом
+                      устройстве, вам обязательно нужно будет ввести этот код-пароль.
                     </Text>
                   </View>
                 </View>
@@ -283,14 +283,15 @@ export function AccessCodeModalManager({ isEligibleToShow }: AccessCodeModalMana
                 <View style={styles.infoModalSectionRow}>
                   <View style={styles.infoModalIconContainer}>
                     <View style={styles.infoModalIconCircle}>
-                      <Ionicons name="help-circle" size={24} color="#C9A89A" />
+                      <Ionicons name="phone-portrait" size={24} color="#C9A89A" />
                     </View>
                   </View>
                   <View style={styles.infoModalTextContainer}>
-                    <Text style={styles.infoModalSectionTitle}>Забыли код?</Text>
+                    <Text style={styles.infoModalSectionTitle}>Ограничение устройств</Text>
                     <Text style={styles.infoModalSectionText}>
-                      Если вы забыли свой код доступа, обратитесь в техническую поддержку. Наши
-                      специалисты помогут вам восстановить доступ к аккаунту.
+                      Ваш код доступа действует максимум на 4 устройствах. Это означает, что вы
+                      сможете войти в аккаунт одновременно только на четырёх разных устройствах с
+                      использованием этого кода.
                     </Text>
                   </View>
                 </View>
@@ -300,16 +301,16 @@ export function AccessCodeModalManager({ isEligibleToShow }: AccessCodeModalMana
                 <View style={styles.infoModalSectionRow}>
                   <View style={styles.infoModalIconContainer}>
                     <View style={styles.infoModalIconCircle}>
-                      <Ionicons name="qr-code" size={24} color="#C9A89A" />
+                      <Ionicons name="save" size={24} color="#C9A89A" />
                     </View>
                   </View>
                   <View style={styles.infoModalTextContainer}>
-                    <Text style={styles.infoModalSectionTitle}>Альтернативный способ входа</Text>
+                    <Text style={styles.infoModalSectionTitle}>Сохранение кода</Text>
                     <Text style={styles.infoModalSectionText}>
-                      Если вам нужно войти в аккаунт на новом устройстве, но вы забыли код, вы
-                      можете отсканировать QR-код на старом телефоне. Для этого откройте приложение
-                      на старом устройстве, перейдите в раздел &quot;Профиль&quot; и найдите пункт
-                      &quot;Отсканировать QR-код&quot; под разделом &quot;Оценить приложение&quot;.
+                      Обязательно запомните ваш код доступа. Он хранится в разделе &quot;Профиль&quot;,
+                      но мы настоятельно рекомендуем также записать его в надёжном месте. Если по
+                      каким-либо причинам вы забудете код, мы не сможем вам его подсказать или
+                      восстановить.
                     </Text>
                   </View>
                 </View>

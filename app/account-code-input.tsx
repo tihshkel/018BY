@@ -27,6 +27,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ensureDeviceRegistered, getStoredDevices } from '@/utils/account-transfer';
+import { validateAccessCode, syncAccountDataOnLogin } from '@/utils/account-sync';
 
 const CODE_LENGTH = 8; // Код доступа аккаунта обычно длиннее
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -254,18 +255,34 @@ export default function AccountCodeInputScreen() {
     });
 
     try {
-      // Проверяем код доступа и регистрируем устройство
-      const result = await ensureDeviceRegistered({
-        accessCode: fullCode,
-        maxDevices: 4,
-        validityMonths: 100 * 12, // 100 лет для бесконечной сессии
-      });
+      // Сначала проверяем валидность кода доступа
+      const isValid = await validateAccessCode(fullCode);
+      
+      if (!isValid) {
+        setIsLoading(false);
+        Alert.alert(
+          'Неверный код',
+          'Код доступа не найден. Убедитесь, что вы вводите правильный код, который был сгенерирован при первой регистрации в приложении.',
+          [
+            {
+              text: 'Попробовать снова',
+              style: 'cancel',
+              onPress: () => {
+                setCode(Array(CODE_LENGTH).fill(''));
+                setError(true);
+                inputRefs.current[0]?.focus();
+              },
+            },
+          ]
+        );
+        return;
+      }
 
-      if (result.ok) {
-        // Сохраняем код доступа
-        await AsyncStorage.setItem('@access_code', fullCode);
-        await AsyncStorage.setItem('@is_activated', 'true');
-        
+      // Синхронизируем данные аккаунта и регистрируем устройство
+      const syncResult = await syncAccountDataOnLogin(fullCode);
+
+      if (syncResult.success) {
+        // Данные успешно синхронизированы, устройство зарегистрировано
         // Переходим в приложение
         if (Platform.OS === 'android') {
           setTimeout(() => {
@@ -276,15 +293,31 @@ export default function AccountCodeInputScreen() {
         }
       } else {
         setIsLoading(false);
-        if (result.error === 'DEVICE_LIMIT') {
+        if (syncResult.error === 'DEVICE_LIMIT') {
           Alert.alert(
             'Лимит устройств',
             'К этому аккаунту уже привязано максимальное количество устройств (4 устройства). Для добавления нового устройства необходимо удалить одно из существующих устройств или обратиться в техническую поддержку.'
           );
-        } else {
+        } else if (syncResult.error === 'INVALID_CODE') {
           Alert.alert(
             'Неверный код',
-            'Проверьте код доступа. Убедитесь, что вы вводите правильный код, который был сгенерирован на вашем предыдущем устройстве.',
+            'Код доступа не найден. Убедитесь, что вы вводите правильный код, который был сгенерирован при первой регистрации в приложении.',
+            [
+              {
+                text: 'Попробовать снова',
+                style: 'cancel',
+                onPress: () => {
+                  setCode(Array(CODE_LENGTH).fill(''));
+                  setError(true);
+                  inputRefs.current[0]?.focus();
+                },
+              },
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Ошибка входа',
+            'Произошла ошибка при входе в аккаунт. Попробуйте еще раз.',
             [
               {
                 text: 'Попробовать снова',

@@ -22,10 +22,26 @@ const LAST_UPDATE_KEY = '@activation_keys_last_update';
  */
 async function loadActivationKeys(): Promise<ActivationKey[]> {
     try {
+        // Проверяем, был ли уже выполнен одноразовый сброс
+        const resetFlag = await AsyncStorage.getItem('@activation_keys_reset_done');
+        const needsReset = resetFlag !== 'true';
+
         // Пытаемся загрузить из кэша AsyncStorage
         const cached = await AsyncStorage.getItem(CACHE_KEY);
         if (cached) {
-            activationKeysCache = JSON.parse(cached);
+            let keys = JSON.parse(cached);
+            
+            // Если нужен одноразовый сброс, сбрасываем все коды
+            if (needsReset && Array.isArray(keys)) {
+                keys = keys.map((key: ActivationKey) => ({ ...key, used: false }));
+                activationKeysCache = keys;
+                await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(keys));
+                await AsyncStorage.setItem('@activation_keys_reset_done', 'true');
+                console.log(`[ActivationKeyValidator] One-time reset: ${keys.length} activation keys reset to valid`);
+            } else {
+                activationKeysCache = keys;
+            }
+            
             return activationKeysCache || [];
         }
 
@@ -49,12 +65,21 @@ async function loadActivationKeys(): Promise<ActivationKey[]> {
             }
         }
 
-        // Сохраняем в кэш
-        activationKeysCache = keys;
-        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(keys));
-        await AsyncStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString());
+        // Убеждаемся, что все коды имеют used: false (из файла они должны быть false)
+        const resetKeys = keys.map((key: ActivationKey) => ({ ...key, used: false }));
 
-        return keys;
+        // Сохраняем в кэш
+        activationKeysCache = resetKeys;
+        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(resetKeys));
+        await AsyncStorage.setItem(LAST_UPDATE_KEY, new Date().toISOString());
+        
+        // Помечаем, что сброс выполнен (если нужно)
+        if (needsReset) {
+            await AsyncStorage.setItem('@activation_keys_reset_done', 'true');
+            console.log(`[ActivationKeyValidator] One-time reset: ${resetKeys.length} activation keys reset to valid`);
+        }
+
+        return resetKeys;
     } catch (error) {
         console.error('[ActivationKeyValidator] Error loading activation keys:', error);
         return [];
@@ -181,5 +206,30 @@ export async function clearActivationKeysCache(): Promise<void> {
         console.log('[ActivationKeyValidator] Cache cleared');
     } catch (error) {
         console.error('[ActivationKeyValidator] Error clearing cache:', error);
+    }
+}
+
+/**
+ * Сбросить все коды активации - сделать все коды снова действительными (одноразовый сброс)
+ * Устанавливает used: false для всех кодов в кэше
+ */
+export async function resetAllActivationKeys(): Promise<void> {
+    try {
+        // Загружаем текущие ключи из кэша или файла
+        const keys = await loadActivationKeys();
+        
+        // Сбрасываем все коды на used: false
+        const resetKeys = keys.map(key => ({
+            ...key,
+            used: false,
+        }));
+        
+        // Сохраняем обновленные ключи
+        await saveActivationKeys(resetKeys);
+        
+        console.log(`[ActivationKeyValidator] Reset ${resetKeys.length} activation keys - all codes are now valid`);
+    } catch (error) {
+        console.error('[ActivationKeyValidator] Error resetting activation keys:', error);
+        throw error;
     }
 }
