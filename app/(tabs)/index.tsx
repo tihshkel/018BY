@@ -500,6 +500,24 @@ export default function HomeScreen() {
             </View>
           )}
 
+          {/* Кнопка настройки уведомлений для бумажных альбомов */}
+          <View style={styles.catalogContainer}>
+            <TouchableOpacity
+              style={styles.paperAlbumButton}
+              onPress={() => router.push('/paper-album-notifications')}
+              activeOpacity={0.85}
+            >
+              <View style={styles.catalogButtonIconWrapper}>
+                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              </View>
+              <View style={styles.catalogButtonContent}>
+                <Text style={styles.catalogButtonTitle}>Бумажный альбом</Text>
+                <Text style={styles.catalogButtonText}>Настроить уведомления</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+            </TouchableOpacity>
+          </View>
+
           {/* Кнопка каталога */}
           <View style={styles.catalogContainer}>
             <TouchableOpacity
@@ -908,6 +926,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginTop: 4,
     marginBottom: 20,
+  },
+  paperAlbumButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: '#C9A89A',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3,
   },
   catalogButton: {
     flexDirection: 'row',

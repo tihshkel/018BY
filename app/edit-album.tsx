@@ -8,7 +8,9 @@ import {
   Dimensions,
   Alert,
   ScrollView,
+  Modal,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import Animated, {
@@ -62,8 +64,19 @@ export default function EditAlbumScreen() {
     fontSize: number;
     fontFamily?: string;
   }>({ color: '#000000', fontSize: 16 });
+  const [templatePages, setTemplatePages] = useState<string[]>([]);
+  const [showPageSelectModal, setShowPageSelectModal] = useState(false);
+  const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
+  const [showAddPageModal, setShowAddPageModal] = useState(false);
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const containerOpacity = useSharedValue(0);
+  
+  // Отслеживание последнего сохраненного состояния для проверки изменений
+  const lastSavedStateRef = React.useRef<{
+    images: string[];
+    annotations: Annotation[];
+    coverAnnotations: Annotation[];
+  } | null>(null);
 
   const getFontDisplayName = (fontId?: string) => {
     if (!fontId || fontId === 'default') return 'Системный';
@@ -75,6 +88,17 @@ export default function EditAlbumScreen() {
     containerOpacity.value = withTiming(1, { duration: 400 });
     loadImagesData();
   }, [id, coverType, interiorType]);
+
+  // Сохраняем начальное состояние после загрузки данных
+  useEffect(() => {
+    if (!isLoading && images.length > 0 && !lastSavedStateRef.current) {
+      lastSavedStateRef.current = {
+        images: [...images],
+        annotations: JSON.parse(JSON.stringify(annotations)),
+        coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
+      };
+    }
+  }, [isLoading, images, annotations, coverAnnotations]);
 
   // Загружаем последний стиль текста: сначала из проекта, потом из глобального
   useEffect(() => {
@@ -341,11 +365,14 @@ export default function EditAlbumScreen() {
             }
             
             // Загружаем сохраненные аннотации
+            let diaryAnnotations: Annotation[] = [];
+            let diaryCoverAnnotations: Annotation[] = [];
             if (id) {
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
                 const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                diaryAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
                   await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -357,11 +384,19 @@ export default function EditAlbumScreen() {
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
                 const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                diaryCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
                   await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
                 }
               }
+              
+              // Сохраняем начальное состояние для отслеживания изменений
+              lastSavedStateRef.current = {
+                images: [...imageUris],
+                annotations: JSON.parse(JSON.stringify(diaryAnnotations)),
+                coverAnnotations: JSON.parse(JSON.stringify(diaryCoverAnnotations)),
+              };
             }
             
             // Если проекта нет, создаем его
@@ -433,10 +468,12 @@ export default function EditAlbumScreen() {
               setIsLoading(false);
               
               // Загружаем сохраненные аннотации ПЕРЕД выходом
+              let loadedAnnotations: Annotation[] = [];
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
                 const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                loadedAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
                   await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -444,15 +481,24 @@ export default function EditAlbumScreen() {
               }
               
               // Загружаем аннотации обложки
+              let loadedCoverAnnotations: Annotation[] = [];
               const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
                 const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                loadedCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
                   await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
                 }
               }
+              
+              // Сохраняем начальное состояние для отслеживания изменений
+              lastSavedStateRef.current = {
+                images: [...imageUris],
+                annotations: JSON.parse(JSON.stringify(loadedAnnotations)),
+                coverAnnotations: JSON.parse(JSON.stringify(loadedCoverAnnotations)),
+              };
               
               // Параллельно загружаем остальные страницы в фоне (не блокируем)
               // ВАЖНО: Догружаем только если сохраненных страниц меньше оригинальных
@@ -503,10 +549,12 @@ export default function EditAlbumScreen() {
                 setIsLoading(false);
                 
                 // Загружаем аннотации
+                let loadedAnnotations2: Annotation[] = [];
                 const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
                 if (savedAnnotations) {
                   const parsed = JSON.parse(savedAnnotations) as Annotation[];
                   const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  loadedAnnotations2 = items;
                   setAnnotations(items);
                   if (changed) {
                     await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -514,15 +562,24 @@ export default function EditAlbumScreen() {
                 }
                 
                 // Загружаем аннотации обложки
+                let loadedCoverAnnotations2: Annotation[] = [];
                 const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
                 if (savedCoverAnnotations) {
                   const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
                   const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  loadedCoverAnnotations2 = items;
                   setCoverAnnotations(items);
                   if (changed) {
                     await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
                   }
                 }
+                
+                // Сохраняем начальное состояние для отслеживания изменений
+                lastSavedStateRef.current = {
+                  images: [...parsed],
+                  annotations: JSON.parse(JSON.stringify(loadedAnnotations2)),
+                  coverAnnotations: JSON.parse(JSON.stringify(loadedCoverAnnotations2)),
+                };
                 
                 return; // Выходим - используем сохраненные данные
               }
@@ -629,11 +686,14 @@ export default function EditAlbumScreen() {
       }
       
       // Загружаем сохраненные аннотации
+      let finalAnnotations: Annotation[] = [];
+      let finalCoverAnnotations: Annotation[] = [];
       if (id) {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
           const parsed = JSON.parse(savedAnnotations) as Annotation[];
           const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          finalAnnotations = items;
           setAnnotations(items);
           if (changed) {
             await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -645,12 +705,15 @@ export default function EditAlbumScreen() {
         if (savedCoverAnnotations) {
           const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
           const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          finalCoverAnnotations = items;
           setCoverAnnotations(items);
           if (changed) {
             await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
           }
         }
       }
+      
+      // Начальное состояние будет сохранено через useEffect после загрузки
       
       // Если проекта нет, создаем его при первом открытии
       if (!id && (coverType || interiorType) && celebration) {
@@ -896,17 +959,83 @@ export default function EditAlbumScreen() {
         // Сохраняем аннотации обложки
         AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations)),
       ]);
+      
+      // Обновляем последнее сохраненное состояние
+      lastSavedStateRef.current = {
+        images: [...images],
+        annotations: JSON.parse(JSON.stringify(annotations)),
+        coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
+      };
     } catch (error) {
       console.error('Ошибка при сохранении данных проекта:', error);
       // Не блокируем выход, даже если сохранение не удалось
     }
   };
 
+  // Проверка наличия несохраненных изменений
+  const hasUnsavedChanges = (): boolean => {
+    // Если начальное состояние еще не сохранено, считаем что изменений нет
+    if (!lastSavedStateRef.current) return false;
+    
+    const saved = lastSavedStateRef.current;
+    
+    // Проверяем изменения в изображениях
+    if (saved.images.length !== images.length) return true;
+    for (let i = 0; i < images.length; i++) {
+      if (saved.images[i] !== images[i]) return true;
+    }
+    
+    // Проверяем изменения в аннотациях страниц
+    if (saved.annotations.length !== annotations.length) return true;
+    const savedAnnotationsStr = JSON.stringify(saved.annotations);
+    const currentAnnotationsStr = JSON.stringify(annotations);
+    if (savedAnnotationsStr !== currentAnnotationsStr) return true;
+    
+    // Проверяем изменения в аннотациях обложки
+    if (saved.coverAnnotations.length !== coverAnnotations.length) return true;
+    const savedCoverAnnotationsStr = JSON.stringify(saved.coverAnnotations);
+    const currentCoverAnnotationsStr = JSON.stringify(coverAnnotations);
+    if (savedCoverAnnotationsStr !== currentCoverAnnotationsStr) return true;
+    
+    return false;
+  };
+
   const handleBack = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Сохраняем все данные перед выходом
-    await saveAllData();
-    router.back();
+    
+    // Проверяем наличие несохраненных изменений
+    if (hasUnsavedChanges()) {
+      Alert.alert(
+        'Несохраненные изменения',
+        'У вас есть несохраненные изменения. Хотите сохранить их перед выходом?',
+        [
+          {
+            text: 'Отмена',
+            style: 'cancel',
+          },
+          {
+            text: 'Не сохранять',
+            style: 'destructive',
+            onPress: () => {
+              // Переходим на главную страницу без сохранения
+              router.replace('/(tabs)');
+            },
+          },
+          {
+            text: 'Сохранить',
+            onPress: async () => {
+              // Сохраняем все данные перед выходом
+              await saveAllData();
+              // Переходим на главную страницу
+              router.replace('/(tabs)');
+            },
+          },
+        ]
+      );
+    } else {
+      // Если изменений нет, просто переходим на главную страницу
+      router.replace('/(tabs)');
+    }
   };
 
   const handleZoomIn = () => {
@@ -1073,30 +1202,115 @@ export default function EditAlbumScreen() {
     });
   };
 
-  const handlePageDuplicate = (pageIndex: number) => {
+  // Загружаем все страницы из шаблона альбома
+  useEffect(() => {
+    const loadTemplatePages = async () => {
+      if (!albumId) return;
+      
+      try {
+        // Для дневников используем специальную логику
+        if (celebration === 'diary' && albumId.startsWith('diary_interior_')) {
+          const interiorUris = await getDiaryInteriorImageUris(albumId);
+          if (interiorUris && interiorUris.length > 0) {
+            setTemplatePages(interiorUris);
+          }
+        } else {
+          // Для остальных альбомов используем getAlbumImageUris
+          const uris = await getAlbumImageUris(albumId);
+          if (uris && uris.length > 0) {
+            setTemplatePages(uris);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading template pages:', error);
+      }
+    };
+    
+    loadTemplatePages();
+  }, [albumId, celebration]);
+
+  // Открываем модальное окно выбора страницы для дублирования
+  const handleOpenPageSelectModal = (targetPageIndex: number) => {
+    setTargetPageIndexForDuplicate(targetPageIndex);
+    setShowPageSelectModal(true);
+  };
+
+  // Добавляем новую страницу в конец альбома
+  const handleAddPage = async (sourcePageIndex: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
-    if (pageIndex < 0 || pageIndex >= images.length) return;
+    if (sourcePageIndex < 0 || sourcePageIndex >= templatePages.length) {
+      Alert.alert('Ошибка', 'Выбранная страница не найдена в шаблоне');
+      return;
+    }
     
-    const duplicatedImage = images[pageIndex];
-    const newImages = [...images];
-    newImages.splice(pageIndex + 1, 0, duplicatedImage);
+    // Получаем изображение страницы из шаблона
+    const newPageUri = templatePages[sourcePageIndex];
+    const newImages = [...images, newPageUri];
     
     setImages(newImages);
     setTotalPages(newImages.length);
     
-    // Обновляем аннотации - копируем аннотации для дублированной страницы
-    const pageAnnotations = annotations.filter(ann => (ann.page || 1) === pageIndex + 1);
+    // Обновляем аннотации - копируем аннотации с исходной страницы, если они есть
+    const sourcePageAnnotations = annotations.filter(ann => (ann.page || 1) === sourcePageIndex + 1);
+    const newAnnotations = sourcePageAnnotations.map(ann => ({
+      ...ann,
+      id: createId('ann'),
+      page: newImages.length, // Новая страница будет последней
+    }));
+    
+    const finalAnnotations = [...annotations, ...newAnnotations];
+    setAnnotations(finalAnnotations);
+    
+    if (id) {
+      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
+      await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
+    }
+    
+    setShowAddPageModal(false);
+    
+    // Переходим на новую страницу
+    setTimeout(() => {
+      setCurrentPage(newImages.length);
+    }, 100);
+  };
+
+  // Дублируем страницу из шаблона
+  const handlePageDuplicate = async (sourcePageIndex: number, targetPageIndex: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    if (sourcePageIndex < 0 || sourcePageIndex >= templatePages.length) {
+      Alert.alert('Ошибка', 'Выбранная страница не найдена в шаблоне');
+      return;
+    }
+    
+    if (targetPageIndex < 0 || targetPageIndex >= images.length) return;
+    
+    // Получаем изображение страницы из шаблона
+    const sourceImageUri = templatePages[sourcePageIndex];
+    if (!sourceImageUri) {
+      Alert.alert('Ошибка', 'Не удалось загрузить страницу из шаблона');
+      return;
+    }
+    
+    const newImages = [...images];
+    newImages.splice(targetPageIndex + 1, 0, sourceImageUri);
+    
+    setImages(newImages);
+    setTotalPages(newImages.length);
+    
+    // Обновляем аннотации - копируем аннотации для дублированной страницы (если есть)
+    const pageAnnotations = annotations.filter(ann => (ann.page || 1) === targetPageIndex + 1);
     const newAnnotations = pageAnnotations.map(ann => ({
       ...ann,
       id: createId('ann'),
-      page: pageIndex + 2, // Новая страница будет следующей
+      page: targetPageIndex + 2, // Новая страница будет следующей
     }));
     
     // Обновляем номера страниц для всех аннотаций после вставленной страницы
     const updatedAnnotations = annotations.map(ann => {
       const annPage = ann.page || 1;
-      if (annPage > pageIndex + 1) {
+      if (annPage > targetPageIndex + 1) {
         return { ...ann, page: annPage + 1 };
       }
       return ann;
@@ -1111,9 +1325,13 @@ export default function EditAlbumScreen() {
       AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
     }
     
+    // Закрываем модальное окно
+    setShowPageSelectModal(false);
+    setTargetPageIndexForDuplicate(null);
+    
     // Прокручиваем к новой странице
     setTimeout(() => {
-      setCurrentPage(pageIndex + 2);
+      setCurrentPage(targetPageIndex + 2);
     }, 100);
   };
 
@@ -1341,7 +1559,7 @@ export default function EditAlbumScreen() {
               onAnnotationDelete={handleAnnotationDelete}
               isEditing={isEditing}
               currentTool={currentTool}
-              onPageDuplicate={handlePageDuplicate}
+              onPageDuplicate={handleOpenPageSelectModal}
               onPageDelete={handlePageDelete}
               onToolReset={handleToolReset}
               onToolDeactivate={handleToolDeactivate}
@@ -1436,6 +1654,28 @@ export default function EditAlbumScreen() {
                 {viewMode === 'pages' && (
                   <>
                     <TouchableOpacity
+                      style={styles.toolButton}
+                      onPress={() => setShowAddPageModal(true)}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Добавить страницу"
+                    >
+                      <View style={styles.toolIconContainer}>
+                        <Ionicons 
+                          name="add-circle-outline" 
+                          size={22} 
+                          color="#8B6F5F" 
+                        />
+                      </View>
+                      <Text 
+                        style={styles.toolButtonText}
+                        numberOfLines={1}
+                      >
+                        Страница
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
                       style={[
                         styles.toolButton,
                         currentTool === 'text' && styles.toolButtonActive
@@ -1518,6 +1758,140 @@ export default function EditAlbumScreen() {
           </ScrollView>
         </View>
       </Animated.View>
+
+      {/* Модальное окно выбора страницы для дублирования */}
+      <Modal
+        visible={showPageSelectModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowPageSelectModal(false);
+          setTargetPageIndexForDuplicate(null);
+        }}
+      >
+        <View style={styles.pageSelectModalOverlay}>
+          <View style={styles.pageSelectModalContent}>
+            <View style={styles.pageSelectModalHeader}>
+              <Text style={styles.pageSelectModalTitle}>Выберите страницу для дублирования</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowPageSelectModal(false);
+                  setTargetPageIndexForDuplicate(null);
+                }}
+                style={styles.pageSelectModalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#8B6F5F" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.pageSelectModalScroll}
+              contentContainerStyle={styles.pageSelectModalScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {templatePages.length === 0 ? (
+                <View style={styles.pageSelectEmptyState}>
+                  <Ionicons name="document-outline" size={48} color="#D4C4B5" />
+                  <Text style={styles.pageSelectEmptyText}>
+                    Загрузка страниц шаблона...
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.pageSelectGrid}>
+                  {templatePages.map((pageUri, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.pageSelectItem}
+                      onPress={() => {
+                        if (targetPageIndexForDuplicate !== null) {
+                          handlePageDuplicate(index, targetPageIndexForDuplicate);
+                        }
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.pageSelectThumbnail}>
+                        <Image
+                          source={{ uri: pageUri }}
+                          style={styles.pageSelectThumbnailImage}
+                          contentFit="cover"
+                        />
+                      </View>
+                      <Text style={styles.pageSelectItemNumber}>
+                        Страница {index + 1}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Модальное окно выбора страницы для добавления */}
+      <Modal
+        visible={showAddPageModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowAddPageModal(false);
+        }}
+      >
+        <View style={styles.pageSelectModalOverlay}>
+          <View style={styles.pageSelectModalContent}>
+            <View style={styles.pageSelectModalHeader}>
+              <Text style={styles.pageSelectModalTitle}>Выберите страницу для добавления</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddPageModal(false);
+                }}
+                style={styles.pageSelectModalCloseButton}
+              >
+                <Ionicons name="close" size={24} color="#8B6F5F" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.pageSelectModalScroll}
+              contentContainerStyle={styles.pageSelectModalScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {templatePages.length === 0 ? (
+                <View style={styles.pageSelectEmptyState}>
+                  <Ionicons name="document-outline" size={48} color="#D4C4B5" />
+                  <Text style={styles.pageSelectEmptyText}>
+                    Загрузка страниц шаблона...
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.pageSelectGrid}>
+                  {templatePages.map((pageUri, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.pageSelectItem}
+                      onPress={() => {
+                        handleAddPage(index);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.pageSelectThumbnail}>
+                        <Image
+                          source={{ uri: pageUri }}
+                          style={styles.pageSelectThumbnailImage}
+                          contentFit="cover"
+                        />
+                      </View>
+                      <Text style={styles.pageSelectItemNumber}>
+                        Страница {index + 1}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1937,5 +2311,108 @@ const styles = StyleSheet.create({
   toolButtonTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  pageSelectModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  pageSelectModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  pageSelectModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E8E0',
+  },
+  pageSelectModalTitle: {
+    fontSize: 22,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    flex: 1,
+  },
+  pageSelectModalCloseButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageSelectModalScroll: {
+    maxHeight: 500,
+  },
+  pageSelectModalScrollContent: {
+    padding: 24,
+  },
+  pageSelectEmptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  pageSelectEmptyText: {
+    fontSize: 16,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  pageSelectGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'flex-start',
+  },
+  pageSelectItem: {
+    width: (SCREEN_WIDTH - 24 * 2 - 16 * 2) / 3,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  pageSelectThumbnail: {
+    width: '100%',
+    height: 140,
+    backgroundColor: '#FAF8F5',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    marginBottom: 8,
+  },
+  pageSelectThumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  pageSelectItemNumber: {
+    fontSize: 14,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
