@@ -247,9 +247,9 @@ export default function HomeScreen() {
     }
   };
 
-  const handleNewProject = () => {
+  const handleMyStories = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // Переходим на таб "Проекты" с экраном выбора категории
+    // Переходим на экран "Мои истории" (projects)
     router.push('/projects');
   };
 
@@ -349,11 +349,11 @@ export default function HomeScreen() {
               </Text>
               <TouchableOpacity
                 style={styles.newProjectButton}
-                onPress={handleNewProject}
+                onPress={handleMyStories}
                 activeOpacity={0.7}
               >
-                <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.newProjectButtonText}>Создать альбом</Text>
+                <Ionicons name="book-outline" size={24} color="#FFFFFF" />
+                <Text style={styles.newProjectButtonText}>Мои истории</Text>
               </TouchableOpacity>
               <Text style={styles.buyPaperVersionText}>Купить бумажную версию</Text>
             </View>
@@ -477,30 +477,29 @@ export default function HomeScreen() {
             </>
           )}
 
-          {/* Предложение создать еще альбом */}
+          {/* Кнопка "Мои истории" */}
           {projects.length > 0 && (
             <View style={styles.createMoreContainer}>
               <TouchableOpacity
                 style={styles.createMoreButton}
-                onPress={handleNewProject}
+                onPress={handleMyStories}
                 activeOpacity={0.8}
               >
                 <View style={styles.createMoreIconWrapper}>
-                  <Ionicons name="add-circle-outline" size={24} color="#FFFFFF" />
+                  <Ionicons name="book-outline" size={24} color="#FFFFFF" />
                 </View>
                 <View style={styles.createMoreContent}>
-                  <Text style={styles.createMoreTitle}>Создать ещё альбом</Text>
+                  <Text style={styles.createMoreTitle}>Мои истории</Text>
                   <Text style={styles.createMoreText}>
-                    Сохраняйте все важные моменты в красивых альбомах
+                    Создавайте альбомы и дневники для важных моментов жизни
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
               </TouchableOpacity>
-              <Text style={styles.buyPaperVersionText}>Купить бумажную версию</Text>
             </View>
           )}
 
-          {/* Кнопка настройки уведомлений для бумажных альбомов */}
+          {/* Кнопка помощника заполнения с напоминаниями */}
           <View style={styles.catalogContainer}>
             <TouchableOpacity
               style={styles.paperAlbumButton}
@@ -511,14 +510,14 @@ export default function HomeScreen() {
                 <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
               </View>
               <View style={styles.catalogButtonContent}>
-                <Text style={styles.catalogButtonTitle}>Бумажный альбом</Text>
-                <Text style={styles.catalogButtonText}>Настроить уведомления</Text>
+                <Text style={styles.catalogButtonTitle}>Помощник заполнения с напоминаниями</Text>
+                <Text style={styles.catalogButtonText}>Настроить уведомления для бумажных альбомов</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
             </TouchableOpacity>
           </View>
 
-          {/* Кнопка каталога */}
+          {/* Кнопка каталога товаров */}
           <View style={styles.catalogContainer}>
             <TouchableOpacity
               style={styles.catalogButton}
@@ -529,8 +528,8 @@ export default function HomeScreen() {
                 <Ionicons name="gift-outline" size={24} color="#FFFFFF" />
               </View>
               <View style={styles.catalogButtonContent}>
-                <Text style={styles.catalogButtonTitle}>Каталог</Text>
-                <Text style={styles.catalogButtonText}>Купить бумажную версию</Text>
+                <Text style={styles.catalogButtonTitle}>Каталог товаров</Text>
+                <Text style={styles.catalogButtonText}>Купить бумажную версию альбомов</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
             </TouchableOpacity>

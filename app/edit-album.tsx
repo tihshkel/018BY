@@ -1426,8 +1426,8 @@ export default function EditAlbumScreen() {
             disabled={isLoading}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Ionicons name="download-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.exportButtonText}>Экспорт</Text>
+            <Ionicons name="book-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.exportButtonText}>Получить книгу</Text>
           </TouchableOpacity>
         </View>
 
@@ -1892,6 +1892,7 @@ export default function EditAlbumScreen() {
           </View>
         </View>
       </Modal>
+
     </SafeAreaView>
   );
 }

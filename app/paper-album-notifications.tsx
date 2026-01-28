@@ -169,7 +169,7 @@ export default function PaperAlbumNotificationsScreen() {
                 trigger = { date: notificationDate };
                 console.log('iOS trigger date:', notificationDate.toISOString());
               } else {
-                // Android требует целое число секунд, минимум 1 секунда
+                // Android: используем объект с seconds, минимум 1 секунда
                 trigger = { seconds: 1 };
                 console.log('Android trigger seconds: 1');
               }

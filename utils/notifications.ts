@@ -4,14 +4,20 @@ import * as Notifications from 'expo-notifications';
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
-// Set the notification handler for the app
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Set the notification handler for the app (only if not in Expo Go)
+if (!isExpoGo) {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (error) {
+    console.warn('Error setting notification handler:', error);
+  }
+}
 
 /**
  * Requests permission to send notifications.

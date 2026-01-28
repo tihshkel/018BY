@@ -39,7 +39,7 @@ export default function ProjectsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Выберите готовый альбом</Text>
+          <Text style={styles.title}>Мои истории</Text>
         </View>
 
         <ScrollView

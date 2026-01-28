@@ -462,9 +462,10 @@ export default function SelectCoverScreen() {
         if (Platform.OS === 'ios') {
           trigger = { date: notificationDate };
         } else {
+          // Android: используем объект с seconds
           const seconds = Math.floor((notificationDate.getTime() - now.getTime()) / 1000);
           if (seconds > 0) {
-            trigger = seconds;
+            trigger = { seconds };
           }
         }
 
@@ -487,9 +488,10 @@ export default function SelectCoverScreen() {
         if (Platform.OS === 'ios') {
           trigger = { date: eventDate };
         } else {
+          // Android: используем объект с seconds
           const seconds = Math.floor((eventDate.getTime() - now.getTime()) / 1000);
           if (seconds > 0) {
-            trigger = seconds;
+            trigger = { seconds };
           }
         }
 

@@ -18,11 +18,12 @@ export interface ProjectProduct {
 }
 
 export const projectCategories: ProjectCategory[] = [
-  { id: 'pregnancy', name: 'Беременность', icon: 'heart-outline' },
-  { id: 'kids', name: 'Дети 0–7 лет', icon: 'flower-outline' },
-  { id: 'wedding', name: 'Свадьба', icon: 'diamond-outline' },
+  { id: 'pregnancy', name: 'Ожидание чуда', icon: 'heart-outline' },
+  { id: 'kids', name: 'Первые годы малыша', icon: 'flower-outline' },
   { id: 'family', name: 'Семья', icon: 'people-outline' },
-  { id: 'diary', name: 'Дневники', icon: 'book-outline' },
+  { id: 'wedding', name: 'Любовь и свадьба', icon: 'diamond-outline' },
+  { id: 'holidays', name: 'Праздники и события', icon: 'gift-outline' },
+  { id: 'diary', name: 'Мои истории: дневники', icon: 'book-outline' },
 ];
 
 export const buildProjectProducts = () => {
@@ -33,6 +34,7 @@ export const buildProjectProducts = () => {
     kids: [],
     wedding: [],
     family: [],
+    holidays: [],
     diary: [],
   };
 
@@ -52,7 +54,7 @@ export const buildProjectProducts = () => {
     };
 
     if (album.category === 'travel') {
-      productsMap.diary.push(projectProduct);
+      productsMap.holidays.push(projectProduct);
       return;
     }
 

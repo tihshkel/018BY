@@ -144,13 +144,13 @@ export default function RemindersListScreen() {
           date: date,
         };
       } else {
-        // Для Android вычисляем разницу в секундах
+        // Android: используем объект с seconds
         const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
         if (seconds <= 0) {
           console.warn('Invalid notification time');
           return null;
         }
-        trigger = seconds;
+        trigger = { seconds };
       }
 
       const notificationId = await Notifications.scheduleNotificationAsync({

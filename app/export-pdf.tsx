@@ -41,7 +41,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 interface FormatOption {
   id: string;
   name: string;
-  type: 'hard' | 'soft';
+  type: 'electronic' | 'hard' | 'soft';
   margins: string;
   size: string;
   orientation: string;
@@ -49,6 +49,15 @@ interface FormatOption {
 }
 
 const formatOptions: FormatOption[] = [
+  {
+    id: 'electronic',
+    name: 'Электронная версия',
+    type: 'electronic',
+    margins: '10 мм',
+    size: 'A5 (148 × 210 мм)',
+    orientation: 'Вертикальная',
+    description: 'Для просмотра на устройстве',
+  },
   {
     id: 'hard',
     name: 'Для печати в твёрдой обложке',
@@ -72,8 +81,14 @@ const formatOptions: FormatOption[] = [
 export default function ExportPdfScreen() {
   const params = useLocalSearchParams();
   const projectId = params.id as string;
+  const formatParam = params.format as string | undefined;
   
-  const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(null);
+  // Если формат передан в параметрах, автоматически выбираем его
+  const initialFormat = formatParam 
+    ? formatOptions.find(f => f.id === formatParam) || null
+    : null;
+  
+  const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(initialFormat);
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -325,11 +340,11 @@ export default function ExportPdfScreen() {
       }
 
       // Определяем размеры страницы
-      const isA5 = formatToUse.type === 'soft';
+      const isA5 = formatToUse.type === 'soft' || formatToUse.type === 'electronic';
       const pageWidth = isA5 ? 420 : 595; // A5: 148mm = 420pt, A4: 210mm = 595pt
       const pageHeight = isA5 ? 595 : 842; // A5: 210mm = 595pt, A4: 297mm = 842pt
       // Уменьшаем поля для более крупных страниц альбома
-      const margin = formatToUse.type === 'hard' ? 21.25 : 14.15; // 7.5mm = 21.25pt, 5mm = 14.15pt (уменьшено в 2 раза)
+      const margin = formatToUse.type === 'hard' ? 42.5 : 28.3; // 15mm = 42.5pt для hard, 10mm = 28.3pt для soft/electronic
       const contentWidth = pageWidth - (margin * 2);
       const contentHeight = pageHeight - (margin * 2);
 
@@ -1673,7 +1688,7 @@ export default function ExportPdfScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Экспорт в PDF</Text>
+          <Text style={styles.title}>Получить книгу</Text>
         </View>
 
         <ScrollView
@@ -1704,7 +1719,7 @@ export default function ExportPdfScreen() {
                       ]}
                     >
                       <Ionicons
-                        name={format.type === 'hard' ? 'book' : 'book-outline'}
+                        name={format.type === 'hard' ? 'book' : format.type === 'electronic' ? 'phone-portrait-outline' : 'book-outline'}
                         size={32}
                         color={selectedFormat?.id === format.id ? '#FFFFFF' : '#C9A89A'}
                       />

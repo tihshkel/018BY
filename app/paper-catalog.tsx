@@ -16,15 +16,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-// Категории с теми же названиями, что и фильтры на странице каталога
+// Категории с новыми названиями
 const CATALOG_CATEGORIES = [
-  { id: 'pregnancy', name: 'Будущим мамам', icon: 'heart-outline' },
-  { id: 'holidays', name: 'В подарок', icon: 'gift-outline' },
-  { id: 'kids', name: 'Для новорождённых', icon: 'flower-outline' },
-  { id: 'family', name: 'Для семьи', icon: 'people-outline' },
-  { id: 'girls', name: 'Для девочек', icon: 'rose-outline' },
-  { id: 'wedding', name: 'Молодожёнам', icon: 'diamond-outline' },
-  { id: 'children', name: 'Для детей', icon: 'happy-outline' },
+  { id: 'pregnancy', name: 'Ожидание чуда', icon: 'heart-outline' },
+  { id: 'kids', name: 'Первые годы малыша', icon: 'flower-outline' },
+  { id: 'family', name: 'Семья', icon: 'people-outline' },
+  { id: 'wedding', name: 'Любовь и свадьба', icon: 'diamond-outline' },
+  { id: 'holidays', name: 'Праздники и события', icon: 'gift-outline' },
+  { id: 'girls', name: 'Мои истории: дневники', icon: 'book-outline' },
 ];
 
 export default function PaperCatalogScreen() {
@@ -52,7 +51,7 @@ export default function PaperCatalogScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Каталог</Text>
+          <Text style={styles.title}>КАТАЛОГ ТОВАРОВ</Text>
         </View>
 
         <ScrollView

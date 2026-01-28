@@ -59,9 +59,10 @@ async function scheduleNotification(
         if (Platform.OS === 'ios') {
             trigger = { date: triggerDate };
         } else {
+            // Android: используем объект с seconds
             const seconds = Math.floor((triggerDate.getTime() - now.getTime()) / 1000);
             if (seconds <= 0) return null;
-            trigger = seconds;
+            trigger = { seconds };
         }
 
         const notificationId = await Notifications.scheduleNotificationAsync({
@@ -183,11 +184,32 @@ export async function scheduleKidsNotifications(
 
     try {
         // Запрашиваем разрешения
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== 'granted') {
-            console.log('[KidsNotifications] Permission not granted');
+        // Проверяем текущие разрешения
+        let permissions = await Notifications.getPermissionsAsync();
+        let hasPermission = permissions.granted;
+        
+        // Для iOS также проверяем provisional статус
+        if (Platform.OS === 'ios' && !hasPermission) {
+            hasPermission = permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+        }
+        
+        // Если разрешений нет, запрашиваем
+        if (!hasPermission) {
+            const requestResult = await Notifications.requestPermissionsAsync();
+            hasPermission = requestResult.status === 'granted';
+            
+            // Для iOS также проверяем provisional после запроса
+            if (Platform.OS === 'ios' && !hasPermission) {
+                hasPermission = requestResult.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL;
+            }
+        }
+        
+        if (!hasPermission) {
+            console.log('[KidsNotifications] Permission not granted. Status:', permissions.status);
             return;
         }
+        
+        console.log('[KidsNotifications] Permission granted, proceeding with scheduling');
 
         // Отменяем старые уведомления
         await cancelAllKidsNotifications();
