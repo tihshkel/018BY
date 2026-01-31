@@ -840,7 +840,14 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_cover_annotations_${tempProjectId}`, JSON.stringify(coverAnnotations));
         
         console.log('[Export] Переход на страницу экспорта');
-        router.push(`/export-pdf?id=${tempProjectId}`);
+        router.push({
+          pathname: '/export-pdf',
+          params: {
+            id: tempProjectId,
+            coverType: coverType || undefined,
+            celebration: celebration || undefined,
+          },
+        });
       } else {
         // Обновляем данные проекта перед экспортом
         const projectData = await AsyncStorage.getItem(`@project_${id}`);
@@ -873,7 +880,14 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
         
         console.log('[Export] Переход на страницу экспорта для проекта:', id);
-        router.push(`/export-pdf?id=${id}`);
+        router.push({
+          pathname: '/export-pdf',
+          params: {
+            id: id,
+            coverType: coverType || undefined,
+            celebration: celebration || undefined,
+          },
+        });
       }
     } catch (error) {
       console.error('[Export] Ошибка при экспорте:', error);
@@ -1624,136 +1638,107 @@ export default function EditAlbumScreen() {
               </Text>
             </TouchableOpacity>
 
-            {isEditing && (
+            {isEditing && viewMode === 'pages' && (
               <>
                 <TouchableOpacity
                   style={[
                     styles.toolButton,
-                    viewMode === 'cover' && styles.toolButtonActive
+                    currentTool === 'text' && styles.toolButtonActive
                   ]}
-                  onPress={handleViewModeToggle}
+                  onPress={() => handleToolToggle('text')}
                   activeOpacity={0.8}
                   accessibilityRole="button"
-                  accessibilityLabel={viewMode === 'cover' ? "Переключить на страницы" : "Переключить на обложку"}
+                  accessibilityLabel="Добавить текст"
                 >
                   <View style={styles.toolIconContainer}>
                     <Ionicons 
-                      name={viewMode === 'cover' ? "book-outline" : "book"} 
+                      name="text-outline" 
                       size={22} 
-                      color={viewMode === 'cover' ? '#FFFFFF' : '#8B6F5F'} 
+                      color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
                     />
                   </View>
                   <Text 
-                    style={[styles.toolButtonText, viewMode === 'cover' && styles.toolButtonTextActive]}
+                    style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
                     numberOfLines={1}
                   >
-                    Обложка
+                    Текст
                   </Text>
                 </TouchableOpacity>
 
-                {viewMode === 'pages' && (
-                  <>
-                    <TouchableOpacity
-                      style={styles.toolButton}
-                      onPress={() => setShowAddPageModal(true)}
-                      activeOpacity={0.8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Добавить страницу"
-                    >
-                      <View style={styles.toolIconContainer}>
-                        <Ionicons 
-                          name="add-circle-outline" 
-                          size={22} 
-                          color="#8B6F5F" 
-                        />
-                      </View>
-                      <Text 
-                        style={styles.toolButtonText}
-                        numberOfLines={1}
-                      >
-                        Страница
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.toolButton,
-                        currentTool === 'text' && styles.toolButtonActive
-                      ]}
-                      onPress={() => handleToolToggle('text')}
-                      activeOpacity={0.8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Добавить текст"
-                    >
-                      <View style={styles.toolIconContainer}>
-                        <Ionicons 
-                          name="text-outline" 
-                          size={22} 
-                          color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
-                        />
-                      </View>
-                      <Text 
-                        style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
-                        numberOfLines={1}
-                      >
-                        Текст
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.toolButton,
-                        currentTool === 'image' && styles.toolButtonActive
-                      ]}
-                      onPress={() => handleToolToggle('image')}
-                      activeOpacity={0.8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Добавить фото"
-                    >
-                      <View style={styles.toolIconContainer}>
-                        <Ionicons 
-                          name="image-outline" 
-                          size={22} 
-                          color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
-                        />
-                      </View>
-                      <Text 
-                        style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}
-                        numberOfLines={1}
-                      >
-                        Фото
-                      </Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-
-                {viewMode === 'cover' && (
-                  <TouchableOpacity
-                    style={[
-                      styles.toolButton,
-                      currentTool === 'text' && styles.toolButtonActive
-                    ]}
-                    onPress={() => handleToolToggle('text')}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityLabel="Добавить текст"
+                <TouchableOpacity
+                  style={[
+                    styles.toolButton,
+                    currentTool === 'image' && styles.toolButtonActive
+                  ]}
+                  onPress={() => handleToolToggle('image')}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Добавить фото"
+                >
+                  <View style={styles.toolIconContainer}>
+                    <Ionicons 
+                      name="image-outline" 
+                      size={22} 
+                      color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
+                    />
+                  </View>
+                  <Text 
+                    style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}
+                    numberOfLines={1}
                   >
-                    <View style={styles.toolIconContainer}>
-                      <Ionicons 
-                        name="text-outline" 
-                        size={22} 
-                        color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
-                      />
-                    </View>
-                    <Text 
-                      style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
-                      numberOfLines={1}
-                    >
-                      Текст
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                    Фото
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.toolButton}
+                  onPress={() => setShowAddPageModal(true)}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Добавить страницу"
+                >
+                  <View style={styles.toolIconContainer}>
+                    <Ionicons 
+                      name="add-circle-outline" 
+                      size={22} 
+                      color="#8B6F5F" 
+                    />
+                  </View>
+                  <Text 
+                    style={styles.toolButtonText}
+                    numberOfLines={1}
+                  >
+                    Страница
+                  </Text>
+                </TouchableOpacity>
               </>
+            )}
+
+            {isEditing && viewMode === 'cover' && (
+              <TouchableOpacity
+                style={[
+                  styles.toolButton,
+                  currentTool === 'text' && styles.toolButtonActive
+                ]}
+                onPress={() => handleToolToggle('text')}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Добавить текст"
+              >
+                <View style={styles.toolIconContainer}>
+                  <Ionicons 
+                    name="text-outline" 
+                    size={22} 
+                    color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
+                  />
+                </View>
+                <Text 
+                  style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
+                  numberOfLines={1}
+                >
+                  Текст
+                </Text>
+              </TouchableOpacity>
             )}
           </ScrollView>
         </View>

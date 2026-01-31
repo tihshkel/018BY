@@ -6,6 +6,8 @@ import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
+import { getCoverExportPdfFileNameFromCoverType } from '@/utils/coverExportPdfMapping';
+import { getExportCoverPdf } from '@/albums/export';
 import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -82,6 +84,8 @@ export default function ExportPdfScreen() {
   const params = useLocalSearchParams();
   const projectId = params.id as string;
   const formatParam = params.format as string | undefined;
+  const coverTypeParam = params.coverType as string | undefined;
+  const celebrationParam = params.celebration as string | undefined;
   
   // Если формат передан в параметрах, автоматически выбираем его
   const initialFormat = formatParam 
@@ -94,6 +98,11 @@ export default function ExportPdfScreen() {
   const [showPreview, setShowPreview] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0 });
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
+  const [downloadStep, setDownloadStep] = useState<1 | 2 | null>(null);
+  const [coverDownloaded, setCoverDownloaded] = useState(false);
+  const [interiorDownloaded, setInteriorDownloaded] = useState(false);
+  const [isDownloadingCover, setIsDownloadingCover] = useState(false);
+  const [isDownloadingInterior, setIsDownloadingInterior] = useState(false);
   const opacity = useSharedValue(0);
   const loadingRotation = useSharedValue(0);
   
@@ -1411,12 +1420,238 @@ export default function ExportPdfScreen() {
 
       setPdfUri(fileUri);
       setShowPreview(true);
+      
+      // Если выбран формат "твердый переплет", показываем шаг 1
+      if (formatToUse?.type === 'hard') {
+        setDownloadStep(1);
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
       Alert.alert('Ошибка', 'Не удалось создать PDF файл. ' + (error as Error).message);
     } finally {
       setIsGenerating(false);
       setGenerationStatus(null);
+    }
+  };
+
+  const handleDownloadCoverPdf = async () => {
+    try {
+      setIsDownloadingCover(true);
+      
+      // Получаем coverType и category из параметров или данных проекта
+      let coverType = coverTypeParam;
+      let category = celebrationParam;
+      
+      if (!coverType || !category) {
+        // Пытаемся получить из данных проекта
+        if (projectId) {
+          const projectData = await AsyncStorage.getItem(`@project_${projectId}`);
+          if (projectData) {
+            const project = JSON.parse(projectData);
+            if (!coverType && project.coverType) {
+              coverType = project.coverType;
+            }
+            if (!category && project.category) {
+              category = project.category;
+            }
+          }
+        }
+      }
+
+      if (!coverType || !category) {
+        Alert.alert('Ошибка', 'Не удалось определить тип обложки');
+        setIsDownloadingCover(false);
+        return;
+      }
+
+      // Получаем имя файла PDF обложки
+      const fileName = getCoverExportPdfFileNameFromCoverType(coverType, category, 'hard');
+      if (!fileName) {
+        Alert.alert('Ошибка', 'Не удалось определить имя файла обложки');
+        setIsDownloadingCover(false);
+        return;
+      }
+
+      // Получаем имя файла без расширения для поиска в маппинге
+      const fileNameWithoutExt = fileName.replace('.pdf', '');
+      const pdfModule = getExportCoverPdf(fileNameWithoutExt);
+      
+      if (!pdfModule) {
+        Alert.alert('Ошибка', `PDF файл обложки не найден: ${fileName}`);
+        setIsDownloadingCover(false);
+        return;
+      }
+
+      // Загружаем PDF через Asset
+      const asset = Asset.fromModule(pdfModule);
+      await asset.downloadAsync();
+      const pdfUri = asset.localUri || asset.uri;
+
+      if (!pdfUri) {
+        Alert.alert('Ошибка', 'Не удалось загрузить PDF файл обложки');
+        setIsDownloadingCover(false);
+        return;
+      }
+
+      // Скачиваем файл
+      if (Platform.OS === 'android') {
+        try {
+          const RNBlobUtil = require('react-native-blob-util').default;
+          const { fs, config } = RNBlobUtil;
+          
+          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const downloadOptions = {
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              notification: true,
+              title: fileName,
+              description: 'PDF обложка',
+              mime: 'application/pdf',
+              mediaScannable: true,
+              path: `${fs.dirs.DownloadDir}/${fileName}`,
+            },
+          };
+          
+          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
+          await fs.writeFile(tempPath, base64, 'base64');
+          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
+          fs.unlink(tempPath).catch(() => {});
+          
+          Alert.alert('Успешно', `Обложка сохранена в папку "Загрузки": ${fileName}`);
+          setCoverDownloaded(true);
+          setDownloadStep(2);
+        } catch (blobError) {
+          console.warn('react-native-blob-util failed, using fallback:', blobError);
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Обложка сохранена: ${fileName}`);
+          setCoverDownloaded(true);
+          setDownloadStep(2);
+        }
+      } else if (Platform.OS === 'ios') {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(pdfUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Сохранить обложку',
+            UTI: 'com.adobe.pdf',
+          });
+          setDownloadStep(2);
+        } else {
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Обложка сохранена: ${fileName}`);
+          setCoverDownloaded(true);
+          setDownloadStep(2);
+        }
+      } else {
+        const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${base64}`;
+        link.download = fileName;
+        link.click();
+        Alert.alert('Успешно', `Обложка скачана: ${fileName}`);
+        setDownloadStep(2);
+      }
+    } catch (error) {
+      console.error('Error downloading cover PDF:', error);
+      Alert.alert('Ошибка', 'Не удалось скачать обложку: ' + (error as Error).message);
+    } finally {
+      setIsDownloadingCover(false);
+    }
+  };
+
+  const handleDownloadInteriorPdf = async () => {
+    if (!pdfUri) {
+      Alert.alert('Ошибка', 'PDF файл внутренней части не готов');
+      return;
+    }
+
+    setIsDownloadingInterior(true);
+    try {
+      const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
+      
+      if (Platform.OS === 'android') {
+        try {
+          const RNBlobUtil = require('react-native-blob-util').default;
+          const { fs, config } = RNBlobUtil;
+          
+          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          
+          const downloadOptions = {
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              notification: true,
+              title: fileName,
+              description: 'PDF внутренняя часть',
+              mime: 'application/pdf',
+              mediaScannable: true,
+              path: `${fs.dirs.DownloadDir}/${fileName}`,
+            },
+          };
+          
+          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
+          await fs.writeFile(tempPath, base64, 'base64');
+          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
+          fs.unlink(tempPath).catch(() => {});
+          
+          Alert.alert('Успешно', `Внутренняя часть сохранена в папку "Загрузки": ${fileName}`);
+          setInteriorDownloaded(true);
+        } catch (blobError) {
+          console.warn('react-native-blob-util failed, using fallback:', blobError);
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Внутренняя часть сохранена: ${fileName}`);
+        }
+      } else if (Platform.OS === 'ios') {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(pdfUri, {
+            mimeType: 'application/pdf',
+            dialogTitle: 'Сохранить внутреннюю часть',
+            UTI: 'com.adobe.pdf',
+          });
+        } else {
+          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: pdfUri,
+            to: fileUri,
+          });
+          Alert.alert('Успешно', `Внутренняя часть сохранена: ${fileName}`);
+        }
+      } else {
+        const base64 = await FileSystem.readAsStringAsync(pdfUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${base64}`;
+        link.download = fileName;
+        link.click();
+        Alert.alert('Успешно', `Внутренняя часть скачана: ${fileName}`);
+      }
+    } catch (error) {
+      console.error('Error downloading interior PDF:', error);
+      Alert.alert('Ошибка', 'Не удалось скачать внутреннюю часть: ' + (error as Error).message);
+    } finally {
+      setIsDownloadingInterior(false);
     }
   };
 
@@ -1816,40 +2051,131 @@ export default function ExportPdfScreen() {
               </View>
 
               {/* Действия с PDF */}
-              <View style={styles.actionsContainer}>
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={handleDownload}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.actionIcon}>
-                    <Ionicons name="download-outline" size={28} color="#C9A89A" />
+              {selectedFormat?.type === 'hard' && downloadStep ? (
+                // Двухшаговое скачивание для твердого переплета
+                <View style={styles.downloadStepsContainer}>
+                  <Text style={styles.downloadStepsTitle}>Скачивание книги</Text>
+                  <Text style={styles.downloadStepsSubtitle}>
+                    Для печати книги в твердой обложке необходимо скачать два файла
+                  </Text>
+                  
+                  {/* Шаг 1: Скачать обложку */}
+                  <View style={styles.downloadStepCard}>
+                    <View style={styles.downloadStepHeader}>
+                      <View                       style={[
+                        styles.downloadStepNumber,
+                        coverDownloaded && styles.downloadStepNumberCompleted
+                      ]}>
+                        {coverDownloaded ? (
+                          <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.downloadStepNumberText}>1</Text>
+                        )}
+                      </View>
+                      <View style={styles.downloadStepInfo}>
+                        <Text style={styles.downloadStepTitle}>Скачать обложку</Text>
+                        <Text style={styles.downloadStepDescription}>
+                          PDF файл обложки из папки export
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={[
+                        styles.downloadStepButton,
+                        isDownloadingCover && styles.downloadStepButtonDisabled
+                      ]}
+                      onPress={handleDownloadCoverPdf}
+                      disabled={isDownloadingCover}
+                      activeOpacity={0.7}
+                    >
+                      {isDownloadingCover ? (
+                        <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                      ) : (
+                        <>
+                          <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                          <Text style={styles.downloadStepButtonText}>Скачать обложку</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
                   </View>
-                  <Text style={styles.actionText}>Скачать</Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={handleShare}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.actionIcon}>
-                    <Ionicons name="mail-outline" size={28} color="#C9A89A" />
+                  {/* Шаг 2: Скачать внутреннюю часть */}
+                  <View style={styles.downloadStepCard}>
+                    <View style={styles.downloadStepHeader}>
+                      <View                       style={[
+                        styles.downloadStepNumber,
+                        interiorDownloaded && styles.downloadStepNumberCompleted
+                      ]}>
+                        {interiorDownloaded ? (
+                          <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.downloadStepNumberText}>2</Text>
+                        )}
+                      </View>
+                      <View style={styles.downloadStepInfo}>
+                        <Text style={styles.downloadStepTitle}>Скачать внутреннюю часть</Text>
+                        <Text style={styles.downloadStepDescription}>
+                          PDF файл с отредактированными страницами
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={[
+                        styles.downloadStepButton,
+                        (downloadStep < 2 || isDownloadingInterior) && styles.downloadStepButtonDisabled
+                      ]}
+                      onPress={handleDownloadInteriorPdf}
+                      disabled={downloadStep < 2 || isDownloadingInterior}
+                      activeOpacity={0.7}
+                    >
+                      {isDownloadingInterior ? (
+                        <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                      ) : (
+                        <>
+                          <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                          <Text style={styles.downloadStepButtonText}>Скачать внутреннюю часть</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
                   </View>
-                  <Text style={styles.actionText}>Отправить</Text>
-                </TouchableOpacity>
+                </View>
+              ) : (
+                // Обычные действия для других форматов
+                <View style={styles.actionsContainer}>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={handleDownload}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.actionIcon}>
+                      <Ionicons name="download-outline" size={28} color="#C9A89A" />
+                    </View>
+                    <Text style={styles.actionText}>Скачать</Text>
+                  </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={handleEmail}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.actionIcon}>
-                    <Ionicons name="print-outline" size={28} color="#C9A89A" />
-                  </View>
-                  <Text style={styles.actionText}>Печать</Text>
-                </TouchableOpacity>
-              </View>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={handleShare}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.actionIcon}>
+                      <Ionicons name="mail-outline" size={28} color="#C9A89A" />
+                    </View>
+                    <Text style={styles.actionText}>Отправить</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={handleEmail}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.actionIcon}>
+                      <Ionicons name="print-outline" size={28} color="#C9A89A" />
+                    </View>
+                    <Text style={styles.actionText}>Печать</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Подсказка */}
               <View style={styles.hintContainer}>
@@ -2178,6 +2504,128 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+  },
+  downloadStepsContainer: {
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  downloadStepsTitle: {
+    fontSize: 22,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    marginBottom: 8,
+  },
+  downloadStepsSubtitle: {
+    fontSize: 14,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  downloadStepCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  downloadStepHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  downloadStepNumber: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0E8E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  downloadStepNumberCompleted: {
+    backgroundColor: '#C9A89A',
+  },
+  downloadStepNumberText: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+  },
+  downloadStepInfo: {
+    flex: 1,
+  },
+  downloadStepTitle: {
+    fontSize: 18,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  downloadStepDescription: {
+    fontSize: 14,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    lineHeight: 20,
+  },
+  downloadStepButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#C9A89A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 8,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  downloadStepButtonDisabled: {
+    backgroundColor: '#D4C4B5',
+    opacity: 0.6,
+  },
+  downloadStepButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
   },
 });
 
