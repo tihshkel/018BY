@@ -1,36 +1,37 @@
-import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  Dimensions,
-  Modal,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-import { Asset } from 'expo-asset';
-import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
-import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { getAlbumImages } from '@/utils/albumImages';
+import { getAllAlbumTemplates } from '@/albums';
+import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { getKidsFirstPageImage } from '@/utils/albumFirstLastPages';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
+import { getAlbumImages } from '@/utils/albumImages';
+import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Asset } from 'expo-asset';
+import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -508,6 +509,8 @@ export default function SelectCoverScreen() {
 
       // Сохраняем
       await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+      syncToCloudNow();
+      scheduleSyncToCloud();
 
       // Планируем уведомление
       // Для kids (день рождения) планируем ежегодное уведомление

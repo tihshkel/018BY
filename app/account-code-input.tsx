@@ -1,33 +1,32 @@
+import { pushAccountDataToCloud, syncAccountDataOnLogin, validateAccessCode } from '@/utils/account-sync';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  InteractionManager,
-  Keyboard,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Alert,
+    Dimensions,
+    InteractionManager,
+    Keyboard,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import Animated, {
-  Easing,
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withSequence,
-  withTiming
+    Easing,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withSequence,
+    withSpring,
+    withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { ensureDeviceRegistered, getStoredDevices } from '@/utils/account-transfer';
-import { validateAccessCode, syncAccountDataOnLogin } from '@/utils/account-sync';
 
 const CODE_LENGTH = 8; // Код доступа аккаунта обычно длиннее
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -276,6 +275,13 @@ export default function AccountCodeInputScreen() {
           ]
         );
         return;
+      }
+
+      // Всегда сохраняем в облако данные текущего аккаунта перед загрузкой (в т.ч. при повторном входе по тому же коду),
+      // иначе при загрузке из БД перезатрём локальные проекты/аватар/уведомления пустыми данными
+      const currentCode = await AsyncStorage.getItem('@access_code');
+      if (currentCode) {
+        await pushAccountDataToCloud();
       }
 
       // Синхронизируем данные аккаунта и регистрируем устройство

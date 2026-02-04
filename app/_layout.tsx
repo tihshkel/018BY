@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { initializeImagePreload } from '@/utils/imagePreloader';
 import { AccessCodeModalManager } from '@/components/access-code-modal-manager';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { initializeImagePreload } from '@/utils/imagePreloader';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

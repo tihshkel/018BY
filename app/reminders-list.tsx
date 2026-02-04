@@ -1,27 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Switch,
-  Alert,
-  TextInput,
-} from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import { projectCategories } from '@/constants/projectTemplates';
+import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
-import { projectCategories } from '@/constants/projectTemplates';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -218,6 +219,8 @@ export default function RemindersListScreen() {
         
         setReminders(updatedReminders);
         await AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
+        syncToCloudNow();
+        scheduleSyncToCloud();
       } else {
         // Если нет сохраненных напоминаний, начинаем с пустого списка
         setReminders([]);
@@ -291,6 +294,8 @@ export default function RemindersListScreen() {
 
     try {
       await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
+      syncToCloudNow();
+      scheduleSyncToCloud();
       setShowAddModal(false);
       setSelectedCategory(null);
       setCustomTitle('');
@@ -322,6 +327,8 @@ export default function RemindersListScreen() {
                 );
                 setReminders(updatedReminders);
                 AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
+                syncToCloudNow();
+                scheduleSyncToCloud();
               }
             }
           );
@@ -341,6 +348,8 @@ export default function RemindersListScreen() {
 
     try {
       await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
+      syncToCloudNow();
+      scheduleSyncToCloud();
     } catch (error) {
       console.error('Error saving reminders:', error);
     }
@@ -372,6 +381,8 @@ export default function RemindersListScreen() {
 
             try {
               await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
+              syncToCloudNow();
+              scheduleSyncToCloud();
             } catch (error) {
               console.error('Error saving reminders:', error);
             }

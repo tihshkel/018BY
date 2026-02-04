@@ -1,27 +1,28 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Alert,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
+import { projectCategories } from '@/constants/projectTemplates';
+import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
-import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
-import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
-import { projectCategories } from '@/constants/projectTemplates';
+import { Image } from 'expo-image';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface LocalParams {
   category?: string | string[];
@@ -199,6 +200,8 @@ export default function SelectAlbumScreen() {
       const projects = existingProjects ? JSON.parse(existingProjects) : [];
       projects.push(projectData);
       await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+      syncToCloudNow();
+      scheduleSyncToCloud();
 
       // МАКСИМАЛЬНО БЫСТРАЯ загрузка: используем предзагруженную первую страницу из кеша
       let firstPageUri: string | null = null;

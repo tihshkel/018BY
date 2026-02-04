@@ -1,13 +1,14 @@
+import { getExportCoverPdf } from '@/albums/export';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
-import { getAlbumImageUris } from '@/utils/albumImages';
+import { scheduleSyncToCloud } from '@/utils/account-sync';
 import { getKidsFirstLastPages, getPregnancyFirstLastPages } from '@/utils/albumFirstLastPages';
+import { getAlbumImageUris } from '@/utils/albumImages';
+import { getCoverExportPdfFileNameFromCoverType } from '@/utils/coverExportPdfMapping';
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
-import { getCoverExportPdfFileNameFromCoverType } from '@/utils/coverExportPdfMapping';
-import { getExportCoverPdf } from '@/albums/export';
 import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -215,7 +216,7 @@ export default function ExportPdfScreen() {
             console.log(`[PDF Export] Получено изображение обложки: albumId=${albumId}, category=${projectCategory}, coverImage=${!!coverImage}`);
             
             // Также получаем PDF развертку для возможной будущей конвертации (пока не используется)
-            const coverType = formatToUse?.type || 'hard';
+            const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
             coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
             console.log(`[PDF Export] PDF развертка получена (для справки): coverPdf=${!!coverPdf}`);
           } else {
@@ -277,7 +278,7 @@ export default function ExportPdfScreen() {
 
       // Если PDF развертка обложки еще не получена, пытаемся получить по albumId
       if ((projectCategory === 'pregnancy' || projectCategory === 'kids') && !coverPdf && albumId) {
-            const coverType = formatToUse?.type || 'hard';
+            const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
         coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
         // Если PDF развертка не найдена, используем изображение обложки
         if (!coverPdf) {
@@ -305,7 +306,7 @@ export default function ExportPdfScreen() {
       // Добавляем первую и последнюю страницу для альбомов беременности и детей
       if (projectCategory === 'kids' || projectCategory === 'pregnancy') {
         try {
-          const coverType = formatToUse?.type || 'hard';
+          const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
           
           if (projectCategory === 'kids') {
             // Загружаем первую и последнюю страницу для альбомов детей
@@ -1413,6 +1414,7 @@ export default function ExportPdfScreen() {
           // Оставляем только последние 100 экспортов, чтобы не засорять хранилище
           const trimmedHistory = history.slice(-100);
           await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
+          scheduleSyncToCloud();
         }
       } catch (historyError) {
         console.warn('[PDF Export] Не удалось сохранить в историю:', historyError);

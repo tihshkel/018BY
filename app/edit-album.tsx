@@ -1,35 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Dimensions,
-  Alert,
-  ScrollView,
-  Modal,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useLocalSearchParams } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import ImageViewer from '@/components/image-viewer';
-import CoverViewer from '@/components/cover-viewer';
-import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
-import { Asset } from 'expo-asset';
 import { getAlbumTemplateById } from '@/albums';
-import { getAlbumImageUris, getAlbumPageCount, getAlbumImages } from '@/utils/albumImages';
-import { getDiaryInteriorById, getDiaryInteriorImageUris, getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
-import { Annotation, PdfAnnotationsRef, AVAILABLE_FONTS } from '@/components/pdf-annotations';
+import CoverViewer from '@/components/cover-viewer';
+import ImageViewer from '@/components/image-viewer';
+import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
+import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
+import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { createId, ensureUniqueIds } from '@/utils/id';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Asset } from 'expo-asset';
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -362,6 +363,8 @@ export default function EditAlbumScreen() {
             // Сохраняем изображения в кеш только если это новый проект
             if (id) {
               await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(imageUris));
+              syncToCloudNow();
+              scheduleSyncToCloud();
             }
             
             // Загружаем сохраненные аннотации
@@ -428,6 +431,8 @@ export default function EditAlbumScreen() {
               const projects = existingProjects ? JSON.parse(existingProjects) : [];
               projects.push(projectData);
               await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+              syncToCloudNow();
+              scheduleSyncToCloud();
               
               router.replace({
                 pathname: '/edit-album',
@@ -742,6 +747,8 @@ export default function EditAlbumScreen() {
         const projects = existingProjects ? JSON.parse(existingProjects) : [];
         projects.push(projectData);
         await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+        syncToCloudNow();
+        scheduleSyncToCloud();
         
         // Обновляем URL с новым ID проекта
         router.replace({
@@ -878,6 +885,8 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
         await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
         await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+        syncToCloudNow();
+        scheduleSyncToCloud();
         
         console.log('[Export] Переход на страницу экспорта для проекта:', id);
         router.push({
@@ -917,6 +926,7 @@ export default function EditAlbumScreen() {
       const next = [...prev, newAnnotation];
       if (id) {
         AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -927,6 +937,7 @@ export default function EditAlbumScreen() {
       const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
       if (id) {
         AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -954,6 +965,7 @@ export default function EditAlbumScreen() {
       const next = prev.filter(ann => ann.id !== annotationId);
       if (id) {
         AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -973,6 +985,8 @@ export default function EditAlbumScreen() {
         // Сохраняем аннотации обложки
         AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations)),
       ]);
+      syncToCloudNow();
+      scheduleSyncToCloud();
       
       // Обновляем последнее сохраненное состояние
       lastSavedStateRef.current = {
@@ -1174,6 +1188,7 @@ export default function EditAlbumScreen() {
       const next = [...prev, newAnnotation];
       if (id) {
         AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -1184,6 +1199,7 @@ export default function EditAlbumScreen() {
       const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
       if (id) {
         AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -1211,6 +1227,7 @@ export default function EditAlbumScreen() {
       const next = prev.filter(ann => ann.id !== annotationId);
       if (id) {
         AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
+        scheduleSyncToCloud();
       }
       return next;
     });
@@ -1279,6 +1296,8 @@ export default function EditAlbumScreen() {
     if (id) {
       await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
       await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
+      syncToCloudNow();
+      scheduleSyncToCloud();
     }
     
     setShowAddPageModal(false);
@@ -1337,6 +1356,7 @@ export default function EditAlbumScreen() {
     if (id) {
       AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
       AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
+      scheduleSyncToCloud();
     }
     
     // Закрываем модальное окно
@@ -1383,6 +1403,8 @@ export default function EditAlbumScreen() {
     if (id) {
       AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
       AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(updatedAnnotations));
+      syncToCloudNow();
+      scheduleSyncToCloud();
     }
     
     // Обновляем текущую страницу

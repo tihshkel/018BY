@@ -1,32 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Dimensions,
-  TextInput,
-  Modal,
-  Alert,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withRepeat,
-  withSequence,
-} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withRepeat,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SIDEBAR_WIDTH = 200;
@@ -235,6 +235,8 @@ export default function EditProjectScreen() {
   const handleSave = async () => {
     try {
       await AsyncStorage.setItem(`@project_${projectId}`, JSON.stringify(sections));
+      syncToCloudNow();
+      scheduleSyncToCloud();
       Alert.alert('Сохранено', 'Изменения успешно сохранены');
     } catch (error) {
       console.error('Error saving project:', error);

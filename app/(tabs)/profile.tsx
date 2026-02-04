@@ -1,3 +1,4 @@
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
@@ -8,18 +9,18 @@ import * as Linking from 'expo-linking';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -142,6 +143,11 @@ export default function ProfileScreen() {
       setAvatarUri(result.assets[0].uri);
       try {
         await AsyncStorage.setItem('@user_avatar', result.assets[0].uri);
+        scheduleSyncToCloud();
+        const syncResult = await pushAccountDataToCloud();
+        if (!syncResult.ok) {
+          Alert.alert('Не удалось сохранить в облако', syncResult.error ?? 'Неизвестная ошибка');
+        }
       } catch (error) {
         console.error('Error saving avatar:', error);
       }

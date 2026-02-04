@@ -1,33 +1,36 @@
+import { generateAccessCode } from '@/utils/accessCode';
+import { ensureDeviceRegistered } from '@/utils/account-transfer';
+import { logUserRegistration } from '@/utils/registration-logger';
+import { saveAccountToSupabase } from '@/utils/supabase-account';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { generateAccessCode } from '@/utils/accessCode';
-import { logUserRegistration } from '@/utils/registration-logger';
-import { ensureDeviceRegistered } from '@/utils/account-transfer';
 import {
-  InteractionManager,
-  Keyboard,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    InteractionManager,
+    Keyboard,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NameInputScreen() {
   const [name, setName] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const containerOpacity = useSharedValue(0);
   const greetingOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(0);
@@ -120,7 +123,7 @@ export default function NameInputScreen() {
   };
 
   const handleContinue = async () => {
-    if (name.trim().length === 0) {
+    if (name.trim().length === 0 || isSubmitting) {
       return;
     }
 
@@ -134,28 +137,29 @@ export default function NameInputScreen() {
       mass: 0.8,
     });
 
+    setIsSubmitting(true);
+
     try {
       const trimmedName = name.trim();
-      // Всегда генерируем новый код доступа при регистрации
       const accessCode = generateAccessCode();
+
       await AsyncStorage.setItem('@access_code', accessCode);
-      
-      // Записываем данные регистрации в файл для технической поддержки
-      await logUserRegistration({
-        userName: trimmedName,
-        accessCode: accessCode,
-      });
-      
-      // Регистрируем устройство для этого кода доступа
+      await logUserRegistration({ userName: trimmedName, accessCode });
       await ensureDeviceRegistered({
-        accessCode: accessCode,
+        accessCode,
         maxDevices: 4,
-        validityMonths: 100 * 12, // 100 лет для бесконечной сессии
+        validityMonths: 100 * 12,
       });
+
+      // Сначала сохраняем в БД — один быстрый запрос (accounts)
+      await saveAccountToSupabase(accessCode, trimmedName);
+
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
-      // Помечаем, что нужно показать модальное окно с кодом доступа
       await AsyncStorage.setItem('@show_access_code_modal', 'true');
+
+      // Синхронизация с Supabase произойдёт при уходе из приложения (в фон), не во время работы
+      setIsSubmitting(false);
       setShowGreeting(true);
       
       const greetingShowDuration = Platform.OS === 'android' ? 400 : 350;
@@ -186,6 +190,7 @@ export default function NameInputScreen() {
       }, greetingDelay);
     } catch (error) {
       console.error('Error saving name:', error);
+      setIsSubmitting(false);
     }
   };
 
@@ -227,20 +232,24 @@ export default function NameInputScreen() {
                 <TouchableOpacity
                   style={[
                     styles.continueButton,
-                    name.trim().length > 0 && styles.continueButtonActive,
+                    (name.trim().length > 0 || isSubmitting) && styles.continueButtonActive,
                   ]}
                   onPress={handleContinue}
                   activeOpacity={0.7}
-                  disabled={name.trim().length === 0}
+                  disabled={name.trim().length === 0 || isSubmitting}
                 >
-                  <Text
-                    style={[
-                      styles.continueButtonText,
-                      name.trim().length > 0 && styles.continueButtonTextActive,
-                    ]}
-                  >
-                    Продолжить
-                  </Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.continueButtonText,
+                        name.trim().length > 0 && styles.continueButtonTextActive,
+                      ]}
+                    >
+                      Продолжить
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </Animated.View>
             </View>
