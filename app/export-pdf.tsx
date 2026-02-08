@@ -1,7 +1,7 @@
 import { getExportCoverPdf } from '@/albums/export';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
-import { scheduleSyncToCloud } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getKidsFirstLastPages, getPregnancyFirstLastPages } from '@/utils/albumFirstLastPages';
 import { getAlbumImageUris } from '@/utils/albumImages';
 import { getCoverExportPdfFileNameFromCoverType } from '@/utils/coverExportPdfMapping';
@@ -1414,6 +1414,7 @@ export default function ExportPdfScreen() {
           // Оставляем только последние 100 экспортов, чтобы не засорять хранилище
           const trimmedHistory = history.slice(-100);
           await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
+          await pushAccountDataToCloud();
           scheduleSyncToCloud();
         }
       } catch (historyError) {

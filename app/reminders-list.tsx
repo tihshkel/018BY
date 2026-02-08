@@ -1,5 +1,5 @@
 import { projectCategories } from '@/constants/projectTemplates';
-import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushCoreKeysToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -219,7 +219,7 @@ export default function RemindersListScreen() {
         
         setReminders(updatedReminders);
         await AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
-        syncToCloudNow();
+        await pushCoreKeysToCloud(['@reminders']);
         scheduleSyncToCloud();
       } else {
         // Если нет сохраненных напоминаний, начинаем с пустого списка
@@ -294,7 +294,7 @@ export default function RemindersListScreen() {
 
     try {
       await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-      syncToCloudNow();
+      await pushCoreKeysToCloud(['@reminders']);
       scheduleSyncToCloud();
       setShowAddModal(false);
       setSelectedCategory(null);
@@ -319,15 +319,15 @@ export default function RemindersListScreen() {
         // Если включаем напоминание, планируем уведомление
         if (newEnabled && !r.notificationId) {
           scheduleNotification(r.id, r.title, r.description, new Date(r.date)).then(
-            notificationId => {
+            async notificationId => {
               if (notificationId) {
                 const updatedReminder = { ...r, enabled: newEnabled, notificationId };
                 const updatedReminders = reminders.map(rem =>
                   rem.id === id ? updatedReminder : rem
                 );
                 setReminders(updatedReminders);
-                AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
-                syncToCloudNow();
+                await AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
+                await pushCoreKeysToCloud(['@reminders']);
                 scheduleSyncToCloud();
               }
             }
@@ -348,7 +348,7 @@ export default function RemindersListScreen() {
 
     try {
       await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-      syncToCloudNow();
+      await pushCoreKeysToCloud(['@reminders']);
       scheduleSyncToCloud();
     } catch (error) {
       console.error('Error saving reminders:', error);
@@ -381,7 +381,7 @@ export default function RemindersListScreen() {
 
             try {
               await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-              syncToCloudNow();
+              await pushCoreKeysToCloud(['@reminders']);
               scheduleSyncToCloud();
             } catch (error) {
               console.error('Error saving reminders:', error);

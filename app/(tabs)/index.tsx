@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Dimensions,
-  Pressable,
-  Modal,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
-import { router, useFocusEffect } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import * as Clipboard from 'expo-clipboard';
 import { getAlbumTemplateById } from '@/albums';
 import { generateAccessCode } from '@/utils/accessCodeGenerator';
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Dimensions,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.75;
@@ -304,12 +304,14 @@ export default function HomeScreen() {
           (p: Project) => p.id !== selectedProjectForAction.id
         );
         await AsyncStorage.setItem('@user_projects', JSON.stringify(updatedProjects));
-        
+        await pushAccountDataToCloud();
+        scheduleSyncToCloud();
+
         // Обновляем состояние
         setProjects(updatedProjects);
         setSelectedProject(updatedProjects.length > 0 ? updatedProjects[0] : null);
       }
-      
+
       setShowActionModal(false);
       setSelectedProjectForAction(null);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

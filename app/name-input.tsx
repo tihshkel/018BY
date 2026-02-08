@@ -1,4 +1,5 @@
 import { generateAccessCode } from '@/utils/accessCode';
+import { syncToCloudNow } from '@/utils/account-sync';
 import { ensureDeviceRegistered } from '@/utils/account-transfer';
 import { logUserRegistration } from '@/utils/registration-logger';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
@@ -158,7 +159,7 @@ export default function NameInputScreen() {
       await AsyncStorage.setItem('@is_activated', 'true');
       await AsyncStorage.setItem('@show_access_code_modal', 'true');
 
-      // Синхронизация с Supabase произойдёт при уходе из приложения (в фон), не во время работы
+      syncToCloudNow();
       setIsSubmitting(false);
       setShowGreeting(true);
       

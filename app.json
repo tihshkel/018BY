@@ -98,7 +98,9 @@
     "extra": {
       "eas": {
         "projectId": ""
-      }
+      },
+      "supabaseUrl": "https://imbbutghquiymcwtujha.supabase.co",
+      "supabaseAnonKey": "sb_publishable_wcTAYIBoufNE9Spm4kqPkQ_1duGfvYx"
     }
   }
 }

@@ -2,12 +2,14 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { AccessCodeModalManager } from '@/components/access-code-modal-manager';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { syncToCloudNow } from '@/utils/account-sync';
 import { initializeImagePreload } from '@/utils/imagePreloader';
 
 export default function RootLayout() {
@@ -18,6 +20,27 @@ export default function RootLayout() {
   // Инициализируем предзагрузку изображений при старте приложения
   useEffect(() => {
     initializeImagePreload();
+  }, []);
+
+  // Пробуем синхронизировать сразу после старта (без ручных действий)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      syncToCloudNow();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Синхронизация в облако при уходе приложения в фон (сворачивание/закрытие)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
+      if (state === 'background' || state === 'inactive') {
+        syncToCloudNow();
+      }
+      if (state === 'active') {
+        syncToCloudNow();
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   return (

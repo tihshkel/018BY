@@ -14,9 +14,11 @@ Supabase сохраняет **код доступа** и **имя пользов
 ## Шаг 2: Выполнить SQL
 
 1. В Supabase Dashboard откройте **SQL Editor**
-2. Скопируйте **всё** содержимое файла `supabase/schema.sql` (таблицы `accounts` и `account_sync`)
+2. Скопируйте **всё** содержимое файла `supabase/schema.sql` (таблицы `accounts`, `account_sync`, `account_project_data`; в `accounts` есть поле `avatar_url`)
 3. Вставьте в редактор и нажмите **Run**
 4. Затем выполните `supabase/storage-setup.sql` — создаст bucket для фотографий
+
+Если у вас уже были созданы таблицы по старой схеме, тот же `schema.sql` добавит колонку `avatar_url` в `accounts` и создаст таблицу `account_project_data`.
 
 ## Шаг 3: Получить ключи
 

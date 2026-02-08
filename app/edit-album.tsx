@@ -3,7 +3,7 @@ import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
-import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { createId, ensureUniqueIds } from '@/utils/id';
@@ -431,7 +431,7 @@ export default function EditAlbumScreen() {
               const projects = existingProjects ? JSON.parse(existingProjects) : [];
               projects.push(projectData);
               await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-              syncToCloudNow();
+              await pushAccountDataToCloud();
               scheduleSyncToCloud();
               
               router.replace({
@@ -747,7 +747,7 @@ export default function EditAlbumScreen() {
         const projects = existingProjects ? JSON.parse(existingProjects) : [];
         projects.push(projectData);
         await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-        syncToCloudNow();
+        await pushAccountDataToCloud();
         scheduleSyncToCloud();
         
         // Обновляем URL с новым ID проекта
@@ -885,7 +885,7 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
         await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
         await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
-        syncToCloudNow();
+        await pushAccountDataToCloud();
         scheduleSyncToCloud();
         
         console.log('[Export] Переход на страницу экспорта для проекта:', id);

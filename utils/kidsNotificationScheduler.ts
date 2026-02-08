@@ -4,8 +4,8 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { KIDS_NOTIFICATIONS } from './kidsNotificationsData';
 
 // Проверяем, находимся ли мы в Expo Go
@@ -118,6 +118,8 @@ export async function saveKidsInfo(birthDate: Date, projectId: string): Promise<
             createdAt: new Date().toISOString(),
         };
         await AsyncStorage.setItem('@kids_info', JSON.stringify(kidsInfo));
+        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
+        await pushCoreKeysToCloud(['@kids_info']);
         console.log('[KidsNotifications] Saved kids info');
     } catch (error) {
         console.error('[KidsNotifications] Failed to save kids info:', error);
@@ -314,6 +316,8 @@ async function saveNotificationsAsReminders(birthDate: Date): Promise<void> {
 
         allReminders.push(...reminders);
         await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
+        await pushCoreKeysToCloud(['@reminders']);
 
         console.log('[KidsNotifications] Saved reminders to list');
     } catch (error) {

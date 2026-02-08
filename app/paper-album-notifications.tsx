@@ -1,28 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-  Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { scheduleSyncToCloud } from '@/utils/account-sync';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import * as Notifications from 'expo-notifications';
+import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
+import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PaperAlbumNotification {
   id: string;
@@ -122,6 +123,7 @@ export default function PaperAlbumNotificationsScreen() {
         : [];
       paperAlbums.push(paperAlbumData);
       await AsyncStorage.setItem('@paper_albums', JSON.stringify(paperAlbums));
+      scheduleSyncToCloud();
 
       // Планируем уведомления в зависимости от типа
       if (selectedType === 'pregnancy') {

@@ -1,5 +1,5 @@
 import { getAllAlbumTemplates } from '@/albums';
-import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushCoreKeysToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getKidsFirstPageImage } from '@/utils/albumFirstLastPages';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
 import { getAlbumImages } from '@/utils/albumImages';
@@ -509,7 +509,7 @@ export default function SelectCoverScreen() {
 
       // Сохраняем
       await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
-      syncToCloudNow();
+      await pushCoreKeysToCloud(['@reminders']);
       scheduleSyncToCloud();
 
       // Планируем уведомление
@@ -629,6 +629,8 @@ export default function SelectCoverScreen() {
         await schedulePregnancyNotifications(dueDate, projectId);
       }
 
+      await pushCoreKeysToCloud(['@reminders', '@pregnancy_info']);
+
       // Закрываем модальное окно
       setShowDateModal(false);
 
@@ -643,6 +645,15 @@ export default function SelectCoverScreen() {
       });
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Если нет кода доступа — дата только на устройстве; подсказываем про синхронизацию в БД
+      const accessCode = await AsyncStorage.getItem('@access_code');
+      if (!accessCode) {
+        Alert.alert(
+          'Данные сохранены на устройстве',
+          'Чтобы дата и уведомления сохранялись в облако и подтягивались на других устройствах, введите код доступа в разделе «Профиль».'
+        );
+      }
     } catch (error) {
       console.error('Error saving event date:', error);
       const categoryInfo = getCategoryInfo(celebration);

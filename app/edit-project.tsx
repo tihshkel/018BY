@@ -1,5 +1,5 @@
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -235,7 +235,7 @@ export default function EditProjectScreen() {
   const handleSave = async () => {
     try {
       await AsyncStorage.setItem(`@project_${projectId}`, JSON.stringify(sections));
-      syncToCloudNow();
+      await pushAccountDataToCloud();
       scheduleSyncToCloud();
       Alert.alert('Сохранено', 'Изменения успешно сохранены');
     } catch (error) {

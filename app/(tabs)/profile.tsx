@@ -1,7 +1,10 @@
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { saveAccountToSupabase } from '@/utils/supabase-account';
+import { uploadImageToStorage } from '@/utils/supabase-storage';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics from 'expo-haptics';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -140,16 +143,50 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled) {
-      setAvatarUri(result.assets[0].uri);
+      const sourceUri = result.assets[0].uri;
+      setAvatarUri(sourceUri);
       try {
-        await AsyncStorage.setItem('@user_avatar', result.assets[0].uri);
-        scheduleSyncToCloud();
-        const syncResult = await pushAccountDataToCloud();
-        if (!syncResult.ok) {
-          Alert.alert('Не удалось сохранить в облако', syncResult.error ?? 'Неизвестная ошибка');
+        const code = accessCode ?? (await AsyncStorage.getItem('@access_code'));
+        const name = userName || (await AsyncStorage.getItem('@user_name')) || '';
+
+        let fileUri: string;
+        try {
+          const ext = sourceUri.toLowerCase().includes('.png') ? 'png' : 'jpg';
+          const persistentPath = `${FileSystem.documentDirectory}user_avatar.${ext}`;
+          await FileSystem.copyAsync({ from: sourceUri, to: persistentPath });
+          fileUri = persistentPath.startsWith('file://') ? persistentPath : `file://${persistentPath}`;
+        } catch {
+          fileUri = sourceUri.startsWith('file://') || sourceUri.startsWith('/') ? sourceUri : `file://${sourceUri}`;
+        }
+
+        if (code) {
+          let avatarUrl = await uploadImageToStorage(code, 'avatar', fileUri, 0);
+          if (!avatarUrl && fileUri !== sourceUri) {
+            avatarUrl = await uploadImageToStorage(code, 'avatar', sourceUri, 0);
+          }
+          if (avatarUrl) {
+            await AsyncStorage.setItem('@user_avatar', avatarUrl);
+            setAvatarUri(avatarUrl);
+            const res = await saveAccountToSupabase(code, name, avatarUrl);
+            if (!res.success) {
+              Alert.alert('Ошибка', res.error ?? 'Не удалось сохранить аватар в облаке');
+            } else {
+              scheduleSyncToCloud();
+            }
+          } else {
+            await AsyncStorage.setItem('@user_avatar', fileUri);
+            await pushAccountDataToCloud();
+            scheduleSyncToCloud();
+          }
+        } else {
+          await AsyncStorage.setItem('@user_avatar', fileUri);
+          await pushAccountDataToCloud();
+          scheduleSyncToCloud();
         }
       } catch (error) {
         console.error('Error saving avatar:', error);
+        await AsyncStorage.setItem('@user_avatar', sourceUri);
+      await pushAccountDataToCloud();
       }
     }
   };

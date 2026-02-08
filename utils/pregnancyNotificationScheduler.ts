@@ -3,18 +3,18 @@
  * Расчёт недель беременности и планирование push-уведомлений
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 import {
-    WEEKLY_NOTIFICATIONS,
-    TRIMESTER_NOTIFICATIONS,
     DUE_DATE_NOTIFICATIONS,
-    PREPARATION_NOTIFICATIONS,
-    MORNING_MESSAGES,
     HELPER_REMINDERS,
+    MORNING_MESSAGES,
+    PREPARATION_NOTIFICATIONS,
+    TRIMESTER_NOTIFICATIONS,
+    WEEKLY_NOTIFICATIONS,
     WELCOME_NOTIFICATION,
 } from '@/constants/pregnancyNotificationTexts';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 // Проверяем, находимся ли мы в Expo Go
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -160,6 +160,8 @@ export async function savePregnancyInfo(dueDate: Date, projectId: string): Promi
             createdAt: new Date().toISOString(),
         };
         await AsyncStorage.setItem('@pregnancy_info', JSON.stringify(pregnancyInfo));
+        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
+        await pushCoreKeysToCloud(['@pregnancy_info']);
         console.log('[PregnancyNotifications] Saved pregnancy info');
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save pregnancy info:', error);
@@ -427,6 +429,8 @@ async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number):
 
         allReminders.push(...reminders);
         await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
+        await pushCoreKeysToCloud(['@reminders']);
 
         console.log('[PregnancyNotifications] Saved reminders to list');
     } catch (error) {

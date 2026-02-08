@@ -1,34 +1,35 @@
+import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
+import {
+    buildProjectProducts,
+    projectCategories,
+    type ProjectProduct,
+} from '@/constants/projectTemplates';
+import { pushCoreKeysToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { getAlbumImages } from '@/utils/albumImages';
+import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Asset } from 'expo-asset';
+import { Image } from 'expo-image';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Modal,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import {
-  projectCategories,
-  buildProjectProducts,
-  type ProjectProduct,
-} from '@/constants/projectTemplates';
-import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
-import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { Asset } from 'expo-asset';
-import { getAlbumImages, getAlbumImageUris } from '@/utils/albumImages';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface LocalParams {
   category?: string | string[];
@@ -349,6 +350,8 @@ export default function ProjectTemplatesScreen() {
 
       allReminders.push(reminder);
       await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
+      await pushCoreKeysToCloud(['@reminders']);
+      scheduleSyncToCloud();
     } catch (error) {
       console.error(`Error scheduling ${catId} reminder:`, error);
     }

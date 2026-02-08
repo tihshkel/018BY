@@ -1,6 +1,6 @@
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
-import { scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -202,6 +202,8 @@ export default function SelectAlbumScreen() {
       await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
       syncToCloudNow();
       scheduleSyncToCloud();
+      // Дожидаемся синхронизации, чтобы альбом точно попал в облако до выхода из аккаунта
+      await pushAccountDataToCloud();
 
       // МАКСИМАЛЬНО БЫСТРАЯ загрузка: используем предзагруженную первую страницу из кеша
       let firstPageUri: string | null = null;
@@ -264,12 +266,14 @@ export default function SelectAlbumScreen() {
           const filtered = firstTenUris.filter((uri): uri is string => uri !== null);
           if (filtered.length > 0) {
             await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(filtered));
+            scheduleSyncToCloud();
           }
-          
+
           // Затем загружаем все остальные страницы в фоне
           const imageUris = await getAlbumImageUris(album.id);
           if (imageUris && imageUris.length > 0) {
             await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
+            scheduleSyncToCloud();
           }
         } catch (preloadError) {
           // Игнорируем ошибки фоновой загрузки
