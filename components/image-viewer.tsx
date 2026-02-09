@@ -1,27 +1,27 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  FlatList,
-  Dimensions,
-  Platform,
-  TouchableOpacity,
-  Modal,
-  Alert,
-  Keyboard,
-  Animated,
-} from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
-import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
-import * as ImagePicker from 'expo-image-picker';
-import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 import { createId } from '@/utils/id';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+    Alert,
+    Animated,
+    Dimensions,
+    FlatList,
+    Keyboard,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -256,6 +256,14 @@ export default function ImageViewer({
       });
       const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
+      // На первой странице дневника беременности — шрифт как в шаблоне (тонкий, без засечек)
+      const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && currentPage === 1;
+      const textFontFamily = isPregnancyFirstPage
+        ? 'Nefelibata-PenSans'
+        : (lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily);
+      const textFontSize = isPregnancyFirstPage
+        ? (lastTextStyle?.fontSize ?? defaultTextStyle?.fontSize ?? 18)
+        : (lastTextStyle?.fontSize || defaultTextStyle?.fontSize || 16);
       const newAnnotation: Annotation = {
         id: createId('ann'),
         type: 'text',
@@ -265,8 +273,8 @@ export default function ImageViewer({
         height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
         content: 'Новый текст',
         color: lastTextStyle?.color || defaultTextStyle?.color || '#000000',
-        fontSize: lastTextStyle?.fontSize || defaultTextStyle?.fontSize || 16,
-        ...(lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily ? { fontFamily: lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily } : {}),
+        fontSize: textFontSize,
+        ...(textFontFamily ? { fontFamily: textFontFamily } : {}),
         zIndex: maxZIndex + 1,
         page: currentPage,
       };
@@ -360,10 +368,19 @@ export default function ImageViewer({
         const defaultSize = 120;
         const viewportWidth = SCREEN_WIDTH;
         const viewportHeight = containerHeight;
-        const proposedX = x - defaultSize / 2;
-        const proposedY = y - defaultSize / 2;
-        const nextX = clamp(proposedX, 0, viewportWidth - defaultSize);
-        const nextY = clamp(proposedY, 0, viewportHeight - defaultSize);
+        // На первой странице дневника беременности — фиксированная позиция фото (справа от заголовка «У НАС БУДЕТ МАЛЫШ»)
+        const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && currentPage === 1;
+        let nextX: number;
+        let nextY: number;
+        if (isPregnancyFirstPage) {
+          nextX = clamp(viewportWidth * 0.52 - defaultSize / 2, 0, viewportWidth - defaultSize);
+          nextY = clamp(viewportHeight * 0.18 - defaultSize / 2, 0, viewportHeight - defaultSize);
+        } else {
+          const proposedX = x - defaultSize / 2;
+          const proposedY = y - defaultSize / 2;
+          nextX = clamp(proposedX, 0, viewportWidth - defaultSize);
+          nextY = clamp(proposedY, 0, viewportHeight - defaultSize);
+        }
         const newAnnotation: Annotation = {
           id: createId('ann'),
           type: 'image',

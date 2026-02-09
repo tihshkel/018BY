@@ -1,9 +1,10 @@
 import { getAllAlbumTemplates } from '@/albums';
-import { pushCoreKeysToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { getKidsFirstPageImage } from '@/utils/albumFirstLastPages';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -135,6 +136,7 @@ export default function SelectCoverScreen() {
   const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isSavingDate, setIsSavingDate] = useState(false);
 
 
   React.useEffect(() => {
@@ -459,7 +461,8 @@ export default function SelectCoverScreen() {
         defaultDate.setMonth(defaultDate.getMonth() + 9);
         break;
       case 'kids':
-        // Текущая дата (может быть в прошлом)
+        // Дата рождения: 1 год назад, чтобы пикер открывался на актуальном годе (2024–2026)
+        defaultDate.setFullYear(defaultDate.getFullYear() - 1);
         break;
       case 'wedding':
         // 1 год вперед
@@ -495,22 +498,18 @@ export default function SelectCoverScreen() {
         enabled: true,
       };
 
-      // Загружаем существующие напоминания
-      const existingReminders = await AsyncStorage.getItem('@reminders');
+      const accessCode = await AsyncStorage.getItem('@access_code');
+      const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      const existingReminders = await AsyncStorage.getItem(remindersKey);
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 
-      // Удаляем старые напоминания для этой категории с таким же заголовком (если есть)
       allReminders = allReminders.filter((r: any) =>
         r.categoryId !== categoryId || r.title !== categoryInfo.title
       );
 
-      // Добавляем новое напоминание
       allReminders.push(reminder);
 
-      // Сохраняем
-      await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
-      await pushCoreKeysToCloud(['@reminders']);
-      scheduleSyncToCloud();
+      await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
 
       // Планируем уведомление
       // Для kids (день рождения) планируем ежегодное уведомление
@@ -617,6 +616,8 @@ export default function SelectCoverScreen() {
 
   const handleDateConfirm = async () => {
     if (!selectedCoverId || !celebration) return;
+    if (isSavingDate) return;
+    setIsSavingDate(true);
 
     try {
       // Сохраняем дату события как напоминание
@@ -628,13 +629,24 @@ export default function SelectCoverScreen() {
         console.log('[SelectCover] Scheduling pregnancy notifications for due date:', dueDate.toLocaleDateString());
         await schedulePregnancyNotifications(dueDate, projectId);
       }
+      // Для детей планируем все уведомления по дате рождения
+      if (celebration === 'kids') {
+        const projectId = `kids_${Date.now()}`;
+        console.log('[SelectCover] Scheduling kids notifications for birth date:', dueDate.toLocaleDateString());
+        await scheduleKidsNotifications(dueDate, projectId);
+      }
 
-      await pushCoreKeysToCloud(['@reminders', '@pregnancy_info']);
+      const pushResult = await pushCoreOnlyToCloud();
+      if (!pushResult.ok) {
+        console.warn('[SelectCover] Sync failed:', pushResult.error);
+        Alert.alert(
+          'Сохранено на устройстве',
+          `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и настройки Supabase в .env.`
+        );
+      }
 
-      // Закрываем модальное окно
       setShowDateModal(false);
 
-      // Переходим на страницу выбора действия
       router.push({
         pathname: '/select-action',
         params: {
@@ -658,6 +670,8 @@ export default function SelectCoverScreen() {
       console.error('Error saving event date:', error);
       const categoryInfo = getCategoryInfo(celebration);
       Alert.alert('Ошибка', `Не удалось сохранить ${categoryInfo.title.toLowerCase()}`);
+    } finally {
+      setIsSavingDate(false);
     }
   };
 
@@ -815,8 +829,18 @@ export default function SelectCoverScreen() {
                         android: 'default',
                         default: 'default',
                       })}
-                      minimumDate={isPastDateAllowed ? undefined : new Date()}
-                      maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+                      minimumDate={
+                        isPastDateAllowed
+                          ? (() => {
+                              const d = new Date();
+                              d.setFullYear(d.getFullYear() - 100);
+                              return d;
+                            })()
+                          : new Date()
+                      }
+                      maximumDate={
+                        isPastDateAllowed ? new Date() : new Date(new Date().setFullYear(new Date().getFullYear() + 2))
+                      }
                       onChange={(event, date) => {
                         if (Platform.OS === 'android') {
                           setShowDatePicker(false);
@@ -853,11 +877,14 @@ export default function SelectCoverScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={styles.confirmButton}
+                    style={[styles.confirmButton, isSavingDate && { opacity: 0.6 }]}
                     onPress={handleDateConfirm}
                     activeOpacity={0.85}
+                    disabled={isSavingDate}
                   >
-                    <Text style={styles.confirmButtonText}>Сохранить</Text>
+                    <Text style={styles.confirmButtonText}>
+                      {isSavingDate ? 'Сохраняем…' : 'Сохранить'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>

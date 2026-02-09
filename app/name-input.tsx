@@ -145,23 +145,27 @@ export default function NameInputScreen() {
       const accessCode = generateAccessCode();
 
       await AsyncStorage.setItem('@access_code', accessCode);
-      await logUserRegistration({ userName: trimmedName, accessCode });
-      await ensureDeviceRegistered({
-        accessCode,
-        maxDevices: 4,
-        validityMonths: 100 * 12,
-      });
-
-      // Сначала сохраняем в БД — один быстрый запрос (accounts)
-      await saveAccountToSupabase(accessCode, trimmedName);
-
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
       await AsyncStorage.setItem('@show_access_code_modal', 'true');
 
-      syncToCloudNow();
       setIsSubmitting(false);
       setShowGreeting(true);
+
+      // Отправляем сетевые операции в фоне, чтобы кнопка не "подвисала"
+      setTimeout(() => {
+        Promise.allSettled([
+          logUserRegistration({ userName: trimmedName, accessCode }),
+          ensureDeviceRegistered({
+            accessCode,
+            maxDevices: 4,
+            validityMonths: 100 * 12,
+          }),
+          saveAccountToSupabase(accessCode, trimmedName),
+        ])
+          .then(() => syncToCloudNow())
+          .catch((e) => console.warn('Background signup sync failed:', e));
+      }, 0);
       
       const greetingShowDuration = Platform.OS === 'android' ? 400 : 350;
       const greetingHideDuration = Platform.OS === 'android' ? 300 : 250;

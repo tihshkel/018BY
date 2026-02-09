@@ -3,7 +3,7 @@ import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
-import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
+import { pushAccountDataToCloud } from '@/utils/account-sync';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { createId, ensureUniqueIds } from '@/utils/id';
@@ -69,8 +69,12 @@ export default function EditAlbumScreen() {
   const [showPageSelectModal, setShowPageSelectModal] = useState(false);
   const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
+  const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const containerOpacity = useSharedValue(0);
+
+  // ID для сохранения: из URL или созданный при открытии без id (чтобы текст/фото не терялись до router.replace)
+  const storageId = id || effectiveProjectId;
   
   // Отслеживание последнего сохраненного состояния для проверки изменений
   const lastSavedStateRef = React.useRef<{
@@ -363,8 +367,6 @@ export default function EditAlbumScreen() {
             // Сохраняем изображения в кеш только если это новый проект
             if (id) {
               await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(imageUris));
-              syncToCloudNow();
-              scheduleSyncToCloud();
             }
             
             // Загружаем сохраненные аннотации
@@ -402,9 +404,10 @@ export default function EditAlbumScreen() {
               };
             }
             
-            // Если проекта нет, создаем его
+            // Если проекта нет, создаём его сразу — чтобы сохранение текста/фото работало до обновления URL
             if (!id && (coverType || interiorType) && celebration) {
               const newProjectId = Date.now().toString();
+              setEffectiveProjectId(newProjectId);
               const diaryCover = coverType ? getDiaryCoverById(coverType) : null;
               
               const projectData: any = {
@@ -416,23 +419,20 @@ export default function EditAlbumScreen() {
                 isReadyMadeAlbum: true,
               };
               
-              // Сохраняем обложку дневника для отображения на главной странице
               if (celebration === 'diary' && diaryCover) {
                 projectData.thumbnailPath = diaryCover.image;
               }
-              
               if (eventDate) {
                 projectData.reminderDate = eventDate;
               }
               
               await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
-              
+              await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
               const existingProjects = await AsyncStorage.getItem('@user_projects');
               const projects = existingProjects ? JSON.parse(existingProjects) : [];
               projects.push(projectData);
               await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
               await pushAccountDataToCloud();
-              scheduleSyncToCloud();
               
               router.replace({
                 pathname: '/edit-album',
@@ -748,7 +748,6 @@ export default function EditAlbumScreen() {
         projects.push(projectData);
         await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
         await pushAccountDataToCloud();
-        scheduleSyncToCloud();
         
         // Обновляем URL с новым ID проекта
         router.replace({
@@ -825,9 +824,8 @@ export default function EditAlbumScreen() {
       const exportAlbumId = albumId || interiorType || coverType || (celebration === 'kids' ? 'kids_48' : 'pregnancy_60');
       console.log('[Export] albumId:', exportAlbumId, 'celebration:', celebration);
       
-      // Убеждаемся, что проект сохранен перед экспортом
-      if (!id) {
-        // Создаем временный проект для экспорта
+      // Убеждаемся, что проект сохранен перед экспортом (storageId = id из URL или effectiveProjectId)
+      if (!storageId) {
         const tempProjectId = Date.now().toString();
         const projectData = {
           id: tempProjectId,
@@ -856,43 +854,37 @@ export default function EditAlbumScreen() {
           },
         });
       } else {
-        // Обновляем данные проекта перед экспортом
-        const projectData = await AsyncStorage.getItem(`@project_${id}`);
+        if (!storageId) return;
+        const projectData = await AsyncStorage.getItem(`@project_${storageId}`);
         if (projectData) {
           const project = JSON.parse(projectData);
-          // Обновляем проект с актуальными данными
           const updatedProject = {
             ...project,
             albumId: exportAlbumId,
             category: celebration || project.category || null,
             title: albumName || project.title || getCelebrationTitle(celebration || ''),
           };
-          await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(updatedProject));
+          await AsyncStorage.setItem(`@project_${storageId}`, JSON.stringify(updatedProject));
         } else {
-          // Если проекта нет, создаем новый
           const newProjectData = {
-            id,
+            id: storageId,
             title: albumName || getCelebrationTitle(celebration || ''),
             albumId: exportAlbumId,
             category: celebration || null,
             createdAt: new Date().toISOString(),
             isReadyMadeAlbum: true,
           };
-          await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(newProjectData));
+          await AsyncStorage.setItem(`@project_${storageId}`, JSON.stringify(newProjectData));
         }
-        
-        // Сохраняем текущие данные перед экспортом
-        await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images));
-        await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
-        await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+        await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(images));
+        await AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
+        await AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
         await pushAccountDataToCloud();
-        scheduleSyncToCloud();
-        
-        console.log('[Export] Переход на страницу экспорта для проекта:', id);
+        console.log('[Export] Переход на страницу экспорта для проекта:', storageId);
         router.push({
           pathname: '/export-pdf',
           params: {
-            id: id,
+            id: storageId,
             coverType: coverType || undefined,
             celebration: celebration || undefined,
           },
@@ -924,9 +916,8 @@ export default function EditAlbumScreen() {
       const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
       const newAnnotation = { ...annotation, id: safeId, page: currentPage };
       const next = [...prev, newAnnotation];
-      if (id) {
-        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
@@ -935,9 +926,8 @@ export default function EditAlbumScreen() {
   const handleAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
     setAnnotations(prev => {
       const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
-      if (id) {
-        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
@@ -949,10 +939,9 @@ export default function EditAlbumScreen() {
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
-        // Сохраняем и в проект, и в глобальный ключ для синхронизации
         const styleJson = JSON.stringify(nextStyle);
-        if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
+        if (storageId) {
+          AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
         }
         AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
         return nextStyle;
@@ -963,40 +952,75 @@ export default function EditAlbumScreen() {
   const handleAnnotationDelete = (annotationId: string) => {
     setAnnotations(prev => {
       const next = prev.filter(ann => ann.id !== annotationId);
-      if (id) {
-        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
   };
 
+  // Подсчёт фото в аннотациях для метаданных проекта
+  const countPhotoAnnotations = (items: Annotation[]): number => {
+    return items.filter((ann) => ann?.type === 'image' && typeof (ann as any)?.imageUri === 'string').length;
+  };
+
+  // Гарантирует, что текущий альбом есть в «Мои проекты» и синхронизирован с облаком
+  const ensureProjectInUserProjects = async () => {
+    if (!storageId) return;
+    const existing = await AsyncStorage.getItem(`@project_${storageId}`);
+    let projectData: any = existing ? JSON.parse(existing) : null;
+    const pagesCount = images.length;
+    const photosCount = countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations);
+    if (!projectData) {
+      projectData = {
+        id: storageId,
+        title: albumName || getCelebrationTitle(celebration || ''),
+        category: celebration || '',
+        albumId: albumId || interiorType || coverType || '',
+        createdAt: new Date().toISOString(),
+        isReadyMadeAlbum: true,
+        pagesCount,
+        photosCount,
+      };
+      if (eventDate) projectData.reminderDate = eventDate;
+    } else {
+      projectData.pagesCount = pagesCount;
+      projectData.photosCount = photosCount;
+      if (albumName) projectData.title = albumName;
+    }
+    await AsyncStorage.setItem(`@project_${storageId}`, JSON.stringify(projectData));
+    const rawList = await AsyncStorage.getItem('@user_projects');
+    const list: any[] = rawList ? JSON.parse(rawList) : [];
+    const idx = list.findIndex((p: any) => String(p.id) === String(storageId));
+    if (idx === -1) {
+      list.push(projectData);
+    } else {
+      list[idx] = { ...list[idx], ...projectData };
+    }
+    await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+  };
+
   // Функция для сохранения всех данных проекта
   const saveAllData = async () => {
-    if (!id) return;
+    if (!storageId) return;
     
     try {
-      // Сохраняем все данные параллельно для максимальной скорости
       await Promise.all([
-        // Сохраняем изображения
-        AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(images)),
-        // Сохраняем аннотации страниц
-        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations)),
-        // Сохраняем аннотации обложки
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations)),
+        AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(images)),
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations)),
+        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations)),
       ]);
-      syncToCloudNow();
-      scheduleSyncToCloud();
-      
-      // Обновляем последнее сохраненное состояние
+      // Сразу помечаем как сохранённое — чтобы при выходе не показывалась модалка «Несохранённые изменения»
       lastSavedStateRef.current = {
         images: [...images],
         annotations: JSON.parse(JSON.stringify(annotations)),
         coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
       };
+
+      await ensureProjectInUserProjects().catch(() => {});
+      await pushAccountDataToCloud().catch((e) => console.warn('Push after save failed:', e));
     } catch (error) {
       console.error('Ошибка при сохранении данных проекта:', error);
-      // Не блокируем выход, даже если сохранение не удалось
     }
   };
 
@@ -1164,15 +1188,13 @@ export default function EditAlbumScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
     if (viewMode === 'pages') {
-      // Переключаемся на обложку - сохраняем аннотации страниц
-      if (id) {
-        AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(annotations));
+      if (storageId) {
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
       }
       setViewMode('cover');
     } else {
-      // Переключаемся на страницы - сохраняем аннотации обложки
-      if (id) {
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(coverAnnotations));
+      if (storageId) {
+        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
       }
       setViewMode('pages');
     }
@@ -1186,9 +1208,8 @@ export default function EditAlbumScreen() {
       const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
       const newAnnotation = { ...annotation, id: safeId, page: 'cover' };
       const next = [...prev, newAnnotation];
-      if (id) {
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
@@ -1197,9 +1218,8 @@ export default function EditAlbumScreen() {
   const handleCoverAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
     setCoverAnnotations(prev => {
       const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
-      if (id) {
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
@@ -1211,10 +1231,9 @@ export default function EditAlbumScreen() {
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
-        // Сохраняем и в проект, и в глобальный ключ для синхронизации
         const styleJson = JSON.stringify(nextStyle);
-        if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
+        if (storageId) {
+          AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
         }
         AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
         return nextStyle;
@@ -1225,9 +1244,8 @@ export default function EditAlbumScreen() {
   const handleCoverAnnotationDelete = (annotationId: string) => {
     setCoverAnnotations(prev => {
       const next = prev.filter(ann => ann.id !== annotationId);
-      if (id) {
-        AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(next)).catch(() => {});
-        scheduleSyncToCloud();
+      if (storageId) {
+        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
       }
       return next;
     });
@@ -1296,8 +1314,6 @@ export default function EditAlbumScreen() {
     if (id) {
       await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
       await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
-      syncToCloudNow();
-      scheduleSyncToCloud();
     }
     
     setShowAddPageModal(false);
@@ -1351,15 +1367,10 @@ export default function EditAlbumScreen() {
     
     const finalAnnotations = [...updatedAnnotations, ...newAnnotations];
     setAnnotations(finalAnnotations);
-    
-    // Сохраняем изменения
-    if (id) {
-      AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
-      AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
-      scheduleSyncToCloud();
+    if (storageId) {
+      AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
+      AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(finalAnnotations));
     }
-    
-    // Закрываем модальное окно
     setShowPageSelectModal(false);
     setTargetPageIndexForDuplicate(null);
     
@@ -1398,15 +1409,10 @@ export default function EditAlbumScreen() {
       });
     
     setAnnotations(updatedAnnotations);
-    
-    // Сохраняем изменения
-    if (id) {
-      AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
-      AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(updatedAnnotations));
-      syncToCloudNow();
-      scheduleSyncToCloud();
+    if (storageId) {
+      AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
+      AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations));
     }
-    
     // Обновляем текущую страницу
     if (currentPage > newImages.length) {
       setCurrentPage(newImages.length);

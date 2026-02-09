@@ -78,11 +78,19 @@ export default function HomeScreen() {
     loadProjects();
     checkFirstTimeAccess();
     opacity.value = withTiming(1, { duration: 400 });
+    // Повторно подгружаем имя через 2 и 5 с, чтобы подхватить имя после быстрого входа (фоновая синхронизация)
+    const t2 = setTimeout(loadUserData, 2000);
+    const t5 = setTimeout(loadUserData, 5000);
+    return () => {
+      clearTimeout(t2);
+      clearTimeout(t5);
+    };
   }, []);
 
-  // Загружаем проекты при фокусе экрана (когда пользователь возвращается на главную)
+  // При фокусе обновляем имя и проекты (чтобы подхватить имя после входа по коду и фоновой синхронизации)
   useFocusEffect(
     React.useCallback(() => {
+      loadUserData();
       loadProjects();
     }, [])
   );
@@ -273,45 +281,60 @@ export default function HomeScreen() {
   };
 
   const handleDeleteProject = () => {
-    if (selectedProjectForAction) {
-      Alert.alert(
-        'Удалить проект',
-        `Вы уверены, что хотите удалить проект "${selectedProjectForAction.title}"? Это действие нельзя отменить.`,
-        [
-          {
-            text: 'Отмена',
-            style: 'cancel',
-          },
-          {
-            text: 'Удалить',
-            style: 'destructive',
-            onPress: confirmDeleteProject,
-          },
-        ]
-      );
-    }
+    const project = selectedProjectForAction;
+    if (!project) return;
+    const projectId = String(project.id);
+    const title = project.title;
+    Alert.alert(
+      'Удалить проект',
+      `Вы уверены, что хотите удалить проект "${title}"? Это действие нельзя отменить.`,
+      [
+        {
+          text: 'Отмена',
+          style: 'cancel',
+        },
+        {
+          text: 'Удалить',
+          style: 'destructive',
+          onPress: () => setTimeout(() => confirmDeleteProject(project), 0),
+        },
+      ]
+    );
   };
 
-  const confirmDeleteProject = async () => {
-    if (!selectedProjectForAction) return;
+  const confirmDeleteProject = async (projectArg?: Project | null) => {
+    const project = projectArg ?? selectedProjectForAction;
+    if (!project) return;
 
+    const projectId = String(project.id);
     try {
-      // Удаляем проект из AsyncStorage
+      // Удаляем все данные проекта из AsyncStorage (метаданные, изображения, аннотации и т.д.)
+      const projectKeys = [
+        `@project_${projectId}`,
+        `@project_images_${projectId}`,
+        `@project_annotations_${projectId}`,
+        `@project_cover_annotations_${projectId}`,
+        `@project_viewport_${projectId}`,
+        `@project_cover_viewport_${projectId}`,
+        `@project_pdf_${projectId}`,
+        `@project_last_text_style_${projectId}`,
+      ];
+      await AsyncStorage.multiRemove(projectKeys);
+
+      // Удаляем проект из списка @user_projects (сравниваем id как строки)
       const existingProjects = await AsyncStorage.getItem('@user_projects');
       if (existingProjects) {
         const projectsList = JSON.parse(existingProjects);
         const updatedProjects = projectsList.filter(
-          (p: Project) => p.id !== selectedProjectForAction.id
+          (p: any) => String(p.id) !== projectId
         );
         await AsyncStorage.setItem('@user_projects', JSON.stringify(updatedProjects));
         await pushAccountDataToCloud();
         scheduleSyncToCloud();
-
-        // Обновляем состояние
-        setProjects(updatedProjects);
-        setSelectedProject(updatedProjects.length > 0 ? updatedProjects[0] : null);
       }
 
+      // Всегда обновляем UI и закрываем модалку
+      await loadProjects();
       setShowActionModal(false);
       setSelectedProjectForAction(null);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -334,10 +357,10 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Приветствие */}
+          {/* Приветствие: показываем имя только если оно задано и не дефолтное «Пользователь» */}
           <View style={styles.header}>
             <Text style={styles.greeting}>
-              Привет{userName ? `, ${userName}` : ''}!
+              Привет{(userName && userName.trim() && userName !== 'Пользователь') ? `, ${userName.trim()}` : ''}!
             </Text>
           </View>
 

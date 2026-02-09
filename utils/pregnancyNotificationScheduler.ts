@@ -160,8 +160,6 @@ export async function savePregnancyInfo(dueDate: Date, projectId: string): Promi
             createdAt: new Date().toISOString(),
         };
         await AsyncStorage.setItem('@pregnancy_info', JSON.stringify(pregnancyInfo));
-        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
-        await pushCoreKeysToCloud(['@pregnancy_info']);
         console.log('[PregnancyNotifications] Saved pregnancy info');
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save pregnancy info:', error);
@@ -195,9 +193,14 @@ export async function schedulePregnancyNotifications(
     dueDate: Date,
     projectId: string
 ): Promise<void> {
+    // Всегда сохраняем ПДР в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
+    await savePregnancyInfo(dueDate, projectId);
+    const currentWeek = getPregnancyWeek(dueDate);
+
     const Notifications = getNotifications();
     if (!Notifications) {
-        console.log('[PregnancyNotifications] Notifications not available');
+        console.log('[PregnancyNotifications] Notifications not available, saving PDR and reminders only');
+        await saveNotificationsAsReminders(dueDate, currentWeek);
         return;
     }
 
@@ -223,7 +226,8 @@ export async function schedulePregnancyNotifications(
         }
         
         if (!hasPermission) {
-            console.log('[PregnancyNotifications] Permission not granted. Status:', permissions.status);
+            console.log('[PregnancyNotifications] Permission not granted. PDR and reminders saved.');
+            await saveNotificationsAsReminders(dueDate, currentWeek);
             return;
         }
         
@@ -231,11 +235,6 @@ export async function schedulePregnancyNotifications(
 
         // Отменяем старые уведомления
         await cancelAllPregnancyNotifications();
-
-        // Сохраняем информацию
-        await savePregnancyInfo(dueDate, projectId);
-
-        const currentWeek = getPregnancyWeek(dueDate);
         const now = new Date();
 
         // Ограничение: планируем только на 4 недели вперёд (для iOS лимита в 64 уведомления)
@@ -399,40 +398,31 @@ export async function schedulePregnancyNotifications(
  */
 async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number): Promise<void> {
     try {
-        const existingReminders = await AsyncStorage.getItem('@reminders');
-        let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+        const { getRemindersStorageKey, pushCoreOnlyToCloud } = await import('@/utils/account-sync');
+        const accessCode = await AsyncStorage.getItem('@access_code');
+        const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+        const existingReminders = await AsyncStorage.getItem(remindersKey);
+        let allReminders: any[] = [];
+        try {
+            allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+            if (!Array.isArray(allReminders)) allReminders = [];
+        } catch {
+            allReminders = [];
+        }
 
-        // Удаляем старые напоминания беременности
-        allReminders = allReminders.filter((r: any) => r.categoryId !== 'pregnancy');
+        allReminders = allReminders.filter(
+            (r: any) => r?.categoryId !== 'pregnancy' && !String(r?.id || '').startsWith('pregnancy_')
+        );
 
-        // Добавляем основные напоминания
         const reminders = [
-            {
-                id: `pregnancy_due_${Date.now()}`,
-                categoryId: 'pregnancy',
-                categoryName: 'Беременность',
-                title: 'Предварительная дата родов (ПДР)',
-                description: `ПДР: ${dueDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-                date: dueDate.toISOString(),
-                enabled: true,
-            },
-            {
-                id: `pregnancy_week_${Date.now()}`,
-                categoryId: 'pregnancy',
-                categoryName: 'Беременность',
-                title: 'Еженедельные уведомления',
-                description: `Текущая неделя: ${currentWeek}. Уведомления приходят каждую неделю в 09:00.`,
-                date: new Date().toISOString(),
-                enabled: true,
-            },
+            { id: `pregnancy_due_${Date.now()}`, title: 'Предварительная дата родов (ПДР)', date: dueDate.toISOString(), enabled: true },
+            { id: `pregnancy_week_${Date.now()}`, title: 'Еженедельные уведомления', date: new Date().toISOString(), enabled: true },
         ];
 
         allReminders.push(...reminders);
-        await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
-        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
-        await pushCoreKeysToCloud(['@reminders']);
-
-        console.log('[PregnancyNotifications] Saved reminders to list');
+        await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
+        await pushCoreOnlyToCloud();
+        console.log('[PregnancyNotifications] Saved reminders to list and cloud');
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save reminders:', error);
     }

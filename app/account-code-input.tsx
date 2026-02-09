@@ -1,30 +1,29 @@
-import { pushAccountDataToCloud, syncAccountDataOnLogin, validateAccessCode } from '@/utils/account-sync';
+import { loginAndEnterFast } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    InteractionManager,
-    Keyboard,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Dimensions,
+  InteractionManager,
+  Keyboard,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import Animated, {
-    Easing,
-    interpolateColor,
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withSpring,
-    withTiming
+  Easing,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -164,7 +163,9 @@ export default function AccountCodeInputScreen() {
       (e) => {
         if (!keyboardShownRef.current) {
           keyboardShownRef.current = true;
-          const offset = Platform.OS === 'android' ? -85 : -75;
+          const keyboardHeight = e.endCoordinates?.height ?? 280;
+          // Сдвигаем блок вверх (меньший множитель = блок остаётся ниже, ближе к клавиатуре)
+          const offset = -(keyboardHeight * 0.40);
           contentTranslateY.value = withSpring(offset, {
             damping: 30,
             stiffness: 40,
@@ -237,7 +238,6 @@ export default function AccountCodeInputScreen() {
 
   const handleLogin = async () => {
     const fullCode = code.join('');
-    
     if (fullCode.length !== CODE_LENGTH) {
       setError(true);
       return;
@@ -246,19 +246,29 @@ export default function AccountCodeInputScreen() {
     Keyboard.dismiss();
     setIsLoading(true);
     setError(false);
-
-    contentTranslateY.value = withSpring(0, {
-      damping: 30,
-      stiffness: 40,
-      mass: 0.8,
-    });
+    contentTranslateY.value = withSpring(0, { damping: 30, stiffness: 40, mass: 0.8 });
 
     try {
-      // Сначала проверяем валидность кода доступа
-      const isValid = await validateAccessCode(fullCode);
-      
-      if (!isValid) {
-        setIsLoading(false);
+      const result = await loginAndEnterFast(fullCode);
+
+      if (result.success) {
+        if (Platform.OS === 'android') {
+          setTimeout(() => router.replace('/(tabs)'), 80);
+        } else {
+          router.replace('/(tabs)');
+        }
+        return;
+      }
+
+      setIsLoading(false);
+      if (result.error === 'DEVICE_LIMIT') {
+        Alert.alert(
+          'Лимит устройств',
+          'К этому аккаунту уже привязано максимальное количество устройств (4 устройства). Для добавления нового устройства необходимо удалить одно из существующих устройств или обратиться в техническую поддержку.'
+        );
+        return;
+      }
+      if (result.error === 'INVALID_CODE') {
         Alert.alert(
           'Неверный код',
           'Код доступа не найден. Убедитесь, что вы вводите правильный код, который был сгенерирован при первой регистрации в приложении.',
@@ -276,74 +286,27 @@ export default function AccountCodeInputScreen() {
         );
         return;
       }
-
-      // Всегда сохраняем в облако данные текущего аккаунта перед загрузкой (в т.ч. при повторном входе по тому же коду),
-      // иначе при загрузке из БД перезатрём локальные проекты/аватар/уведомления пустыми данными
-      const currentCode = await AsyncStorage.getItem('@access_code');
-      if (currentCode) {
-        await pushAccountDataToCloud();
-      }
-
-      // Синхронизируем данные аккаунта и регистрируем устройство
-      const syncResult = await syncAccountDataOnLogin(fullCode);
-
-      if (syncResult.success) {
-        // Данные успешно синхронизированы, устройство зарегистрировано
-        // Переходим в приложение
-        if (Platform.OS === 'android') {
-          setTimeout(() => {
-            router.replace('/(tabs)');
-          }, 100);
-        } else {
-          router.replace('/(tabs)');
-        }
-      } else {
-        setIsLoading(false);
-        if (syncResult.error === 'DEVICE_LIMIT') {
-          Alert.alert(
-            'Лимит устройств',
-            'К этому аккаунту уже привязано максимальное количество устройств (4 устройства). Для добавления нового устройства необходимо удалить одно из существующих устройств или обратиться в техническую поддержку.'
-          );
-        } else if (syncResult.error === 'INVALID_CODE') {
-          Alert.alert(
-            'Неверный код',
-            'Код доступа не найден. Убедитесь, что вы вводите правильный код, который был сгенерирован при первой регистрации в приложении.',
-            [
-              {
-                text: 'Попробовать снова',
-                style: 'cancel',
-                onPress: () => {
-                  setCode(Array(CODE_LENGTH).fill(''));
-                  setError(true);
-                  inputRefs.current[0]?.focus();
-                },
-              },
-            ]
-          );
-        } else {
-          Alert.alert(
-            'Ошибка входа',
-            'Произошла ошибка при входе в аккаунт. Попробуйте еще раз.',
-            [
-              {
-                text: 'Попробовать снова',
-                style: 'cancel',
-                onPress: () => {
-                  setCode(Array(CODE_LENGTH).fill(''));
-                  setError(true);
-                  inputRefs.current[0]?.focus();
-                },
-              },
-            ]
-          );
-        }
-      }
+      Alert.alert(
+        'Ошибка входа',
+        'Произошла ошибка при входе в аккаунт. Попробуйте еще раз.',
+        [
+          {
+            text: 'Попробовать снова',
+            style: 'cancel',
+            onPress: () => {
+              setCode(Array(CODE_LENGTH).fill(''));
+              setError(true);
+              inputRefs.current[0]?.focus();
+            },
+          },
+        ]
+      );
     } catch (err) {
       console.error('Error during account login:', err);
       setIsLoading(false);
       Alert.alert(
         'Ошибка',
-        'Произошла ошибка при входе в аккаунт. Попробуйте еще раз.',
+        'Проверьте подключение к интернету и попробуйте снова.',
         [
           {
             text: 'Попробовать снова',
@@ -362,76 +325,73 @@ export default function AccountCodeInputScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#FAF8F5', '#FFFFFF']}
+        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.7}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      >
+        <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+      </TouchableOpacity>
+
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-          <Animated.View style={contentAnimatedStyle}>
-            <View style={styles.header}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
-              </TouchableOpacity>
+          <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="person-outline" size={48} color="#8B6F5F" />
             </View>
 
-            <View style={styles.mainContent}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="person-outline" size={48} color="#8B6F5F" />
-              </View>
-              
-              <Text style={styles.title}>Вход в аккаунт</Text>
-              <Text style={styles.subtitle}>
-                Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
+            <Text style={styles.title}>Вход в аккаунт</Text>
+            <Text style={styles.subtitle}>
+              Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
+            </Text>
+
+            <View style={styles.codeContainer}>
+              {code.map((value, index) => (
+                <CodeCell
+                  key={index}
+                  index={index}
+                  value={value}
+                  hasError={error}
+                  autoFocus={index === 0}
+                  onChangeText={onChangeText}
+                  onKeyPress={onKeyPress}
+                  onFocusAny={onFocusAny}
+                  setRef={setRef}
+                />
+              ))}
+            </View>
+
+            {error && (
+              <Text style={styles.errorText}>
+                Проверьте код доступа
               </Text>
+            )}
 
-              <View style={styles.codeContainer}>
-                {code.map((value, index) => (
-                  <CodeCell
-                    key={index}
-                    index={index}
-                    value={value}
-                    hasError={error}
-                    autoFocus={index === 0}
-                    onChangeText={onChangeText}
-                    onKeyPress={onKeyPress}
-                    onFocusAny={onFocusAny}
-                    setRef={setRef}
-                  />
-                ))}
-              </View>
-
-              {error && (
-                <Text style={styles.errorText}>
-                  Проверьте код доступа
-                </Text>
-              )}
-
-              <TouchableOpacity
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonActive,
+                isLoading && styles.loginButtonLoading,
+              ]}
+              onPress={handleLogin}
+              activeOpacity={0.7}
+              disabled={code.join('').length !== CODE_LENGTH || isLoading}
+            >
+              <Text
                 style={[
-                  styles.loginButton,
-                  (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonActive,
-                  isLoading && styles.loginButtonLoading,
+                  styles.loginButtonText,
+                  (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonTextActive,
                 ]}
-                onPress={handleLogin}
-                activeOpacity={0.7}
-                disabled={code.join('').length !== CODE_LENGTH || isLoading}
               >
-                <Text
-                  style={[
-                    styles.loginButtonText,
-                    (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonTextActive,
-                  ]}
-                >
-                  {isLoading ? 'Вход...' : 'Войти в аккаунт'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                {isLoading ? 'Вход...' : 'Войти в аккаунт'}
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
         </TouchableWithoutFeedback>
       </Animated.View>
@@ -445,32 +405,35 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: HORIZONTAL_PADDING,
   },
-  header: {
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
   backButton: {
-    width: 40,
-    height: 40,
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 8 : 16,
+    left: 8,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10,
   },
-  mainContent: {
-    flex: 1,
+  centeredBlock: {
     alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%',
+    maxWidth: 400,
     paddingBottom: 40,
+    marginTop: -12, // блок с полем ввода кода (чуть ниже, чем было -36)
   },
   iconContainer: {
     width: 96,
     height: 96,
     borderRadius: 24,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: 'rgba(255,255,255,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
     borderWidth: 2,
     borderColor: '#E8DDD4',
   },
@@ -492,8 +455,8 @@ const styles = StyleSheet.create({
     color: '#9B8E7F',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 48,
-    paddingHorizontal: 20,
+    marginBottom: 36,
+    paddingHorizontal: 12,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',

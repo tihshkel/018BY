@@ -3,9 +3,29 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 const BUCKET = 'account-images';
 
+const MAX_UPLOAD_RETRIES = 3;
+const RETRY_DELAY_MS = 1500;
+
+function isRetryableError(message: string): boolean {
+  const m = (message || '').toLowerCase();
+  return (
+    m.includes('502') ||
+    m.includes('503') ||
+    m.includes('504') ||
+    m.includes('network request failed') ||
+    m.includes('fetch failed') ||
+    m.includes('timeout')
+  );
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 /**
  * Загружает локальный файл изображения в Supabase Storage.
  * Возвращает публичный URL или null при ошибке.
+ * При 502 / Network request failed выполняет до 3 повторных попыток с задержкой.
  */
 export async function uploadImageToStorage(
   accessCode: string,
@@ -54,20 +74,41 @@ export async function uploadImageToStorage(
     }
 
     const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
-    const { data, error } = await supabase.storage
-      .from(BUCKET)
-      .upload(path, bytes, {
-        contentType,
-        upsert: true,
-      });
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= MAX_UPLOAD_RETRIES; attempt++) {
+      try {
+        const { data, error } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, bytes, {
+            contentType,
+            upsert: true,
+          });
 
-    if (error) {
-      console.warn('[SupabaseStorage] Upload error:', error.message);
-      return null;
+        if (error) {
+          lastError = error;
+          if (attempt < MAX_UPLOAD_RETRIES && isRetryableError(error.message)) {
+            await delay(RETRY_DELAY_MS * attempt);
+            continue;
+          }
+          console.warn('[SupabaseStorage] Upload error:', error.message);
+          return null;
+        }
+
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
+        return urlData?.publicUrl ?? null;
+      } catch (e) {
+        lastError = e;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (attempt < MAX_UPLOAD_RETRIES && isRetryableError(msg)) {
+          await delay(RETRY_DELAY_MS * attempt);
+          continue;
+        }
+        console.warn('[SupabaseStorage] Upload failed:', e);
+        return null;
+      }
     }
-
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-    return urlData?.publicUrl ?? null;
+    if (lastError) console.warn('[SupabaseStorage] Upload failed after retries:', lastError);
+    return null;
   } catch (e) {
     console.warn('[SupabaseStorage] Upload failed:', e);
     return null;
@@ -116,18 +157,39 @@ async function uploadPdfToStorage(
     }
 
     const path = `pdf/${accessCode}/${projectId}.pdf`;
-    const { data, error } = await supabase.storage.from(BUCKET).upload(path, bytes, {
-      contentType: 'application/pdf',
-      upsert: true,
-    });
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= MAX_UPLOAD_RETRIES; attempt++) {
+      try {
+        const { data, error } = await supabase.storage.from(BUCKET).upload(path, bytes, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
 
-    if (error) {
-      console.warn('[SupabaseStorage] PDF upload error:', error.message);
-      return null;
+        if (error) {
+          lastError = error;
+          if (attempt < MAX_UPLOAD_RETRIES && isRetryableError(error.message)) {
+            await delay(RETRY_DELAY_MS * attempt);
+            continue;
+          }
+          console.warn('[SupabaseStorage] PDF upload error:', error.message);
+          return null;
+        }
+
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
+        return urlData?.publicUrl ?? null;
+      } catch (e) {
+        lastError = e;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (attempt < MAX_UPLOAD_RETRIES && isRetryableError(msg)) {
+          await delay(RETRY_DELAY_MS * attempt);
+          continue;
+        }
+        console.warn('[SupabaseStorage] PDF upload failed:', e);
+        return null;
+      }
     }
-
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
-    return urlData?.publicUrl ?? null;
+    if (lastError) console.warn('[SupabaseStorage] PDF upload failed after retries:', lastError);
+    return null;
   } catch (e) {
     console.warn('[SupabaseStorage] PDF upload failed:', e);
     return null;

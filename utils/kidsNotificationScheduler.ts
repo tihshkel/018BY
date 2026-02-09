@@ -118,8 +118,6 @@ export async function saveKidsInfo(birthDate: Date, projectId: string): Promise<
             createdAt: new Date().toISOString(),
         };
         await AsyncStorage.setItem('@kids_info', JSON.stringify(kidsInfo));
-        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
-        await pushCoreKeysToCloud(['@kids_info']);
         console.log('[KidsNotifications] Saved kids info');
     } catch (error) {
         console.error('[KidsNotifications] Failed to save kids info:', error);
@@ -178,9 +176,13 @@ export async function scheduleKidsNotifications(
     birthDate: Date,
     projectId: string
 ): Promise<void> {
+    // Всегда сохраняем дату рождения в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
+    await saveKidsInfo(birthDate, projectId);
+
     const Notifications = getNotifications();
     if (!Notifications) {
-        console.log('[KidsNotifications] Notifications not available');
+        console.log('[KidsNotifications] Notifications not available, saving birth date and reminders only');
+        await saveNotificationsAsReminders(birthDate);
         return;
     }
 
@@ -207,7 +209,8 @@ export async function scheduleKidsNotifications(
         }
         
         if (!hasPermission) {
-            console.log('[KidsNotifications] Permission not granted. Status:', permissions.status);
+            console.log('[KidsNotifications] Permission not granted. Birth date and reminders saved.');
+            await saveNotificationsAsReminders(birthDate);
             return;
         }
         
@@ -215,9 +218,6 @@ export async function scheduleKidsNotifications(
 
         // Отменяем старые уведомления
         await cancelAllKidsNotifications();
-
-        // Сохраняем информацию
-        await saveKidsInfo(birthDate, projectId);
 
         const now = new Date();
         // Сбрасываем время рождения на 00:00 для корректных расчетов дней
@@ -286,40 +286,31 @@ export async function scheduleKidsNotifications(
  */
 async function saveNotificationsAsReminders(birthDate: Date): Promise<void> {
     try {
-        const existingReminders = await AsyncStorage.getItem('@reminders');
-        let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+        const { getRemindersStorageKey, pushCoreOnlyToCloud } = await import('@/utils/account-sync');
+        const accessCode = await AsyncStorage.getItem('@access_code');
+        const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+        const existingReminders = await AsyncStorage.getItem(remindersKey);
+        let allReminders: any[] = [];
+        try {
+            allReminders = existingReminders ? JSON.parse(existingReminders) : [];
+            if (!Array.isArray(allReminders)) allReminders = [];
+        } catch {
+            allReminders = [];
+        }
 
-        // Удаляем старые напоминания детей
-        allReminders = allReminders.filter((r: any) => r.categoryId !== 'kids');
+        allReminders = allReminders.filter(
+            (r: any) => r?.categoryId !== 'kids' && !String(r?.id || '').startsWith('kids_')
+        );
 
-        // Добавляем основные напоминания
         const reminders = [
-            {
-                id: `kids_birth_${Date.now()}`,
-                categoryId: 'kids',
-                categoryName: 'Дети 0-7',
-                title: 'День рождения ребёнка',
-                description: `Дата рождения: ${birthDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}`,
-                date: birthDate.toISOString(),
-                enabled: true,
-            },
-            {
-                id: `kids_monthly_${Date.now()}`,
-                categoryId: 'kids',
-                categoryName: 'Дети 0-7',
-                title: 'Ежемесячные уведомления',
-                description: 'Уведомления о развитии и достижениях приходят каждый месяц.',
-                date: new Date().toISOString(),
-                enabled: true,
-            },
+            { id: `kids_birth_${Date.now()}`, title: 'День рождения ребёнка', date: birthDate.toISOString(), enabled: true },
+            { id: `kids_monthly_${Date.now()}`, title: 'Ежемесячные уведомления', date: new Date().toISOString(), enabled: true },
         ];
 
         allReminders.push(...reminders);
-        await AsyncStorage.setItem('@reminders', JSON.stringify(allReminders));
-        const { pushCoreKeysToCloud } = await import('@/utils/account-sync');
-        await pushCoreKeysToCloud(['@reminders']);
-
-        console.log('[KidsNotifications] Saved reminders to list');
+        await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
+        await pushCoreOnlyToCloud();
+        console.log('[KidsNotifications] Saved reminders to list and cloud');
     } catch (error) {
         console.error('[KidsNotifications] Failed to save reminders:', error);
     }

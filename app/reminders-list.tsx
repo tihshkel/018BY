@@ -1,13 +1,15 @@
 import { projectCategories } from '@/constants/projectTemplates';
-import { pushCoreKeysToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey, mergeReminders, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
+    Keyboard,
+    KeyboardAvoidingView,
     Platform,
     ScrollView,
     StyleSheet,
@@ -15,9 +17,11 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
 } from 'react-native';
 import Animated, {
+    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withTiming,
@@ -79,6 +83,44 @@ interface Reminder {
   notificationId?: string;
 }
 
+/** Упрощённый формат хранения: только id, название и дата (+ enabled, notificationId для работы). Один пользователь = один ключ по access_code. */
+type StoredReminder = {
+  id: string;
+  title: string;
+  date: string;
+  enabled?: boolean;
+  notificationId?: string;
+  categoryId?: string;
+  categoryName?: string;
+  description?: string;
+};
+
+function toStoredReminder(r: Reminder): StoredReminder {
+  return {
+    id: r.id,
+    title: r.title,
+    date: r.date,
+    enabled: r.enabled,
+    notificationId: r.notificationId,
+    description: r.description ?? '',
+    categoryId: r.categoryId,
+    categoryName: r.categoryName,
+  };
+}
+
+function fromStoredReminder(r: StoredReminder): Reminder {
+  return {
+    id: r.id,
+    title: r.title,
+    date: r.date,
+    enabled: r.enabled ?? true,
+    notificationId: r.notificationId,
+    categoryId: r.categoryId ?? 'pregnancy',
+    categoryName: r.categoryName ?? 'Напоминание',
+    description: r.description ?? '',
+  };
+}
+
 export default function RemindersListScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -88,12 +130,53 @@ export default function RemindersListScreen() {
   const [customTitle, setCustomTitle] = useState('');
   const [customDescription, setCustomDescription] = useState('');
   const opacity = useSharedValue(0);
+  const modalOverlayOpacity = useSharedValue(0);
+  const modalSlideY = useSharedValue(400);
+  const titleInputRef = useRef<TextInput>(null);
+  const descriptionInputRef = useRef<TextInput>(null);
+  const addModalScrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    loadReminders();
     requestPermissions();
     opacity.value = withTiming(1, { duration: 400 });
   }, []);
+
+  // Анимация появления модалки «Новое напоминание»
+  useEffect(() => {
+    if (showAddModal) {
+      modalSlideY.value = 400;
+      modalOverlayOpacity.value = 0;
+      modalOverlayOpacity.value = withTiming(1, { duration: 280 });
+      modalSlideY.value = withTiming(0, { duration: 280 });
+    }
+  }, [showAddModal]);
+
+  const closeAddModal = useCallback(() => {
+    Keyboard.dismiss();
+    modalOverlayOpacity.value = withTiming(0, { duration: 220 });
+    modalSlideY.value = withTiming(400, { duration: 220 }, (finished) => {
+      if (finished) {
+        runOnJS(setShowAddModal)(false);
+        runOnJS(setSelectedCategory)(null);
+        runOnJS(setCustomTitle)('');
+        runOnJS(setCustomDescription)('');
+      }
+    });
+  }, []);
+
+  const modalOverlayAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: modalOverlayOpacity.value,
+  }));
+
+  const modalContentAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: modalSlideY.value }],
+  }));
+
+  useFocusEffect(
+    useCallback(() => {
+      loadReminders();
+    }, [])
+  );
 
   const requestPermissions = async () => {
     const Notifications = getNotifications();
@@ -171,30 +254,46 @@ export default function RemindersListScreen() {
 
   const loadReminders = async () => {
     try {
-      const saved = await AsyncStorage.getItem('@reminders');
+      const accessCode = await AsyncStorage.getItem('@access_code');
+      const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      let saved = await AsyncStorage.getItem(storageKey);
+      // Миграция: если у профиля пусто, но есть старый общий ключ — переносим данные в ключ профиля
+      if ((!saved || saved === '[]') && accessCode) {
+        const legacy = await AsyncStorage.getItem('@reminders');
+        if (legacy && legacy !== '[]') {
+          await AsyncStorage.setItem(storageKey, legacy);
+          saved = legacy;
+        }
+      }
       if (saved) {
-        const parsedReminders: Reminder[] = JSON.parse(saved);
-        
-        // Фильтруем только валидные напоминания (с категорией и датой)
+        let parsedReminders: Reminder[] = [];
+        try {
+          parsedReminders = JSON.parse(saved);
+          if (!Array.isArray(parsedReminders)) parsedReminders = [];
+        } catch {
+          parsedReminders = [];
+        }
+
+        // Оставляем все напоминания с id — сколько создано, столько и отображаем (отдельно 1-е, 2-е, 3-е и т.д.)
         const validReminders = parsedReminders.filter(
-          (reminder) => reminder.categoryId && reminder.date
+          (r: StoredReminder) => r && (r.id != null && r.id !== '')
         );
-        
+
         if (validReminders.length === 0) {
-          // Если нет валидных напоминаний, начинаем с пустого списка
           setReminders([]);
-          await AsyncStorage.removeItem('@reminders');
+          if (accessCode) await AsyncStorage.removeItem(storageKey);
           return;
         }
-        
+
+        const normalized = validReminders.map((r: StoredReminder) => fromStoredReminder(r));
+
         // Перепланируем активные напоминания с датой в будущем
         const updatedReminders = await Promise.all(
-          validReminders.map(async (reminder) => {
+          normalized.map(async (reminder) => {
             if (reminder.enabled) {
               const reminderDate = new Date(reminder.date);
               const now = new Date();
               
-              // Если дата в будущем и нет notificationId, планируем уведомление
               if (reminderDate > now && !reminder.notificationId) {
                 const notificationId = await scheduleNotification(
                   reminder.id,
@@ -207,7 +306,6 @@ export default function RemindersListScreen() {
                 }
               }
               
-              // Если дата прошла, отключаем напоминание
               if (reminderDate <= now) {
                 return { ...reminder, enabled: false };
               }
@@ -218,21 +316,19 @@ export default function RemindersListScreen() {
         );
         
         setReminders(updatedReminders);
-        await AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
-        await pushCoreKeysToCloud(['@reminders']);
-        scheduleSyncToCloud();
+        await saveRemindersAndPush(updatedReminders);
       } else {
-        // Если нет сохраненных напоминаний, начинаем с пустого списка
         setReminders([]);
       }
     } catch (error) {
       console.error('Error loading reminders:', error);
       setReminders([]);
-      // Очищаем поврежденные данные
       try {
-        await AsyncStorage.removeItem('@reminders');
+        const accessCode = await AsyncStorage.getItem('@access_code');
+        const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+        await AsyncStorage.removeItem(storageKey);
       } catch (e) {
-        // Игнорируем ошибки очистки
+        // ignore
       }
     }
   };
@@ -247,6 +343,30 @@ export default function RemindersListScreen() {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
     } catch (error) {
       console.error('Error canceling notification:', error);
+    }
+  };
+
+  const saveRemindersAndPush = async (list: Reminder[]) => {
+    const accessCode = await AsyncStorage.getItem('@access_code');
+    const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+    const existing = await AsyncStorage.getItem(storageKey);
+    const storedList = list.map(toStoredReminder);
+    const merged = mergeReminders(existing, JSON.stringify(storedList));
+    await AsyncStorage.setItem(storageKey, merged);
+    return pushCoreOnlyToCloud();
+  };
+
+  const getRemindersFromStorage = async (): Promise<Reminder[]> => {
+    const accessCode = await AsyncStorage.getItem('@access_code');
+    const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+    const raw = await AsyncStorage.getItem(storageKey);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      const arr = Array.isArray(parsed) ? parsed : [];
+      return arr.map((r: StoredReminder) => fromStoredReminder(r));
+    } catch {
+      return [];
     }
   };
 
@@ -289,13 +409,18 @@ export default function RemindersListScreen() {
       notificationId: notificationId || undefined,
     };
 
-    const updated = [...reminders, newReminder];
+    const currentList = await getRemindersFromStorage();
+    const updated = [...currentList, newReminder];
     setReminders(updated);
 
     try {
-      await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-      await pushCoreKeysToCloud(['@reminders']);
-      scheduleSyncToCloud();
+      const pushResult = await saveRemindersAndPush(updated);
+      if (!pushResult.ok) {
+        Alert.alert(
+          'Сохранено на устройстве',
+          `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и настройки Supabase в .env.`
+        );
+      }
       setShowAddModal(false);
       setSelectedCategory(null);
       setCustomTitle('');
@@ -309,54 +434,46 @@ export default function RemindersListScreen() {
   };
 
   const handleToggleReminder = async (id: string) => {
-    const reminder = reminders.find(r => r.id === id);
+    const currentList = await getRemindersFromStorage();
+    const reminder = currentList.find(r => r.id === id);
     if (!reminder) return;
 
-    const updated = reminders.map(r => {
-      if (r.id === id) {
-        const newEnabled = !r.enabled;
-        
-        // Если включаем напоминание, планируем уведомление
-        if (newEnabled && !r.notificationId) {
-          scheduleNotification(r.id, r.title, r.description, new Date(r.date)).then(
-            async notificationId => {
-              if (notificationId) {
-                const updatedReminder = { ...r, enabled: newEnabled, notificationId };
-                const updatedReminders = reminders.map(rem =>
-                  rem.id === id ? updatedReminder : rem
-                );
-                setReminders(updatedReminders);
-                await AsyncStorage.setItem('@reminders', JSON.stringify(updatedReminders));
-                await pushCoreKeysToCloud(['@reminders']);
-                scheduleSyncToCloud();
-              }
-            }
-          );
-        }
-        
-        // Если выключаем, отменяем уведомление
-        if (!newEnabled && r.notificationId) {
-          cancelNotification(r.notificationId);
-        }
+    const newEnabled = !reminder.enabled;
 
-        return { ...r, enabled: newEnabled };
-      }
-      return r;
-    });
+    if (newEnabled && !reminder.notificationId) {
+      scheduleNotification(reminder.id, reminder.title, reminder.description, new Date(reminder.date)).then(
+        async notificationId => {
+          if (notificationId) {
+            const list = await getRemindersFromStorage();
+            const updatedList = list.map(r =>
+              r.id === id ? { ...r, enabled: newEnabled, notificationId } : r
+            );
+            setReminders(updatedList);
+            await saveRemindersAndPush(updatedList);
+          }
+        }
+      );
+    }
 
-    setReminders(updated);
+    if (!newEnabled && reminder.notificationId) {
+      cancelNotification(reminder.notificationId);
+    }
+
+    const updatedList = currentList.map(r =>
+      r.id === id ? { ...r, enabled: newEnabled } : r
+    );
+    setReminders(updatedList);
 
     try {
-      await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-      await pushCoreKeysToCloud(['@reminders']);
-      scheduleSyncToCloud();
+      await saveRemindersAndPush(updatedList);
     } catch (error) {
       console.error('Error saving reminders:', error);
     }
   };
 
   const handleDeleteReminder = async (id: string) => {
-    const reminder = reminders.find(r => r.id === id);
+    const currentList = await getRemindersFromStorage();
+    const reminder = currentList.find(r => r.id === id);
     if (!reminder) return;
 
     Alert.alert(
@@ -371,18 +488,15 @@ export default function RemindersListScreen() {
           text: 'Удалить',
           style: 'destructive',
           onPress: async () => {
-            // Отменяем уведомление
             if (reminder.notificationId) {
               await cancelNotification(reminder.notificationId);
             }
 
-            const updated = reminders.filter(r => r.id !== id);
+            const updated = (await getRemindersFromStorage()).filter(r => r.id !== id);
             setReminders(updated);
 
             try {
-              await AsyncStorage.setItem('@reminders', JSON.stringify(updated));
-              await pushCoreKeysToCloud(['@reminders']);
-              scheduleSyncToCloud();
+              await saveRemindersAndPush(updated);
             } catch (error) {
               console.error('Error saving reminders:', error);
             }
@@ -448,10 +562,10 @@ export default function RemindersListScreen() {
               </Text>
             </View>
           ) : (
-            reminders.map((reminder) => {
+            reminders.map((reminder, index) => {
               const category = projectCategories.find(cat => cat.id === reminder.categoryId);
               return (
-                <View key={reminder.id} style={styles.reminderCard}>
+                <View key={`reminder-${reminder.id}-${index}`} style={styles.reminderCard}>
                   <View style={styles.reminderContent}>
                     <View style={styles.reminderHeader}>
                       <View style={styles.reminderIconWrapper}>
@@ -479,13 +593,15 @@ export default function RemindersListScreen() {
                           {reminder.description}
                         </Text>
                         <Text style={styles.reminderDate}>
-                          {new Date(reminder.date).toLocaleDateString('ru-RU', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {reminder.date
+                            ? new Date(reminder.date).toLocaleDateString('ru-RU', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '—'}
                         </Text>
                       </View>
                     </View>
@@ -513,23 +629,27 @@ export default function RemindersListScreen() {
 
       {/* Модальное окно добавления напоминания */}
       {showAddModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Новое напоминание</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowAddModal(false);
-                  setSelectedCategory(null);
-                  setCustomTitle('');
-                  setCustomDescription('');
-                }}
-              >
-                <Ionicons name="close" size={24} color="#8B6F5F" />
-              </TouchableOpacity>
-            </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <Animated.View style={[styles.modalOverlay, modalOverlayAnimatedStyle]}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              style={styles.modalKeyboardAvoid}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
+            >
+              <Animated.View style={[styles.modalContent, modalContentAnimatedStyle]}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Новое напоминание</Text>
+                    <TouchableOpacity onPress={closeAddModal} activeOpacity={0.7}>
+                      <Ionicons name="close" size={24} color="#8B6F5F" />
+                    </TouchableOpacity>
+                  </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+                  <ScrollView
+                    ref={addModalScrollRef}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.modalScrollContent}
+                  >
               {/* Выбор категории */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Тема</Text>
@@ -570,20 +690,25 @@ export default function RemindersListScreen() {
                 <Text style={styles.modalSectionTitle}>Заголовок (необязательно)</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    ref={titleInputRef}
                     style={styles.input}
                     placeholder="Оставьте пустым для использования названия темы"
                     placeholderTextColor="#B8A898"
                     value={customTitle}
                     onChangeText={setCustomTitle}
+                    returnKeyType="next"
+                    blurOnSubmit={false}
+                    onSubmitEditing={() => descriptionInputRef.current?.focus()}
                   />
                 </View>
               </View>
 
               {/* Описание (опционально) */}
-              <View style={styles.modalSection}>
+              <View style={styles.modalSection} collapsable={false}>
                 <Text style={styles.modalSectionTitle}>Текст напоминания (необязательно)</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
+                    ref={descriptionInputRef}
                     style={[styles.input, styles.textArea]}
                     placeholder="Оставьте пустым для использования текста по умолчанию"
                     placeholderTextColor="#B8A898"
@@ -591,6 +716,17 @@ export default function RemindersListScreen() {
                     onChangeText={setCustomDescription}
                     multiline
                     numberOfLines={3}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        addModalScrollRef.current?.scrollTo({
+                          y: 320,
+                          animated: true,
+                        });
+                      }, 100);
+                    }}
                   />
                 </View>
               </View>
@@ -621,12 +757,7 @@ export default function RemindersListScreen() {
               <View style={styles.modalButtons}>
                 <TouchableOpacity
                   style={styles.cancelModalButton}
-                  onPress={() => {
-                    setShowAddModal(false);
-                    setSelectedCategory(null);
-                    setCustomTitle('');
-                    setCustomDescription('');
-                  }}
+                  onPress={closeAddModal}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.cancelModalButtonText}>Отмена</Text>
@@ -681,8 +812,10 @@ export default function RemindersListScreen() {
                 </TouchableOpacity>
               </View>
             )}
-          </View>
-        </View>
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </Animated.View>
+        </TouchableWithoutFeedback>
       )}
     </SafeAreaView>
   );
@@ -945,17 +1078,28 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(91, 78, 63, 0.45)',
     justifyContent: 'flex-end',
+  },
+  modalKeyboardAvoid: {
+    width: '100%',
+  },
+  modalScrollContent: {
+    paddingBottom: 24,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     paddingTop: 24,
     paddingHorizontal: 24,
     paddingBottom: 40,
     maxHeight: '90%',
+    shadowColor: '#5B4E3F',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 16,
   },
   modalHeader: {
     flexDirection: 'row',

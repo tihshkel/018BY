@@ -859,6 +859,15 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
   };
 
+  const getTextStyleUpdates = (ann: Annotation | null): Partial<Annotation> => {
+    if (!ann || ann.type !== 'text') return {};
+    return {
+      ...(ann.color != null ? { color: ann.color } : {}),
+      ...(ann.fontSize != null ? { fontSize: ann.fontSize } : {}),
+      ...(ann.fontFamily != null ? { fontFamily: ann.fontFamily } : {}),
+    };
+  };
+
   const handleTextSubmit = () => {
     if (editingAnnotation && editingText.trim() !== '') {
       onAnnotationUpdate(editingAnnotation, { content: editingText });
@@ -902,10 +911,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           })
         : null;
 
-      // Сохраняем финальные изменения
+      // Сохраняем финальные изменения, явно передаём стиль, чтобы шрифт/размер/цвет не терялись
       onAnnotationUpdate(editingAnnotation, {
         content: editingText,
         ...(typeof snappedY === 'number' ? { y: snappedY } : {}),
+        ...getTextStyleUpdates(current),
       });
       setEditingAnnotation(null);
       setEditingText('');
