@@ -203,7 +203,7 @@ export default function SelectAlbumScreen() {
       syncToCloudNow();
       scheduleSyncToCloud();
       // Дожидаемся синхронизации, чтобы альбом точно попал в облако до выхода из аккаунта
-      await pushAccountDataToCloud();
+      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
       // МАКСИМАЛЬНО БЫСТРАЯ загрузка: используем предзагруженную первую страницу из кеша
       let firstPageUri: string | null = null;

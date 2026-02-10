@@ -176,7 +176,7 @@ export default function SelectCelebrationScreen() {
           await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
           syncToCloudNow();
           scheduleSyncToCloud();
-          await pushAccountDataToCloud();
+          await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
           router.push(`/edit-album?id=${projectId}`);

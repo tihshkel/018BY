@@ -154,6 +154,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   
   // Используем ref для доступа к актуальному selectedAnnotation в PanResponder
   const selectedAnnotationRef = useRef<string | null>(null);
+  // Refs для актуальных isEditing/editingAnnotation в кэшированных PanResponder (иначе после «Редактировать» тап по тексту/фото не срабатывает)
+  const isEditingRef = useRef(isEditing);
+  const editingAnnotationRef = useRef<string | null>(editingAnnotation);
+  isEditingRef.current = isEditing;
+  editingAnnotationRef.current = editingAnnotation;
 
   // Анимации для плавного появления окна редактирования
   const editingScaleAnim = useRef(new Animated.Value(0)).current;
@@ -165,6 +170,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   const editingDragStartPos = useRef<{ x: number; y: number } | null>(null);
   const editingDragState = useRef<{ startX: number; startY: number; isDraggingStarted: boolean } | null>(null);
+
+  // Последний выбранный шрифт в этой сессии редактирования — чтобы не терять его при быстром нажатии «Готово» (state может ещё не обновиться)
+  const lastSelectedFontIdRef = useRef<string | null>(null);
   const isDraggingWhileEditingRef = useRef(false);
   const adjustedEditingPositionRef = useRef<{ x: number; y: number } | null>(null);
   // Флаг для активации перетаскивания после закрытия редактирования через оранжевую кнопку
@@ -508,7 +516,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   const createPanResponder = (annotation: Annotation) => {
     // Не создаем PanResponder для текста, который редактируется
-    if (annotation.type === 'text' && editingAnnotation === annotation.id) {
+    if (annotation.type === 'text' && editingAnnotationRef.current === annotation.id) {
       return null;
     }
 
@@ -525,45 +533,42 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     const panResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt) => {
+        const isEdit = isEditingRef.current;
+        const editingId = editingAnnotationRef.current;
         // Для текста - только если не редактируется
-        if (annotation.type === 'text' && editingAnnotation === annotation.id) {
+        if (annotation.type === 'text' && editingId === annotation.id) {
           return false;
         }
         // Для текста - если установлен флаг shouldStartDraggingAfterCloseRef, активируем сразу
-        // Это позволяет перетаскивать текст сразу после закрытия окна через оранжевую кнопку
-        if (annotation.type === 'text' && isEditing && shouldStartDraggingAfterCloseRef.current === annotation.id) {
+        if (annotation.type === 'text' && isEdit && shouldStartDraggingAfterCloseRef.current === annotation.id) {
           return true;
         }
         // Для изображений - всегда в режиме редактирования (для выбора при тапе)
         if (annotation.type === 'image') {
-          return isEditing;
+          return isEdit;
         }
-        // Активируем PanResponder сразу для возможности перетаскивания
-        return isEditing;
+        return isEdit;
       },
       onStartShouldSetPanResponderCapture: () => {
-        // НЕ перехватываем события в capture фазе для изображений,
-        // чтобы ручки изменения размера могли обработать их первыми
-        if (annotation.type === 'text' && editingAnnotation === annotation.id) {
+        const isEdit = isEditingRef.current;
+        const editingId = editingAnnotationRef.current;
+        if (annotation.type === 'text' && editingId === annotation.id) {
           return false;
         }
-        // Для изображений - не перехватываем в capture, чтобы ручки имели приоритет
         if (annotation.type === 'image') {
           return false;
         }
-        return isEditing;
+        return isEdit;
       },
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Для текста - только если не редактируется
-        if (annotation.type === 'text' && editingAnnotation === annotation.id) {
+        const isEdit = isEditingRef.current;
+        const editingId = editingAnnotationRef.current;
+        if (annotation.type === 'text' && editingId === annotation.id) {
           return false;
         }
         
-        // Для изображений - перетаскивание работает если изображение выбрано или выбирается
         if (annotation.type === 'image') {
-          // Используем ref для получения актуального значения selectedAnnotation
-          // Также проверяем, что изображение может быть выбрано (в режиме редактирования)
-          if (isEditing && (selectedAnnotationRef.current === annotation.id || !selectedAnnotationRef.current)) {
+          if (isEdit && (selectedAnnotationRef.current === annotation.id || !selectedAnnotationRef.current)) {
             const { dx, dy } = gestureState;
             const distance = Math.sqrt(dx * dx + dy * dy);
             // Порог 3 пикселя - более чувствительный для начала перетаскивания
@@ -586,10 +591,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         
         // Для текста - если установлен флаг shouldStartDraggingAfterCloseRef,
         // активируем перетаскивание при малейшем движении (после закрытия через оранжевую кнопку)
-        if (annotation.type === 'text' && isEditing && shouldStartDraggingAfterCloseRef.current === annotation.id) {
+        if (annotation.type === 'text' && isEdit && shouldStartDraggingAfterCloseRef.current === annotation.id) {
           const { dx, dy } = gestureState;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          // Очень низкий порог (1 пиксель) для немедленной активации после закрытия окна
           if (distance > 1) {
             // Очищаем флаг
             shouldStartDraggingAfterCloseRef.current = null;
@@ -608,7 +612,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         }
         
         // Начинаем перетаскивание только если движение достаточно большое (для текста)
-        if (isEditing && !isDraggingStarted) {
+        if (isEdit && !isDraggingStarted) {
           const { dx, dy } = gestureState;
           const distance = Math.sqrt(dx * dx + dy * dy);
           // Порог 5 пикселей - чтобы отличить перетаскивание от обычного тапа
@@ -624,6 +628,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         return isDraggingStarted;
       },
       onPanResponderGrant: (evt) => {
+        const isEdit = isEditingRef.current;
         const display = getDisplayPosition(annotation);
         startX = display.x;
         startY = display.y;
@@ -631,24 +636,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         pressStartX = evt.nativeEvent.pageX;
         pressStartY = evt.nativeEvent.pageY;
         
-        // Для текста - если установлен флаг shouldStartDraggingAfterCloseRef,
-        // сразу активируем перетаскивание (текст был закрыт через оранжевую кнопку)
-        if (annotation.type === 'text' && isEditing && shouldStartDraggingAfterCloseRef.current === annotation.id) {
-          // Очищаем флаг
+        if (annotation.type === 'text' && isEdit && shouldStartDraggingAfterCloseRef.current === annotation.id) {
           shouldStartDraggingAfterCloseRef.current = null;
-          // Сразу активируем перетаскивание
           isDraggingStarted = true;
           setIsDragging(true);
           isInteractingRef.current = true;
           onInteractionChange?.(true);
         } else {
-          // Сбрасываем флаг перетаскивания только если не активировали его выше
           isDraggingStarted = false;
         }
         
-        // Для изображений - если не выбрано, выбираем при начале касания
-        // Это позволяет сразу начать перетаскивание при зажатии
-        if (annotation.type === 'image' && isEditing) {
+        if (annotation.type === 'image' && isEdit) {
           if (selectedAnnotationRef.current !== annotation.id) {
             setSelectedAnnotation(annotation.id);
             // Обновляем ref сразу для использования в onMoveShouldSetPanResponder
@@ -658,11 +656,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         // Не выбираем текст сразу - будем различать тап и перетаскивание
       },
       onPanResponderMove: (evt, gestureState) => {
-        // Для изображений - перетаскивание работает если изображение выбрано
+        const isEdit = isEditingRef.current;
         if (annotation.type === 'image') {
-          // Используем ref для получения актуального значения selectedAnnotation
-          // Если изображение выбрано и есть движение, начинаем перетаскивание
-          if (isEditing && selectedAnnotationRef.current === annotation.id) {
+          if (isEdit && selectedAnnotationRef.current === annotation.id) {
             const { dx, dy } = gestureState;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
@@ -691,8 +687,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           return;
         }
         
-        // Для текста - только локальное обновление во время drag (без родительского re-render)
-        if (isEditing && isDraggingStarted) {
+        if (isEdit && isDraggingStarted) {
           isInteractingRef.current = true;
           onInteractionChange?.(true);
           const safeZoom = zoomLevel > 0 ? zoomLevel : 1;
@@ -725,8 +720,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             // Сбрасываем скорректированную позицию - она будет вычислена после получения размеров контейнера
             setAdjustedEditingPosition(null);
           } else if (annotation.type === 'image') {
-            // Для изображений - переключаем выбор (если уже выбрано - снимаем выбор, если нет - выбираем)
-            if (selectedAnnotation === annotation.id) {
+            if (selectedAnnotationRef.current === annotation.id) {
               // Если уже выбрано - можно оставить выбранным для перетаскивания при следующем зажатии
               // Или снять выбор, если нужно
               // Оставляем выбранным, чтобы можно было сразу перетаскивать
@@ -899,16 +893,21 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           })
         : null;
 
-      // Сохраняем финальные изменения, явно передаём стиль, чтобы шрифт/размер/цвет не терялись
-      const styleUpdates = current && current.type === 'text' ? getTextStyleUpdates(current) : {};
+      // Сохраняем финальные изменения, явно передаём стиль, чтобы шрифт/размер/цвет не терялись.
+      // Шрифт берём из current или из lastSelectedFontIdRef (на случай, если state ещё не обновился после выбора шрифта).
+      const effectiveFontFamily = (current?.type === 'text' && current.fontFamily) ?? lastSelectedFontIdRef.current;
+      const styleUpdates = current && current.type === 'text'
+        ? { ...getTextStyleUpdates(current), ...(effectiveFontFamily ? { fontFamily: effectiveFontFamily } : {}) }
+        : effectiveFontFamily ? { fontFamily: effectiveFontFamily } : {};
       onAnnotationUpdate(editingAnnotation, {
         content: editingText,
         ...(typeof snappedY === 'number' ? { y: snappedY } : {}),
         ...styleUpdates,
       });
+      lastSelectedFontIdRef.current = null;
       // Запоминаем последний стиль при закрытии редактирования
-      if (current && current.type === 'text' && (current.color != null || current.fontSize != null || current.fontFamily != null)) {
-        const fontToSave = current.fontFamily;
+      const fontToSave = effectiveFontFamily ?? (current?.type === 'text' ? current.fontFamily : undefined);
+      if (current && current.type === 'text' && (current.color != null || current.fontSize != null || fontToSave != null)) {
         if (fontToSave) AsyncStorage.setItem('@last_text_font_family', fontToSave).catch(() => {});
         AsyncStorage.getItem('@last_text_style').then((raw) => {
           let existingFont: string | undefined;
@@ -916,7 +915,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           const lastStyle = {
             color: current!.color ?? '#000000',
             fontSize: current!.fontSize ?? 16,
-            fontFamily: current!.fontFamily ?? existingFont,
+            fontFamily: fontToSave ?? current!.fontFamily ?? existingFont,
           };
           AsyncStorage.setItem('@last_text_style', JSON.stringify(lastStyle)).catch(() => {});
         }).catch(() => {});
@@ -955,6 +954,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     startEditing: (annotationId: string) => {
       const annotation = annotations.find(ann => ann.id === annotationId);
       if (!annotation || annotation.type !== 'text') return;
+      lastSelectedFontIdRef.current = null;
       setEditingAnnotation(annotationId);
       setEditingText(annotation.content || '');
       setSelectedAnnotation(null);
@@ -997,6 +997,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   const handleFontSelect = (fontId: string) => {
     if (editingAnnotation) {
+      lastSelectedFontIdRef.current = fontId;
       onAnnotationUpdate(editingAnnotation, { fontFamily: fontId });
       AsyncStorage.setItem('@last_text_font_family', fontId).catch(() => {});
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
@@ -1071,24 +1072,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     const responder = PanResponder.create({
       onStartShouldSetPanResponder: () => {
-        // Активируем только если изображение выбрано и в режиме редактирования
-        // Используем ref для получения актуального значения
-        return isEditing && selectedAnnotationRef.current === annotationId;
+        return isEditingRef.current && selectedAnnotationRef.current === annotationId;
       },
       onStartShouldSetPanResponderCapture: () => {
-        // Перехватываем события для ручек с высоким приоритетом
-        // Используем ref для получения актуального значения
-        return isEditing && selectedAnnotationRef.current === annotationId;
+        return isEditingRef.current && selectedAnnotationRef.current === annotationId;
       },
       onMoveShouldSetPanResponder: () => {
-        // Активируем при движении, если изображение выбрано
-        // Используем ref для получения актуального значения
-        return isEditing && selectedAnnotationRef.current === annotationId;
+        return isEditingRef.current && selectedAnnotationRef.current === annotationId;
       },
       onMoveShouldSetPanResponderCapture: () => {
-        // Перехватываем движение для ручек с высоким приоритетом
-        // Используем ref для получения актуального значения
-        return isEditing && selectedAnnotationRef.current === annotationId;
+        return isEditingRef.current && selectedAnnotationRef.current === annotationId;
       },
       onPanResponderGrant: (evt) => {
         const ann = annotations.find(a => a.id === annotationId);

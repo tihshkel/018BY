@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
+    "verify-project-save": "node ./scripts/verify-project-save.js",
     "reset-activation-keys": "node -e \"const { resetAllActivationKeys } = require('./utils/activationKeyValidator.ts'); resetAllActivationKeys().then(() => console.log('Коды сброшены')).catch(console.error);\"",
     "android": "expo run:android",
     "ios": "expo run:ios",

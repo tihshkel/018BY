@@ -3,13 +3,14 @@ import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
-import { pushAccountDataToCloud } from '@/utils/account-sync';
+import { ensureSyncReady, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { createId, ensureUniqueIds } from '@/utils/id';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
+import { useFonts } from 'expo-font';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -73,6 +74,16 @@ export default function EditAlbumScreen() {
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const lastFontFamilyRef = React.useRef<string | null>(null);
   const containerOpacity = useSharedValue(0);
+
+  // Предзагрузка шрифтов до первого показа страниц — чтобы кастомные шрифты аннотаций отображались с первого входа в проект
+  const [fontsLoaded] = useFonts(
+    AVAILABLE_FONTS.reduce((acc, font) => {
+      if (font.file && font.id !== 'default') {
+        acc[font.name] = font.file;
+      }
+      return acc;
+    }, {} as Record<string, any>)
+  );
 
   // ID для сохранения: из URL или созданный при открытии без id (чтобы текст/фото не терялись до router.replace)
   const storageId = id || effectiveProjectId;
@@ -414,6 +425,8 @@ export default function EditAlbumScreen() {
                 albumId: foundAlbumId,
                 createdAt: new Date().toISOString(),
                 isReadyMadeAlbum: true,
+                hasPdfTemplate: true,
+                pagesCount: imageUris.length,
               };
               
               if (celebration === 'diary' && diaryCover) {
@@ -425,12 +438,17 @@ export default function EditAlbumScreen() {
               
               await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
               await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
+              await AsyncStorage.setItem(`@project_annotations_${newProjectId}`, JSON.stringify(diaryAnnotations));
+              await AsyncStorage.setItem(`@project_cover_annotations_${newProjectId}`, JSON.stringify(diaryCoverAnnotations));
               const existingProjects = await AsyncStorage.getItem('@user_projects');
               const projects = existingProjects ? JSON.parse(existingProjects) : [];
               projects.push(projectData);
               await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-              await pushAccountDataToCloud();
-              
+              const pushResultDiary = await pushAccountDataToCloud({ forceIncludeProjectIds: [newProjectId] });
+              scheduleSyncToCloud();
+              if (!pushResultDiary.ok && __DEV__) {
+                console.warn('[EditAlbum] Синхронизация при создании дневника не удалась:', pushResultDiary.error);
+              }
               router.replace({
                 pathname: '/edit-album',
                 params: {
@@ -720,6 +738,7 @@ export default function EditAlbumScreen() {
       // Если проекта нет, создаем его при первом открытии
       if (!id && (coverType || interiorType) && celebration) {
         const newProjectId = Date.now().toString();
+        setEffectiveProjectId(newProjectId);
         const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
         
         const projectData: any = {
@@ -729,6 +748,8 @@ export default function EditAlbumScreen() {
           albumId: foundAlbumId,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
+          hasPdfTemplate: true,
+          pagesCount: imageUris.length || pageCount,
         };
         
         // Сохраняем дату события, если она передана
@@ -736,16 +757,20 @@ export default function EditAlbumScreen() {
           projectData.reminderDate = eventDate;
         }
         
-        // Сохраняем информацию о проекте
+        // Сохраняем информацию о проекте и пустые данные страниц/аннотаций (чтобы проект сразу попал в БД при синхронизации)
         await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
-        
-        // Сохраняем в список проектов
+        await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify([]));
+        await AsyncStorage.setItem(`@project_annotations_${newProjectId}`, JSON.stringify([]));
+        await AsyncStorage.setItem(`@project_cover_annotations_${newProjectId}`, JSON.stringify([]));
         const existingProjects = await AsyncStorage.getItem('@user_projects');
         const projects = existingProjects ? JSON.parse(existingProjects) : [];
         projects.push(projectData);
         await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-        await pushAccountDataToCloud();
-        
+        const pushResult = await pushAccountDataToCloud({ forceIncludeProjectIds: [newProjectId] });
+        scheduleSyncToCloud();
+        if (!pushResult.ok && __DEV__) {
+          console.warn('[EditAlbum] Синхронизация при создании проекта не удалась:', pushResult.error);
+        }
         // Обновляем URL с новым ID проекта
         router.replace({
           pathname: '/edit-album',
@@ -876,7 +901,8 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(images));
         await AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
         await AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
-        await pushAccountDataToCloud();
+        await pushAccountDataToCloud({ forceIncludeProjectIds: [storageId] });
+        scheduleSyncToCloud();
         console.log('[Export] Переход на страницу экспорта для проекта:', storageId);
         router.push({
           pathname: '/export-pdf',
@@ -977,7 +1003,13 @@ export default function EditAlbumScreen() {
   const ensureProjectInUserProjects = async () => {
     if (!storageId) return;
     const existing = await AsyncStorage.getItem(`@project_${storageId}`);
-    let projectData: any = existing ? JSON.parse(existing) : null;
+    let projectData: any = null;
+    if (existing) {
+      try {
+        const parsed = JSON.parse(existing);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) projectData = parsed;
+      } catch {}
+    }
     const pagesCount = images.length;
     const photosCount = countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations);
     if (!projectData) {
@@ -988,6 +1020,7 @@ export default function EditAlbumScreen() {
         albumId: albumId || interiorType || coverType || '',
         createdAt: new Date().toISOString(),
         isReadyMadeAlbum: true,
+        hasPdfTemplate: true,
         pagesCount,
         photosCount,
       };
@@ -995,6 +1028,8 @@ export default function EditAlbumScreen() {
     } else {
       projectData.pagesCount = pagesCount;
       projectData.photosCount = photosCount;
+      projectData.hasPdfTemplate = true;
+      projectData.isReadyMadeAlbum = true;
       if (albumName) projectData.title = albumName;
     }
     await AsyncStorage.setItem(`@project_${storageId}`, JSON.stringify(projectData));
@@ -1007,31 +1042,151 @@ export default function EditAlbumScreen() {
       list[idx] = { ...list[idx], ...projectData };
     }
     await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+    if (__DEV__) console.log('[EditAlbum] ensureProjectInUserProjects: saved', storageId, 'list length', list.length);
   };
 
-  // Функция для сохранения всех данных проекта
-  const saveAllData = async () => {
-    if (!storageId) return;
-    
+  // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). Возвращает результат синхронизации с БД.
+  const saveAllData = async (opts?: { silent?: boolean }): Promise<{ pushOk: boolean; pushError?: string }> => {
+    const silent = opts?.silent ?? false;
+    const out = { pushOk: false, pushError: undefined as string | undefined };
+
+    // Гарантируем, что код доступа и запись accounts существуют в Supabase ДО пуша проекта
+    try { await ensureSyncReady(); } catch (_) { /* не блокируем сохранение */ }
+
+    let effectiveId = storageId;
+    const hasContent = images.length > 0 || annotations.length > 0 || coverAnnotations.length > 0;
+    if (!effectiveId && hasContent) {
+      effectiveId = Date.now().toString();
+      setEffectiveProjectId(effectiveId);
+      const projectData: any = {
+        id: effectiveId,
+        title: albumName || getCelebrationTitle(celebration || ''),
+        category: celebration || '',
+        albumId: albumId || interiorType || coverType || '',
+        createdAt: new Date().toISOString(),
+        isReadyMadeAlbum: true,
+        hasPdfTemplate: true,
+        pagesCount: images.length,
+        photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+      };
+      if (eventDate) projectData.reminderDate = eventDate;
+      await AsyncStorage.setItem(`@project_${effectiveId}`, JSON.stringify(projectData));
+      const rawList = await AsyncStorage.getItem('@user_projects');
+      const list: any[] = rawList ? JSON.parse(rawList) : [];
+      if (list.every((p: any) => String(p?.id) !== String(effectiveId))) {
+        list.push(projectData);
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+      }
+      if (__DEV__) console.log('[EditAlbum] saveAllData: created new project', effectiveId);
+    }
+    if (!effectiveId) {
+      if (__DEV__) console.warn('[EditAlbum] saveAllData: no effectiveId, aborting');
+      return out;
+    }
     try {
+      // 1. Локальное сохранение — изображения, аннотации
       await Promise.all([
-        AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(images)),
-        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations)),
-        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations)),
+        AsyncStorage.setItem(`@project_images_${effectiveId}`, JSON.stringify(images)),
+        AsyncStorage.setItem(`@project_annotations_${effectiveId}`, JSON.stringify(annotations)),
+        AsyncStorage.setItem(`@project_cover_annotations_${effectiveId}`, JSON.stringify(coverAnnotations)),
       ]);
-      // Сразу помечаем как сохранённое — чтобы при выходе не показывалась модалка «Несохранённые изменения»
+      if (__DEV__) console.log('[EditAlbum] saveAllData: local save OK for', effectiveId, '| images:', images.length, '| annotations:', annotations.length, '| coverAnnotations:', coverAnnotations.length);
+
       lastSavedStateRef.current = {
         images: [...images],
         annotations: JSON.parse(JSON.stringify(annotations)),
         coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
       };
 
-      await ensureProjectInUserProjects().catch(() => {});
-      await pushAccountDataToCloud().catch((e) => console.warn('Push after save failed:', e));
+      // 2. Обновляем @user_projects — гарантируем, что проект есть в списке
+      if (effectiveId === storageId) {
+        await ensureProjectInUserProjects();
+      } else {
+        const projectData: any = {
+          id: effectiveId,
+          title: albumName || getCelebrationTitle(celebration || ''),
+          category: celebration || '',
+          albumId: albumId || interiorType || coverType || '',
+          createdAt: new Date().toISOString(),
+          isReadyMadeAlbum: true,
+          hasPdfTemplate: true,
+          pagesCount: images.length,
+          photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+        };
+        if (eventDate) projectData.reminderDate = eventDate;
+        await AsyncStorage.setItem(`@project_${effectiveId}`, JSON.stringify(projectData));
+        const rawList2 = await AsyncStorage.getItem('@user_projects');
+        const list2: any[] = rawList2 ? JSON.parse(rawList2) : [];
+        const idx = list2.findIndex((p: any) => String(p?.id) === String(effectiveId));
+        if (idx >= 0) list2[idx] = { ...list2[idx], ...projectData };
+        else list2.push(projectData);
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(list2));
+      }
+
+      // 3. Верификация: перечитываем @user_projects и проверяем что проект в списке
+      const verifyRaw = await AsyncStorage.getItem('@user_projects');
+      const verifyList: any[] = verifyRaw ? JSON.parse(verifyRaw) : [];
+      const inList = verifyList.some((p: any) => String(p?.id) === String(effectiveId));
+      if (!inList) {
+        // Если проекта нет — добавляем принудительно
+        if (__DEV__) console.warn('[EditAlbum] saveAllData: project NOT in @user_projects after save, force-adding');
+        const fallbackData: any = {
+          id: effectiveId,
+          title: albumName || getCelebrationTitle(celebration || ''),
+          category: celebration || '',
+          albumId: albumId || interiorType || coverType || '',
+          createdAt: new Date().toISOString(),
+          isReadyMadeAlbum: true,
+          hasPdfTemplate: true,
+          pagesCount: images.length,
+          photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+        };
+        if (eventDate) fallbackData.reminderDate = eventDate;
+        verifyList.push(fallbackData);
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(verifyList));
+      }
+      if (__DEV__) console.log('[EditAlbum] saveAllData: @user_projects verified, count=', verifyList.length, 'projectInList=', true);
+
+      // 4. Отправка в облако (Supabase)
+      await new Promise((r) => setTimeout(r, 200));
+      let pushResult = await pushAccountDataToCloud({ forceIncludeProjectIds: [effectiveId] });
+      if (!pushResult.ok) {
+        if (__DEV__) console.warn('[EditAlbum] saveAllData: first push failed:', pushResult.error, '- retrying...');
+        await new Promise((r) => setTimeout(r, 500));
+        pushResult = await pushAccountDataToCloud({ forceIncludeProjectIds: [effectiveId] });
+      }
+      scheduleSyncToCloud();
+      out.pushOk = pushResult.ok;
+      out.pushError = pushResult.error;
+      if (__DEV__) console.log('[EditAlbum] saveAllData: push result ok=', pushResult.ok, 'error=', pushResult.error ?? 'none');
+      if (!pushResult.ok && !silent) {
+        const msg = pushResult.error ?? 'Неизвестная ошибка';
+        Alert.alert(
+          'Сохранено на устройстве',
+          `Проект сохранён локально. Синхронизация с облаком не удалась — на другом телефоне проекты могут не появиться.\n\nПричина: ${msg}\n\nПроверьте интернет и настройки Supabase (см. docs/SUPABASE_SETUP.md). Повторная попытка через несколько секунд.`,
+          [{ text: 'OK' }]
+        );
+      }
     } catch (error) {
-      console.error('Ошибка при сохранении данных проекта:', error);
+      console.error('[EditAlbum] saveAllData error:', error);
+      out.pushError = (error as Error).message;
+      if (!silent) {
+        Alert.alert('Ошибка', 'Не удалось сохранить проект. Попробуйте снова.', [{ text: 'OK' }]);
+      }
     }
+    return out;
   };
+
+  // Периодическое автосохранение в облако каждые 60 сек (текст, фото, аннотации), чтобы данные не терялись
+  const saveAllDataRef = React.useRef(saveAllData);
+  saveAllDataRef.current = saveAllData;
+  useEffect(() => {
+    if (!storageId) return;
+    const interval = setInterval(() => {
+      saveAllDataRef.current?.({ silent: true });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [storageId]);
 
   // Проверка наличия несохраненных изменений
   const hasUnsavedChanges = (): boolean => {
@@ -1085,10 +1240,27 @@ export default function EditAlbumScreen() {
           {
             text: 'Сохранить',
             onPress: async () => {
-              // Сохраняем все данные перед выходом
-              await saveAllData();
-              // Переходим на главную страницу
-              router.replace('/(tabs)');
+              try {
+                await ensureSyncReady();
+                const result = await saveAllData({ silent: true });
+                if (result.pushOk) {
+                  router.replace('/(tabs)');
+                } else {
+                  Alert.alert(
+                    'Сохранено на устройстве',
+                    result.pushError
+                      ? `В облако не отправлено: ${result.pushError}`
+                      : 'В облако не отправлено. Проверьте интернет.',
+                    [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+                  );
+                }
+              } catch (e) {
+                Alert.alert(
+                  'Ошибка сохранения',
+                  (e as Error).message || 'Попробуйте снова.',
+                  [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+                );
+              }
             },
           },
         ]
@@ -1210,15 +1382,16 @@ export default function EditAlbumScreen() {
     if (viewMode === 'pages') {
       if (storageId) {
         AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
+        scheduleSyncToCloud();
       }
       setViewMode('cover');
     } else {
       if (storageId) {
         AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
+        scheduleSyncToCloud();
       }
       setViewMode('pages');
     }
-    // Сбрасываем инструмент при переключении режимов
     setCurrentTool(null);
   };
 
@@ -1487,13 +1660,10 @@ export default function EditAlbumScreen() {
               </Text>
             )}
           </View>
-          
+
           <TouchableOpacity
             style={styles.exportButton}
             onPress={handleExport}
-            onPressIn={() => {
-              console.log('[Export] Кнопка нажата');
-            }}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Экспорт PDF"
@@ -1596,30 +1766,34 @@ export default function EditAlbumScreen() {
         {/* Image Viewer или Cover Viewer */}
         <View style={styles.pdfContainer}>
           {viewMode === 'cover' ? (
-            <CoverViewer
-              albumId={coverType || albumId}
-              category={celebration}
-              coverType={coverType}
-              annotations={coverAnnotations}
-              onAnnotationAdd={handleCoverAnnotationAdd}
-              onAnnotationUpdate={handleCoverAnnotationUpdate}
-              onAnnotationDelete={handleCoverAnnotationDelete}
-              isEditing={isEditing}
-              currentTool={currentTool}
-              onToolReset={handleToolReset}
-              onToolDeactivate={handleToolDeactivate}
-              onTextEditingStateChange={handleTextEditingStateChange}
-              annotationsRef={annotationsRef}
-              onViewportChange={setCoverViewport}
-              defaultTextStyle={lastTextStyle}
-              getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
-              firstPageImage={
-                (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
-                  ? images[0]
-                  : undefined
-              }
-            />
-          ) : isLoading ? (
+            fontsLoaded ? (
+              <CoverViewer
+                albumId={coverType || albumId}
+                category={celebration}
+                coverType={coverType}
+                annotations={coverAnnotations}
+                onAnnotationAdd={handleCoverAnnotationAdd}
+                onAnnotationUpdate={handleCoverAnnotationUpdate}
+                onAnnotationDelete={handleCoverAnnotationDelete}
+                isEditing={isEditing}
+                currentTool={currentTool}
+                onToolReset={handleToolReset}
+                onToolDeactivate={handleToolDeactivate}
+                onTextEditingStateChange={handleTextEditingStateChange}
+                annotationsRef={annotationsRef}
+                onViewportChange={setCoverViewport}
+                defaultTextStyle={lastTextStyle}
+                getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
+                firstPageImage={
+                  (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
+                    ? images[0]
+                    : undefined
+                }
+              />
+            ) : (
+              <PdfSkeletonLoader />
+            )
+          ) : isLoading || (images.length > 0 && !fontsLoaded) ? (
             <PdfSkeletonLoader />
           ) : images.length > 0 ? (
             <ImageViewer

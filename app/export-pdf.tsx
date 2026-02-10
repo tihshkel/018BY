@@ -1307,7 +1307,8 @@ export default function ExportPdfScreen() {
         );
       }
 
-      console.log(`[PDF Export] Сохранение PDF файла...`);
+      const savePhaseStart = Date.now();
+      console.log(`[PDF Export] Сохранение PDF файла (сериализация + запись)...`);
       setGenerationStatus('Сохранение PDF…');
       setGenerationProgress({ current: 95, total: 100 });
 
@@ -1329,14 +1330,14 @@ export default function ExportPdfScreen() {
         return btoa(chunks.join(''));
       };
 
-      // Сохраняем PDF в файл
       const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Самое “узкое место” по скорости: save + конвертация в base64 + write.
-      // 1) Пытаемся получить base64 напрямую из pdf-lib (обычно быстрее, чем ручная конвертация).
-      // 2) Если недоступно — делаем save() в Uint8Array и кодируем максимально быстро.
+      // Узкое место: сериализация 50+ страниц с картинками в один PDF и запись на диск.
+      // useObjectStreams: true — меньше размер и часто быстрее сериализация.
+      setGenerationStatus('Сериализация PDF…');
       let base64: string | null = null;
+      const saveOpts = { useObjectStreams: true, addDefaultPage: false };
       try {
         base64 = await withTimeout({
           label: 'pdfDoc.saveAsBase64',
@@ -1344,8 +1345,7 @@ export default function ExportPdfScreen() {
           task: async () =>
             (pdfDoc as any).saveAsBase64({
               dataUri: false,
-              useObjectStreams: false,
-              addDefaultPage: false,
+              ...saveOpts,
             }),
         });
       } catch {
@@ -1356,16 +1356,13 @@ export default function ExportPdfScreen() {
         const pdfBytes = await withTimeout({
           label: 'pdfDoc.save',
           timeoutMs: 60000,
-          task: async () =>
-            pdfDoc.save({
-              useObjectStreams: false,
-              addDefaultPage: false,
-            }),
+          task: async () => pdfDoc.save(saveOpts),
         });
         base64 = uint8ToBase64(pdfBytes);
       }
 
       setGenerationProgress({ current: 98, total: 100 });
+      setGenerationStatus('Запись на диск…');
 
       await withTimeout({
         label: 'write pdf file',
@@ -1377,8 +1374,9 @@ export default function ExportPdfScreen() {
       });
       
       setGenerationProgress({ current: 100, total: 100 });
-      
-      console.log(`[PDF Export] PDF успешно создан: ${fileUri}`);
+
+      const savePhaseMs = Date.now() - savePhaseStart;
+      console.log(`[PDF Export] PDF успешно создан: ${fileUri} (сохранение заняло ${Math.round(savePhaseMs / 1000)} с)`);
 
       // Сохраняем экспорт в историю (привязанную к коду пользователя)
       try {

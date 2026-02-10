@@ -2,17 +2,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ensureDeviceRegistered, exportAccountData, getDevicesByAccessCode } from './account-transfer';
 import {
-  deleteProjectDataNotInList,
-  getAccountDataFromSupabase,
-  getAccountFromSupabase,
-  getCoreDataFromSupabase,
-  isAccountInSupabase,
-  pushCoreDataToSupabase,
-  pushProjectDataToSupabase,
+    getAccountDataFromSupabase,
+    getAccountFromSupabase,
+    getCoreDataFromSupabase,
+    isAccountInSupabase,
+    pushCoreDataToSupabase,
+    pushProjectDataToSupabase
 } from './supabase-account';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
 
 const PROJECT_PREFIX = '@project_';
+
+/** Список id проектов, которые пользователь явно сохранил (кнопка «Сохранить»). В БД отправляются только они. */
+const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
+
+/** Добавить проект в список «сохранённых в облако» — только такие проекты попадают в БД при синхронизации. */
+export async function addProjectToSyncedList(projectId: string): Promise<void> {
+  if (!projectId) return;
+  const raw = await AsyncStorage.getItem(PROJECTS_SYNCED_TO_CLOUD_KEY);
+  let list: string[] = [];
+  try {
+    if (raw) list = JSON.parse(raw);
+    if (!Array.isArray(list)) list = [];
+  } catch {
+    list = [];
+  }
+  const id = String(projectId);
+  if (!list.includes(id)) {
+    list.push(id);
+    await AsyncStorage.setItem(PROJECTS_SYNCED_TO_CLOUD_KEY, JSON.stringify(list));
+  }
+}
 
 /** Ключ AsyncStorage для напоминаний конкретного профиля (по коду доступа). */
 export function getRemindersStorageKey(accessCode: string): string {
@@ -47,6 +67,7 @@ const PROJECT_KEY_SUBPREFIXES = [
   'viewport_',
   'cover_viewport_',
   'last_text_style_',
+  'sections_',
 ];
 
 /**
@@ -192,43 +213,73 @@ export async function loginAndEnterFast(accessCode: string): Promise<{
   }
 }
 
+/** Колбэк после завершения фоновой синхронизации (например, после входа по коду). Вызывается, когда проекты и данные подтянуты из облака. */
+let onSyncCompleteCallback: (() => void) | null = null;
+
+export function setOnSyncComplete(callback: (() => void) | null): void {
+  onSyncCompleteCallback = callback;
+}
+
 /**
  * Синхронизация данных аккаунта в фоне (имя, аватар, проекты, напоминания из Supabase).
  * Вызывается после быстрого входа, не блокирует переход в приложение.
  */
 async function syncAccountDataInBackground(accessCode: string): Promise<void> {
-  const account = await getAccountFromSupabase(accessCode);
-  if (account?.userName) {
-    await AsyncStorage.setItem('@user_name', account.userName);
-  }
-  if (account?.avatarUrl) {
-    await AsyncStorage.setItem('@user_avatar', account.avatarUrl);
-  }
+  try {
+    if (__DEV__) console.log('[AccountSync] syncAccountDataInBackground: start for', accessCode);
 
-  const remindersKey = getRemindersStorageKey(accessCode);
-  const localReminders = await AsyncStorage.getItem(remindersKey);
-  const localPregnancyInfo = await AsyncStorage.getItem('@pregnancy_info');
-
-  const cloudData = await getAccountDataFromSupabase(accessCode);
-  if (cloudData && Object.keys(cloudData).length > 0) {
-    await importAccountData(cloudData, accessCode);
-    const cloudReminders = cloudData['@reminders'];
-    const mergedReminders = mergeReminders(localReminders, cloudReminders);
-    await AsyncStorage.setItem(remindersKey, mergedReminders);
-    const cloudPregnancy = cloudData['@pregnancy_info'];
-    const hasLocalPregnancy =
-      localPregnancyInfo &&
-      localPregnancyInfo !== '{}' &&
-      localPregnancyInfo !== 'null' &&
-      localPregnancyInfo.length > 2;
-    if (hasLocalPregnancy && (!cloudPregnancy || cloudPregnancy === '{}')) {
-      await AsyncStorage.setItem('@pregnancy_info', localPregnancyInfo);
+    const account = await getAccountFromSupabase(accessCode);
+    if (account?.userName) {
+      await AsyncStorage.setItem('@user_name', account.userName);
     }
-  }
+    if (account?.avatarUrl) {
+      await AsyncStorage.setItem('@user_avatar', account.avatarUrl);
+    }
 
-  const pushResult = await pushAccountDataToCloud();
-  if (!pushResult.ok) {
-    console.warn('[AccountSync] pushAccountDataToCloud after background sync failed:', pushResult.error);
+    const remindersKey = getRemindersStorageKey(accessCode);
+    const localReminders = await AsyncStorage.getItem(remindersKey);
+    const localPregnancyInfo = await AsyncStorage.getItem('@pregnancy_info');
+
+    const cloudData = await getAccountDataFromSupabase(accessCode);
+    if (__DEV__) {
+      const keyCount = cloudData ? Object.keys(cloudData).length : 0;
+      const hasUserProjects = cloudData ? !!cloudData['@user_projects'] : false;
+      console.log('[AccountSync] syncAccountDataInBackground: cloudData keys=', keyCount, 'hasUserProjects=', hasUserProjects);
+    }
+
+    if (cloudData && Object.keys(cloudData).length > 0) {
+      await importAccountData(cloudData, accessCode);
+
+      if (__DEV__) {
+        const afterImport = await AsyncStorage.getItem('@user_projects');
+        const parsed = (() => { try { return afterImport ? JSON.parse(afterImport) : []; } catch { return []; } })();
+        console.log('[AccountSync] syncAccountDataInBackground: after import, @user_projects count=', parsed.length);
+      }
+
+      const cloudReminders = cloudData['@reminders'];
+      const mergedReminders = mergeReminders(localReminders, cloudReminders);
+      await AsyncStorage.setItem(remindersKey, mergedReminders);
+      const cloudPregnancy = cloudData['@pregnancy_info'];
+      const hasLocalPregnancy =
+        localPregnancyInfo &&
+        localPregnancyInfo !== '{}' &&
+        localPregnancyInfo !== 'null' &&
+        localPregnancyInfo.length > 2;
+      if (hasLocalPregnancy && (!cloudPregnancy || cloudPregnancy === '{}')) {
+        await AsyncStorage.setItem('@pregnancy_info', localPregnancyInfo);
+      }
+    }
+
+    const pushResult = await pushAccountDataToCloud();
+    if (!pushResult.ok) {
+      console.warn('[AccountSync] pushAccountDataToCloud after background sync failed:', pushResult.error);
+    }
+
+    if (__DEV__) console.log('[AccountSync] syncAccountDataInBackground: done, calling onSyncCompleteCallback');
+  } catch (e) {
+    console.warn('[AccountSync] syncAccountDataInBackground error:', e);
+  } finally {
+    onSyncCompleteCallback?.();
   }
 }
 
@@ -337,6 +388,36 @@ export async function importAccountData(
         const existing = await AsyncStorage.getItem(remindersKey);
         const merged = mergeReminders(value, existing);
         await AsyncStorage.setItem(remindersKey, merged);
+      } else if (key === '@user_projects') {
+        const localRaw = await AsyncStorage.getItem('@user_projects');
+        const localList: { id?: string }[] = (() => {
+          if (!localRaw) return [];
+          try {
+            const p = JSON.parse(localRaw);
+            return Array.isArray(p) ? p : [];
+          } catch {
+            return [];
+          }
+        })();
+        const cloudList: { id?: string }[] = (() => {
+          try {
+            const p = JSON.parse(value);
+            return Array.isArray(p) ? p : [];
+          } catch {
+            return [];
+          }
+        })();
+        const byId = new Map<string, any>();
+        for (const p of cloudList) {
+          const id = p?.id != null ? String(p.id) : '';
+          if (id) byId.set(id, p);
+        }
+        for (const p of localList) {
+          const id = p?.id != null ? String(p.id) : '';
+          if (id && !byId.has(id)) byId.set(id, p);
+        }
+        const merged = Array.from(byId.values());
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(merged));
       } else {
         await AsyncStorage.setItem(key, value);
       }
@@ -377,14 +458,40 @@ export function scheduleSyncToCloud(): void {
   }, SYNC_AFTER_MS);
 }
 
+/**
+ * Вызывать при входе на главный экран: создаёт код доступа и запись в accounts в Supabase,
+ * чтобы при первом сохранении проекта данные гарантированно ушли в БД (account_project_data).
+ */
+export async function ensureSyncReady(): Promise<void> {
+  try {
+    let accessCode = await AsyncStorage.getItem('@access_code');
+    if (!accessCode) {
+      const { generateAccessCode } = await import('@/utils/accessCode');
+      accessCode = generateAccessCode();
+      await AsyncStorage.setItem('@access_code', accessCode);
+    }
+    let userName = await AsyncStorage.getItem('@user_name');
+    if (!userName || !userName.trim()) {
+      userName = 'Пользователь';
+      await AsyncStorage.setItem('@user_name', userName);
+    }
+    const { saveAccountToSupabase, isSupabaseConfigured } = await import('./supabase-account');
+    if (isSupabaseConfigured()) {
+      await saveAccountToSupabase(accessCode, userName.trim(), null);
+    }
+  } catch (e) {
+    console.warn('[AccountSync] ensureSyncReady:', e);
+  }
+}
+
 function yieldToUI(): Promise<void> {
   return new Promise((r) => setTimeout(r, 0));
 }
 
 export type PushToCloudResult = { ok: boolean; error?: string };
 
-const SYNC_RETRY_ATTEMPTS = 3;
-const SYNC_RETRY_DELAY_MS = 1500;
+const SYNC_RETRY_ATTEMPTS = 5;
+const SYNC_RETRY_DELAY_MS = 2500;
 
 async function ensureAccessCodeAndName(): Promise<string> {
   let accessCode = await AsyncStorage.getItem('@access_code');
@@ -419,14 +526,68 @@ async function markSyncError(error: string): Promise<void> {
 
 /**
  * Одна попытка отправки данных в облако (без повторов).
- * Если кода доступа нет — создаём его и имя по умолчанию, чтобы все данные всегда попадали в БД.
+ *
+ * Логика:
+ * - Если `projectIdsToSync` непусто — пушим ТОЛЬКО эти проекты (+ core данные).
+ *   В `@user_projects` в облаке ДОБАВЛЯЕМ эти проекты (мерж), а не заменяем весь список.
+ * - Если `projectIdsToSync` пусто — пушим ТОЛЬКО core (имя, напоминания, настройки).
+ *   Проекты НЕ трогаем. Список `@user_projects` в облаке НЕ перезаписываем.
  */
-async function pushAccountDataToCloudOnce(): Promise<PushToCloudResult> {
+async function pushAccountDataToCloudOnce(
+  projectIdsToSync: string[] = []
+): Promise<PushToCloudResult> {
   const accessCode = await ensureAccessCodeAndName();
+  await ensureSyncReady();
 
-  const data = await exportAccountData({
-    allowPrefixes: SYNC_DATA_PREFIXES,
-  });
+  const projectIds = new Set(projectIdsToSync.filter(Boolean));
+  const syncingProjects = projectIds.size > 0;
+
+  if (__DEV__) {
+    console.log('[AccountSync] pushOnce: syncingProjects=', syncingProjects, 'ids=', [...projectIds]);
+  }
+
+  // --- Экспортируем все данные из AsyncStorage ---
+  let data = await exportAccountData({ allowPrefixes: SYNC_DATA_PREFIXES });
+  const userProjectsRaw = await AsyncStorage.getItem('@user_projects');
+  if (userProjectsRaw && (!data['@user_projects'] || data['@user_projects'] === '[]')) {
+    data['@user_projects'] = userProjectsRaw;
+  }
+
+  // --- Если пушим проекты, гарантируем что их ключи в data ---
+  if (syncingProjects) {
+    const projectKeyTemplates = [
+      (pid: string) => `@project_${pid}`,
+      (pid: string) => `@project_images_${pid}`,
+      (pid: string) => `@project_annotations_${pid}`,
+      (pid: string) => `@project_cover_annotations_${pid}`,
+      (pid: string) => `@project_sections_${pid}`,
+    ];
+    for (const pid of projectIds) {
+      const keysToLoad = projectKeyTemplates.map((t) => t(pid));
+      const pairs = await AsyncStorage.multiGet(keysToLoad);
+      for (const [k, v] of pairs) {
+        if (k && typeof v === 'string') data[k] = v;
+      }
+    }
+  }
+
+  // --- Убираем ВСЕ ключи проектов, которые НЕ входят в projectIds ---
+  for (const k of Object.keys(data)) {
+    if (k.startsWith(PROJECT_PREFIX)) {
+      if (!syncingProjects) {
+        delete data[k]; // не пушим никакие проекты
+      } else {
+        const pid = getProjectIdFromKey(k);
+        if (!projectIds.has(pid)) delete data[k];
+      }
+    }
+  }
+
+  // --- @user_projects: при пуше проекта мержим с облаком, при core-only — не трогаем ---
+  if (!syncingProjects) {
+    delete data['@user_projects'];
+  }
+
   const remindersKey = getRemindersStorageKey(accessCode);
   const localRemindersJson = await AsyncStorage.getItem(remindersKey);
   const cloudCore = await getCoreDataFromSupabase(accessCode);
@@ -445,25 +606,74 @@ async function pushAccountDataToCloudOnce(): Promise<PushToCloudResult> {
     };
   }
 
-  const dataWithPhotos =
-    Object.keys(data).length > 0
-      ? await uploadProjectImagesBeforeSync(accessCode, data)
-      : { ...data };
+  let dataWithPhotos: Record<string, string> = { ...data };
+  if (syncingProjects && Object.keys(data).some((k) => k.startsWith(PROJECT_PREFIX))) {
+    try {
+      dataWithPhotos = await uploadProjectImagesBeforeSync(accessCode, data);
+    } catch (e) {
+      console.warn('[AccountSync] Загрузка фото в Storage не удалась, сохраняем без неё:', e);
+    }
+  }
   await yieldToUI();
-  await new Promise((r) => setTimeout(r, 50));
 
   const { core, projects } = splitCoreAndProjects(dataWithPhotos);
+
+  // --- Если пушим проекты, мержим @user_projects с облаком ---
+  if (syncingProjects) {
+    // Получаем облачный список проектов
+    const cloudUserProjects: { id?: string }[] = (() => {
+      try {
+        const raw = cloudCore?.['@user_projects'];
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+      } catch {}
+      return [];
+    })();
+
+    // Получаем локальный список
+    const localUserProjects: { id?: string }[] = (() => {
+      try {
+        const raw = userProjectsRaw;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+      } catch {}
+      return [];
+    })();
+
+    // Мержим: облако + локальные записи по пушимым проектам
+    const byId = new Map<string, any>();
+    for (const p of cloudUserProjects) {
+      const pid = p?.id != null ? String(p.id) : '';
+      if (pid) byId.set(pid, p);
+    }
+    for (const p of localUserProjects) {
+      const pid = p?.id != null ? String(p.id) : '';
+      if (pid && projectIds.has(pid)) byId.set(pid, p); // обновляем только пушимые
+    }
+    // Гарантируем что все пушимые id есть в списке
+    for (const pid of projectIds) {
+      if (!byId.has(pid)) byId.set(pid, { id: pid });
+    }
+    core['@user_projects'] = JSON.stringify(Array.from(byId.values()));
+  }
+
   const userName = (core['@user_name'] ?? data['@user_name'] ?? '').trim() || 'Пользователь';
   const avatarUrl = core['@user_avatar'] ?? data['@user_avatar'] ?? null;
 
   const res = await saveAccount(accessCode, userName, avatarUrl || undefined);
   if (!res.success) {
+    if (__DEV__) console.warn('[AccountSync] saveAccount failed:', res.error);
     return { ok: false, error: res.error ?? 'Ошибка сохранения аккаунта' };
   }
   await yieldToUI();
 
   const coreResult = await pushCoreDataToSupabase(accessCode, core);
   if (!coreResult.success) {
+    if (__DEV__) console.warn('[AccountSync] pushCoreData failed:', coreResult.error);
     return { ok: false, error: coreResult.error ?? 'Ошибка записи ядра в БД' };
   }
   await yieldToUI();
@@ -480,26 +690,11 @@ async function pushAccountDataToCloudOnce(): Promise<PushToCloudResult> {
       console.warn('[AccountSync] Не удалось сохранить проект:', projectId, projResult.error);
       return { ok: false, error: projResult.error ?? `Ошибка записи проекта ${projectId}` };
     }
+    if (__DEV__) console.log('[AccountSync] Проект записан в БД:', projectId);
     await yieldToUI();
   }
 
-  const hasUserProjectsKey = Object.prototype.hasOwnProperty.call(core, '@user_projects');
-  if (hasUserProjectsKey) {
-    const userProjectsRaw = core['@user_projects'] ?? '';
-    let keepProjectIds: string[] = [];
-    try {
-      const list = userProjectsRaw ? JSON.parse(userProjectsRaw) : [];
-      if (Array.isArray(list)) {
-        keepProjectIds = list
-          .map((p: { id?: string }) => p?.id)
-          .filter((id): id is string => Boolean(id));
-      }
-    } catch {
-      // игнорируем
-    }
-    await deleteProjectDataNotInList(accessCode, keepProjectIds);
-  }
-
+  if (__DEV__) console.log('[AccountSync] Пуш успешен, проектов записано:', Object.keys(projects).length);
   return { ok: true };
 }
 
@@ -646,16 +841,143 @@ export async function pushCoreKeysToCloud(keys: string[]): Promise<PushToCloudRe
 }
 
 /**
+ * Подтягивает последние данные из облака (Supabase) в локальное хранилище.
+ * Полезно при открытии приложения / фокусе главного экрана — гарантирует,
+ * что проекты, сохранённые на другом устройстве, появятся в списке.
+ *
+ * Возвращает `true`, если в AsyncStorage попали новые данные (нужно перезагрузить проекты).
+ */
+export async function pullLatestFromCloud(): Promise<boolean> {
+  try {
+    const accessCode = await AsyncStorage.getItem('@access_code');
+    if (!accessCode) {
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: no access_code, skip');
+      return false;
+    }
+
+    const { isSupabaseConfigured, getCoreDataFromSupabase, getAllProjectsDataFromSupabase, mergeCoreAndProjectsData } = await import(
+      './supabase-account'
+    );
+    if (!isSupabaseConfigured()) {
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: Supabase not configured, skip');
+      return false;
+    }
+
+    if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: fetching data for', accessCode);
+
+    // Загружаем core и проекты раздельно для лучшей диагностики
+    const [coreData, projectsData] = await Promise.all([
+      Promise.race([
+        getCoreDataFromSupabase(accessCode),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+      ]),
+      Promise.race([
+        getAllProjectsDataFromSupabase(accessCode),
+        new Promise<Record<string, Record<string, string>>>((resolve) => setTimeout(() => resolve({}), 15000)),
+      ]),
+    ]);
+
+    if (__DEV__) {
+      const coreKeys = coreData ? Object.keys(coreData).length : 0;
+      const projectCount = Object.keys(projectsData).length;
+      const cloudUserProjects = coreData?.['@user_projects'] ?? 'null';
+      const cloudProjListLen = (() => {
+        try { const p = JSON.parse(cloudUserProjects); return Array.isArray(p) ? p.length : 0; } catch { return 0; }
+      })();
+      console.log('[AccountSync] pullLatestFromCloud: coreKeys=', coreKeys, 'projects=', projectCount, 'cloudUserProjectsCount=', cloudProjListLen);
+    }
+
+    const cloudData = mergeCoreAndProjectsData(coreData, projectsData);
+
+    if (!cloudData || Object.keys(cloudData).length === 0) {
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: no cloud data, skip');
+      return false;
+    }
+
+    // Если в ядре (account_sync) список @user_projects пустой, но в account_project_data есть проекты —
+    // собираем список из метаданных проектов (ключ @project_<id> в data_json каждого проекта)
+    const cloudUserProjectsRaw = cloudData['@user_projects'];
+    const cloudUserProjectsList: any[] = (() => {
+      try {
+        const p = cloudUserProjectsRaw ? JSON.parse(cloudUserProjectsRaw) : [];
+        return Array.isArray(p) ? p : [];
+      } catch {
+        return [];
+      }
+    })();
+
+    if (cloudUserProjectsList.length === 0 && Object.keys(projectsData).length > 0) {
+      const builtList: any[] = [];
+      for (const projectId of Object.keys(projectsData)) {
+        const metaStr = projectsData[projectId][`@project_${projectId}`];
+        if (metaStr) {
+          try {
+            const meta = JSON.parse(metaStr);
+            if (meta && typeof meta === 'object' && !Array.isArray(meta)) {
+              builtList.push({ ...meta, id: meta.id || projectId });
+            } else {
+              builtList.push({ id: projectId, title: 'Проект', category: '', albumId: '', createdAt: new Date().toISOString(), isReadyMadeAlbum: true, hasPdfTemplate: true });
+            }
+          } catch {
+            builtList.push({ id: projectId, title: 'Проект', category: '', albumId: '', createdAt: new Date().toISOString(), isReadyMadeAlbum: true, hasPdfTemplate: true });
+          }
+        } else {
+          builtList.push({ id: projectId, title: 'Проект', category: '', albumId: '', createdAt: new Date().toISOString(), isReadyMadeAlbum: true, hasPdfTemplate: true });
+        }
+      }
+      cloudData['@user_projects'] = JSON.stringify(builtList);
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from account_project_data, count=', builtList.length);
+    }
+
+    // Сохраняем текущий список проектов до импорта
+    const localListBefore = await AsyncStorage.getItem('@user_projects');
+
+    await importAccountData(cloudData, accessCode);
+
+    // Проверяем, изменился ли список проектов
+    const localListAfter = await AsyncStorage.getItem('@user_projects');
+    const changed = localListAfter !== localListBefore;
+
+    // Дополнительная проверка: если в облаке есть проекты а локально нет — считаем что данные изменились
+    const localListParsed: any[] = (() => {
+      try { return localListAfter ? JSON.parse(localListAfter) : []; } catch { return []; }
+    })();
+    const hadNoProjects = !localListBefore || localListBefore === '[]' || localListBefore === 'null';
+    const hasProjectsNow = localListParsed.length > 0;
+    const forceChanged = hadNoProjects && hasProjectsNow;
+
+    if (__DEV__) {
+      console.log('[AccountSync] pullLatestFromCloud: changed=', changed, 'forceChanged=', forceChanged, 'localProjectsNow=', localListParsed.length);
+    }
+
+    return changed || forceChanged;
+  } catch (e) {
+    if (__DEV__) {
+      console.warn('[AccountSync] pullLatestFromCloud error:', e);
+    }
+    return false;
+  }
+}
+
+export type PushToCloudOptions = {
+  /** Эти id проектов всегда включаются в пуш (для кнопки «Сохранить»), даже если список synced ещё не обновился. */
+  forceIncludeProjectIds?: string[];
+};
+
+/**
  * Отправляет все данные аккаунта в Supabase с повторами при сбое (сеть и т.д.).
  * - accounts: имя и URL аватара
  * - account_sync: ядро (напоминания, список проектов, беременность, история, флаги)
  * - account_project_data: по одной строке на каждый проект
  */
-export async function pushAccountDataToCloud(): Promise<PushToCloudResult> {
+export async function pushAccountDataToCloud(
+  options?: PushToCloudOptions
+): Promise<PushToCloudResult> {
+  const forceInclude = options?.forceIncludeProjectIds?.filter(Boolean) ?? [];
   let lastError: string | undefined;
   for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
     try {
-      const result = await pushAccountDataToCloudOnce();
+      const result = await pushAccountDataToCloudOnce(forceInclude);
       if (result.ok) {
         await markSyncOk();
         return result;

@@ -1,5 +1,5 @@
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { ensureSyncReady, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,7 +60,7 @@ export default function EditProjectScreen() {
   const params = useLocalSearchParams();
   const projectId = params.id as string;
   
-  const [sections, setSections] = useState<Section[]>([
+  const defaultSections: Section[] = [
     {
       id: '1',
       title: 'Первое УЗИ',
@@ -82,7 +82,9 @@ export default function EditProjectScreen() {
       visible: true,
       pages: [{ id: '3', blocks: [] }],
     },
-  ]);
+  ];
+
+  const [sections, setSections] = useState<Section[]>(defaultSections);
   
   const [selectedSection, setSelectedSection] = useState(sections[0]);
   const [selectedPage, setSelectedPage] = useState(sections[0]?.pages[0]);
@@ -90,6 +92,34 @@ export default function EditProjectScreen() {
   const [tutorialArrow, setTutorialArrow] = useState(true);
   const arrowOpacity = useSharedValue(1);
   const arrowY = useSharedValue(0);
+
+  // Загрузка сохранённых секций при открытии проекта
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const sectionsKey = `@project_sections_${projectId}`;
+        const legacyKey = `@project_${projectId}`;
+        const [sectionsRaw, legacyRaw] = await Promise.all([
+          AsyncStorage.getItem(sectionsKey),
+          AsyncStorage.getItem(legacyKey),
+        ]);
+        const raw = sectionsRaw ?? legacyRaw;
+        if (raw && !cancelled) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setSections(parsed);
+            setSelectedSection(parsed[0]);
+            setSelectedPage(parsed[0]?.pages?.[0]);
+          }
+        }
+      } catch {
+        // оставляем дефолтные секции
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId]);
 
   useEffect(() => {
     checkTutorialShown();
@@ -233,9 +263,43 @@ export default function EditProjectScreen() {
   };
 
   const handleSave = async () => {
+    if (!projectId) return;
     try {
-      await AsyncStorage.setItem(`@project_${projectId}`, JSON.stringify(sections));
-      await pushAccountDataToCloud();
+      // Гарантируем что аккаунт существует в Supabase
+      try { await ensureSyncReady(); } catch (_) {}
+
+      await AsyncStorage.setItem(`@project_sections_${projectId}`, JSON.stringify(sections));
+      const existingMetaRaw = await AsyncStorage.getItem(`@project_${projectId}`);
+      let meta: any = null;
+      try {
+        if (existingMetaRaw) {
+          const parsed = JSON.parse(existingMetaRaw);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) meta = parsed;
+        }
+      } catch {}
+      if (!meta) {
+        meta = {
+          id: projectId,
+          title: 'Мой проект',
+          category: 'pregnancy',
+          dateStarted: new Date().toISOString(),
+          pagesCount: 0,
+          photosCount: 0,
+          remindersCount: 0,
+        };
+        await AsyncStorage.setItem(`@project_${projectId}`, JSON.stringify(meta));
+      }
+      const existingListRaw = await AsyncStorage.getItem('@user_projects');
+      const list: any[] = existingListRaw ? JSON.parse(existingListRaw) : [];
+      const idx = list.findIndex((p: any) => String(p?.id) === String(projectId));
+      if (idx === -1) {
+        list.push(meta);
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+      } else {
+        list[idx] = { ...list[idx], ...meta };
+        await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+      }
+      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
       scheduleSyncToCloud();
       Alert.alert('Сохранено', 'Изменения успешно сохранены');
     } catch (error) {

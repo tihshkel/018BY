@@ -1,6 +1,7 @@
 import { getAlbumTemplateById } from '@/albums';
 import { generateAccessCode } from '@/utils/accessCodeGenerator';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
+import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -78,7 +79,13 @@ export default function HomeScreen() {
     loadProjects();
     checkFirstTimeAccess();
     opacity.value = withTiming(1, { duration: 400 });
-    // Повторно подгружаем имя через 2 и 5 с, чтобы подхватить имя после быстрого входа (фоновая синхронизация)
+    setOnSyncComplete(loadProjects);
+    return () => {
+      setOnSyncComplete(null);
+    };
+  }, []);
+
+  useEffect(() => {
     const t2 = setTimeout(loadUserData, 2000);
     const t5 = setTimeout(loadUserData, 5000);
     return () => {
@@ -87,11 +94,48 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // При фокусе обновляем имя и проекты (чтобы подхватить имя после входа по коду и фоновой синхронизации)
+  // При фокусе обновляем имя и проекты; заранее готовим аккаунт для синхронизации (код доступа + запись в Supabase), чтобы сохранение проекта сразу попадало в БД.
+  // Также подтягиваем последние данные из облака (Supabase), чтобы проекты, сохранённые на другом устройстве, появились в списке.
   useFocusEffect(
     React.useCallback(() => {
       loadUserData();
       loadProjects();
+      ensureSyncReady().catch(() => {});
+
+      // Фоновая подгрузка из облака — если там появились новые проекты, обновляем список
+      const pullFromCloud = async () => {
+        try {
+          const changed = await pullLatestFromCloud();
+          if (changed) {
+            loadProjects();
+            loadUserData();
+          } else {
+            // Если pullLatestFromCloud не обнаружил изменений, но проектов локально 0 —
+            // повторная попытка через 3 сек (облачная синхронизация после входа могла ещё не завершиться)
+            const localRaw = await AsyncStorage.getItem('@user_projects');
+            const localList: any[] = (() => { try { return localRaw ? JSON.parse(localRaw) : []; } catch { return []; } })();
+            if (localList.length === 0) {
+              const accessCode = await AsyncStorage.getItem('@access_code');
+              if (accessCode) {
+                // Ждём 3 секунды и пробуем ещё раз — syncAccountDataInBackground мог завершиться к этому моменту
+                setTimeout(async () => {
+                  try {
+                    const retryChanged = await pullLatestFromCloud();
+                    if (retryChanged) {
+                      loadProjects();
+                      loadUserData();
+                    } else {
+                      // Последняя попытка: просто перечитываем из AsyncStorage (syncAccountDataInBackground мог записать данные)
+                      loadProjects();
+                    }
+                  } catch {}
+                }, 3000);
+              }
+            }
+          }
+        } catch {}
+      };
+      pullFromCloud();
     }, [])
   );
 
@@ -349,6 +393,37 @@ export default function HomeScreen() {
     setSelectedProjectForAction(null);
   };
 
+  const handleDevVerifyStorage = async () => {
+    try {
+      const report = await runFullVerifyReport();
+      Alert.alert('Проверка сохранения проектов', report, [{ text: 'OK' }]);
+    } catch (e) {
+      Alert.alert('Ошибка проверки', (e as Error).message);
+    }
+  };
+
+  const handleDevVerifyCurrentProject = async () => {
+    if (!selectedProject?.id) {
+      Alert.alert('Нет выбранного проекта');
+      return;
+    }
+    try {
+      const res = await verifyProjectInStorage(selectedProject.id);
+      if (res.ok) {
+        Alert.alert('Проверка', `Проект ${selectedProject.id} в порядке.`);
+      } else {
+        const fix = await fixMissingProjectsInList();
+        Alert.alert(
+          'Проверка',
+          `Ошибки: ${res.errors?.join('\n') ?? ''}\n\nИсправление: ${fix.fixed ? `добавлено ${fix.added}` : fix.reason ?? '—'}`,
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (e) {
+      Alert.alert('Ошибка', (e as Error).message);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.content, animatedStyle]}>
@@ -357,12 +432,16 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Приветствие: показываем имя только если оно задано и не дефолтное «Пользователь» */}
-          <View style={styles.header}>
+          {/* Приветствие: показываем имя только если оно задано и не дефолтное «Пользователь». В __DEV__ долгое нажатие — проверка сохранения проектов. */}
+          <Pressable
+            style={styles.header}
+            onLongPress={__DEV__ ? handleDevVerifyStorage : undefined}
+            delayLongPress={800}
+          >
             <Text style={styles.greeting}>
               Привет{(userName && userName.trim() && userName !== 'Пользователь') ? `, ${userName.trim()}` : ''}!
             </Text>
-          </View>
+          </Pressable>
 
           {/* Основной проект или список проектов */}
           {projects.length === 0 ? (
