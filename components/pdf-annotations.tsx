@@ -364,19 +364,18 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       dragButtonResponderRef.current = null;
       return;
     }
-    
+
     const annotationId = editingAnnotation;
     const currentAnnotation = annotations.find(ann => ann.id === annotationId);
-    
+
     if (!currentAnnotation || currentAnnotation.type !== 'text') {
-      dragButtonResponderRef.current = null;
       return;
     }
-    
+
     let isDraggingStarted = false;
     let startX = 0;
     let startY = 0;
-    
+
     dragButtonResponderRef.current = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
@@ -423,12 +422,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         
         // 2. Закрываем клавиатуру
         Keyboard.dismiss();
-        
-        // 3. Сразу закрываем редактирование и активируем перетаскивание
+
+        // 3. Сразу закрываем редактирование и активируем перетаскивание через флаг
         delete panResponders.current[annotationId];
         setSelectedAnnotation(annotationId);
         shouldStartDraggingAfterCloseRef.current = annotationId;
-        
+
         setEditingAnnotation(null);
         setEditingText('');
         setIsDraggingWhileEditing(false);
@@ -439,8 +438,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         isDraggingWhileEditingRef.current = false;
         adjustedEditingPositionRef.current = null;
         onEditingStateChange?.(false, null);
-        
-        // 4. Плавно закрываем окно редактирования (визуально)
+
+        // 4. Плавно скрываем окно редактирования визуально
         Animated.parallel([
           Animated.spring(editingScaleAnim, {
             toValue: 0,
@@ -455,7 +454,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             useNativeDriver: true,
           }),
         ]).start();
-        
+
         // 5. Сразу активируем перетаскивание
         isDraggingStarted = true;
         isInteractingRef.current = true;
@@ -501,7 +500,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         dragButtonResponderRef.current = null;
       },
     });
-    
     return () => {
       dragButtonResponderRef.current = null;
     };
@@ -685,22 +683,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               const viewportW = typeof viewportWidth === 'number' && viewportWidth > 0 ? viewportWidth : windowWidth;
               const viewportH = typeof viewportHeight === 'number' && viewportHeight > 0 ? viewportHeight : windowHeight;
               const bounds = getAnnotationBoundsSize(annotation);
-              // startX и startY устанавливаются в onPanResponderGrant из актуальной позиции
-              // gestureState.dx/dy - это смещение от начала жеста, поэтому используем startX + moveDx
               const newX = Math.max(0, Math.min(startX + moveDx, viewportW - bounds.width));
               const newY = Math.max(0, Math.min(startY + moveDy, viewportH - bounds.height));
-              // Обновляем локальную позицию для мгновенного визуального отображения
               setLocalPosition(annotation.id, { x: newX, y: newY });
-              // Мгновенно обновляем позицию в родителе, чтобы она сохранялась
-              onAnnotationUpdate(annotation.id, { x: newX, y: newY });
             }
           }
           return;
         }
         
-        // Для текста - обычная логика перетаскивания
+        // Для текста - только локальное обновление во время drag (без родительского re-render)
         if (isEditing && isDraggingStarted) {
-          isInteractingRef.current = true; // Помечаем активное взаимодействие
+          isInteractingRef.current = true;
           onInteractionChange?.(true);
           const safeZoom = zoomLevel > 0 ? zoomLevel : 1;
           const dx = gestureState.dx / safeZoom;
@@ -708,16 +701,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           const viewportW = typeof viewportWidth === 'number' && viewportWidth > 0 ? viewportWidth : windowWidth;
           const viewportH = typeof viewportHeight === 'number' && viewportHeight > 0 ? viewportHeight : windowHeight;
           const bounds = getAnnotationBoundsSize(annotation);
-          // Для текста используем минимальную ширину (24px) при расчете правой границы,
-          // чтобы текст мог доехать до самого правого края, даже если окно редактирования шире
           const minTextWidth = 24;
           const effectiveWidth = annotation.type === 'text' ? minTextWidth : bounds.width;
           const newX = Math.max(0, Math.min(startX + dx, viewportW - effectiveWidth));
           const newY = Math.max(0, Math.min(startY + dy, viewportH - bounds.height));
-          // Обновляем локальную позицию для мгновенного визуального отображения
           setLocalPosition(annotation.id, { x: newX, y: newY });
-          // Мгновенно обновляем позицию в родителе, чтобы она сохранялась
-          onAnnotationUpdate(annotation.id, { x: newX, y: newY });
         }
       },
       onPanResponderRelease: (evt) => {
@@ -912,11 +900,27 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         : null;
 
       // Сохраняем финальные изменения, явно передаём стиль, чтобы шрифт/размер/цвет не терялись
+      const styleUpdates = current && current.type === 'text' ? getTextStyleUpdates(current) : {};
       onAnnotationUpdate(editingAnnotation, {
         content: editingText,
         ...(typeof snappedY === 'number' ? { y: snappedY } : {}),
-        ...getTextStyleUpdates(current),
+        ...styleUpdates,
       });
+      // Запоминаем последний стиль при закрытии редактирования
+      if (current && current.type === 'text' && (current.color != null || current.fontSize != null || current.fontFamily != null)) {
+        const fontToSave = current.fontFamily;
+        if (fontToSave) AsyncStorage.setItem('@last_text_font_family', fontToSave).catch(() => {});
+        AsyncStorage.getItem('@last_text_style').then((raw) => {
+          let existingFont: string | undefined;
+          if (raw) try { existingFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily; } catch (_) {}
+          const lastStyle = {
+            color: current!.color ?? '#000000',
+            fontSize: current!.fontSize ?? 16,
+            fontFamily: current!.fontFamily ?? existingFont,
+          };
+          AsyncStorage.setItem('@last_text_style', JSON.stringify(lastStyle)).catch(() => {});
+        }).catch(() => {});
+      }
       setEditingAnnotation(null);
       setEditingText('');
       setIsDraggingWhileEditing(false);
@@ -966,17 +970,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const handleColorSelect = (color: string) => {
     if (editingAnnotation) {
       onAnnotationUpdate(editingAnnotation, { color });
-      // Сохраняем последние настройки текста
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
       if (currentAnnotation && currentAnnotation.type === 'text') {
-        const newStyle = {
-          color,
-          fontSize: currentAnnotation.fontSize,
-          fontFamily: currentAnnotation.fontFamily,
-        };
-        AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
-          console.error('Error saving last text style:', error);
-        });
+        const ff = currentAnnotation.fontFamily;
+        if (ff) AsyncStorage.setItem('@last_text_font_family', ff).catch(() => {});
+        const newStyle = { color, fontSize: currentAnnotation.fontSize, fontFamily: ff };
+        AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch(() => {});
       }
       setShowColorPicker(false);
     }
@@ -985,17 +984,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const handleFontSizeSelect = (size: number) => {
     if (editingAnnotation) {
       onAnnotationUpdate(editingAnnotation, { fontSize: size });
-      // Сохраняем последние настройки текста
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
       if (currentAnnotation && currentAnnotation.type === 'text') {
-        const newStyle = {
-          color: currentAnnotation.color,
-          fontSize: size,
-          fontFamily: currentAnnotation.fontFamily,
-        };
-        AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
-          console.error('Error saving last text style:', error);
-        });
+        const ff = currentAnnotation.fontFamily;
+        if (ff) AsyncStorage.setItem('@last_text_font_family', ff).catch(() => {});
+        const newStyle = { color: currentAnnotation.color, fontSize: size, fontFamily: ff };
+        AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch(() => {});
       }
       setShowFontSizePicker(false);
     }
@@ -1004,7 +998,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const handleFontSelect = (fontId: string) => {
     if (editingAnnotation) {
       onAnnotationUpdate(editingAnnotation, { fontFamily: fontId });
-      // Сохраняем последние настройки текста
+      AsyncStorage.setItem('@last_text_font_family', fontId).catch(() => {});
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
       if (currentAnnotation && currentAnnotation.type === 'text') {
         const newStyle = {

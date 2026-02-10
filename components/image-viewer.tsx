@@ -84,6 +84,7 @@ interface ImageViewerProps {
   zoomLevel?: number; // Уровень масштабирования
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта (координаты)
   defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
+  getLastFontFamily?: () => string | undefined; // Мгновенный доступ к последнему шрифту (без ожидания AsyncStorage)
 }
 
 export default function ImageViewer({
@@ -107,6 +108,7 @@ export default function ImageViewer({
   zoomLevel = 1,
   onViewportChange,
   defaultTextStyle,
+  getLastFontFamily,
 }: ImageViewerProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
@@ -124,13 +126,21 @@ export default function ImageViewer({
   const flatListRef = React.useRef<FlatList<string>>(null);
   const pageShiftY = React.useRef(new Animated.Value(0)).current;
 
-  // Загружаем последние настройки текста при монтировании
+  // Загружаем последние настройки текста при монтировании (шрифт — из отдельного ключа)
   useEffect(() => {
     const loadLastTextStyle = async () => {
       try {
-        const saved = await AsyncStorage.getItem('@last_text_style');
+        const [saved, fontRaw] = await Promise.all([
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]);
         if (saved) {
-          setLastTextStyle(JSON.parse(saved));
+          const parsed = JSON.parse(saved) as { color?: string; fontSize?: number; fontFamily?: string };
+          const savedFont = typeof fontRaw === 'string' && fontRaw ? fontRaw : undefined;
+          setLastTextStyle({
+            ...parsed,
+            fontFamily: parsed.fontFamily ?? savedFont,
+          });
         }
       } catch (error) {
         console.error('Error loading last text style:', error);
@@ -138,6 +148,16 @@ export default function ImageViewer({
     };
     loadLastTextStyle();
   }, []);
+
+  // Синхронизируем lastTextStyle с defaultTextStyle от родителя (edit-album обновляет его при смене цвета/шрифта/размера)
+  useEffect(() => {
+    if (defaultTextStyle && (defaultTextStyle.color != null || defaultTextStyle.fontSize != null || defaultTextStyle.fontFamily != null)) {
+      setLastTextStyle(prev => ({
+        ...(prev || {}),
+        ...defaultTextStyle,
+      }));
+    }
+  }, [defaultTextStyle?.color, defaultTextStyle?.fontSize, defaultTextStyle?.fontFamily]);
 
   const annotationsByPage = useMemo(() => {
     const map = new Map<number, Annotation[]>();
@@ -219,7 +239,8 @@ export default function ImageViewer({
     }
   };
 
-  const handleImagePress = (x: number, y: number) => {
+  const handleImagePress = (x: number, y: number, tappedPage?: number) => {
+    const pageForAnnotation = tappedPage ?? currentPage;
     // Если редактируется текст — тап по пустому месту должен просто закрыть клавиатуру,
     // а редактирование оставить (чтобы можно было нажать галочку после)
     if (isTextEditing) {
@@ -243,54 +264,64 @@ export default function ImageViewer({
 
       const viewportWidth = SCREEN_WIDTH;
       const viewportHeight = containerHeight;
-      // Ставим центр текстового блока ровно в точку нажатия (как "прицел")
       const proposedX = x - TEXT_ANNOTATION_DEFAULT_WIDTH / 2;
       const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
       const nextX = clamp(proposedX, 0, viewportWidth - TEXT_ANNOTATION_DEFAULT_WIDTH);
       const clampedY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
       const snappedY = snapYToNearestTemplateLine({
         lineGuideId,
-        page: currentPage,
+        page: pageForAnnotation,
         y: clampedY,
         viewportHeight,
       });
       const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
-      // На первой странице дневника беременности — шрифт как в шаблоне (тонкий, без засечек)
-      const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && currentPage === 1;
-      const textFontFamily = isPregnancyFirstPage
-        ? 'Nefelibata-PenSans'
-        : (lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily);
-      const textFontSize = isPregnancyFirstPage
-        ? (lastTextStyle?.fontSize ?? defaultTextStyle?.fontSize ?? 18)
-        : (lastTextStyle?.fontSize || defaultTextStyle?.fontSize || 16);
-      const newAnnotation: Annotation = {
-        id: createId('ann'),
-        type: 'text',
-        x: nextX,
-        y: nextY,
-        width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-        height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-        content: 'Новый текст',
-        color: lastTextStyle?.color || defaultTextStyle?.color || '#000000',
-        fontSize: textFontSize,
-        ...(textFontFamily ? { fontFamily: textFontFamily } : {}),
-        zIndex: maxZIndex + 1,
-        page: currentPage,
-      };
-      onAnnotationAdd(newAnnotation);
-      requestAnimationFrame(() => {
+      const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && pageForAnnotation === 1;
+
+      // Всегда берём последний сохранённый стиль из AsyncStorage в момент тапа
+      const applyStyle = async () => {
+        let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+        let savedFont: string | null = null;
+        try {
+          const [raw, fontRaw] = await Promise.all([
+            AsyncStorage.getItem('@last_text_style'),
+            AsyncStorage.getItem('@last_text_font_family'),
+          ]);
+          if (raw) savedStyle = JSON.parse(raw) as any;
+          if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
+        } catch (_) {}
+        const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
+        const fontSize = isPregnancyFirstPage
+          ? (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 18)
+          : (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16);
+        const fontFamily = (getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily)
+          ?? (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+
+        const newAnnotation: Annotation = {
+          id: createId('ann'),
+          type: 'text',
+          x: nextX,
+          y: nextY,
+          width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+          height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+          content: 'Новый текст',
+          color,
+          fontSize,
+          fontFamily: fontFamily || 'default',
+          zIndex: maxZIndex + 1,
+          page: pageForAnnotation,
+        };
+        onAnnotationAdd(newAnnotation);
         requestAnimationFrame(() => {
-          annotationsRef.current?.startEditing?.(newAnnotation.id);
+          requestAnimationFrame(() => {
+            annotationsRef.current?.startEditing?.(newAnnotation.id);
+          });
         });
-      });
-      // Сбрасываем инструмент после добавления текста
-      if (onToolReset) {
-        onToolReset();
-      }
+        if (onToolReset) onToolReset();
+      };
+      applyStyle();
     } else if (currentTool === 'image' && onAnnotationAdd) {
-      // Открываем выбор изображения
-      handlePickImage(x, y);
+      handlePickImage(x, y, pageForAnnotation);
     }
   };
 
@@ -349,7 +380,7 @@ export default function ImageViewer({
     }
   };
 
-  const handlePickImage = async (x: number, y: number) => {
+  const handlePickImage = async (x: number, y: number, page: number = currentPage) => {
     try {
       const hasPermission = await ensureMediaLibraryPermission();
       if (!hasPermission) return;
@@ -357,7 +388,6 @@ export default function ImageViewer({
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: getImagePickerImagesMediaTypes(),
         allowsEditing: false,
-        // Важно: не ухудшаем качество пользовательских фото
         quality: 1,
       });
 
@@ -368,19 +398,8 @@ export default function ImageViewer({
         const defaultSize = 120;
         const viewportWidth = SCREEN_WIDTH;
         const viewportHeight = containerHeight;
-        // На первой странице дневника беременности — фиксированная позиция фото (справа от заголовка «У НАС БУДЕТ МАЛЫШ»)
-        const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && currentPage === 1;
-        let nextX: number;
-        let nextY: number;
-        if (isPregnancyFirstPage) {
-          nextX = clamp(viewportWidth * 0.52 - defaultSize / 2, 0, viewportWidth - defaultSize);
-          nextY = clamp(viewportHeight * 0.18 - defaultSize / 2, 0, viewportHeight - defaultSize);
-        } else {
-          const proposedX = x - defaultSize / 2;
-          const proposedY = y - defaultSize / 2;
-          nextX = clamp(proposedX, 0, viewportWidth - defaultSize);
-          nextY = clamp(proposedY, 0, viewportHeight - defaultSize);
-        }
+        const nextX = clamp(x, 0, viewportWidth - defaultSize);
+        const nextY = clamp(y, 0, viewportHeight - defaultSize);
         const newAnnotation: Annotation = {
           id: createId('ann'),
           type: 'image',
@@ -390,7 +409,7 @@ export default function ImageViewer({
           height: defaultSize,
           imageUri: result.assets[0].uri,
           zIndex: maxZIndex + 1,
-          page: currentPage,
+          page,
         };
         onAnnotationAdd(newAnnotation);
         // Сбрасываем инструмент после добавления изображения
@@ -482,14 +501,9 @@ export default function ImageViewer({
                     activeOpacity={1}
                     onPress={(e) => {
                       const { locationX, locationY } = e.nativeEvent;
-                      const { x, y } = mapScreenPointToUnscaledPagePoint({
-                        locationX,
-                        locationY,
-                        viewportWidth: SCREEN_WIDTH,
-                        viewportHeight: containerHeight,
-                        zoomLevel,
-                      });
-                      handleImagePress(x, y);
+                      const x = locationX / (zoomLevel > 0 ? zoomLevel : 1);
+                      const y = locationY / (zoomLevel > 0 ? zoomLevel : 1);
+                      handleImagePress(x, y, pageNumber);
                     }}
                     onLongPress={() => handleImageLongPress(index)}
                     delayLongPress={500}

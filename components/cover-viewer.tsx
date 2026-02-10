@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
-  Platform,
-  ScrollView,
-  Keyboard,
-  Animated,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
-import PdfAnnotations, { type Annotation, PdfAnnotationsRef } from './pdf-annotations';
-import PdfSkeletonLoader from './pdf-skeleton-loader';
-import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
-import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getAlbumTemplateById } from '@/albums';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { getCoverImageUris } from '@/utils/coverImagesLoader';
+import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { createId } from '@/utils/id';
+import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    Keyboard,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import PdfAnnotations, { type Annotation, PdfAnnotationsRef } from './pdf-annotations';
+import PdfSkeletonLoader from './pdf-skeleton-loader';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -62,6 +62,7 @@ interface CoverViewerProps {
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта
   defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
   firstPageImage?: string; // Первое изображение из массива images для категорий pregnancy, kids, diary
+  getLastFontFamily?: () => string | undefined; // Мгновенный доступ к последнему шрифту
 }
 
 export default function CoverViewer({
@@ -81,16 +82,25 @@ export default function CoverViewer({
   onViewportChange,
   defaultTextStyle,
   firstPageImage,
+  getLastFontFamily,
 }: CoverViewerProps) {
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 
-  // Загружаем последние настройки текста при монтировании
+  // Загружаем последние настройки текста при монтировании (шрифт — из отдельного ключа)
   useEffect(() => {
     const loadLastTextStyle = async () => {
       try {
-        const saved = await AsyncStorage.getItem('@last_text_style');
+        const [saved, fontRaw] = await Promise.all([
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]);
         if (saved) {
-          setLastTextStyle(JSON.parse(saved));
+          const parsed = JSON.parse(saved) as { color?: string; fontSize?: number; fontFamily?: string };
+          const savedFont = typeof fontRaw === 'string' && fontRaw ? fontRaw : undefined;
+          setLastTextStyle({
+            ...parsed,
+            fontFamily: parsed.fontFamily ?? savedFont,
+          });
         }
       } catch (error) {
         console.error('Error loading last text style:', error);
@@ -99,16 +109,24 @@ export default function CoverViewer({
     loadLastTextStyle();
   }, []);
 
-  // Сохраняем настройки текста при их изменении
+  // Сохраняем настройки текста при их изменении (сохраняем fontFamily из storage, если не задан явно)
   useEffect(() => {
     const saveLastTextStyle = async () => {
       if (defaultTextStyle && (defaultTextStyle.color || defaultTextStyle.fontSize || defaultTextStyle.fontFamily)) {
+        let existingFont: string | undefined;
+        try {
+          const raw = await AsyncStorage.getItem('@last_text_style');
+          if (raw) existingFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily;
+        } catch (_) {}
         const newStyle = {
           color: defaultTextStyle.color,
           fontSize: defaultTextStyle.fontSize,
-          fontFamily: defaultTextStyle.fontFamily,
+          fontFamily: defaultTextStyle.fontFamily ?? existingFont,
         };
         setLastTextStyle(newStyle);
+        if (newStyle.fontFamily) {
+          await AsyncStorage.setItem('@last_text_font_family', newStyle.fontFamily);
+        }
         try {
           await AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle));
         } catch (error) {
@@ -271,7 +289,7 @@ export default function CoverViewer({
         const maxZIndex = annotations.length > 0 
           ? Math.max(...annotations.map(ann => ann.zIndex), 0)
           : 0;
-        const defaultSize = 140;
+        const defaultSize = 115;
         const proposedX = x - defaultSize / 2;
         const proposedY = y - defaultSize / 2;
         const nextX = clamp(proposedX, 0, viewportSize.width - defaultSize);
@@ -315,36 +333,49 @@ export default function CoverViewer({
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
 
-      // Ставим центр текстового блока ровно в точку нажатия (как "прицел")
       const proposedX = locationX - TEXT_ANNOTATION_DEFAULT_WIDTH / 2;
       const proposedY = locationY - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
       const nextX = clamp(proposedX, 0, viewportSize.width - TEXT_ANNOTATION_DEFAULT_WIDTH);
       const nextY = clamp(proposedY, 0, viewportSize.height - TEXT_EDITING_ESTIMATED_HEIGHT);
 
-      const newAnnotation: Annotation = {
-        id: createId('ann'),
-        type: 'text',
-        x: nextX,
-        y: nextY,
-        width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-        height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-        content: 'Новый текст',
-        color: lastTextStyle?.color || defaultTextStyle?.color || '#000000',
-        fontSize: lastTextStyle?.fontSize || defaultTextStyle?.fontSize || 16,
-        ...(lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily ? { fontFamily: lastTextStyle?.fontFamily || defaultTextStyle?.fontFamily } : {}),
-        zIndex: maxZIndex + 1,
-        page: 'cover',
-      };
-      onAnnotationAdd(newAnnotation);
-      requestAnimationFrame(() => {
+      const applyStyle = async () => {
+        let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+        let savedFont: string | null = null;
+        try {
+          const [raw, fontRaw] = await Promise.all([
+            AsyncStorage.getItem('@last_text_style'),
+            AsyncStorage.getItem('@last_text_font_family'),
+          ]);
+          if (raw) savedStyle = JSON.parse(raw) as any;
+          if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
+        } catch (_) {}
+        const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
+        const fontSize = savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16;
+        const fontFamily = getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily ?? 'default';
+
+        const newAnnotation: Annotation = {
+          id: createId('ann'),
+          type: 'text',
+          x: nextX,
+          y: nextY,
+          width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+          height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+          content: 'Новый текст',
+          color,
+          fontSize,
+          fontFamily: fontFamily || 'default',
+          zIndex: maxZIndex + 1,
+          page: 'cover',
+        };
+        onAnnotationAdd(newAnnotation);
         requestAnimationFrame(() => {
-          annotationsRef.current?.startEditing?.(newAnnotation.id);
+          requestAnimationFrame(() => {
+            annotationsRef.current?.startEditing?.(newAnnotation.id);
+          });
         });
-      });
-      // Сбрасываем инструмент после добавления текста
-      if (onToolReset) {
-        onToolReset();
-      }
+        if (onToolReset) onToolReset();
+      };
+      applyStyle();
     } else if (currentTool === 'image' && onAnnotationAdd) {
       // Открываем выбор изображения
       handlePickImage(locationX, locationY);

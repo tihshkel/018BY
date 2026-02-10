@@ -71,6 +71,7 @@ export default function EditAlbumScreen() {
   const [showAddPageModal, setShowAddPageModal] = useState(false);
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
+  const lastFontFamilyRef = React.useRef<string | null>(null);
   const containerOpacity = useSharedValue(0);
 
   // ID для сохранения: из URL или созданный при открытии без id (чтобы текст/фото не терялись до router.replace)
@@ -106,72 +107,71 @@ export default function EditAlbumScreen() {
   }, [isLoading, images, annotations, coverAnnotations]);
 
   // Загружаем последний стиль текста: сначала из проекта, потом из глобального
+  // Шрифт всегда дополнительно читаем из @last_text_font_family — его часто перезаписывают без fontFamily
   useEffect(() => {
     const loadLastTextStyle = async () => {
       try {
+        const [projectStyle, globalStyle, fontRaw] = await Promise.all([
+          id ? AsyncStorage.getItem(`@project_last_text_style_${id}`) : null,
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]);
+        const savedFont = typeof fontRaw === 'string' && fontRaw ? fontRaw : undefined;
+        const mergeFont = (parsed: any) => typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : savedFont;
+        if (savedFont) lastFontFamilyRef.current = savedFont;
         // Сначала пробуем загрузить из проекта
-        if (id) {
-          const projectStyle = await AsyncStorage.getItem(`@project_last_text_style_${id}`);
-          if (projectStyle) {
-            const parsed = JSON.parse(projectStyle) as any;
-            const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
-            const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
-            const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
-            setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
-            return;
-          }
+        if (projectStyle) {
+          const parsed = JSON.parse(projectStyle) as any;
+          const nextFontFamily = mergeFont(parsed);
+          if (nextFontFamily) lastFontFamilyRef.current = nextFontFamily;
+          setLastTextStyle({
+            color: typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000',
+            fontSize: typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16,
+            fontFamily: nextFontFamily,
+          });
+          return;
         }
-        
-        // Если нет в проекте, загружаем из глобального ключа
-        const globalStyle = await AsyncStorage.getItem('@last_text_style');
         if (globalStyle) {
           const parsed = JSON.parse(globalStyle) as any;
-          const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
-          const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
-          const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
-          setLastTextStyle({ color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily });
-          
-          // Синхронизируем с проектом
-          if (id) {
-            AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
-          }
+          const nextFontFamily = mergeFont(parsed);
+          if (nextFontFamily) lastFontFamilyRef.current = nextFontFamily;
+          setLastTextStyle({
+            color: typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000',
+            fontSize: typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16,
+            fontFamily: nextFontFamily,
+          });
+          if (id) AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
         }
       } catch {
         // Игнорируем ошибки
       }
     };
-    
     loadLastTextStyle();
-    
-    // Слушаем изменения глобального стиля (когда меняется через pdf-annotations)
     const interval = setInterval(() => {
-      AsyncStorage.getItem('@last_text_style').then((globalStyle) => {
-        if (globalStyle) {
-          try {
-            const parsed = JSON.parse(globalStyle) as any;
-            const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
-            const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
-            const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
-            
-            setLastTextStyle((prev) => {
-              // Обновляем только если изменилось
-              if (prev.color !== nextColor || prev.fontSize !== nextFontSize || prev.fontFamily !== nextFontFamily) {
-                const newStyle = { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
-                // Синхронизируем с проектом
-                if (id) {
-                  AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
-                }
-                return newStyle;
-              }
-              return prev;
-            });
-          } catch {
-            // Игнорируем ошибки парсинга
-          }
+      Promise.all([
+        AsyncStorage.getItem('@last_text_style'),
+        AsyncStorage.getItem('@last_text_font_family'),
+      ]).then(([globalStyle, fontRaw]) => {
+        if (!globalStyle) return;
+        try {
+          const parsed = JSON.parse(globalStyle) as any;
+          const savedFont = typeof fontRaw === 'string' && fontRaw ? fontRaw : undefined;
+          const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : savedFont;
+          if (nextFontFamily) lastFontFamilyRef.current = nextFontFamily;
+          const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+          const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+          setLastTextStyle((prev) => {
+            if (prev?.color !== nextColor || prev?.fontSize !== nextFontSize || prev?.fontFamily !== nextFontFamily) {
+              if (id) AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
+              return { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
+            }
+            return prev;
+          });
+        } catch {
+          // Игнорируем ошибки парсинга
         }
       }).catch(() => {});
-    }, 500); // Проверяем каждые 500мс
-    
+    }, 500);
     return () => clearInterval(interval);
   }, [id]);
 
@@ -190,31 +190,28 @@ export default function EditAlbumScreen() {
 
     setCurrentTextAnnotation(nextAnnotation);
     
-    // Синхронизируем стиль из глобального ключа при изменении аннотации
-    // (когда пользователь меняет стиль через модальные окна в pdf-annotations)
-    AsyncStorage.getItem('@last_text_style').then((globalStyle) => {
-      if (globalStyle && nextAnnotation && nextAnnotation.type === 'text') {
-        try {
-          const parsed = JSON.parse(globalStyle) as any;
-          const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
-          const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
-          const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : undefined;
-          
-          setLastTextStyle((prev) => {
-            // Обновляем только если изменилось
-            if (prev.color !== nextColor || prev.fontSize !== nextFontSize || prev.fontFamily !== nextFontFamily) {
-              const newStyle = { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
-              // Синхронизируем с проектом
-              if (id) {
-                AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
-              }
-              return newStyle;
-            }
-            return prev;
-          });
-        } catch {
-          // Игнорируем ошибки парсинга
-        }
+    // Синхронизируем стиль из глобального ключа (шрифт — из @last_text_font_family)
+    Promise.all([
+      AsyncStorage.getItem('@last_text_style'),
+      AsyncStorage.getItem('@last_text_font_family'),
+    ]).then(([globalStyle, fontRaw]) => {
+      if (!globalStyle || !nextAnnotation || nextAnnotation.type !== 'text') return;
+      try {
+        const parsed = JSON.parse(globalStyle) as any;
+        const savedFont = typeof fontRaw === 'string' && fontRaw ? fontRaw : undefined;
+        const nextFontFamily = typeof parsed?.fontFamily === 'string' ? parsed.fontFamily : savedFont;
+        if (nextFontFamily) lastFontFamilyRef.current = nextFontFamily;
+        const nextColor = typeof parsed?.color === 'string' && parsed.color ? parsed.color : '#000000';
+        const nextFontSize = typeof parsed?.fontSize === 'number' && parsed.fontSize > 0 ? parsed.fontSize : 16;
+        setLastTextStyle((prev) => {
+          if (prev?.color !== nextColor || prev?.fontSize !== nextFontSize || prev?.fontFamily !== nextFontFamily) {
+            if (id) AsyncStorage.setItem(`@project_last_text_style_${id}`, globalStyle).catch(() => {});
+            return { color: nextColor, fontSize: nextFontSize, fontFamily: nextFontFamily };
+          }
+          return prev;
+        });
+      } catch {
+        // Игнорируем ошибки парсинга
       }
     }).catch(() => {});
   }, [editingTextAnnotationId, viewMode, annotations, coverAnnotations, id]);
@@ -933,17 +930,29 @@ export default function EditAlbumScreen() {
     });
 
     if (updates.color || updates.fontSize || updates.fontFamily) {
+      if (updates.fontFamily) lastFontFamilyRef.current = updates.fontFamily;
       setLastTextStyle((prev) => {
         const nextStyle = {
           color: updates.color ?? prev.color,
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
-        const styleJson = JSON.stringify(nextStyle);
-        if (storageId) {
-          AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
-        }
-        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        if (nextStyle.fontFamily) AsyncStorage.setItem('@last_text_font_family', nextStyle.fontFamily).catch(() => {});
+        Promise.all([
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]).then(([raw, fontRaw]) => {
+          let mergedFont = nextStyle.fontFamily;
+          if (mergedFont == null && raw) {
+            try { mergedFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily; } catch (_) {}
+          }
+          if (mergedFont == null && fontRaw) mergedFont = fontRaw;
+          const toSave = { ...nextStyle, fontFamily: mergedFont ?? nextStyle.fontFamily };
+          if (toSave.fontFamily) AsyncStorage.setItem('@last_text_font_family', toSave.fontFamily).catch(() => {});
+          const styleJson = JSON.stringify(toSave);
+          if (storageId) AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
+          AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        }).catch(() => {});
         return nextStyle;
       });
     }
@@ -1139,20 +1148,31 @@ export default function EditAlbumScreen() {
         : annotations.find(ann => ann.id === annotationId);
       setCurrentTextAnnotation(annotation || null);
 
-      // Запоминаем стиль, чтобы новые тексты создавались сразу с ним
       if (annotation && annotation.type === 'text') {
         const nextStyle = {
           color: annotation.color || '#000000',
           fontSize: annotation.fontSize || 16,
           fontFamily: annotation.fontFamily,
         };
+        if (nextStyle.fontFamily) lastFontFamilyRef.current = nextStyle.fontFamily;
         setLastTextStyle(nextStyle);
-        // Сохраняем и в проект, и в глобальный ключ для синхронизации
-        const styleJson = JSON.stringify(nextStyle);
-        if (id) {
-          AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
-        }
-        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        const fontToSave = nextStyle.fontFamily;
+        if (fontToSave) AsyncStorage.setItem('@last_text_font_family', fontToSave).catch(() => {});
+        Promise.all([
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]).then(([raw, savedFontRaw]) => {
+          let mergedFont = nextStyle.fontFamily;
+          if (mergedFont == null && raw) {
+            try { mergedFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily; } catch (_) {}
+          }
+          if (mergedFont == null && savedFontRaw) mergedFont = savedFontRaw;
+          const toSave = { ...nextStyle, fontFamily: mergedFont ?? nextStyle.fontFamily };
+          if (toSave.fontFamily) AsyncStorage.setItem('@last_text_font_family', toSave.fontFamily).catch(() => {});
+          const styleJson = JSON.stringify(toSave);
+          if (id) AsyncStorage.setItem(`@project_last_text_style_${id}`, styleJson).catch(() => {});
+          AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        }).catch(() => {});
       }
     } else {
       setCurrentTextAnnotation(null);
@@ -1225,17 +1245,29 @@ export default function EditAlbumScreen() {
     });
 
     if (updates.color || updates.fontSize || updates.fontFamily) {
+      if (updates.fontFamily) lastFontFamilyRef.current = updates.fontFamily;
       setLastTextStyle((prev) => {
         const nextStyle = {
           color: updates.color ?? prev.color,
           fontSize: updates.fontSize ?? prev.fontSize,
           fontFamily: updates.fontFamily ?? prev.fontFamily,
         };
-        const styleJson = JSON.stringify(nextStyle);
-        if (storageId) {
-          AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
-        }
-        AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        if (nextStyle.fontFamily) AsyncStorage.setItem('@last_text_font_family', nextStyle.fontFamily).catch(() => {});
+        Promise.all([
+          AsyncStorage.getItem('@last_text_style'),
+          AsyncStorage.getItem('@last_text_font_family'),
+        ]).then(([raw, fontRaw]) => {
+          let mergedFont = nextStyle.fontFamily;
+          if (mergedFont == null && raw) {
+            try { mergedFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily; } catch (_) {}
+          }
+          if (mergedFont == null && fontRaw) mergedFont = fontRaw;
+          const toSave = { ...nextStyle, fontFamily: mergedFont ?? nextStyle.fontFamily };
+          if (toSave.fontFamily) AsyncStorage.setItem('@last_text_font_family', toSave.fontFamily).catch(() => {});
+          const styleJson = JSON.stringify(toSave);
+          if (storageId) AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
+          AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
+        }).catch(() => {});
         return nextStyle;
       });
     }
@@ -1580,6 +1612,7 @@ export default function EditAlbumScreen() {
               annotationsRef={annotationsRef}
               onViewportChange={setCoverViewport}
               defaultTextStyle={lastTextStyle}
+              getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
               firstPageImage={
                 (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
                   ? images[0]
@@ -1610,6 +1643,7 @@ export default function EditAlbumScreen() {
               zoomLevel={zoomLevel}
               onViewportChange={setPagesViewport}
               defaultTextStyle={lastTextStyle}
+              getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
             />
           ) : (
             <View style={styles.errorContainer}>
@@ -1743,30 +1777,57 @@ export default function EditAlbumScreen() {
             )}
 
             {isEditing && viewMode === 'cover' && (
-              <TouchableOpacity
-                style={[
-                  styles.toolButton,
-                  currentTool === 'text' && styles.toolButtonActive
-                ]}
-                onPress={() => handleToolToggle('text')}
-                activeOpacity={0.8}
-                accessibilityRole="button"
-                accessibilityLabel="Добавить текст"
-              >
-                <View style={styles.toolIconContainer}>
-                  <Ionicons 
-                    name="text-outline" 
-                    size={22} 
-                    color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
-                  />
-                </View>
-                <Text 
-                  style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
-                  numberOfLines={1}
+              <>
+                <TouchableOpacity
+                  style={[
+                    styles.toolButton,
+                    currentTool === 'text' && styles.toolButtonActive
+                  ]}
+                  onPress={() => handleToolToggle('text')}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Добавить текст"
                 >
-                  Текст
-                </Text>
-              </TouchableOpacity>
+                  <View style={styles.toolIconContainer}>
+                    <Ionicons 
+                      name="text-outline" 
+                      size={22} 
+                      color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
+                    />
+                  </View>
+                  <Text 
+                    style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
+                    numberOfLines={1}
+                  >
+                    Текст
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.toolButton,
+                    currentTool === 'image' && styles.toolButtonActive
+                  ]}
+                  onPress={() => handleToolToggle('image')}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Добавить фото"
+                >
+                  <View style={styles.toolIconContainer}>
+                    <Ionicons 
+                      name="image-outline" 
+                      size={22} 
+                      color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
+                    />
+                  </View>
+                  <Text 
+                    style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}
+                    numberOfLines={1}
+                  >
+                    Фото
+                  </Text>
+                </TouchableOpacity>
+              </>
             )}
           </ScrollView>
         </View>
