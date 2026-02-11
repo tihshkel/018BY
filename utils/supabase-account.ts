@@ -2,8 +2,12 @@ import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
 
 const PROJECT_KEY_PREFIX = '@project_';
 
+const DEFAULT_USER_NAME = 'Пользователь';
+
 /**
  * Сохраняет код доступа, имя и (опционально) URL аватара в Supabase.
+ * Не создаёт/не обновляет запись, если имя не задано или осталось по умолчанию «Пользователь» —
+ * так в таблице не появляются строки с дефолтным именем.
  */
 export async function saveAccountToSupabase(
   accessCode: string,
@@ -15,10 +19,15 @@ export async function saveAccountToSupabase(
     return { success: true };
   }
 
+  const name = (userName || '').trim();
+  if (!name || name === DEFAULT_USER_NAME) {
+    return { success: true };
+  }
+
   try {
     const row: Record<string, unknown> = {
       access_code: accessCode,
-      user_name: userName,
+      user_name: name,
       updated_at: new Date().toISOString(),
     };
     // В БД пишем только валидный https-URL. file:// или пустое значение не передаём — тогда старый аватар в БД не затирается

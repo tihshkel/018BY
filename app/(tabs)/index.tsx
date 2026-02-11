@@ -234,12 +234,17 @@ export default function HomeScreen() {
           const coverAnnotationsRaw = results.find(([k]) => k === keys[2])?.[1] ?? null;
 
           const savedImages = safeParseArray(imagesRaw);
-          pagesCount = savedImages.length;
-
-          // fallback: если ещё не сохранено — берём из шаблона
-          if (pagesCount === 0 && albumId) {
+          // Для альбомов по шаблону (pregnancy, kids и т.д.) показываем число страниц из шаблона,
+          // иначе на главной всегда «1 страница», пока не сохранены все страницы
+          if (albumId) {
             const template = getAlbumTemplateById(albumId);
-            if (typeof template?.pages === 'number') pagesCount = template.pages;
+            if (typeof template?.pages === 'number') {
+              pagesCount = template.pages;
+            } else {
+              pagesCount = savedImages.length;
+            }
+          } else {
+            pagesCount = savedImages.length;
           }
 
           const anns = safeParseArray(annotationsRaw);

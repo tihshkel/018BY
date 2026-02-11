@@ -330,16 +330,17 @@ export default function AccountCodeInputScreen() {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-        activeOpacity={0.7}
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      >
-        <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
-      </TouchableOpacity>
-
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityLabel="Вернуться назад"
+          accessibilityRole="button"
+        >
+          <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
+        </TouchableOpacity>
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
           <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
             <View style={styles.iconContainer}>
@@ -411,13 +412,17 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 8 : 16,
-    left: 8,
-    width: 44,
-    height: 44,
+    top: 24,
+    left: HORIZONTAL_PADDING,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
+    backgroundColor: 'rgba(139, 111, 95, 0.12)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 111, 95, 0.25)',
   },
   centeredBlock: {
     alignItems: 'center',

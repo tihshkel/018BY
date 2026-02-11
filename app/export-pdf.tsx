@@ -121,6 +121,7 @@ export default function ExportPdfScreen() {
     reject: (error: Error) => void;
   } | null>(null);
   const captureSettingsRef = useRef<{ scale: number; quality: number }>({ scale: 1.35, quality: 0.92 });
+  const scrollViewRef = useRef<ScrollView>(null);
   
 
   useEffect(() => {
@@ -1928,6 +1929,7 @@ export default function ExportPdfScreen() {
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
@@ -1944,7 +1946,12 @@ export default function ExportPdfScreen() {
                     styles.formatCard,
                     selectedFormat?.id === format.id && styles.formatCardSelected,
                   ]}
-                  onPress={() => setSelectedFormat(format)}
+                  onPress={() => {
+                    setSelectedFormat(format);
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 150);
+                  }}
                   activeOpacity={0.85}
                 >
                   <View style={styles.formatHeader}>

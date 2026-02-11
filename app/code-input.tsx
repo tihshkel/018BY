@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -394,6 +395,16 @@ export default function CodeInputScreen() {
 
       <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
         <Animated.View style={[styles.content, containerAnimatedStyle]}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityLabel="Вернуться назад"
+            accessibilityRole="button"
+          >
+            <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
+          </TouchableOpacity>
           <TouchableWithoutFeedback onPress={() => {}}>
             <View>
               <Animated.View style={[styles.header, inputAnimatedStyle]}>
@@ -466,6 +477,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: HORIZONTAL_PADDING,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 24,
+    left: HORIZONTAL_PADDING,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    backgroundColor: 'rgba(139, 111, 95, 0.12)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 111, 95, 0.25)',
   },
   header: {
     alignItems: 'center',
