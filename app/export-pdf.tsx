@@ -101,9 +101,12 @@ export default function ExportPdfScreen() {
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
   const [downloadStep, setDownloadStep] = useState<1 | 2 | null>(null);
   const [coverDownloaded, setCoverDownloaded] = useState(false);
+  const [firstLastDownloaded, setFirstLastDownloaded] = useState(false);
   const [interiorDownloaded, setInteriorDownloaded] = useState(false);
   const [isDownloadingCover, setIsDownloadingCover] = useState(false);
+  const [isDownloadingFirstLast, setIsDownloadingFirstLast] = useState(false);
   const [isDownloadingInterior, setIsDownloadingInterior] = useState(false);
+  const [firstLastPdfUri, setFirstLastPdfUri] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   const loadingRotation = useSharedValue(0);
   
@@ -188,6 +191,11 @@ export default function ExportPdfScreen() {
 
     setIsGenerating(true);
     setShowPreview(false);
+    setDownloadStep(null);
+    setFirstLastPdfUri(null);
+    setCoverDownloaded(false);
+    setFirstLastDownloaded(false);
+    setInteriorDownloaded(false);
     setGenerationStatus('Подготовка…');
     setGenerationProgress({ current: 0, total: 100 });
 
@@ -198,6 +206,8 @@ export default function ExportPdfScreen() {
       let annotations: Annotation[] = [];
       let coverImage: any = null;
       let coverPdf: any = null;
+      let savedImages: string | null = null;
+      let projectCoverType: string | null = null; // ID выбранной обложки (например, 'dfa_5', 'pregnancy_60')
 
       // Если есть projectId, пытаемся загрузить данные проекта
       if (projectId) {
@@ -206,28 +216,35 @@ export default function ExportPdfScreen() {
           const project = JSON.parse(projectData);
           albumId = project.albumId || projectId;
           projectCategory = project.category || null;
+          projectCoverType = project.coverType || null; // Сохраняем ID выбранной обложки
+          console.log(`[PDF Export] Загружен проект: albumId=${albumId}, coverType=${projectCoverType}, category=${projectCategory}`);
 
           // Получаем изображение обложки для экспорта
           // ВАЖНО: expo-print не поддерживает встраивание PDF напрямую через embed/iframe
           // Поэтому используем изображение обложки вместо PDF развертки
           // PDF развертки можно использовать только после предварительной конвертации в изображение
+          console.log(`[PDF Export] Загрузка обложки для albumId=${albumId}, projectCategory=${projectCategory}`);
+          
           if (projectCategory === 'pregnancy' || projectCategory === 'kids') {
-            // Для беременности и детей получаем изображение обложки
-            coverImage = getCoverForExport(albumId, projectCategory);
-            console.log(`[PDF Export] Получено изображение обложки: albumId=${albumId}, category=${projectCategory}, coverImage=${!!coverImage}`);
+            // Для беременности и детей получаем изображение обложки по projectCoverType (выбранная обложка)
+            const coverIdForCover = projectCoverType || albumId;
+            coverImage = getCoverForExport(coverIdForCover, projectCategory);
+            console.log(`[PDF Export] Получено изображение обложки: coverId=${coverIdForCover}, category=${projectCategory}, coverImage=${!!coverImage}`);
             
-            // Также получаем PDF развертку для возможной будущей конвертации (пока не используется)
-            const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
-            coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
-            console.log(`[PDF Export] PDF развертка получена (для справки): coverPdf=${!!coverPdf}`);
+            // Также получаем PDF развертку по projectCoverType (выбранная обложка)
+            const coverFormat = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
+            coverPdf = getCoverPdfForExport(coverIdForCover, projectCategory, coverFormat);
+            console.log(`[PDF Export] PDF развертка получена: coverId=${coverIdForCover}, format=${coverFormat}, coverPdf=${coverPdf || 'null'}`);
           } else {
-            if (albumId) {
-              coverImage = getCoverForExport(albumId, projectCategory || undefined);
+            const coverIdForCover = projectCoverType || albumId;
+            if (coverIdForCover) {
+              coverImage = getCoverForExport(coverIdForCover, projectCategory || undefined);
+              console.log(`[PDF Export] Обложка для другой категории: coverId=${coverIdForCover}, coverImage=${!!coverImage}`);
             }
           }
 
           // Загружаем изображения - сначала проверяем сохраненные изменения
-          const savedImages = await AsyncStorage.getItem(`@project_images_${projectId}`);
+          savedImages = await AsyncStorage.getItem(`@project_images_${projectId}`);
           if (savedImages) {
             images = JSON.parse(savedImages);
           } else {
@@ -273,20 +290,22 @@ export default function ExportPdfScreen() {
 
       // Если проект не найден или нет projectId, используем значения по умолчанию
       if (!albumId) {
-        albumId = 'pregnancy_60'; // Значение по умолчанию
-        projectCategory = 'pregnancy';
+        console.error(`[PDF Export] Критическая ошибка: albumId не определен! projectId=${projectId}`);
+        throw new Error('Не удалось определить альбом проекта. Пожалуйста, попробуйте пересоздать проект.');
       }
+      
+      console.log(`[PDF Export] Используем альбом: albumId=${albumId}, projectCategory=${projectCategory}, imagesCount=${images.length}`);
 
-      // Если PDF развертка обложки еще не получена, пытаемся получить по albumId
-      if ((projectCategory === 'pregnancy' || projectCategory === 'kids') && !coverPdf && albumId) {
-            const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
-        coverPdf = getCoverPdfForExport(albumId, projectCategory, coverType);
-        // Если PDF развертка не найдена, используем изображение обложки
+      // Если PDF развертка обложки еще не получена, пытаемся получить по projectCoverType
+      const coverIdForCover = projectCoverType || albumId;
+      if ((projectCategory === 'pregnancy' || projectCategory === 'kids') && !coverPdf && coverIdForCover) {
+        const coverFormat = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
+        coverPdf = getCoverPdfForExport(coverIdForCover, projectCategory, coverFormat);
         if (!coverPdf) {
-          coverImage = getCoverForExport(albumId, projectCategory);
+          coverImage = getCoverForExport(coverIdForCover, projectCategory);
         }
-      } else if (!coverImage && albumId) {
-        const cover = getCoverForExport(albumId, projectCategory || undefined);
+      } else if (!coverImage && coverIdForCover) {
+        const cover = getCoverForExport(coverIdForCover, projectCategory || undefined);
         if (cover) {
           coverImage = cover;
         }
@@ -304,50 +323,35 @@ export default function ExportPdfScreen() {
         throw new Error('Изображения не найдены');
       }
 
-      // Добавляем первую и последнюю страницу для альбомов беременности и детей
-      if (projectCategory === 'kids' || projectCategory === 'pregnancy') {
+      // Для двухшагового экспорта: первый шаг = первая+последняя (или развертка), второй шаг = внутрянка
+      // ДЛЯ ТВЕРДОЙ: первая/последняя не добавляем (шаг 1 = развертка из export)
+      // ДЛЯ МЯГКОЙ/ЭЛЕКТРОННОЙ: первая/последняя в отдельный PDF (шаг 1), внутрянка отдельно (шаг 2)
+      const coverIdForFirstLast = projectCoverType || albumId;
+      let firstLastImages: string[] = [];
+      
+      if (formatToUse.type === 'hard') {
+        console.log(`[PDF Export] Для твердой обложки: внутрянка только, развертка скачивается отдельно`);
+      } else if (projectCategory === 'kids' || projectCategory === 'pregnancy') {
         try {
-          const coverType = (formatToUse?.type === 'hard' || formatToUse?.type === 'soft') ? formatToUse.type : 'hard';
-          
+          const coverFormat = formatToUse.type === 'soft' ? 'soft' : 'hard';
           if (projectCategory === 'kids') {
-            // Загружаем первую и последнюю страницу для альбомов детей
-            const { firstPage, lastPage } = await getKidsFirstLastPages(albumId, coverType);
-            
-            if (firstPage) {
-              images.unshift(firstPage);
-              console.log(`[PDF Export] Добавлена первая страница для kids альбома: ${albumId}`);
-            } else {
-              console.warn(`[PDF Export] Первая страница не найдена для kids альбома: ${albumId}`);
-            }
-            
-            if (lastPage) {
-              images.push(lastPage);
-              console.log(`[PDF Export] Добавлена последняя страница для kids альбома: ${albumId}`);
-            } else {
-              console.warn(`[PDF Export] Последняя страница не найдена для kids альбома: ${albumId}`);
-            }
-          } else if (projectCategory === 'pregnancy') {
-            // Загружаем первую и последнюю страницу для альбомов беременности
-            const { firstPage, lastPages } = await getPregnancyFirstLastPages(albumId, coverType);
-            
-            if (firstPage) {
-              images.unshift(firstPage);
-              console.log(`[PDF Export] Добавлена первая страница для pregnancy альбома: ${albumId}`);
-            } else {
-              console.warn(`[PDF Export] Первая страница не найдена для pregnancy альбома: ${albumId}`);
-            }
-            
-            if (lastPages.length > 0) {
-              images.push(...lastPages);
-              console.log(`[PDF Export] Добавлено ${lastPages.length} последних страниц для pregnancy альбома: ${albumId}`);
-            } else {
-              console.warn(`[PDF Export] Последние страницы не найдены для pregnancy альбома: ${albumId}`);
-            }
+            const { firstPage, lastPage } = await getKidsFirstLastPages(coverIdForFirstLast, coverFormat);
+            if (firstPage) firstLastImages.push(firstPage);
+            if (lastPage) firstLastImages.push(lastPage);
+            console.log(`[PDF Export] Загружена первая/последняя для kids: ${firstLastImages.length} стр.`);
+          } else {
+            const { firstPage, lastPages } = await getPregnancyFirstLastPages(coverIdForFirstLast, coverFormat);
+            if (firstPage) firstLastImages.push(firstPage);
+            if (lastPages.length > 0) firstLastImages.push(...lastPages);
+            console.log(`[PDF Export] Загружена первая/последняя для pregnancy: ${firstLastImages.length} стр.`);
           }
         } catch (error) {
-          // Не прерываем экспорт, если первая/последняя страница не найдена
-          console.warn(`[PDF Export] Ошибка при загрузке первой/последней страницы:`, error);
+          console.warn(`[PDF Export] Ошибка загрузки первой/последней:`, error);
         }
+      } else if (images.length >= 2) {
+        // Для diary и др.: первая и последняя страница из внутрянки
+        firstLastImages = [images[0], images[images.length - 1]];
+        console.log(`[PDF Export] Первая/последняя из внутрянки: 2 стр.`);
       }
 
       // Определяем размеры страницы
@@ -860,37 +864,21 @@ export default function ExportPdfScreen() {
       }
 
       // 2) Обложка (если есть)
+      // ДЛЯ ТВЕРДОГО ПЕРЕПЛЕТА: не загружаем изображения развертки, т.к. пользователь скачает PDF из albums/export отдельно
+      // ДЛЯ ЭЛЕКТРОННОЙ/МЯГКОЙ: загружаем первую и последнюю страницу из шаблона (уже добавлены в массив images)
       let coverImages: string[] = [];
       let coverPagesCount = 0;
       let coverImageBytes: (Uint8Array | null)[] = [];
-      if (hasCover && (projectCategory === 'pregnancy' || projectCategory === 'kids') && coverPdf) {
-        try {
-          const coverImagesResult = await getCoverImageUris(coverPdf);
-          coverImages = coverImagesResult || [];
-          coverPagesCount = coverImages.length;
-          if (coverPagesCount > 0) {
-            const bytes: (Uint8Array | null)[] = [];
-            for (let i = 0; i < coverImages.length; i += 3) {
-              const batch = coverImages.slice(i, i + 3);
-              const results = await Promise.all(
-                batch.map(async (uri) => {
-                  try {
-                    const optimized = await optimizeImageForExport(uri, 'cover');
-                    return await loadImageAsBytes(optimized);
-                  } catch {
-                    return null;
-                  }
-                })
-              );
-              bytes.push(...results);
-            }
-            coverImageBytes = bytes;
-          }
-        } catch {
-          coverImages = [];
-          coverPagesCount = 0;
-          coverImageBytes = [];
-        }
+      
+      console.log(`[PDF Export] Загрузка обложки: format=${formatToUse.type}, hasCover=${hasCover}`);
+      
+      // Для твердого переплета пропускаем загрузку изображений обложки
+      // Развертка будет скачиваться отдельно из albums/export (шаг 1)
+      if (formatToUse.type !== 'hard') {
+        // Только для электронной и мягкой версии загружаем изображения обложки
+        console.log(`[PDF Export] Загружаем изображения обложки для ${formatToUse.type} версии`);
+      } else {
+        console.log(`[PDF Export] Твердый переплет: развертка будет скачиваться отдельно из albums/export`);
       }
 
       // 3) Изображения-аннотации (без оптимизации)
@@ -938,9 +926,13 @@ export default function ExportPdfScreen() {
         }
       }
 
-      // ВАЖНО: Сначала добавляем развертку обложки в начало документа
-      // Обложка всегда должна быть первой в PDF файле
-      if (coverImageBytes.length > 0 && coverPagesCount > 0) {
+      // ВАЖНО: Для твердого переплета развертка НЕ добавляется в PDF
+      // Развертка скачивается отдельно из albums/export (шаг 1)
+      // Поэтому для твердого переплета этот блок пропускается (coverImageBytes будет пустым)
+      // Для электронной и мягкой версии развертка не нужна - там добавляются только первая и последняя страница внутренней части
+      if (formatToUse.type === 'hard' && coverImageBytes.length > 0 && coverPagesCount > 0) {
+        // Этот блок не должен выполняться для твердого переплета, т.к. coverImageBytes пустой
+        console.log(`[PDF Export] Предупреждение: обнаружены изображения развертки для твердого переплета, пропускаем`);
         try {
           setGenerationStatus('Добавление обложки…');
           setGenerationProgress({ current: 18, total: 100 });
@@ -1146,6 +1138,10 @@ export default function ExportPdfScreen() {
                 const snapshotAspectRatio = snapshotDims.width / snapshotDims.height;
                 const contentAspectRatio = contentWidth / contentHeight;
 
+                // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
+                const isFirstOrLastPageSnapshot = (formatToUse.type === 'electronic' || formatToUse.type === 'soft') && 
+                                                  (pageIndex === 0 || pageIndex === images.length - 1);
+
                 let snapshotWidth = contentWidth;
                 let snapshotHeight = contentHeight;
 
@@ -1155,8 +1151,27 @@ export default function ExportPdfScreen() {
                   snapshotWidth = contentHeight * snapshotAspectRatio;
                 }
 
-                const snapshotX = margin + (contentWidth - snapshotWidth) / 2;
-                const snapshotY = pageHeight - margin - contentHeight + (contentHeight - snapshotHeight) / 2;
+                // Для первой и последней страницы электронной/мягкой версии - без полей, на весь лист
+                let snapshotX: number;
+                let snapshotY: number;
+                
+                if (isFirstOrLastPageSnapshot) {
+                  // Без полей - изображение на весь лист
+                  const pageAspectRatio = pageWidth / pageHeight;
+                  if (snapshotAspectRatio > pageAspectRatio) {
+                    snapshotWidth = pageWidth;
+                    snapshotHeight = pageWidth / snapshotAspectRatio;
+                  } else {
+                    snapshotHeight = pageHeight;
+                    snapshotWidth = pageHeight * snapshotAspectRatio;
+                  }
+                  snapshotX = (pageWidth - snapshotWidth) / 2;
+                  snapshotY = (pageHeight - snapshotHeight) / 2;
+                } else {
+                  // С полями - стандартная логика
+                  snapshotX = margin + (contentWidth - snapshotWidth) / 2;
+                  snapshotY = pageHeight - margin - contentHeight + (contentHeight - snapshotHeight) / 2;
+                }
                 
                 page.drawImage(embeddedSnapshot, {
                   x: snapshotX,
@@ -1201,6 +1216,10 @@ export default function ExportPdfScreen() {
           const imageAspectRatio = imageDims.width / imageDims.height;
           const contentAspectRatio = contentWidth / contentHeight;
           
+          // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
+          const isFirstOrLastPage = (formatToUse.type === 'electronic' || formatToUse.type === 'soft') && 
+                                    (pageIndex === 0 || pageIndex === images.length - 1);
+          
           // Вычисляем реальные размеры изображения на странице (как в редакторе)
           let actualImageWidth = contentWidth;
           let actualImageHeight = contentHeight;
@@ -1214,8 +1233,27 @@ export default function ExportPdfScreen() {
           }
           
           // Центрируем изображение на странице
-          const offsetX = margin + (contentWidth - actualImageWidth) / 2;
-          const offsetY = pageHeight - margin - actualImageHeight - (contentHeight - actualImageHeight) / 2;
+          // Для первой и последней страницы электронной/мягкой версии - без полей, на весь лист
+          let offsetX: number;
+          let offsetY: number;
+          
+          if (isFirstOrLastPage) {
+            // Без полей - изображение на весь лист
+            const pageAspectRatio = pageWidth / pageHeight;
+            if (imageAspectRatio > pageAspectRatio) {
+              actualImageWidth = pageWidth;
+              actualImageHeight = pageWidth / imageAspectRatio;
+            } else {
+              actualImageHeight = pageHeight;
+              actualImageWidth = pageHeight * imageAspectRatio;
+            }
+            offsetX = (pageWidth - actualImageWidth) / 2;
+            offsetY = (pageHeight - actualImageHeight) / 2;
+          } else {
+            // С полями - стандартная логика
+            offsetX = margin + (contentWidth - actualImageWidth) / 2;
+            offsetY = pageHeight - margin - actualImageHeight - (contentHeight - actualImageHeight) / 2;
+          }
           
           // Рисуем изображение на странице
           page.drawImage(embeddedImage, {
@@ -1423,9 +1461,51 @@ export default function ExportPdfScreen() {
       setPdfUri(fileUri);
       setShowPreview(true);
       
-      // Если выбран формат "твердый переплет", показываем шаг 1
-      if (formatToUse?.type === 'hard') {
-        setDownloadStep(1);
+      // Двухшаговый экспорт для всех форматов: шаг 1 всегда первый
+      const hasFirstLast = formatToUse.type !== 'hard' && firstLastImages.length > 0;
+      setDownloadStep(1);
+      if (!hasFirstLast && formatToUse.type !== 'hard') {
+        setFirstLastDownloaded(true);
+        setDownloadStep(2);
+      }
+      
+      // Для мягкой/электронной: создаём PDF первой и последней страницы (шаг 1)
+      let firstLastUri: string | null = null;
+      if (hasFirstLast) {
+        try {
+          setGenerationStatus('Создание PDF первой/последней страницы…');
+          const flDoc = await PDFDocument.create();
+          const flPageWidth = isA5 ? 420 : 595;
+          const flPageHeight = isA5 ? 595 : 842;
+          const flMargin = 28.3;
+          const flContentWidth = flPageWidth - flMargin * 2;
+          const flContentHeight = flPageHeight - flMargin * 2;
+          for (let i = 0; i < firstLastImages.length; i++) {
+            const uri = firstLastImages[i];
+            const optUri = await optimizeImageForExport(uri, 'page').catch(() => uri);
+            const bytes = await loadImageAsBytes(optUri);
+            if (!bytes) continue;
+            const isJpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
+            const embedded = isJpg ? await flDoc.embedJpg(bytes) : await flDoc.embedPng(bytes);
+            const dims = embedded.scale(1);
+            const ar = dims.width / dims.height;
+            const contentAr = flContentWidth / flContentHeight;
+            let w = flContentWidth, h = flContentHeight;
+            if (ar > contentAr) h = flContentWidth / ar;
+            else w = flContentHeight * ar;
+            const page = flDoc.addPage([flPageWidth, flPageHeight]);
+            const x = flMargin + (flContentWidth - w) / 2;
+            const y = flPageHeight - flMargin - flContentHeight + (flContentHeight - h) / 2;
+            page.drawImage(embedded, { x, y, width: w, height: h });
+          }
+          const flBase64 = (flDoc as any).saveAsBase64?.({ dataUri: false, useObjectStreams: true, addDefaultPage: false }) ?? uint8ToBase64(await flDoc.save({ useObjectStreams: true, addDefaultPage: false }));
+          firstLastUri = `${FileSystem.documentDirectory}firstlast_${projectId || 'export'}_${Date.now()}.pdf`;
+          await FileSystem.writeAsStringAsync(firstLastUri, flBase64, { encoding: FileSystem.EncodingType.Base64 });
+          setFirstLastPdfUri(firstLastUri);
+          console.log(`[PDF Export] PDF первой/последней создан: ${firstLastUri}`);
+        } catch (flErr) {
+          console.warn('[PDF Export] Ошибка создания PDF первой/последней:', flErr);
+        }
       }
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -1444,30 +1524,67 @@ export default function ExportPdfScreen() {
       let coverType = coverTypeParam;
       let category = celebrationParam;
       
+      console.log(`[PDF Export] handleDownloadCoverPdf - начало. coverTypeParam=${coverTypeParam}, celebrationParam=${celebrationParam}, projectId=${projectId}`);
+      
       if (!coverType || !category) {
         // Пытаемся получить из данных проекта
         if (projectId) {
           const projectData = await AsyncStorage.getItem(`@project_${projectId}`);
+          console.log(`[PDF Export] Загружены данные проекта: ${projectData ? 'да' : 'нет'}`);
           if (projectData) {
             const project = JSON.parse(projectData);
+            console.log(`[PDF Export] Данные проекта:`, { coverType: project.coverType, category: project.category, albumId: project.albumId });
             if (!coverType && project.coverType) {
               coverType = project.coverType;
             }
             if (!category && project.category) {
               category = project.category;
             }
+            
+            // Fallback: если coverType не найден, определяем его по albumId
+            if (!coverType && project.albumId) {
+              const albumId = project.albumId;
+              if (albumId.includes('premium')) {
+                coverType = 'premium';
+              } else if (albumId.includes('classic')) {
+                coverType = 'classic';
+              } else if (albumId.includes('soft')) {
+                coverType = 'soft';
+              } else if (albumId.includes('floral')) {
+                coverType = 'floral';
+              } else {
+                coverType = 'standard';
+              }
+              console.log(`[PDF Export] CoverType определен по albumId: ${albumId} -> ${coverType}`);
+            }
+            
+            // Fallback: если category не найдена, определяем ее по albumId
+            if (!category && project.albumId) {
+              const albumId = project.albumId;
+              if (albumId.startsWith('pregnancy') || albumId.includes('pregnancy')) {
+                category = 'pregnancy';
+              } else if (albumId.startsWith('kids') || albumId.includes('kids')) {
+                category = 'kids';
+              }
+              console.log(`[PDF Export] Category определена по albumId: ${albumId} -> ${category}`);
+            }
           }
         }
       }
+      
+      console.log(`[PDF Export] После загрузки из проекта: coverType=${coverType}, category=${category}`);
 
       if (!coverType || !category) {
-        Alert.alert('Ошибка', 'Не удалось определить тип обложки');
+        console.error(`[PDF Export] Ошибка: не удалось определить тип обложки. coverType=${coverType}, category=${category}`);
+        Alert.alert('Ошибка', 'Не удалось определить тип обложки. Пожалуйста, попробуйте пересоздать проект или обратитесь в поддержку.');
         setIsDownloadingCover(false);
         return;
       }
 
       // Получаем имя файла PDF обложки
+      console.log(`[PDF Export] Вызов getCoverExportPdfFileNameFromCoverType(coverType=${coverType}, category=${category}, 'hard')`);
       const fileName = getCoverExportPdfFileNameFromCoverType(coverType, category, 'hard');
+      console.log(`[PDF Export] Получено имя файла: ${fileName}`);
       if (!fileName) {
         Alert.alert('Ошибка', 'Не удалось определить имя файла обложки');
         setIsDownloadingCover(false);
@@ -1572,6 +1689,68 @@ export default function ExportPdfScreen() {
       Alert.alert('Ошибка', 'Не удалось скачать обложку: ' + (error as Error).message);
     } finally {
       setIsDownloadingCover(false);
+    }
+  };
+
+  const handleDownloadFirstLastPdf = async () => {
+    if (!firstLastPdfUri) return;
+    setIsDownloadingFirstLast(true);
+    try {
+      const fileName = `firstlast_${projectId || 'export'}_${Date.now()}.pdf`;
+      if (Platform.OS === 'android') {
+        try {
+          const RNBlobUtil = require('react-native-blob-util').default;
+          const { fs, config } = RNBlobUtil;
+          const base64 = await FileSystem.readAsStringAsync(firstLastPdfUri, { encoding: FileSystem.EncodingType.Base64 });
+          const downloadOptions = {
+            fileCache: true,
+            addAndroidDownloads: {
+              useDownloadManager: true,
+              notification: true,
+              title: fileName,
+              description: 'PDF первая и последняя страница',
+              mime: 'application/pdf',
+              mediaScannable: true,
+              path: `${fs.dirs.DownloadDir}/${fileName}`,
+            },
+          };
+          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
+          await fs.writeFile(tempPath, base64, 'base64');
+          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
+          fs.unlink(tempPath).catch(() => {});
+          Alert.alert('Успешно', `Первая и последняя страница сохранены в папку "Загрузки": ${fileName}`);
+        } catch (blobError) {
+          const destUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({ from: firstLastPdfUri, to: destUri });
+          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
+        }
+        setFirstLastDownloaded(true);
+        setDownloadStep(2);
+      } else if (Platform.OS === 'ios') {
+        const isAvailable = await Sharing.isAvailableAsync();
+        if (isAvailable) {
+          await Sharing.shareAsync(firstLastPdfUri, { mimeType: 'application/pdf', dialogTitle: 'Сохранить первую и последнюю страницу', UTI: 'com.adobe.pdf' });
+        } else {
+          const destUri = `${FileSystem.documentDirectory}${fileName}`;
+          await FileSystem.copyAsync({ from: firstLastPdfUri, to: destUri });
+          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
+        }
+        setFirstLastDownloaded(true);
+        setDownloadStep(2);
+      } else {
+        const base64 = await FileSystem.readAsStringAsync(firstLastPdfUri, { encoding: FileSystem.EncodingType.Base64 });
+        const link = document.createElement('a');
+        link.href = `data:application/pdf;base64,${base64}`;
+        link.download = fileName;
+        link.click();
+        Alert.alert('Успешно', `Файл скачан: ${fileName}`);
+        setFirstLastDownloaded(true);
+        setDownloadStep(2);
+      }
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось скачать: ' + (error as Error).message);
+    } finally {
+      setIsDownloadingFirstLast(false);
     }
   };
 
@@ -2058,59 +2237,89 @@ export default function ExportPdfScreen() {
                 </Text>
               </View>
 
-              {/* Действия с PDF */}
-              {selectedFormat?.type === 'hard' && downloadStep ? (
-                // Двухшаговое скачивание для твердого переплета
+              {/* Действия с PDF — двухшаговое скачивание для всех форматов */}
+              {downloadStep ? (
                 <View style={styles.downloadStepsContainer}>
                   <Text style={styles.downloadStepsTitle}>Скачивание книги</Text>
                   <Text style={styles.downloadStepsSubtitle}>
-                    Для печати книги в твердой обложке необходимо скачать два файла
+                    {selectedFormat?.type === 'hard'
+                      ? 'Для печати в твердой обложке скачайте развертку и внутрянку'
+                      : 'Скачайте первую/последнюю страницу и внутреннюю часть'}
                   </Text>
                   
-                  {/* Шаг 1: Скачать обложку */}
+                  {/* Шаг 1: Твердая — развертка; Мягкая/электронная — первая и последняя страница */}
                   <View style={styles.downloadStepCard}>
                     <View style={styles.downloadStepHeader}>
-                      <View                       style={[
+                      <View style={[
                         styles.downloadStepNumber,
-                        coverDownloaded && styles.downloadStepNumberCompleted
+                        (selectedFormat?.type === 'hard' ? coverDownloaded : firstLastDownloaded) && styles.downloadStepNumberCompleted
                       ]}>
-                        {coverDownloaded ? (
+                        {(selectedFormat?.type === 'hard' ? coverDownloaded : firstLastDownloaded) ? (
                           <Ionicons name="checkmark" size={20} color="#FFFFFF" />
                         ) : (
                           <Text style={styles.downloadStepNumberText}>1</Text>
                         )}
                       </View>
                       <View style={styles.downloadStepInfo}>
-                        <Text style={styles.downloadStepTitle}>Скачать обложку</Text>
+                        <Text style={styles.downloadStepTitle}>
+                          {selectedFormat?.type === 'hard' ? 'Скачать развертку обложки' : 'Скачать первую и последнюю страницу'}
+                        </Text>
                         <Text style={styles.downloadStepDescription}>
-                          PDF файл обложки из папки export
+                          {selectedFormat?.type === 'hard'
+                            ? 'PDF развертка из папки export'
+                            : 'PDF файл с первой и последней страницей'}
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity
-                      style={[
-                        styles.downloadStepButton,
-                        isDownloadingCover && styles.downloadStepButtonDisabled
-                      ]}
-                      onPress={handleDownloadCoverPdf}
-                      disabled={isDownloadingCover}
-                      activeOpacity={0.7}
-                    >
-                      {isDownloadingCover ? (
-                        <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                    {selectedFormat?.type === 'hard' ? (
+                      coverDownloaded ? (
+                        <View style={styles.downloadStepButton}>
+                          <Text style={styles.downloadStepButtonText}>Готово</Text>
+                        </View>
                       ) : (
-                        <>
-                          <Ionicons name="download-outline" size={20} color="#FFFFFF" />
-                          <Text style={styles.downloadStepButtonText}>Скачать обложку</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.downloadStepButton, isDownloadingCover && styles.downloadStepButtonDisabled]}
+                          onPress={handleDownloadCoverPdf}
+                          disabled={isDownloadingCover}
+                          activeOpacity={0.7}
+                        >
+                          {isDownloadingCover ? (
+                            <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                          ) : (
+                            <>
+                              <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                              <Text style={styles.downloadStepButtonText}>Скачать развертку</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      )
+                    ) : firstLastDownloaded ? (
+                      <View style={styles.downloadStepButton}>
+                        <Text style={styles.downloadStepButtonText}>Готово</Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.downloadStepButton, (isDownloadingFirstLast || !firstLastPdfUri) && styles.downloadStepButtonDisabled]}
+                        onPress={handleDownloadFirstLastPdf}
+                        disabled={isDownloadingFirstLast || !firstLastPdfUri}
+                        activeOpacity={0.7}
+                      >
+                        {isDownloadingFirstLast ? (
+                          <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                        ) : (
+                          <>
+                            <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                            <Text style={styles.downloadStepButtonText}>Скачать первую и последнюю</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    )}
                   </View>
 
-                  {/* Шаг 2: Скачать внутреннюю часть */}
+                  {/* Шаг 2: Скачать внутреннюю часть (внутрянка) */}
                   <View style={styles.downloadStepCard}>
                     <View style={styles.downloadStepHeader}>
-                      <View                       style={[
+                      <View style={[
                         styles.downloadStepNumber,
                         interiorDownloaded && styles.downloadStepNumberCompleted
                       ]}>
@@ -2121,30 +2330,36 @@ export default function ExportPdfScreen() {
                         )}
                       </View>
                       <View style={styles.downloadStepInfo}>
-                        <Text style={styles.downloadStepTitle}>Скачать внутреннюю часть</Text>
+                        <Text style={styles.downloadStepTitle}>Скачать внутрянку</Text>
                         <Text style={styles.downloadStepDescription}>
-                          PDF файл с отредактированными страницами
+                          PDF с отредактированными страницами
                         </Text>
                       </View>
                     </View>
-                    <TouchableOpacity
-                      style={[
-                        styles.downloadStepButton,
-                        (downloadStep < 2 || isDownloadingInterior) && styles.downloadStepButtonDisabled
-                      ]}
-                      onPress={handleDownloadInteriorPdf}
-                      disabled={downloadStep < 2 || isDownloadingInterior}
-                      activeOpacity={0.7}
-                    >
-                      {isDownloadingInterior ? (
-                        <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
-                      ) : (
-                        <>
-                          <Ionicons name="download-outline" size={20} color="#FFFFFF" />
-                          <Text style={styles.downloadStepButtonText}>Скачать внутреннюю часть</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
+                    {interiorDownloaded ? (
+                      <View style={styles.downloadStepButton}>
+                        <Text style={styles.downloadStepButtonText}>Готово</Text>
+                      </View>
+                    ) : (
+                      <TouchableOpacity
+                        style={[
+                          styles.downloadStepButton,
+                          (downloadStep < 2 || isDownloadingInterior) && styles.downloadStepButtonDisabled
+                        ]}
+                        onPress={handleDownloadInteriorPdf}
+                        disabled={downloadStep < 2 || isDownloadingInterior}
+                        activeOpacity={0.7}
+                      >
+                        {isDownloadingInterior ? (
+                          <Text style={styles.downloadStepButtonText}>Скачивание...</Text>
+                        ) : (
+                          <>
+                            <Ionicons name="download-outline" size={20} color="#FFFFFF" />
+                            <Text style={styles.downloadStepButtonText}>Скачать внутрянку</Text>
+                          </>
+                        )}
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               ) : (

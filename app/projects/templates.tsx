@@ -1,4 +1,7 @@
-import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
+import { getAlbumTemplateById, getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
+import { getGiftItemBySku } from '@/utils/albumGiftMapping';
+import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
+import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import {
     buildProjectProducts,
     projectCategories,
@@ -146,17 +149,35 @@ export default function ProjectTemplatesScreen() {
     return productsByCategory[categoryId] ?? [];
   }, [categoryId, productsByCategory]);
 
-  // Для беременности и kids получаем альбомы вместо продуктов
+  // Для «Ожидание чуда» — только 6 дизайнов DB1–DB6. Тип обложки выбирается при экспорте
   const pregnancyAlbums = useMemo(() => {
     if (categoryId === 'pregnancy') {
-      return getAlbumTemplatesByCategory('pregnancy');
+      return PREGNANCY_COVER_DESIGNS.map((d) => {
+        const giftItem = getGiftItemBySku(d.sku);
+        return {
+          id: d.id,
+          name: giftItem?.title ?? d.title,
+          description: 'Дизайн обложки',
+          thumbnailPath: d.image,
+        } as AlbumTemplate;
+      });
     }
     return [];
   }, [categoryId]);
 
+  // Для «Первые годы малыша» — только first_page из albums/kids. Тип обложки выбирается при экспорте
   const kidsAlbums = useMemo(() => {
     if (categoryId === 'kids') {
-      return getAlbumTemplatesByCategory('kids');
+      return KIDS_COVER_DESIGNS.map((d) => {
+        const giftItem = getGiftItemBySku(d.sku);
+        const albumTemplate = getAlbumTemplateById(d.id);
+        return {
+          id: d.id,
+          name: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
+          description: 'Дизайн обложки',
+          thumbnailPath: d.image,
+        } as AlbumTemplate;
+      });
     }
     return [];
   }, [categoryId]);

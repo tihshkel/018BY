@@ -1,4 +1,5 @@
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
+import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -139,6 +140,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const [editingAnnotation, setEditingAnnotation] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
+  const textInputRef = useRef<TextInput | null>(null);
+  const textSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSizePicker, setShowFontSizePicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
@@ -870,8 +873,217 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     setEditingText(text);
     // Сохраняем изменения в реальном времени
     if (editingAnnotation) {
-      onAnnotationUpdate(editingAnnotation, { content: text });
+      const annotation = annotations.find(ann => ann.id === editingAnnotation);
+      if (annotation && annotation.type === 'text') {
+        // Проверяем, есть ли определенные координаты текстового поля
+        let textFieldWidth: number | null = null;
+        let textFieldX: number | null = null;
+        let textFieldY: number | null = null;
+        
+        if (lineGuideId && typeof viewportWidth === 'number' && typeof viewportHeight === 'number') {
+          const pageNumber = typeof annotation.page === 'number' ? annotation.page : 
+                            (typeof annotation.page === 'string' && annotation.page !== 'cover' ? parseInt(annotation.page) : null);
+          
+          if (pageNumber) {
+            const fields = getTextFieldsForPage(lineGuideId, pageNumber);
+            // Находим поле, которое соответствует текущей позиции аннотации
+            for (const field of fields) {
+              const fieldPos = getTextFieldPosition(field, viewportWidth, viewportHeight);
+              const tolerance = 20; // Допуск в пикселях
+              if (Math.abs(annotation.x - fieldPos.x) < tolerance && 
+                  Math.abs(annotation.y - fieldPos.y) < tolerance) {
+                // Используем координаты из текстового поля
+                textFieldWidth = fieldPos.width;
+                textFieldX = fieldPos.x;
+                textFieldY = fieldPos.y;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Используем ширину из текстового поля, если оно определено
+        const effectiveWidth = textFieldWidth || annotation.width || 360;
+        
+        // Анализируем правильность переноса текста
+        const analysis = analyzeTextWrapping(
+          text,
+          effectiveWidth,
+          annotation.fontSize || 16,
+          annotation.fontFamily
+        );
+        
+        // Обновляем контент и координаты, если найдено текстовое поле
+        const updates: Partial<Annotation> = { content: text };
+        if (textFieldWidth && annotation.width !== textFieldWidth) {
+          updates.width = textFieldWidth;
+        }
+        if (textFieldX !== null && textFieldY !== null && 
+            (annotation.x !== textFieldX || annotation.y !== textFieldY)) {
+          updates.x = textFieldX;
+          updates.y = textFieldY;
+        }
+        
+        onAnnotationUpdate(editingAnnotation, updates);
+      } else {
+        onAnnotationUpdate(editingAnnotation, { content: text });
+      }
     }
+  };
+
+  const handleTextContentSizeChange = (event: any) => {
+    if (!editingAnnotation) return;
+    
+    const { width, height } = event.nativeEvent.contentSize;
+    const annotation = annotations.find(ann => ann.id === editingAnnotation);
+    if (!annotation || annotation.type !== 'text') return;
+    
+    // Проверяем, есть ли определенные координаты текстового поля
+    let shouldUpdateWidth = false;
+    let newWidth = annotation.width;
+    
+    if (lineGuideId && typeof viewportWidth === 'number' && typeof viewportHeight === 'number') {
+      const pageNumber = typeof annotation.page === 'number' ? annotation.page : 
+                        (typeof annotation.page === 'string' && annotation.page !== 'cover' ? parseInt(annotation.page) : null);
+      
+      if (pageNumber) {
+        const fields = getTextFieldsForPage(lineGuideId, pageNumber);
+        // Находим поле, которое соответствует текущей позиции аннотации
+        for (const field of fields) {
+          const fieldPos = getTextFieldPosition(field, viewportWidth, viewportHeight);
+          const tolerance = 20; // Допуск в пикселях
+          if (Math.abs(annotation.x - fieldPos.x) < tolerance && 
+              Math.abs(annotation.y - fieldPos.y) < tolerance) {
+            // Используем ширину из текстового поля
+            newWidth = fieldPos.width;
+            shouldUpdateWidth = true;
+            break;
+          }
+        }
+      }
+    }
+    
+    // Минимальная высота для корректного отображения
+    const minHeight = 24;
+    const newHeight = Math.max(minHeight, height + 16); // Добавляем небольшой отступ
+    
+    // Обновляем размеры аннотации
+    const updates: Partial<Annotation> = { height: newHeight };
+    if (shouldUpdateWidth && annotation.width !== newWidth) {
+      updates.width = newWidth;
+    }
+    
+    if (annotation.height !== newHeight || (shouldUpdateWidth && annotation.width !== newWidth)) {
+      onAnnotationUpdate(editingAnnotation, updates);
+    }
+  };
+
+  // Функция для вставки переноса строки в текущую позицию курсора
+  const handleInsertLineBreak = () => {
+    if (!editingAnnotation) return;
+    
+    // Получаем текущий текст и позицию курсора
+    const currentText = editingText;
+    const { start } = textSelectionRef.current;
+    
+    // Вставляем перенос строки в позицию курсора
+    const newText = currentText.slice(0, start) + '\n' + currentText.slice(start);
+    const newCursorPosition = start + 1;
+    
+    setEditingText(newText);
+    
+    // Обновляем аннотацию
+    if (editingAnnotation) {
+      onAnnotationUpdate(editingAnnotation, { content: newText });
+    }
+    
+    // Устанавливаем позицию курсора после переноса строки
+    setTimeout(() => {
+      if (textInputRef.current) {
+        textInputRef.current.focus();
+        // Обновляем позицию курсора
+        textSelectionRef.current = { start: newCursorPosition, end: newCursorPosition };
+      }
+    }, 50);
+  };
+
+  // Обработчик изменения позиции курсора
+  const handleSelectionChange = (event: any) => {
+    const { start, end } = event.nativeEvent.selection;
+    textSelectionRef.current = { start, end };
+  };
+
+  // Функция для анализа правильности переноса текста
+  const analyzeTextWrapping = (text: string, width: number, fontSize: number, fontFamily?: string): {
+    isValid: boolean;
+    lines: string[];
+    issues: string[];
+  } => {
+    const issues: string[] = [];
+    const lines: string[] = [];
+    
+    if (!text || text.length === 0) {
+      return { isValid: true, lines: [], issues: [] };
+    }
+    
+    // Приблизительная ширина одного символа (зависит от шрифта)
+    const charWidth = fontSize * 0.62;
+    const maxCharsPerLine = Math.floor((width - 24) / charWidth); // Учитываем padding
+    
+    if (maxCharsPerLine <= 0) {
+      issues.push('Ширина аннотации слишком мала для отображения текста');
+      return { isValid: false, lines: [text], issues };
+    }
+    
+    // Разбиваем текст на строки по словам
+    const words = text.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testLength = testLine.length;
+      
+      if (testLength <= maxCharsPerLine) {
+        currentLine = testLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          // Слово слишком длинное, разбиваем принудительно
+          lines.push(word.substring(0, maxCharsPerLine));
+          currentLine = word.substring(maxCharsPerLine);
+        }
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    // Проверяем, что каждая строка начинается с начала
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.length > maxCharsPerLine) {
+        issues.push(`Строка ${i + 1} превышает максимальную длину: ${line.length} > ${maxCharsPerLine}`);
+      }
+    }
+    
+    const isValid = issues.length === 0;
+    
+    // Логируем для отладки (можно убрать в продакшене)
+    if (__DEV__ && !isValid) {
+      console.log('[TextWrapping] Анализ переноса текста:', {
+        text,
+        width,
+        fontSize,
+        maxCharsPerLine,
+        lines,
+        issues,
+      });
+    }
+    
+    return { isValid, lines, issues };
   };
 
   const handleCloseEditing = () => {
@@ -1381,8 +1593,33 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     if (annotation.type === 'text') {
       const basePos = getDisplayPosition(annotation);
       // Используем скорректированные координаты при редактировании, если они есть
-      const displayX = isEditingText && adjustedEditingPosition ? adjustedEditingPosition.x : basePos.x;
-      const displayY = isEditingText && adjustedEditingPosition ? adjustedEditingPosition.y : basePos.y;
+      let displayX = isEditingText && adjustedEditingPosition ? adjustedEditingPosition.x : basePos.x;
+      let displayY = isEditingText && adjustedEditingPosition ? adjustedEditingPosition.y : basePos.y;
+      
+      // Проверяем, есть ли определенные координаты текстового поля для этой страницы
+      let textFieldCoordinate: { x: number; width: number } | null = null;
+      if (lineGuideId && typeof viewportWidth === 'number' && typeof viewportHeight === 'number') {
+        const pageNumber = typeof annotation.page === 'number' ? annotation.page : 
+                          (typeof annotation.page === 'string' && annotation.page !== 'cover' ? parseInt(annotation.page) : null);
+        
+        if (pageNumber) {
+          const fields = getTextFieldsForPage(lineGuideId, pageNumber);
+          // Находим поле, которое соответствует текущей позиции аннотации
+          for (const field of fields) {
+            const fieldPos = getTextFieldPosition(field, viewportWidth, viewportHeight);
+            // Проверяем, находится ли аннотация в пределах этого поля (с допуском)
+            const tolerance = 20; // Допуск в пикселях
+            if (Math.abs(basePos.x - fieldPos.x) < tolerance && 
+                Math.abs(basePos.y - fieldPos.y) < tolerance) {
+              textFieldCoordinate = { x: fieldPos.x, width: fieldPos.width };
+              // Используем координаты из текстового поля для правильного начала текста
+              displayX = fieldPos.x;
+              displayY = fieldPos.y;
+              break;
+            }
+          }
+        }
+      }
 
       const metrics =
         lineGuideId && typeof viewportHeight === 'number' && viewportHeight > 0
@@ -1478,6 +1715,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               >
                 <View pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
                   <TextInput
+                    ref={textInputRef}
                     style={[
                       styles.textAnnotation,
                       styles.textInput,
@@ -1488,13 +1726,23 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         // Единый базовый стиль для всех PDF
                         lineHeight: alignedFontSize * 1.2, // Небольшие отступы между строками
                         includeFontPadding: false, // Единый размер курсора
-                        textAlignVertical: 'center', // Центрирование текста по вертикали
+                        textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
+                        textAlign: 'left', // Выравнивание по левому краю для правильного начала каждой строки
+                        // Используем ширину из текстового поля, если оно определено, иначе из аннотации
+                        width: textFieldCoordinate?.width || annotation.width || 360, // Фиксированная ширина для правильного переноса
                         paddingTop: 0,
                         paddingBottom: 0,
+                        paddingLeft: 0, // Убираем левый отступ, чтобы текст начинался с начала строки
+                        paddingRight: 0, // Убираем правый отступ
+                        paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса
+                        // Применяем X координату из текстового поля для правильного начала
+                        marginLeft: textFieldCoordinate ? 0 : 0, // Убеждаемся, что нет дополнительных отступов
                       },
                     ]}
                     value={editingText}
                     onChangeText={handleTextChange}
+                    onContentSizeChange={handleTextContentSizeChange}
+                    onSelectionChange={handleSelectionChange}
                     onSubmitEditing={handleTextSubmit}
                     onBlur={handleTextSubmit}
                     autoFocus={!isDraggingWhileEditing}
@@ -1503,9 +1751,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     placeholderTextColor={currentColor + '80'}
                     editable={!isDraggingWhileEditing}
                     selectTextOnFocus={false}
+                    textBreakStrategy="simple"
+                    {...(Platform.OS === 'android' && {
+                      textAlignVertical: 'top',
+                    })}
                   />
                 </View>
-                {/* Кнопки: Перетащить (оранжевая), Принять и Удалить за полем ввода */}
+                {/* Кнопки: Перетащить (оранжевая), Перенос строки, Принять и Удалить за полем ввода */}
                 <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
                   <View
                     style={[styles.actionButton, styles.dragButton]}
@@ -1513,6 +1765,20 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   >
                     <Ionicons name="move" size={18} color="#FFFFFF" />
                   </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton, 
+                      styles.lineBreakButton,
+                      isDraggingWhileEditing && styles.buttonDisabled
+                    ]}
+                    onPress={handleInsertLineBreak}
+                    activeOpacity={0.7}
+                    disabled={isDraggingWhileEditing}
+                    accessibilityLabel="Перенос строки"
+                    accessibilityHint="Вставляет перенос строки в текущую позицию"
+                  >
+                    <Ionicons name="return-down-forward" size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={[
                       styles.actionButton, 
@@ -2086,12 +2352,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C9A89A',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса текста
+    paddingVertical: 8, // Небольшие вертикальные отступы
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     minHeight: 50,
-    textAlignVertical: 'center', // Центрирование по умолчанию для всех
+    textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
+    textAlign: 'left', // Выравнивание по левому краю для правильного начала каждой строки
     includeFontPadding: false, // Единый размер курсора для всех
-    paddingVertical: 8, // Небольшие вертикальные отступы
   },
   textEditingContainer: {
     flex: 1,
@@ -2118,6 +2385,9 @@ const styles = StyleSheet.create({
   },
   dragButton: {
     backgroundColor: '#FF8C42',
+  },
+  lineBreakButton: {
+    backgroundColor: '#8B6F5F',
   },
   acceptButton: {
     backgroundColor: '#4ECDC4',

@@ -1,4 +1,5 @@
 import { getAlbumTemplateById } from '@/albums';
+import { getCoverForExport } from '@/utils/coverMapping';
 import { generateAccessCode } from '@/utils/accessCodeGenerator';
 import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
@@ -48,11 +49,40 @@ const getCategoryImage = (category: string) => {
   }
 };
 
+// Функция для получения обложки проекта
+// Приоритет: 1) coverType (выбранная обложка), 2) albumId (для старых проектов), 3) thumbnailPath, 4) category fallback
+const getProjectCoverImage = (project: Project): any => {
+  // Если есть coverType (выбранная обложка), используем её
+  if (project.coverType) {
+    const coverImage = getCoverForExport(project.coverType, project.category);
+    if (coverImage) {
+      return coverImage;
+    }
+  }
+  
+  // Fallback: albumId для проектов без сохранённого coverType (обратная совместимость)
+  if (project.albumId) {
+    const coverImage = getCoverForExport(project.albumId, project.category);
+    if (coverImage) {
+      return coverImage;
+    }
+  }
+  
+  // Fallback на thumbnailPath
+  if (project.thumbnailPath) {
+    return project.thumbnailPath;
+  }
+  
+  // Fallback на category
+  return getCategoryImage(project.category);
+};
+
 interface Project {
   id: string;
   title: string;
   category: string;
   albumId?: string | null;
+  coverType?: string | null; // ID выбранной обложки
   coverImage?: string;
   pagesCount: number;
   photosCount: number;
@@ -259,6 +289,7 @@ export default function HomeScreen() {
           title: String(p?.title ?? ''),
           category: String(p?.category ?? ''),
           albumId,
+          coverType: p?.coverType || null, // ID выбранной обложки
           pagesCount,
           photosCount,
           remindersCount,
@@ -478,20 +509,9 @@ export default function HomeScreen() {
               >
                 <View style={styles.projectImagePlaceholder}>
                   {selectedProject && (
-                    selectedProject.thumbnailPath ? (
+                    getProjectCoverImage(selectedProject) ? (
                       <Image
-                        source={selectedProject.thumbnailPath}
-                        style={styles.projectImage}
-                        contentFit="cover"
-                        priority="high"
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={selectedProject.id}
-                      />
-                    ) : getCategoryImage(selectedProject.category) ? (
-                      <Image
-                        source={getCategoryImage(selectedProject.category)}
+                        source={getProjectCoverImage(selectedProject)}
                         style={styles.projectImage}
                         contentFit="cover"
                         priority="high"
@@ -543,21 +563,9 @@ export default function HomeScreen() {
                     onLongPress={() => handleLongPress(project)}
                   >
                     <View style={styles.cardImage}>
-                      {project.thumbnailPath ? (
+                      {getProjectCoverImage(project) ? (
                         <Image
-                          source={project.thumbnailPath}
-                          style={styles.cardImageContent}
-                          contentFit="contain"
-                          priority={projects.indexOf(project) < 3 ? "high" : "normal"}
-                          cachePolicy="disk"
-                          transition={0}
-                          fadeDuration={0}
-                          recyclingKey={project.id}
-                          placeholderContentFit="contain"
-                        />
-                      ) : getCategoryImage(project.category) ? (
-                        <Image
-                          source={getCategoryImage(project.category)}
+                          source={getProjectCoverImage(project)}
                           style={styles.cardImageContent}
                           contentFit="contain"
                           priority={projects.indexOf(project) < 3 ? "high" : "normal"}

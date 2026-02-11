@@ -24,11 +24,19 @@ export function getCoverSku(coverType: string | null | undefined, category: stri
     return null;
   }
 
+  // Нормализуем coverType - убираем префикс категории если есть
+  const normalizedCoverType = coverType.replace(/^(kids|pregnancy|diary)_/, '');
+
   // Для дневников: coverType = 'diary_dd1' -> SKU = 'DD1'
   if (category === 'diary') {
     const diaryCover = getDiaryCoverById(coverType);
     if (diaryCover && diaryCover.sku) {
       return diaryCover.sku;
+    }
+    // Fallback: пробуем найти по нормализованному ID
+    const diaryCoverFallback = getDiaryCoverById(normalizedCoverType);
+    if (diaryCoverFallback && diaryCoverFallback.sku) {
+      return diaryCoverFallback.sku;
     }
     return null;
   }
@@ -39,6 +47,11 @@ export function getCoverSku(coverType: string | null | undefined, category: stri
     if (dfaNumber) {
       return `DFA${dfaNumber}`;
     }
+    // Fallback: пробуем найти номер в нормализованном coverType
+    const dfaNumberFallback = extractDFANumber(normalizedCoverType);
+    if (dfaNumberFallback) {
+      return `DFA${dfaNumberFallback}`;
+    }
     return null;
   }
 
@@ -46,6 +59,15 @@ export function getCoverSku(coverType: string | null | undefined, category: stri
   if (category === 'pregnancy') {
     if (PREGNANCY_SKU_MAPPING[coverType]) {
       return PREGNANCY_SKU_MAPPING[coverType];
+    }
+    // Fallback: пробуем найти по нормализованному ID
+    if (PREGNANCY_SKU_MAPPING[normalizedCoverType]) {
+      return PREGNANCY_SKU_MAPPING[normalizedCoverType];
+    }
+    // Fallback: если coverType содержит 'db' + цифра
+    const dbMatch = coverType.match(/db(\d)/i);
+    if (dbMatch) {
+      return `DB${dbMatch[1]}`;
     }
     return null;
   }

@@ -6,7 +6,7 @@ import { getPregnancyCoverPdf } from './coverPdfMapping';
  * @param albumId - ID альбома (например, 'dfa_5', 'dfa_7')
  * @returns Номер DFA в формате 'DFA5', 'DFA7' или null
  */
-function extractDFANumber(albumId: string): string | null {
+export function extractDFANumber(albumId: string): string | null {
   if (!albumId) return null;
   
   const normalizedId = albumId.toLowerCase();
@@ -600,6 +600,56 @@ const PREGNANCY_FIRST_LAST_PAGES_MAPPING: Record<string, { firstPage: any | null
     return { firstPage, lastPages };
   })(),
 };
+
+/**
+ * Получает изображение first_page.png для альбома детей (синхронная версия для select-cover)
+ * @param albumId - ID альбома (например, 'dfa_5', 'dfa_7')
+ * @returns require() модуль изображения first_page.png или null
+ */
+export function getKidsFirstPageImage(albumId: string): any | null {
+  const dfaNumber = extractDFANumber(albumId);
+  if (!dfaNumber) {
+    console.warn(`[getKidsFirstPageImage] Не удалось извлечь номер DFA из albumId: ${albumId}`);
+    return null;
+  }
+  // Ищем в маппинге - сначала по оригинальному значению, потом по верхнему/нижнему регистру
+  // (для dfa43 используется нижний регистр, для остальных - верхний)
+  let mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber];
+  if (!mapping) {
+    mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toUpperCase()];
+  }
+  if (!mapping) {
+    mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toLowerCase()];
+  }
+  if (!mapping || !mapping.firstPage) {
+    console.warn(`[getKidsFirstPageImage] Не найдено изображение для DFA: ${dfaNumber}, albumId: ${albumId}`);
+    return null;
+  }
+  return mapping.firstPage;
+}
+
+/**
+ * Получает изображение page_001.png для альбома беременности (синхронная версия для select-cover)
+ * @param albumId - ID альбома (например, 'pregnancy_60', 'pregnancy_db2')
+ * @param formatType - Тип формата: 'hard' (180х240) или 'soft' (А5), по умолчанию 'hard'
+ * @returns require() модуль изображения page_001.png или null
+ */
+export function getPregnancyFirstPageImage(albumId: string, formatType: 'hard' | 'soft' = 'hard'): any | null {
+  const dbNumber = getPregnancyCoverPdf(albumId);
+  if (!dbNumber) {
+    console.warn(`[getPregnancyFirstPageImage] Не удалось получить номер DB для albumId: ${albumId}`);
+    return null;
+  }
+  
+  const mappingKey = `${dbNumber}_${formatType}`;
+  const mapping = PREGNANCY_FIRST_LAST_PAGES_MAPPING[mappingKey];
+  if (!mapping || !mapping.firstPage) {
+    console.warn(`[getPregnancyFirstPageImage] Не найдено изображение для ${mappingKey}, albumId: ${albumId}`);
+    return null;
+  }
+  
+  return mapping.firstPage;
+}
 
 /**
  * Получает первую и последнюю страницу для альбома детей

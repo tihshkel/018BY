@@ -1,6 +1,7 @@
-import { getAllAlbumTemplates } from '@/albums';
+import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
 import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
-import { getKidsFirstPageImage } from '@/utils/albumFirstLastPages';
+import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
+import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
@@ -96,34 +97,6 @@ interface CategoryInfo {
   notificationBody: string;
 }
 
-// Маппинг ID альбомов беременности к изображениям и SKU из каталога (DB1-DB6)
-const PREGNANCY_COVERS_MAPPING: Record<string, { image: any; sku: string }> = {
-  'pregnancy_60': { 
-    image: require('@/albums/DB1/page_001.png'),
-    sku: 'DB1'
-  },
-  'pregnancy_db2': { 
-    image: require('@/albums/DB2/page_001.png'),
-    sku: 'DB2'
-  },
-  'pregnancy_db3': { 
-    image: require('@/albums/DB3/page_001.png'),
-    sku: 'DB3'
-  },
-  'pregnancy_db4': { 
-    image: require('@/albums/DB4/page_001.png'),
-    sku: 'DB4'
-  },
-  'pregnancy_db5': { 
-    image: require('@/albums/DB5/page_001.png'),
-    sku: 'DB5'
-  },
-  'pregnancy_2': { 
-    image: require('@/albums/DB6/page_001.png'),
-    sku: 'DB6'
-  },
-};
-
 export default function SelectCoverScreen() {
   const params = useLocalSearchParams<{ celebration: string | string[] }>();
   // Нормализуем celebration - может быть строкой или массивом
@@ -173,57 +146,51 @@ export default function SelectCoverScreen() {
       });
     }
 
-    // Фильтруем альбомы по категории, если указана
+    // Для беременности — только 6 дизайнов (DB1–DB6). Тип обложки выбирается при экспорте
+    if (celebration === 'pregnancy') {
+      const gradient = categoryGradients.pregnancy;
+      return PREGNANCY_COVER_DESIGNS.map((design) => {
+        const giftItem = getGiftItemBySku(design.sku);
+        return {
+          id: design.id,
+          title: giftItem?.title ?? design.title,
+          description: 'Дизайн обложки',
+          image: design.image,
+          color: gradient[0],
+          gradient,
+        };
+      });
+    }
+
+    // Для kids — только first_page из albums/kids. Тип обложки выбирается при экспорте
+    if (celebration === 'kids') {
+      const gradient = categoryGradients.kids;
+      return KIDS_COVER_DESIGNS.map((design) => {
+        const giftItem = getGiftItemBySku(design.sku);
+        const albumTemplate = getAlbumTemplateById(design.id);
+        return {
+          id: design.id,
+          title: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
+          description: 'Дизайн обложки',
+          image: design.image,
+          color: gradient[0],
+          gradient,
+        };
+      });
+    }
+
+    // Фильтруем альбомы по категории для остальных категорий
     let filteredAlbums = celebration
       ? albumTemplates.filter(album => album.category === celebration)
       : albumTemplates;
 
-    // Для беременности показываем только обложки DB1-DB6
-    // Исключаем мягкие обложки (_soft, _a5)
-    if (celebration === 'pregnancy') {
-      const allowedIds = ['pregnancy_60', 'pregnancy_db2', 'pregnancy_db3', 'pregnancy_db4', 'pregnancy_db5', 'pregnancy_2'];
-      filteredAlbums = filteredAlbums.filter(album => allowedIds.includes(album.id));
-    }
-
-    // Для детей все альбомы уже соответствуют папкам "1 стр" (они были организованы из папок "1 стр_DFA*")
-    // Используем first_page.png из каждой подпапки albums/kids/DFA*/first_page.png
-    // Для остальных категорий используем thumbnailPath
-
-    const result = filteredAlbums.map((album, index) => {
+    const result = filteredAlbums.map((album) => {
       const gradient = categoryGradients[album.category] || ['#8B6F5F', '#A68B5B'];
-      
-      // Для беременности используем page_001.png из папок albums/DB*/ и названия из каталога
-      let coverImage = album.thumbnailPath;
-      let coverTitle = album.name;
-      let coverDescription = album.description;
-      
-      if (celebration === 'pregnancy') {
-        const coverMapping = PREGNANCY_COVERS_MAPPING[album.id];
-        if (coverMapping) {
-          // Заменяем изображение на page_001.png из папки albums/DB*/
-          coverImage = coverMapping.image;
-          // Заменяем название на название из каталога
-          const giftItem = getGiftItemBySku(coverMapping.sku);
-          if (giftItem) {
-            coverTitle = giftItem.title;
-            coverDescription = giftItem.description || album.description;
-          }
-        }
-      }
-      
-      // Для kids используем first_page.png из папки albums/kids/DFA*/first_page.png
-      if (celebration === 'kids') {
-        const firstPageImage = getKidsFirstPageImage(album.id);
-        if (firstPageImage) {
-          coverImage = firstPageImage;
-        }
-      }
-      
       return {
         id: album.id,
-        title: coverTitle,
-        description: coverDescription,
-        image: coverImage,
+        title: album.name,
+        description: album.description,
+        image: album.thumbnailPath,
         color: gradient[0],
         gradient,
       };

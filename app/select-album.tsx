@@ -205,80 +205,38 @@ export default function SelectAlbumScreen() {
       // Дожидаемся синхронизации, чтобы альбом точно попал в облако до выхода из аккаунта
       await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
-      // МАКСИМАЛЬНО БЫСТРАЯ загрузка: используем предзагруженную первую страницу из кеша
-      let firstPageUri: string | null = null;
+      // Загружаем ВСЕ страницы альбома перед переходом
+      console.log(`[SelectAlbum] Начинаем загрузку всех страниц альбома: ${album.id}`);
       
-      // Проверяем кеш предзагруженных страниц
-      if (preloadedFirstPages.current.has(album.id)) {
-        firstPageUri = preloadedFirstPages.current.get(album.id)!;
-        // Сохраняем в AsyncStorage сразу
-        AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([firstPageUri])).catch(() => {});
-      } else {
-        // Если нет в кеше, загружаем быстро
-        const imageModules = getAlbumImages(album.id);
-        if (imageModules.length > 0) {
-          const firstImage = imageModules[0];
-          if (firstImage) {
-            try {
-              const asset = Asset.fromModule(firstImage);
-              const immediateUri = asset.localUri || asset.uri;
-              
-              if (immediateUri) {
-                firstPageUri = immediateUri;
-                AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([immediateUri])).catch(() => {});
-              }
-              
-              // Догружаем если нужно
-              asset.downloadAsync().then(() => {
-                const finalUri = asset.localUri || asset.uri;
-                if (finalUri && finalUri !== immediateUri) {
-                  AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([finalUri])).catch(() => {});
-                }
-              }).catch(() => {});
-            } catch {
-              // Игнорируем ошибки
-            }
+      try {
+        // Загружаем все изображения альбома
+        const imageUris = await getAlbumImageUris(album.id);
+        
+        if (imageUris && imageUris.length > 0) {
+          // Сохраняем все страницы в проект
+          await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
+          console.log(`[SelectAlbum] Загружено и сохранено ${imageUris.length} страниц для проекта ${projectId}`);
+          scheduleSyncToCloud();
+        } else {
+          console.warn(`[SelectAlbum] Не удалось загрузить страницы для альбома ${album.id}`);
+          // Fallback: сохраняем хотя бы одну страницу если есть
+          if (preloadedFirstPages.current.has(album.id)) {
+            const firstPageUri = preloadedFirstPages.current.get(album.id)!;
+            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([firstPageUri]));
           }
+        }
+      } catch (error) {
+        console.error(`[SelectAlbum] Ошибка загрузки страниц:`, error);
+        // Fallback: сохраняем хотя бы одну страницу если есть в кеше
+        if (preloadedFirstPages.current.has(album.id)) {
+          const firstPageUri = preloadedFirstPages.current.get(album.id)!;
+          await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([firstPageUri]));
         }
       }
 
-      // Переходим к редактированию СРАЗУ
+      // Переходим к редактированию после загрузки всех страниц
+      console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);
       router.push(`/edit-album?id=${projectId}`);
-
-      // Фоновая предзагрузка остальных страниц (не блокируем переход)
-      (async () => {
-        try {
-          // Загружаем первые 10 страниц параллельно для быстрого доступа
-          const imageModules = getAlbumImages(album.id);
-          const firstTenImages = imageModules.slice(0, 10);
-          const firstTenUris = await Promise.all(
-            firstTenImages.map(async (image) => {
-              try {
-                const asset = Asset.fromModule(image);
-                await asset.downloadAsync();
-                return asset.localUri || asset.uri;
-              } catch {
-                return null;
-              }
-            })
-          );
-          
-          const filtered = firstTenUris.filter((uri): uri is string => uri !== null);
-          if (filtered.length > 0) {
-            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(filtered));
-            scheduleSyncToCloud();
-          }
-
-          // Затем загружаем все остальные страницы в фоне
-          const imageUris = await getAlbumImageUris(album.id);
-          if (imageUris && imageUris.length > 0) {
-            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
-            scheduleSyncToCloud();
-          }
-        } catch (preloadError) {
-          // Игнорируем ошибки фоновой загрузки
-        }
-      })();
     } catch (error) {
       console.error('Error loading album template:', error);
       Alert.alert(

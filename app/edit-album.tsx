@@ -423,6 +423,7 @@ export default function EditAlbumScreen() {
                 title: diaryCover?.name || foundAlbumName || getCelebrationTitle(celebration),
                 category: celebration,
                 albumId: foundAlbumId,
+                coverType: coverType || null,
                 createdAt: new Date().toISOString(),
                 isReadyMadeAlbum: true,
                 hasPdfTemplate: true,
@@ -746,6 +747,7 @@ export default function EditAlbumScreen() {
           title: albumTemplate?.name || foundAlbumName || getCelebrationTitle(celebration),
           category: celebration,
           albumId: foundAlbumId,
+          coverType: coverType || null,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
           hasPdfTemplate: true,
@@ -853,6 +855,7 @@ export default function EditAlbumScreen() {
           id: tempProjectId,
           title: albumName || getCelebrationTitle(celebration || ''),
           albumId: exportAlbumId,
+          coverType: coverType || null,
           category: celebration || null,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
@@ -883,6 +886,7 @@ export default function EditAlbumScreen() {
           const updatedProject = {
             ...project,
             albumId: exportAlbumId,
+            coverType: coverType || project.coverType || null,
             category: celebration || project.category || null,
             title: albumName || project.title || getCelebrationTitle(celebration || ''),
           };
@@ -892,6 +896,7 @@ export default function EditAlbumScreen() {
             id: storageId,
             title: albumName || getCelebrationTitle(celebration || ''),
             albumId: exportAlbumId,
+            coverType: coverType || null,
             category: celebration || null,
             createdAt: new Date().toISOString(),
             isReadyMadeAlbum: true,
@@ -1018,6 +1023,7 @@ export default function EditAlbumScreen() {
         title: albumName || getCelebrationTitle(celebration || ''),
         category: celebration || '',
         albumId: albumId || interiorType || coverType || '',
+        coverType: coverType || null,
         createdAt: new Date().toISOString(),
         isReadyMadeAlbum: true,
         hasPdfTemplate: true,
@@ -1031,6 +1037,7 @@ export default function EditAlbumScreen() {
       projectData.hasPdfTemplate = true;
       projectData.isReadyMadeAlbum = true;
       if (albumName) projectData.title = albumName;
+      if (coverType) projectData.coverType = coverType;
     }
     await AsyncStorage.setItem(`@project_${storageId}`, JSON.stringify(projectData));
     const rawList = await AsyncStorage.getItem('@user_projects');
@@ -1063,6 +1070,7 @@ export default function EditAlbumScreen() {
         title: albumName || getCelebrationTitle(celebration || ''),
         category: celebration || '',
         albumId: albumId || interiorType || coverType || '',
+        coverType: coverType || null,
         createdAt: new Date().toISOString(),
         isReadyMadeAlbum: true,
         hasPdfTemplate: true,
@@ -1107,6 +1115,7 @@ export default function EditAlbumScreen() {
           title: albumName || getCelebrationTitle(celebration || ''),
           category: celebration || '',
           albumId: albumId || interiorType || coverType || '',
+          coverType: coverType || null,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
           hasPdfTemplate: true,
@@ -1135,6 +1144,7 @@ export default function EditAlbumScreen() {
           title: albumName || getCelebrationTitle(celebration || ''),
           category: celebration || '',
           albumId: albumId || interiorType || coverType || '',
+          coverType: coverType || null,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
           hasPdfTemplate: true,
