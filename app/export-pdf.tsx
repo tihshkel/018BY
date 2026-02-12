@@ -391,9 +391,9 @@ export default function ExportPdfScreen() {
         return hash.toString(16);
       };
 
-      // Оптимизация для скорости: лёгкий ресайз до разумного предела, без заметной потери качества
-      // A4: 595x842 pt ~ 8.27x11.69", 220-260 DPI => ~1800-2400 px (макс сторона 2000-2400)
-      const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover') => {
+      // Оптимизация для скорости: лёгкий ресайз до разумного предела
+      // Для больших документов (40+ стр.) — сильнее сжатие, чтобы сериализация и запись PDF не зависали
+      const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover', isLargeDoc?: boolean) => {
         if (!uri) return uri;
         if (Platform.OS === 'web') return uri;
         if (!uri.startsWith('file://') && !uri.startsWith('/')) return uri;
@@ -401,8 +401,8 @@ export default function ExportPdfScreen() {
         // Нормализуем путь без схемы
         let normalizedUri = uri.startsWith('/') ? `file://${uri}` : uri;
 
-        const maxSide = kind === 'cover' ? 2400 : 2000;
-        const quality = 0.9; // почти без потерь, быстрее
+        const maxSide = kind === 'cover' ? 2400 : (isLargeDoc ? 1100 : 2000);
+        const quality = kind === 'cover' ? 0.9 : (isLargeDoc ? 0.72 : 0.9);
 
         const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}`);
         const outUri = `${FileSystem.cacheDirectory}pdf_fast_${kind}_${cacheKey}.jpg`;
@@ -845,14 +845,14 @@ export default function ExportPdfScreen() {
         quality: isLargeDoc ? 0.88 : 0.92,
       };
 
-      // 1) Оптимизируем все страницы батчами
+      // 1) Оптимизируем все страницы батчами (для больших документов — сильнее сжатие)
       const optimizedPageUris: string[] = new Array(images.length);
       for (let i = 0; i < images.length; i += 3) {
         const batch = images.slice(i, i + 3);
         const results = await Promise.all(
           batch.map(async (uri) => {
             try {
-              return await optimizeImageForExport(uri, 'page');
+              return await optimizeImageForExport(uri, 'page', isLargeDoc);
             } catch {
               return uri;
             }
@@ -1125,7 +1125,7 @@ export default function ExportPdfScreen() {
           if (pageSnapshotUri) {
             try {
               // снапшот уже jpeg (PageRenderer), но дополнительно прогоняем через оптимизацию+кэш
-              const optimizedSnapshotUri = await optimizeImageForExport(pageSnapshotUri, 'page');
+              const optimizedSnapshotUri = await optimizeImageForExport(pageSnapshotUri, 'page', isLargeDoc);
               const snapshotBytes = await loadImageAsBytes(optimizedSnapshotUri);
               if (snapshotBytes) {
                 const embeddedSnapshot = await withTimeout({
@@ -1351,6 +1351,8 @@ export default function ExportPdfScreen() {
       setGenerationStatus('Сохранение PDF…');
       setGenerationProgress({ current: 95, total: 100 });
 
+      const yieldToUI = () => new Promise<void>(r => setImmediate(r));
+
       const uint8ToBase64 = (bytes: Uint8Array): string => {
         // Быстрый путь (в RN часто доступен Buffer через полифиллы)
         // eslint-disable-next-line no-undef
@@ -1358,8 +1360,6 @@ export default function ExportPdfScreen() {
           // eslint-disable-next-line no-undef
           return Buffer.from(bytes).toString('base64');
         }
-
-        // Fallback: чанки покрупнее (меньше конкатенаций) — заметно быстрее
         const chunkSize = 32768;
         const chunks: string[] = [];
         for (let i = 0; i < bytes.length; i += chunkSize) {
@@ -1369,98 +1369,146 @@ export default function ExportPdfScreen() {
         return btoa(chunks.join(''));
       };
 
+      // Для больших буферов — конвертация по чанкам с отдачей управления, чтобы UI не зависал
+      const uint8ToBase64Async = async (bytes: Uint8Array): Promise<string> => {
+        const CHUNK = 256 * 1024; // 256 KB на чанк
+        const YIELD_EVERY = 4;   // отдавать управление каждые 4 чанка
+        // eslint-disable-next-line no-undef
+        if (typeof Buffer !== 'undefined' && bytes.length <= 8 * 1024 * 1024) {
+          await yieldToUI();
+          return Buffer.from(bytes).toString('base64');
+        }
+        if (bytes.length <= 2 * 1024 * 1024) {
+          await yieldToUI();
+          return uint8ToBase64(bytes);
+        }
+        const chunks: string[] = [];
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          const chunk = bytes.slice(i, i + CHUNK);
+          chunks.push(String.fromCharCode.apply(null, Array.from(chunk)));
+          if (chunks.length % YIELD_EVERY === 0) {
+            setGenerationStatus('Подготовка к записи…');
+            setGenerationProgress({ current: 95 + Math.min(2, Math.floor((i / bytes.length) * 3)), total: 100 });
+            await yieldToUI();
+          }
+        }
+        await yieldToUI();
+        return btoa(chunks.join(''));
+      };
+
       const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Узкое место: сериализация 50+ страниц с картинками в один PDF и запись на диск.
-      // useObjectStreams: true — меньше размер и часто быстрее сериализация.
-      setGenerationStatus('Сериализация PDF…');
+      // Узкое место: сериализация 50+ страниц. Отдаём управление, чтобы UI успел показать статус.
+      setGenerationStatus(isLargeDoc ? 'Сериализация PDF (1–2 мин)…' : 'Сериализация PDF…');
+      await yieldToUI();
       let base64: string | null = null;
       const saveOpts = { useObjectStreams: true, addDefaultPage: false };
-      try {
-        base64 = await withTimeout({
-          label: 'pdfDoc.saveAsBase64',
-          timeoutMs: 60000,
-          task: async () =>
-            (pdfDoc as any).saveAsBase64({
-              dataUri: false,
-              ...saveOpts,
-            }),
-        });
-      } catch {
-        base64 = null;
+      if (isLargeDoc) {
+        try {
+          console.log('[PDF Export] Начинаем сериализацию (save), таймаут 3 мин…');
+          const pdfBytes = await withTimeout({
+            label: 'pdfDoc.save',
+            timeoutMs: 180000,
+            task: async () => pdfDoc.save(saveOpts),
+          });
+          console.log('[PDF Export] save() готов, размер', Math.round(pdfBytes.length / 1024), 'KB');
+          setGenerationStatus('Подготовка к записи…');
+          base64 = await uint8ToBase64Async(pdfBytes);
+        } catch {
+          try {
+            setGenerationStatus('Сериализация PDF…');
+            base64 = await withTimeout({
+              label: 'pdfDoc.saveAsBase64',
+              timeoutMs: 180000,
+              task: async () =>
+                (pdfDoc as any).saveAsBase64({ dataUri: false, ...saveOpts }),
+            });
+          } catch {
+            base64 = null;
+          }
+        }
+      } else {
+        try {
+          base64 = await withTimeout({
+            label: 'pdfDoc.saveAsBase64',
+            timeoutMs: 60000,
+            task: async () =>
+              (pdfDoc as any).saveAsBase64({
+                dataUri: false,
+                ...saveOpts,
+              }),
+          });
+        } catch {
+          const pdfBytes = await withTimeout({
+            label: 'pdfDoc.save',
+            timeoutMs: 60000,
+            task: async () => pdfDoc.save(saveOpts),
+          });
+          base64 = uint8ToBase64(pdfBytes);
+        }
       }
-
-      if (!base64) {
-        const pdfBytes = await withTimeout({
-          label: 'pdfDoc.save',
-          timeoutMs: 60000,
-          task: async () => pdfDoc.save(saveOpts),
-        });
-        base64 = uint8ToBase64(pdfBytes);
-      }
+      if (!base64) throw new Error('Не удалось сериализовать PDF');
+      console.log('[PDF Export] Сериализация завершена');
 
       setGenerationProgress({ current: 98, total: 100 });
       setGenerationStatus('Запись на диск…');
 
       await withTimeout({
         label: 'write pdf file',
-        timeoutMs: 45000,
+        timeoutMs: 90000,
         task: async () =>
           FileSystem.writeAsStringAsync(fileUri, base64!, {
             encoding: FileSystem.EncodingType.Base64,
           }),
       });
-      
-      setGenerationProgress({ current: 100, total: 100 });
+      console.log('[PDF Export] Запись на диск завершена');
 
+      setGenerationProgress({ current: 100, total: 100 });
       const savePhaseMs = Date.now() - savePhaseStart;
       console.log(`[PDF Export] PDF успешно создан: ${fileUri} (сохранение заняло ${Math.round(savePhaseMs / 1000)} с)`);
 
-      // Сохраняем экспорт в историю (привязанную к коду пользователя)
-      try {
-        // Получаем код доступа пользователя для привязки истории
-        const accessCode = await AsyncStorage.getItem('@access_code');
-        if (!accessCode) {
-          console.warn('[PDF Export] Код доступа не найден, история экспорта не будет сохранена');
-        } else {
+      // Сразу показываем результат пользователю, не дожидаясь истории и облака
+      setPdfUri(fileUri);
+      setShowPreview(true);
+
+      // История и пуш в облако — в фоне, чтобы не блокировать показ PDF
+      const historyPayload = { fileUri, fileName, projectId, formatToUse };
+      Promise.resolve().then(async () => {
+        try {
+          const accessCode = await AsyncStorage.getItem('@access_code');
+          if (!accessCode) return;
+          const { fileUri: uri, fileName: fName, projectId: pId, formatToUse: fmt } = historyPayload;
           let projectName = 'Проект';
-          if (projectId) {
-            const projectData = await AsyncStorage.getItem(`@project_${projectId}`);
+          if (pId) {
+            const projectData = await AsyncStorage.getItem(`@project_${pId}`);
             if (projectData) {
               const project = JSON.parse(projectData);
               projectName = project.title || project.name || 'Проект';
             }
           }
-
           const exportRecord = {
-            id: `${projectId || 'export'}_${Date.now()}`,
-            projectId: projectId || null,
+            id: `${pId || 'export'}_${Date.now()}`,
+            projectId: pId || null,
             projectName,
-            format: formatToUse.name,
+            format: fmt.name,
             date: new Date().toISOString(),
-            fileUri,
-            fileName,
+            fileUri: uri,
+            fileName: fName,
           };
-
-          // История экспорта привязана к коду пользователя
           const historyKey = `@export_history_${accessCode}`;
           const existingHistory = await AsyncStorage.getItem(historyKey);
           const history: any[] = existingHistory ? JSON.parse(existingHistory) : [];
           history.push(exportRecord);
-          // Оставляем только последние 100 экспортов, чтобы не засорять хранилище
           const trimmedHistory = history.slice(-100);
           await AsyncStorage.setItem(historyKey, JSON.stringify(trimmedHistory));
           await pushAccountDataToCloud();
           scheduleSyncToCloud();
+        } catch (e) {
+          console.warn('[PDF Export] Фон: не удалось сохранить историю/облако:', e);
         }
-      } catch (historyError) {
-        console.warn('[PDF Export] Не удалось сохранить в историю:', historyError);
-      }
+      });
 
-      setPdfUri(fileUri);
-      setShowPreview(true);
-      
       // Двухшаговый экспорт для всех форматов: шаг 1 всегда первый
       const hasFirstLast = formatToUse.type !== 'hard' && firstLastImages.length > 0;
       setDownloadStep(1);
@@ -1482,7 +1530,7 @@ export default function ExportPdfScreen() {
           const flContentHeight = flPageHeight - flMargin * 2;
           for (let i = 0; i < firstLastImages.length; i++) {
             const uri = firstLastImages[i];
-            const optUri = await optimizeImageForExport(uri, 'page').catch(() => uri);
+            const optUri = await optimizeImageForExport(uri, 'page', isLargeDoc).catch(() => uri);
             const bytes = await loadImageAsBytes(optUri);
             if (!bytes) continue;
             const isJpg = bytes[0] === 0xFF && bytes[1] === 0xD8;
@@ -1498,13 +1546,27 @@ export default function ExportPdfScreen() {
             const y = flPageHeight - flMargin - flContentHeight + (flContentHeight - h) / 2;
             page.drawImage(embedded, { x, y, width: w, height: h });
           }
-          const flBase64 = (flDoc as any).saveAsBase64?.({ dataUri: false, useObjectStreams: true, addDefaultPage: false }) ?? uint8ToBase64(await flDoc.save({ useObjectStreams: true, addDefaultPage: false }));
+          let flBase64: string;
+          const saveAsBase64Result = (flDoc as any).saveAsBase64?.({ dataUri: false, useObjectStreams: true, addDefaultPage: false });
+          if (saveAsBase64Result != null && typeof saveAsBase64Result.then === 'function') {
+            flBase64 = await saveAsBase64Result;
+          } else if (typeof saveAsBase64Result === 'string') {
+            flBase64 = saveAsBase64Result;
+          } else {
+            flBase64 = uint8ToBase64(await flDoc.save({ useObjectStreams: true, addDefaultPage: false }));
+          }
+          if (typeof flBase64 !== 'string') {
+            throw new Error('Сериализация первой/последней страницы не вернула строку');
+          }
           firstLastUri = `${FileSystem.documentDirectory}firstlast_${projectId || 'export'}_${Date.now()}.pdf`;
           await FileSystem.writeAsStringAsync(firstLastUri, flBase64, { encoding: FileSystem.EncodingType.Base64 });
           setFirstLastPdfUri(firstLastUri);
           console.log(`[PDF Export] PDF первой/последней создан: ${firstLastUri}`);
         } catch (flErr) {
           console.warn('[PDF Export] Ошибка создания PDF первой/последней:', flErr);
+          // Чтобы кнопка «Скачать внутрянку» была активна, переходим на шаг 2
+          setDownloadStep(2);
+          setFirstLastDownloaded(true);
         }
       }
     } catch (error) {

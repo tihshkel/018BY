@@ -1,5 +1,5 @@
 import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
-import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
@@ -606,10 +606,12 @@ export default function SelectCoverScreen() {
       const pushResult = await pushCoreOnlyToCloud();
       if (!pushResult.ok) {
         console.warn('[SelectCover] Sync failed:', pushResult.error);
-        Alert.alert(
-          'Сохранено на устройстве',
-          `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и настройки Supabase в .env.`
-        );
+        if (isSupabaseNotConfiguredError(pushResult.error)) {
+          const msg = getSupabaseNotConfiguredAlertMessageOnce();
+          if (msg) Alert.alert('Сохранено на устройстве', msg);
+        } else {
+          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
+        }
       }
 
       setShowDateModal(false);

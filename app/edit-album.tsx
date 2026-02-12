@@ -3,7 +3,7 @@ import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
-import { ensureSyncReady, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { createId, ensureUniqueIds } from '@/utils/id';
@@ -50,6 +50,7 @@ export default function EditAlbumScreen() {
   const [albumName, setAlbumName] = useState<string>('');
   const [albumId, setAlbumId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
   const [currentTool, setCurrentTool] = useState<'text' | 'image' | 'drawing' | null>(null);
@@ -73,6 +74,7 @@ export default function EditAlbumScreen() {
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
   const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const lastFontFamilyRef = React.useRef<string | null>(null);
+  const exportInProgressRef = React.useRef(false);
   const containerOpacity = useSharedValue(0);
 
   // Предзагрузка шрифтов до первого показа страниц — чтобы кастомные шрифты аннотаций отображались с первого входа в проект
@@ -832,6 +834,9 @@ export default function EditAlbumScreen() {
   };
 
   const handleExport = async () => {
+    if (exportInProgressRef.current || isExporting) return;
+    exportInProgressRef.current = true;
+    setIsExporting(true);
     try {
       console.log('[Export] Начало экспорта');
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -870,6 +875,7 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_cover_annotations_${tempProjectId}`, JSON.stringify(coverAnnotations));
         
         console.log('[Export] Переход на страницу экспорта');
+        exportInProgressRef.current = false;
         router.push({
           pathname: '/export-pdf',
           params: {
@@ -906,9 +912,9 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(images));
         await AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
         await AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
-        await pushAccountDataToCloud({ forceIncludeProjectIds: [storageId] });
-        scheduleSyncToCloud();
+        // Сразу переходим на экран экспорта; пуш в облако — в фоне, чтобы не было перехода на главную
         console.log('[Export] Переход на страницу экспорта для проекта:', storageId);
+        exportInProgressRef.current = false;
         router.push({
           pathname: '/export-pdf',
           params: {
@@ -917,10 +923,13 @@ export default function EditAlbumScreen() {
             celebration: celebration || undefined,
           },
         });
+        pushAccountDataToCloud({ forceIncludeProjectIds: [storageId] }).then(() => scheduleSyncToCloud()).catch(() => {});
       }
     } catch (error) {
       console.error('[Export] Ошибка при экспорте:', error);
       Alert.alert('Ошибка', 'Не удалось начать экспорт. Попробуйте снова.');
+      exportInProgressRef.current = false;
+      setIsExporting(false);
     }
   };
 
@@ -1170,12 +1179,17 @@ export default function EditAlbumScreen() {
       out.pushError = pushResult.error;
       if (__DEV__) console.log('[EditAlbum] saveAllData: push result ok=', pushResult.ok, 'error=', pushResult.error ?? 'none');
       if (!pushResult.ok && !silent) {
-        const msg = pushResult.error ?? 'Неизвестная ошибка';
-        Alert.alert(
-          'Сохранено на устройстве',
-          `Проект сохранён локально. Синхронизация с облаком не удалась — на другом телефоне проекты могут не появиться.\n\nПричина: ${msg}\n\nПроверьте интернет и настройки Supabase (см. docs/SUPABASE_SETUP.md). Повторная попытка через несколько секунд.`,
-          [{ text: 'OK' }]
-        );
+        if (isSupabaseNotConfiguredError(pushResult.error)) {
+          const msg = getSupabaseNotConfiguredAlertMessageOnce();
+          if (msg) Alert.alert('Сохранено на устройстве', msg, [{ text: 'OK' }]);
+        } else {
+          const msg = pushResult.error ?? 'Неизвестная ошибка';
+          Alert.alert(
+            'Сохранено на устройстве',
+            `Проект сохранён локально. Синхронизация с облаком не удалась.\n\nПричина: ${msg}\n\nПроверьте интернет и настройки Supabase (см. docs/SUPABASE_SETUP.md).`,
+            [{ text: 'OK' }]
+          );
+        }
       }
     } catch (error) {
       console.error('[EditAlbum] saveAllData error:', error);
@@ -1256,13 +1270,17 @@ export default function EditAlbumScreen() {
                 if (result.pushOk) {
                   router.replace('/(tabs)');
                 } else {
-                  Alert.alert(
-                    'Сохранено на устройстве',
-                    result.pushError
-                      ? `В облако не отправлено: ${result.pushError}`
-                      : 'В облако не отправлено. Проверьте интернет.',
-                    [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-                  );
+                  if (isSupabaseNotConfiguredError(result.pushError)) {
+                    const msg = getSupabaseNotConfiguredAlertMessageOnce();
+                    if (msg) Alert.alert('Сохранено на устройстве', msg, [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]);
+                    else router.replace('/(tabs)');
+                  } else {
+                    Alert.alert(
+                      'Сохранено на устройстве',
+                      result.pushError ? `В облако не отправлено: ${result.pushError}` : 'В облако не отправлено. Проверьте интернет.',
+                      [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+                    );
+                  }
                 }
               } catch (e) {
                 Alert.alert(
@@ -1672,16 +1690,16 @@ export default function EditAlbumScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.exportButton}
+            style={[styles.exportButton, (isLoading || isExporting) && styles.exportButtonDisabled]}
             onPress={handleExport}
             activeOpacity={0.8}
             accessibilityRole="button"
             accessibilityLabel="Экспорт PDF"
-            disabled={isLoading}
+            disabled={isLoading || isExporting}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Ionicons name="book-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.exportButtonText}>Получить книгу</Text>
+            <Text style={styles.exportButtonText}>{isExporting ? 'Подготовка…' : 'Получить книгу'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -2237,6 +2255,9 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     zIndex: 1000,
+  },
+  exportButtonDisabled: {
+    opacity: 0.7,
   },
   exportButtonText: {
     color: '#FFFFFF',

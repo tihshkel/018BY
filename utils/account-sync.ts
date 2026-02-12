@@ -439,6 +439,19 @@ export async function getAccountDataForSync(): Promise<Record<string, string>> {
 
 const SYNC_AFTER_MS = 2500;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let supabaseNotConfiguredAlertShown = false;
+
+/** Ошибка «Supabase не настроен» (нет .env у разработчика) — не показывать длинный текст каждый раз */
+export function isSupabaseNotConfiguredError(error: string | undefined): boolean {
+  return !!error && (error.includes('Supabase не настроен') || error.includes('EXPO_PUBLIC_SUPABASE'));
+}
+
+/** Сообщение для алерта «облако не настроено» — показывать один раз за сессию, чтобы не спамить */
+export function getSupabaseNotConfiguredAlertMessageOnce(): string | null {
+  if (supabaseNotConfiguredAlertShown) return null;
+  supabaseNotConfiguredAlertShown = true;
+  return 'Облако не настроено. Данные сохраняются только на этом устройстве. Чтобы включить синхронизацию, скопируйте .env.example в .env и добавьте EXPO_PUBLIC_SUPABASE_URL и EXPO_PUBLIC_SUPABASE_ANON_KEY (см. docs/SUPABASE_SETUP.md).';
+}
 
 export function syncToCloudNow(): void {
   pushAccountDataToCloud()
@@ -450,8 +463,10 @@ export function syncToCloudNow(): void {
 
 export function scheduleSyncToCloud(): void {
   if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
+  syncTimer = setTimeout(async () => {
     syncTimer = null;
+    const { isSupabaseConfigured } = await import('./supabase-account');
+    if (!isSupabaseConfigured()) return;
     pushAccountDataToCloud().catch((e) =>
       console.warn('[AccountSync] scheduled sync failed:', e)
     );

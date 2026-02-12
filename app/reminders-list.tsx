@@ -1,5 +1,5 @@
 import { projectCategories } from '@/constants/projectTemplates';
-import { getRemindersStorageKey, mergeReminders, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, mergeReminders, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -416,10 +416,12 @@ export default function RemindersListScreen() {
     try {
       const pushResult = await saveRemindersAndPush(updated);
       if (!pushResult.ok) {
-        Alert.alert(
-          'Сохранено на устройстве',
-          `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и настройки Supabase в .env.`
-        );
+        if (isSupabaseNotConfiguredError(pushResult.error)) {
+          const msg = getSupabaseNotConfiguredAlertMessageOnce();
+          if (msg) Alert.alert('Сохранено на устройстве', msg);
+        } else {
+          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
+        }
       }
       setShowAddModal(false);
       setSelectedCategory(null);

@@ -7,7 +7,7 @@ import {
     projectCategories,
     type ProjectProduct,
 } from '@/constants/projectTemplates';
-import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
@@ -428,10 +428,12 @@ export default function ProjectTemplatesScreen() {
       const pushResult = await pushCoreOnlyToCloud();
       if (!pushResult.ok) {
         console.warn('[Templates] Sync failed:', pushResult.error);
-        Alert.alert(
-          'Сохранено на устройстве',
-          `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и настройки Supabase в .env.`
-        );
+        if (isSupabaseNotConfiguredError(pushResult.error)) {
+          const msg = getSupabaseNotConfiguredAlertMessageOnce();
+          if (msg) Alert.alert('Сохранено на устройстве', msg);
+        } else {
+          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
+        }
       }
 
       setShowCoverDateModal(false);
