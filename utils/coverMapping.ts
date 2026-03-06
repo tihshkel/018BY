@@ -1,4 +1,6 @@
 import { getAlbumTemplateById } from '@/albums';
+import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import type { ImageSourcePropType } from 'react-native';
 
 /**
@@ -78,6 +80,18 @@ export function getCoverForExport(albumId: string | null, category?: string): Im
   // Для беременности используем специальный маппинг
   if (category === 'pregnancy' || isPregnancyAlbum(albumId)) {
     return getPregnancyCover(albumId);
+  }
+  
+  // Для праздников используем first_pages
+  if (category === 'holidays' || albumId.startsWith('holiday_')) {
+    const design = HOLIDAY_COVER_DESIGNS.find(d => d.id === albumId);
+    if (design) return design.image as ImageSourcePropType;
+  }
+  
+  // Для семьи используем first_pages
+  if (category === 'family' || albumId.startsWith('family_')) {
+    const design = FAMILY_COVER_DESIGNS.find(d => d.id === albumId);
+    if (design) return design.image as ImageSourcePropType;
   }
   
   // Для других категорий пытаемся получить через шаблон

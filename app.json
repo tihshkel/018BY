@@ -1,24 +1,25 @@
 {
   "expo": {
     "name": "018BY",
-    "slug": "018by",
+"slug": "018by",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "018by",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "description": "Создавайте красивые фотоальбомы для беременности и детства. Сохраняйте самые важные моменты жизни в цифровом формате и экспортируйте в PDF для печати.",
     "privacy": "public",
     "sdkVersion": "54.0.0",
-    "platforms": ["ios", "android", "web"],
-    "githubUrl": "",
+"platforms": ["ios", "android", "web"],
     "primaryColor": "#C9A89A",
-    "ios": {
+"ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
       "buildNumber": "1",
       "deploymentTarget": "15.1",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "Камера нужна, чтобы сканировать QR‑код и перенести данные на новое устройство.",
         "NSPhotoLibraryUsageDescription": "Доступ к фото библиотеке нужен, чтобы добавлять фотографии в альбомы и сохранять созданные проекты.",
@@ -30,7 +31,7 @@
         "usesNonExemptEncryption": false
       }
     },
-    "android": {
+"android": {
       "adaptiveIcon": {
         "backgroundColor": "#FAF8F5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +43,7 @@
       "package": "com.tihshkel.x018BY",
       "versionCode": 1,
       "softwareKeyboardLayoutMode": "pan",
+      "runtimeVersion": "1.0.0",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -56,7 +58,7 @@
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [
+"plugins": [
       "expo-router",
       "expo-camera",
       [
@@ -75,7 +77,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#C9A89A",
           "sounds": [],
           "mode": "production"
@@ -91,13 +93,16 @@
       "@config-plugins/react-native-blob-util",
       "expo-web-browser"
     ],
+    "updates": {
+      "url": "https://u.expo.dev/cb0b872b-bcbb-450d-aee7-e2c3148df391"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "extra": {
+"extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "cb0b872b-bcbb-450d-aee7-e2c3148df391"
       },
       "supabaseUrl": "https://imbbutghquiymcwtujha.supabase.co",
       "supabaseAnonKey": "sb_publishable_wcTAYIBoufNE9Spm4kqPkQ_1duGfvYx"

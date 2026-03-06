@@ -1,5 +1,7 @@
 import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
 import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
@@ -128,6 +130,7 @@ export default function SelectCoverScreen() {
       family: ['#D4A574', '#C9A89A'],
       wedding: ['#F093FB', '#F5576C'],
       travel: ['#FFD89B', '#19547B'],
+      holidays: ['#FF7043', '#FF5252'],
       diary: ['#C9A89A', '#A68B5B'],
     };
 
@@ -172,6 +175,38 @@ export default function SelectCoverScreen() {
           id: design.id,
           title: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
           description: 'Дизайн обложки',
+          image: design.image,
+          color: gradient[0],
+          gradient,
+        };
+      });
+    }
+
+    // Для праздников — обложки из albums/holiday
+    if (celebration === 'holidays') {
+      const gradient = categoryGradients.holidays;
+      return HOLIDAY_COVER_DESIGNS.map((design) => {
+        const giftItem = getGiftItemBySku(design.sku);
+        return {
+          id: design.id,
+          title: giftItem?.title ?? design.title,
+          description: 'Праздничный альбом',
+          image: design.image,
+          color: gradient[0],
+          gradient,
+        };
+      });
+    }
+
+    // Для семьи — обложки из albums/family
+    if (celebration === 'family') {
+      const gradient = categoryGradients.family;
+      return FAMILY_COVER_DESIGNS.map((design) => {
+        const giftItem = getGiftItemBySku(design.sku);
+        return {
+          id: design.id,
+          title: giftItem?.title ?? design.title,
+          description: 'Семейный альбом',
           image: design.image,
           color: gradient[0],
           gradient,
@@ -407,6 +442,13 @@ export default function SelectCoverScreen() {
         description: 'Выберите дату начала поездки. Эта дата будет сохранена в напоминаниях, и вы будете получать уведомления.',
         notificationTitle: 'Начало поездки',
         notificationBody: 'Сегодня начинается ваше путешествие!',
+      },
+      holidays: {
+        name: 'Праздники и события',
+        title: 'Дата события',
+        description: 'Выберите дату события.',
+        notificationTitle: 'Праздник',
+        notificationBody: 'Сегодня ваш праздник!',
       },
       diary: {
         name: 'Дневники',
@@ -661,6 +703,7 @@ export default function SelectCoverScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      holidays: 'Праздники и события',
       diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
@@ -945,8 +988,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardImageContainer: {
-    width: 100,
-    height: 120,
+    width: 110,
+    height: 110,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#FAF8F5',
@@ -959,7 +1002,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 15,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'Georgia',
@@ -968,10 +1011,10 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -979,7 +1022,7 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '300',
-    lineHeight: 20,
+    lineHeight: 17,
   },
   modalOverlay: {
     flex: 1,

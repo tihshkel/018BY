@@ -1,6 +1,8 @@
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 import { getDiaryCoverById, extractSkuFromFilename } from '@/utils/diaryAlbumsLoader';
+import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -40,8 +42,16 @@ export default function SelectActionScreen() {
 
   const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
   const diaryCover = coverType && celebration === 'diary' ? getDiaryCoverById(coverType) : null;
+  const holidayCover = coverType && celebration === 'holidays'
+    ? HOLIDAY_COVER_DESIGNS.find(d => d.id === coverType) ?? null
+    : null;
+  const familyCover = coverType && celebration === 'family'
+    ? FAMILY_COVER_DESIGNS.find(d => d.id === coverType) ?? null
+    : null;
   const isPregnancy = celebration === 'pregnancy';
   const isDiary = celebration === 'diary';
+  const isHoliday = celebration === 'holidays';
+  const isFamily = celebration === 'family';
 
   const handleEdit = () => {
     if (!coverType || !celebration) return;
@@ -76,6 +86,20 @@ export default function SelectActionScreen() {
         params.interiorType = 'kids_48';
       }
       
+      // Для праздников — привязка внутрянки к обложке
+      if (celebration === 'holidays') {
+        if (coverType === 'holiday_dfa34' || coverType === 'holiday_dfa35') {
+          params.interiorType = 'holidays_birthday_60';
+        } else {
+          params.interiorType = 'holidays_blank';
+        }
+      }
+      
+      // Для семьи — пустые белые страницы
+      if (celebration === 'family') {
+        params.interiorType = 'family_blank';
+      }
+      
       // Передаем дату события, если она есть
       if (eventDate) {
         params.eventDate = eventDate;
@@ -100,6 +124,18 @@ export default function SelectActionScreen() {
         diaryCover.image as any,
         diaryCover.sku
       );
+    } else if (isHoliday && holidayCover) {
+      wbLink = getWildberriesLink(
+        holidayCover.title,
+        holidayCover.image as any,
+        holidayCover.sku
+      );
+    } else if (isFamily && familyCover) {
+      wbLink = getWildberriesLink(
+        familyCover.title,
+        familyCover.image as any,
+        familyCover.sku
+      );
     } else if (albumTemplate) {
       // Для остальных категорий используем стандартную логику
       wbLink = getWildberriesLink(
@@ -120,8 +156,8 @@ export default function SelectActionScreen() {
       }
     } else {
       // Если ссылка не найдена, можно показать сообщение пользователю
-      const itemName = isDiary && diaryCover ? diaryCover.name : (albumTemplate?.name || '');
-      const itemId = isDiary && diaryCover ? diaryCover.sku : (albumTemplate?.id || '');
+      const itemName = isFamily && familyCover ? familyCover.title : (isHoliday && holidayCover ? holidayCover.title : (isDiary && diaryCover ? diaryCover.name : (albumTemplate?.name || '')));
+      const itemId = isFamily && familyCover ? familyCover.sku : (isHoliday && holidayCover ? holidayCover.sku : (isDiary && diaryCover ? diaryCover.sku : (albumTemplate?.id || '')));
       console.warn('Ссылка на Wildberries не найдена для:', itemName, 'ID:', itemId);
     }
   };
@@ -138,6 +174,7 @@ export default function SelectActionScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      holidays: 'Праздники и события',
       diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
@@ -166,7 +203,7 @@ export default function SelectActionScreen() {
         </View>
 
         {/* Показываем выбранную обложку и кнопки действий */}
-        {(albumTemplate || diaryCover) && (
+        {(albumTemplate || diaryCover || holidayCover || familyCover) && (
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -175,9 +212,9 @@ export default function SelectActionScreen() {
             {/* Карточка с выбранной обложкой */}
             <View style={styles.coverCard}>
               <View style={styles.coverImageContainer}>
-                {(isDiary && diaryCover ? diaryCover.image : albumTemplate?.thumbnailPath) && (
+                {(isFamily && familyCover ? familyCover.image : (isHoliday && holidayCover ? holidayCover.image : (isDiary && diaryCover ? diaryCover.image : albumTemplate?.thumbnailPath))) && (
                   <Image
-                    source={isDiary && diaryCover ? diaryCover.image : albumTemplate!.thumbnailPath!}
+                    source={isFamily && familyCover ? familyCover.image : (isHoliday && holidayCover ? holidayCover.image : (isDiary && diaryCover ? diaryCover.image : albumTemplate!.thumbnailPath!))}
                     style={styles.coverImage}
                     contentFit="cover"
                     priority="high"
@@ -190,10 +227,10 @@ export default function SelectActionScreen() {
               </View>
               <View style={styles.coverInfo}>
                 <Text style={styles.coverName}>
-                  {isDiary && diaryCover ? diaryCover.name : albumTemplate!.name}
+                  {isFamily && familyCover ? familyCover.title : (isHoliday && holidayCover ? holidayCover.title : (isDiary && diaryCover ? diaryCover.name : albumTemplate!.name))}
                 </Text>
                 <Text style={styles.coverDescription}>
-                  {isDiary && diaryCover ? 'Личный дневник для записи мыслей и воспоминаний' : albumTemplate!.description}
+                  {isFamily && familyCover ? 'Семейный альбом' : (isHoliday && holidayCover ? 'Праздничный альбом' : (isDiary && diaryCover ? 'Личный дневник для записи мыслей и воспоминаний' : albumTemplate!.description))}
                 </Text>
               </View>
             </View>

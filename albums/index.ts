@@ -39,7 +39,7 @@ export interface AlbumTemplate {
   id: string;
   name: string;
   description: string;
-  category: 'pregnancy' | 'kids' | 'family' | 'wedding' | 'travel';
+  category: 'pregnancy' | 'kids' | 'family' | 'wedding' | 'travel' | 'holidays';
   pages: number;
   thumbnailPath?: string;
   pdfPath?: string | number | any;

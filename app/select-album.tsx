@@ -426,8 +426,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   albumThumbnail: {
-    width: 80,
-    height: 80,
+    width: 110,
+    height: 110,
     borderRadius: 16,
     marginRight: 18,
     overflow: 'hidden',
@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   albumName: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'Georgia',
@@ -456,10 +456,10 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   albumDescription: {
-    fontSize: 15,
+    fontSize: 13,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -467,11 +467,11 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '300',
-    lineHeight: 22,
-    marginBottom: 4,
+    lineHeight: 18,
+    marginBottom: 3,
   },
   albumPages: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#B8A898',
     fontFamily: Platform.select({
       ios: 'System',

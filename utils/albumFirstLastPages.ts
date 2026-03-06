@@ -1,5 +1,99 @@
 import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system/legacy';
 import { getPregnancyCoverPdf } from './coverPdfMapping';
+import { getCoverForExport } from './coverMapping';
+import { FAMILY_COVER_DESIGNS } from './familyCoverDesigns';
+
+const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
+
+const PREGNANCY_FIRST_LAST_PAGES_URLS: Record<string, { firstPage: string | null; lastPages: string[] }> = {
+  'DB1_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB1_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB1_60стр/page_001.png'],
+  },
+  'DB1_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB1_А5/page_001.png',
+    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB1_А5/page_001.png'],
+  },
+  'DB2_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB2_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB2_60стр/page_001.png'],
+  },
+  'DB2_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB2_А5/page_001.png',
+    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB2_А5/page_001.png'],
+  },
+  'DB3_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB3_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB3_60стр/page_001.png'],
+  },
+  'DB3_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB3_А5/page_001.png',
+    lastPages: [
+      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_001.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_002.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_003.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_004.png',
+    ],
+  },
+  'DB4_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB4_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB4_60стр/page_001.png'],
+  },
+  'DB4_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB4_А5/page_001.png',
+    lastPages: [
+      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_001.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_002.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_003.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_004.png',
+    ],
+  },
+  'DB5_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB5_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB5_60стр/page_001.png'],
+  },
+  'DB5_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB5_А5/page_001.png',
+    lastPages: [
+      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_001.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_002.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_003.png',
+      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_004.png',
+    ],
+  },
+  'DB6_hard': {
+    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB6_60стр/page_001.png',
+    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB6_60стр/page_001.png'],
+  },
+  'DB6_soft': {
+    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB6_А5/page_001.png',
+    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB6_А5/page_001.png'],
+  },
+};
+
+async function downloadImageToCache(url: string, cacheFileName: string): Promise<string | null> {
+  try {
+    const cacheDir = `${FileSystem.cacheDirectory}cover_pages/`;
+    const dirInfo = await FileSystem.getInfoAsync(cacheDir);
+    if (!dirInfo.exists) {
+      await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
+    }
+    const localPath = `${cacheDir}${cacheFileName}`;
+    const fileInfo = await FileSystem.getInfoAsync(localPath);
+    if (fileInfo.exists) {
+      return localPath;
+    }
+    const downloadResult = await FileSystem.downloadAsync(url, localPath);
+    if (downloadResult.status === 200) {
+      return localPath;
+    }
+    return null;
+  } catch (error) {
+    console.warn(`[Download Image] Error downloading ${url}:`, error);
+    return null;
+  }
+}
 
 /**
  * Извлекает номер DFA из albumId
@@ -777,4 +871,107 @@ export async function getPregnancyFirstLastPages(
     console.error(`[First/Last Pages] Ошибка при загрузке страниц для ${mappingKey}:`, error);
     return { firstPage: null, lastPages: [] };
   }
+}
+
+export async function getPregnancyFirstLastPagesFromGitHub(
+  albumId: string | null,
+  formatType: 'hard' | 'soft' = 'hard'
+): Promise<{ firstPage: string | null; lastPages: string[] }> {
+  if (!albumId) {
+    return { firstPage: null, lastPages: [] };
+  }
+
+  const dbNumber = getPregnancyCoverPdf(albumId);
+  if (!dbNumber) {
+    console.warn(`[GitHub First/Last] Не удалось получить номер DB для albumId: ${albumId}`);
+    return { firstPage: null, lastPages: [] };
+  }
+
+  const mappingKey = `${dbNumber}_${formatType}`;
+  const urls = PREGNANCY_FIRST_LAST_PAGES_URLS[mappingKey];
+  if (!urls) {
+    console.warn(`[GitHub First/Last] Не найдены URL для ${mappingKey}`);
+    return { firstPage: null, lastPages: [] };
+  }
+
+  try {
+    const result: { firstPage: string | null; lastPages: string[] } = {
+      firstPage: null,
+      lastPages: [],
+    };
+
+    if (urls.firstPage) {
+      const fileName = urls.firstPage.split('/').pop() || 'first_page.png';
+      const localPath = await downloadImageToCache(
+        `${GITHUB_REPO_BASE}/${encodeURI(urls.firstPage)}`,
+        `${mappingKey}_first_${fileName}`
+      );
+      if (localPath) {
+        result.firstPage = localPath;
+      }
+    }
+
+    for (const lastPageUrl of urls.lastPages) {
+      const fileName = lastPageUrl.split('/').pop() || 'last_page.png';
+      const localPath = await downloadImageToCache(
+        `${GITHUB_REPO_BASE}/${encodeURI(lastPageUrl)}`,
+        `${mappingKey}_last_${fileName}`
+      );
+      if (localPath) {
+        result.lastPages.push(localPath);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`[GitHub First/Last] Ошибка при загрузке страниц для ${mappingKey}:`, error);
+    return { firstPage: null, lastPages: [] };
+  }
+}
+
+export async function getFamilyOrHolidayFirstLastPages(
+  albumId: string | null,
+  category?: string
+): Promise<{ firstPage: string | null; lastPages: string[] }> {
+  if (!albumId) {
+    return { firstPage: null, lastPages: [] };
+  }
+
+  const result: { firstPage: string | null; lastPages: string[] } = {
+    firstPage: null,
+    lastPages: [],
+  };
+
+  try {
+    const firstPageImage = getCoverForExport(albumId, category);
+    if (firstPageImage) {
+      try {
+        const asset = Asset.fromModule(firstPageImage);
+        await asset.downloadAsync();
+        result.firstPage = asset.localUri || asset.uri;
+      } catch (error) {
+        console.warn(`[First/Last Pages] Ошибка загрузки первой страницы для ${albumId}:`, error);
+      }
+    }
+
+    if (category === 'family' || albumId.startsWith('family_')) {
+      const design = FAMILY_COVER_DESIGNS.find(d => d.id === albumId);
+      if (design && 'lastPage' in design && design.lastPage) {
+        try {
+          const asset = Asset.fromModule(design.lastPage);
+          await asset.downloadAsync();
+          const uri = asset.localUri || asset.uri;
+          if (uri) {
+            result.lastPages.push(uri);
+          }
+        } catch (error) {
+          console.warn(`[First/Last Pages] Ошибка загрузки последней страницы для ${albumId}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`[First/Last Pages] Ошибка при загрузке страниц для ${albumId}:`, error);
+  }
+
+  return result;
 }

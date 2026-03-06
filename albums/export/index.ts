@@ -63,7 +63,7 @@ export const EXPORT_COVER_PDFS: Record<string, any> = {
   'DFA53_твердый переплет': require('./DFA53_твердый переплет.pdf'),
   'DFA59_твердый переплет': require('./DFA59_твердый переплет.pdf'),
   'DFA60_твердый переплет': require('./DFA60_твердый переплет.pdf'),
-  'DFA61': require('./DFA61.pdf'),
+  'DFA61_твердый переплет': require('./DFA61_твердый переплет.pdf'),
   'DFA62_твердый переплет': require('./DFA62_твердый переплет.pdf'),
   'DFA71_твердый переплет': require('./DFA71_твердый переплет.pdf'),
   'DFA72_твердый переплет': require('./DFA72_твердый переплет.pdf'),

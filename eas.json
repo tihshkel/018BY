@@ -31,8 +31,7 @@
       "autoIncrement": true,
       "ios": {
         "simulator": false,
-        "buildConfiguration": "Release",
-        "bundleIdentifier": "com.tihshkel.x018BY"
+        "buildConfiguration": "Release"
       },
       "android": {
         "buildType": "app-bundle",
@@ -45,11 +44,6 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
-      },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "internal"

@@ -1330,60 +1330,35 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const viewportH = typeof viewportHeight === 'number' && viewportHeight > 0 ? viewportHeight : windowHeight;
 
         const minSize = 40;
+        const aspectRatio = startW / (startH || 1);
+
+        // Пропорциональный ресайз: берём доминирующую ось и вычисляем второе измерение
+        let delta: number;
         let nextLeft = startLeft;
         let nextTop = startTop;
-        let nextW = startW;
-        let nextH = startH;
 
-        // Вычисляем новую позицию и размер в зависимости от угла
         if (corner === 'tl') {
-          // Левый верхний угол: двигаем левый верхний угол, изменяем размер
-          nextLeft = startLeft + dx;
-          nextTop = startTop + dy;
-          nextW = startW - dx;
-          nextH = startH - dy;
+          delta = (Math.abs(dx) > Math.abs(dy)) ? -dx : -dy * aspectRatio;
         } else if (corner === 'tr') {
-          // Правый верхний угол: двигаем правый верхний угол, изменяем размер
-          nextTop = startTop + dy;
-          nextW = startW + dx;
-          nextH = startH - dy;
+          delta = (Math.abs(dx) > Math.abs(dy)) ? dx : -dy * aspectRatio;
         } else if (corner === 'bl') {
-          // Левый нижний угол: двигаем левый нижний угол, изменяем размер
-          nextLeft = startLeft + dx;
-          nextW = startW - dx;
-          nextH = startH + dy;
-        } else if (corner === 'br') {
-          // Правый нижний угол: только изменяем размер, позиция не меняется
-          nextW = startW + dx;
-          nextH = startH + dy;
+          delta = (Math.abs(dx) > Math.abs(dy)) ? -dx : dy * aspectRatio;
+        } else {
+          delta = (Math.abs(dx) > Math.abs(dy)) ? dx : dy * aspectRatio;
         }
 
-        // Ограничиваем минимальный размер
-        nextW = Math.max(minSize, nextW);
-        nextH = Math.max(minSize, nextH);
+        delta = Math.max(delta, minSize - startW);
+        let nextW = Math.max(minSize, startW + delta);
+        let nextH = Math.max(minSize, nextW / aspectRatio);
+        nextW = nextH * aspectRatio;
 
-        // Корректируем позицию, если размер изменился и нужно сохранить противоположный угол
-        // Это важно для углов, которые не являются правым нижним
         if (corner === 'tl') {
-          // Если размер стал меньше минимального, корректируем позицию
-          if (nextW < minSize) {
-            nextLeft = startLeft + startW - minSize;
-            nextW = minSize;
-          }
-          if (nextH < minSize) {
-            nextTop = startTop + startH - minSize;
-            nextH = minSize;
-          }
+          nextLeft = startLeft + startW - nextW;
+          nextTop = startTop + startH - nextH;
         } else if (corner === 'tr') {
-          if (nextH < minSize) {
-            nextTop = startTop + startH - minSize;
-            nextH = minSize;
-          }
+          nextTop = startTop + startH - nextH;
         } else if (corner === 'bl') {
-          if (nextW < minSize) {
-            nextLeft = startLeft + startW - minSize;
-            nextW = minSize;
-          }
+          nextLeft = startLeft + startW - nextW;
         }
 
         // Clamp внутри вьюпорта
@@ -1925,7 +1900,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             <Image
               source={{ uri: annotation.imageUri }}
               style={styles.imageAnnotation}
-              contentFit="cover"
+              contentFit="fill"
               priority="high"
               cachePolicy="disk"
               transition={0}

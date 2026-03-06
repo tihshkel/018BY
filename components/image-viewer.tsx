@@ -395,19 +395,25 @@ export default function ImageViewer({
         const maxZIndex = annotations.length > 0 
           ? Math.max(...annotations.map(ann => ann.zIndex), 0)
           : 0;
-        const defaultSize = 120;
+        const asset = result.assets[0];
+        const origW = asset.width || 120;
+        const origH = asset.height || 120;
+        const maxSide = 150;
+        const scale = maxSide / Math.max(origW, origH);
+        const fitW = Math.round(origW * scale);
+        const fitH = Math.round(origH * scale);
         const viewportWidth = SCREEN_WIDTH;
         const viewportHeight = containerHeight;
-        const nextX = clamp(x, 0, viewportWidth - defaultSize);
-        const nextY = clamp(y, 0, viewportHeight - defaultSize);
+        const nextX = clamp(x, 0, viewportWidth - fitW);
+        const nextY = clamp(y, 0, viewportHeight - fitH);
         const newAnnotation: Annotation = {
           id: createId('ann'),
           type: 'image',
           x: nextX,
           y: nextY,
-          width: defaultSize,
-          height: defaultSize,
-          imageUri: result.assets[0].uri,
+          width: fitW,
+          height: fitH,
+          imageUri: asset.uri,
           zIndex: maxZIndex + 1,
           page,
         };

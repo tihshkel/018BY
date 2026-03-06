@@ -6,6 +6,9 @@ import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { getCoverForExport } from '@/utils/coverMapping';
 import { createId, ensureUniqueIds } from '@/utils/id';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -72,7 +75,7 @@ export default function EditAlbumScreen() {
   const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
-  const annotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
+  const annotationsRef = React.useRef<PdfAnnotationsRef>(null!);
   const lastFontFamilyRef = React.useRef<string | null>(null);
   const exportInProgressRef = React.useRef(false);
   const containerOpacity = useSharedValue(0);
@@ -104,6 +107,7 @@ export default function EditAlbumScreen() {
   };
 
   useEffect(() => {
+    console.log('[DEBUG] useEffect triggered:', { id, celebration, coverType, interiorType });
     containerOpacity.value = withTiming(1, { duration: 400 });
     loadImagesData();
   }, [id, coverType, interiorType]);
@@ -246,6 +250,8 @@ export default function EditAlbumScreen() {
       let foundAlbumId: string | null = null;
       let foundAlbumName = '';
       
+      console.log('[DEBUG] loadImagesData called:', { id, celebration, coverType, interiorType });
+      
       if (id) {
         // Загружаем данные проекта из AsyncStorage
         const projectData = await AsyncStorage.getItem(`@project_${id}`);
@@ -277,6 +283,16 @@ export default function EditAlbumScreen() {
           if (diaryCover) {
             foundAlbumName = diaryCover.name;
           }
+        } else if (celebration === 'holidays' && coverType) {
+          const hCover = HOLIDAY_COVER_DESIGNS.find(d => d.id === coverType);
+          if (hCover) {
+            foundAlbumName = hCover.title;
+          }
+        } else if (celebration === 'family' && coverType) {
+          const fCover = FAMILY_COVER_DESIGNS.find(d => d.id === coverType);
+          if (fCover) {
+            foundAlbumName = fCover.title;
+          }
         } else if (coverType) {
           const albumTemplate = getAlbumTemplateById(coverType);
           if (albumTemplate) {
@@ -298,12 +314,15 @@ export default function EditAlbumScreen() {
       }
       
       // Если альбом не найден, используем дефолтный
+      console.log('[DEBUG] Album not found, using default:', { foundAlbumId, celebration });
       if (!foundAlbumId) {
-        // Если это категория kids, используем kids_48
         if (celebration === 'kids') {
           foundAlbumId = 'kids_48';
+        } else if (celebration === 'holidays') {
+          foundAlbumId = 'holidays_blank';
+        } else if (celebration === 'family') {
+          foundAlbumId = 'family_blank';
         } else if (celebration === 'diary') {
-          // Для дневников используем коричневый блок по умолчанию
           foundAlbumId = 'diary_interior_brown';
         } else {
           foundAlbumId = 'pregnancy_60';
@@ -313,13 +332,20 @@ export default function EditAlbumScreen() {
       setAlbumId(foundAlbumId);
       setAlbumName(foundAlbumName);
       
+      console.log('[DEBUG] Album setup complete:', { foundAlbumId, foundAlbumName, celebration });
+      
       // Загружаем изображения для альбома
       let imageUris: string[] = [];
       let pageCount = 0;
       
+      console.log('[DEBUG] Before loading images:', { celebration, foundAlbumId, startsWith: foundAlbumId?.startsWith('diary_interior_') });
+      
       // Для дневников используем специальную логику загрузки
+      console.log('[DEBUG] Checking diary condition:', { celebration, foundAlbumId, startsWith: foundAlbumId.startsWith('diary_interior_') });
       if (celebration === 'diary' && foundAlbumId.startsWith('diary_interior_')) {
+        console.log('[DEBUG] Using diary logic with interior:', foundAlbumId);
         const interior = getDiaryInteriorById(foundAlbumId);
+        console.log('[DEBUG] Interior found:', interior?.id, 'pages:', interior?.pages);
         if (interior) {
           pageCount = interior.pages;
           setTotalPages(pageCount);
@@ -368,10 +394,14 @@ export default function EditAlbumScreen() {
           }
           
           // Если сохраненных изображений нет, загружаем оригинальные
+          console.log('[DEBUG] Checking saved images for project:', id);
           const interiorUris = await getDiaryInteriorImageUris(foundAlbumId);
+          console.log('[DEBUG] Interior URIs loaded:', interiorUris?.length || 0);
           if (interiorUris && interiorUris.length > 0) {
             imageUris = interiorUris;
+            console.log('[DEBUG] Setting images:', imageUris.length, 'pages');
             setImages(imageUris);
+            console.log('[DEBUG] totalPages will be set to:', pageCount);
             setIsLoading(false);
             
             // Сохраняем изображения в кеш только если это новый проект
@@ -470,6 +500,7 @@ export default function EditAlbumScreen() {
       }
       
       // Для остальных категорий используем стандартную логику
+      console.log('[DEBUG] Using standard (non-diary) logic:', { foundAlbumId, celebration });
       pageCount = getAlbumPageCount(foundAlbumId);
       // Устанавливаем totalPages сразу, чтобы пагинация работала правильно
       setTotalPages(pageCount);
@@ -678,12 +709,16 @@ export default function EditAlbumScreen() {
         // ВАЖНО: Не перезаписываем сохраненные изображения для существующих проектов
         Promise.resolve().then(async () => {
           try {
-            // Для существующих проектов не перезаписываем сохраненные изображения
+            // Для существующих проектов не перезаписываем, если уже есть непустой массив
             if (id) {
               const savedImages = await AsyncStorage.getItem(`@project_images_${id}`);
               if (savedImages) {
-                // Если есть сохраненные изображения, не перезаписываем их
-                return;
+                try {
+                  const parsed = JSON.parse(savedImages);
+                  if (Array.isArray(parsed) && parsed.length > 0) {
+                    return;
+                  }
+                } catch {}
               }
             }
             
@@ -761,9 +796,9 @@ export default function EditAlbumScreen() {
           projectData.reminderDate = eventDate;
         }
         
-        // Сохраняем информацию о проекте и пустые данные страниц/аннотаций (чтобы проект сразу попал в БД при синхронизации)
+        // Сохраняем информацию о проекте и пустые аннотации (чтобы проект сразу попал в БД при синхронизации).
+        // НЕ сохраняем пустой @project_images_ — иначе фоновая загрузка страниц не сработает после router.replace.
         await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
-        await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify([]));
         await AsyncStorage.setItem(`@project_annotations_${newProjectId}`, JSON.stringify([]));
         await AsyncStorage.setItem(`@project_cover_annotations_${newProjectId}`, JSON.stringify([]));
         const existingProjects = await AsyncStorage.getItem('@user_projects');
@@ -828,6 +863,7 @@ export default function EditAlbumScreen() {
       family: 'Семья',
       wedding: 'Свадьба',
       travel: 'Путешествия',
+      holidays: 'Праздники и события',
       diary: 'Дневники',
     };
     return celebrationMap[celebrationId] || 'Праздник';
@@ -1423,6 +1459,22 @@ export default function EditAlbumScreen() {
     setCurrentTool(null);
   };
 
+  const handleCoverButtonPress = async () => {
+    const warned = await AsyncStorage.getItem('@cover_warning_shown');
+    if (!warned) {
+      Alert.alert(
+        'Обложка',
+        'Текст на обложке отображается только в мягком переплёте и электронной версии. В твёрдом переплёте текст не будет виден.',
+        [{ text: 'Понятно', onPress: async () => {
+          await AsyncStorage.setItem('@cover_warning_shown', 'true');
+          handleViewModeToggle();
+        }}]
+      );
+    } else {
+      handleViewModeToggle();
+    }
+  };
+
   const handleCoverAnnotationAdd = (annotation: Annotation) => {
     setCoverAnnotations(prev => {
       const existingIds = new Set(prev.map(a => a.id));
@@ -1533,20 +1585,8 @@ export default function EditAlbumScreen() {
     setImages(newImages);
     setTotalPages(newImages.length);
     
-    // Обновляем аннотации - копируем аннотации с исходной страницы, если они есть
-    const sourcePageAnnotations = annotations.filter(ann => (ann.page || 1) === sourcePageIndex + 1);
-    const newAnnotations = sourcePageAnnotations.map(ann => ({
-      ...ann,
-      id: createId('ann'),
-      page: newImages.length, // Новая страница будет последней
-    }));
-    
-    const finalAnnotations = [...annotations, ...newAnnotations];
-    setAnnotations(finalAnnotations);
-    
     if (id) {
       await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
-      await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(finalAnnotations));
     }
     
     setShowAddPageModal(false);
@@ -1581,28 +1621,19 @@ export default function EditAlbumScreen() {
     setImages(newImages);
     setTotalPages(newImages.length);
     
-    // Обновляем аннотации - копируем аннотации для дублированной страницы (если есть)
-    const pageAnnotations = annotations.filter(ann => (ann.page || 1) === targetPageIndex + 1);
-    const newAnnotations = pageAnnotations.map(ann => ({
-      ...ann,
-      id: createId('ann'),
-      page: targetPageIndex + 2, // Новая страница будет следующей
-    }));
-    
-    // Обновляем номера страниц для всех аннотаций после вставленной страницы
+    // Сдвигаем номера страниц для аннотаций после вставленной страницы (новая страница чистая)
     const updatedAnnotations = annotations.map(ann => {
-      const annPage = ann.page || 1;
+      const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
       if (annPage > targetPageIndex + 1) {
         return { ...ann, page: annPage + 1 };
       }
       return ann;
     });
     
-    const finalAnnotations = [...updatedAnnotations, ...newAnnotations];
-    setAnnotations(finalAnnotations);
+    setAnnotations(updatedAnnotations);
     if (storageId) {
       AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
-      AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(finalAnnotations));
+      AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations));
     }
     setShowPageSelectModal(false);
     setTargetPageIndexForDuplicate(null);
@@ -1630,11 +1661,11 @@ export default function EditAlbumScreen() {
     // Удаляем аннотации для удаленной страницы и обновляем номера страниц
     const updatedAnnotations = annotations
       .filter(ann => {
-        const annPage = ann.page || 1;
+        const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
         return annPage !== pageIndex + 1;
       })
       .map(ann => {
-        const annPage = ann.page || 1;
+        const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
         if (annPage > pageIndex + 1) {
           return { ...ann, page: annPage - 1 };
         }
@@ -1813,9 +1844,14 @@ export default function EditAlbumScreen() {
                 defaultTextStyle={lastTextStyle}
                 getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
                 firstPageImage={
-                  (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
-                    ? images[0]
-                    : undefined
+                  (celebration === 'family' || celebration === 'holidays')
+                    ? (() => {
+                        const coverSource = getCoverForExport(coverType || albumId, celebration);
+                        return coverSource ? Asset.fromModule(coverSource as number | string).uri : undefined;
+                      })()
+                    : (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
+                      ? images[0]
+                      : undefined
                 }
               />
             ) : (
@@ -1899,6 +1935,32 @@ export default function EditAlbumScreen() {
                 numberOfLines={1}
               >
                 {isEditing ? 'Готово' : 'Редактировать'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Кнопка "Обложка" / "Страницы" — всегда видна */}
+            <TouchableOpacity
+              style={[
+                styles.toolButton,
+                viewMode === 'cover' ? styles.toolButtonPrimary : undefined
+              ]}
+              onPress={viewMode === 'cover' ? handleViewModeToggle : handleCoverButtonPress}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={viewMode === 'cover' ? 'Вернуться к страницам' : 'Редактировать обложку'}
+            >
+              <View style={styles.toolIconContainer}>
+                <Ionicons 
+                  name={viewMode === 'cover' ? 'documents-outline' : 'book-outline'} 
+                  size={22} 
+                  color={viewMode === 'cover' ? '#C9A89A' : '#8B6F5F'} 
+                />
+              </View>
+              <Text 
+                style={[styles.toolButtonText, viewMode === 'cover' && { color: '#C9A89A', fontWeight: '600' }]}
+                numberOfLines={1}
+              >
+                {viewMode === 'cover' ? 'Страницы' : 'Обложка'}
               </Text>
             </TouchableOpacity>
 

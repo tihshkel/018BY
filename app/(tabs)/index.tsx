@@ -44,6 +44,10 @@ const getCategoryImage = (category: string) => {
       return require('@/assets/images/albums/DB4_0.png');
     case 'travel':
       return require('@/assets/images/albums/DB5_0.png');
+    case 'holidays':
+      return require('@/albums/holiday/first_pages/DFA34.png');
+    case 'family':
+      return require('@/albums/family/first_pages/SDFA1/page_1.png');
     default:
       return null;
   }
@@ -530,17 +534,6 @@ export default function HomeScreen() {
                   <Text style={styles.projectCategory}>{selectedProject?.category}</Text>
                 )}
               </Pressable>
-              <View style={styles.projectStats}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{selectedProject?.pagesCount}</Text>
-                  <Text style={styles.statLabel}>страниц</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>{selectedProject?.remindersCount}</Text>
-                  <Text style={styles.statLabel}>напоминаний</Text>
-                </View>
-              </View>
             </View>
           ) : (
             <>

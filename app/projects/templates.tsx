@@ -1,5 +1,7 @@
 import { getAlbumTemplateById, getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
 import { getGiftItemBySku } from '@/utils/albumGiftMapping';
+import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import {
@@ -95,6 +97,20 @@ const getCategoryInfo = (categoryId: string): CategoryInfo => {
       notificationTitle: 'День рождения ребенка',
       notificationBody: 'Сегодня день рождения вашего ребенка!',
     },
+    holidays: {
+      name: 'Праздники и события',
+      title: 'Дата события',
+      description: 'Выберите дату события.',
+      notificationTitle: 'Праздник',
+      notificationBody: 'Сегодня ваш праздник!',
+    },
+    family: {
+      name: 'Семья',
+      title: 'Дата важного события',
+      description: 'Выберите дату важного семейного события.',
+      notificationTitle: 'Семейное событие',
+      notificationBody: 'Сегодня важная дата для вашей семьи!',
+    },
   };
   return categoryMap[categoryId] || categoryMap.pregnancy;
 };
@@ -175,6 +191,38 @@ export default function ProjectTemplatesScreen() {
           id: d.id,
           name: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
           description: 'Дизайн обложки',
+          thumbnailPath: d.image,
+        } as AlbumTemplate;
+      });
+    }
+    return [];
+  }, [categoryId]);
+
+  // Для «Праздники и события» — обложки из albums/holiday
+  const holidayAlbums = useMemo(() => {
+    if (categoryId === 'holidays') {
+      return HOLIDAY_COVER_DESIGNS.map((d) => {
+        const giftItem = getGiftItemBySku(d.sku);
+        return {
+          id: d.id,
+          name: giftItem?.title ?? d.title,
+          description: 'Праздничный альбом',
+          thumbnailPath: d.image,
+        } as AlbumTemplate;
+      });
+    }
+    return [];
+  }, [categoryId]);
+
+  // Для «Семья» — обложки из albums/family
+  const familyAlbums = useMemo(() => {
+    if (categoryId === 'family') {
+      return FAMILY_COVER_DESIGNS.map((d) => {
+        const giftItem = getGiftItemBySku(d.sku);
+        return {
+          id: d.id,
+          name: giftItem?.title ?? d.title,
+          description: 'Семейный альбом',
           thumbnailPath: d.image,
         } as AlbumTemplate;
       });
@@ -602,6 +650,94 @@ export default function ProjectTemplatesScreen() {
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={kidsAlbums.indexOf(album) < 5 ? "high" : "normal"}
+                        cachePolicy="disk"
+                        transition={0}
+                        fadeDuration={0}
+                        recyclingKey={album.id}
+                      />
+                    ) : (
+                      <Ionicons name='book' size={48} color='#C9A89A' />
+                    )}
+                  </View>
+                  <View style={styles.productContent}>
+                    <Text style={styles.productName}>{album.name}</Text>
+                    <Text style={styles.productDescription}>
+                      {album.description}
+                    </Text>
+                  </View>
+                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
+                </TouchableOpacity>
+              ))
+            )
+          ) : categoryId === 'holidays' ? (
+            /* Для праздников показываем обложки */
+            holidayAlbums.length === 0 ? (
+              <View style={styles.emptyStateInline}>
+                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
+                <Text style={styles.emptyStateInlineText}>
+                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
+                  другую тему.
+                </Text>
+              </View>
+            ) : (
+              holidayAlbums.map(album => (
+                <TouchableOpacity
+                  key={album.id}
+                  style={styles.productCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleCoverSelect(album)}
+                >
+                  <View style={styles.productImage}>
+                    {album.thumbnailPath ? (
+                      <Image
+                        source={album.thumbnailPath}
+                        style={styles.productImageContent}
+                        contentFit="cover"
+                        priority={holidayAlbums.indexOf(album) < 5 ? "high" : "normal"}
+                        cachePolicy="disk"
+                        transition={0}
+                        fadeDuration={0}
+                        recyclingKey={album.id}
+                      />
+                    ) : (
+                      <Ionicons name='book' size={48} color='#C9A89A' />
+                    )}
+                  </View>
+                  <View style={styles.productContent}>
+                    <Text style={styles.productName}>{album.name}</Text>
+                    <Text style={styles.productDescription}>
+                      {album.description}
+                    </Text>
+                  </View>
+                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
+                </TouchableOpacity>
+              ))
+            )
+          ) : categoryId === 'family' ? (
+            /* Для семьи показываем обложки */
+            familyAlbums.length === 0 ? (
+              <View style={styles.emptyStateInline}>
+                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
+                <Text style={styles.emptyStateInlineText}>
+                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
+                  другую тему.
+                </Text>
+              </View>
+            ) : (
+              familyAlbums.map(album => (
+                <TouchableOpacity
+                  key={album.id}
+                  style={styles.productCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleCoverSelect(album)}
+                >
+                  <View style={styles.productImage}>
+                    {album.thumbnailPath ? (
+                      <Image
+                        source={album.thumbnailPath}
+                        style={styles.productImageContent}
+                        contentFit="cover"
+                        priority={familyAlbums.indexOf(album) < 5 ? "high" : "normal"}
                         cachePolicy="disk"
                         transition={0}
                         fadeDuration={0}

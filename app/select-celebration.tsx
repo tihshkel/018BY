@@ -73,6 +73,15 @@ const celebrations: Celebration[] = [
     image: require('@/assets/images/albums/DB4_0.png'),
   },
   {
+    id: 'holidays',
+    title: 'Праздники и события',
+    description: 'Альбомы для особых дат',
+    icon: 'gift-outline',
+    color: '#FF7043',
+    gradient: ['#FF7043', '#FF5252'],
+    image: require('@/albums/holiday/first_pages/DFA34.png'),
+  },
+  {
     id: 'travel',
     title: 'Путешествия',
     description: 'Воспоминания о поездках',
@@ -131,9 +140,8 @@ export default function SelectCelebrationScreen() {
     if (selectedCelebration) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
-      // Для беременности и детей всегда переходим к выбору обложки
-      // (идеальная последовательность: выбор категории → выбор обложки → выбор действия → редактирование)
-      if (selectedCelebration === 'pregnancy' || selectedCelebration === 'kids') {
+      // Для беременности, детей и праздников переходим к выбору обложки
+      if (selectedCelebration === 'pregnancy' || selectedCelebration === 'kids' || selectedCelebration === 'holidays' || selectedCelebration === 'family') {
         router.push({
           pathname: '/select-cover',
           params: { celebration: selectedCelebration }

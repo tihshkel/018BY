@@ -10,6 +10,7 @@ import { AccessCodeModalManager } from '@/components/access-code-modal-manager';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { syncToCloudNow } from '@/utils/account-sync';
+import { getAndStorePushToken } from '@/utils/pushToken';
 import { initializeImagePreload } from '@/utils/imagePreloader';
 
 export default function RootLayout() {
@@ -20,6 +21,11 @@ export default function RootLayout() {
   // Инициализируем предзагрузку изображений при старте приложения
   useEffect(() => {
     initializeImagePreload();
+  }, []);
+
+  // Получаем push token для уведомлений при старте
+  useEffect(() => {
+    getAndStorePushToken();
   }, []);
 
   // Пробуем синхронизировать сразу после старта (без ручных действий)

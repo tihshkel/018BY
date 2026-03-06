@@ -158,8 +158,8 @@ export default function CoverViewer({
         setIsLoading(true);
         setError(null);
 
-        // Для категорий pregnancy, kids и diary используем первое изображение из массива images
-        if (firstPageImage && category && (category === 'pregnancy' || category === 'kids' || category === 'diary')) {
+        // Если передано изображение первой страницы обложки, используем его напрямую
+        if (firstPageImage) {
           setCoverImages([firstPageImage]);
           setCurrentPage(0);
           setIsLoading(false);

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { ensureDeviceRegistered, exportAccountData, getDevicesByAccessCode } from './account-transfer';
+import { getStoredPushToken } from './pushToken';
 import {
     getAccountDataFromSupabase,
     getAccountFromSupabase,
@@ -563,6 +564,13 @@ async function pushAccountDataToCloudOnce(
 
   // --- Экспортируем все данные из AsyncStorage ---
   let data = await exportAccountData({ allowPrefixes: SYNC_DATA_PREFIXES });
+  
+  // Добавляем push token в данные для облака
+  const pushToken = await getStoredPushToken();
+  if (pushToken) {
+    data['@push_token'] = pushToken;
+  }
+  
   const userProjectsRaw = await AsyncStorage.getItem('@user_projects');
   if (userProjectsRaw && (!data['@user_projects'] || data['@user_projects'] === '[]')) {
     data['@user_projects'] = userProjectsRaw;
