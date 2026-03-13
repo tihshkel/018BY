@@ -104,8 +104,8 @@
       "eas": {
         "projectId": "cb0b872b-bcbb-450d-aee7-e2c3148df391"
       },
-      "supabaseUrl": "https://imbbutghquiymcwtujha.supabase.co",
-      "supabaseAnonKey": "sb_publishable_wcTAYIBoufNE9Spm4kqPkQ_1duGfvYx"
+      "supabaseUrl": "",
+      "supabaseAnonKey": ""
     }
   }
 }
