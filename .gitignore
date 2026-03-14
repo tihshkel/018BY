@@ -64,7 +64,8 @@ web-build/
 .easignore
 eas-build-*.json
 
-# Environment variables (.env закоммичен в закрытом репо для общей БД команды)
+# Environment variables (ключи только в .env локально, не коммитить)
+.env
 .env.local
 .env.*.local
 

@@ -28,8 +28,8 @@
 1. Слева откройте **Project Settings** (иконка шестерёнки).
 2. Перейдите в **API**.
 3. Скопируйте:
-   - **Project URL** (например `https://xxxxxxxx.supabase.co`);
-   - **Project API keys** → **anon** **public** (длинный ключ, начинается с `eyJ...` или похоже).
+   - **Project URL** (например `https://xbjssrfenkaefudhlgks.supabase.co`);
+   - **Project API keys** → **anon** **public** / Publishable key (длинный ключ).
 
 ---
 
@@ -39,8 +39,8 @@
 2. Откройте `.env` и задайте (подставьте свои значения из шага 3):
 
 ```env
-EXPO_PUBLIC_SUPABASE_URL=https://ваш-project-id.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=ваш-anon-public-ключ
+EXPO_PUBLIC_SUPABASE_URL=https://xbjssrfenkaefudhlgks.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=ваш-publishable-ключ-из-Supabase-API
 ```
 
 3. Сохраните файл. Файл `.env` в Git не попадает — это правильно.
