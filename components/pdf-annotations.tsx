@@ -1980,7 +1980,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 />
               </>
             );
-          })()}
+          }          )()}
           {isEditing && (
             <View style={styles.imageControls}>
               <TouchableOpacity
