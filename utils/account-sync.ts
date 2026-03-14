@@ -17,6 +17,9 @@ const PROJECT_PREFIX = '@project_';
 /** Список id проектов, которые пользователь явно сохранил (кнопка «Сохранить»). В БД отправляются только они. */
 const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
 
+/** Id проектов, которые сейчас пушатся — при pull не перезаписываем их локальные данные. */
+const pendingPushProjectIdsRef: { current: Set<string> } = { current: new Set() };
+
 /** Добавить проект в список «сохранённых в облако» — только такие проекты попадают в БД при синхронизации. */
 export async function addProjectToSyncedList(projectId: string): Promise<void> {
   if (!projectId) return;
@@ -249,7 +252,8 @@ async function syncAccountDataInBackground(accessCode: string): Promise<void> {
     }
 
     if (cloudData && Object.keys(cloudData).length > 0) {
-      await importAccountData(cloudData, accessCode);
+      const protect = new Set(pendingPushProjectIdsRef.current);
+      await importAccountData(cloudData, accessCode, protect);
 
       if (__DEV__) {
         const afterImport = await AsyncStorage.getItem('@user_projects');
@@ -333,7 +337,8 @@ export async function syncAccountDataOnLogin(accessCode: string): Promise<{
 
     const cloudData = await getAccountDataFromSupabase(accessCode);
     if (cloudData && Object.keys(cloudData).length > 0) {
-      await importAccountData(cloudData, accessCode);
+      const protect = new Set(pendingPushProjectIdsRef.current);
+      await importAccountData(cloudData, accessCode, protect);
       // Напоминания уже объединены в importAccountData. Дополнительно сливаем с сохранённым локальным списком, чтобы ничего не потерять.
       const cloudReminders = cloudData['@reminders'];
       const mergedReminders = mergeReminders(localReminders, cloudReminders);
@@ -376,14 +381,20 @@ export async function syncAccountDataOnLogin(accessCode: string): Promise<{
 /**
  * Сохраняет данные аккаунта при синхронизации (импорт с облака).
  * Напоминания объединяются с локальными по id (не перезаписываются), чтобы не терять ни одного.
+ * Если передан protectProjectIds — не перезаписываем ключи проектов с этими id (пуш в процессе).
  */
 export async function importAccountData(
   data: Record<string, string>,
-  accessCode?: string
+  accessCode?: string,
+  protectProjectIds?: Set<string>
 ): Promise<void> {
   try {
     for (const [key, value] of Object.entries(data)) {
       if (!key || typeof value !== 'string') continue;
+      if (protectProjectIds?.size && key.startsWith(PROJECT_PREFIX)) {
+        const projectId = getProjectIdFromKey(key);
+        if (projectId && protectProjectIds.has(projectId)) continue;
+      }
       if (key === '@reminders' && accessCode) {
         const remindersKey = getRemindersStorageKey(accessCode);
         const existing = await AsyncStorage.getItem(remindersKey);
@@ -955,7 +966,8 @@ export async function pullLatestFromCloud(): Promise<boolean> {
     // Сохраняем текущий список проектов до импорта
     const localListBefore = await AsyncStorage.getItem('@user_projects');
 
-    await importAccountData(cloudData, accessCode);
+    const protect = new Set(pendingPushProjectIdsRef.current);
+    await importAccountData(cloudData, accessCode, protect);
 
     // Проверяем, изменился ли список проектов
     const localListAfter = await AsyncStorage.getItem('@user_projects');
@@ -997,23 +1009,30 @@ export async function pushAccountDataToCloud(
   options?: PushToCloudOptions
 ): Promise<PushToCloudResult> {
   const forceInclude = options?.forceIncludeProjectIds?.filter(Boolean) ?? [];
-  let lastError: string | undefined;
-  for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
-    try {
-      const result = await pushAccountDataToCloudOnce(forceInclude);
-      if (result.ok) {
-        await markSyncOk();
-        return result;
-      }
-      lastError = result.error;
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : String(e);
-    }
-    if (attempt < SYNC_RETRY_ATTEMPTS) {
-      await new Promise((r) => setTimeout(r, SYNC_RETRY_DELAY_MS));
-    }
+  if (forceInclude.length > 0) {
+    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.add(id));
   }
-  const finalError = lastError ?? 'Синхронизация не удалась после нескольких попыток';
-  await markSyncError(finalError);
-  return { ok: false, error: finalError };
+  let lastError: string | undefined;
+  try {
+    for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
+      try {
+        const result = await pushAccountDataToCloudOnce(forceInclude);
+        if (result.ok) {
+          await markSyncOk();
+          return result;
+        }
+        lastError = result.error;
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : String(e);
+      }
+      if (attempt < SYNC_RETRY_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, SYNC_RETRY_DELAY_MS));
+      }
+    }
+    const finalError = lastError ?? 'Синхронизация не удалась после нескольких попыток';
+    await markSyncError(finalError);
+    return { ok: false, error: finalError };
+  } finally {
+    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.delete(id));
+  }
 }
