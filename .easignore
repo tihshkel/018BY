@@ -1,0 +1,33 @@
+.git/
+.github/
+
+# Dependencies (installed on builder)
+node_modules/
+
+# Local Expo state
+.expo/
+
+# Build artifacts
+dist/
+web-build/
+android/.gradle/
+android/.cxx/
+android/**/build/
+ios/Pods/
+
+# Large local content not needed for builds
+albums/
+images/
+**/*.mp4
+**/*.mov
+**/*.mkv
+**/*.avi
+**/*.zip
+**/*.7z
+**/*.rar
+
+# Logs and caches
+*.log
+npm-debug.log
+yarn-error.log
+coverage/

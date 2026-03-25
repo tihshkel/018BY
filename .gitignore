@@ -61,7 +61,7 @@ dist/
 web-build/
 
 # EAS
-.easignore
+# (сам .easignore коммитим — он уменьшает архив для EAS Build)
 eas-build-*.json
 
 # Environment variables (.env в репо — одна БД на команду, обновляется при pull)
