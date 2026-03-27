@@ -7,6 +7,9 @@ node_modules/
 # Local Expo state
 .expo/
 
+# Editor settings
+.vscode/
+
 # Build artifacts
 dist/
 web-build/
@@ -16,8 +19,17 @@ android/**/build/
 ios/Pods/
 
 # Large local content not needed for builds
-albums/
-images/
+# Keep the TS module that the app imports (`@/albums`), but exclude only root `albums/` content.
+# Leading slash is important: without it, `albums/**` also excludes `assets/images/albums/**`.
+/albums/**
+!/albums/index.ts
+!/albums/diary/**/*.png
+!/albums/kids/**/first_page.png
+!/albums/kids/**/last_page.png
+!/albums/export/
+!/albums/export/**
+!albums/export/
+!albums/export/**
 **/*.mp4
 **/*.mov
 **/*.mkv

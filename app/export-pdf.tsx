@@ -1,4 +1,3 @@
-import { getExportCoverPdf } from '@/albums/export';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
@@ -8,6 +7,7 @@ import { getCoverExportPdfFileNameFromCoverType } from '@/utils/coverExportPdfMa
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
+import { downloadExportCoverPdfToCache } from '@/utils/exportCoverPdfDownloader';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
 import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
@@ -1728,23 +1728,10 @@ export default function ExportPdfScreen() {
         return;
       }
 
-      // Получаем имя файла без расширения для поиска в маппинге
-      const fileNameWithoutExt = fileName.replace('.pdf', '');
-      const pdfModule = getExportCoverPdf(fileNameWithoutExt);
-      
-      if (!pdfModule) {
-        Alert.alert('Ошибка', `PDF файл обложки не найден: ${fileName}`);
-        setIsDownloadingCover(false);
-        return;
-      }
-
-      // Загружаем PDF через Asset
-      const asset = Asset.fromModule(pdfModule);
-      await asset.downloadAsync();
-      const pdfUri = asset.localUri || asset.uri;
+      const pdfUri = await downloadExportCoverPdfToCache(fileName);
 
       if (!pdfUri) {
-        Alert.alert('Ошибка', 'Не удалось загрузить PDF файл обложки');
+        Alert.alert('Ошибка', `Не удалось загрузить PDF файл обложки: ${fileName}`);
         setIsDownloadingCover(false);
         return;
       }

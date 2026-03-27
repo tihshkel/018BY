@@ -79,7 +79,8 @@ const celebrations: Celebration[] = [
     icon: 'gift-outline',
     color: '#FF7043',
     gradient: ['#FF7043', '#FF5252'],
-    image: require('@/albums/holiday/first_pages/DFA34.png'),
+    // В EAS исключаем папку `albums/`, поэтому здесь подставляем гарантированную картинку.
+    image: require('@/assets/images/albums/blank_white.png'),
   },
   {
     id: 'travel',

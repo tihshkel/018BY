@@ -35,19 +35,18 @@ const CARD_WIDTH = SCREEN_WIDTH * 0.75;
 const getCategoryImage = (category: string) => {
   switch (category) {
     case 'pregnancy':
-      return require('@/assets/images/albums/DB1_0.png');
+      return require('@/assets/images/albums/blank_white.png');
     case 'kids':
-      return require('@/assets/images/albums/DB2_0.png');
+      return require('@/assets/images/albums/blank_white.png');
     case 'family':
-      return require('@/assets/images/albums/DB3_0.png');
+      return require('@/assets/images/albums/blank_white.png');
     case 'wedding':
-      return require('@/assets/images/albums/DB4_0.png');
+      return require('@/assets/images/albums/blank_white.png');
     case 'travel':
-      return require('@/assets/images/albums/DB5_0.png');
+      return require('@/assets/images/albums/blank_white.png');
     case 'holidays':
-      return require('@/albums/holiday/first_pages/DFA34.png');
-    case 'family':
-      return require('@/albums/family/first_pages/SDFA1/page_1.png');
+      // В продакшен-сборках не тянем локальные папки `albums/*` с большими файлами.
+      return require('@/assets/images/albums/blank_white.png');
     default:
       return null;
   }
