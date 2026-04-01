@@ -32,6 +32,13 @@ ios/Pods/
 # Exclude heavy PDF/images content; keep only small preview images that are used for UI.
 /assets/pdfs/**
 !/assets/pdfs/preview/**
+
+# Safety net: exclude any PDFs anywhere (they must be downloaded at runtime).
+**/*.pdf
+
+# Windows/ignore semantics can be tricky; also exclude without leading slash.
+albums/
+assets/pdfs/
 **/*.mp4
 **/*.mov
 **/*.mkv
