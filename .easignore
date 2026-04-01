@@ -18,27 +18,18 @@ android/.cxx/
 android/**/build/
 ios/Pods/
 
-# Large local content not needed for builds
-# Keep the TS module that the app imports (`@/albums`), but exclude only root `albums/` content.
-# Leading slash is important: without it, `albums/**` also excludes `assets/images/albums/**`.
-/albums/**
-!/albums/index.ts
-!/albums/diary/**/*.png
-!/albums/kids/**/first_page.png
-!/albums/kids/**/last_page.png
+# Exclude heavy album subdirectories (export PDFs, full page sets).
+# Keep: index.ts, kids first/last pages, DB cover pages.
+/albums/export/
+/albums/holiday/
+/albums/family/
+/albums/pregnant/
+/albums/diary/
 
-# Exclude heavy PDF exports from the build to stay under Play size limits.
-
-# Exclude heavy PDF/images content; keep only small preview images that are used for UI.
+# Exclude heavy PDF content; keep only small preview assets.
 /assets/pdfs/**
 !/assets/pdfs/preview/**
 
-# Safety net: exclude any PDFs anywhere (they must be downloaded at runtime).
-**/*.pdf
-
-# Windows/ignore semantics can be tricky; also exclude without leading slash.
-albums/
-assets/pdfs/
 **/*.mp4
 **/*.mov
 **/*.mkv
