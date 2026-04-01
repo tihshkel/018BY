@@ -26,10 +26,12 @@ ios/Pods/
 !/albums/diary/**/*.png
 !/albums/kids/**/first_page.png
 !/albums/kids/**/last_page.png
-!/albums/export/
-!/albums/export/**
-!albums/export/
-!albums/export/**
+
+# Exclude heavy PDF exports from the build to stay under Play size limits.
+
+# Exclude heavy PDF/images content; keep only small preview images that are used for UI.
+/assets/pdfs/**
+!/assets/pdfs/preview/**
 **/*.mp4
 **/*.mov
 **/*.mkv
