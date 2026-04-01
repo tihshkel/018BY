@@ -1,7 +1,8 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
-const GITHUB_REPO_BASE =
-  'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
+import { GITHUB_RAW_MAIN_BASE } from '@/utils/githubRawAssets';
+
+const GITHUB_REPO_BASE = GITHUB_RAW_MAIN_BASE;
 
 function sanitizeFileName(value: string) {
   return value.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_');

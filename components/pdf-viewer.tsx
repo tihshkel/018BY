@@ -31,13 +31,8 @@ interface PdfViewerProps {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Маппинг PDF файлов для статического require
+// Только лёгкие preview-PDF в бандле; полные шаблоны — по HTTPS (см. githubRawFileUrl).
 const PDF_ASSETS = {
-  // Основные PDF файлы
-  'Блок БЕРЕМЕННОСТЬ 60 стр.pdf': require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
-  'Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf': require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
-  'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf': require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf'),
-  // Preview версии PDF файлов
   'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf'),
   'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf'),
 };
@@ -231,6 +226,10 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
     try {
       // Если pdfPath - это число (asset ID), файл существует
       if (typeof pdfPath === 'number') {
+        return true;
+      }
+
+      if (typeof pdfPath === 'string' && /^https?:\/\//i.test(pdfPath)) {
         return true;
       }
       

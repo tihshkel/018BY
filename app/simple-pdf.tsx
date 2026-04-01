@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { githubRawFileUrl } from '@/utils/githubRawAssets';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -29,17 +30,15 @@ export default function SimplePdfScreen() {
     try {
       setIsLoading(true);
       
-      // Получаем URI файла из assets
-      const documentDirectory = (FileSystem as any).documentDirectory as string | undefined;
-      const pdfUri = `${documentDirectory ?? ''}Блок БЕРЕМЕННОСТЬ 60 стр.pdf`;
-      
-      // Копируем файл из assets в документы
-      const assetUri = require('@/assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf');
+      const remoteUrl = githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf');
+      const cachePath = `${FileSystem.cacheDirectory}simple_pdf_test.pdf`;
+      const dl = await FileSystem.downloadAsync(remoteUrl, cachePath);
+      const assetUri = dl.uri;
       
       // Для тестирования показываем информацию о файле
       Alert.alert(
         'PDF Информация',
-        `Файл найден в assets: ${!!assetUri}\nПуть: ${pdfUri}`,
+        `Скачан по сети: ${remoteUrl}\nЛокально: ${assetUri}`,
         [
           {
             text: 'OK',
@@ -47,7 +46,7 @@ export default function SimplePdfScreen() {
               // Пытаемся открыть файл
               if (Platform.OS === 'web') {
                 // Для веб-версии открываем в новой вкладке
-                window.open('/assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf', '_blank');
+                window.open(remoteUrl, '_blank');
               } else {
                 // Для мобильных устройств используем Sharing
                 Sharing.shareAsync(assetUri).catch(console.error);

@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Asset } from 'expo-asset';
 import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
+import { githubRawFileUrl } from '@/utils/githubRawAssets';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface InteriorOption {
@@ -35,14 +36,14 @@ const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
     id: 'pregnancy_60',
     title: 'Блок БЕРЕМЕННОСТЬ 60 стр',
     description: '60 страниц для записи всех важных моментов',
-    pdfPath: require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
+    pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
     previewImagePath: require('../assets/pdfs/preview/pregnancy_60_preview.png'),
   },
   {
     id: 'pregnancy_a5',
     title: 'Блок БЕРЕМЕННОСТЬ A5 другой блок',
     description: 'Альтернативный вариант в формате A5',
-    pdfPath: require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
+    pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
     previewImagePath: require('../assets/pdfs/preview/pregnancy_a5_preview.png'),
   },
 ];

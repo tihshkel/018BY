@@ -1,3 +1,5 @@
+import { githubRawFileUrl } from '@/utils/githubRawAssets';
+
 export interface PhotoPosition {
   x: number;
   y: number;
@@ -54,7 +56,7 @@ export const albumTemplates: AlbumTemplate[] = [
     description: 'Дневник беременности в твердой обложке',
     category: 'pregnancy',
     pages: 60,
-    pdfPath: require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
+    pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
     thumbnailPath: require('../assets/images/albums/DB1_0.png'),
     hasPdfTemplate: true,
     sections: [], // Пустые секции, так как это готовый PDF
@@ -65,7 +67,7 @@ export const albumTemplates: AlbumTemplate[] = [
     description: 'Дневник беременности А5 в мягкой обложке',
     category: 'pregnancy',
     pages: 60,
-    pdfPath: require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
+    pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
     thumbnailPath: require('../assets/images/albums/DB1_п.png'),
     hasPdfTemplate: true,
     sections: [], // Пустые секции, так как это готовый PDF

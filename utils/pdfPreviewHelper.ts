@@ -2,6 +2,7 @@
  * Утилиты для работы с preview версиями PDF файлов
  */
 
+import { githubRawFileUrl } from '@/utils/githubRawAssets';
 import { getPreviewFileName, getPdfAsset } from './pdfPreloader';
 
 /**
@@ -33,7 +34,7 @@ export const getPdfPath = (
   if (preferPreview && hasPreviewVersion(baseFileName)) {
     return `./assets/pdfs/preview/${getPreviewFileName(baseFileName)}`;
   }
-  return `./assets/pdfs/${baseFileName}`;
+  return githubRawFileUrl(`assets/pdfs/${baseFileName}`);
 };
 
 /**

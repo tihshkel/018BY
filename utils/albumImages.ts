@@ -1,5 +1,6 @@
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
+import { GITHUB_RAW_MAIN_BASE } from '@/utils/githubRawAssets';
 
 /**
  * Маппинг изображений страниц альбомов
@@ -11,7 +12,7 @@ type RemoteAlbumSpec = {
   pageCount: number;
 };
 
-const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/main';
+const GITHUB_REPO_BASE = GITHUB_RAW_MAIN_BASE;
 const REMOTE_ALBUM_CACHE_DIR = `${FileSystem.cacheDirectory}remote_album_pages/`;
 
 const pregnancy60Preview = require('@/assets/pdfs/preview/pregnancy_60_preview.png');
