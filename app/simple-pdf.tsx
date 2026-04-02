@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import * as FileSystem from 'expo-file-system';
+import { cacheDirectory, downloadAsync } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
 
@@ -31,8 +31,8 @@ export default function SimplePdfScreen() {
       setIsLoading(true);
       
       const remoteUrl = githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf');
-      const cachePath = `${FileSystem.cacheDirectory}simple_pdf_test.pdf`;
-      const dl = await FileSystem.downloadAsync(remoteUrl, cachePath);
+      const cachePath = `${cacheDirectory}simple_pdf_test.pdf`;
+      const dl = await downloadAsync(remoteUrl, cachePath);
       const assetUri = dl.uri;
       
       // Для тестирования показываем информацию о файле

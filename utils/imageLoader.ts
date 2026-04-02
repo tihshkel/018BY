@@ -1,5 +1,9 @@
 import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
+import {
+  documentDirectory,
+  getInfoAsync,
+  readDirectoryAsync,
+} from 'expo-file-system/legacy';
 
 /**
  * Маппинг альбомов к папкам с изображениями
@@ -85,17 +89,17 @@ export async function loadAlbumImagesFromFileSystem(albumId: string): Promise<st
     const images: string[] = [];
     
     // Путь к папке с изображениями в FileSystem
-    const folderPath = `${FileSystem.documentDirectory}albums/${folderName}/`;
+    const folderPath = `${documentDirectory}albums/${folderName}/`;
     
     // Проверяем существование папки
-    const folderInfo = await FileSystem.getInfoAsync(folderPath);
+    const folderInfo = await getInfoAsync(folderPath);
     if (!folderInfo.exists) {
       console.warn(`Папка не найдена: ${folderPath}`);
       return [];
     }
     
     // Читаем файлы в папке
-    const files = await FileSystem.readDirectoryAsync(folderPath);
+    const files = await readDirectoryAsync(folderPath);
     
     // Сортируем файлы по имени
     const sortedFiles = files

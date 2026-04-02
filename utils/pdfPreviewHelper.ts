@@ -32,7 +32,13 @@ export const getPdfPath = (
   
   // Если asset не найден, возвращаем путь как строку
   if (preferPreview && hasPreviewVersion(baseFileName)) {
-    return `./assets/pdfs/preview/${getPreviewFileName(baseFileName)}`;
+    const previewName = getPreviewFileName(baseFileName);
+    if (previewName === 'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf') {
+      return './assets/app-bundled/pregnancy_60_preview.pdf';
+    }
+    if (previewName === 'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf') {
+      return './assets/app-bundled/pregnancy_a5_preview.pdf';
+    }
   }
   return githubRawFileUrl(`assets/pdfs/${baseFileName}`);
 };

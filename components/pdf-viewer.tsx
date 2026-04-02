@@ -33,8 +33,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Только лёгкие preview-PDF в бандле; полные шаблоны — по HTTPS (см. githubRawFileUrl).
 const PDF_ASSETS = {
-  'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf'),
-  'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf'),
+  'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('@/assets/app-bundled/pregnancy_60_preview.pdf'),
+  'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('@/assets/app-bundled/pregnancy_a5_preview.pdf'),
 };
 
 export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }: PdfViewerProps) {

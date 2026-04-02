@@ -3,8 +3,8 @@ import { Asset } from 'expo-asset';
 
 // В бандле остаются только preview; полные PDF не упаковываем (лимит Play 200 MB).
 const PDF_ASSETS = {
-  'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf'),
-  'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('../assets/pdfs/preview/Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf'),
+  'Блок БЕРЕМЕННОСТЬ 60 стр_preview.pdf': require('@/assets/app-bundled/pregnancy_60_preview.pdf'),
+  'Блок БЕРЕМЕННОСТЬ A5 другой блок_preview.pdf': require('@/assets/app-bundled/pregnancy_a5_preview.pdf'),
 };
 
 // Кэш для предзагруженных PDF файлов

@@ -5,6 +5,7 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*'],
+    // Node-скрипты: __dirname/Buffer не определены в RN-окружении ESLint
+    ignores: ['dist/*', 'dist-export-test/**', 'scripts/**'],
   },
 ]);

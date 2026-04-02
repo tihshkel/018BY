@@ -1,5 +1,10 @@
 import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
+import {
+  cacheDirectory,
+  downloadAsync,
+  getInfoAsync,
+  makeDirectoryAsync,
+} from 'expo-file-system/legacy';
 import { GITHUB_RAW_MAIN_BASE } from '@/utils/githubRawAssets';
 
 /**
@@ -13,10 +18,10 @@ type RemoteAlbumSpec = {
 };
 
 const GITHUB_REPO_BASE = GITHUB_RAW_MAIN_BASE;
-const REMOTE_ALBUM_CACHE_DIR = `${FileSystem.cacheDirectory}remote_album_pages/`;
+const REMOTE_ALBUM_CACHE_DIR = `${cacheDirectory}remote_album_pages/`;
 
-const pregnancy60Preview = require('@/assets/pdfs/preview/pregnancy_60_preview.png');
-const pregnancyA5Preview = require('@/assets/pdfs/preview/pregnancy_a5_preview.png');
+const pregnancy60Preview = require('@/assets/app-bundled/pregnancy_60_preview.png');
+const pregnancyA5Preview = require('@/assets/app-bundled/pregnancy_a5_preview.png');
 
 function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
   switch (albumId) {
@@ -43,9 +48,9 @@ function pageFileName(pageNumber: number): string {
 }
 
 async function ensureRemoteAlbumCacheDir(): Promise<void> {
-  const dirInfo = await FileSystem.getInfoAsync(REMOTE_ALBUM_CACHE_DIR);
+  const dirInfo = await getInfoAsync(REMOTE_ALBUM_CACHE_DIR);
   if (!dirInfo.exists) {
-    await FileSystem.makeDirectoryAsync(REMOTE_ALBUM_CACHE_DIR, { intermediates: true });
+    await makeDirectoryAsync(REMOTE_ALBUM_CACHE_DIR, { intermediates: true });
   }
 }
 
@@ -55,11 +60,11 @@ async function downloadRemotePageToCache(folderPath: string, fileName: string): 
     const safeFolder = encodeURIComponent(folderPath);
     const localPath = `${REMOTE_ALBUM_CACHE_DIR}${safeFolder}__${fileName}`;
 
-    const info = await FileSystem.getInfoAsync(localPath);
+    const info = await getInfoAsync(localPath);
     if (info.exists) return localPath;
 
     const url = `${GITHUB_REPO_BASE}/${encodeURI(`${folderPath}/${fileName}`)}`;
-    const res = await FileSystem.downloadAsync(url, localPath);
+    const res = await downloadAsync(url, localPath);
     return res.uri;
   } catch (error) {
     console.warn('[albumImages] Не удалось скачать страницу', folderPath, fileName, error);

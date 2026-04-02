@@ -37,14 +37,14 @@ const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
     title: 'Блок БЕРЕМЕННОСТЬ 60 стр',
     description: '60 страниц для записи всех важных моментов',
     pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
-    previewImagePath: require('../assets/pdfs/preview/pregnancy_60_preview.png'),
+    previewImagePath: require('@/assets/app-bundled/pregnancy_60_preview.png'),
   },
   {
     id: 'pregnancy_a5',
     title: 'Блок БЕРЕМЕННОСТЬ A5 другой блок',
     description: 'Альтернативный вариант в формате A5',
     pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
-    previewImagePath: require('../assets/pdfs/preview/pregnancy_a5_preview.png'),
+    previewImagePath: require('@/assets/app-bundled/pregnancy_a5_preview.png'),
   },
 ];
 

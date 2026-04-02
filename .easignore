@@ -26,9 +26,9 @@ ios/Pods/
 /albums/pregnant/
 /albums/diary/
 
-# Exclude heavy PDF content; keep only small preview assets.
+# Exclude heavy PDF content. Лёгкие превью для бандла лежат в assets/app-bundled/
+# (вне /assets/pdfs/**), чтобы EAS всегда их загружал — отрицания в ignore легко сломать.
 /assets/pdfs/**
-!/assets/pdfs/preview/**
 
 **/*.mp4
 **/*.mov
