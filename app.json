@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "018BY",
-"slug": "018by",
+    "slug": "018by",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,9 +9,13 @@
     "newArchEnabled": true,
     "description": "Создавайте красивые фотоальбомы для беременности и детства. Сохраняйте самые важные моменты жизни в цифровом формате и экспортируйте в PDF для печати.",
     "sdkVersion": "54.0.0",
-"platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "primaryColor": "#C9A89A",
-"ios": {
+    "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
       "buildNumber": "1",
@@ -29,7 +33,7 @@
         "usesNonExemptEncryption": false
       }
     },
-"android": {
+    "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FAF8F5",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -56,7 +60,7 @@
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
-"plugins": [
+    "plugins": [
       "expo-router",
       "expo-camera",
       [
@@ -106,7 +110,7 @@
       "typedRoutes": true,
       "reactCompiler": false
     },
-"extra": {
+    "extra": {
       "eas": {
         "projectId": "cb0b872b-bcbb-450d-aee7-e2c3148df391"
       },
