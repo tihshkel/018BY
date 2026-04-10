@@ -110,8 +110,8 @@ export const AlbumImages = {
   SVA9W: require('@/assets/images/albums/SVA_9.png'),
   
   // Прочие
-  розовый: require('@/assets/images/albums/розовый.png'),
-  пилот: require('@/assets/images/albums/пилот.png'),
+  розовый: require('@/assets/images/albums/family_rose_thumb.png'),
+  пилот: require('@/assets/images/albums/pilot_thumb.png'),
   '2': require('@/assets/images/albums/2.png'),
   '2.3': require('@/assets/images/albums/2.3.png'),
 } as const;
