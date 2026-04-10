@@ -15,13 +15,13 @@
     "check:assets-png": "node ./scripts/verify-assets-png.cjs",
     "check:bundle-android": "expo export --platform android",
     "check:eas-android": "npm run check:assets-png && npm run lint && npm run check:bundle-android",
-    "build:ios": "eas build --profile production --platform ios",
-    "build:android": "eas build --profile production --platform android",
-    "build:preview:ios": "eas build --profile preview --platform ios",
-    "build:preview:android": "eas build --profile preview --platform android",
-    "submit:ios": "eas submit --platform ios",
-    "submit:android": "eas submit --platform android",
-    "build:configure": "eas build:configure"
+    "build:ios": "npx eas-cli build --profile production --platform ios",
+    "build:android": "npx eas-cli build --profile production --platform android",
+    "build:preview:ios": "npx eas-cli build --profile preview --platform ios",
+    "build:preview:android": "npx eas-cli build --profile preview --platform android",
+    "submit:ios": "npx eas-cli submit --platform ios",
+    "submit:android": "npx eas-cli submit --platform android",
+    "build:configure": "npx eas-cli build:configure"
   },
   "dependencies": {
     "@config-plugins/react-native-blob-util": "^12.0.0",
