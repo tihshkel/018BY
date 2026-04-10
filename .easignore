@@ -18,6 +18,9 @@ android/.cxx/
 android/**/build/
 ios/Pods/
 
+# Prebuild / CNG: не заливать закоммиченный ios/ на EAS — конфиг из app.json синхронизируется через prebuild
+/ios
+
 # Exclude heavy album subdirectories (export PDFs, full page sets).
 # Keep: index.ts, kids first/last pages, DB cover pages.
 /albums/export/

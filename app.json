@@ -8,7 +8,6 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "description": "Создавайте красивые фотоальбомы для беременности и детства. Сохраняйте самые важные моменты жизни в цифровом формате и экспортируйте в PDF для печати.",
-    "privacy": "public",
     "sdkVersion": "54.0.0",
 "platforms": ["ios", "android", "web"],
     "primaryColor": "#C9A89A",
@@ -16,7 +15,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
       "buildNumber": "1",
-      "deploymentTarget": "15.1",
       "runtimeVersion": {
         "policy": "appVersion"
       },
@@ -87,6 +85,14 @@
         "expo-image-picker",
         {
           "photosPermission": "Приложение использует ваши фотографии для создания альбомов и сохранения проектов."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
         }
       ],
       "@config-plugins/react-native-pdf",
