@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "description": "Создавайте красивые фотоальбомы для беременности и детства. Сохраняйте самые важные моменты жизни в цифровом формате и экспортируйте в PDF для печати.",
     "sdkVersion": "54.0.0",
     "platforms": [
