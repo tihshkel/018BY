@@ -15,6 +15,9 @@ module.exports = ({ config } = {}) => {
     expo: {
       ...base,
       ...fromCli,
+      // `config` от Expo CLI может содержать `newArchEnabled: false` и перезаписать app.json —
+      // тогда на EAS падает pod install (Reanimated 4: assert_new_architecture_enabled).
+      newArchEnabled: base.newArchEnabled,
       extra: {
         ...(base.extra ?? {}),
         ...(fromCli.extra ?? {}),

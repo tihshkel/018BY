@@ -8,6 +8,9 @@
       "channel": "development",
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "RCT_NEW_ARCH_ENABLED": "1"
+      },
       "ios": {
         "simulator": true
       },
@@ -26,7 +29,8 @@
         "buildType": "apk"
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "RCT_NEW_ARCH_ENABLED": "1"
       }
     },
     "production": {
@@ -41,7 +45,8 @@
         "gradleCommand": ":app:bundleRelease"
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "RCT_NEW_ARCH_ENABLED": "1"
       }
     }
   },
