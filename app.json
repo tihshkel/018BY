@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "1",
+      "buildNumber": "21",
       "runtimeVersion": {
         "policy": "appVersion"
       },
