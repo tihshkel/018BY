@@ -21,6 +21,7 @@
     "build:preview:ios": "npx eas-cli build --profile preview --platform ios",
     "build:preview:android": "npx eas-cli build --profile preview --platform android",
     "submit:ios": "npx eas-cli submit --platform ios",
+    "submit:ios:latest": "npx eas-cli submit -p ios --profile production --latest --wait --verbose",
     "submit:android": "npx eas-cli submit --platform android",
     "build:configure": "npx eas-cli build:configure",
     "postinstall": "patch-package"
