@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+index 1111111..2222222 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+@@ -16,6 +16,10 @@
+ #include <react/renderer/scheduler/Scheduler.h>
+ #include <react/renderer/uimanager/UIManagerBinding.h>
+ 
++#if REACT_NATIVE_MINOR_VERSION >= 81
++#include <react/renderer/bridging/bridging.h>
++#endif
++
+ #include <functional>
+ #include <iomanip>
+ #include <sstream>
+@@ -27,10 +31,10 @@
+ namespace reanimated {
+ 
+ #if REACT_NATIVE_MINOR_VERSION >= 81
+-static inline std::shared_ptr<const ShadowNode> shadowNodeFromValue(
+-    jsi::Runtime &rt,
+-    const jsi::Value &shadowNodeWrapper) {
+-  return Bridging<std::shared_ptr<const ShadowNode>>::fromJs(
++static inline std::shared_ptr<const facebook::react::ShadowNode>
++shadowNodeFromValue(jsi::Runtime &rt, const jsi::Value &shadowNodeWrapper) {
++  return facebook::react::Bridging<
++      std::shared_ptr<const facebook::react::ShadowNode>>::fromJs(
+       rt, shadowNodeWrapper);
+ }
+ #endif
