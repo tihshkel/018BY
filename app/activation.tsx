@@ -7,10 +7,10 @@ import {
   Platform,
   Dimensions,
   InteractionManager,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -176,13 +176,10 @@ export default function ActivationScreen() {
         <View style={styles.centerContent}>
           <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
             <Image
-              source={require('@/assets/images/logo-for-activaty-page.png')}
+              source={require('../assets/images/splash-icon.png')}
               style={styles.logoImage}
-              contentFit="contain"
-              priority="high"
-              cachePolicy="disk"
-              transition={0}
-              fadeDuration={0}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
           </Animated.View>
 

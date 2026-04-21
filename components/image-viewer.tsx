@@ -533,6 +533,7 @@ export default function ImageViewer({
                         fadeDuration={0}
                         cachePolicy="disk"
                         priority={index < 3 ? 'high' : 'normal'}
+                        recyclingKey={`${albumName}-page-${index}`}
                       />
 
                       <PdfAnnotations

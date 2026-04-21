@@ -7,10 +7,10 @@ import {
   Platform,
   Linking,
   ScrollView,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -71,13 +71,10 @@ export default function PurchaseScreen() {
           {/* Логотип */}
           <View style={styles.header}>
             <Image
-              source={require('@/assets/images/logo-for-activaty-page.png')}
+              source={require('../assets/images/splash-icon.png')}
               style={styles.logoImage}
-              contentFit="contain"
-              priority="high"
-              cachePolicy="disk"
-              transition={0}
-              fadeDuration={0}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
             />
           </View>
 

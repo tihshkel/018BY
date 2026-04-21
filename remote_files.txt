@@ -521,7 +521,7 @@ assets/images/android-icon-foreground.png
 assets/images/android-icon-monochrome.png
 assets/images/favicon.png
 assets/images/icon.png
-assets/images/logo-for-activaty-page.png
+assets/images/splash-icon.png
 assets/images/onboarding1.jpg
 assets/images/onboarding2.jpg
 assets/images/onboarding3.jpg

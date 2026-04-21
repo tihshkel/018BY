@@ -698,9 +698,8 @@ export default function EditAlbumScreen() {
           ).then((nextUris) => {
             const filtered = nextUris.filter((uri): uri is string => uri !== null);
             setImages((prev) => {
-              const combined = [...prev, ...filtered];
-              const unique = combined.filter((uri, idx) => combined.indexOf(uri) === idx);
-              return unique;
+              // Не дедуплицируем по URI: у разных страниц один и тот же файл (шаблон) — законно.
+              return [...prev, ...filtered];
             });
           }).catch(() => {});
         }

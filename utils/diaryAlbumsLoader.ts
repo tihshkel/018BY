@@ -259,25 +259,18 @@ export async function getDiaryInteriorImageUris(interiorId: string): Promise<str
   }
 
   try {
-    // Параллельная загрузка всех изображений для максимальной скорости
-    // Используем Promise.allSettled для обработки ошибок без остановки загрузки
-    const assetPromises = interior.images.map(async (imageModule) => {
-      try {
-        const asset = Asset.fromModule(imageModule as any);
-        // downloadAsync уже оптимизирован для параллельной загрузки
-        await asset.downloadAsync();
-        return asset.localUri || asset.uri;
-      } catch (error) {
-        console.warn(`[Diary Loader] Ошибка загрузки изображения:`, error);
-        return null;
-      }
-    });
-
-    // Используем Promise.all для максимальной параллельной загрузки
-    const results = await Promise.all(assetPromises);
-    const uris = results.filter((uri): uri is string => uri !== null);
-
-    return uris.length > 0 ? uris : null;
+    // Все слоты могут ссылаться на один и тот же require (заглушка в production).
+    // Параллельный downloadAsync по одному модулю даёт гонки; достаточно одной загрузки.
+    const firstModule = interior.images[0];
+    const asset = Asset.fromModule(firstModule as any);
+    await asset.downloadAsync();
+    const uri = asset.localUri || asset.uri;
+    if (!uri) {
+      return null;
+    }
+    const pageCount = interior.pages > 0 ? interior.pages : interior.images.length;
+    // Каждая страница — отдельный элемент массива (порядок = номер страницы), URI может совпадать.
+    return Array.from({ length: pageCount }, () => uri);
   } catch (error) {
     console.error(`[Diary Loader] Ошибка при загрузке изображений внутренней части ${interiorId}:`, error);
     return null;

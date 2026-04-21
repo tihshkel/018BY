@@ -4,9 +4,10 @@
  */
 
 // Логотипы
+/** Тот же логотип, что на splash (`app.json`); отдельный `logo-for-activaty-page.png` был белой заглушкой. */
 export const LogoImages = {
-  activation: require('@/assets/images/logo-for-activaty-page.png'),
-  purchase: require('@/assets/images/logo-for-activaty-page.png'),
+  activation: require('../assets/images/splash-icon.png'),
+  purchase: require('../assets/images/splash-icon.png'),
 } as const;
 
 // Онбординг
