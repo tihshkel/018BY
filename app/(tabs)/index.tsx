@@ -2,6 +2,7 @@ import { getAlbumTemplateById } from '@/albums';
 import { getCoverForExport } from '@/utils/coverMapping';
 import { generateAccessCode } from '@/utils/accessCodeGenerator';
 import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
+import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -411,7 +412,28 @@ export default function HomeScreen() {
         const updatedProjects = projectsList.filter(
           (p: any) => String(p.id) !== projectId
         );
-        await AsyncStorage.setItem('@user_projects', JSON.stringify(updatedProjects));
+        const updatedJson = JSON.stringify(updatedProjects);
+        await AsyncStorage.setItem('@user_projects', updatedJson);
+
+        // Удаляем проект в Supabase + обновляем облачный @user_projects,
+        // иначе pullLatestFromCloud подтянет проект обратно.
+        try {
+          const accessCode = await AsyncStorage.getItem('@access_code');
+          if (accessCode && isSupabaseConfigured()) {
+            const delRes = await deleteProjectInSupabase({
+              accessCode,
+              projectId,
+              updatedUserProjectsJson: updatedJson,
+            });
+            if (!delRes.success) {
+              console.warn('[Supabase] deleteProjectInSupabase failed:', delRes.error);
+            }
+          }
+        } catch (e) {
+          console.warn('[Supabase] deleteProjectInSupabase exception:', e);
+        }
+
+        // На всякий случай пушим core (напоминания/настройки). Но список проектов уже обновили выше.
         await pushAccountDataToCloud();
         scheduleSyncToCloud();
       }

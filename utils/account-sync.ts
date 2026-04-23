@@ -491,12 +491,12 @@ export function scheduleSyncToCloud(): void {
  */
 export async function ensureSyncReady(): Promise<void> {
   try {
+    const isActivated = await AsyncStorage.getItem('@is_activated');
+    if (isActivated !== 'true') return;
     let accessCode = await AsyncStorage.getItem('@access_code');
-    if (!accessCode) {
-      const { generateAccessCode } = await import('@/utils/accessCode');
-      accessCode = generateAccessCode();
-      await AsyncStorage.setItem('@access_code', accessCode);
-    }
+    // Важно: не генерируем код "на лету" при каждом старте/фокусе, иначе будем плодить аккаунты в БД.
+    // Код должен появляться только в явных флоу (ввод/активация/регистрация).
+    if (!accessCode) return;
     let userName = await AsyncStorage.getItem('@user_name');
     if (!userName || !userName.trim()) {
       userName = 'Пользователь';
@@ -521,12 +521,10 @@ const SYNC_RETRY_ATTEMPTS = 5;
 const SYNC_RETRY_DELAY_MS = 2500;
 
 async function ensureAccessCodeAndName(): Promise<string> {
-  let accessCode = await AsyncStorage.getItem('@access_code');
-  if (!accessCode) {
-    const { generateAccessCode } = await import('@/utils/accessCode');
-    accessCode = generateAccessCode();
-    await AsyncStorage.setItem('@access_code', accessCode);
-  }
+  const isActivated = await AsyncStorage.getItem('@is_activated');
+  if (isActivated !== 'true') return '';
+  const accessCode = await AsyncStorage.getItem('@access_code');
+  if (!accessCode) return '';
   const existingName = await AsyncStorage.getItem('@user_name');
   if (!existingName || !existingName.trim()) {
     await AsyncStorage.setItem('@user_name', 'Пользователь');
@@ -564,6 +562,9 @@ async function pushAccountDataToCloudOnce(
   projectIdsToSync: string[] = []
 ): Promise<PushToCloudResult> {
   const accessCode = await ensureAccessCodeAndName();
+  if (!accessCode) {
+    return { ok: false, error: 'NOT_ACTIVATED' };
+  }
   await ensureSyncReady();
 
   const projectIds = new Set(projectIdsToSync.filter(Boolean));

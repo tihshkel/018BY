@@ -78,6 +78,8 @@ google-service-account.json
 # Logs
 *.log
 logs/
+build_log_*.txt
+build_*.json
 
 # Editor directories and files
 .vscode/*

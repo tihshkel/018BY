@@ -6,8 +6,9 @@ const DEFAULT_USER_NAME = 'Пользователь';
 
 /**
  * Сохраняет код доступа, имя и (опционально) URL аватара в Supabase.
- * Не создаёт/не обновляет запись, если имя не задано или осталось по умолчанию «Пользователь» —
- * так в таблице не появляются строки с дефолтным именем.
+ * Важно: строка в `accounts` должна существовать ДО записи в `account_sync`/`account_project_data`
+ * (FK constraint). Поэтому при первом входе допускаем запись с дефолтным именем «Пользователь»,
+ * но не затираем уже сохранённое пользовательское имя дефолтным.
  */
 export async function saveAccountToSupabase(
   accessCode: string,
@@ -21,13 +22,18 @@ export async function saveAccountToSupabase(
 
   const name = (userName || '').trim();
   if (!name || name === DEFAULT_USER_NAME) {
-    return { success: true };
+    // Если имя не задано/дефолтное, всё равно гарантируем наличие строки в accounts,
+    // но не затираем уже записанное нормальное имя.
+    const existing = await getAccountFromSupabase(accessCode);
+    if (existing?.userName && existing.userName.trim() && existing.userName.trim() !== DEFAULT_USER_NAME) {
+      return { success: true };
+    }
   }
 
   try {
     const row: Record<string, unknown> = {
       access_code: accessCode,
-      user_name: name,
+      user_name: name || DEFAULT_USER_NAME,
       updated_at: new Date().toISOString(),
     };
     // В БД пишем только валидный https-URL. file:// или пустое значение не передаём — тогда старый аватар в БД не затирается
@@ -292,5 +298,45 @@ export async function deleteProjectDataNotInList(
   } catch (e) {
     console.warn('[Supabase] Ошибка удаления старых проектов:', e);
     return { success: false, error: String(e) };
+  }
+}
+
+/**
+ * Удаляет конкретный проект в облаке и обновляет список `@user_projects` в core.
+ * Нужен для кейса "удалил локально, но проект снова подтягивается из Supabase".
+ */
+export async function deleteProjectInSupabase(params: {
+  accessCode: string;
+  projectId: string;
+  updatedUserProjectsJson: string; // JSON строка (массив проектов)
+}): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) return { success: true };
+
+  const accessCode = params.accessCode;
+  const projectId = String(params.projectId);
+
+  try {
+    // 1) Обновляем core-данные: фиксируем новый список проектов
+    const core = (await getCoreDataFromSupabase(accessCode)) ?? {};
+    core['@user_projects'] = params.updatedUserProjectsJson;
+    const coreRes = await pushCoreDataToSupabase(accessCode, core);
+    if (!coreRes.success) {
+      return { success: false, error: coreRes.error ?? 'Не удалось обновить core данные' };
+    }
+
+    // 2) Удаляем строку проекта
+    const { error } = await supabase
+      .from('account_project_data')
+      .delete()
+      .eq('access_code', accessCode)
+      .eq('project_id', projectId);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
 }

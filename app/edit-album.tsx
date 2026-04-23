@@ -4,6 +4,7 @@ import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
 import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
@@ -98,7 +99,14 @@ export default function EditAlbumScreen() {
     images: string[];
     annotations: Annotation[];
     coverAnnotations: Annotation[];
+    projectMetaJson?: string | null;
   } | null>(null);
+
+  // Флаг "пользователь явно сохранял этот проект".
+  // Нужен, чтобы пустые/черновые проекты можно было удалять целиком при выходе "Не сохранять",
+  // а для сохранённых — откатывать только последние изменения.
+  const userCommittedRef = React.useRef(false);
+  const committedKey = storageId ? `@project_user_committed_${storageId}` : null;
 
   const getFontDisplayName = (fontId?: string) => {
     if (!fontId || fontId === 'default') return 'Системный';
@@ -119,9 +127,20 @@ export default function EditAlbumScreen() {
         images: [...images],
         annotations: JSON.parse(JSON.stringify(annotations)),
         coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
+        projectMetaJson: null,
       };
     }
   }, [isLoading, images, annotations, coverAnnotations]);
+
+  // Подхватываем флаг "проект уже сохраняли" из AsyncStorage
+  useEffect(() => {
+    if (!committedKey) return;
+    AsyncStorage.getItem(committedKey)
+      .then((v) => {
+        userCommittedRef.current = v === 'true';
+      })
+      .catch(() => {});
+  }, [committedKey]);
 
   // Загружаем последний стиль текста: сначала из проекта, потом из глобального
   // Шрифт всегда дополнительно читаем из @last_text_font_family — его часто перезаписывают без fontFamily
@@ -1097,7 +1116,7 @@ export default function EditAlbumScreen() {
   };
 
   // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). Возвращает результат синхронизации с БД.
-  const saveAllData = async (opts?: { silent?: boolean }): Promise<{ pushOk: boolean; pushError?: string }> => {
+  const saveAllData = async (opts?: { silent?: boolean; markCommitted?: boolean }): Promise<{ pushOk: boolean; pushError?: string }> => {
     const silent = opts?.silent ?? false;
     const out = { pushOk: false, pushError: undefined as string | undefined };
 
@@ -1148,7 +1167,13 @@ export default function EditAlbumScreen() {
         images: [...images],
         annotations: JSON.parse(JSON.stringify(annotations)),
         coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
+        projectMetaJson: await AsyncStorage.getItem(`@project_${effectiveId}`),
       };
+
+      if (opts?.markCommitted && effectiveId) {
+        userCommittedRef.current = true;
+        await AsyncStorage.setItem(`@project_user_committed_${effectiveId}`, 'true');
+      }
 
       // 2. Обновляем @user_projects — гарантируем, что проект есть в списке
       if (effectiveId === storageId) {
@@ -1275,9 +1300,90 @@ export default function EditAlbumScreen() {
     return false;
   };
 
+  const hasUserContent = (): boolean => {
+    // "Пустой проект" для пользователя: нет добавленных фото/текста/рисунков.
+    // Шаблонные страницы (images) не считаем контентом пользователя.
+    const photoCount = countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations);
+    if (photoCount > 0) return true;
+    const hasText = [...annotations, ...coverAnnotations].some(
+      (a: any) => a?.type === 'text' && typeof a?.text === 'string' && a.text.trim().length > 0
+    );
+    if (hasText) return true;
+    const hasDrawing = [...annotations, ...coverAnnotations].some((a: any) => a?.type === 'drawing');
+    return hasDrawing;
+  };
+
+  const deleteProjectEverywhere = async (projectId: string) => {
+    const pid = String(projectId);
+    const keysToRemove = [
+      `@project_${pid}`,
+      `@project_images_${pid}`,
+      `@project_annotations_${pid}`,
+      `@project_cover_annotations_${pid}`,
+      `@project_viewport_${pid}`,
+      `@project_cover_viewport_${pid}`,
+      `@project_pdf_${pid}`,
+      `@project_last_text_style_${pid}`,
+      `@project_sections_${pid}`,
+      `@tutorial_shown_${pid}`,
+      `@project_user_committed_${pid}`,
+    ];
+    await AsyncStorage.multiRemove(keysToRemove);
+
+    const raw = await AsyncStorage.getItem('@user_projects');
+    const list: any[] = (() => {
+      try {
+        const p = raw ? JSON.parse(raw) : [];
+        return Array.isArray(p) ? p : [];
+      } catch {
+        return [];
+      }
+    })();
+    const updated = list.filter((p: any) => String(p?.id) !== pid);
+    const updatedJson = JSON.stringify(updated);
+    await AsyncStorage.setItem('@user_projects', updatedJson);
+
+    try {
+      const accessCode = await AsyncStorage.getItem('@access_code');
+      if (accessCode && isSupabaseConfigured()) {
+        await deleteProjectInSupabase({
+          accessCode,
+          projectId: pid,
+          updatedUserProjectsJson: updatedJson,
+        });
+      }
+    } catch {
+      // не блокируем локальное удаление
+    }
+  };
+
+  const discardToLastSaved = async (projectId: string) => {
+    const saved = lastSavedStateRef.current;
+    if (!saved) return;
+    const pid = String(projectId);
+
+    setImages([...saved.images]);
+    setAnnotations(JSON.parse(JSON.stringify(saved.annotations)));
+    setCoverAnnotations(JSON.parse(JSON.stringify(saved.coverAnnotations)));
+
+    await Promise.all([
+      AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(saved.images)),
+      AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(saved.annotations)),
+      AsyncStorage.setItem(`@project_cover_annotations_${pid}`, JSON.stringify(saved.coverAnnotations)),
+      saved.projectMetaJson != null
+        ? AsyncStorage.setItem(`@project_${pid}`, saved.projectMetaJson)
+        : Promise.resolve(),
+    ]);
+  };
+
   const handleBack = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     
+    // Если проект ещё не был "сохранён пользователем" и он пустой — при выходе удаляем его целиком.
+    // Это покрывает кейс: "создал новый, ничего не заполнил, вышел — не должен оставаться в списке".
+    const canHardDeleteEmpty =
+      !!storageId && userCommittedRef.current === false && hasUserContent() === false;
+
     // Проверяем наличие несохраненных изменений
     if (hasUnsavedChanges()) {
       Alert.alert(
@@ -1291,9 +1397,17 @@ export default function EditAlbumScreen() {
           {
             text: 'Не сохранять',
             style: 'destructive',
-            onPress: () => {
-              // Переходим на главную страницу без сохранения
-              router.replace('/(tabs)');
+            onPress: async () => {
+              try {
+                if (canHardDeleteEmpty && storageId) {
+                  await deleteProjectEverywhere(storageId);
+                } else if (storageId && userCommittedRef.current) {
+                  // Было сохранение раньше — откатываем только последние правки
+                  await discardToLastSaved(storageId);
+                }
+              } finally {
+                router.replace('/(tabs)');
+              }
             },
           },
           {
@@ -1301,7 +1415,7 @@ export default function EditAlbumScreen() {
             onPress: async () => {
               try {
                 await ensureSyncReady();
-                const result = await saveAllData({ silent: true });
+                const result = await saveAllData({ silent: true, markCommitted: true });
                 if (result.pushOk) {
                   router.replace('/(tabs)');
                 } else {
@@ -1329,8 +1443,18 @@ export default function EditAlbumScreen() {
         ]
       );
     } else {
-      // Если изменений нет, просто переходим на главную страницу
-      router.replace('/(tabs)');
+      // Если изменений нет:
+      // - пустой новый проект удаляем
+      // - иначе просто выходим
+      if (canHardDeleteEmpty && storageId) {
+        try {
+          await deleteProjectEverywhere(storageId);
+        } finally {
+          router.replace('/(tabs)');
+        }
+      } else {
+        router.replace('/(tabs)');
+      }
     }
   };
 

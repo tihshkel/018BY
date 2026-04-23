@@ -10,6 +10,7 @@ import {
   Modal,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { Asset } from 'expo-asset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -149,7 +150,38 @@ export default function PaperCatalogTemplatesScreen() {
     return filtered;
   }, [categoryName, selectedCategory, selectedCoverType]);
 
-  // Предзагрузка всех изображений для выбранной категории
+  // Лёгкая предзагрузка 2–3 первых изображений (в т.ч. локальных require),
+  // чтобы первый экран каталога не "мигал" в релизе и в Expo Go.
+  // Не предзагружаем всё сразу — это тяжело.
+  useFocusEffect(
+    React.useCallback(() => {
+      const preloadTopImages = async () => {
+        if (categoryItems.length === 0) return;
+        const top = categoryItems
+          .map((i) => i.cover)
+          .filter(Boolean)
+          .slice(0, 3) as Array<string | number>;
+
+        await Promise.all(
+          top.map(async (src) => {
+            try {
+              if (typeof src === 'string') {
+                await Image.prefetch(src);
+              } else {
+                await Asset.fromModule(src).downloadAsync();
+              }
+            } catch {
+              // ignore
+            }
+          })
+        );
+      };
+
+      preloadTopImages();
+    }, [categoryItems])
+  );
+
+  // Предзагрузка всех изображений для выбранной категории (только URL)
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
@@ -163,13 +195,13 @@ export default function PaperCatalogTemplatesScreen() {
             .map(item => item.cover!);
 
           await Promise.all(
-            imagesToPreload.map(imageSource => {
+            imagesToPreload.map((imageSource) => {
               if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch(err => {
+                return Image.prefetch(imageSource).catch((err) => {
                   console.warn('⚠️ Ошибка предзагрузки изображения:', err);
                 });
               }
-              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
+              // Локальные require предзагружаем только первые 2–3 (см. preloadTopImages)
               return Promise.resolve();
             })
           );
