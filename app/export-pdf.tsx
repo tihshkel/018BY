@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
+import * as FileSystemModern from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -50,6 +51,54 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+async function savePdfToAndroidDirectory(params: {
+  sourceUri: string;
+  suggestedFileName: string;
+  successMessage: string;
+}): Promise<void> {
+  const { sourceUri, suggestedFileName, successMessage } = params;
+
+  // 1) SAF: пользователь выбирает папку (например, Downloads), файл пишется прямо туда.
+  const saf: any = (FileSystemModern as any).StorageAccessFramework;
+  if (saf?.requestDirectoryPermissionsAsync && saf?.createFileAsync) {
+    const perms = await saf.requestDirectoryPermissionsAsync();
+    if (perms?.granted && perms?.directoryUri) {
+      const destUri: string = await saf.createFileAsync(
+        perms.directoryUri,
+        suggestedFileName,
+        'application/pdf'
+      );
+
+      const base64 = await FileSystem.readAsStringAsync(sourceUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await FileSystem.writeAsStringAsync(destUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      Alert.alert('Успешно', successMessage);
+      return;
+    }
+  }
+
+  // 2) Fallback: sandbox + системное меню "Поделиться/Сохранить".
+  const sandboxUri = `${FileSystem.documentDirectory}${suggestedFileName}`;
+  await FileSystem.copyAsync({ from: sourceUri, to: sandboxUri });
+
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (isAvailable) {
+    await Sharing.shareAsync(sandboxUri, {
+      mimeType: 'application/pdf',
+      dialogTitle: 'Сохранить PDF',
+      UTI: 'com.adobe.pdf',
+    });
+    return;
+  }
+
+  Alert.alert('Успешно', `Файл сохранён: ${suggestedFileName}`);
+}
 
 interface FormatOption {
   id: string;
@@ -1738,46 +1787,13 @@ export default function ExportPdfScreen() {
 
       // Скачиваем файл
       if (Platform.OS === 'android') {
-        try {
-          const RNBlobUtil = require('react-native-blob-util').default;
-          const { fs, config } = RNBlobUtil;
-          
-          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          
-          const downloadOptions = {
-            fileCache: true,
-            addAndroidDownloads: {
-              useDownloadManager: true,
-              notification: true,
-              title: fileName,
-              description: 'PDF обложка',
-              mime: 'application/pdf',
-              mediaScannable: true,
-              path: `${fs.dirs.DownloadDir}/${fileName}`,
-            },
-          };
-          
-          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
-          await fs.writeFile(tempPath, base64, 'base64');
-          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
-          fs.unlink(tempPath).catch(() => {});
-          
-          Alert.alert('Успешно', `Обложка сохранена в папку "Загрузки": ${fileName}`);
-          setCoverDownloaded(true);
-          setDownloadStep(2);
-        } catch (blobError) {
-          console.warn('react-native-blob-util failed, using fallback:', blobError);
-          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-          await FileSystem.copyAsync({
-            from: pdfUri,
-            to: fileUri,
-          });
-          Alert.alert('Успешно', `Обложка сохранена: ${fileName}`);
-          setCoverDownloaded(true);
-          setDownloadStep(2);
-        }
+        await savePdfToAndroidDirectory({
+          sourceUri: pdfUri,
+          suggestedFileName: fileName,
+          successMessage: `Обложка сохранена: ${fileName}`,
+        });
+        setCoverDownloaded(true);
+        setDownloadStep(2);
       } else if (Platform.OS === 'ios') {
         const isAvailable = await Sharing.isAvailableAsync();
         if (isAvailable) {
@@ -1822,32 +1838,11 @@ export default function ExportPdfScreen() {
     try {
       const fileName = `firstlast_${projectId || 'export'}_${Date.now()}.pdf`;
       if (Platform.OS === 'android') {
-        try {
-          const RNBlobUtil = require('react-native-blob-util').default;
-          const { fs, config } = RNBlobUtil;
-          const base64 = await FileSystem.readAsStringAsync(firstLastPdfUri, { encoding: FileSystem.EncodingType.Base64 });
-          const downloadOptions = {
-            fileCache: true,
-            addAndroidDownloads: {
-              useDownloadManager: true,
-              notification: true,
-              title: fileName,
-              description: 'PDF первая и последняя страница',
-              mime: 'application/pdf',
-              mediaScannable: true,
-              path: `${fs.dirs.DownloadDir}/${fileName}`,
-            },
-          };
-          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
-          await fs.writeFile(tempPath, base64, 'base64');
-          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
-          fs.unlink(tempPath).catch(() => {});
-          Alert.alert('Успешно', `Первая и последняя страница сохранены в папку "Загрузки": ${fileName}`);
-        } catch (blobError) {
-          const destUri = `${FileSystem.documentDirectory}${fileName}`;
-          await FileSystem.copyAsync({ from: firstLastPdfUri, to: destUri });
-          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
-        }
+        await savePdfToAndroidDirectory({
+          sourceUri: firstLastPdfUri,
+          suggestedFileName: fileName,
+          successMessage: `Файл сохранён: ${fileName}`,
+        });
         setFirstLastDownloaded(true);
         setDownloadStep(2);
       } else if (Platform.OS === 'ios') {
@@ -1889,43 +1884,12 @@ export default function ExportPdfScreen() {
       const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       
       if (Platform.OS === 'android') {
-        try {
-          const RNBlobUtil = require('react-native-blob-util').default;
-          const { fs, config } = RNBlobUtil;
-          
-          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          
-          const downloadOptions = {
-            fileCache: true,
-            addAndroidDownloads: {
-              useDownloadManager: true,
-              notification: true,
-              title: fileName,
-              description: 'PDF внутренняя часть',
-              mime: 'application/pdf',
-              mediaScannable: true,
-              path: `${fs.dirs.DownloadDir}/${fileName}`,
-            },
-          };
-          
-          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
-          await fs.writeFile(tempPath, base64, 'base64');
-          await config(downloadOptions).fetch('GET', `file://${tempPath}`);
-          fs.unlink(tempPath).catch(() => {});
-          
-          Alert.alert('Успешно', `Внутренняя часть сохранена в папку "Загрузки": ${fileName}`);
-          setInteriorDownloaded(true);
-        } catch (blobError) {
-          console.warn('react-native-blob-util failed, using fallback:', blobError);
-          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-          await FileSystem.copyAsync({
-            from: pdfUri,
-            to: fileUri,
-          });
-          Alert.alert('Успешно', `Внутренняя часть сохранена: ${fileName}`);
-        }
+        await savePdfToAndroidDirectory({
+          sourceUri: pdfUri,
+          suggestedFileName: fileName,
+          successMessage: `Внутренняя часть сохранена: ${fileName}`,
+        });
+        setInteriorDownloaded(true);
       } else if (Platform.OS === 'ios') {
         const isAvailable = await Sharing.isAvailableAsync();
         if (isAvailable) {
@@ -1967,51 +1931,11 @@ export default function ExportPdfScreen() {
       const fileName = `project_${projectId || 'export'}_${Date.now()}.pdf`;
       
       if (Platform.OS === 'android') {
-        // Для Android используем react-native-blob-util для сохранения в папку Downloads
-        try {
-          const RNBlobUtil = require('react-native-blob-util').default;
-          const { fs, config } = RNBlobUtil;
-          
-          // Читаем файл как base64
-          const base64 = await FileSystem.readAsStringAsync(pdfUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          
-          // Сохраняем в папку Downloads через DownloadManager
-          const downloadOptions = {
-            fileCache: true,
-            addAndroidDownloads: {
-              useDownloadManager: true,
-              notification: true,
-              title: fileName,
-              description: 'PDF файл',
-              mime: 'application/pdf',
-              mediaScannable: true,
-              path: `${fs.dirs.DownloadDir}/${fileName}`,
-            },
-          };
-          
-          // Создаем временный файл и скачиваем его через DownloadManager
-          const tempPath = `${fs.dirs.CacheDir}/${fileName}`;
-          await fs.writeFile(tempPath, base64, 'base64');
-          
-          // Используем config для правильного сохранения через DownloadManager
-          const response = await config(downloadOptions).fetch('GET', `file://${tempPath}`);
-          
-          // Удаляем временный файл
-          fs.unlink(tempPath).catch(() => {});
-          
-          Alert.alert('Успешно', `Файл сохранён в папку "Загрузки": ${fileName}`);
-        } catch (blobError) {
-          // Fallback: используем стандартный метод
-          console.warn('react-native-blob-util failed, using fallback:', blobError);
-          const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-          await FileSystem.copyAsync({
-            from: pdfUri,
-            to: fileUri,
-          });
-          Alert.alert('Успешно', `Файл сохранён: ${fileName}`);
-        }
+        await savePdfToAndroidDirectory({
+          sourceUri: pdfUri,
+          suggestedFileName: fileName,
+          successMessage: `Файл сохранён: ${fileName}`,
+        });
       } else if (Platform.OS === 'ios') {
         // Для iOS используем Sharing API для сохранения в Files app
         const isAvailable = await Sharing.isAvailableAsync();
@@ -2097,7 +2021,7 @@ export default function ExportPdfScreen() {
         // Для Android получаем content:// URI, чтобы мессенджеры (в т.ч. Telegram) точно приняли файл
         if (Platform.OS === 'android') {
           try {
-            shareUri = await FileSystem.getContentUriAsync(shareUri);
+            shareUri = await FileSystemModern.getContentUriAsync(shareUri);
           } catch (contentErr) {
             // Если не удалось, остаемся на file://
           }

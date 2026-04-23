@@ -99,8 +99,6 @@
           }
         }
       ],
-      "@config-plugins/react-native-pdf",
-      "@config-plugins/react-native-blob-util",
       "expo-web-browser"
     ],
     "updates": {
