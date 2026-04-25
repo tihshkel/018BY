@@ -54,15 +54,17 @@ async function scheduleNotification(
     }
 
     try {
+        // Expo SDK 54+: trigger должен содержать `type`.
+        // https://docs.expo.dev/versions/latest/sdk/notifications/#notificationtriggerinput
         let trigger: any;
 
         if (Platform.OS === 'ios') {
-            trigger = { date: triggerDate };
+            trigger = { type: 'date', date: triggerDate };
         } else {
-            // Android: используем объект с seconds
+            // Android: используем timeInterval (seconds)
             const seconds = Math.floor((triggerDate.getTime() - now.getTime()) / 1000);
             if (seconds <= 0) return null;
-            trigger = { seconds };
+            trigger = { type: 'timeInterval', seconds };
         }
 
         const notificationId = await Notifications.scheduleNotificationAsync({

@@ -9,6 +9,7 @@ import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -112,6 +113,7 @@ export default function SelectCoverScreen() {
   const [dueDate, setDueDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSavingDate, setIsSavingDate] = useState(false);
+  const [coverImageUris, setCoverImageUris] = useState<Record<string, string>>({});
 
 
   React.useEffect(() => {
@@ -233,6 +235,38 @@ export default function SelectCoverScreen() {
     
     return result;
   }, [albumTemplates, celebration, diaryCovers]);
+
+  // Превращаем любые ImageSource (require/uri/строка) в реальный uri для iOS + expo-image
+  useFocusEffect(
+    React.useCallback(() => {
+      let cancelled = false;
+
+      const run = async () => {
+        const pairs = await Promise.all(
+          coverTypes.map(async (cover) => {
+            const uri = await resolveImageSourceUri(cover.image ?? null);
+            return uri ? ([cover.id, uri] as const) : null;
+          })
+        );
+
+        if (cancelled) return;
+
+        const next: Record<string, string> = {};
+        for (const pair of pairs) {
+          if (!pair) continue;
+          next[pair[0]] = pair[1];
+        }
+        if (Object.keys(next).length > 0) {
+          setCoverImageUris((prev) => ({ ...prev, ...next }));
+        }
+      };
+
+      run();
+      return () => {
+        cancelled = true;
+      };
+    }, [coverTypes])
+  );
 
   React.useEffect(() => {
     containerOpacity.value = withTiming(1, { duration: 400 });
@@ -535,15 +569,15 @@ export default function SelectCoverScreen() {
           notificationDate.setFullYear(now.getFullYear() + 1);
         }
 
-        // Планируем уведомление
+        // Планируем уведомление (Expo SDK 54+: trigger должен содержать `type`)
         let trigger: any;
         if (Platform.OS === 'ios') {
-          trigger = { date: notificationDate };
+          trigger = { type: 'date', date: notificationDate };
         } else {
-          // Android: используем объект с seconds
+          // Android: используем timeInterval (seconds)
           const seconds = Math.floor((notificationDate.getTime() - now.getTime()) / 1000);
           if (seconds > 0) {
-            trigger = { seconds };
+            trigger = { type: 'timeInterval', seconds };
           }
         }
 
@@ -564,12 +598,12 @@ export default function SelectCoverScreen() {
         // Для других категорий планируем только если дата в будущем
         let trigger: any;
         if (Platform.OS === 'ios') {
-          trigger = { date: eventDate };
+          trigger = { type: 'date', date: eventDate };
         } else {
-          // Android: используем объект с seconds
+          // Android: используем timeInterval (seconds)
           const seconds = Math.floor((eventDate.getTime() - now.getTime()) / 1000);
           if (seconds > 0) {
-            trigger = { seconds };
+            trigger = { type: 'timeInterval', seconds };
           }
         }
 
@@ -589,6 +623,53 @@ export default function SelectCoverScreen() {
       }
     } catch (error) {
       console.error(`Error scheduling ${categoryId} reminder:`, error);
+    }
+  };
+
+  const sendSuccessNotification = async (categoryId: string) => {
+    const Notifications = getNotifications();
+    if (!Notifications) return;
+
+    try {
+      // Android: убеждаемся, что канал существует
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+        });
+      }
+
+      const permissions = await Notifications.getPermissionsAsync();
+      let hasPermission =
+        permissions.granted ||
+        (Platform.OS === 'ios' &&
+          permissions.ios?.status === Notifications.IosAuthorizationStatus.PROVISIONAL);
+
+      if (!hasPermission) {
+        const req = await Notifications.requestPermissionsAsync();
+        hasPermission = req.status === 'granted';
+      }
+      if (!hasPermission) return;
+
+      const triggerDate = new Date(Date.now() + 1000);
+      const trigger =
+        Platform.OS === 'ios'
+          ? { type: 'date', date: triggerDate }
+          : { type: 'timeInterval', seconds: 1 };
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '✅ Уведомления подключены',
+          body:
+            categoryId === 'pregnancy'
+              ? 'Уведомления для беременности успешно добавлены.'
+              : 'Уведомления для детского альбома успешно добавлены.',
+          sound: true,
+        },
+        trigger,
+      });
+    } catch (e) {
+      console.warn('[SelectCover] Failed to send success notification:', e);
     }
   };
 
@@ -643,6 +724,11 @@ export default function SelectCoverScreen() {
         const projectId = `kids_${Date.now()}`;
         console.log('[SelectCover] Scheduling kids notifications for birth date:', dueDate.toLocaleDateString());
         await scheduleKidsNotifications(dueDate, projectId);
+      }
+
+      // Пуш об успешном подключении (после планирования уведомлений)
+      if (celebration === 'pregnancy' || celebration === 'kids') {
+        await sendSuccessNotification(celebration);
       }
 
       const pushResult = await pushCoreOnlyToCloud();
@@ -759,7 +845,7 @@ export default function SelectCoverScreen() {
                 <View style={styles.cardContent}>
                   <View style={styles.cardImageContainer}>
                     <Image
-                      source={cover.image}
+                      source={coverImageUris[cover.id] ? { uri: coverImageUris[cover.id] } : cover.image}
                       style={styles.cardImage}
                       contentFit="cover"
                       priority="high"

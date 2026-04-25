@@ -166,13 +166,15 @@ export default function PaperAlbumNotificationsScreen() {
               const now = new Date();
               const notificationDate = new Date(now.getTime() + 1000); // 1 секунда задержка
               
+              // Expo SDK 54+: trigger должен содержать `type`.
+              // https://docs.expo.dev/versions/latest/sdk/notifications/#notificationtriggerinput
               let trigger: any;
               if (Platform.OS === 'ios') {
-                trigger = { date: notificationDate };
+                trigger = { type: 'date', date: notificationDate };
                 console.log('iOS trigger date:', notificationDate.toISOString());
               } else {
-                // Android: используем объект с seconds, минимум 1 секунда
-                trigger = { seconds: 1 };
+                // Android: используем timeInterval (seconds), минимум 1 секунда
+                trigger = { type: 'timeInterval', seconds: 1 };
                 console.log('Android trigger seconds: 1');
               }
 

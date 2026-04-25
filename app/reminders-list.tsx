@@ -193,9 +193,16 @@ export default function RemindersListScreen() {
           [{ text: 'OK' }]
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error && 'message' in error
+            ? String((error as { message?: unknown }).message ?? '')
+            : '';
+
       // Игнорируем ошибки в Expo Go
-      if (__DEV__ && !error?.message?.includes('Expo Go')) {
+      if (__DEV__ && !message.includes('Expo Go')) {
         console.warn('Ошибка при запросе разрешений на уведомления:', error);
       }
     }
@@ -220,21 +227,19 @@ export default function RemindersListScreen() {
         return null;
       }
 
+      // Expo SDK 54+: trigger должен содержать `type`.
+      // https://docs.expo.dev/versions/latest/sdk/notifications/#notificationtriggerinput
       let trigger: any;
-      
+
       if (Platform.OS === 'ios') {
-        // Для iOS используем объект с полем date
-        trigger = {
-          date: date,
-        };
+        trigger = { type: 'date', date };
       } else {
-        // Android: используем объект с seconds
         const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
         if (seconds <= 0) {
           console.warn('Invalid notification time');
           return null;
         }
-        trigger = { seconds };
+        trigger = { type: 'timeInterval', seconds };
       }
 
       const notificationId = await Notifications.scheduleNotificationAsync({

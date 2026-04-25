@@ -12,6 +12,7 @@ import {
 import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 import { Ionicons } from '@expo/vector-icons';
@@ -145,6 +146,7 @@ export default function ProjectTemplatesScreen() {
   const [coverDate, setCoverDate] = useState(new Date());
   const [showCoverDatePicker, setShowCoverDatePicker] = useState(false);
   const [isSavingCoverDate, setIsSavingCoverDate] = useState(false);
+  const [imageUris, setImageUris] = useState<Record<string, string>>({});
 
   const opacity = useSharedValue(0);
 
@@ -164,7 +166,6 @@ export default function ProjectTemplatesScreen() {
     }
     return productsByCategory[categoryId] ?? [];
   }, [categoryId, productsByCategory]);
-
   // Для «Ожидание чуда» — только 6 дизайнов DB1–DB6. Тип обложки выбирается при экспорте
   const pregnancyAlbums = useMemo(() => {
     if (categoryId === 'pregnancy') {
@@ -237,6 +238,48 @@ export default function ProjectTemplatesScreen() {
     }
     return [];
   }, [categoryId]);
+
+  // На iOS (особенно при запуске из Xcode) `expo-image` иногда не рисует `require()` напрямую.
+  // Поэтому конвертируем все источники в `uri` через Asset API и используем `{ uri }` в `source`.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      const run = async () => {
+        const sources: Array<{ key: string; source: any }> = [];
+
+        for (const a of pregnancyAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
+        for (const a of kidsAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
+        for (const a of holidayAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
+        for (const a of familyAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
+        for (const c of diaryCovers) sources.push({ key: `cover:${c.id}`, source: c.image });
+        for (const p of categoryProducts) sources.push({ key: `product:${p.id}`, source: p.coverImage });
+
+        const pairs = await Promise.all(
+          sources.map(async ({ key, source }) => {
+            const uri = await resolveImageSourceUri(source ?? null);
+            return uri ? ([key, uri] as const) : null;
+          })
+        );
+
+        if (cancelled) return;
+
+        const next: Record<string, string> = {};
+        for (const pair of pairs) {
+          if (!pair) continue;
+          next[pair[0]] = pair[1];
+        }
+        if (Object.keys(next).length > 0) {
+          setImageUris((prev) => ({ ...prev, ...next }));
+        }
+      };
+
+      run();
+      return () => {
+        cancelled = true;
+      };
+    }, [pregnancyAlbums, kidsAlbums, holidayAlbums, familyAlbums, diaryCovers, categoryProducts])
+  );
 
   // МАКСИМАЛЬНАЯ предзагрузка всех изображений для выбранной категории
   useFocusEffect(
@@ -602,7 +645,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {album.thumbnailPath ? (
                       <Image
-                        source={album.thumbnailPath}
+                        source={
+                          imageUris[`album:${album.id}`]
+                            ? { uri: imageUris[`album:${album.id}`] }
+                            : album.thumbnailPath
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={pregnancyAlbums.indexOf(album) < 5 ? "high" : "normal"}
@@ -646,7 +693,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {album.thumbnailPath ? (
                       <Image
-                        source={album.thumbnailPath}
+                        source={
+                          imageUris[`album:${album.id}`]
+                            ? { uri: imageUris[`album:${album.id}`] }
+                            : album.thumbnailPath
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={kidsAlbums.indexOf(album) < 5 ? "high" : "normal"}
@@ -690,7 +741,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {album.thumbnailPath ? (
                       <Image
-                        source={album.thumbnailPath}
+                        source={
+                          imageUris[`album:${album.id}`]
+                            ? { uri: imageUris[`album:${album.id}`] }
+                            : album.thumbnailPath
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={holidayAlbums.indexOf(album) < 5 ? "high" : "normal"}
@@ -734,7 +789,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {album.thumbnailPath ? (
                       <Image
-                        source={album.thumbnailPath}
+                        source={
+                          imageUris[`album:${album.id}`]
+                            ? { uri: imageUris[`album:${album.id}`] }
+                            : album.thumbnailPath
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={familyAlbums.indexOf(album) < 5 ? "high" : "normal"}
@@ -778,7 +837,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {cover.image ? (
                       <Image
-                        source={cover.image}
+                        source={
+                          imageUris[`cover:${cover.id}`]
+                            ? { uri: imageUris[`cover:${cover.id}`] }
+                            : cover.image
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={diaryCovers.indexOf(cover) < 5 ? "high" : "normal"}
@@ -822,7 +885,11 @@ export default function ProjectTemplatesScreen() {
                   <View style={styles.productImage}>
                     {product.coverImage ? (
                       <Image
-                        source={product.coverImage}
+                        source={
+                          imageUris[`product:${product.id}`]
+                            ? { uri: imageUris[`product:${product.id}`] }
+                            : product.coverImage
+                        }
                         style={styles.productImageContent}
                         contentFit="cover"
                         priority={categoryProducts.indexOf(product) < 5 ? "high" : "normal"}

@@ -47,6 +47,27 @@ function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
 }
 
+function toHex(n: number): string {
+  return (n >>> 0).toString(16).padStart(8, '0');
+}
+
+// Короткий стабильный ключ для путей с пробелами/кириллицей (iOS FS + file:// URI).
+function stablePathKey(input: string): string {
+  // djb2
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
+  }
+  return toHex(hash);
+}
+
+function normalizeFileUri(uri: string): string {
+  if (!uri) return uri;
+  // Иногда iOS отдаёт абсолютные пути без схемы.
+  if (uri.startsWith('/')) return `file://${uri}`;
+  return uri;
+}
+
 async function ensureRemoteAlbumCacheDir(): Promise<void> {
   const dirInfo = await getInfoAsync(REMOTE_ALBUM_CACHE_DIR);
   if (!dirInfo.exists) {
@@ -57,15 +78,15 @@ async function ensureRemoteAlbumCacheDir(): Promise<void> {
 async function downloadRemotePageToCache(folderPath: string, fileName: string): Promise<string | null> {
   try {
     await ensureRemoteAlbumCacheDir();
-    const safeFolder = encodeURIComponent(folderPath);
-    const localPath = `${REMOTE_ALBUM_CACHE_DIR}${safeFolder}__${fileName}`;
+    const key = stablePathKey(folderPath);
+    const localPath = `${REMOTE_ALBUM_CACHE_DIR}${key}__${fileName}`;
 
     const info = await getInfoAsync(localPath);
-    if (info.exists) return localPath;
+    if (info.exists) return normalizeFileUri(localPath);
 
     const url = `${GITHUB_REPO_BASE}/${encodeURI(`${folderPath}/${fileName}`)}`;
     const res = await downloadAsync(url, localPath);
-    return res.uri;
+    return normalizeFileUri(res.uri);
   } catch (error) {
     console.warn('[albumImages] Не удалось скачать страницу', folderPath, fileName, error);
     return null;
@@ -96,8 +117,14 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
     };
 
     await Promise.all(Array.from({ length: maxParallel }, () => worker()));
-    // Делаем порядок стабильным
-    return results.sort();
+    // Делаем порядок стабильным по номеру страницы (не по полному пути)
+    return results
+      .slice()
+      .sort((a, b) => {
+        const aNum = Number((a.match(/page_(\d+)\.png/) || [])[1] || 0);
+        const bNum = Number((b.match(/page_(\d+)\.png/) || [])[1] || 0);
+        return aNum - bNum;
+      });
   }
 
   const images = getAlbumImages(albumId);

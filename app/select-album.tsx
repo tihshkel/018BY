@@ -2,6 +2,7 @@ import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
+import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -68,6 +69,7 @@ export default function SelectAlbumScreen() {
   const opacity = useSharedValue(0);
   // Кеш для предзагруженных первых страниц альбомов
   const preloadedFirstPages = useRef<Map<string, string>>(new Map());
+  const [thumbnailUris, setThumbnailUris] = useState<Record<string, string>>({});
 
   const albumTemplates = useMemo(() => getAllAlbumTemplates(), []);
 
@@ -83,7 +85,7 @@ export default function SelectAlbumScreen() {
     React.useCallback(() => {
       const preloadEverything = async () => {
         try {
-          // 1. Предзагружаем миниатюры альбомов
+          // 1. Предзагружаем миниатюры альбомов и сохраняем URI
           const thumbnails = filteredAlbums
             .filter(album => album.thumbnailPath)
             .map(album => album.thumbnailPath!);
@@ -100,6 +102,21 @@ export default function SelectAlbumScreen() {
               // Игнорируем ошибки
             }
           });
+
+          const thumbnailUriPairs = await Promise.all(
+            filteredAlbums.map(async (album) => {
+              const uri = await resolveImageSourceUri(album.thumbnailPath ?? null);
+              return uri ? ([album.id, uri] as const) : null;
+            })
+          );
+          const nextThumbs: Record<string, string> = {};
+          for (const pair of thumbnailUriPairs) {
+            if (!pair) continue;
+            nextThumbs[pair[0]] = pair[1];
+          }
+          if (Object.keys(nextThumbs).length > 0) {
+            setThumbnailUris((prev) => ({ ...prev, ...nextThumbs }));
+          }
 
           // 2. Параллельно предзагружаем ПЕРВЫЕ СТРАНИЦЫ всех альбомов для мгновенного отображения
           const firstPagePromises = filteredAlbums.map(async (album) => {
@@ -304,7 +321,11 @@ export default function SelectAlbumScreen() {
               <View style={styles.albumThumbnail}>
                 {album.thumbnailPath ? (
                   <Image
-                    source={album.thumbnailPath}
+                    source={
+                      thumbnailUris[album.id]
+                        ? { uri: thumbnailUris[album.id] }
+                        : album.thumbnailPath
+                    }
                     style={styles.albumImage}
                     contentFit="cover"
                     priority="high"

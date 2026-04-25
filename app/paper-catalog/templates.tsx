@@ -20,6 +20,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { GIFT_ITEMS, type GiftItem } from '../(tabs)/gifts';
+import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 
 interface LocalParams {
   category?: string | string[];
@@ -84,6 +85,7 @@ export default function PaperCatalogTemplatesScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryName);
   const [selectedCoverType, setSelectedCoverType] = useState<CoverType>('all');
+  const [coverUris, setCoverUris] = useState<Record<string, string>>({});
 
   // Обновляем selectedCategory при изменении categoryName
   useEffect(() => {
@@ -149,6 +151,36 @@ export default function PaperCatalogTemplatesScreen() {
     
     return filtered;
   }, [categoryName, selectedCategory, selectedCoverType]);
+
+  // На iOS в некоторых сборках `expo-image` может не отрисовать `require()` напрямую.
+  // Конвертируем cover -> uri и используем { uri }.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const resolveCovers = async () => {
+        if (categoryItems.length === 0) return;
+        const pairs = await Promise.all(
+          categoryItems.map(async (item) => {
+            const uri = await resolveImageSourceUri(item.cover ?? null);
+            return uri ? ([item.id, uri] as const) : null;
+          })
+        );
+        if (cancelled) return;
+        const next: Record<string, string> = {};
+        for (const pair of pairs) {
+          if (!pair) continue;
+          next[pair[0]] = pair[1];
+        }
+        if (Object.keys(next).length > 0) {
+          setCoverUris((prev) => ({ ...prev, ...next }));
+        }
+      };
+      resolveCovers();
+      return () => {
+        cancelled = true;
+      };
+    }, [categoryItems])
+  );
 
   // Лёгкая предзагрузка 2–3 первых изображений (в т.ч. локальных require),
   // чтобы первый экран каталога не "мигал" в релизе и в Expo Go.
@@ -233,7 +265,7 @@ export default function PaperCatalogTemplatesScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyState}>
           <Ionicons name='alert-circle-outline' size={48} color='#C9A89A' />
-          <Text style={styles.emptyStateTitle}>Не удалось определить категорию</Text>
+          <Text style={styles.emptyStateText}>Не удалось определить категорию</Text>
           <Text style={styles.emptyStateText}>
             Вернитесь к списку и выберите категорию ещё раз.
           </Text>
@@ -307,7 +339,11 @@ export default function PaperCatalogTemplatesScreen() {
                   <View style={styles.coverWrapper}>
                     {item.cover ? (
                       <Image
-                        source={item.cover}
+                        source={
+                          coverUris[item.id]
+                            ? { uri: coverUris[item.id] }
+                            : item.cover
+                        }
                         style={styles.coverImage}
                         contentFit="contain"
                         priority={imagePriority}
