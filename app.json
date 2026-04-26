@@ -2,7 +2,6 @@
   "expo": {
     "name": "018BY",
     "slug": "018by",
-    "scheme": "018by",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
