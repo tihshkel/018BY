@@ -1,4 +1,4 @@
-package com.tihshkel.x018BY
+package com.tihshkel.app018by
 
 import android.app.Application
 import android.content.res.Configuration

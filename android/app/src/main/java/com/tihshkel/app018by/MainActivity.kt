@@ -1,4 +1,4 @@
-package com.tihshkel.x018BY
+package com.tihshkel.app018by
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
