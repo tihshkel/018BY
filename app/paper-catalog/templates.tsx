@@ -367,8 +367,8 @@ export default function PaperCatalogTemplatesScreen() {
                       onPress={() => handleOpenLink(item.link)}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
+                      <Ionicons name="open-outline" size={20} color="#FFFFFF" />
+                      <Text style={styles.buyButtonText}>Открыть на Wildberries</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

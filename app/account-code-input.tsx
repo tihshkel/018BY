@@ -2,7 +2,7 @@ import { loginAndEnterFast } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -10,10 +10,13 @@ import {
   Keyboard,
   Platform,
   StyleSheet,
+  StyleProp,
   Text,
   TextInput,
+  TextStyle,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, {
@@ -29,10 +32,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CODE_LENGTH = 8; // Код доступа аккаунта обычно длиннее
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_TABLET = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) >= 700;
 const HORIZONTAL_PADDING = 24;
 const CODE_GAP = 10;
 const CODE_INPUT_SIZE = Math.min(
-  56,
+  IS_TABLET ? 60 : 56,
   (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CODE_GAP * (CODE_LENGTH - 1)) /
     CODE_LENGTH
 );
@@ -48,8 +53,9 @@ function CodeCell(props: {
   onKeyPress: (key: string, index: number) => void;
   onFocusAny: () => void;
   setRef: (ref: TextInput | null, index: number) => void;
+  inputStyle?: StyleProp<TextStyle>;
 }) {
-  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef } = props;
+  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef, inputStyle } = props;
 
   const fill = useSharedValue(value ? 1 : 0);
   const focus = useSharedValue(0);
@@ -105,7 +111,7 @@ function CodeCell(props: {
   return (
     <AnimatedTextInput
       ref={(ref) => setRef(ref, index)}
-      style={[styles.codeInput, animatedStyle]}
+      style={[styles.codeInput, inputStyle, animatedStyle]}
       value={value}
       onChangeText={(v) => onChangeText(v, index)}
       onKeyPress={({ nativeEvent }) => onKeyPress(nativeEvent.key, index)}
@@ -137,10 +143,63 @@ export default function AccountCodeInputScreen() {
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { width, height } = useWindowDimensions();
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const containerOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(0);
   const keyboardShownRef = useRef(false);
+  const isTablet = Math.min(width, height) >= 700;
+  const codeInputSize = Math.min(
+    isTablet ? 60 : 56,
+    (width - HORIZONTAL_PADDING * 2 - CODE_GAP * (CODE_LENGTH - 1)) / CODE_LENGTH
+  );
+  const responsiveStyles = useMemo(
+    () => ({
+      centeredBlock: {
+        maxWidth: isTablet ? 680 : 400,
+        paddingHorizontal: isTablet ? 48 : 0,
+        paddingVertical: isTablet ? 48 : 0,
+        paddingBottom: isTablet ? 48 : 40,
+        marginTop: isTablet ? 0 : -12,
+        backgroundColor: isTablet ? 'rgba(255,255,255,0.72)' : 'transparent',
+        borderRadius: isTablet ? 32 : 0,
+        borderWidth: isTablet ? 1 : 0,
+        shadowOpacity: isTablet ? 0.08 : 0,
+      },
+      iconContainer: {
+        width: isTablet ? 104 : 96,
+        height: isTablet ? 104 : 96,
+        borderRadius: isTablet ? 28 : 24,
+        marginBottom: isTablet ? 24 : 28,
+      },
+      title: {
+        fontSize: isTablet ? 32 : 28,
+      },
+      subtitle: {
+        fontSize: isTablet ? 18 : 16,
+        lineHeight: isTablet ? 28 : 24,
+        marginBottom: isTablet ? 32 : 36,
+        paddingHorizontal: isTablet ? 24 : 12,
+      },
+      codeContainer: {
+        marginBottom: isTablet ? 28 : 24,
+      },
+      codeInput: {
+        width: codeInputSize,
+        height: codeInputSize,
+        borderRadius: isTablet ? 14 : 12,
+        fontSize: isTablet ? 28 : 24,
+      },
+      loginButton: {
+        maxWidth: isTablet ? 464 : 400,
+        paddingVertical: isTablet ? 20 : 18,
+      },
+      loginButtonText: {
+        fontSize: isTablet ? 18 : 17,
+      },
+    }),
+    [codeInputSize, isTablet]
+  );
 
   useEffect(() => {
     const runAnimation = () => {
@@ -342,17 +401,17 @@ export default function AccountCodeInputScreen() {
           <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
         </TouchableOpacity>
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-          <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
-            <View style={styles.iconContainer}>
+          <Animated.View style={[styles.centeredBlock, responsiveStyles.centeredBlock, contentAnimatedStyle]}>
+            <View style={[styles.iconContainer, responsiveStyles.iconContainer]}>
               <Ionicons name="person-outline" size={48} color="#8B6F5F" />
             </View>
 
-            <Text style={styles.title}>Вход в аккаунт</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, responsiveStyles.title]}>Вход в аккаунт</Text>
+            <Text style={[styles.subtitle, responsiveStyles.subtitle]}>
               Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
             </Text>
 
-            <View style={styles.codeContainer}>
+            <View style={[styles.codeContainer, responsiveStyles.codeContainer]}>
               {code.map((value, index) => (
                 <CodeCell
                   key={index}
@@ -364,6 +423,7 @@ export default function AccountCodeInputScreen() {
                   onKeyPress={onKeyPress}
                   onFocusAny={onFocusAny}
                   setRef={setRef}
+                  inputStyle={responsiveStyles.codeInput}
                 />
               ))}
             </View>
@@ -377,6 +437,7 @@ export default function AccountCodeInputScreen() {
             <TouchableOpacity
               style={[
                 styles.loginButton,
+                responsiveStyles.loginButton,
                 (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonActive,
                 isLoading && styles.loginButtonLoading,
               ]}
@@ -387,6 +448,7 @@ export default function AccountCodeInputScreen() {
               <Text
                 style={[
                   styles.loginButtonText,
+                  responsiveStyles.loginButtonText,
                   (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonTextActive,
                 ]}
               >
@@ -427,23 +489,33 @@ const styles = StyleSheet.create({
   centeredBlock: {
     alignItems: 'center',
     width: '100%',
-    maxWidth: 400,
-    paddingBottom: 40,
-    marginTop: -12, // блок с полем ввода кода (чуть ниже, чем было -36)
+    maxWidth: IS_TABLET ? 680 : 400,
+    paddingHorizontal: IS_TABLET ? 48 : 0,
+    paddingVertical: IS_TABLET ? 48 : 0,
+    paddingBottom: IS_TABLET ? 48 : 40,
+    marginTop: IS_TABLET ? 0 : -12, // блок с полем ввода кода (чуть ниже, чем было -36)
+    backgroundColor: IS_TABLET ? 'rgba(255,255,255,0.72)' : 'transparent',
+    borderRadius: IS_TABLET ? 32 : 0,
+    borderWidth: IS_TABLET ? 1 : 0,
+    borderColor: 'rgba(139, 111, 95, 0.12)',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: IS_TABLET ? 0.08 : 0,
+    shadowRadius: 32,
   },
   iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 24,
+    width: IS_TABLET ? 104 : 96,
+    height: IS_TABLET ? 104 : 96,
+    borderRadius: IS_TABLET ? 28 : 24,
     backgroundColor: 'rgba(255,255,255,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+    marginBottom: IS_TABLET ? 24 : 28,
     borderWidth: 2,
     borderColor: '#E8DDD4',
   },
   title: {
-    fontSize: 28,
+    fontSize: IS_TABLET ? 32 : 28,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -456,12 +528,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: IS_TABLET ? 18 : 16,
     color: '#9B8E7F',
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 36,
-    paddingHorizontal: 12,
+    lineHeight: IS_TABLET ? 28 : 24,
+    marginBottom: IS_TABLET ? 32 : 36,
+    paddingHorizontal: IS_TABLET ? 24 : 12,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -474,15 +546,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: CODE_GAP,
-    marginBottom: 24,
+    marginBottom: IS_TABLET ? 28 : 24,
   },
   codeInput: {
     width: CODE_INPUT_SIZE,
     height: CODE_INPUT_SIZE,
     borderWidth: 2,
-    borderRadius: 12,
+    borderRadius: IS_TABLET ? 14 : 12,
     textAlign: 'center',
-    fontSize: 24,
+    fontSize: IS_TABLET ? 28 : 24,
     fontWeight: '600',
     color: '#8B6F5F',
     fontFamily: Platform.select({
@@ -503,8 +575,8 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: '100%',
-    maxWidth: 400,
-    paddingVertical: 18,
+    maxWidth: IS_TABLET ? 464 : 400,
+    paddingVertical: IS_TABLET ? 20 : 18,
     borderRadius: 16,
     backgroundColor: '#D4C4B5',
     alignItems: 'center',
@@ -518,7 +590,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    fontSize: 17,
+    fontSize: IS_TABLET ? 18 : 17,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',

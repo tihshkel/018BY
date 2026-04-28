@@ -554,8 +554,8 @@ export default function RemindersListScreen() {
               <Ionicons name="book-outline" size={24} color="#FFFFFF" />
             </View>
             <View style={styles.catalogButtonContent}>
-              <Text style={styles.catalogButtonTitle}>Купить бумажную версию</Text>
-              <Text style={styles.catalogButtonText}>Каталог</Text>
+              <Text style={styles.catalogButtonTitle}>Бумажная версия</Text>
+              <Text style={styles.catalogButtonText}>Каталог товаров</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
           </TouchableOpacity>

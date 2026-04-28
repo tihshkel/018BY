@@ -520,7 +520,7 @@ export default function HomeScreen() {
                 <Ionicons name="book-outline" size={24} color="#FFFFFF" />
                 <Text style={styles.newProjectButtonText}>Мои истории</Text>
               </TouchableOpacity>
-              <Text style={styles.buyPaperVersionText}>Купить бумажную версию</Text>
+              <Text style={styles.buyPaperVersionText}>Бумажная версия доступна в каталоге</Text>
             </View>
           ) : projects.length === 1 ? (
             <View style={styles.singleProject}>
@@ -660,7 +660,7 @@ export default function HomeScreen() {
               </View>
               <View style={styles.catalogButtonContent}>
                 <Text style={styles.catalogButtonTitle}>Каталог товаров</Text>
-                <Text style={styles.catalogButtonText}>Купить бумажную версию альбомов</Text>
+                <Text style={styles.catalogButtonText}>Бумажные альбомы и подарки</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
             </TouchableOpacity>

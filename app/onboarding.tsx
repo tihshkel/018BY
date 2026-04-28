@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Dimensions,
   InteractionManager,
+  useWindowDimensions,
 } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import { router } from 'expo-router';
@@ -23,11 +23,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ONBOARDING_KEY = '@has_seen_onboarding';
 
-const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const scaleSize = (size: number) => {
+const scaleSize = (size: number, contentWidth: number) => {
   const guidelineBaseWidth = 375;
-  return Math.round((SCREEN_WIDTH / guidelineBaseWidth) * size);
+  const scale = Math.min(contentWidth / guidelineBaseWidth, 1.15);
+  return Math.round(scale * size);
 };
 
 interface OnboardingSlide {
@@ -66,11 +65,48 @@ const onboardingData: OnboardingSlide[] = [
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { width, height } = useWindowDimensions();
   const textOpacity = useSharedValue(0);
   const imageOpacity = useSharedValue(1);
   const slideTranslateX = useSharedValue(0);
   const imageScale = useSharedValue(1);
   const progress = useSharedValue(33.33);
+  const isTablet = Math.min(width, height) >= 700;
+  const contentWidth = isTablet ? 420 : width;
+
+  const responsiveStyles = useMemo(
+    () => ({
+      slide: {
+        paddingTop: isTablet ? 40 : 60,
+        gap: isTablet ? 24 : 28,
+        justifyContent: isTablet ? 'center' as const : 'flex-start' as const,
+      },
+      image: {
+        width: isTablet ? 280 : scaleSize(200, contentWidth),
+        height: isTablet ? 340 : scaleSize(260, contentWidth),
+      },
+      textContainer: {
+        gap: isTablet ? 12 : 16,
+        maxWidth: isTablet ? 420 : 320,
+      },
+      title: {
+        fontSize: isTablet ? 38 : scaleSize(32, contentWidth),
+        lineHeight: isTablet ? 46 : scaleSize(40, contentWidth),
+        textAlign: isTablet ? 'center' as const : 'left' as const,
+      },
+      subtitle: {
+        fontSize: isTablet ? 18 : scaleSize(16, contentWidth),
+        lineHeight: isTablet ? 28 : scaleSize(24, contentWidth),
+        textAlign: isTablet ? 'center' as const : 'left' as const,
+      },
+      bottomContainer: {
+        paddingBottom: isTablet ? 40 : 56,
+        gap: isTablet ? 18 : 24,
+        maxWidth: isTablet ? 480 : undefined,
+      },
+    }),
+    [contentWidth, isTablet]
+  );
 
   // Предзагрузка всех изображений онбординга при монтировании
   useEffect(() => {
@@ -209,13 +245,13 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.slide}>
+      <View style={[styles.slide, responsiveStyles.slide]}>
         <Animated.View style={[styles.imageWrapper, imageAnimatedStyle]}>
           <Image
             key={currentSlide.id}
             source={currentSlide.image}
-            style={styles.image}
-            contentFit="cover"
+            style={[styles.image, responsiveStyles.image]}
+            contentFit="contain"
             priority="high"
             cachePolicy="disk"
             transition={0}
@@ -225,13 +261,13 @@ export default function OnboardingScreen() {
           />
         </Animated.View>
 
-        <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
-          <Text style={styles.title}>{currentSlide.title}</Text>
-          <Text style={styles.subtitle}>{currentSlide.subtitle}</Text>
+        <Animated.View style={[styles.textContainer, responsiveStyles.textContainer, textAnimatedStyle]}>
+          <Text style={[styles.title, responsiveStyles.title]}>{currentSlide.title}</Text>
+          <Text style={[styles.subtitle, responsiveStyles.subtitle]}>{currentSlide.subtitle}</Text>
         </Animated.View>
       </View>
 
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, responsiveStyles.bottomContainer]}>
         <TouchableOpacity
           style={styles.button}
           onPress={handleNext}
@@ -262,14 +298,15 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 28,
     justifyContent: 'flex-start',
+    alignItems: 'center',
   },
   imageWrapper: {
     width: '100%',
     alignItems: 'center',
   },
   image: {
-    width: scaleSize(200),
-    height: scaleSize(260),
+    width: 200,
+    height: 260,
     borderRadius: 18,
     backgroundColor: '#F6EFEA',
   },
@@ -277,10 +314,11 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 4,
     alignSelf: 'center',
+    width: '100%',
     maxWidth: 320,
   },
   title: {
-    fontSize: scaleSize(32),
+    fontSize: 32,
     color: '#8B6F5F',
     textAlign: 'left',
     marginBottom: 8,
@@ -292,17 +330,17 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '400',
     letterSpacing: 0.5,
-    lineHeight: scaleSize(40),
+    lineHeight: 40,
     // Имитация Marck Script - декоративный почерк
     textShadowColor: 'rgba(139, 111, 95, 0.1)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   subtitle: {
-    fontSize: scaleSize(16),
+    fontSize: 16,
     color: '#6B5D4F',
     textAlign: 'left',
-    lineHeight: scaleSize(24),
+    lineHeight: 24,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -316,6 +354,9 @@ const styles = StyleSheet.create({
     paddingBottom: 56,
     paddingHorizontal: 32,
     gap: 24,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: undefined,
   },
   progressContainer: {
     marginBottom: 0,
@@ -339,6 +380,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'stretch',
     shadowColor: '#8B6F5F',
     shadowOffset: {
       width: 0,

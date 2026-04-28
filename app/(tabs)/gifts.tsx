@@ -1186,8 +1186,8 @@ export default function GiftsScreen() {
               accessibilityHint="Откроется карточка товара на Wildberries"
               onPress={() => handleOpenLink(item.link)}
             >
-              <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
+              <Ionicons name="open-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.buyButtonText}>Открыть на Wildberries</Text>
             </Pressable>
           </View>
         </View>

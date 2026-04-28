@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Dimensions,
   InteractionManager,
   Image,
 } from 'react-native';
@@ -21,8 +20,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 export default function ActivationScreen() {
   const [showOptions, setShowOptions] = useState(false);
   const [buttonsEnabled, setButtonsEnabled] = useState(false);
@@ -34,8 +31,6 @@ export default function ActivationScreen() {
   const textShiftY = useSharedValue(0);
   const option1Opacity = useSharedValue(0);
   const option1Y = useSharedValue(20);
-  const option2Opacity = useSharedValue(0);
-  const option2Y = useSharedValue(20);
 
   useEffect(() => {
     const startAnimations = () => {
@@ -46,8 +41,6 @@ export default function ActivationScreen() {
       const buttonsDelay = Platform.OS === 'android' ? 2500 : 4000;
       const shiftDuration = Platform.OS === 'android' ? 1800 : 2800;
       const buttonDuration = Platform.OS === 'android' ? 1800 : 3000;
-      const buttonsEnableDelay = Platform.OS === 'android' ? 2800 : 4200;
-
       // Очень плавное появление логотипа
       logoOpacity.value = withTiming(1, { 
         duration: logoDuration,
@@ -107,18 +100,6 @@ export default function ActivationScreen() {
           mass: Platform.OS === 'android' ? 1.0 : 1.2,
         }));
         
-        // Очень плавное появление второй кнопки с большей задержкой
-        option2Opacity.value = withDelay(600, withTiming(1, { 
-          duration: buttonDuration,
-          easing: Platform.OS === 'android' 
-            ? Easing.out(Easing.ease) 
-            : Easing.bezier(0.16, 1, 0.3, 1),
-        }));
-        option2Y.value = withDelay(600, withSpring(0, { 
-          damping: Platform.OS === 'android' ? 35 : 40, 
-          stiffness: Platform.OS === 'android' ? 30 : 25,
-          mass: Platform.OS === 'android' ? 1.0 : 1.2,
-        }));
       }, buttonsDelay);
     };
 
@@ -152,21 +133,9 @@ export default function ActivationScreen() {
     };
   });
 
-  const option2AnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: option2Opacity.value,
-      transform: [{ translateY: option2Y.value }],
-    };
-  });
-
   const handleHasCode = () => {
     if (!buttonsEnabled) return;
     router.push('/code-type-selection');
-  };
-
-  const handleWantToBuy = () => {
-    if (!buttonsEnabled) return;
-    router.push('/purchase');
   };
 
   return (
@@ -211,23 +180,6 @@ export default function ActivationScreen() {
               </TouchableOpacity>
             </Animated.View>
 
-            <Animated.View style={option2AnimatedStyle}>
-              <TouchableOpacity
-                style={styles.optionCard}
-                onPress={handleWantToBuy}
-                activeOpacity={Platform.OS === 'ios' ? 0.6 : 0.85}
-                disabled={!buttonsEnabled}
-              >
-                <View style={styles.optionIconContainer}>
-                  <Ionicons name="storefront-outline" size={28} color="#C9A89A" />
-                </View>
-                <View style={styles.optionContent}>
-                  <Text style={styles.optionTitle}>Приобрести приложение</Text>
-                  <Text style={styles.optionSubtitle}>$10 • Полный доступ</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
-              </TouchableOpacity>
-            </Animated.View>
           </View>
         )}
       </View>

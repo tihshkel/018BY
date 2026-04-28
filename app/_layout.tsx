@@ -88,7 +88,6 @@ export default function RootLayout() {
                 animationDuration: 420,
               }}
             />
-            <Stack.Screen name="purchase" />
             <Stack.Screen
               name="name-input"
               options={{

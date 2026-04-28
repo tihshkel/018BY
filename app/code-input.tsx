@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -10,10 +10,13 @@ import {
   Keyboard,
   Platform,
   StyleSheet,
+  StyleProp,
   Text,
   TextInput,
+  TextStyle,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  useWindowDimensions,
   View,
   ActivityIndicator,
 } from 'react-native';
@@ -31,6 +34,8 @@ import { validateAndUseActivationKey } from '@/utils/activationKeyValidator';
 
 const CODE_LENGTH = 6;
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const IS_TABLET = Math.min(SCREEN_WIDTH, SCREEN_HEIGHT) >= 700;
 const HORIZONTAL_PADDING = 24;
 const CODE_GAP = 10;
 const CODE_INPUT_SIZE = Math.min(
@@ -50,8 +55,9 @@ function CodeCell(props: {
   onKeyPress: (key: string, index: number) => void;
   onFocusAny: () => void;
   setRef: (ref: TextInput | null, index: number) => void;
+  inputStyle?: StyleProp<TextStyle>;
 }) {
-  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef } = props;
+  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef, inputStyle } = props;
 
   const fill = useSharedValue(value ? 1 : 0);
   const focus = useSharedValue(0);
@@ -109,7 +115,7 @@ function CodeCell(props: {
   return (
     <AnimatedTextInput
       ref={(ref) => setRef(ref, index)}
-      style={[styles.codeInput, animatedStyle]}
+      style={[styles.codeInput, inputStyle, animatedStyle]}
       value={value}
       onChangeText={(v) => onChangeText(v, index)}
       onKeyPress={({ nativeEvent }) => onKeyPress(nativeEvent.key, index)}
@@ -143,10 +149,54 @@ export default function CodeInputScreen() {
   const [code, setCode] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { width, height } = useWindowDimensions();
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const containerOpacity = useSharedValue(0);
   const contentTranslateY = useSharedValue(0);
   const keyboardShownRef = useRef(false);
+  const isTablet = Math.min(width, height) >= 700;
+  const codeInputSize = Math.min(
+    64,
+    (width - HORIZONTAL_PADDING * 2 - CODE_GAP * (CODE_LENGTH - 1)) / CODE_LENGTH
+  );
+  const responsiveStyles = useMemo(
+    () => ({
+      card: {
+        maxWidth: isTablet ? 560 : 420,
+        paddingHorizontal: isTablet ? 48 : 0,
+        paddingVertical: isTablet ? 48 : 0,
+        backgroundColor: isTablet ? 'rgba(255,255,255,0.72)' : 'transparent',
+        borderRadius: isTablet ? 32 : 0,
+        borderWidth: isTablet ? 1 : 0,
+        shadowOpacity: isTablet ? 0.08 : 0,
+      },
+      header: {
+        marginBottom: isTablet ? 32 : 36,
+      },
+      title: {
+        fontSize: isTablet ? 36 : 32,
+      },
+      hint: {
+        fontSize: isTablet ? 16 : 14,
+      },
+      codeContainer: {
+        marginBottom: isTablet ? 36 : 32,
+      },
+      codeInput: {
+        width: codeInputSize,
+        height: codeInputSize,
+        borderRadius: isTablet ? 14 : 12,
+        fontSize: isTablet ? 28 : 24,
+      },
+      activateButton: {
+        minWidth: isTablet ? 260 : 220,
+      },
+      activateButtonText: {
+        fontSize: isTablet ? 18 : 17,
+      },
+    }),
+    [codeInputSize, isTablet]
+  );
 
   useEffect(() => {
     // Используем InteractionManager для Android, чтобы анимации запускались после завершения всех взаимодействий
@@ -346,7 +396,7 @@ export default function CodeInputScreen() {
         
         Alert.alert(
           'Неверный код',
-          errorMessage + '\n\nПроверьте код или купите доступ за $10',
+          `${errorMessage}\n\nПроверьте код на вкладыше внутри коробки или обратитесь в поддержку.`,
           [
             {
               text: 'Попробовать снова',
@@ -356,10 +406,6 @@ export default function CodeInputScreen() {
                 setError(true);
                 inputRefs.current[0]?.focus();
               },
-            },
-            {
-              text: 'Купить доступ',
-              onPress: () => router.replace('/purchase'),
             },
           ]
         );
@@ -406,16 +452,16 @@ export default function CodeInputScreen() {
             <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
           </TouchableOpacity>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View>
-              <Animated.View style={[styles.header, inputAnimatedStyle]}>
-                <Text style={styles.title}>Введите код доступа</Text>
-                <Text style={styles.hint}>
+            <View style={[styles.card, responsiveStyles.card]}>
+              <Animated.View style={[styles.header, responsiveStyles.header, inputAnimatedStyle]}>
+                <Text style={[styles.title, responsiveStyles.title]}>Введите код доступа</Text>
+                <Text style={[styles.hint, responsiveStyles.hint]}>
                   Код указан на вкладыше внутри коробки
                 </Text>
               </Animated.View>
 
               {/* Поля ввода кода */}
-              <Animated.View style={[styles.codeContainer, inputAnimatedStyle]}>
+              <Animated.View style={[styles.codeContainer, responsiveStyles.codeContainer, inputAnimatedStyle]}>
                 {code.map((digit, index) => (
                   <CodeCell
                     key={index}
@@ -429,6 +475,7 @@ export default function CodeInputScreen() {
                     setRef={(ref, i) => {
                       inputRefs.current[i] = ref;
                     }}
+                    inputStyle={responsiveStyles.codeInput}
                   />
                 ))}
               </Animated.View>
@@ -438,6 +485,7 @@ export default function CodeInputScreen() {
                 <TouchableOpacity
                   style={[
                     styles.activateButton,
+                    responsiveStyles.activateButton,
                     code.join('').length === CODE_LENGTH && styles.activateButtonActive,
                     isLoading && styles.activateButtonLoading,
                   ]}
@@ -451,6 +499,7 @@ export default function CodeInputScreen() {
                     <Text
                       style={[
                         styles.activateButtonText,
+                        responsiveStyles.activateButtonText,
                         code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
                       ]}
                     >
@@ -494,10 +543,25 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 36,
+    marginBottom: IS_TABLET ? 32 : 36,
+  },
+  card: {
+    width: '100%',
+    maxWidth: IS_TABLET ? 560 : 420,
+    alignItems: 'center',
+    paddingHorizontal: IS_TABLET ? 48 : 0,
+    paddingVertical: IS_TABLET ? 48 : 0,
+    backgroundColor: IS_TABLET ? 'rgba(255,255,255,0.72)' : 'transparent',
+    borderRadius: IS_TABLET ? 32 : 0,
+    borderWidth: IS_TABLET ? 1 : 0,
+    borderColor: 'rgba(139, 111, 95, 0.12)',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: IS_TABLET ? 0.08 : 0,
+    shadowRadius: 32,
   },
   title: {
-    fontSize: 32,
+    fontSize: IS_TABLET ? 36 : 32,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'Georgia',
@@ -510,7 +574,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   hint: {
-    fontSize: 14,
+    fontSize: IS_TABLET ? 16 : 14,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -525,17 +589,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: CODE_GAP,
-    marginBottom: 32,
+    marginBottom: IS_TABLET ? 36 : 32,
   },
   codeInput: {
     width: CODE_INPUT_SIZE,
     height: CODE_INPUT_SIZE,
     borderWidth: 2,
     borderColor: '#D4C4B5',
-    borderRadius: 12,
+    borderRadius: IS_TABLET ? 14 : 12,
     backgroundColor: '#FFFFFF',
     textAlign: 'center',
-    fontSize: 24,
+    fontSize: IS_TABLET ? 28 : 24,
     fontWeight: '600',
     color: '#8B6F5F',
     fontFamily: Platform.select({
@@ -574,7 +638,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 220,
+    minWidth: IS_TABLET ? 260 : 220,
     opacity: 0.5,
   },
   activateButtonActive: {
@@ -591,7 +655,7 @@ const styles = StyleSheet.create({
   },
   activateButtonText: {
     color: '#B8A89A',
-    fontSize: 17,
+    fontSize: IS_TABLET ? 18 : 17,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',

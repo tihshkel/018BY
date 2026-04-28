@@ -257,7 +257,7 @@ export default function SelectActionScreen() {
                 <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
               </TouchableOpacity>
 
-              {/* Кнопка покупки */}
+              {/* Переход к бумажной версии */}
               <TouchableOpacity
                 style={styles.actionCard}
                 onPress={handleBuy}
@@ -265,13 +265,13 @@ export default function SelectActionScreen() {
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="cart-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="open-outline" size={28} color="#8B6F5F" />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionTitleSolid}>Купить бумажную версию</Text>
+                  <Text style={styles.actionTitleSolid}>Бумажная версия</Text>
                   <Text style={styles.actionDescriptionSolid}>
-                    Перейти на Wildberries
+                    Открыть на Wildberries
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={22} color="#C9A89A" />

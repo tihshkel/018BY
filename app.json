@@ -3,6 +3,7 @@
     "name": "018BY",
     "slug": "018by",
     "version": "1.0.0",
+    "scheme": "x018by",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -18,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "21",
+      "buildNumber": "22",
       "runtimeVersion": {
         "policy": "appVersion"
       },
