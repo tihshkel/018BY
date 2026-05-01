@@ -339,9 +339,14 @@ export default function ImageViewer({
 
   const handleDuplicatePage = () => {
     if (selectedPageIndex !== null && onPageDuplicate) {
+      const duplicatedPage = selectedPageIndex + 2;
       onPageDuplicate(selectedPageIndex);
       setShowPageMenu(false);
       setSelectedPageIndex(null);
+      setTimeout(() => {
+        setCurrentPage(duplicatedPage);
+        scrollToPage(duplicatedPage);
+      }, 150);
     }
   };
 

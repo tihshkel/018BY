@@ -23,7 +23,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PaperAlbumNotification {
   id: string;
@@ -61,6 +61,8 @@ const ALBUM_TYPES: AlbumTypeOption[] = [
 ];
 
 export default function PaperAlbumNotificationsScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [selectedType, setSelectedType] = useState<AlbumType>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -261,7 +263,10 @@ export default function PaperAlbumNotificationsScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 32 },
+          ]}
         >
           <Text style={styles.subtitle}>
             Выберите тип альбома и дату, чтобы получать уведомления
@@ -352,7 +357,7 @@ export default function PaperAlbumNotificationsScreen() {
         {/* Date Picker Modal */}
         {showDatePicker && (
           <View style={styles.datePickerOverlay}>
-            <View style={styles.datePickerContainer}>
+            <View style={[styles.datePickerContainer, { paddingBottom: bottomInset }]}>
               <View style={styles.datePickerHeader}>
                 <Text style={styles.datePickerTitle}>
                   {selectedTypeInfo?.dateLabel}
@@ -436,7 +441,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
   },
   subtitle: {
     fontSize: 17,
@@ -598,7 +602,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     paddingHorizontal: 20,
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: -4 },

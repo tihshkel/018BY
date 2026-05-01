@@ -1,7 +1,7 @@
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
-import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
-import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { getAlbumImageUrisForViewing, getAlbumImages } from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -200,23 +200,17 @@ export default function SelectAlbumScreen() {
       const projects = existingProjects ? JSON.parse(existingProjects) : [];
       projects.push(projectData);
       await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-      syncToCloudNow();
-      scheduleSyncToCloud();
-      // Дожидаемся синхронизации, чтобы альбом точно попал в облако до выхода из аккаунта
-      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
-      // Загружаем ВСЕ страницы альбома перед переходом
+      // Готовим все страницы для просмотра без ожидания полной загрузки в кеш.
       console.log(`[SelectAlbum] Начинаем загрузку всех страниц альбома: ${album.id}`);
       
       try {
-        // Загружаем все изображения альбома
-        const imageUris = await getAlbumImageUris(album.id);
+        const imageUris = await getAlbumImageUrisForViewing(album.id);
         
         if (imageUris && imageUris.length > 0) {
           // Сохраняем все страницы в проект
           await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
           console.log(`[SelectAlbum] Загружено и сохранено ${imageUris.length} страниц для проекта ${projectId}`);
-          scheduleSyncToCloud();
         } else {
           console.warn(`[SelectAlbum] Не удалось загрузить страницы для альбома ${album.id}`);
           // Fallback: сохраняем хотя бы одну страницу если есть
@@ -234,7 +228,11 @@ export default function SelectAlbumScreen() {
         }
       }
 
-      // Переходим к редактированию после загрузки всех страниц
+      // Дожидаемся синхронизации уже после записи страниц, чтобы в облако не уходил полупустой проект.
+      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
+      scheduleSyncToCloud();
+
+      // Переходим к редактированию сразу: страницы уже доступны как кешированные URI или remote URL.
       console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);
       router.push(`/edit-album?id=${projectId}`);
     } catch (error) {

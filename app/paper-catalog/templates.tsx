@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Asset } from 'expo-asset';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -77,6 +77,8 @@ const getCoverType = (title: string): 'hard' | 'soft' | null => {
 };
 
 export default function PaperCatalogTemplatesScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams();
   const categoryName = formatCategoryName(params.category);
   const categoryTitle = categoryName || 'Категория не выбрана';
@@ -289,7 +291,10 @@ export default function PaperCatalogTemplatesScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 72 },
+          ]}
         >
           {categoryItems.length === 0 ? (
             <View style={styles.emptyState}>
@@ -361,7 +366,11 @@ export default function PaperCatalogTemplatesScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Фильтр по разделу */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Раздел</Text>
@@ -461,7 +470,7 @@ export default function PaperCatalogTemplatesScreen() {
             </ScrollView>
 
             {/* Кнопки действий */}
-            <View style={styles.modalActions}>
+            <View style={[styles.modalActions, { paddingBottom: bottomInset }]}>
               <TouchableOpacity
                 style={styles.resetButton}
                 onPress={() => {
@@ -527,7 +536,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingVertical: 24,
-    paddingBottom: 100,
     gap: 20,
   },
   subtitle: {
@@ -704,6 +712,9 @@ const styles = StyleSheet.create({
   modalScroll: {
     maxHeight: 400,
   },
+  modalScrollContent: {
+    paddingBottom: 8,
+  },
   filterSection: {
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -755,7 +766,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: '#F0E8E0',

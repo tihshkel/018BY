@@ -22,7 +22,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface GiftItem {
   id: string;
@@ -110,87 +110,88 @@ const SKU_TO_CATEGORY: Record<string, string> = {
 };
 
 export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
-  DB1: require('../../assets/images/albums/DB1.png'),
-  DB2: require('../../assets/images/albums/DB2.png'),
-  DB3: require('../../assets/images/albums/DB3.png'),
-  DB4: require('../../assets/images/albums/DB4.png'),
-  DB5: require('../../assets/images/albums/DB5.png'),
+  DB1: require('../../assets/images/albums/DB1_0.png'),
+  DB2: require('../../assets/images/albums/DB2_0.png'),
+  DB3: require('../../assets/images/albums/DB3_0.png'),
+  DB4: require('../../assets/images/albums/DB4_0.png'),
+  DB5: require('../../assets/images/albums/DB5_0.png'),
   EB1: require('../../assets/images/albums/EB1.png'),
   EB2: require('../../assets/images/albums/EB2.png'),
   EB3: require('../../assets/images/albums/EB3.png'),
   EB4: require('../../assets/images/albums/EB4.png'),
   EB5: require('../../assets/images/albums/EB5.png'),
-  DFA5: require('../../assets/images/albums/DFA5.png'),
-  DFA7: require('../../assets/images/albums/DFA7.png'),
-  DFA8: require('../../assets/images/albums/DFA8.png'),
-  DFA9: require('../../assets/images/albums/DFA9.png'),
+  DFA5: require('@/albums/kids/DFA5/first_page.png'),
+  DFA7: require('@/albums/kids/DFA7/first_page.png'),
+  DFA8: require('@/albums/kids/DFA8/first_page.png'),
+  DFA9: require('@/albums/kids/DFA9/first_page.png'),
   DFA14: require('../../assets/images/albums/DFA14.png'),
-  DFA15: require('../../assets/images/albums/DFA15.png'),
-  DFA16: require('../../assets/images/albums/DFA16.png'),
-  DFA19: require('../../assets/images/albums/DFA19.png'),
-  DFA21: require('../../assets/images/albums/DFA21.png'),
-  DFA23: require('../../assets/images/albums/DFA23.png'),
-  DFA24: require('../../assets/images/albums/DFA24.png'),
-  DFA25: require('../../assets/images/albums/DFA25.png'),
-  DFA26: require('../../assets/images/albums/DFA26.png'),
-  DFA27: require('../../assets/images/albums/DFA27.png'),
-  DFA28: require('../../assets/images/albums/DFA28.png'),
-  DFA29: require('../../assets/images/albums/DFA29.png'),
-  DFA31: require('../../assets/images/albums/DFA31.png'),
-  DFA46: require('../../assets/images/albums/DFA46.png'),
-  DFA47: require('../../assets/images/albums/DFA47.png'),
-  DFA50: require('../../assets/images/albums/DFA50.png'),
-  DFA52: require('../../assets/images/albums/DFA52.png'),
-  DFA53: require('../../assets/images/albums/DFA53.png'),
+  DFA15: require('@/albums/kids/DFA15/first_page.png'),
+  DFA16: require('@/albums/kids/DFA16/first_page.png'),
+  DFA19: require('@/albums/kids/DFA19/first_page.png'),
+  DFA21: require('@/albums/kids/DFA21/first_page.png'),
+  DFA23: require('@/albums/kids/DFA23/first_page.png'),
+  DFA24: require('@/albums/kids/DFA24/first_page.png'),
+  DFA25: require('@/albums/kids/DFA25/first_page.png'),
+  DFA26: require('@/albums/kids/DFA26/first_page.png'),
+  DFA27: require('@/albums/kids/DFA27/first_page.png'),
+  DFA28: require('@/albums/kids/DFA28/first_page.png'),
+  DFA29: require('@/albums/kids/DFA29/first_page.png'),
+  DFA31: require('@/albums/kids/DFA31/first_page.png'),
+  DFA46: require('@/albums/kids/DFA46/first_page.png'),
+  DFA47: require('@/albums/kids/DFA47/first_page.png'),
+  DFA50: require('@/albums/kids/DFA50/first_page.png'),
+  DFA52: require('@/albums/kids/DFA52/first_page.png'),
+  DFA53: require('@/albums/kids/DFA53/first_page.png'),
   DFA57: require('../../assets/images/albums/DFA57.png'),
-  DFA59: require('../../assets/images/albums/DFA59.png'),
-  DFA60: require('../../assets/images/albums/DFA60.png'),
-  DFA71: require('../../assets/images/albums/DFA71.png'),
-  DFA72: require('../../assets/images/albums/DFA72.png'),
-  DFA74: require('../../assets/images/albums/DFA74.png'),
+  DFA59: require('@/albums/kids/DFA59/first_page.png'),
+  DFA60: require('@/albums/kids/DFA60/first_page.png'),
+  DFA71: require('@/albums/kids/DFA71/first_page.png'),
+  DFA72: require('@/albums/kids/DFA72/first_page.png'),
+  DFA74: require('@/albums/kids/DFA74/first_page.png'),
   DFA300: require('../../assets/images/albums/DFA300.png'),
-  DFA301: require('../../assets/images/albums/DFA301.png'),
-  DFA302: require('../../assets/images/albums/DFA302.png'),
-  DFA304: require('../../assets/images/albums/DFA304.png'),
-  DFA305: require('../../assets/images/albums/DFA305.png'),
-  DFA306: require('../../assets/images/albums/DFA306.png'),
-  DFA307: require('../../assets/images/albums/DFA307.png'),
+  DFA301: require('@/albums/kids/DFA301/first_page.png'),
+  DFA302: require('@/albums/kids/DFA302/first_page.png'),
+  DFA304: require('@/albums/kids/DFA304/first_page.png'),
+  DFA305: require('@/albums/kids/DFA305/first_page.png'),
+  DFA306: require('@/albums/kids/DFA306/first_page.png'),
+  DFA307: require('@/albums/kids/DFA307/first_page.png'),
   DFA308: require('../../assets/images/albums/DFA308.png'),
-  'DFA309 (2)': require('../../assets/images/albums/DFA309 (2).png'),
-  DFA207: require('../../assets/images/albums/DFA207.png'),
-  DFA208: require('../../assets/images/albums/DFA208.png'),
+  'DFA309 (2)': require('@/albums/kids/DFA309/first_page.png'),
+  DFA207: require('@/albums/kids/DFA207/first_page.png'),
+  DFA208: require('@/albums/kids/DFA208/first_page.png'),
   // Личные дневники для девочки большой
-  DD1: require('../../assets/images/albums/DD1.png'),
-  DD2: require('../../assets/images/albums/DD2.png'),
-  DD3: require('../../assets/images/albums/DD3.png'),
-  DD4: require('../../assets/images/albums/DD4.png'),
-  DD5: require('../../assets/images/albums/DD5.png'),
-  DD6: require('../../assets/images/albums/DD6.png'),
-  DD7: require('../../assets/images/albums/DD7.png'),
-  DD8: require('../../assets/images/albums/DD8.png'),
-  DD9: require('../../assets/images/albums/DD9.png'),
-  DD10: require('../../assets/images/albums/DD10.png'),
-  DD11: require('../../assets/images/albums/DD11.png'),
-  DD12: require('../../assets/images/albums/DD12.png'),
-  DD13: require('../../assets/images/albums/DD13.png'),
-  DD14: require('../../assets/images/albums/DD14.png'),
-  DD15: require('../../assets/images/albums/DD15.png'),
-  DD16: require('../../assets/images/albums/DD16.png'),
-  DD17: require('../../assets/images/albums/DD17.png'),
-  DD18: require('../../assets/images/albums/DD18.png'),
-  DD20: require('../../assets/images/albums/DD20.png'),
-  DD21: require('../../assets/images/albums/DD21.png'),
+  DD1: require('../../assets/images/albums/DD_1.png'),
+  DD2: require('../../assets/images/albums/DD_2.png'),
+  DD3: require('../../assets/images/albums/DD_3.png'),
+  DD4: require('../../assets/images/albums/DD_4.png'),
+  DD5: require('../../assets/images/albums/DD_5.png'),
+  DD6: require('../../assets/images/albums/DD_6.png'),
+  DD7: require('../../assets/images/albums/DD_7.png'),
+  DD8: require('../../assets/images/albums/DD_8.png'),
+  DD9: require('../../assets/images/albums/DD_9.png'),
+  DD10: require('../../assets/images/albums/DD_10.png'),
+  DD11: require('../../assets/images/albums/DD_11.png'),
+  DD12: require('../../assets/images/albums/DD_12.png'),
+  DD13: require('../../assets/images/albums/DD_13.png'),
+  DD14: require('../../assets/images/albums/DD_14.png'),
+  DD15: require('../../assets/images/albums/DD_15.png'),
+  DD16: require('../../assets/images/albums/DD_16.png'),
+  DD17: require('../../assets/images/albums/DD_17.png'),
+  DD18: require('../../assets/images/albums/DD_18.png'),
+  DD20: require('../../assets/images/albums/DD_20.png'),
+  DD21: require('../../assets/images/albums/DD_21.png'),
   // Фотоальбомы свадебные
-  SVA2W: require('../../assets/images/albums/SVA2W.png'),
-  SVA3W: require('../../assets/images/albums/SVA3W.png'),
-  SVA5W: require('../../assets/images/albums/SVA5W.png'),
-  SVA7W: require('../../assets/images/albums/SVA7W.png'),
-  SVA9W: require('../../assets/images/albums/SVA9W.png'),  DB6: require('../../assets/images/albums/DB6.png'),
+  SVA2W: require('../../assets/images/albums/SVA_2.png'),
+  SVA3W: require('../../assets/images/albums/SVA_3.png'),
+  SVA5W: require('../../assets/images/albums/SVA_5.png'),
+  SVA7W: require('../../assets/images/albums/SVA_7.png'),
+  SVA9W: require('../../assets/images/albums/SVA_9.png'),
+  DB6: require('@/albums/DB6/page_001.png'),
   DFA303: require('../../assets/images/albums/DFA303.png'),
-  DFA309: require('../../assets/images/albums/DFA309.png'),
-  DFA205: require('../../assets/images/albums/DFA205.png'),
-  DFA43: require('../../assets/images/albums/DFA43.png'),
-  DFA206: require('../../assets/images/albums/DFA206.png'),
+  DFA309: require('@/albums/kids/DFA309/first_page.png'),
+  DFA205: require('@/albums/kids/DFA205/first_page.png'),
+  DFA43: require('@/albums/kids/DFA43/first_page.png'),
+  DFA206: require('@/albums/kids/DFA206/first_page.png'),
 
 };
 
@@ -902,6 +903,8 @@ export const GIFT_ITEMS: GiftItem[] = [
 ];
 
 export default function GiftsScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] =
     useState<CategoryFilter>('Все');
@@ -1256,7 +1259,10 @@ export default function GiftsScreen() {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: bottomInset + 72 },
+          ]}
           // Оптимизации для производительности
           removeClippedSubviews={true}
           initialNumToRender={5}
@@ -1302,7 +1308,11 @@ export default function GiftsScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Фильтр по разделу */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Раздел</Text>
@@ -1402,7 +1412,7 @@ export default function GiftsScreen() {
             </ScrollView>
 
             {/* Кнопки действий */}
-            <View style={styles.modalActions}>
+            <View style={[styles.modalActions, { paddingBottom: bottomInset }]}>
               <TouchableOpacity
                 style={styles.resetButton}
                 onPress={() => {
@@ -1633,6 +1643,9 @@ const styles = StyleSheet.create({
   modalScroll: {
     maxHeight: 400,
   },
+  modalScrollContent: {
+    paddingBottom: 8,
+  },
   filterSection: {
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -1684,7 +1697,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: '#F0E8E0',
@@ -1732,7 +1744,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 24,
-    paddingBottom: 40,
     gap: 20,
   },
   card: {

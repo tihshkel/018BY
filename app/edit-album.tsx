@@ -5,7 +5,7 @@ import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
-import { getAlbumImages, getAlbumImageUris, getAlbumPageCount } from '@/utils/albumImages';
+import { getAlbumImages, getAlbumImageUrisForViewing, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
@@ -35,11 +35,13 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function EditAlbumScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const { id, celebration, coverType, interiorType, eventDate } = useLocalSearchParams<{ 
     id?: string;
     celebration?: string;
@@ -112,6 +114,42 @@ export default function EditAlbumScreen() {
     if (!fontId || fontId === 'default') return 'Системный';
     const match = AVAILABLE_FONTS.find(f => f.id === fontId);
     return match?.displayName || fontId;
+  };
+
+  const readProjectMeta = async (projectId: string): Promise<any | null> => {
+    try {
+      const raw = await AsyncStorage.getItem(`@project_${projectId}`);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getSavedImagesTotalPages = async (
+    projectId: string,
+    savedImagesLength: number,
+    templatePageCount: number
+  ): Promise<number> => {
+    const meta = await readProjectMeta(projectId);
+    if (meta?.hasUserPageEdits === true) {
+      return savedImagesLength;
+    }
+    return Math.max(savedImagesLength, templatePageCount);
+  };
+
+  const markUserPageEdits = async (projectId: string, pagesCount: number) => {
+    const meta = await readProjectMeta(projectId);
+    if (!meta) return;
+    await AsyncStorage.setItem(
+      `@project_${projectId}`,
+      JSON.stringify({
+        ...meta,
+        pagesCount,
+        hasUserPageEdits: true,
+      })
+    );
   };
 
   useEffect(() => {
@@ -379,7 +417,7 @@ export default function EditAlbumScreen() {
                   // Используем сохраненные изображения (могут содержать пользовательские фото)
                   imageUris = parsed;
                   setImages(imageUris);
-                  setTotalPages(imageUris.length);
+                  setTotalPages(await getSavedImagesTotalPages(id, imageUris.length, pageCount));
                   setIsLoading(false);
                   
                   // Загружаем сохраненные аннотации
@@ -537,7 +575,8 @@ export default function EditAlbumScreen() {
               imageUris = parsed;
               // Устанавливаем данные СРАЗУ, не ждем ничего
               setImages(imageUris);
-              setTotalPages(imageUris.length);
+              const savedTotalPages = await getSavedImagesTotalPages(id, imageUris.length, pageCount);
+              setTotalPages(savedTotalPages);
               setIsLoading(false);
               
               // Загружаем сохраненные аннотации ПЕРЕД выходом
@@ -576,11 +615,11 @@ export default function EditAlbumScreen() {
               // Параллельно загружаем остальные страницы в фоне (не блокируем)
               // ВАЖНО: Догружаем только если сохраненных страниц меньше оригинальных
               // Но не перезаписываем, если пользователь специально удалил страницы
-              if (parsed.length < pageCount) {
+              if (parsed.length < pageCount && savedTotalPages > parsed.length) {
                 // Используем requestIdleCallback для фоновой загрузки
                 Promise.resolve().then(async () => {
                   try {
-                    const full = await getAlbumImageUris(foundAlbumId);
+                    const full = await getAlbumImageUrisForViewing(foundAlbumId);
                     // Догружаем только недостающие страницы, не перезаписывая существующие
                     if (full.length > parsed.length) {
                       // Объединяем сохраненные и недостающие страницы
@@ -618,7 +657,7 @@ export default function EditAlbumScreen() {
               if (Array.isArray(parsed) && parsed.length > 0) {
                 // Используем сохраненные данные
                 setImages(parsed);
-                setTotalPages(parsed.length);
+                setTotalPages(await getSavedImagesTotalPages(id, parsed.length, pageCount));
                 setIsLoading(false);
                 
                 // Загружаем аннотации
@@ -740,7 +779,7 @@ export default function EditAlbumScreen() {
               }
             }
             
-            const full = await getAlbumImageUris(foundAlbumId);
+            const full = await getAlbumImageUrisForViewing(foundAlbumId);
             if (full.length > 0) {
               const storageKey = id ? `@project_images_${id}` : `@project_images_${foundAlbumId}`;
               await AsyncStorage.setItem(storageKey, JSON.stringify(full));
@@ -987,9 +1026,8 @@ export default function EditAlbumScreen() {
     }
   };
 
-  const handlePageChange = (page: number, total: number) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setTotalPages(total);
   };
 
   const handleError = (error: any) => {
@@ -1305,9 +1343,11 @@ export default function EditAlbumScreen() {
     // Шаблонные страницы (images) не считаем контентом пользователя.
     const photoCount = countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations);
     if (photoCount > 0) return true;
-    const hasText = [...annotations, ...coverAnnotations].some(
-      (a: any) => a?.type === 'text' && typeof a?.text === 'string' && a.text.trim().length > 0
-    );
+    const hasText = [...annotations, ...coverAnnotations].some((a: any) => {
+      if (a?.type !== 'text') return false;
+      const text = typeof a?.content === 'string' ? a.content : a?.text;
+      return typeof text === 'string' && text.trim().length > 0;
+    });
     if (hasText) return true;
     const hasDrawing = [...annotations, ...coverAnnotations].some((a: any) => a?.type === 'drawing');
     return hasDrawing;
@@ -1672,8 +1712,8 @@ export default function EditAlbumScreen() {
             setTemplatePages(interiorUris);
           }
         } else {
-          // Для остальных альбомов используем getAlbumImageUris
-          const uris = await getAlbumImageUris(albumId);
+          // Для остальных альбомов используем быстрые URI для просмотра.
+          const uris = await getAlbumImageUrisForViewing(albumId);
           if (uris && uris.length > 0) {
             setTemplatePages(uris);
           }
@@ -1685,12 +1725,6 @@ export default function EditAlbumScreen() {
     
     loadTemplatePages();
   }, [albumId, celebration]);
-
-  // Открываем модальное окно выбора страницы для дублирования
-  const handleOpenPageSelectModal = (targetPageIndex: number) => {
-    setTargetPageIndexForDuplicate(targetPageIndex);
-    setShowPageSelectModal(true);
-  };
 
   // Добавляем новую страницу в конец альбома
   const handleAddPage = async (sourcePageIndex: number) => {
@@ -1708,8 +1742,9 @@ export default function EditAlbumScreen() {
     setImages(newImages);
     setTotalPages(newImages.length);
     
-    if (id) {
-      await AsyncStorage.setItem(`@project_images_${id}`, JSON.stringify(newImages));
+    if (storageId) {
+      await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
+      await markUserPageEdits(storageId, newImages.length);
     }
     
     setShowAddPageModal(false);
@@ -1717,6 +1752,59 @@ export default function EditAlbumScreen() {
     // Переходим на новую страницу
     setTimeout(() => {
       setCurrentPage(newImages.length);
+    }, 100);
+  };
+
+  const handleDuplicateCurrentPage = async (pageIndex: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (pageIndex < 0 || pageIndex >= images.length) return;
+
+    const sourceImageUri = images[pageIndex];
+    if (!sourceImageUri) {
+      Alert.alert('Ошибка', 'Не удалось продублировать страницу');
+      return;
+    }
+
+    const insertedPage = pageIndex + 2;
+    const newImages = [...images];
+    newImages.splice(pageIndex + 1, 0, sourceImageUri);
+
+    const copiedAnnotations = annotations
+      .filter(ann => {
+        const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
+        return annPage === pageIndex + 1;
+      })
+      .map(ann => ({
+        ...ann,
+        id: createId('ann'),
+        page: insertedPage,
+      }));
+
+    const shiftedAnnotations = annotations.map(ann => {
+      const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
+      if (annPage > pageIndex + 1) {
+        return { ...ann, page: annPage + 1 };
+      }
+      return ann;
+    });
+
+    const updatedAnnotations = [...shiftedAnnotations, ...copiedAnnotations];
+
+    setImages(newImages);
+    setTotalPages(newImages.length);
+    setAnnotations(updatedAnnotations);
+
+    if (storageId) {
+      await Promise.all([
+        AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages)),
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations)),
+        markUserPageEdits(storageId, newImages.length),
+      ]);
+    }
+
+    setTimeout(() => {
+      setCurrentPage(insertedPage);
     }, 100);
   };
 
@@ -1757,6 +1845,7 @@ export default function EditAlbumScreen() {
     if (storageId) {
       AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
       AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations));
+      markUserPageEdits(storageId, newImages.length).catch(() => {});
     }
     setShowPageSelectModal(false);
     setTargetPageIndexForDuplicate(null);
@@ -1799,6 +1888,7 @@ export default function EditAlbumScreen() {
     if (storageId) {
       AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
       AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations));
+      markUserPageEdits(storageId, newImages.length).catch(() => {});
     }
     // Обновляем текущую страницу
     if (currentPage > newImages.length) {
@@ -1995,7 +2085,7 @@ export default function EditAlbumScreen() {
               onAnnotationDelete={handleAnnotationDelete}
               isEditing={isEditing}
               currentTool={currentTool}
-              onPageDuplicate={handleOpenPageSelectModal}
+              onPageDuplicate={handleDuplicateCurrentPage}
               onPageDelete={handlePageDelete}
               onToolReset={handleToolReset}
               onToolDeactivate={handleToolDeactivate}
@@ -2028,7 +2118,7 @@ export default function EditAlbumScreen() {
         </View>
 
         {/* Нижняя панель инструментов */}
-        <View style={styles.bottomPanel}>
+        <View style={[styles.bottomPanel, { paddingBottom: bottomInset }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -2247,7 +2337,10 @@ export default function EditAlbumScreen() {
 
             <ScrollView
               style={styles.pageSelectModalScroll}
-              contentContainerStyle={styles.pageSelectModalScrollContent}
+              contentContainerStyle={[
+                styles.pageSelectModalScrollContent,
+                { paddingBottom: bottomInset + 24 },
+              ]}
               showsVerticalScrollIndicator={false}
             >
               {templatePages.length === 0 ? (
@@ -2314,7 +2407,10 @@ export default function EditAlbumScreen() {
 
             <ScrollView
               style={styles.pageSelectModalScroll}
-              contentContainerStyle={styles.pageSelectModalScrollContent}
+              contentContainerStyle={[
+                styles.pageSelectModalScrollContent,
+                { paddingBottom: bottomInset + 24 },
+              ]}
               showsVerticalScrollIndicator={false}
             >
               {templatePages.length === 0 ? (
@@ -2709,7 +2805,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F5F0EB',
     paddingTop: 16,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 20,
     paddingHorizontal: 20,
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: -2 },

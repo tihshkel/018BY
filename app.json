@@ -44,7 +44,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.tihshkel.app018by",
       "versionCode": 2,
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "resize",
       "runtimeVersion": "1.0.0",
       "permissions": [
         "CAMERA",

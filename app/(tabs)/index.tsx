@@ -268,9 +268,9 @@ export default function HomeScreen() {
           const coverAnnotationsRaw = results.find(([k]) => k === keys[2])?.[1] ?? null;
 
           const savedImages = safeParseArray(imagesRaw);
-          // Для альбомов по шаблону (pregnancy, kids и т.д.) показываем число страниц из шаблона,
-          // иначе на главной всегда «1 страница», пока не сохранены все страницы
-          if (albumId) {
+          if (savedImages.length > 0) {
+            pagesCount = savedImages.length;
+          } else if (albumId) {
             const template = getAlbumTemplateById(albumId);
             if (typeof template?.pages === 'number') {
               pagesCount = template.pages;

@@ -36,7 +36,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface LocalParams {
   category?: string | string[];
@@ -129,6 +129,8 @@ const getDefaultDate = (categoryId: string): Date => {
 };
 
 export default function ProjectTemplatesScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams();
   const categoryId = formatCategoryId(params.category);
   const categoryTitle = getCategoryTitle(categoryId);
@@ -575,7 +577,10 @@ export default function ProjectTemplatesScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 40 },
+          ]}
         >
           <Text style={styles.subtitle}>
             {(categoryId === 'pregnancy' || categoryId === 'kids' || categoryId === 'diary') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
@@ -874,7 +879,7 @@ export default function ProjectTemplatesScreen() {
             onRequestClose={handleCoverDateCancel}
           >
             <View style={styles.coverDateModalOverlay}>
-              <View style={styles.coverDateModalContent}>
+              <View style={[styles.coverDateModalContent, { paddingBottom: bottomInset + 20 }]}>
                 <View style={styles.coverDateModalHeader}>
                   <Text style={styles.coverDateModalTitle}>{categoryInfo.title}</Text>
                   <TouchableOpacity onPress={handleCoverDateCancel}>
@@ -1118,7 +1123,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 40,
     gap: 16,
   },
   subtitle: {
@@ -1391,7 +1395,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     maxHeight: '80%',
   },
   coverDateModalHeader: {

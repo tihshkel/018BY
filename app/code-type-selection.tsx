@@ -3,9 +3,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
     InteractionManager,
     Platform,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -20,8 +20,6 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function CodeTypeSelectionScreen() {
   const [buttonsEnabled, setButtonsEnabled] = useState(false);
@@ -143,8 +141,11 @@ export default function CodeTypeSelectionScreen() {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.content}>
-        {/* Заголовок и описание */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.headerContainer}>
           <Animated.View style={[styles.titleContainer, titleAnimatedStyle]}>
             <View style={styles.iconContainer}>
@@ -160,7 +161,6 @@ export default function CodeTypeSelectionScreen() {
           </Animated.View>
         </View>
 
-        {/* Варианты действий */}
         <View style={styles.optionsContainer}>
           <Animated.View style={option1AnimatedStyle}>
             <TouchableOpacity
@@ -202,7 +202,7 @@ export default function CodeTypeSelectionScreen() {
             </TouchableOpacity>
           </Animated.View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -212,13 +212,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F0EB',
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     paddingHorizontal: 24,
+    paddingBottom: 32,
   },
   headerContainer: {
-    paddingTop: 40,
-    paddingBottom: 32,
+    paddingTop: Platform.OS === 'android' ? 24 : 40,
+    paddingBottom: Platform.OS === 'android' ? 20 : 32,
     alignItems: 'center',
   },
   titleContainer: {
@@ -226,13 +230,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconContainer: {
-    width: 64,
-    height: 64,
+    width: Platform.OS === 'android' ? 56 : 64,
+    height: Platform.OS === 'android' ? 56 : 64,
     borderRadius: 20,
     backgroundColor: '#FAF8F5',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: Platform.OS === 'android' ? 16 : 20,
     borderWidth: 2,
     borderColor: '#E8DDD4',
   },
@@ -266,14 +270,13 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   optionsContainer: {
-    flex: 1,
     gap: 16,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   optionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    padding: 24,
+    padding: Platform.OS === 'android' ? 20 : 24,
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 0,
@@ -285,16 +288,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 3,
-    minHeight: 140,
+    minHeight: Platform.OS === 'android' ? 124 : 140,
   },
   optionIconContainer: {
-    width: 56,
-    height: 56,
+    width: Platform.OS === 'android' ? 48 : 56,
+    height: Platform.OS === 'android' ? 48 : 56,
     borderRadius: 16,
     backgroundColor: '#FAF8F5',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 18,
+    marginRight: Platform.OS === 'android' ? 14 : 18,
     flexShrink: 0,
   },
   optionContent: {
@@ -302,7 +305,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   optionTitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === 'android' ? 17 : 18,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -314,7 +317,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   optionDescription: {
-    fontSize: 14,
+    fontSize: Platform.OS === 'android' ? 13 : 14,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -322,7 +325,7 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '300',
-    lineHeight: 20,
+    lineHeight: Platform.OS === 'android' ? 18 : 20,
     opacity: 0.85,
   },
 });

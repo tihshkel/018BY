@@ -147,6 +147,7 @@ export default function NameInputScreen() {
       await AsyncStorage.setItem('@access_code', accessCode);
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@is_activated', 'true');
+      await AsyncStorage.setItem('@has_seen_onboarding', 'true');
       await AsyncStorage.setItem('@show_access_code_modal', 'true');
 
       setIsSubmitting(false);

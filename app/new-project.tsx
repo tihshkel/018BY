@@ -9,7 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -104,6 +104,8 @@ const products: Record<string, Product[]> = {
 };
 
 export default function NewProjectScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showSystemDatePicker, setShowSystemDatePicker] = useState(false);
@@ -199,7 +201,10 @@ export default function NewProjectScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 32 },
+          ]}
         >
           {/* Категории */}
           <View style={styles.categoriesContainer}>
@@ -416,7 +421,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 32,
   },
   categoriesContainer: {
     paddingHorizontal: 24,

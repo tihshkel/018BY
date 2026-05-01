@@ -35,7 +35,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -100,6 +100,8 @@ interface CategoryInfo {
 }
 
 export default function SelectCoverScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams<{ celebration: string | string[] }>();
   // Нормализуем celebration - может быть строкой или массивом
   const celebration = Array.isArray(params.celebration)
@@ -741,7 +743,10 @@ export default function SelectCoverScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 24 },
+          ]}
         >
           {coverTypes.map((cover) => (
             <TouchableOpacity
@@ -800,7 +805,7 @@ export default function SelectCoverScreen() {
             onRequestClose={handleDateCancel}
           >
             <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
+              <View style={[styles.modalContent, { paddingBottom: bottomInset + 20 }]}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{categoryInfo.title}</Text>
                   <TouchableOpacity onPress={handleDateCancel}>
@@ -967,7 +972,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
   },
   coverCard: {
     marginBottom: 16,
@@ -1035,7 +1039,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     maxHeight: '80%',
   },
   modalHeader: {

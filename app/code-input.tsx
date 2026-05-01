@@ -8,7 +8,9 @@ import {
   Dimensions,
   InteractionManager,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -393,76 +395,87 @@ export default function CodeInputScreen() {
         end={{ x: 1, y: 1 }}
       />
 
-      <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-        <Animated.View style={[styles.content, containerAnimatedStyle]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel="Вернуться назад"
-            accessibilityRole="button"
-          >
-            <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
-          </TouchableOpacity>
-          <TouchableWithoutFeedback onPress={() => {}}>
-            <View>
-              <Animated.View style={[styles.header, inputAnimatedStyle]}>
-                <Text style={styles.title}>Введите код доступа</Text>
-                <Text style={styles.hint}>
-                  Код указан на вкладыше внутри коробки
-                </Text>
-              </Animated.View>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+          <Animated.View style={[styles.content, containerAnimatedStyle]}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel="Вернуться назад"
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
+            </TouchableOpacity>
 
-              {/* Поля ввода кода */}
-              <Animated.View style={[styles.codeContainer, inputAnimatedStyle]}>
-                {code.map((digit, index) => (
-                  <CodeCell
-                    key={index}
-                    index={index}
-                    value={digit}
-                    hasError={error}
-                    autoFocus={index === 0}
-                    onChangeText={handleCodeChange}
-                    onKeyPress={handleKeyPress}
-                    onFocusAny={handleInputFocus}
-                    setRef={(ref, i) => {
-                      inputRefs.current[i] = ref;
-                    }}
-                  />
-                ))}
-              </Animated.View>
-
-              {/* Кнопка активации */}
-              <Animated.View style={inputAnimatedStyle}>
-                <TouchableOpacity
-                  style={[
-                    styles.activateButton,
-                    code.join('').length === CODE_LENGTH && styles.activateButtonActive,
-                    isLoading && styles.activateButtonLoading,
-                  ]}
-                  onPress={handleActivate}
-                  activeOpacity={0.7}
-                  disabled={code.join('').length !== CODE_LENGTH || isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <Text
-                      style={[
-                        styles.activateButtonText,
-                        code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
-                      ]}
-                    >
-                      Активировать
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View style={styles.formBlock}>
+                  <Animated.View style={[styles.header, inputAnimatedStyle]}>
+                    <Text style={styles.title}>Введите код доступа</Text>
+                    <Text style={styles.hint}>
+                      Код указан на вкладыше внутри коробки
                     </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Animated.View>
-      </TouchableWithoutFeedback>
+                  </Animated.View>
+
+                  <Animated.View style={[styles.codeContainer, inputAnimatedStyle]}>
+                    {code.map((digit, index) => (
+                      <CodeCell
+                        key={index}
+                        index={index}
+                        value={digit}
+                        hasError={error}
+                        autoFocus={index === 0}
+                        onChangeText={handleCodeChange}
+                        onKeyPress={handleKeyPress}
+                        onFocusAny={handleInputFocus}
+                        setRef={(ref, i) => {
+                          inputRefs.current[i] = ref;
+                        }}
+                      />
+                    ))}
+                  </Animated.View>
+
+                  <Animated.View style={inputAnimatedStyle}>
+                    <TouchableOpacity
+                      style={[
+                        styles.activateButton,
+                        code.join('').length === CODE_LENGTH && styles.activateButtonActive,
+                        isLoading && styles.activateButtonLoading,
+                      ]}
+                      onPress={handleActivate}
+                      activeOpacity={0.7}
+                      disabled={code.join('').length !== CODE_LENGTH || isLoading}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#FFFFFF" size="small" />
+                      ) : (
+                        <Text
+                          style={[
+                            styles.activateButtonText,
+                            code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
+                          ]}
+                        >
+                          Активировать
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+          </Animated.View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -472,11 +485,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
+    paddingHorizontal: HORIZONTAL_PADDING,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingVertical: 96,
+  },
+  formBlock: {
+    width: '100%',
+    alignItems: 'center',
   },
   backButton: {
     position: 'absolute',

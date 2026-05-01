@@ -8,7 +8,9 @@ import {
   Dimensions,
   InteractionManager,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -30,12 +32,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const CODE_LENGTH = 8; // Код доступа аккаунта обычно длиннее
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HORIZONTAL_PADDING = 24;
-const CODE_GAP = 10;
+const CODE_GAP = 6;
 const CODE_INPUT_SIZE = Math.min(
-  56,
+  44,
   (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CODE_GAP * (CODE_LENGTH - 1)) /
     CODE_LENGTH
 );
+const CODE_INPUT_FONT_SIZE = Math.max(18, Math.min(22, CODE_INPUT_SIZE * 0.58));
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
@@ -212,12 +215,26 @@ export default function AccountCodeInputScreen() {
 
   const onChangeText = (value: string, index: number) => {
     if (error) setError(false);
+
+    const sanitizedValue = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
     
     const newCode = [...code];
-    newCode[index] = value.toUpperCase();
+    if (sanitizedValue.length > 1) {
+      const chars = sanitizedValue.split('').slice(0, CODE_LENGTH - index);
+      chars.forEach((char, charIndex) => {
+        newCode[index + charIndex] = char;
+      });
+      setCode(newCode);
+
+      const nextIndex = Math.min(index + chars.length, CODE_LENGTH - 1);
+      inputRefs.current[nextIndex]?.focus();
+      return;
+    }
+
+    newCode[index] = sanitizedValue;
     setCode(newCode);
 
-    if (value && index < CODE_LENGTH - 1) {
+    if (sanitizedValue && index < CODE_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -330,72 +347,85 @@ export default function AccountCodeInputScreen() {
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <Animated.View style={[styles.content, containerAnimatedStyle]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityLabel="Вернуться назад"
-          accessibilityRole="button"
-        >
-          <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
-        </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-          <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="person-outline" size={48} color="#8B6F5F" />
-            </View>
-
-            <Text style={styles.title}>Вход в аккаунт</Text>
-            <Text style={styles.subtitle}>
-              Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
-            </Text>
-
-            <View style={styles.codeContainer}>
-              {code.map((value, index) => (
-                <CodeCell
-                  key={index}
-                  index={index}
-                  value={value}
-                  hasError={error}
-                  autoFocus={index === 0}
-                  onChangeText={onChangeText}
-                  onKeyPress={onKeyPress}
-                  onFocusAny={onFocusAny}
-                  setRef={setRef}
-                />
-              ))}
-            </View>
-
-            {error && (
-              <Text style={styles.errorText}>
-                Проверьте код доступа
-              </Text>
-            )}
-
+          <Animated.View style={[styles.content, containerAnimatedStyle]}>
             <TouchableOpacity
-              style={[
-                styles.loginButton,
-                (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonActive,
-                isLoading && styles.loginButtonLoading,
-              ]}
-              onPress={handleLogin}
+              style={styles.backButton}
+              onPress={() => router.back()}
               activeOpacity={0.7}
-              disabled={code.join('').length !== CODE_LENGTH || isLoading}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel="Вернуться назад"
+              accessibilityRole="button"
             >
-              <Text
-                style={[
-                  styles.loginButtonText,
-                  (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonTextActive,
-                ]}
-              >
-                {isLoading ? 'Вход...' : 'Войти в аккаунт'}
-              </Text>
+              <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
             </TouchableOpacity>
+
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="person-outline" size={48} color="#8B6F5F" />
+                </View>
+
+                <Text style={styles.title}>Вход в аккаунт</Text>
+                <Text style={styles.subtitle}>
+                  Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
+                </Text>
+
+                <View style={styles.codeContainer}>
+                  {code.map((value, index) => (
+                    <CodeCell
+                      key={index}
+                      index={index}
+                      value={value}
+                      hasError={error}
+                      autoFocus={index === 0}
+                      onChangeText={onChangeText}
+                      onKeyPress={onKeyPress}
+                      onFocusAny={onFocusAny}
+                      setRef={setRef}
+                    />
+                  ))}
+                </View>
+
+                {error && (
+                  <Text style={styles.errorText}>
+                    Проверьте код доступа
+                  </Text>
+                )}
+
+                <TouchableOpacity
+                  style={[
+                    styles.loginButton,
+                    (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonActive,
+                    isLoading && styles.loginButtonLoading,
+                  ]}
+                  onPress={handleLogin}
+                  activeOpacity={0.7}
+                  disabled={code.join('').length !== CODE_LENGTH || isLoading}
+                >
+                  <Text
+                    style={[
+                      styles.loginButtonText,
+                      (code.join('').length === CODE_LENGTH && !isLoading) && styles.loginButtonTextActive,
+                    ]}
+                  >
+                    {isLoading ? 'Вход...' : 'Войти в аккаунт'}
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </ScrollView>
           </Animated.View>
         </TouchableWithoutFeedback>
-      </Animated.View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -404,11 +434,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardView: {
+    flex: 1,
+  },
   content: {
     flex: 1,
+    paddingHorizontal: HORIZONTAL_PADDING,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingVertical: 96,
   },
   backButton: {
     position: 'absolute',
@@ -481,14 +522,19 @@ const styles = StyleSheet.create({
     height: CODE_INPUT_SIZE,
     borderWidth: 2,
     borderRadius: 12,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
     textAlign: 'center',
-    fontSize: 24,
+    textAlignVertical: 'center',
+    fontSize: CODE_INPUT_FONT_SIZE,
+    lineHeight: CODE_INPUT_FONT_SIZE + 2,
     fontWeight: '600',
     color: '#8B6F5F',
+    includeFontPadding: false,
     fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
+      ios: 'Courier',
+      android: 'monospace',
+      default: 'monospace',
     }),
   },
   errorText: {

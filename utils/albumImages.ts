@@ -47,6 +47,15 @@ function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
 }
 
+function remotePageCachePath(folderPath: string, fileName: string): string {
+  const safeFolder = encodeURIComponent(folderPath);
+  return `${REMOTE_ALBUM_CACHE_DIR}${safeFolder}__${fileName}`;
+}
+
+function remotePageUrl(folderPath: string, fileName: string): string {
+  return `${GITHUB_REPO_BASE}/${encodeURI(`${folderPath}/${fileName}`)}`;
+}
+
 async function ensureRemoteAlbumCacheDir(): Promise<void> {
   const dirInfo = await getInfoAsync(REMOTE_ALBUM_CACHE_DIR);
   if (!dirInfo.exists) {
@@ -57,19 +66,60 @@ async function ensureRemoteAlbumCacheDir(): Promise<void> {
 async function downloadRemotePageToCache(folderPath: string, fileName: string): Promise<string | null> {
   try {
     await ensureRemoteAlbumCacheDir();
-    const safeFolder = encodeURIComponent(folderPath);
-    const localPath = `${REMOTE_ALBUM_CACHE_DIR}${safeFolder}__${fileName}`;
+    const localPath = remotePageCachePath(folderPath, fileName);
 
     const info = await getInfoAsync(localPath);
     if (info.exists) return localPath;
 
-    const url = `${GITHUB_REPO_BASE}/${encodeURI(`${folderPath}/${fileName}`)}`;
+    const url = remotePageUrl(folderPath, fileName);
     const res = await downloadAsync(url, localPath);
     return res.uri;
   } catch (error) {
     console.warn('[albumImages] Не удалось скачать страницу', folderPath, fileName, error);
     return null;
   }
+}
+
+async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Promise<void> {
+  const maxParallel = 4;
+  let idx = 1;
+
+  const worker = async () => {
+    while (true) {
+      const current = idx;
+      idx += 1;
+      if (current > pageCount) return;
+      await downloadRemotePageToCache(folderPath, pageFileName(current));
+    }
+  };
+
+  await Promise.all(Array.from({ length: maxParallel }, () => worker()));
+}
+
+/**
+ * Быстрый список страниц для просмотра: уже закешированные страницы отдаются с диска,
+ * остальные сразу открываются по URL, а кеширование запускается в фоне.
+ */
+export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
+  const spec = getRemoteAlbumSpec(albumId);
+  if (!spec) {
+    return getAlbumImageUris(albumId);
+  }
+
+  await ensureRemoteAlbumCacheDir();
+
+  const uris = await Promise.all(
+    Array.from({ length: spec.pageCount }, async (_, index) => {
+      const fileName = pageFileName(index + 1);
+      const localPath = remotePageCachePath(spec.folderPath, fileName);
+      const info = await getInfoAsync(localPath);
+      return info.exists ? localPath : remotePageUrl(spec.folderPath, fileName);
+    })
+  );
+
+  warmRemoteAlbumCache(spec.folderPath, spec.pageCount).catch(() => {});
+
+  return uris;
 }
 
 /**

@@ -1,5 +1,4 @@
 import { getAlbumTemplatesByCategory } from '@/albums';
-import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -183,9 +182,6 @@ export default function SelectCelebrationScreen() {
           const projects = existingProjects ? JSON.parse(existingProjects) : [];
           projects.push(projectData);
           await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-          syncToCloudNow();
-          scheduleSyncToCloud();
-          await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
           router.push(`/edit-album?id=${projectId}`);

@@ -203,6 +203,53 @@ function yieldToUI(): Promise<void> {
 
 const BYTE_COPY_CHUNK = 65536; // 64KB — копируем порциями, между ними уступаем потоку
 
+async function uploadAnnotationImageUris(
+  accessCode: string,
+  projectId: string,
+  key: string,
+  value: string
+): Promise<string | null> {
+  const annotations = JSON.parse(value || '[]');
+  if (!Array.isArray(annotations)) return null;
+
+  let changed = false;
+  const uploaded = [];
+
+  for (let index = 0; index < annotations.length; index++) {
+    const annotation = annotations[index];
+    if (!annotation || typeof annotation !== 'object') {
+      uploaded.push(annotation);
+      continue;
+    }
+    if (annotation.type !== 'image' || typeof annotation.imageUri !== 'string') {
+      uploaded.push(annotation);
+      continue;
+    }
+
+    const uri = annotation.imageUri;
+    if (uri.startsWith('https://')) {
+      uploaded.push(annotation);
+      continue;
+    }
+    if (!uri.startsWith('file://') && !uri.startsWith('/') && !uri.startsWith('content://')) {
+      uploaded.push(annotation);
+      continue;
+    }
+
+    const uploadIndex = key.startsWith('@project_cover_annotations_') ? 20000 + index : 10000 + index;
+    const url = await uploadImageToStorage(accessCode, projectId, uri, uploadIndex);
+    if (url) {
+      changed = true;
+      uploaded.push({ ...annotation, imageUri: url });
+    } else {
+      uploaded.push(annotation);
+    }
+    await yieldToUI();
+  }
+
+  return changed ? JSON.stringify(uploaded) : null;
+}
+
 /**
  * Преобразует все локальные URI изображений в данных в Storage URL.
  * Обрабатывает по одному ключу за раз с уступкой потоку, чтобы не мешать работе приложения.
@@ -253,6 +300,26 @@ export async function uploadProjectImagesBeforeSync(
       }
     } catch (e) {
       console.warn('[SupabaseStorage] Failed to process', key, e);
+    }
+    await yieldToUI();
+  }
+
+  const annotationKeys = Object.keys(result).filter(
+    (k) => k.startsWith('@project_annotations_') || k.startsWith('@project_cover_annotations_')
+  );
+  for (const key of annotationKeys) {
+    try {
+      const value = result[key];
+      if (typeof value !== 'string' || !value) continue;
+      const projectId = key
+        .replace('@project_cover_annotations_', '')
+        .replace('@project_annotations_', '');
+      const uploadedJson = await uploadAnnotationImageUris(accessCode, projectId, key, value);
+      if (uploadedJson) {
+        result[key] = uploadedJson;
+      }
+    } catch (e) {
+      console.warn('[SupabaseStorage] Failed to process annotation images', key, e);
     }
     await yieldToUI();
   }

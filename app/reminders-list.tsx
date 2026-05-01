@@ -26,7 +26,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -122,6 +122,8 @@ function fromStoredReminder(r: StoredReminder): Reminder {
 }
 
 export default function RemindersListScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -525,7 +527,10 @@ export default function RemindersListScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 32 },
+          ]}
         >
           {/* Кнопка добавления */}
           <TouchableOpacity
@@ -638,7 +643,13 @@ export default function RemindersListScreen() {
               style={styles.modalKeyboardAvoid}
               keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
             >
-              <Animated.View style={[styles.modalContent, modalContentAnimatedStyle]}>
+              <Animated.View
+                style={[
+                  styles.modalContent,
+                  { paddingBottom: bottomInset + 20 },
+                  modalContentAnimatedStyle,
+                ]}
+              >
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>Новое напоминание</Text>
                     <TouchableOpacity onPress={closeAddModal} activeOpacity={0.7}>
@@ -858,7 +869,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
   },
   addButton: {
     flexDirection: 'row',
@@ -1095,7 +1105,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingTop: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     maxHeight: '90%',
     shadowColor: '#5B4E3F',
     shadowOffset: { width: 0, height: -4 },

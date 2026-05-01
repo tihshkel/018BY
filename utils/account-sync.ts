@@ -187,6 +187,7 @@ export async function loginAndEnterFast(accessCode: string): Promise<{
 
     await AsyncStorage.setItem('@access_code', accessCode);
     await AsyncStorage.setItem('@is_activated', 'true');
+    await AsyncStorage.setItem('@has_seen_onboarding', 'true');
     await AsyncStorage.setItem('@has_seen_access_code', 'true'); // вошли по коду — модалку «Ваш код доступа» не показываем
     await AsyncStorage.setItem('@show_access_code_modal', 'false');
 
@@ -549,6 +550,27 @@ async function markSyncError(error: string): Promise<void> {
   }
 }
 
+async function persistUploadedProjectUrls(
+  before: Record<string, string>,
+  after: Record<string, string>
+): Promise<void> {
+  const projectDataPrefixes = [
+    '@project_images_',
+    '@project_annotations_',
+    '@project_cover_annotations_',
+    '@project_pdf_',
+  ];
+
+  const changedPairs = Object.entries(after).filter(([key, value]) => {
+    return projectDataPrefixes.some((prefix) => key.startsWith(prefix)) && before[key] !== value;
+  });
+
+  for (const [key, value] of changedPairs) {
+    await AsyncStorage.setItem(key, value);
+    await yieldToUI();
+  }
+}
+
 /**
  * Одна попытка отправки данных в облако (без повторов).
  *
@@ -645,6 +667,7 @@ async function pushAccountDataToCloudOnce(
   if (syncingProjects && Object.keys(data).some((k) => k.startsWith(PROJECT_PREFIX))) {
     try {
       dataWithPhotos = await uploadProjectImagesBeforeSync(accessCode, data);
+      await persistUploadedProjectUrls(data, dataWithPhotos);
     } catch (e) {
       console.warn('[AccountSync] Загрузка фото в Storage не удалась, сохраняем без неё:', e);
     }
@@ -1019,6 +1042,7 @@ export async function pushAccountDataToCloud(
       try {
         const result = await pushAccountDataToCloudOnce(forceInclude);
         if (result.ok) {
+          await Promise.all(forceInclude.map((id) => addProjectToSyncedList(id)));
           await markSyncOk();
           return result;
         }

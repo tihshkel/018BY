@@ -11,27 +11,29 @@ export default function Index() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        // Сброс прогресса пользователя - очистка всех данных
-        await AsyncStorage.multiRemove([
-          ONBOARDING_KEY,
-          ACTIVATION_KEY,
-          '@user_name',
-          '@user_projects',
-          '@activation_code',
-          '@user_avatar',
-          '@user_access_code',
-          '@access_code',
-          '@has_seen_access_code',
-          '@show_access_code_modal',
+        const [
+          hasSeenOnboarding,
+          isActivated,
+          accessCode,
+          userName,
+          activationCode,
+        ] = await Promise.all([
+          AsyncStorage.getItem(ONBOARDING_KEY),
+          AsyncStorage.getItem(ACTIVATION_KEY),
+          AsyncStorage.getItem('@access_code'),
+          AsyncStorage.getItem('@user_name'),
+          AsyncStorage.getItem('@activation_code'),
         ]);
-        console.log('Прогресс пользователя сброшен');
-        
-        const hasSeenOnboarding = await AsyncStorage.getItem(ONBOARDING_KEY);
-        const isActivated = await AsyncStorage.getItem(ACTIVATION_KEY);
-        
-        if (!hasSeenOnboarding) {
+
+        if (isActivated === 'true' && accessCode) {
+          await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+          router.replace('/(tabs)');
+        } else if (isActivated === 'true' && activationCode && !userName) {
+          await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+          router.replace('/name-input');
+        } else if (hasSeenOnboarding !== 'true') {
           router.replace('/onboarding');
-        } else if (!isActivated) {
+        } else if (isActivated !== 'true') {
           router.replace('/activation');
         } else {
           router.replace('/(tabs)');
