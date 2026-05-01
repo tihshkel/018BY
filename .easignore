@@ -29,6 +29,17 @@ ios/Pods/
 /albums/pregnant/
 /albums/diary/
 
+# These lightweight cover/first-page assets are referenced by static require().
+# They must stay in the EAS archive; otherwise Linux Metro cannot bundle them.
+!/albums/holiday/
+!/albums/holiday/first_pages/
+!/albums/holiday/first_pages/**
+!/albums/family/
+!/albums/family/first_pages/
+!/albums/family/first_pages/**
+!/albums/pregnant/
+!/albums/pregnant/**
+
 # Exclude heavy PDF content. Лёгкие превью для бандла лежат в assets/app-bundled/
 # (вне /assets/pdfs/**), чтобы EAS всегда их загружал — отрицания в ignore легко сломать.
 /assets/pdfs/**
