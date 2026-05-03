@@ -1,5 +1,5 @@
 /**
- * Утилита для проверки и использования ключей активации через Supabase RPC `validate_code`.
+ * Утилита для проверки кодов с карточек физических товаров через Supabase RPC `validate_code`.
  * Коды одноразовые - после успешной проверки помечаются как used: true на стороне БД.
  */
 
@@ -32,9 +32,9 @@ async function validateViaSupabase(code: string): Promise<
 }
 
 /**
- * Проверить и использовать ключ активации
- * @param code - Код активации для проверки
- * @returns true если ключ валиден и был успешно использован, false если ключ невалиден или уже использован
+ * Проверить и использовать код с карточки физического товара.
+ * @param code - Код с карточки для проверки
+ * @returns true если код валиден и был успешно использован, false если код невалиден или уже использован
  */
 export async function validateAndUseActivationKey(code: string): Promise<{
     valid: boolean;
@@ -52,8 +52,8 @@ export async function validateAndUseActivationKey(code: string): Promise<{
         const supabaseResult = await validateViaSupabase(normalizedCode);
         if (supabaseResult.ok) {
             if (supabaseResult.status === 'valid') return { valid: true };
-            if (supabaseResult.status === 'used') return { valid: false, message: 'Этот код активации уже был использован' };
-            return { valid: false, message: 'Код активации не найден' };
+            if (supabaseResult.status === 'used') return { valid: false, message: 'Этот код уже был использован' };
+            return { valid: false, message: 'Код не найден' };
         }
         return {
             valid: false,
@@ -63,7 +63,7 @@ export async function validateAndUseActivationKey(code: string): Promise<{
         console.error('[ActivationKeyValidator] Error validating key:', error);
         return {
             valid: false,
-            message: 'Ошибка при проверке кода активации',
+            message: 'Ошибка при проверке кода',
         };
     }
 }

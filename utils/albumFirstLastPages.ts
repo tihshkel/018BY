@@ -722,6 +722,21 @@ export function getKidsFirstPageImage(albumId: string): any | null {
   return mapping.firstPage;
 }
 
+export function getKidsFirstLastPageModules(albumId: string): { firstPage: any | null; lastPage: any | null } {
+  const dfaNumber = extractDFANumber(albumId);
+  if (!dfaNumber) {
+    console.warn(`[getKidsFirstLastPageModules] Не удалось извлечь номер DFA из albumId: ${albumId}`);
+    return { firstPage: null, lastPage: null };
+  }
+
+  const mapping =
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber] ||
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toUpperCase()] ||
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toLowerCase()];
+
+  return mapping || { firstPage: null, lastPage: null };
+}
+
 /**
  * Получает изображение page_001.png для альбома беременности (синхронная версия для select-cover)
  * @param albumId - ID альбома (например, 'pregnancy_60', 'pregnancy_db2')

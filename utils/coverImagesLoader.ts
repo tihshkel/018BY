@@ -1,5 +1,6 @@
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
+import { getKidsFirstLastPageModules } from './albumFirstLastPages';
 import { getCoverPdfForExport } from './coverPdfMapping';
 
 /**
@@ -795,6 +796,17 @@ const COVER_IMAGES_MAPPING: Record<string, any[]> = {
  */
 export function getCoverImageModules(folderName: string | null): any[] | null {
   if (!folderName) return null;
+
+  // Для детских альбомов реальные bundled assets лежат в albums/kids/DFA*/first_page.png
+  // и last_page.png. Старые имена папок с типом переплета оставляем как ключи маппинга,
+  // но на iOS грузим фактические файлы из albums/kids.
+  if (/dfa[_\s]?\d+/i.test(folderName)) {
+    const kidsPages = getKidsFirstLastPageModules(folderName);
+    const kidsImages = [kidsPages.firstPage, kidsPages.lastPage].filter((img): img is any => img !== null);
+    if (kidsImages.length > 0) {
+      return kidsImages;
+    }
+  }
   
   const images = COVER_IMAGES_MAPPING[folderName];
   if (!images) return null;

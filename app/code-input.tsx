@@ -8,6 +8,7 @@ import {
   Dimensions,
   InteractionManager,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
   StyleSheet,
   StyleProp,
@@ -221,7 +222,13 @@ export default function CodeInputScreen() {
         // Поднимаем контент при появлении клавиатуры
         if (!keyboardShownRef.current) {
           keyboardShownRef.current = true;
-          const offset = Platform.OS === 'android' ? -85 : -75;
+          const keyboardHeight = e.endCoordinates?.height ?? 280;
+          const offset =
+            Platform.OS === 'android'
+              ? -85
+              : isTablet
+                ? -Math.min(70, keyboardHeight * 0.16)
+                : -75;
           
           // Используем одинаковую плавную spring-анимацию для Android и iOS
           contentTranslateY.value = withSpring(offset, {
@@ -251,7 +258,7 @@ export default function CodeInputScreen() {
       keyboardWillShow.remove();
       keyboardWillHide.remove();
     };
-  }, []);
+  }, [isTablet]);
 
 
   const containerAnimatedStyle = useAnimatedStyle(() => {
@@ -364,7 +371,7 @@ export default function CodeInputScreen() {
     setError(false);
 
     try {
-      // Проверяем и используем ключ активации из activation-keys.json
+      // Проверяем код с карточки, вложенной в физический товар
       const result = await validateAndUseActivationKey(fullCode);
       
       if (result.valid) {
@@ -387,16 +394,16 @@ export default function CodeInputScreen() {
         } catch (err) {
           console.error('Error saving code:', err);
           setIsLoading(false);
-          Alert.alert('Ошибка', 'Не удалось сохранить код активации');
+          Alert.alert('Ошибка', 'Не удалось сохранить код альбома');
         }
       } else {
         // Ключ невалиден или уже использован
         setIsLoading(false);
-        const errorMessage = result.message || 'Код активации неверен или уже был использован';
+        const errorMessage = result.message || 'Код не найден или уже был использован';
         
         Alert.alert(
           'Неверный код',
-          `${errorMessage}\n\nПроверьте код на вкладыше внутри коробки или обратитесь в поддержку.`,
+          `${errorMessage}\n\nПроверьте код на карточке внутри физического товара или обратитесь в поддержку.`,
           [
             {
               text: 'Попробовать снова',
@@ -415,7 +422,7 @@ export default function CodeInputScreen() {
       setIsLoading(false);
       Alert.alert(
         'Ошибка',
-        'Не удалось проверить код активации. Попробуйте позже.',
+        'Не удалось проверить код альбома. Попробуйте позже.',
         [
           {
             text: 'OK',
@@ -439,79 +446,84 @@ export default function CodeInputScreen() {
         end={{ x: 1, y: 1 }}
       />
 
-      <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-        <Animated.View style={[styles.content, containerAnimatedStyle]}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            accessibilityLabel="Вернуться назад"
-            accessibilityRole="button"
-          >
-            <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
-          </TouchableOpacity>
-          <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={[styles.card, responsiveStyles.card]}>
-              <Animated.View style={[styles.header, responsiveStyles.header, inputAnimatedStyle]}>
-                <Text style={[styles.title, responsiveStyles.title]}>Введите код доступа</Text>
-                <Text style={[styles.hint, responsiveStyles.hint]}>
-                  Код указан на вкладыше внутри коробки
-                </Text>
-              </Animated.View>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+          <Animated.View style={[styles.content, containerAnimatedStyle]}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel="Вернуться назад"
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-back" size={32} color="#5C4A3D" />
+            </TouchableOpacity>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={[styles.card, responsiveStyles.card]}>
+                <Animated.View style={[styles.header, responsiveStyles.header, inputAnimatedStyle]}>
+                  <Text style={[styles.title, responsiveStyles.title]}>Добавить альбом</Text>
+                  <Text style={[styles.hint, responsiveStyles.hint]}>
+                    Введите код с карточки, вложенной в ваш физический альбом
+                  </Text>
+                </Animated.View>
 
-              {/* Поля ввода кода */}
-              <Animated.View style={[styles.codeContainer, responsiveStyles.codeContainer, inputAnimatedStyle]}>
-                {code.map((digit, index) => (
-                  <CodeCell
-                    key={index}
-                    index={index}
-                    value={digit}
-                    hasError={error}
-                    autoFocus={index === 0}
-                    onChangeText={handleCodeChange}
-                    onKeyPress={handleKeyPress}
-                    onFocusAny={handleInputFocus}
-                    setRef={(ref, i) => {
-                      inputRefs.current[i] = ref;
-                    }}
-                    inputStyle={responsiveStyles.codeInput}
-                  />
-                ))}
-              </Animated.View>
+                {/* Поля ввода кода */}
+                <Animated.View style={[styles.codeContainer, responsiveStyles.codeContainer, inputAnimatedStyle]}>
+                  {code.map((digit, index) => (
+                    <CodeCell
+                      key={index}
+                      index={index}
+                      value={digit}
+                      hasError={error}
+                      autoFocus={index === 0}
+                      onChangeText={handleCodeChange}
+                      onKeyPress={handleKeyPress}
+                      onFocusAny={handleInputFocus}
+                      setRef={(ref, i) => {
+                        inputRefs.current[i] = ref;
+                      }}
+                      inputStyle={responsiveStyles.codeInput}
+                    />
+                  ))}
+                </Animated.View>
 
-              {/* Кнопка активации */}
-              <Animated.View style={inputAnimatedStyle}>
-                <TouchableOpacity
-                  style={[
-                    styles.activateButton,
-                    responsiveStyles.activateButton,
-                    code.join('').length === CODE_LENGTH && styles.activateButtonActive,
-                    isLoading && styles.activateButtonLoading,
-                  ]}
-                  onPress={handleActivate}
-                  activeOpacity={0.7}
-                  disabled={code.join('').length !== CODE_LENGTH || isLoading}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#FFFFFF" size="small" />
-                  ) : (
-                    <Text
-                      style={[
-                        styles.activateButtonText,
-                        responsiveStyles.activateButtonText,
-                        code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
-                      ]}
-                    >
-                      Активировать
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Animated.View>
-      </TouchableWithoutFeedback>
+                {/* Кнопка добавления физического альбома */}
+                <Animated.View style={inputAnimatedStyle}>
+                  <TouchableOpacity
+                    style={[
+                      styles.activateButton,
+                      responsiveStyles.activateButton,
+                      code.join('').length === CODE_LENGTH && styles.activateButtonActive,
+                      isLoading && styles.activateButtonLoading,
+                    ]}
+                    onPress={handleActivate}
+                    activeOpacity={0.7}
+                    disabled={code.join('').length !== CODE_LENGTH || isLoading}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.activateButtonText,
+                          responsiveStyles.activateButtonText,
+                          code.join('').length === CODE_LENGTH && styles.activateButtonTextActive,
+                        ]}
+                      >
+                        Добавить альбом
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Animated.View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -520,6 +532,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
+  },
+  keyboardView: {
+    flex: 1,
   },
   content: {
     flex: 1,

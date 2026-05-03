@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useFocusEffect } from 'expo-router';
+import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -911,6 +912,7 @@ export default function GiftsScreen() {
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
   const [showRegionModal, setShowRegionModal] = useState(false);
   const [isLoadingRegion, setIsLoadingRegion] = useState(true);
+  const [coverUris, setCoverUris] = useState<Record<string, string>>({});
 
   const opacity = useSharedValue(0);
 
@@ -1080,6 +1082,37 @@ export default function GiftsScreen() {
     });
   }, [searchQuery, activeCategory, selectedCategory, selectedCoverType]);
 
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+
+      const resolveCovers = async () => {
+        const pairs = await Promise.all(
+          filteredItems.map(async (item) => {
+            const uri = await resolveImageSourceUri(item.cover ?? null);
+            return uri ? ([item.id, uri] as const) : null;
+          })
+        );
+
+        if (cancelled) return;
+
+        const next: Record<string, string> = {};
+        for (const pair of pairs) {
+          if (!pair) continue;
+          next[pair[0]] = pair[1];
+        }
+        if (Object.keys(next).length > 0) {
+          setCoverUris((prev) => ({ ...prev, ...next }));
+        }
+      };
+
+      resolveCovers();
+      return () => {
+        cancelled = true;
+      };
+    }, [filteredItems])
+  );
+
   // Предзагрузка изображений для отфильтрованных элементов при смене фильтра
   useEffect(() => {
     const preloadFilteredImages = async () => {
@@ -1150,7 +1183,7 @@ export default function GiftsScreen() {
           <View style={styles.coverWrapper}>
             {item.cover ? (
               <Image
-                source={item.cover}
+                source={coverUris[item.id] ? { uri: coverUris[item.id] } : item.cover}
                 style={styles.coverImage}
                 contentFit="contain"
                 priority={imagePriority}

@@ -150,12 +150,12 @@ export default function CodeTypeSelectionScreen() {
             <View style={styles.iconContainer}>
               <Ionicons name="key-outline" size={32} color="#8B6F5F" />
             </View>
-            <Text style={styles.title}>Введите код</Text>
+            <Text style={styles.title}>Добавьте альбом</Text>
           </Animated.View>
 
           <Animated.View style={[styles.subtitleContainer, subtitleAnimatedStyle]}>
             <Text style={styles.subtitle}>
-              Выберите, какой код вы хотите ввести
+              Введите код из профиля или с карточки внутри физического товара
             </Text>
           </Animated.View>
         </View>
@@ -190,12 +190,12 @@ export default function CodeTypeSelectionScreen() {
               disabled={!buttonsEnabled}
             >
               <View style={styles.optionIconContainer}>
-                <Ionicons name="lock-closed-outline" size={28} color="#C9A89A" />
+                <Ionicons name="book-outline" size={28} color="#C9A89A" />
               </View>
               <View style={styles.optionContent}>
-                <Text style={styles.optionTitle}>Активировать приложение</Text>
+                <Text style={styles.optionTitle}>Добавить физический альбом</Text>
                 <Text style={styles.optionDescription}>
-                  Введите одноразовый код доступа, который пришёл вместе с вашим заказом. Этот код можно использовать только один раз для регистрации и первого входа в приложение.
+                  Введите код с карточки, вложенной в ваш альбом или другой наш товар. Код нужен, чтобы привязать этот физический товар к приложению.
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />

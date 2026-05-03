@@ -173,8 +173,8 @@ export default function ActivationScreen() {
                   <Ionicons name="key-outline" size={28} color="#C9A89A" />
                 </View>
                 <View style={styles.optionContent}>
-                  <Text style={styles.optionTitle}>У меня есть код</Text>
-                  <Text style={styles.optionSubtitle}>Активировать приложение</Text>
+                  <Text style={styles.optionTitle}>Добавить альбом</Text>
+                  <Text style={styles.optionSubtitle}>Код с карточки из физического товара</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
               </TouchableOpacity>
