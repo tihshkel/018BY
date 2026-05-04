@@ -15,7 +15,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  type StyleProp,
+  type ImageStyle,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -23,6 +25,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 
 export interface GiftItem {
   id: string;
@@ -902,6 +906,60 @@ export const GIFT_ITEMS: GiftItem[] = [
   },
 ];
 
+type ImagePriority = 'high' | 'normal';
+
+function CatalogGiftCoverImage({
+  item,
+  style,
+  imagePriority,
+}: {
+  item: GiftItem;
+  style: StyleProp<ImageStyle>;
+  imagePriority: ImagePriority;
+}) {
+  const wbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
+  const [wbFailed, setWbFailed] = useState(false);
+  const useWb = Boolean(wbUri) && !wbFailed;
+
+  if (useWb && wbUri) {
+    return (
+      <Image
+        source={{ uri: wbUri }}
+        style={style}
+        contentFit="cover"
+        priority={imagePriority}
+        cachePolicy="disk"
+        transition={120}
+        accessibilityLabel={`Фото товара ${item.title} с Wildberries`}
+        recyclingKey={`wb-${item.sku}`}
+        onError={() => setWbFailed(true)}
+      />
+    );
+  }
+
+  if (item.cover) {
+    return (
+      <Image
+        source={item.cover}
+        style={style}
+        contentFit="contain"
+        priority={imagePriority}
+        cachePolicy="disk"
+        transition={0}
+        fadeDuration={0}
+        accessibilityLabel={`Обложка товара ${item.title}`}
+        placeholderContentFit="contain"
+      />
+    );
+  }
+
+  return (
+    <View style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
+      <Ionicons name="image-outline" size={40} color="#D4C4B5" />
+    </View>
+  );
+}
+
 export default function GiftsScreen() {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
@@ -922,26 +980,18 @@ export default function GiftsScreen() {
     React.useCallback(() => {
       const preloadGiftImages = async () => {
         try {
-          // Собираем все уникальные изображения из COVER_BY_SKU
-          const imageAssets = Object.values(COVER_BY_SKU);
-          
-          // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
-          await Promise.all(
-            imageAssets.map(imageSource => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch(err => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения подарка:', err);
-                });
-              }
-              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-              return Promise.resolve();
-            })
+          const wbUrls = GIFT_ITEMS.map((g) => getWildberriesProductImageUrl(g.link)).filter(
+            (u): u is string => Boolean(u)
           );
-          
-          console.log('✅ Все изображения подарков предзагружены');
+          await Promise.all(
+            wbUrls.map((uri) =>
+              Image.prefetch(uri).catch((err) => {
+                console.warn('⚠️ Ошибка предзагрузки фото WB:', uri, err);
+              })
+            )
+          );
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений подарков:', error);
-          // В случае ошибки изображения все равно будут загружаться по требованию
         }
       };
 
@@ -1088,21 +1138,16 @@ export default function GiftsScreen() {
     const preloadFilteredImages = async () => {
       try {
         // Собираем изображения только для отфильтрованных элементов
-        const imagesToPreload = filteredItems
-          .filter(item => item.cover)
-          .map(item => item.cover!);
+        const wbUrls = filteredItems
+          .map((item) => getWildberriesProductImageUrl(item.link))
+          .filter((u): u is string => Boolean(u));
 
-        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
         await Promise.all(
-          imagesToPreload.map(imageSource => {
-            if (typeof imageSource === 'string') {
-              return Image.prefetch(imageSource).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
-              });
-            }
-            // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-            return Promise.resolve();
-          })
+          wbUrls.map((uri) =>
+            Image.prefetch(uri).catch((err) => {
+              console.warn('⚠️ Ошибка предзагрузки фото WB (фильтр):', err);
+            })
+          )
         );
       } catch (error) {
         // Игнорируем ошибки, изображения загрузятся по требованию
@@ -1151,23 +1196,11 @@ export default function GiftsScreen() {
       return (
         <View style={styles.card} accessible>
           <View style={styles.coverWrapper}>
-            {item.cover ? (
-              <Image
-                source={item.cover}
-                style={styles.coverImage}
-                contentFit="contain"
-                priority={imagePriority}
-                cachePolicy="disk"
-                transition={0}
-                fadeDuration={0}
-                accessibilityLabel={`Обложка товара ${item.title}`}
-                placeholderContentFit="contain"
-              />
-            ) : (
-              <View style={styles.coverPlaceholder}>
-                <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-              </View>
-            )}
+            <CatalogGiftCoverImage
+              item={item}
+              style={styles.coverImage}
+              imagePriority={imagePriority}
+            />
           </View>
 
           <View style={styles.cardContent}>
@@ -1767,11 +1800,6 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: '100%',
-  },
-  coverPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   cardContent: {
     padding: 20,

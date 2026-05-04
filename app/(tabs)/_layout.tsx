@@ -8,7 +8,13 @@ import { CustomTabButton } from '@/components/custom-tab-button';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 16);
+  // Минимум по доке safe-area-context (Math.max), на Android чуть выше — системная панель и inset иногда занижены
+  const bottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 32 : 28
+  );
+  // Высота «ряда» иконка+подпись без учёта safe area: на Android нужно больше, иначе baseline текста режется
+  const tabContentHeight = Platform.OS === 'ios' ? 58 : 64;
 
   return (
     <Tabs
@@ -19,7 +25,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 58 + bottomInset : 56 + bottomInset,
+          height: tabContentHeight + bottomInset,
           paddingBottom: bottomInset,
           paddingTop: 12,
           elevation: 8,

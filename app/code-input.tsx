@@ -8,7 +8,6 @@ import {
   Dimensions,
   InteractionManager,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -50,10 +49,9 @@ function CodeCell(props: {
   autoFocus?: boolean;
   onChangeText: (value: string, index: number) => void;
   onKeyPress: (key: string, index: number) => void;
-  onFocusAny: () => void;
   setRef: (ref: TextInput | null, index: number) => void;
 }) {
-  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, onFocusAny, setRef } = props;
+  const { index, value, hasError, autoFocus, onChangeText, onKeyPress, setRef } = props;
 
   const fill = useSharedValue(value ? 1 : 0);
   const focus = useSharedValue(0);
@@ -116,7 +114,6 @@ function CodeCell(props: {
       onChangeText={(v) => onChangeText(v, index)}
       onKeyPress={({ nativeEvent }) => onKeyPress(nativeEvent.key, index)}
       onFocus={() => {
-        onFocusAny();
         focus.value = withTiming(1, { duration: 160 });
       }}
       onBlur={() => {
@@ -147,8 +144,8 @@ export default function CodeInputScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const containerOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(0);
-  const keyboardShownRef = useRef(false);
+  /** Нижний отступ = зона перекрытия клавиатурой (по screenY), без фиксированного translateY — иначе на больших экранах блок уезжает вверх или кнопка под клавиатуру */
+  const keyboardBottomInset = useSharedValue(0);
 
   useEffect(() => {
     // Используем InteractionManager для Android, чтобы анимации запускались после завершения всех взаимодействий
@@ -167,34 +164,34 @@ export default function CodeInputScreen() {
       runAnimation();
     }
     
+    const applyKeyboardPadding = (e: { endCoordinates: { height: number; screenY: number } }) => {
+      const { height, screenY } = e.endCoordinates;
+      const windowHeight = Dimensions.get('window').height;
+      const obstruction =
+        screenY > 0 && screenY < windowHeight
+          ? Math.max(0, windowHeight - screenY)
+          : height;
+      const duration =
+        Platform.OS === 'ios' && 'duration' in e && typeof (e as { duration?: number }).duration === 'number'
+          ? (e as { duration: number }).duration
+          : 220;
+      keyboardBottomInset.value = withTiming(obstruction, {
+        duration,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        // Поднимаем контент при появлении клавиатуры
-        if (!keyboardShownRef.current) {
-          keyboardShownRef.current = true;
-          const offset = Platform.OS === 'android' ? -85 : -75;
-          
-          // Используем одинаковую плавную spring-анимацию для Android и iOS
-          contentTranslateY.value = withSpring(offset, {
-            damping: 30,
-            stiffness: 40,
-            mass: 0.8,
-          });
-        }
-      }
+      applyKeyboardPadding
     );
-    
+
     const keyboardWillHide = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
-        keyboardShownRef.current = false;
-        
-        // Используем одинаковую плавную spring-анимацию для Android и iOS
-        contentTranslateY.value = withSpring(0, {
-          damping: 30,
-          stiffness: 40,
-          mass: 0.8,
+        keyboardBottomInset.value = withTiming(0, {
+          duration: Platform.OS === 'ios' ? 220 : 180,
+          easing: Easing.out(Easing.cubic),
         });
       }
     );
@@ -212,27 +209,9 @@ export default function CodeInputScreen() {
     };
   });
 
-  const inputAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: contentTranslateY.value }],
-    };
-  });
-
-  const handleInputFocus = () => {
-    // На Android запускаем анимацию при фокусе на поле ввода для более плавного эффекта
-    if (Platform.OS === 'android' && !keyboardShownRef.current) {
-      keyboardShownRef.current = true;
-      const offset = -85;
-      
-      // Используем одинаковую плавную spring-анимацию для Android и iOS
-      contentTranslateY.value = withSpring(offset, {
-        damping: 30,
-        stiffness: 40,
-        mass: 0.8,
-      });
-    }
-  };
-
+  const keyboardPadStyle = useAnimatedStyle(() => ({
+    paddingBottom: keyboardBottomInset.value,
+  }));
 
   const handleCodeChange = (value: string, index: number) => {
     // Разрешаем только цифры и буквы
@@ -285,12 +264,9 @@ export default function CodeInputScreen() {
 
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
-    
-    // Используем одинаковую плавную spring-анимацию для Android и iOS
-    contentTranslateY.value = withSpring(0, {
-      damping: 30,
-      stiffness: 40,
-      mass: 0.8,
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
     });
   };
 
@@ -305,11 +281,9 @@ export default function CodeInputScreen() {
     // Скрываем клавиатуру
     Keyboard.dismiss();
     
-    // Используем одинаковую плавную spring-анимацию для Android и iOS
-    contentTranslateY.value = withSpring(0, {
-      damping: 30,
-      stiffness: 40,
-      mass: 0.8,
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
     });
 
     setIsLoading(true);
@@ -395,12 +369,8 @@ export default function CodeInputScreen() {
         end={{ x: 1, y: 1 }}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-          <Animated.View style={[styles.content, containerAnimatedStyle]}>
+      <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+        <Animated.View style={[styles.content, containerAnimatedStyle, keyboardPadStyle]}>
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
@@ -420,14 +390,14 @@ export default function CodeInputScreen() {
             >
               <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={styles.formBlock}>
-                  <Animated.View style={[styles.header, inputAnimatedStyle]}>
+                  <Animated.View style={styles.header}>
                     <Text style={styles.title}>Введите код доступа</Text>
                     <Text style={styles.hint}>
                       Код указан на вкладыше внутри коробки
                     </Text>
                   </Animated.View>
 
-                  <Animated.View style={[styles.codeContainer, inputAnimatedStyle]}>
+                  <Animated.View style={styles.codeContainer}>
                     {code.map((digit, index) => (
                       <CodeCell
                         key={index}
@@ -437,7 +407,6 @@ export default function CodeInputScreen() {
                         autoFocus={index === 0}
                         onChangeText={handleCodeChange}
                         onKeyPress={handleKeyPress}
-                        onFocusAny={handleInputFocus}
                         setRef={(ref, i) => {
                           inputRefs.current[i] = ref;
                         }}
@@ -445,7 +414,7 @@ export default function CodeInputScreen() {
                     ))}
                   </Animated.View>
 
-                  <Animated.View style={inputAnimatedStyle}>
+                  <Animated.View>
                     <TouchableOpacity
                       style={[
                         styles.activateButton,
@@ -473,9 +442,8 @@ export default function CodeInputScreen() {
                 </View>
               </TouchableWithoutFeedback>
             </ScrollView>
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+        </Animated.View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -484,9 +452,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
-  },
-  keyboardView: {
-    flex: 1,
   },
   content: {
     flex: 1,
@@ -500,7 +465,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 96,
+    paddingVertical: 40,
   },
   formBlock: {
     width: '100%',
