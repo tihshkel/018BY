@@ -926,7 +926,7 @@ function CatalogGiftCoverImage({
       <Image
         source={{ uri: wbUri }}
         style={style}
-        contentFit="cover"
+        contentFit="contain"
         priority={imagePriority}
         cachePolicy="disk"
         transition={120}

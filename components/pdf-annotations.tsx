@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Animated,
     Dimensions,
@@ -180,8 +180,33 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const adjustedEditingPositionRef = useRef<{ x: number; y: number } | null>(null);
   // Флаг для активации перетаскивания после закрытия редактирования через оранжевую кнопку
   const shouldStartDraggingAfterCloseRef = useRef<string | null>(null);
-  // PanResponder для оранжевой кнопки перетаскивания
-  const dragButtonResponderRef = useRef<ReturnType<typeof PanResponder.create> | null>(null);
+  /** Актуальные значения для PanResponder кнопки «перетащить» — не включаем в deps, чтобы не пересоздавать responder на каждом движении/символе */
+  const latestAnnotationsRef = useRef(annotations);
+  latestAnnotationsRef.current = annotations;
+  const latestEditingTextRef = useRef(editingText);
+  latestEditingTextRef.current = editingText;
+  const viewportMetricsRef = useRef({
+    zoomLevel,
+    viewportWidth,
+    viewportHeight,
+    windowWidth,
+    windowHeight,
+    lineGuideId,
+  });
+  viewportMetricsRef.current = {
+    zoomLevel,
+    viewportWidth,
+    viewportHeight,
+    windowWidth,
+    windowHeight,
+    lineGuideId,
+  };
+  const onAnnotationUpdateRef = useRef(onAnnotationUpdate);
+  onAnnotationUpdateRef.current = onAnnotationUpdate;
+  const onEditingStateChangeRef = useRef(onEditingStateChange);
+  onEditingStateChangeRef.current = onEditingStateChange;
+  const onInteractionChangeRef = useRef(onInteractionChange);
+  onInteractionChangeRef.current = onInteractionChange;
 
   // Локальные позиции для плавного drag (в родитель коммитим только на отпускании)
   const localPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
@@ -369,72 +394,77 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     };
   }, []);
 
-  // Создаем PanResponder для оранжевой кнопки перетаскивания
-  useEffect(() => {
-    if (!editingAnnotation) {
-      dragButtonResponderRef.current = null;
-      return;
-    }
+  // PanResponder оранжевой кнопки: создаём в render (useMemo), иначе после useEffect первый кадр без panHandlers — жест «с второго раза».
+  const dragButtonPanResponder = useMemo(() => {
+    if (!editingAnnotation) return null;
 
     const annotationId = editingAnnotation;
-    const currentAnnotation = annotations.find(ann => ann.id === annotationId);
 
-    if (!currentAnnotation || currentAnnotation.type !== 'text') {
-      return;
-    }
+    const computeDragBounds = (ann: Annotation) => {
+      if (ann.type !== 'text') {
+        return { width: ann.width || 120, height: ann.height || 120 };
+      }
+      const measured = measuredTextSizesRef.current.get(ann.id);
+      if (measured) {
+        return { width: Math.max(1, measured.width), height: Math.max(1, measured.height) };
+      }
+      const fontSize = ann.fontSize || 16;
+      const text = ann.content || '';
+      const maxWidth = ann.width || 360;
+      const charsPerLine = Math.floor((maxWidth - 12) / (fontSize * 0.62));
+      const numLines = charsPerLine > 0 ? Math.ceil(text.length / charsPerLine) : 1;
+      const approxWidth = Math.max(24, Math.min(maxWidth, Math.ceil(text.length * fontSize * 0.62) + 12));
+      const approxHeight = Math.max(24, Math.ceil(fontSize * 1.2 * numLines) + 8);
+      return { width: approxWidth, height: approxHeight };
+    };
 
     let isDraggingStarted = false;
     let startX = 0;
     let startY = 0;
 
-    dragButtonResponderRef.current = PanResponder.create({
+    return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Активируем при малейшем движении
         const { dx, dy } = gestureState;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return distance > 1;
+        return Math.sqrt(dx * dx + dy * dy) > 1;
       },
       onPanResponderGrant: () => {
-        // При зажатии кнопки передвижения:
-        if (!editingAnnotation) return;
-        
-        const annotationId = editingAnnotation;
-        const currentAnnotation = annotations.find(ann => ann.id === annotationId);
-        
-        if (!currentAnnotation) return;
-        
-        // 1. Сохраняем текст с учетом всех параметров
+        const currentAnnotation = latestAnnotationsRef.current.find((ann) => ann.id === annotationId);
+        if (!currentAnnotation || currentAnnotation.type !== 'text') return;
+
+        const { lineGuideId: lg, viewportHeight: vh } = viewportMetricsRef.current;
         const shouldSnap =
           currentAnnotation.type === 'text' &&
-          !!lineGuideId &&
-          typeof viewportHeight === 'number' &&
-          viewportHeight > 0 &&
+          !!lg &&
+          typeof vh === 'number' &&
+          vh > 0 &&
           typeof currentAnnotation.page === 'number';
         const snappedY = shouldSnap
           ? snapYToNearestTemplateLine({
-              lineGuideId,
+              lineGuideId: lg!,
               page: currentAnnotation.page as number,
               y: currentAnnotation.y,
-              viewportHeight,
+              viewportHeight: vh,
             })
           : null;
 
-        const textToSave = editingText.trim() || currentAnnotation.content || '';
-        onAnnotationUpdate(annotationId, {
+        const textToSave =
+          latestEditingTextRef.current.trim() || currentAnnotation.content || '';
+        onAnnotationUpdateRef.current(annotationId, {
           content: textToSave,
           ...(typeof snappedY === 'number' ? { y: snappedY } : {}),
         });
-        
-        // Сохраняем начальную позицию
-        const display = getDisplayPosition(currentAnnotation);
+
+        const display =
+          localPositionsRef.current.get(annotationId) ?? {
+            x: currentAnnotation.x,
+            y: currentAnnotation.y,
+          };
         startX = display.x;
         startY = display.y;
-        
-        // 2. Закрываем клавиатуру
+
         Keyboard.dismiss();
 
-        // 3. Сразу закрываем редактирование и активируем перетаскивание через флаг
         delete panResponders.current[annotationId];
         setSelectedAnnotation(annotationId);
         shouldStartDraggingAfterCloseRef.current = annotationId;
@@ -448,9 +478,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         editingDragState.current = null;
         isDraggingWhileEditingRef.current = false;
         adjustedEditingPositionRef.current = null;
-        onEditingStateChange?.(false, null);
+        onEditingStateChangeRef.current?.(false, null);
 
-        // 4. Плавно скрываем окно редактирования визуально
         Animated.parallel([
           Animated.spring(editingScaleAnim, {
             toValue: 0,
@@ -466,56 +495,47 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           }),
         ]).start();
 
-        // 5. Сразу активируем перетаскивание
         isDraggingStarted = true;
         isInteractingRef.current = true;
-        onInteractionChange?.(true);
+        onInteractionChangeRef.current?.(true);
       },
       onPanResponderMove: (evt, gestureState) => {
         if (!isDraggingStarted || !shouldStartDraggingAfterCloseRef.current) return;
-        
-        const annotationId = shouldStartDraggingAfterCloseRef.current;
-        const currentAnnotation = annotations.find(ann => ann.id === annotationId);
-        
+
+        const moveId = shouldStartDraggingAfterCloseRef.current;
+        const currentAnnotation = latestAnnotationsRef.current.find((ann) => ann.id === moveId);
         if (!currentAnnotation) return;
-        
-        // Обновляем позицию текста мгновенно
-        const safeZoom = zoomLevel > 0 ? zoomLevel : 1;
+
+        const { zoomLevel: zl, viewportWidth: vw, viewportHeight: vph, windowWidth: ww, windowHeight: wh } =
+          viewportMetricsRef.current;
+        const safeZoom = zl > 0 ? zl : 1;
         const dx = gestureState.dx / safeZoom;
         const dy = gestureState.dy / safeZoom;
-        const viewportW = typeof viewportWidth === 'number' && viewportWidth > 0 ? viewportWidth : windowWidth;
-        const viewportH = typeof viewportHeight === 'number' && viewportHeight > 0 ? viewportHeight : windowHeight;
-        const bounds = getAnnotationBoundsSize(currentAnnotation);
-        // Для текста используем минимальную ширину (24px) при расчете правой границы,
-        // чтобы текст мог доехать до самого правого края, даже если окно редактирования шире
+        const viewportW = typeof vw === 'number' && vw > 0 ? vw : ww;
+        const viewportH = typeof vph === 'number' && vph > 0 ? vph : wh;
+        const bounds = computeDragBounds(currentAnnotation);
         const minTextWidth = 24;
         const effectiveWidth = currentAnnotation.type === 'text' ? minTextWidth : bounds.width;
         const newX = Math.max(0, Math.min(startX + dx, viewportW - effectiveWidth));
         const newY = Math.max(0, Math.min(startY + dy, viewportH - bounds.height));
-        
-        setLocalPosition(annotationId, { x: newX, y: newY });
-        onAnnotationUpdate(annotationId, { x: newX, y: newY });
+
+        setLocalPosition(moveId, { x: newX, y: newY });
+        onAnnotationUpdateRef.current(moveId, { x: newX, y: newY });
       },
       onPanResponderRelease: () => {
         isDraggingStarted = false;
         isInteractingRef.current = false;
-        onInteractionChange?.(false);
+        onInteractionChangeRef.current?.(false);
         shouldStartDraggingAfterCloseRef.current = null;
-        dragButtonResponderRef.current = null;
       },
       onPanResponderTerminate: () => {
         isDraggingStarted = false;
         isInteractingRef.current = false;
-        onInteractionChange?.(false);
+        onInteractionChangeRef.current?.(false);
         shouldStartDraggingAfterCloseRef.current = null;
-        dragButtonResponderRef.current = null;
       },
     });
-    return () => {
-      dragButtonResponderRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingAnnotation, annotations, editingText, lineGuideId, viewportHeight, zoomLevel, viewportWidth, windowWidth, windowHeight]);
+  }, [editingAnnotation]);
 
   const createPanResponder = (annotation: Annotation) => {
     // Не создаем PanResponder для текста, который редактируется
@@ -1179,6 +1199,22 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     },
   }), [editingAnnotation, editingText, onAnnotationUpdate, onEditingStateChange]);
 
+  /** Android (и иногда iOS) не сразу перерисовывают TextInput при смене fontSize/fontFamily из стиля — дублируем через native props */
+  const flushEditingTextInputNativeStyle = (style: {
+    color?: string;
+    fontSize?: number;
+    lineHeight?: number;
+    fontFamily?: string;
+  }) => {
+    requestAnimationFrame(() => {
+      try {
+        textInputRef.current?.setNativeProps?.({ style });
+      } catch {
+        // ignore
+      }
+    });
+  };
+
   const handleColorSelect = (color: string) => {
     if (editingAnnotation) {
       onAnnotationUpdate(editingAnnotation, { color });
@@ -1189,6 +1225,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const newStyle = { color, fontSize: currentAnnotation.fontSize, fontFamily: ff };
         AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch(() => {});
       }
+      flushEditingTextInputNativeStyle({ color });
       setShowColorPicker(false);
     }
   };
@@ -1203,6 +1240,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const newStyle = { color: currentAnnotation.color, fontSize: size, fontFamily: ff };
         AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch(() => {});
       }
+      flushEditingTextInputNativeStyle({ fontSize: size, lineHeight: size * 1.2 });
       setShowFontSizePicker(false);
     }
   };
@@ -1221,6 +1259,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         };
         AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
           console.error('Error saving last text style:', error);
+        });
+        const fontMeta = AVAILABLE_FONTS.find((f) => f.id === fontId);
+        const fs = currentAnnotation.fontSize ?? 16;
+        flushEditingTextInputNativeStyle({
+          fontFamily: fontMeta && fontMeta.id !== 'default' ? fontMeta.name : undefined,
+          fontSize: fs,
+          lineHeight: fs * 1.2,
         });
       }
       setShowFontPicker(false);
@@ -1736,7 +1781,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
                   <View
                     style={[styles.actionButton, styles.dragButton]}
-                    {...(dragButtonResponderRef.current?.panHandlers || {})}
+                    {...(dragButtonPanResponder?.panHandlers || {})}
                   >
                     <Ionicons name="move" size={18} color="#FFFFFF" />
                   </View>

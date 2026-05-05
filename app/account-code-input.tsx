@@ -142,8 +142,8 @@ export default function AccountCodeInputScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const containerOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(0);
-  const keyboardShownRef = useRef(false);
+  /** Нижний отступ = зона перекрытия клавиатурой (по screenY), без фиксированного translateY — иначе на больших экранах блок уезжает вверх или кнопка под клавиатуру */
+  const keyboardBottomInset = useSharedValue(0);
 
   useEffect(() => {
     const runAnimation = () => {
@@ -161,31 +161,34 @@ export default function AccountCodeInputScreen() {
       runAnimation();
     }
     
+    const applyKeyboardPadding = (e: { endCoordinates: { height: number; screenY: number } }) => {
+      const { height, screenY } = e.endCoordinates;
+      const windowHeight = Dimensions.get('window').height;
+      const obstruction =
+        screenY > 0 && screenY < windowHeight
+          ? Math.max(0, windowHeight - screenY)
+          : height;
+      const duration =
+        Platform.OS === 'ios' && 'duration' in e && typeof (e as { duration?: number }).duration === 'number'
+          ? (e as { duration: number }).duration
+          : 220;
+      keyboardBottomInset.value = withTiming(obstruction, {
+        duration,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        if (!keyboardShownRef.current) {
-          keyboardShownRef.current = true;
-          const keyboardHeight = e.endCoordinates?.height ?? 280;
-          // Сдвигаем блок вверх (меньший множитель = блок остаётся ниже, ближе к клавиатуре)
-          const offset = -(keyboardHeight * 0.40);
-          contentTranslateY.value = withSpring(offset, {
-            damping: 30,
-            stiffness: 40,
-            mass: 0.8,
-          });
-        }
-      }
+      applyKeyboardPadding
     );
     
     const keyboardWillHide = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
-        keyboardShownRef.current = false;
-        contentTranslateY.value = withSpring(0, {
-          damping: 30,
-          stiffness: 40,
-          mass: 0.8,
+        keyboardBottomInset.value = withTiming(0, {
+          duration: Platform.OS === 'ios' ? 220 : 180,
+          easing: Easing.out(Easing.cubic),
         });
       }
     );
@@ -200,16 +203,15 @@ export default function AccountCodeInputScreen() {
     opacity: containerOpacity.value,
   }));
 
-  const contentAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: contentTranslateY.value }],
+  const keyboardPadStyle = useAnimatedStyle(() => ({
+    paddingBottom: keyboardBottomInset.value,
   }));
 
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
-    contentTranslateY.value = withSpring(0, {
-      damping: 30,
-      stiffness: 40,
-      mass: 0.8,
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
     });
   };
 
@@ -263,7 +265,10 @@ export default function AccountCodeInputScreen() {
     Keyboard.dismiss();
     setIsLoading(true);
     setError(false);
-    contentTranslateY.value = withSpring(0, { damping: 30, stiffness: 40, mass: 0.8 });
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
+    });
 
     try {
       const result = await loginAndEnterFast(fullCode);
@@ -352,7 +357,7 @@ export default function AccountCodeInputScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-          <Animated.View style={[styles.content, containerAnimatedStyle]}>
+          <Animated.View style={[styles.content, containerAnimatedStyle, keyboardPadStyle]}>
             <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
@@ -370,11 +375,7 @@ export default function AccountCodeInputScreen() {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              <Animated.View style={[styles.centeredBlock, contentAnimatedStyle]}>
-                <View style={styles.iconContainer}>
-                  <Ionicons name="person-outline" size={48} color="#8B6F5F" />
-                </View>
-
+              <Animated.View style={styles.centeredBlock}>
                 <Text style={styles.title}>Вход в аккаунт</Text>
                 <Text style={styles.subtitle}>
                   Введите код доступа, который был сгенерирован на вашем предыдущем устройстве
@@ -471,17 +472,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     paddingBottom: 40,
     marginTop: -12, // блок с полем ввода кода (чуть ниже, чем было -36)
-  },
-  iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 28,
-    borderWidth: 2,
-    borderColor: '#E8DDD4',
   },
   title: {
     fontSize: 28,

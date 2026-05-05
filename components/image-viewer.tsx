@@ -458,6 +458,7 @@ export default function ImageViewer({
       style={styles.container}
       onLayout={handleContainerLayout}
     >
+      {/* paging + disableIntervalMomentum (RN ScrollView): одна страница за жест, без «перескока» на 3–4 из‑за инерции */}
       <FlatList
         ref={flatListRef}
         data={images}
@@ -470,10 +471,9 @@ export default function ImageViewer({
         scrollEventThrottle={16}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        decelerationRate="fast"
-        snapToInterval={containerHeight}
+        decelerationRate="normal"
+        disableIntervalMomentum
         contentInsetAdjustmentBehavior="never"
-        snapToAlignment="start"
         bounces={false}
         initialNumToRender={1}
         maxToRenderPerBatch={2}

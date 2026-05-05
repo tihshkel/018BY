@@ -9,10 +9,10 @@ import { CustomTabButton } from '@/components/custom-tab-button';
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   // Минимум по доке safe-area-context (Math.max), на Android чуть выше — системная панель и inset иногда занижены
-  const bottomInset = Math.max(
-    insets.bottom,
-    Platform.OS === 'ios' ? 32 : 28
-  );
+  // Небольшой запас сверху inset — чуть приподнимает ряд иконок/подписей над системной навигацией
+  const tabBarBottomBoost = Platform.OS === 'android' ? 6 : 4;
+  const bottomInset =
+    Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 28) + tabBarBottomBoost;
   // Высота «ряда» иконка+подпись без учёта safe area: на Android нужно больше, иначе baseline текста режется
   const tabContentHeight = Platform.OS === 'ios' ? 58 : 64;
 

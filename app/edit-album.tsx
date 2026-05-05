@@ -1985,7 +1985,16 @@ export default function EditAlbumScreen() {
 
         {/* Панель редактирования текста - показывается только когда добавляется текст */}
         {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && (
-          <View style={styles.textEditControlsPanel}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.textEditControlsPanel}
+            contentContainerStyle={styles.textEditControlsPanelContent}
+            keyboardShouldPersistTaps="always"
+            bounces
+            nestedScrollEnabled
+            directionalLockEnabled
+          >
             {/* Кнопка цвета */}
             <TouchableOpacity
               style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
@@ -2012,27 +2021,22 @@ export default function EditAlbumScreen() {
             
             {/* Кнопка шрифта */}
             <TouchableOpacity
-              style={[styles.textEditControlButton, styles.textEditControlButtonFlex]}
+              style={[styles.textEditControlButton, styles.textEditControlButtonFont]}
               onPress={handleFontButtonPress}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Изменить шрифт"
             >
               <Ionicons name="brush-outline" size={18} color="#8B6F5F" />
-              {/* Если название длинное — оно скроллится внутри, не сдвигая "Цвет" и "Размер" */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.fontNameScroll}
-                contentContainerStyle={styles.fontNameScrollContent}
-                keyboardShouldPersistTaps="always"
+              <Text
+                style={[styles.textEditControlButtonText, styles.fontNameInChip]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
               >
-                <Text style={styles.textEditControlButtonText} numberOfLines={1}>
-                  {getFontDisplayName(currentTextAnnotation.fontFamily)}
-                </Text>
-              </ScrollView>
+                {getFontDisplayName(currentTextAnnotation.fontFamily)}
+              </Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         )}
 
         {/* Image Viewer или Cover Viewer */}
@@ -2622,17 +2626,18 @@ const styles = StyleSheet.create({
     }),
   },
   textEditControlsPanel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // Важно: фиксируем начало строки слева, чтобы "Цвет" не сдвигался
-    // при длинном названии шрифта.
-    justifyContent: 'flex-start',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F5F0EB',
+  },
+  textEditControlsPanelContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     gap: 20,
+    flexGrow: 0,
   },
   textEditControlButton: {
     flexDirection: 'row',
@@ -2655,18 +2660,13 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minWidth: 96,
   },
-  textEditControlButtonFlex: {
-    flex: 1,
-    minWidth: 0,
+  textEditControlButtonFont: {
+    flexShrink: 0,
+    minWidth: 120,
+    maxWidth: 220,
   },
-  fontNameScroll: {
-    flex: 1,
-    minWidth: 0,
-  },
-  fontNameScrollContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingRight: 8,
+  fontNameInChip: {
+    maxWidth: 160,
   },
   textColorPreview: {
     width: 20,
