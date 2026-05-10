@@ -1,9 +1,9 @@
+import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
 import { uploadImageToStorage } from '@/utils/supabase-storage';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics from 'expo-haptics';
 import { Image as ExpoImage } from 'expo-image';
@@ -39,8 +39,6 @@ interface MenuItem {
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [accessStatus, setAccessStatus] = useState('Полный доступ активирован');
-  const [accessCode, setAccessCode] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
 
@@ -64,41 +62,14 @@ export default function ProfileScreen() {
   const loadUserData = async () => {
     try {
       // Используем multiGet для оптимизации - один запрос вместо четырех
-      const results = await AsyncStorage.multiGet([
-        '@user_name',
-        '@user_avatar',
-        '@is_activated',
-        '@access_code',
-      ]);
-      
-      // Преобразуем результаты в удобный формат
+      const results = await AsyncStorage.multiGet(['@user_name', '@user_avatar']);
       const dataMap = new Map(results);
       const name = dataMap.get('@user_name');
       const avatar = dataMap.get('@user_avatar');
-      const activated = dataMap.get('@is_activated');
-      const storedAccessCode = dataMap.get('@access_code');
-      
       if (name) setUserName(name);
       if (avatar) setAvatarUri(avatar);
-      if (activated !== 'true') {
-        setAccessStatus('Ограниченный доступ');
-      }
-      setAccessCode(storedAccessCode || null);
     } catch (error) {
       console.error('Error loading user data:', error);
-    }
-  };
-
-  const handleCopyAccessCode = async () => {
-    if (!accessCode) return;
-    
-    try {
-      await Clipboard.setStringAsync(accessCode);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Код скопирован', 'Код доступа скопирован в буфер обмена');
-    } catch (error) {
-      console.error('Error copying access code:', error);
-      Alert.alert('Ошибка', 'Не удалось скопировать код');
     }
   };
 
@@ -146,7 +117,7 @@ export default function ProfileScreen() {
       const sourceUri = result.assets[0].uri;
       setAvatarUri(sourceUri);
       try {
-        const code = accessCode ?? (await AsyncStorage.getItem('@access_code'));
+        const code = await getAccountSyncId();
         const name = userName || (await AsyncStorage.getItem('@user_name')) || '';
 
         let fileUri: string;
@@ -287,27 +258,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             <Text style={styles.userName}>{userName || 'Пользователь'}</Text>
-            <View style={styles.statusBadge}>
-              <Ionicons name="checkmark-circle" size={16} color="#C9A89A" />
-              <Text style={styles.statusText}>{accessStatus}</Text>
-            </View>
 
-            {!!accessCode && (
-              <View style={styles.accessCodeSection}>
-                <Text style={styles.accessCodeLabel}>Код доступа</Text>
-                <TouchableOpacity
-                  style={styles.accessCodeField}
-                  onPress={handleCopyAccessCode}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel="Скопировать код доступа"
-                >
-                  <Text style={styles.accessCodeText}>{accessCode}</Text>
-                  <Ionicons name="copy-outline" size={18} color="#8B6F5F" />
-                </TouchableOpacity>
-                <Text style={styles.accessCodeHint}>Нажмите, чтобы скопировать</Text>
-              </View>
-            )}
           </View>
 
           {/* Меню */}
@@ -407,77 +358,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     marginBottom: 10,
     textAlign: 'center',
-  },
-  statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FAF8F5',
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  statusText: {
-    fontSize: 14,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '500',
-  },
-  accessCodeSection: {
-    width: '100%',
-    marginTop: 18,
-    alignItems: 'center',
-  },
-  accessCodeLabel: {
-    fontSize: 13,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  accessCodeField: {
-    width: '100%',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  accessCodeText: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    letterSpacing: 1.5,
-  },
-  accessCodeHint: {
-    marginTop: 8,
-    fontSize: 12,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
   },
   menuSection: {
     paddingHorizontal: 24,

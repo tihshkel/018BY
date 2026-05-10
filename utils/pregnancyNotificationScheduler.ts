@@ -12,6 +12,9 @@ import {
     WEEKLY_NOTIFICATIONS,
     WELCOME_NOTIFICATION,
 } from '@/constants/pregnancyNotificationTexts';
+import { getAccountSyncId } from '@/utils/account-identity';
+import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
@@ -96,16 +99,10 @@ async function scheduleNotification(
     }
 
     try {
-        let trigger: any;
-
-        if (Platform.OS === 'ios') {
-            trigger = { date: triggerDate };
-        } else {
-            // Android: используем объект с seconds
-            const seconds = Math.floor((triggerDate.getTime() - now.getTime()) / 1000);
-            if (seconds <= 0) return null;
-            trigger = { seconds };
-        }
+        const trigger: DateTriggerInput = {
+            type: SchedulableTriggerInputTypes.DATE,
+            date: triggerDate,
+        };
 
         const notificationId = await Notifications.scheduleNotificationAsync({
             content: {
@@ -398,9 +395,8 @@ export async function schedulePregnancyNotifications(
  */
 async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number): Promise<void> {
     try {
-        const { getRemindersStorageKey, pushCoreOnlyToCloud } = await import('@/utils/account-sync');
-        const accessCode = await AsyncStorage.getItem('@access_code');
-        const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+        const syncId = await getAccountSyncId();
+        const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
         const existingReminders = await AsyncStorage.getItem(remindersKey);
         let allReminders: any[] = [];
         try {

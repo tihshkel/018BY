@@ -2,6 +2,7 @@
   "expo": {
     "name": "018BY",
     "slug": "018by",
+    "scheme": "018by",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -23,7 +24,7 @@
         "policy": "appVersion"
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "Камера нужна, чтобы сканировать QR‑код и перенести данные на новое устройство.",
+        "NSCameraUsageDescription": "Камера нужна, чтобы сделать фото для альбомов.",
         "NSPhotoLibraryUsageDescription": "Доступ к фото библиотеке нужен, чтобы добавлять фотографии в альбомы и сохранять созданные проекты.",
         "NSPhotoLibraryAddUsageDescription": "Доступ для сохранения нужен, чтобы сохранять созданные PDF файлы и экспортированные альбомы в галерею.",
         "NSUserNotificationsUsageDescription": "Уведомления нужны, чтобы напоминать о важных моментах беременности и развития ребёнка.",
@@ -62,7 +63,6 @@
     },
     "plugins": [
       "expo-router",
-      "expo-camera",
       [
         "expo-splash-screen",
         {

@@ -1,14 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system/legacy';
-import { ensureDeviceRegistered, exportAccountData, getDevicesByAccessCode } from './account-transfer';
+import { getAccountSyncId } from './account-identity';
+import { exportAccountData } from './account-transfer';
 import { getStoredPushToken } from './pushToken';
 import {
-    getAccountDataFromSupabase,
-    getAccountFromSupabase,
-    getCoreDataFromSupabase,
-    isAccountInSupabase,
-    pushCoreDataToSupabase,
-    pushProjectDataToSupabase
+  getAccountDataFromSupabase,
+  getCoreDataFromSupabase,
+  isSupabaseUserIdKey,
+  pushCoreDataToSupabase,
+  pushProjectDataToSupabase,
 } from './supabase-account';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
 
@@ -38,9 +37,18 @@ export async function addProjectToSyncedList(projectId: string): Promise<void> {
   }
 }
 
-/** Ключ AsyncStorage для напоминаний конкретного профиля (по коду доступа). */
-export function getRemindersStorageKey(accessCode: string): string {
-  return `@reminders_${accessCode}`;
+/** Ключ AsyncStorage для напоминаний профиля (по внутреннему id синхронизации). */
+export function getRemindersStorageKey(syncId: string): string {
+  return `@reminders_${syncId}`;
+}
+
+/**
+ * Записать JSON массива напоминаний в профильный ключ и в legacy `@reminders` одинаковым содержимым.
+ * Иначе после удаления старый `@reminders` снова подмешивается при миграции / фокусе.
+ */
+export async function setLocalRemindersJsonForSyncId(syncId: string, remindersJson: string): Promise<void> {
+  await AsyncStorage.setItem(getRemindersStorageKey(syncId), remindersJson);
+  await AsyncStorage.setItem('@reminders', remindersJson);
 }
 
 /**
@@ -57,8 +65,7 @@ export const SYNC_DATA_PREFIXES = [
   '@paper_albums',
   '@export_history_',
   '@user_avatar',
-  '@access_code',
-  '@has_seen_access_code',
+  '@account_sync_id',
   '@has_seen_onboarding',
 ];
 
@@ -109,279 +116,13 @@ function splitCoreAndProjects(
   return { core, projects };
 }
 
-/**
- * Проверяет, существует ли код доступа (валидация)
- * Код считается валидным, если для него зарегистрировано хотя бы одно устройство
- * или если код был зарегистрирован в логах регистраций
- */
-export async function validateAccessCode(accessCode: string): Promise<boolean> {
-  if (!accessCode || accessCode.length !== 8) {
-    return false;
-  }
-
-  try {
-    const devices = await getDevicesByAccessCode(accessCode);
-    if (devices.length > 0) {
-      return true;
-    }
-
-    try {
-      const { getRegistrationLogPath } = await import('./registration-logger');
-      const logPath = getRegistrationLogPath();
-      const fileInfo = await FileSystem.getInfoAsync(logPath);
-      if (fileInfo.exists) {
-        const logContent = await FileSystem.readAsStringAsync(logPath, {
-          encoding: FileSystem.EncodingType.UTF8,
-        });
-        if (logContent.includes(`Код доступа: ${accessCode}`)) {
-          return true;
-        }
-      }
-    } catch (logError) {
-      console.warn('Could not check registration logs:', logError);
-    }
-
-    const inSupabase = await isAccountInSupabase(accessCode);
-    if (inSupabase) {
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    console.error('Error validating access code:', error);
-    return false;
-  }
-}
-
-const LOGIN_VALIDATE_TIMEOUT_MS = 10000;
-
-/**
- * Быстрый вход: только проверка кода и регистрация устройства, затем сразу можно переходить в приложение.
- * Загрузка имени, аватара и данных из облака выполняется в фоне.
- */
-export async function loginAndEnterFast(accessCode: string): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    const isValid = await Promise.race([
-      validateAccessCode(accessCode),
-      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), LOGIN_VALIDATE_TIMEOUT_MS)),
-    ]);
-    if (!isValid) {
-      return { success: false, error: 'INVALID_CODE' };
-    }
-
-    const deviceResult = await ensureDeviceRegistered({
-      accessCode,
-      maxDevices: 4,
-      validityMonths: 100 * 12,
-    });
-
-    if (!deviceResult.ok) {
-      if (deviceResult.error === 'DEVICE_LIMIT') {
-        return { success: false, error: 'DEVICE_LIMIT' };
-      }
-      return { success: false, error: 'DEVICE_REGISTRATION_FAILED' };
-    }
-
-    await AsyncStorage.setItem('@access_code', accessCode);
-    await AsyncStorage.setItem('@is_activated', 'true');
-    await AsyncStorage.setItem('@has_seen_onboarding', 'true');
-    await AsyncStorage.setItem('@has_seen_access_code', 'true'); // вошли по коду — модалку «Ваш код доступа» не показываем
-    await AsyncStorage.setItem('@show_access_code_modal', 'false');
-
-    // Сразу подгружаем имя и аватар, чтобы на главной сразу отображалось «Привет, Влад!»
-    try {
-      const account = await Promise.race([
-        getAccountFromSupabase(accessCode),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-      ]);
-      if (account?.userName) {
-        await AsyncStorage.setItem('@user_name', account.userName);
-      }
-      if (account?.avatarUrl) {
-        await AsyncStorage.setItem('@user_avatar', account.avatarUrl);
-      }
-    } catch (_) {
-      // не блокируем вход — имя подтянет фоновая синхронизация
-    }
-
-    syncAccountDataInBackground(accessCode).catch((e) =>
-      console.warn('[AccountSync] Background sync after fast login failed:', e)
-    );
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error during fast login:', error);
-    return { success: false, error: 'SYNC_FAILED' };
-  }
-}
-
-/** Колбэк после завершения фоновой синхронизации (например, после входа по коду). Вызывается, когда проекты и данные подтянуты из облака. */
-let onSyncCompleteCallback: (() => void) | null = null;
-
-export function setOnSyncComplete(callback: (() => void) | null): void {
-  onSyncCompleteCallback = callback;
-}
-
-/**
- * Синхронизация данных аккаунта в фоне (имя, аватар, проекты, напоминания из Supabase).
- * Вызывается после быстрого входа, не блокирует переход в приложение.
- */
-async function syncAccountDataInBackground(accessCode: string): Promise<void> {
-  try {
-    if (__DEV__) console.log('[AccountSync] syncAccountDataInBackground: start for', accessCode);
-
-    const account = await getAccountFromSupabase(accessCode);
-    if (account?.userName) {
-      await AsyncStorage.setItem('@user_name', account.userName);
-    }
-    if (account?.avatarUrl) {
-      await AsyncStorage.setItem('@user_avatar', account.avatarUrl);
-    }
-
-    const remindersKey = getRemindersStorageKey(accessCode);
-    const localReminders = await AsyncStorage.getItem(remindersKey);
-    const localPregnancyInfo = await AsyncStorage.getItem('@pregnancy_info');
-
-    const cloudData = await getAccountDataFromSupabase(accessCode);
-    if (__DEV__) {
-      const keyCount = cloudData ? Object.keys(cloudData).length : 0;
-      const hasUserProjects = cloudData ? !!cloudData['@user_projects'] : false;
-      console.log('[AccountSync] syncAccountDataInBackground: cloudData keys=', keyCount, 'hasUserProjects=', hasUserProjects);
-    }
-
-    if (cloudData && Object.keys(cloudData).length > 0) {
-      const protect = new Set(pendingPushProjectIdsRef.current);
-      await importAccountData(cloudData, accessCode, protect);
-
-      if (__DEV__) {
-        const afterImport = await AsyncStorage.getItem('@user_projects');
-        const parsed = (() => { try { return afterImport ? JSON.parse(afterImport) : []; } catch { return []; } })();
-        console.log('[AccountSync] syncAccountDataInBackground: after import, @user_projects count=', parsed.length);
-      }
-
-      const cloudReminders = cloudData['@reminders'];
-      const mergedReminders = mergeReminders(localReminders, cloudReminders);
-      await AsyncStorage.setItem(remindersKey, mergedReminders);
-      const cloudPregnancy = cloudData['@pregnancy_info'];
-      const hasLocalPregnancy =
-        localPregnancyInfo &&
-        localPregnancyInfo !== '{}' &&
-        localPregnancyInfo !== 'null' &&
-        localPregnancyInfo.length > 2;
-      if (hasLocalPregnancy && (!cloudPregnancy || cloudPregnancy === '{}')) {
-        await AsyncStorage.setItem('@pregnancy_info', localPregnancyInfo);
-      }
-    }
-
-    const pushResult = await pushAccountDataToCloud();
-    if (!pushResult.ok) {
-      console.warn('[AccountSync] pushAccountDataToCloud after background sync failed:', pushResult.error);
-    }
-
-    if (__DEV__) console.log('[AccountSync] syncAccountDataInBackground: done, calling onSyncCompleteCallback');
-  } catch (e) {
-    console.warn('[AccountSync] syncAccountDataInBackground error:', e);
-  } finally {
-    onSyncCompleteCallback?.();
-  }
-}
-
-/**
- * Синхронизирует данные аккаунта при входе по коду доступа
- * Загружает все данные пользователя (имя, аватар, напоминания, проекты, альбомы) из Supabase.
- */
-export async function syncAccountDataOnLogin(accessCode: string): Promise<{
-  success: boolean;
-  error?: string;
-  syncedData?: Record<string, string>;
-}> {
-  try {
-    const isValid = await validateAccessCode(accessCode);
-    if (!isValid) {
-      return { success: false, error: 'INVALID_CODE' };
-    }
-
-    const deviceResult = await ensureDeviceRegistered({
-      accessCode,
-      maxDevices: 4,
-      validityMonths: 100 * 12,
-    });
-
-    if (!deviceResult.ok) {
-      if (deviceResult.error === 'DEVICE_LIMIT') {
-        return { success: false, error: 'DEVICE_LIMIT' };
-      }
-      return {
-        success: false,
-        error: 'DEVICE_REGISTRATION_FAILED',
-      };
-    }
-
-    await AsyncStorage.setItem('@access_code', accessCode);
-    await AsyncStorage.setItem('@is_activated', 'true');
-
-    const account = await getAccountFromSupabase(accessCode);
-    if (account?.userName) {
-      await AsyncStorage.setItem('@user_name', account.userName);
-    }
-    if (account?.avatarUrl) {
-      await AsyncStorage.setItem('@user_avatar', account.avatarUrl);
-    }
-
-    // Сохраняем локальные напоминания и ПДР текущего профиля до загрузки облака
-    const remindersKey = getRemindersStorageKey(accessCode);
-    const localReminders = await AsyncStorage.getItem(remindersKey);
-    const localPregnancyInfo = await AsyncStorage.getItem('@pregnancy_info');
-
-    const cloudData = await getAccountDataFromSupabase(accessCode);
-    if (cloudData && Object.keys(cloudData).length > 0) {
-      const protect = new Set(pendingPushProjectIdsRef.current);
-      await importAccountData(cloudData, accessCode, protect);
-      // Напоминания уже объединены в importAccountData. Дополнительно сливаем с сохранённым локальным списком, чтобы ничего не потерять.
-      const cloudReminders = cloudData['@reminders'];
-      const mergedReminders = mergeReminders(localReminders, cloudReminders);
-      await AsyncStorage.setItem(remindersKey, mergedReminders);
-      // Если в облаке пустые ПДР, а локально есть — восстанавливаем
-      const cloudPregnancy = cloudData['@pregnancy_info'];
-      const hasLocalPregnancy =
-        localPregnancyInfo &&
-        localPregnancyInfo !== '{}' &&
-        localPregnancyInfo !== 'null' &&
-        localPregnancyInfo.length > 2;
-      if (hasLocalPregnancy && (!cloudPregnancy || cloudPregnancy === '{}')) {
-        await AsyncStorage.setItem('@pregnancy_info', localPregnancyInfo);
-      }
-    }
-
-    // Всегда пушим текущее состояние в БД (напоминания, ПДР и т.д.) — и после мержа, и если облако было пусто
-    const pushResult = await pushAccountDataToCloud();
-    if (!pushResult.ok) {
-      console.warn('[AccountSync] pushAccountDataToCloud after login failed:', pushResult.error);
-    }
-
-    const currentData = await exportAccountData({
-      allowPrefixes: SYNC_DATA_PREFIXES,
-    });
-
-    return {
-      success: true,
-      syncedData: currentData,
-    };
-  } catch (error) {
-    console.error('Error syncing account data:', error);
-    return {
-      success: false,
-      error: 'SYNC_FAILED',
-    };
-  }
-}
+/** Заглушка для главного экрана (раньше — после входа по коду). */
+export function setOnSyncComplete(_callback: (() => void) | null): void {}
 
 /**
  * Сохраняет данные аккаунта при синхронизации (импорт с облака).
- * Напоминания объединяются с локальными по id (не перезаписываются), чтобы не терять ни одного.
+ * Напоминания из облака перезаписывают локальный список (полный снимок @reminders), иначе merge по id
+ * никогда не удаляет записи и «удалённые» снова появляются после pull.
  * Если передан protectProjectIds — не перезаписываем ключи проектов с этими id (пуш в процессе).
  */
 export async function importAccountData(
@@ -397,10 +138,7 @@ export async function importAccountData(
         if (projectId && protectProjectIds.has(projectId)) continue;
       }
       if (key === '@reminders' && accessCode) {
-        const remindersKey = getRemindersStorageKey(accessCode);
-        const existing = await AsyncStorage.getItem(remindersKey);
-        const merged = mergeReminders(value, existing);
-        await AsyncStorage.setItem(remindersKey, merged);
+        await setLocalRemindersJsonForSyncId(accessCode, value);
       } else if (key === '@user_projects') {
         const localRaw = await AsyncStorage.getItem('@user_projects');
         const localList: { id?: string }[] = (() => {
@@ -487,17 +225,13 @@ export function scheduleSyncToCloud(): void {
 }
 
 /**
- * Вызывать при входе на главный экран: создаёт код доступа и запись в accounts в Supabase,
- * чтобы при первом сохранении проекта данные гарантированно ушли в БД (account_project_data).
+ * Вызывать при входе на главный экран: гарантирует строку в `profiles`,
+ * чтобы при первом сохранении проекта данные ушли в `user_project_data`.
  */
 export async function ensureSyncReady(): Promise<void> {
   try {
-    const isActivated = await AsyncStorage.getItem('@is_activated');
-    if (isActivated !== 'true') return;
-    let accessCode = await AsyncStorage.getItem('@access_code');
-    // Важно: не генерируем код "на лету" при каждом старте/фокусе, иначе будем плодить аккаунты в БД.
-    // Код должен появляться только в явных флоу (ввод/активация/регистрация).
-    if (!accessCode) return;
+    const syncId = await getAccountSyncId();
+    if (!syncId || !isSupabaseUserIdKey(syncId)) return;
     let userName = await AsyncStorage.getItem('@user_name');
     if (!userName || !userName.trim()) {
       userName = 'Пользователь';
@@ -505,7 +239,7 @@ export async function ensureSyncReady(): Promise<void> {
     }
     const { saveAccountToSupabase, isSupabaseConfigured } = await import('./supabase-account');
     if (isSupabaseConfigured()) {
-      await saveAccountToSupabase(accessCode, userName.trim(), null);
+      await saveAccountToSupabase(syncId, userName.trim(), null);
     }
   } catch (e) {
     console.warn('[AccountSync] ensureSyncReady:', e);
@@ -521,16 +255,14 @@ export type PushToCloudResult = { ok: boolean; error?: string };
 const SYNC_RETRY_ATTEMPTS = 5;
 const SYNC_RETRY_DELAY_MS = 2500;
 
-async function ensureAccessCodeAndName(): Promise<string> {
-  const isActivated = await AsyncStorage.getItem('@is_activated');
-  if (isActivated !== 'true') return '';
-  const accessCode = await AsyncStorage.getItem('@access_code');
-  if (!accessCode) return '';
+async function ensureSyncIdAndName(): Promise<string> {
+  const syncId = await getAccountSyncId();
+  if (!syncId || !isSupabaseUserIdKey(syncId)) return '';
   const existingName = await AsyncStorage.getItem('@user_name');
   if (!existingName || !existingName.trim()) {
     await AsyncStorage.setItem('@user_name', 'Пользователь');
   }
-  return accessCode;
+  return syncId;
 }
 
 async function markSyncOk(): Promise<void> {
@@ -580,10 +312,17 @@ async function persistUploadedProjectUrls(
  * - Если `projectIdsToSync` пусто — пушим ТОЛЬКО core (имя, напоминания, настройки).
  *   Проекты НЕ трогаем. Список `@user_projects` в облаке НЕ перезаписываем.
  */
+type PushAccountDataOnceOptions = {
+  /** Не мержить с облаком — иначе удалённые напоминания снова попадут в user_sync. */
+  remindersAuthoritativeLocal?: boolean;
+};
+
 async function pushAccountDataToCloudOnce(
-  projectIdsToSync: string[] = []
+  projectIdsToSync: string[] = [],
+  onceOptions?: PushAccountDataOnceOptions
 ): Promise<PushToCloudResult> {
-  const accessCode = await ensureAccessCodeAndName();
+  const remindersAuthoritativeLocal = onceOptions?.remindersAuthoritativeLocal === true;
+  const accessCode = await ensureSyncIdAndName();
   if (!accessCode) {
     return { ok: false, error: 'NOT_ACTIVATED' };
   }
@@ -649,7 +388,9 @@ async function pushAccountDataToCloudOnce(
   const localRemindersJson = await AsyncStorage.getItem(remindersKey);
   const cloudCore = await getCoreDataFromSupabase(accessCode);
   const cloudRemindersJson = cloudCore?.['@reminders'] ?? null;
-  data['@reminders'] = mergeReminders(cloudRemindersJson, localRemindersJson ?? '[]');
+  data['@reminders'] = remindersAuthoritativeLocal
+    ? (localRemindersJson ?? '[]')
+    : mergeReminders(cloudRemindersJson, localRemindersJson ?? '[]');
   await yieldToUI();
 
   const { saveAccountToSupabase: saveAccount, isSupabaseConfigured } = await import(
@@ -793,9 +534,14 @@ export function mergeReminders(
   return JSON.stringify(Array.from(byId.values()));
 }
 
-export async function pushCoreOnlyToCloud(): Promise<PushToCloudResult> {
+export type PushCoreOnlyOptions = {
+  /** После удаления напоминаний: записать в БД ровно локальный список, без merge с облаком. */
+  remindersAuthoritativeLocal?: boolean;
+};
+
+export async function pushCoreOnlyToCloud(options?: PushCoreOnlyOptions): Promise<PushToCloudResult> {
   try {
-    const accessCode = await ensureAccessCodeAndName();
+    const accessCode = await ensureSyncIdAndName();
     const data = await exportAccountData({
       allowPrefixes: SYNC_DATA_PREFIXES,
     });
@@ -803,7 +549,10 @@ export async function pushCoreOnlyToCloud(): Promise<PushToCloudResult> {
     const localRemindersJson = await AsyncStorage.getItem(remindersKey);
     const cloudCore = await getCoreDataFromSupabase(accessCode);
     const cloudRemindersJson = cloudCore?.['@reminders'] ?? null;
-    data['@reminders'] = mergeReminders(cloudRemindersJson, localRemindersJson ?? '[]');
+    const authLocal = options?.remindersAuthoritativeLocal === true;
+    data['@reminders'] = authLocal
+      ? (localRemindersJson ?? '[]')
+      : mergeReminders(cloudRemindersJson, localRemindersJson ?? '[]');
     const pregnancyJson = await AsyncStorage.getItem('@pregnancy_info');
     if (pregnancyJson) data['@pregnancy_info'] = pregnancyJson;
     const kidsJson = await AsyncStorage.getItem('@kids_info');
@@ -833,10 +582,10 @@ export async function pushCoreOnlyToCloud(): Promise<PushToCloudResult> {
       return { ok: false, error: coreResult.error ?? 'Ошибка записи в облако' };
     }
 
-    // Сохраняем объединённый список обратно в AsyncStorage, чтобы локально тоже были все напоминания
+    // Сохраняем список напоминаний в профильный ключ и в `@reminders` одинаково (иначе legacy снова «оживляет» записи).
     const mergedJson = core['@reminders'];
-    if (mergedJson) {
-      await AsyncStorage.setItem(remindersKey, mergedJson);
+    if (mergedJson && accessCode) {
+      await setLocalRemindersJsonForSyncId(accessCode, mergedJson);
     }
 
     return { ok: true };
@@ -848,7 +597,7 @@ export async function pushCoreOnlyToCloud(): Promise<PushToCloudResult> {
 
 export async function pushCoreKeysToCloud(keys: string[]): Promise<PushToCloudResult> {
   try {
-    const accessCode = await ensureAccessCodeAndName();
+    const accessCode = await ensureSyncIdAndName();
     const { saveAccountToSupabase: saveAccount, isSupabaseConfigured } = await import(
       './supabase-account'
     );
@@ -907,9 +656,9 @@ export async function pushCoreKeysToCloud(keys: string[]): Promise<PushToCloudRe
  */
 export async function pullLatestFromCloud(): Promise<boolean> {
   try {
-    const accessCode = await AsyncStorage.getItem('@access_code');
-    if (!accessCode) {
-      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: no access_code, skip');
+    const accessCode = await getAccountSyncId();
+    if (!accessCode || !isSupabaseUserIdKey(accessCode)) {
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: no auth user id, skip');
       return false;
     }
 
@@ -952,7 +701,7 @@ export async function pullLatestFromCloud(): Promise<boolean> {
       return false;
     }
 
-    // Если в ядре (account_sync) список @user_projects пустой, но в account_project_data есть проекты —
+    // Если в ядре (user_sync) список @user_projects пустой, но в user_project_data есть проекты —
     // собираем список из метаданных проектов (ключ @project_<id> в data_json каждого проекта)
     const cloudUserProjectsRaw = cloudData['@user_projects'];
     const cloudUserProjectsList: any[] = (() => {
@@ -984,7 +733,7 @@ export async function pullLatestFromCloud(): Promise<boolean> {
         }
       }
       cloudData['@user_projects'] = JSON.stringify(builtList);
-      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from account_project_data, count=', builtList.length);
+      if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from user_project_data, count=', builtList.length);
     }
 
     // Сохраняем текущий список проектов до импорта
@@ -1021,13 +770,15 @@ export async function pullLatestFromCloud(): Promise<boolean> {
 export type PushToCloudOptions = {
   /** Эти id проектов всегда включаются в пуш (для кнопки «Сохранить»), даже если список synced ещё не обновился. */
   forceIncludeProjectIds?: string[];
+  /** Удаление напоминаний / проекта: не подмешивать старый @reminders из облака. */
+  remindersAuthoritativeLocal?: boolean;
 };
 
 /**
  * Отправляет все данные аккаунта в Supabase с повторами при сбое (сеть и т.д.).
- * - accounts: имя и URL аватара
- * - account_sync: ядро (напоминания, список проектов, беременность, история, флаги)
- * - account_project_data: по одной строке на каждый проект
+ * - profiles: имя, email (login_username), аватар, источник
+ * - user_sync: ядро (напоминания, список проектов, беременность, история, флаги)
+ * - user_project_data: по одной строке на каждый проект
  */
 export async function pushAccountDataToCloud(
   options?: PushToCloudOptions
@@ -1040,7 +791,9 @@ export async function pushAccountDataToCloud(
   try {
     for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
       try {
-        const result = await pushAccountDataToCloudOnce(forceInclude);
+        const result = await pushAccountDataToCloudOnce(forceInclude, {
+          remindersAuthoritativeLocal: options?.remindersAuthoritativeLocal,
+        });
         if (result.ok) {
           await Promise.all(forceInclude.map((id) => addProjectToSyncedList(id)));
           await markSyncOk();

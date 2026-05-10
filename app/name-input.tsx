@@ -1,7 +1,5 @@
-import { generateAccessCode } from '@/utils/accessCode';
+import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
-import { ensureDeviceRegistered } from '@/utils/account-transfer';
-import { logUserRegistration } from '@/utils/registration-logger';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -128,28 +126,20 @@ export default function NameInputScreen() {
 
     try {
       const trimmedName = name.trim();
-      const accessCode = generateAccessCode();
+      let syncId = await getAccountSyncId();
+      if (!syncId) {
+        syncId = await createAndStoreAccountSyncId();
+      }
 
-      await AsyncStorage.setItem('@access_code', accessCode);
       await AsyncStorage.setItem('@user_name', trimmedName);
-      await AsyncStorage.setItem('@is_activated', 'true');
       await AsyncStorage.setItem('@has_seen_onboarding', 'true');
-      await AsyncStorage.setItem('@show_access_code_modal', 'true');
 
       setIsSubmitting(false);
       setShowGreeting(true);
 
       // Отправляем сетевые операции в фоне, чтобы кнопка не "подвисала"
       setTimeout(() => {
-        Promise.allSettled([
-          logUserRegistration({ userName: trimmedName, accessCode }),
-          ensureDeviceRegistered({
-            accessCode,
-            maxDevices: 4,
-            validityMonths: 100 * 12,
-          }),
-          saveAccountToSupabase(accessCode, trimmedName),
-        ])
+        Promise.allSettled([saveAccountToSupabase(syncId, trimmedName)])
           .then(() => syncToCloudNow())
           .catch((e) => console.warn('Background signup sync failed:', e));
       }, 0);

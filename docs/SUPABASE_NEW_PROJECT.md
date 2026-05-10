@@ -61,6 +61,6 @@ npx expo start --clear
 
 ## Проверка
 
-- В приложении: войдите по коду доступа, создайте/сохраните проект — данные должны появляться в **Table Editor** и **Storage** в Supabase.
+- В приложении: после ввода имени и сохранения проекта данные должны появляться в **Table Editor** и **Storage** в Supabase.
 - В **Database** → **Tables**: есть `accounts`, `account_sync`, `account_project_data`.
 - В **Storage**: есть bucket `account-images`.

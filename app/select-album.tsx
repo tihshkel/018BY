@@ -1,6 +1,7 @@
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import { getAlbumImageUrisForViewing, getAlbumImages } from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -225,6 +226,15 @@ export default function SelectAlbumScreen() {
         if (preloadedFirstPages.current.has(album.id)) {
           const firstPageUri = preloadedFirstPages.current.get(album.id)!;
           await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify([firstPageUri]));
+        }
+      }
+
+      // Напоминания и @pregnancy_info / @kids_info до этого могли быть с временным id — привязываем к проекту.
+      if (reminderDateISO) {
+        try {
+          await linkNewProjectToEventReminders(projectId, album.category, reminderDateISO);
+        } catch {
+          /* не блокируем создание */
         }
       }
 

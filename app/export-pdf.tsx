@@ -1,5 +1,6 @@
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getKidsFirstLastPages, getPregnancyFirstLastPagesFromGitHub, getFamilyOrHolidayFirstLastPages } from '@/utils/albumFirstLastPages';
 import { getAlbumImageUris } from '@/utils/albumImages';
@@ -1652,8 +1653,8 @@ export default function ExportPdfScreen() {
       const historyPayload = { fileUri, fileName, projectId, formatToUse };
       Promise.resolve().then(async () => {
         try {
-          const accessCode = await AsyncStorage.getItem('@access_code');
-          if (!accessCode) return;
+          const syncId = await getAccountSyncId();
+          if (!syncId) return;
           const { fileUri: uri, fileName: fName, projectId: pId, formatToUse: fmt } = historyPayload;
           let projectName = 'Проект';
           if (pId) {
@@ -1672,7 +1673,7 @@ export default function ExportPdfScreen() {
             fileUri: uri,
             fileName: fName,
           };
-          const historyKey = `@export_history_${accessCode}`;
+          const historyKey = `@export_history_${syncId}`;
           const existingHistory = await AsyncStorage.getItem(historyKey);
           const history: any[] = existingHistory ? JSON.parse(existingHistory) : [];
           history.push(exportRecord);

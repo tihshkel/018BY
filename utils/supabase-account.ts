@@ -1,30 +1,38 @@
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
 
-const PROJECT_KEY_PREFIX = '@project_';
-
 const DEFAULT_USER_NAME = 'Пользователь';
 
+/** UUID пользователя Supabase Auth — допустимый ключ для таблиц profiles / user_sync / user_project_data. */
+export function isSupabaseUserIdKey(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
+}
+
+export type SaveProfileOptions = {
+  loginUsername?: string | null;
+  referralSource?: string | null;
+};
+
 /**
- * Сохраняет код доступа, имя и (опционально) URL аватара в Supabase.
- * Важно: строка в `accounts` должна существовать ДО записи в `account_sync`/`account_project_data`
- * (FK constraint). Поэтому при первом входе допускаем запись с дефолтным именем «Пользователь»,
- * но не затираем уже сохранённое пользовательское имя дефолтным.
+ * Сохраняет профиль в `profiles` (id = пользователь Supabase Auth).
  */
 export async function saveAccountToSupabase(
-  accessCode: string,
+  userId: string,
   userName: string,
-  avatarUrl?: string | null
+  avatarUrl?: string | null,
+  options?: SaveProfileOptions
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) {
     return { success: true };
   }
 
+  if (!isSupabaseUserIdKey(userId)) {
+    return { success: false, error: 'Некорректный идентификатор пользователя для облака' };
+  }
+
   const name = (userName || '').trim();
   if (!name || name === DEFAULT_USER_NAME) {
-    // Если имя не задано/дефолтное, всё равно гарантируем наличие строки в accounts,
-    // но не затираем уже записанное нормальное имя.
-    const existing = await getAccountFromSupabase(accessCode);
+    const existing = await getAccountFromSupabase(userId);
     if (existing?.userName && existing.userName.trim() && existing.userName.trim() !== DEFAULT_USER_NAME) {
       return { success: true };
     }
@@ -32,11 +40,21 @@ export async function saveAccountToSupabase(
 
   try {
     const row: Record<string, unknown> = {
-      access_code: accessCode,
+      id: userId,
       user_name: name || DEFAULT_USER_NAME,
       updated_at: new Date().toISOString(),
     };
-    // В БД пишем только валидный https-URL. file:// или пустое значение не передаём — тогда старый аватар в БД не затирается
+
+    const login = options?.loginUsername?.trim();
+    if (login) {
+      row.login_username = login;
+    }
+
+    const ref = options?.referralSource?.trim();
+    if (ref) {
+      row.referral_source = ref;
+    }
+
     const isHttpsAvatar =
       typeof avatarUrl === 'string' &&
       avatarUrl.length > 0 &&
@@ -45,67 +63,66 @@ export async function saveAccountToSupabase(
       row.avatar_url = avatarUrl;
     }
 
-    const { error } = await supabase.from('accounts').upsert(row, {
-      onConflict: 'access_code',
+    const { error } = await supabase.from('profiles').upsert(row, {
+      onConflict: 'id',
     });
 
     if (error) {
-      console.warn('[Supabase] Ошибка сохранения аккаунта:', error.message);
+      console.warn('[Supabase] Ошибка сохранения profiles:', error.message);
       return { success: false, error: error.message };
     }
     return { success: true };
   } catch (e) {
-    console.warn('[Supabase] Ошибка сохранения аккаунта:', e);
+    console.warn('[Supabase] Ошибка сохранения profiles:', e);
     return { success: false, error: String(e) };
   }
 }
 
 /**
- * Получает аккаунт по коду доступа из Supabase (имя и URL аватара).
+ * Профиль из `profiles` по id пользователя (UUID Auth).
+ * Поле `accessCode` в ответе = тот же userId (совместимость со старым кодом).
  */
-export async function getAccountFromSupabase(accessCode: string): Promise<{
+export async function getAccountFromSupabase(userId: string): Promise<{
   accessCode: string;
   userName: string;
   avatarUrl?: string | null;
+  loginUsername?: string | null;
+  referralSource?: string | null;
 } | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
 
   try {
     const { data, error } = await supabase
-      .from('accounts')
-      .select('access_code, user_name, avatar_url')
-      .eq('access_code', accessCode)
+      .from('profiles')
+      .select('id, user_name, avatar_url, login_username, referral_source')
+      .eq('id', userId)
       .single();
 
     if (error || !data) return null;
 
     return {
-      accessCode: data.access_code,
+      accessCode: data.id,
       userName: data.user_name,
       avatarUrl: data.avatar_url ?? null,
+      loginUsername: data.login_username ?? null,
+      referralSource: data.referral_source ?? null,
     };
   } catch (e) {
-    console.warn('[Supabase] Ошибка загрузки аккаунта:', e);
+    console.warn('[Supabase] Ошибка загрузки profiles:', e);
     return null;
   }
 }
 
-/**
- * Проверяет, существует ли аккаунт с таким кодом доступа в Supabase.
- */
-export async function isAccountInSupabase(accessCode: string): Promise<boolean> {
-  const account = await getAccountFromSupabase(accessCode);
+export async function isAccountInSupabase(userId: string): Promise<boolean> {
+  const account = await getAccountFromSupabase(userId);
   return account !== null;
 }
 
 export { isSupabaseConfigured };
 
-/**
- * Сохраняет ядро данных в account_sync (всё, кроме данных по проектам).
- */
 export async function pushCoreDataToSupabase(
-  accessCode: string,
+  userId: string,
   coreData: Record<string, string>
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
@@ -116,32 +133,33 @@ export async function pushCoreDataToSupabase(
     };
   }
 
+  if (!isSupabaseUserIdKey(userId)) {
+    return { success: false, error: 'Некорректный идентификатор пользователя' };
+  }
+
   try {
-    const { error } = await supabase.from('account_sync').upsert(
+    const { error } = await supabase.from('user_sync').upsert(
       {
-        access_code: accessCode,
+        user_id: userId,
         data_json: coreData,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'access_code' }
+      { onConflict: 'user_id' }
     );
 
     if (error) {
-      console.warn('[Supabase] Ошибка push core данных:', error.message);
+      console.warn('[Supabase] Ошибка push user_sync:', error.message);
       return { success: false, error: error.message };
     }
     return { success: true };
   } catch (e) {
-    console.warn('[Supabase] Ошибка push core данных:', e);
+    console.warn('[Supabase] Ошибка push user_sync:', e);
     return { success: false, error: String(e) };
   }
 }
 
-/**
- * Сохраняет данные одного проекта в account_project_data.
- */
 export async function pushProjectDataToSupabase(
-  accessCode: string,
+  userId: string,
   projectId: string,
   data: Record<string, string>
 ): Promise<{ success: boolean; error?: string }> {
@@ -150,19 +168,23 @@ export async function pushProjectDataToSupabase(
     return { success: false, error: 'Supabase не настроен.' };
   }
 
+  if (!isSupabaseUserIdKey(userId)) {
+    return { success: false, error: 'Некорректный идентификатор пользователя' };
+  }
+
   try {
-    const { error } = await supabase.from('account_project_data').upsert(
+    const { error } = await supabase.from('user_project_data').upsert(
       {
-        access_code: accessCode,
+        user_id: userId,
         project_id: projectId,
         data_json: data,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'access_code,project_id' }
+      { onConflict: 'user_id,project_id' }
     );
 
     if (error) {
-      console.warn('[Supabase] Ошибка push проекта:', projectId, error.message);
+      console.warn('[Supabase] Ошибка push user_project_data:', projectId, error.message);
       return { success: false, error: error.message };
     }
     return { success: true };
@@ -172,20 +194,17 @@ export async function pushProjectDataToSupabase(
   }
 }
 
-/**
- * Загружает ядро данных из account_sync.
- */
-export async function getCoreDataFromSupabase(
-  accessCode: string
-): Promise<Record<string, string> | null> {
+export async function getCoreDataFromSupabase(userId: string): Promise<Record<string, string> | null> {
   const supabase = getSupabase();
   if (!supabase) return null;
 
+  if (!isSupabaseUserIdKey(userId)) return null;
+
   try {
     const { data, error } = await supabase
-      .from('account_sync')
+      .from('user_sync')
       .select('data_json')
-      .eq('access_code', accessCode)
+      .eq('user_id', userId)
       .single();
 
     if (error || !data?.data_json) return null;
@@ -201,25 +220,24 @@ export async function getCoreDataFromSupabase(
     }
     return result;
   } catch (e) {
-    console.warn('[Supabase] Ошибка загрузки core данных:', e);
+    console.warn('[Supabase] Ошибка загрузки user_sync:', e);
     return null;
   }
 }
 
-/**
- * Загружает данные всех проектов для аккаунта из account_project_data.
- */
 export async function getAllProjectsDataFromSupabase(
-  accessCode: string
+  userId: string
 ): Promise<Record<string, Record<string, string>>> {
   const supabase = getSupabase();
   if (!supabase) return {};
 
+  if (!isSupabaseUserIdKey(userId)) return {};
+
   try {
     const { data, error } = await supabase
-      .from('account_project_data')
+      .from('user_project_data')
       .select('project_id, data_json')
-      .eq('access_code', accessCode);
+      .eq('user_id', userId);
 
     if (error || !data) return {};
 
@@ -235,14 +253,11 @@ export async function getAllProjectsDataFromSupabase(
     }
     return out;
   } catch (e) {
-    console.warn('[Supabase] Ошибка загрузки данных проектов:', e);
+    console.warn('[Supabase] Ошибка загрузки user_project_data:', e);
     return {};
   }
 }
 
-/**
- * Объединяет ядро и данные проектов в один объект для importAccountData.
- */
 export function mergeCoreAndProjectsData(
   core: Record<string, string> | null,
   projects: Record<string, Record<string, string>>
@@ -256,32 +271,26 @@ export function mergeCoreAndProjectsData(
   return result;
 }
 
-/**
- * Загружает все данные аккаунта из Supabase (ядро + все проекты).
- */
-export async function getAccountDataFromSupabase(
-  accessCode: string
-): Promise<Record<string, string> | null> {
-  const core = await getCoreDataFromSupabase(accessCode);
-  const projects = await getAllProjectsDataFromSupabase(accessCode);
+export async function getAccountDataFromSupabase(userId: string): Promise<Record<string, string> | null> {
+  const core = await getCoreDataFromSupabase(userId);
+  const projects = await getAllProjectsDataFromSupabase(userId);
   return mergeCoreAndProjectsData(core, projects);
 }
 
-/**
- * Удаляет в облаке строки проектов, которых нет в списке (чтобы не копить лишние записи).
- */
 export async function deleteProjectDataNotInList(
-  accessCode: string,
+  userId: string,
   keepProjectIds: string[]
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) return { success: true };
 
+  if (!isSupabaseUserIdKey(userId)) return { success: true };
+
   try {
     const { data: rows } = await supabase
-      .from('account_project_data')
+      .from('user_project_data')
       .select('project_id')
-      .eq('access_code', accessCode);
+      .eq('user_id', userId);
 
     if (!rows?.length) return { success: true };
 
@@ -289,9 +298,9 @@ export async function deleteProjectDataNotInList(
     const toDelete = rows.map((r) => r.project_id).filter((id) => !keepSet.has(id));
     for (const projectId of toDelete) {
       await supabase
-        .from('account_project_data')
+        .from('user_project_data')
         .delete()
-        .eq('access_code', accessCode)
+        .eq('user_id', userId)
         .eq('project_id', projectId);
     }
     return { success: true };
@@ -301,35 +310,33 @@ export async function deleteProjectDataNotInList(
   }
 }
 
-/**
- * Удаляет конкретный проект в облаке и обновляет список `@user_projects` в core.
- * Нужен для кейса "удалил локально, но проект снова подтягивается из Supabase".
- */
 export async function deleteProjectInSupabase(params: {
   accessCode: string;
   projectId: string;
-  updatedUserProjectsJson: string; // JSON строка (массив проектов)
+  updatedUserProjectsJson: string;
 }): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
   if (!supabase) return { success: true };
 
-  const accessCode = params.accessCode;
+  const userId = params.accessCode;
   const projectId = String(params.projectId);
 
+  if (!isSupabaseUserIdKey(userId)) {
+    return { success: false, error: 'Некорректный идентификатор пользователя' };
+  }
+
   try {
-    // 1) Обновляем core-данные: фиксируем новый список проектов
-    const core = (await getCoreDataFromSupabase(accessCode)) ?? {};
+    const core = (await getCoreDataFromSupabase(userId)) ?? {};
     core['@user_projects'] = params.updatedUserProjectsJson;
-    const coreRes = await pushCoreDataToSupabase(accessCode, core);
+    const coreRes = await pushCoreDataToSupabase(userId, core);
     if (!coreRes.success) {
-      return { success: false, error: coreRes.error ?? 'Не удалось обновить core данные' };
+      return { success: false, error: coreRes.error ?? 'Не удалось обновить user_sync' };
     }
 
-    // 2) Удаляем строку проекта
     const { error } = await supabase
-      .from('account_project_data')
+      .from('user_project_data')
       .delete()
-      .eq('access_code', accessCode)
+      .eq('user_id', userId)
       .eq('project_id', projectId);
     if (error) {
       return { success: false, error: error.message };

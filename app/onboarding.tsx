@@ -173,10 +173,10 @@ export default function OnboardingScreen() {
         
         if (Platform.OS === 'android') {
           InteractionManager.runAfterInteractions(() => {
-            router.replace('/activation');
+            router.replace('/login');
           });
         } else {
-          router.replace('/activation');
+          router.replace('/login');
         }
       }
     }, transitionDelay);

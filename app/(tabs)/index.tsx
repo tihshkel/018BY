@@ -1,7 +1,8 @@
 import { getAlbumTemplateById } from '@/albums';
 import { getCoverForExport } from '@/utils/coverMapping';
-import { generateAccessCode } from '@/utils/accessCodeGenerator';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
+import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
@@ -111,7 +112,6 @@ export default function HomeScreen() {
   useEffect(() => {
     loadUserData();
     loadProjects();
-    checkFirstTimeAccess();
     opacity.value = withTiming(1, { duration: 400 });
     setOnSyncComplete(loadProjects);
     return () => {
@@ -128,7 +128,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // При фокусе обновляем имя и проекты; заранее готовим аккаунт для синхронизации (код доступа + запись в Supabase), чтобы сохранение проекта сразу попадало в БД.
+  // При фокусе обновляем имя и проекты; гарантируем строку profiles в Supabase для сохранения проектов.
   // Также подтягиваем последние данные из облака (Supabase), чтобы проекты, сохранённые на другом устройстве, появились в списке.
   useFocusEffect(
     React.useCallback(() => {
@@ -149,9 +149,8 @@ export default function HomeScreen() {
             const localRaw = await AsyncStorage.getItem('@user_projects');
             const localList: any[] = (() => { try { return localRaw ? JSON.parse(localRaw) : []; } catch { return []; } })();
             if (localList.length === 0) {
-              const accessCode = await AsyncStorage.getItem('@access_code');
-              if (accessCode) {
-                // Ждём 3 секунды и пробуем ещё раз — syncAccountDataInBackground мог завершиться к этому моменту
+              const syncId = await getAccountSyncId();
+              if (syncId) {
                 setTimeout(async () => {
                   try {
                     const retryChanged = await pullLatestFromCloud();
@@ -159,7 +158,6 @@ export default function HomeScreen() {
                       loadProjects();
                       loadUserData();
                     } else {
-                      // Последняя попытка: просто перечитываем из AsyncStorage (syncAccountDataInBackground мог записать данные)
                       loadProjects();
                     }
                   } catch {}
@@ -181,38 +179,6 @@ export default function HomeScreen() {
       console.error('Error loading user name:', error);
     }
   };
-
-  const checkFirstTimeAccess = async () => {
-    try {
-      // Проверяем, что пользователь активирован
-      const isActivated = await AsyncStorage.getItem('@is_activated');
-      if (isActivated !== 'true') {
-        return;
-      }
-
-      // Используем AccessCodeModalManager вместо собственного модального окна
-      // Устанавливаем флаг для показа модального окна через AccessCodeModalManager
-      const hasSeenCode = await AsyncStorage.getItem('@has_seen_access_code');
-      const existingCode = await AsyncStorage.getItem('@access_code');
-      
-      // Если код уже был показан, не показываем модальное окно
-      if (hasSeenCode === 'true') {
-        return;
-      }
-      
-      // Если кода нет, генерируем новый и сохраняем в правильном ключе
-      if (!existingCode) {
-        const code = generateAccessCode();
-        await AsyncStorage.setItem('@access_code', code);
-        await AsyncStorage.setItem('@show_access_code_modal', 'true');
-      } else {
-        await AsyncStorage.setItem('@show_access_code_modal', 'true');
-      }
-    } catch (error) {
-      console.error('Error checking first time access:', error);
-    }
-  };
-
 
   const loadProjects = async () => {
     try {
@@ -392,6 +358,11 @@ export default function HomeScreen() {
 
     const projectId = String(project.id);
     try {
+      await removeRemindersAndScheduledNotificationsForProject(projectId, {
+        category: project.category,
+        reminderDate: project.reminderDate ?? null,
+      });
+
       // Удаляем все данные проекта из AsyncStorage (метаданные, изображения, аннотации и т.д.)
       const projectKeys = [
         `@project_${projectId}`,
@@ -418,10 +389,10 @@ export default function HomeScreen() {
         // Удаляем проект в Supabase + обновляем облачный @user_projects,
         // иначе pullLatestFromCloud подтянет проект обратно.
         try {
-          const accessCode = await AsyncStorage.getItem('@access_code');
-          if (accessCode && isSupabaseConfigured()) {
+          const syncId = await getAccountSyncId();
+          if (syncId && isSupabaseConfigured()) {
             const delRes = await deleteProjectInSupabase({
-              accessCode,
+              accessCode: syncId,
               projectId,
               updatedUserProjectsJson: updatedJson,
             });
@@ -433,8 +404,8 @@ export default function HomeScreen() {
           console.warn('[Supabase] deleteProjectInSupabase exception:', e);
         }
 
-        // На всякий случай пушим core (напоминания/настройки). Но список проектов уже обновили выше.
-        await pushAccountDataToCloud();
+        // Пушим core; напоминания без merge с облаком — иначе mergeReminders вернёт удалённые записи в БД.
+        await pushAccountDataToCloud({ remindersAuthoritativeLocal: true });
         scheduleSyncToCloud();
       }
 
@@ -1215,255 +1186,5 @@ const styles = StyleSheet.create({
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-  },
-  // Стили для модального окна с кодом доступа
-  accessCodeModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    pointerEvents: 'auto',
-  },
-  accessCodeModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 360,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
-    alignItems: 'center',
-  },
-  accessCodeIconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  accessCodeModalTitle: {
-    fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  accessCodeModalSubtitle: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-    paddingHorizontal: 4,
-  },
-  accessCodeContainer: {
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-    marginBottom: 8,
-    width: '100%',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    position: 'relative',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  accessCodeText: {
-    fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'monospace',
-      default: 'monospace',
-    }),
-    fontWeight: '600',
-    letterSpacing: 3,
-  },
-  copyIconContainer: {
-    position: 'absolute',
-    right: 16,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  copyHintText: {
-    fontSize: 12,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  accessCodeWarningContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    width: '100%',
-    gap: 10,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  accessCodeWarningText: {
-    fontSize: 13,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '500',
-    flex: 1,
-  },
-  accessCodeButton: {
-    backgroundColor: '#C9A89A',
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 16,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  accessCodeButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  // Стили для модального окна с информацией о коде
-  accessCodeInfoModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    maxHeight: '80%',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
-  },
-  accessCodeInfoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  accessCodeInfoTitle: {
-    fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  accessCodeInfoScroll: {
-    maxHeight: 400,
-    marginBottom: 20,
-  },
-  infoSection: {
-    marginBottom: 24,
-    paddingBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
-  },
-  infoIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  infoSectionTitle: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  infoSectionText: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    lineHeight: 20,
   },
 });

@@ -1,5 +1,6 @@
 import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
 import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
@@ -14,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
+import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -509,8 +511,8 @@ export default function SelectCoverScreen() {
         enabled: true,
       };
 
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      const syncId = await getAccountSyncId();
+      const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
       const existingReminders = await AsyncStorage.getItem(remindersKey);
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 
@@ -538,55 +540,37 @@ export default function SelectCoverScreen() {
         }
 
         // Планируем уведомление
-        let trigger: any;
-        if (Platform.OS === 'ios') {
-          trigger = { date: notificationDate };
-        } else {
-          // Android: используем объект с seconds
-          const seconds = Math.floor((notificationDate.getTime() - now.getTime()) / 1000);
-          if (seconds > 0) {
-            trigger = { seconds };
-          }
-        }
-
-        if (trigger) {
-          const Notifications = getNotifications();
-          if (Notifications) {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: categoryInfo.notificationTitle,
-                body: categoryInfo.notificationBody,
-                sound: true,
-              },
-              trigger,
-            });
-          }
+        const Notifications = getNotifications();
+        if (Notifications) {
+          const trigger: DateTriggerInput = {
+            type: SchedulableTriggerInputTypes.DATE,
+            date: notificationDate,
+          };
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: categoryInfo.notificationTitle,
+              body: categoryInfo.notificationBody,
+              sound: true,
+            },
+            trigger,
+          });
         }
       } else if (eventDate > now) {
         // Для других категорий планируем только если дата в будущем
-        let trigger: any;
-        if (Platform.OS === 'ios') {
-          trigger = { date: eventDate };
-        } else {
-          // Android: используем объект с seconds
-          const seconds = Math.floor((eventDate.getTime() - now.getTime()) / 1000);
-          if (seconds > 0) {
-            trigger = { seconds };
-          }
-        }
-
-        if (trigger) {
-          const Notifications = getNotifications();
-          if (Notifications) {
-            await Notifications.scheduleNotificationAsync({
-              content: {
-                title: categoryInfo.notificationTitle,
-                body: categoryInfo.notificationBody,
-                sound: true,
-              },
-              trigger,
-            });
-          }
+        const Notifications = getNotifications();
+        if (Notifications) {
+          const trigger: DateTriggerInput = {
+            type: SchedulableTriggerInputTypes.DATE,
+            date: eventDate,
+          };
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: categoryInfo.notificationTitle,
+              body: categoryInfo.notificationBody,
+              sound: true,
+            },
+            trigger,
+          });
         }
       }
     } catch (error) {
@@ -671,12 +655,11 @@ export default function SelectCoverScreen() {
 
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      // Если нет кода доступа — дата только на устройстве; подсказываем про синхронизацию в БД
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      if (!accessCode) {
+      const syncId = await getAccountSyncId();
+      if (!syncId) {
         Alert.alert(
           'Данные сохранены на устройстве',
-          'Чтобы дата и уведомления сохранялись в облако и подтягивались на других устройствах, введите код доступа в разделе «Профиль».'
+          'Чтобы дата и напоминания синхронизировались между устройствами, настройте учётную запись в разделе «Профиль».'
         );
       }
     } catch (error) {

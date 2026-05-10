@@ -7,7 +7,6 @@ import 'expo-asset';
 import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
-import { AccessCodeModalManager } from '@/components/access-code-modal-manager';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { syncToCloudNow } from '@/utils/account-sync';
@@ -65,34 +64,14 @@ export default function RootLayout() {
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="onboarding" />
-            <Stack.Screen name="activation" />
-            <Stack.Screen
-              name="code-type-selection"
-              options={{
-                animation: 'fade_from_bottom',
-                animationDuration: 420,
-              }}
-            />
-            <Stack.Screen
-              name="code-input"
-              options={{
-                // Мягкий переход для "ввод кода" (ощущение как iOS sheet)
-                animation: 'fade_from_bottom',
-                animationDuration: 420,
-              }}
-            />
-            <Stack.Screen
-              name="account-code-input"
-              options={{
-                animation: 'fade_from_bottom',
-                animationDuration: 420,
-              }}
-            />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="forgot-password" />
+            <Stack.Screen name="reset-password" />
+            <Stack.Screen name="register" />
             <Stack.Screen name="purchase" />
             <Stack.Screen
               name="name-input"
               options={{
-                // Тот же нежный переход между code-input -> name-input
                 animation: 'fade_from_bottom',
                 animationDuration: 420,
               }}
@@ -108,7 +87,6 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
           </Stack>
           <StatusBar style="auto" />
-          <AccessCodeModalManager isEligibleToShow={isInTabs} />
         </ThemeProvider>
       </MediaLibraryPermissionProvider>
     </SafeAreaProvider>

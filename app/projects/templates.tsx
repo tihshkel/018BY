@@ -10,6 +10,7 @@ import {
     type ProjectProduct,
 } from '@/constants/projectTemplates';
 import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
@@ -417,8 +418,8 @@ export default function ProjectTemplatesScreen() {
         enabled: true,
       };
 
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      const syncId = await getAccountSyncId();
+      const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
       const existingReminders = await AsyncStorage.getItem(remindersKey);
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 

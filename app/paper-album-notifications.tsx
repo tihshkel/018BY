@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
+import { SchedulableTriggerInputTypes, type TimeIntervalTriggerInput } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -164,19 +165,11 @@ export default function PaperAlbumNotificationsScreen() {
             console.log('Has permission, scheduling notification...');
             // Отправляем уведомление немедленно (через минимальную задержку)
             try {
-              // Для немедленной отправки используем минимальную задержку
-              const now = new Date();
-              const notificationDate = new Date(now.getTime() + 1000); // 1 секунда задержка
-              
-              let trigger: any;
-              if (Platform.OS === 'ios') {
-                trigger = { date: notificationDate };
-                console.log('iOS trigger date:', notificationDate.toISOString());
-              } else {
-                // Android: используем объект с seconds, минимум 1 секунда
-                trigger = { seconds: 1 };
-                console.log('Android trigger seconds: 1');
-              }
+              const trigger: TimeIntervalTriggerInput = {
+                type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds: 1,
+              };
+              console.log('Scheduled test notification in 1s (TIME_INTERVAL)');
 
               const notificationId = await Notifications.scheduleNotificationAsync({
                 content: {

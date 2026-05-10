@@ -16,6 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { getAccountSyncId } from '@/utils/account-identity';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -49,14 +50,13 @@ export default function ExportHistoryScreen() {
 
   const loadExportHistory = async () => {
     try {
-      // Загружаем историю экспорта, привязанную к коду пользователя
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      if (!accessCode) {
+      const syncId = await getAccountSyncId();
+      if (!syncId) {
         setExports([]);
         return;
       }
 
-      const historyKey = `@export_history_${accessCode}`;
+      const historyKey = `@export_history_${syncId}`;
       const saved = await AsyncStorage.getItem(historyKey);
       if (saved) {
         const allExports: ExportRecord[] = JSON.parse(saved);
@@ -180,10 +180,9 @@ export default function ExportHistoryScreen() {
                 console.warn('Error deleting file:', fileError);
               }
 
-              // Удаляем из истории (привязанной к коду пользователя)
-              const accessCode = await AsyncStorage.getItem('@access_code');
-              if (accessCode) {
-                const historyKey = `@export_history_${accessCode}`;
+              const syncId = await getAccountSyncId();
+              if (syncId) {
+                const historyKey = `@export_history_${syncId}`;
                 const saved = await AsyncStorage.getItem(historyKey);
                 if (saved) {
                   const allExports: ExportRecord[] = JSON.parse(saved);

@@ -4,6 +4,11 @@ import ImageViewer from '@/components/image-viewer';
 import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { getAccountSyncId } from '@/utils/account-identity';
+import {
+  linkNewProjectToEventReminders,
+  removeRemindersAndScheduledNotificationsForProject,
+} from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
 import { getAlbumImages, getAlbumImageUrisForViewing, getAlbumPageCount } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
@@ -49,6 +54,16 @@ export default function EditAlbumScreen() {
     interiorType?: string;
     eventDate?: string;
   }>();
+
+  const eventDateNormalized = React.useMemo(() => {
+    const v = eventDate as string | string[] | undefined;
+    if (typeof v === 'string' && v.length > 0 && !Number.isNaN(Date.parse(v))) return v;
+    if (Array.isArray(v)) {
+      const first = v.find((x) => typeof x === 'string' && x.length > 0 && !Number.isNaN(Date.parse(x)));
+      return first;
+    }
+    return undefined;
+  }, [eventDate]);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(60);
@@ -158,17 +173,33 @@ export default function EditAlbumScreen() {
     loadImagesData();
   }, [id, coverType, interiorType]);
 
-  // Сохраняем начальное состояние после загрузки данных
+  // Актуальные страницы/аннотации для отложенного снимка baseline (прогрессивная догрузка URI меняет images[] без «правок» пользователя)
+  const baselineSourceRef = React.useRef({ images, annotations, coverAnnotations });
+  baselineSourceRef.current = { images, annotations, coverAnnotations };
+
+  /** Один раз после открытия проекта: зафиксировать baseline, когда догружен весь шаблон (images.length >= totalPages), иначе ложные «несохранённые изменения». */
+  const initialBaselineCapturedRef = React.useRef(false);
   useEffect(() => {
-    if (!isLoading && images.length > 0 && !lastSavedStateRef.current) {
+    initialBaselineCapturedRef.current = false;
+  }, [storageId]);
+
+  useEffect(() => {
+    if (initialBaselineCapturedRef.current) return;
+    if (isLoading || images.length === 0) return;
+    if (images.length < totalPages) return;
+
+    const t = setTimeout(() => {
+      const src = baselineSourceRef.current;
       lastSavedStateRef.current = {
-        images: [...images],
-        annotations: JSON.parse(JSON.stringify(annotations)),
-        coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
-        projectMetaJson: null,
+        images: [...src.images],
+        annotations: JSON.parse(JSON.stringify(src.annotations)),
+        coverAnnotations: JSON.parse(JSON.stringify(src.coverAnnotations)),
+        projectMetaJson: lastSavedStateRef.current?.projectMetaJson ?? null,
       };
-    }
-  }, [isLoading, images, annotations, coverAnnotations]);
+      initialBaselineCapturedRef.current = true;
+    }, 550);
+    return () => clearTimeout(t);
+  }, [isLoading, images.length, totalPages]);
 
   // Подхватываем флаг "проект уже сохраняли" из AsyncStorage
   useEffect(() => {
@@ -539,6 +570,13 @@ export default function EditAlbumScreen() {
               if (!pushResultDiary.ok && __DEV__) {
                 console.warn('[EditAlbum] Синхронизация при создании дневника не удалась:', pushResultDiary.error);
               }
+              if (eventDateNormalized && celebration) {
+                try {
+                  await linkNewProjectToEventReminders(newProjectId, celebration, eventDateNormalized);
+                } catch {
+                  /* не блокируем открытие редактора */
+                }
+              }
               router.replace({
                 pathname: '/edit-album',
                 params: {
@@ -867,6 +905,13 @@ export default function EditAlbumScreen() {
         if (!pushResult.ok && __DEV__) {
           console.warn('[EditAlbum] Синхронизация при создании проекта не удалась:', pushResult.error);
         }
+        if (eventDateNormalized && celebration) {
+          try {
+            await linkNewProjectToEventReminders(newProjectId, celebration, eventDateNormalized);
+          } catch {
+            /* не блокируем открытие редактора */
+          }
+        }
         // Обновляем URL с новым ID проекта
         router.replace({
           pathname: '/edit-album',
@@ -1158,7 +1203,7 @@ export default function EditAlbumScreen() {
     const silent = opts?.silent ?? false;
     const out = { pushOk: false, pushError: undefined as string | undefined };
 
-    // Гарантируем, что код доступа и запись accounts существуют в Supabase ДО пуша проекта
+    // Гарантируем строку в profiles (UUID Auth) перед пушем — см. ensureSyncReady / user_sync
     try { await ensureSyncReady(); } catch (_) { /* не блокируем сохранение */ }
 
     let effectiveId = storageId;
@@ -1355,6 +1400,11 @@ export default function EditAlbumScreen() {
 
   const deleteProjectEverywhere = async (projectId: string) => {
     const pid = String(projectId);
+    try {
+      await removeRemindersAndScheduledNotificationsForProject(pid);
+    } catch {
+      // продолжаем удаление проекта
+    }
     const keysToRemove = [
       `@project_${pid}`,
       `@project_images_${pid}`,
@@ -1384,10 +1434,10 @@ export default function EditAlbumScreen() {
     await AsyncStorage.setItem('@user_projects', updatedJson);
 
     try {
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      if (accessCode && isSupabaseConfigured()) {
+      const syncId = await getAccountSyncId();
+      if (syncId && isSupabaseConfigured()) {
         await deleteProjectInSupabase({
-          accessCode,
+          accessCode: syncId,
           projectId: pid,
           updatedUserProjectsJson: updatedJson,
         });
@@ -1985,16 +2035,7 @@ export default function EditAlbumScreen() {
 
         {/* Панель редактирования текста - показывается только когда добавляется текст */}
         {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.textEditControlsPanel}
-            contentContainerStyle={styles.textEditControlsPanelContent}
-            keyboardShouldPersistTaps="always"
-            bounces
-            nestedScrollEnabled
-            directionalLockEnabled
-          >
+          <View style={styles.textEditControlsPanel}>
             {/* Кнопка цвета */}
             <TouchableOpacity
               style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
@@ -2021,22 +2062,27 @@ export default function EditAlbumScreen() {
             
             {/* Кнопка шрифта */}
             <TouchableOpacity
-              style={[styles.textEditControlButton, styles.textEditControlButtonFont]}
+              style={[styles.textEditControlButton, styles.textEditControlButtonFlex]}
               onPress={handleFontButtonPress}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Изменить шрифт"
             >
               <Ionicons name="brush-outline" size={18} color="#8B6F5F" />
-              <Text
-                style={[styles.textEditControlButtonText, styles.fontNameInChip]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+              {/* Если название длинное — оно скроллится внутри, не сдвигая "Цвет" и "Размер" */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.fontNameScroll}
+                contentContainerStyle={styles.fontNameScrollContent}
+                keyboardShouldPersistTaps="always"
               >
-                {getFontDisplayName(currentTextAnnotation.fontFamily)}
-              </Text>
+                <Text style={styles.textEditControlButtonText} numberOfLines={1}>
+                  {getFontDisplayName(currentTextAnnotation.fontFamily)}
+                </Text>
+              </ScrollView>
             </TouchableOpacity>
-          </ScrollView>
+          </View>
         )}
 
         {/* Image Viewer или Cover Viewer */}
@@ -2626,18 +2672,17 @@ const styles = StyleSheet.create({
     }),
   },
   textEditControlsPanel: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F0EB',
-  },
-  textEditControlsPanelContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Важно: фиксируем начало строки слева, чтобы "Цвет" не сдвигался
+    // при длинном названии шрифта.
     justifyContent: 'flex-start',
     paddingVertical: 14,
     paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F0EB',
     gap: 20,
-    flexGrow: 0,
   },
   textEditControlButton: {
     flexDirection: 'row',
@@ -2660,13 +2705,18 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minWidth: 96,
   },
-  textEditControlButtonFont: {
-    flexShrink: 0,
-    minWidth: 120,
-    maxWidth: 220,
+  textEditControlButtonFlex: {
+    flex: 1,
+    minWidth: 0,
   },
-  fontNameInChip: {
-    maxWidth: 160,
+  fontNameScroll: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fontNameScrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingRight: 8,
   },
   textColorPreview: {
     width: 20,
