@@ -1,3 +1,4 @@
+import { GOOGLE_PLAY_STORE_URL } from '@/constants/store-links';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
@@ -173,7 +174,7 @@ export default function ProfileScreen() {
   const handleRateApp = () => {
     const url = Platform.select({
       ios: 'https://apps.apple.com/app/id123456789',
-      android: 'https://play.google.com/store/apps/details?id=com.yourapp',
+      android: GOOGLE_PLAY_STORE_URL,
     });
     if (url) {
       Linking.openURL(url);

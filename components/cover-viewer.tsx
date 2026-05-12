@@ -255,7 +255,10 @@ export default function CoverViewer({
     if (!activeAnnotation) return;
 
     const editorBottomY = activeAnnotation.y + TEXT_EDITING_ESTIMATED_HEIGHT;
-    const visibleBottomY = viewportSize.height - keyboardHeight - KEYBOARD_AVOID_MARGIN;
+    const visibleBottomY =
+      Platform.OS === 'android'
+        ? Math.max(0, viewportSize.height - KEYBOARD_AVOID_MARGIN)
+        : Math.max(0, viewportSize.height - keyboardHeight - KEYBOARD_AVOID_MARGIN);
     const requiredShift = Math.max(0, editorBottomY - visibleBottomY);
     const clampedShift = clamp(requiredShift, 0, viewportSize.height);
 

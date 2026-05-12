@@ -210,7 +210,12 @@ export default function ImageViewer({
     if (!activeAnnotation) return;
 
     const editorBottomY = activeAnnotation.y + TEXT_EDITING_ESTIMATED_HEIGHT;
-    const visibleBottomY = containerHeight - keyboardHeight - KEYBOARD_AVOID_MARGIN;
+    // Android + windowSoftInputMode=adjustResize: высота контейнера уже уменьшена под клавиатуру.
+    // Повторно вычитать keyboardHeight даёт заниженный visibleBottom и лишний сдвиг страницы даже для текста сверху.
+    const visibleBottomY =
+      Platform.OS === 'android'
+        ? Math.max(0, containerHeight - KEYBOARD_AVOID_MARGIN)
+        : Math.max(0, containerHeight - keyboardHeight - KEYBOARD_AVOID_MARGIN);
     const requiredShift = Math.max(0, editorBottomY - visibleBottomY);
     const clampedShift = clamp(requiredShift, 0, containerHeight);
 

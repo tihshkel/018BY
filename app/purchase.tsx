@@ -1,3 +1,4 @@
+import { GOOGLE_PLAY_STORE_URL } from '@/constants/store-links';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -36,7 +37,7 @@ export default function PurchaseScreen() {
     try {
       const url = Platform.select({
         ios: 'https://apps.apple.com/app/id123456789', // Замените на реальный ID
-        android: 'https://play.google.com/store/apps/details?id=com.yourapp', // Замените на реальный ID
+        android: GOOGLE_PLAY_STORE_URL,
       });
 
       if (url) {

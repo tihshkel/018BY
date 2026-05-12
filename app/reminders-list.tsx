@@ -17,8 +17,10 @@ import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
+    InteractionManager,
     Keyboard,
     KeyboardAvoidingView,
+    LayoutChangeEvent,
     Platform,
     ScrollView,
     StyleSheet,
@@ -153,6 +155,39 @@ export default function RemindersListScreen() {
   const titleInputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
   const addModalScrollRef = useRef<ScrollView>(null);
+  const descriptionSectionTopRef = useRef(0);
+  const dateSectionTopRef = useRef(0);
+  const scrollAfterTitleNextRef = useRef(false);
+
+  const scrollModalToDescriptionComfort = useCallback(
+    (opts?: { afterTitleNext?: boolean }) => {
+      const descY = descriptionSectionTopRef.current;
+      const dateY = dateSectionTopRef.current;
+      let y: number;
+      if (opts?.afterTitleNext && dateY > 0) {
+        y = Math.max(0, dateY - 72);
+      } else {
+        y = Math.max(0, descY - 44);
+      }
+      addModalScrollRef.current?.scrollTo({ y, animated: true });
+    },
+    []
+  );
+
+  const scheduleScrollAfterTitleNext = useCallback(() => {
+    const delay = Platform.OS === 'android' ? 320 : 200;
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        scrollModalToDescriptionComfort({ afterTitleNext: true });
+        scrollAfterTitleNextRef.current = false;
+      }, delay);
+    });
+  }, [scrollModalToDescriptionComfort]);
+
+  const captureSectionTop =
+    (target: React.MutableRefObject<number>) => (e: LayoutChangeEvent) => {
+      target.current = e.nativeEvent.layout.y;
+    };
 
   useEffect(() => {
     requestPermissions();
@@ -668,9 +703,10 @@ export default function RemindersListScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <Animated.View style={[styles.modalOverlay, modalOverlayAnimatedStyle]}>
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+              enabled={Platform.OS === 'ios'}
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               style={styles.modalKeyboardAvoid}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
+              keyboardVerticalOffset={20}
             >
               <Animated.View
                 style={[
@@ -690,6 +726,10 @@ export default function RemindersListScreen() {
                     ref={addModalScrollRef}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    removeClippedSubviews={false}
+                    nestedScrollEnabled
+                    overScrollMode="never"
                     contentContainerStyle={styles.modalScrollContent}
                   >
               {/* Выбор категории */}
@@ -740,13 +780,21 @@ export default function RemindersListScreen() {
                     onChangeText={setCustomTitle}
                     returnKeyType="next"
                     blurOnSubmit={false}
-                    onSubmitEditing={() => descriptionInputRef.current?.focus()}
+                    onSubmitEditing={() => {
+                      scrollAfterTitleNextRef.current = true;
+                      descriptionInputRef.current?.focus();
+                      scheduleScrollAfterTitleNext();
+                    }}
                   />
                 </View>
               </View>
 
               {/* Описание (опционально) */}
-              <View style={styles.modalSection} collapsable={false}>
+              <View
+                style={styles.modalSection}
+                collapsable={false}
+                onLayout={captureSectionTop(descriptionSectionTopRef)}
+              >
                 <Text style={styles.modalSectionTitle}>Текст напоминания (необязательно)</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -757,24 +805,28 @@ export default function RemindersListScreen() {
                     value={customDescription}
                     onChangeText={setCustomDescription}
                     multiline
+                    scrollEnabled={false}
                     numberOfLines={3}
                     returnKeyType="done"
                     blurOnSubmit={true}
                     onSubmitEditing={() => Keyboard.dismiss()}
                     onFocus={() => {
-                      setTimeout(() => {
-                        addModalScrollRef.current?.scrollTo({
-                          y: 320,
-                          animated: true,
-                        });
-                      }, 100);
+                      if (scrollAfterTitleNextRef.current) {
+                        return;
+                      }
+                      const delay = Platform.OS === 'android' ? 140 : 90;
+                      InteractionManager.runAfterInteractions(() => {
+                        setTimeout(() => {
+                          scrollModalToDescriptionComfort({ afterTitleNext: false });
+                        }, delay);
+                      });
                     }}
                   />
                 </View>
               </View>
 
               {/* Выбор даты и времени */}
-              <View style={styles.modalSection}>
+              <View style={styles.modalSection} onLayout={captureSectionTop(dateSectionTopRef)}>
                 <Text style={styles.modalSectionTitle}>Дата и время</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
@@ -1172,6 +1224,7 @@ const styles = StyleSheet.create({
   },
   modalKeyboardAvoid: {
     width: '100%',
+    maxHeight: '100%',
   },
   modalScrollContent: {
     paddingBottom: 24,
@@ -1183,6 +1236,8 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingHorizontal: 24,
     maxHeight: '90%',
+    width: '100%',
+    flexShrink: 1,
     shadowColor: '#5B4E3F',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.12,
