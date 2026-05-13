@@ -155,9 +155,17 @@ export default function RemindersListScreen() {
   const titleInputRef = useRef<TextInput>(null);
   const descriptionInputRef = useRef<TextInput>(null);
   const addModalScrollRef = useRef<ScrollView>(null);
+  const titleSectionTopRef = useRef(0);
   const descriptionSectionTopRef = useRef(0);
   const dateSectionTopRef = useRef(0);
   const scrollAfterTitleNextRef = useRef(false);
+
+  const scrollModalToTitleComfort = useCallback(() => {
+    const titleY = titleSectionTopRef.current;
+    const pad = 52;
+    const y = Math.max(0, titleY - pad);
+    addModalScrollRef.current?.scrollTo({ y, animated: true });
+  }, []);
 
   const scrollModalToDescriptionComfort = useCallback(
     (opts?: { afterTitleNext?: boolean }) => {
@@ -768,7 +776,7 @@ export default function RemindersListScreen() {
               </View>
 
               {/* Заголовок (опционально) */}
-              <View style={styles.modalSection}>
+              <View style={styles.modalSection} onLayout={captureSectionTop(titleSectionTopRef)}>
                 <Text style={styles.modalSectionTitle}>Заголовок (необязательно)</Text>
                 <View style={styles.inputWrapper}>
                   <TextInput
@@ -780,6 +788,12 @@ export default function RemindersListScreen() {
                     onChangeText={setCustomTitle}
                     returnKeyType="next"
                     blurOnSubmit={false}
+                    onFocus={() => {
+                      const delay = Platform.OS === 'android' ? 240 : 140;
+                      InteractionManager.runAfterInteractions(() => {
+                        setTimeout(() => scrollModalToTitleComfort(), delay);
+                      });
+                    }}
                     onSubmitEditing={() => {
                       scrollAfterTitleNextRef.current = true;
                       descriptionInputRef.current?.focus();

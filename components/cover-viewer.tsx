@@ -255,10 +255,7 @@ export default function CoverViewer({
     if (!activeAnnotation) return;
 
     const editorBottomY = activeAnnotation.y + TEXT_EDITING_ESTIMATED_HEIGHT;
-    const visibleBottomY =
-      Platform.OS === 'android'
-        ? Math.max(0, viewportSize.height - KEYBOARD_AVOID_MARGIN)
-        : Math.max(0, viewportSize.height - keyboardHeight - KEYBOARD_AVOID_MARGIN);
+    const visibleBottomY = viewportSize.height - keyboardHeight - KEYBOARD_AVOID_MARGIN;
     const requiredShift = Math.max(0, editorBottomY - visibleBottomY);
     const clampedShift = clamp(requiredShift, 0, viewportSize.height);
 
@@ -310,9 +307,7 @@ export default function CoverViewer({
         };
         onAnnotationAdd(newAnnotation);
         // Сбрасываем инструмент после добавления изображения
-        if (onToolReset) {
-          onToolReset();
-        }
+        onToolReset();
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -331,7 +326,7 @@ export default function CoverViewer({
 
     const { locationX, locationY } = event.nativeEvent || event;
     
-    if (currentTool === 'text' && onAnnotationAdd) {
+    if (currentTool === 'text') {
       const maxZIndex = annotations.length > 0 
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
@@ -376,10 +371,10 @@ export default function CoverViewer({
             annotationsRef.current?.startEditing?.(newAnnotation.id);
           });
         });
-        if (onToolReset) onToolReset();
+        onToolReset();
       };
       applyStyle();
-    } else if (currentTool === 'image' && onAnnotationAdd) {
+    } else if (currentTool === 'image') {
       // Открываем выбор изображения
       handlePickImage(locationX, locationY);
     }

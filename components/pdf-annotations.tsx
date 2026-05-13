@@ -1913,18 +1913,44 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           </View>
           {/* Ручки отображаются только если изображение выбрано, режим редактирования активен, 
               и НЕ редактируется текст (чтобы ручки не появлялись при редактировании текста) */}
-          {isSelected && isEditing && !editingAnnotation && (
+          {isSelected && isEditing && !editingAnnotation && (() => {
+            // Вычисляем адаптивный размер шрифта на основе размера изображения
+            const imageWidth = annotation.width || 120;
+            const imageHeight = annotation.height || 120;
+            const imageSize = Math.min(imageWidth, imageHeight);
+            // Размер шрифта от 8 до 14, в зависимости от размера изображения
+            // Минимальный размер изображения для полного текста: ~100px
+            const minImageSize = 60;
+            const maxImageSize = 200;
+            const minFontSize = 8;
+            const maxFontSize = 14;
+            const fontSize = Math.max(
+              minFontSize,
+              Math.min(
+                maxFontSize,
+                minFontSize + ((imageSize - minImageSize) / (maxImageSize - minImageSize)) * (maxFontSize - minFontSize)
+              )
+            );
+            // Размер иконки также адаптивный
+            const iconSize = Math.max(12, Math.min(16, fontSize + 2));
+            
+            return (
               <>
-                <View
-                  key="drag-indicator"
+                <View 
+                  key="drag-indicator" 
                   style={[
                     styles.dragIndicator,
-                    { maxWidth: Math.max(48, (annotation.width || 120) - 10) },
+                    { maxWidth: Math.max(80, imageWidth - 10) } // Ограничиваем ширину размером изображения
                   ]}
-                  accessible
-                  accessibilityLabel="Перетащите"
                 >
-                  <Ionicons name="move-outline" size={16} color="#8B6F5F" />
+                  <Ionicons name="move-outline" size={iconSize} color="#8B6F5F" />
+                  <Text 
+                    style={[styles.dragHint, { fontSize }]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    Перетащите
+                  </Text>
                 </View>
                 {/* Ручки для изменения размера фото - с высоким z-index и pointerEvents */}
                 {/* Ручки должны быть поверх всего и иметь приоритет */}
@@ -1953,7 +1979,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   collapsable={false}
                 />
               </>
-            )}
+            );
+          }          )()}
           {isEditing && (
             <View style={styles.imageControls}>
               <TouchableOpacity
@@ -2445,9 +2472,8 @@ const styles = StyleSheet.create({
     left: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#FAF8F5',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1.5,
@@ -2458,7 +2484,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
-    maxWidth: '100%',
+    maxWidth: '100%', // Ограничиваем ширину для обрезки текста
   },
   dragHint: {
     color: '#8B6F5F',
