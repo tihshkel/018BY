@@ -1,6 +1,11 @@
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import {
+  BLANK_INTERIOR_CACHE_REVISION,
+  BLANK_INTERIOR_PAGE_HEIGHT,
+  BLANK_INTERIOR_PAGE_WIDTH,
+} from '@/utils/albumImages';
 import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -158,6 +163,24 @@ export default function ImageViewer({
       }));
     }
   }, [defaultTextStyle?.color, defaultTextStyle?.fontSize, defaultTextStyle?.fontFamily]);
+
+  const isBlankInteriorAlbum =
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'holidays_blank' ||
+    lineGuideId === 'kids_48';
+
+  const blankPageLayout = useMemo(() => {
+    if (!isBlankInteriorAlbum) return null;
+    const aspect = BLANK_INTERIOR_PAGE_WIDTH / BLANK_INTERIOR_PAGE_HEIGHT;
+    let width = SCREEN_WIDTH * 0.9;
+    let height = width / aspect;
+    const maxHeight = containerHeight * 0.9;
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = height * aspect;
+    }
+    return { width, height };
+  }, [isBlankInteriorAlbum, containerHeight]);
 
   const annotationsByPage = useMemo(() => {
     const map = new Map<number, Annotation[]>();
@@ -492,6 +515,7 @@ export default function ImageViewer({
               style={[
                 styles.pageContainer,
                 { height: containerHeight },
+                isBlankInteriorAlbum && styles.blankPageContainer,
                 index === images.length - 1 && styles.lastPageContainer,
               ]}
             >
@@ -523,18 +547,32 @@ export default function ImageViewer({
                         transform: [{ scale: zoomLevel }],
                       }}
                     >
-                      <Image
-                        source={{ uri: imageUri }}
-                        style={styles.image}
-                        contentFit="contain"
-                        contentPosition="center"
-                        // Важно для плавности: убираем fade transition при ререндере/виртуализации
-                        transition={0}
-                        fadeDuration={0}
-                        cachePolicy="disk"
-                        priority={index < 3 ? 'high' : 'normal'}
-                        recyclingKey={`${albumName}-page-${index}`}
-                      />
+                      {isBlankInteriorAlbum && blankPageLayout ? (
+                        <View style={[styles.blankPageFrame, blankPageLayout]}>
+                          <Image
+                            source={{ uri: imageUri }}
+                            style={styles.blankPageImage}
+                            contentFit="fill"
+                            transition={0}
+                            fadeDuration={0}
+                            cachePolicy="memory-disk"
+                            priority={index < 3 ? 'high' : 'normal'}
+                            recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                          />
+                        </View>
+                      ) : (
+                        <Image
+                          source={{ uri: imageUri }}
+                          style={styles.image}
+                          contentFit="contain"
+                          contentPosition="center"
+                          transition={0}
+                          fadeDuration={0}
+                          cachePolicy="disk"
+                          priority={index < 3 ? 'high' : 'normal'}
+                          recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                        />
+                      )}
 
                       <PdfAnnotations
                         ref={pageNumber === currentPage ? annotationsRef : null}
@@ -643,6 +681,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
     overflow: 'hidden',
   },
+  blankPageContainer: {
+    justifyContent: 'center',
+    backgroundColor: '#E8E2DC',
+  },
   zoomContainer: {
     width: '100%',
     height: '100%',
@@ -683,6 +725,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     maxWidth: SCREEN_WIDTH,
+  },
+  blankPageFrame: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#C9B8A8',
+    borderRadius: 3,
+    overflow: 'hidden',
+    shadowColor: '#6B5D4F',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  blankPageImage: {
+    width: '100%',
+    height: '100%',
   },
   pageIndicator: {
     position: 'absolute',

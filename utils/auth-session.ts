@@ -1,323 +1,383 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-import type { SupabaseClient, User } from '@supabase/supabase-js';
-
+import * as Linking from 'expo-linking';
 import { getSupabase } from '@/lib/supabase';
-import { generateAccessCode } from '@/utils/accessCode';
+import { setAccountSyncId } from '@/utils/account-identity';
+import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
+import { ACCOUNT_SYNC_ID_KEY } from '@/utils/account-identity';
 
 export type ReferralSource = 'physical_album' | 'instagram' | 'organic';
 
-/** Раньше использовался .local — часть валидаторов Supabase его режет; оставляем только для входа у старых аккаунтов. */
-const LEGACY_AUTH_EMAIL_DOMAIN = 'users.018by.local';
+const DEFAULT_USER_NAME = 'Пользователь';
 
-function getAuthEmailDomain(): string {
-  const fromExtra = (Constants.expoConfig?.extra as { authEmailDomain?: string } | undefined)?.authEmailDomain;
-  return (
-    (typeof fromExtra === 'string' && fromExtra.length > 0 ? fromExtra : null) ??
-    process.env.EXPO_PUBLIC_AUTH_EMAIL_DOMAIN ??
-    'users.018by.app'
-  );
-}
+async function clearLocalDataForAccountSwitch(prevSyncId: string | null): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const toRemove: string[] = [];
 
-/** Логин: только латиница и цифры (без пробелов и спецсимволов). */
-export function normalizeUsername(raw: string): string {
-  const trimmed = raw.trim().toLowerCase();
-  return trimmed.replace(/[^a-z0-9]+/g, '');
-}
+    const hasAnyPrefix = (k: string, prefixes: string[]) => prefixes.some((p) => k.startsWith(p));
+    const prefixes = [
+      '@project_',
+      '@project_images_',
+      '@project_annotations_',
+      '@project_cover_annotations_',
+      '@project_pdf_',
+      '@project_sections_',
+      '@project_viewport_',
+      '@project_cover_viewport_',
+      '@project_last_text_style_',
+      '@project_user_committed_',
+      '@tutorial_shown_',
+      '@export_history_',
+      '@project_images_uploaded_',
+    ];
 
-export type LoginUsernameCheckState = 'empty' | 'too_short' | 'available' | 'taken' | 'error';
-
-/** Проверка занятости логина в public.accounts (по login_username). */
-export async function checkLoginUsernameAvailable(raw: string): Promise<LoginUsernameCheckState> {
-  const normalized = normalizeUsername(raw);
-  if (!normalized) return 'empty';
-  if (normalized.length < 3) return 'too_short';
-
-  const supabase = getSupabase();
-  if (!supabase) return 'error';
-
-  const { data, error } = await supabase
-    .from('accounts')
-    .select('access_code')
-    .eq('login_username', normalized)
-    .maybeSingle();
-
-  if (error) {
-    console.warn('[auth-session] checkLoginUsername:', error.message);
-    return 'error';
-  }
-  return data ? 'taken' : 'available';
-}
-
-function usernameToEmail(username: string, domain: string): string {
-  return `${username}@${domain}`;
-}
-
-export function getReferralSourceLabel(value: ReferralSource): string {
-  switch (value) {
-    case 'physical_album':
-      return 'Купил физический альбом';
-    case 'instagram':
-      return 'Из Instagram';
-    case 'organic':
-      return 'Случайно нашёл приложение';
-    default: {
-      const _exhaustive: never = value;
-      return _exhaustive;
+    for (const k of keys) {
+      if (!k) continue;
+      if (k === '@user_projects') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@reminders' || k === '@pregnancy_info' || k === '@kids_info' || k === '@paper_albums') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@user_name' || k === '@user_avatar') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@projects_synced_to_cloud' || k === '@projects_synced_to_cloud_v2') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@access_code') {
+        toRemove.push(k);
+        continue;
+      }
+      if (prevSyncId && k === `@reminders_${prevSyncId}`) {
+        toRemove.push(k);
+        continue;
+      }
+      if (hasAnyPrefix(k, prefixes)) {
+        toRemove.push(k);
+      }
     }
-  }
-}
 
-export async function signInWithUsernamePassword(params: {
-  username: string;
-  password: string;
-}): Promise<{ success: boolean; error?: string }> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
-  }
-
-  const username = normalizeUsername(params.username);
-  if (username.length < 3) {
-    return { success: false, error: 'USERNAME_INVALID' };
-  }
-
-  const primaryEmail = usernameToEmail(username, getAuthEmailDomain());
-  const legacyEmail = usernameToEmail(username, LEGACY_AUTH_EMAIL_DOMAIN);
-
-  const tryPwd = async (email: string) =>
-    supabase.auth.signInWithPassword({ email, password: params.password });
-
-  let lastMessage = '';
-  const attempt = await tryPwd(primaryEmail);
-  if (!attempt.error) {
-    return { success: true };
-  }
-  lastMessage = attempt.error.message ?? '';
-
-  const retryLegacy =
-    legacyEmail !== primaryEmail &&
-    lastMessage.toLowerCase().includes('invalid login credentials');
-
-  if (retryLegacy) {
-    const second = await tryPwd(legacyEmail);
-    if (!second.error) {
-      return { success: true };
+    if (toRemove.length > 0) {
+      await AsyncStorage.multiRemove(toRemove);
     }
-    lastMessage = second.error.message ?? lastMessage;
+  } catch (e) {
+    if (__DEV__) console.warn('[auth-session] clearLocalDataForAccountSwitch:', e);
   }
-
-  return { success: false, error: lastMessage };
 }
 
-function isAuthDuplicateMessage(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes('already registered') ||
-    m.includes('already been registered') ||
-    m.includes('user already exists') ||
-    m.includes('email address is already') ||
-    m.includes('duplicate') ||
-    m.includes('unique violation')
-  );
-}
-
-async function loadOrCreateAccountRow(
-  supabase: SupabaseClient,
-  userId: string,
-  sessionUser: User
-): Promise<{ access_code: string; user_name: string } | null> {
-  const { data: existing } = await supabase
-    .from('accounts')
-    .select('access_code,user_name')
-    .eq('auth_user_id', userId)
-    .maybeSingle();
-
-  if (existing?.access_code) {
-    return { access_code: existing.access_code, user_name: existing.user_name ?? '' };
-  }
-
-  const meta = sessionUser.user_metadata as { login_username?: string; referral_source?: string } | undefined;
-  const emailLocal = sessionUser.email?.split('@')[0]?.trim() || 'user';
-  let loginUsername = meta?.login_username?.trim() || emailLocal;
-  if (loginUsername.length < 3) {
-    loginUsername = emailLocal.length >= 3 ? emailLocal : `user_${userId.slice(0, 8)}`;
-  }
-  const referral = meta?.referral_source ?? 'organic';
-
-  const accessCode = generateAccessCode();
-
-  const row = {
-    access_code: accessCode,
-    user_name: loginUsername,
-    auth_user_id: userId,
-    login_username: loginUsername,
-    referral_source: referral,
-    updated_at: new Date().toISOString(),
+export function getReferralSourceLabel(s: ReferralSource): string {
+  const labels: Record<ReferralSource, string> = {
+    physical_album: 'Из фотоальбома / полиграфии',
+    instagram: 'Из Instagram',
+    organic: 'Другое / поиск / друзья',
   };
-
-  const { error: insErr } = await supabase.from('accounts').insert(row);
-
-  if (!insErr) {
-    return { access_code: accessCode, user_name: loginUsername };
-  }
-
-  const { data: raceRow } = await supabase
-    .from('accounts')
-    .select('access_code,user_name')
-    .eq('auth_user_id', userId)
-    .maybeSingle();
-  if (raceRow?.access_code) {
-    return { access_code: raceRow.access_code, user_name: raceRow.user_name ?? '' };
-  }
-
-  if (isAuthDuplicateMessage(insErr.message ?? '')) {
-    const altLogin = `${loginUsername}_${userId.replace(/-/g, '').slice(0, 12)}`;
-    const { error: ins2 } = await supabase.from('accounts').insert({
-      ...row,
-      login_username: altLogin,
-    });
-    if (!ins2) {
-      return { access_code: accessCode, user_name: loginUsername };
-    }
-    const { data: race2 } = await supabase
-      .from('accounts')
-      .select('access_code,user_name')
-      .eq('auth_user_id', userId)
-      .maybeSingle();
-    if (race2?.access_code) {
-      return { access_code: race2.access_code, user_name: race2.user_name ?? '' };
-    }
-  }
-
-  console.warn('[auth-session] accounts.insert:', insErr.message);
-  return null;
+  return labels[s];
 }
 
-function isAuthRateLimitedMessage(message: string): boolean {
-  const m = message.toLowerCase();
-  return m.includes('rate limit') || m.includes('too many requests') || m.includes('email rate limit');
+export function normalizeEmail(raw: string): string {
+  return raw.trim().toLowerCase();
 }
 
-export async function signUpWithUsernamePassword(params: {
-  username: string;
+/** Для совместимости с экраном входа: сейчас ожидается email. */
+export function normalizeUsername(raw: string): string {
+  return normalizeEmail(raw);
+}
+
+export function isValidEmail(raw: string): boolean {
+  const e = normalizeEmail(raw);
+  if (e.length < 5) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+
+export async function signUpWithEmailPassword(params: {
+  email: string;
   password: string;
   referralSource: ReferralSource;
 }): Promise<{ success: boolean; error?: string }> {
-  const supabase = getSupabase();
-  if (!supabase) {
-    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
-  }
-
-  const username = normalizeUsername(params.username);
-  if (username.length < 3) {
-    return { success: false, error: 'USERNAME_INVALID' };
+  const email = normalizeEmail(params.email);
+  if (!isValidEmail(email)) {
+    return { success: false, error: 'EMAIL_INVALID' };
   }
   if (params.password.length < 6) {
     return { success: false, error: 'PASSWORD_TOO_SHORT' };
   }
 
-  const email = usernameToEmail(username, getAuthEmailDomain());
-
-  const signUpRes = await supabase.auth.signUp({
-    email,
-    password: params.password,
-    options: {
-      data: {
-        login_username: username,
-        referral_source: params.referralSource,
-      },
-    },
-  });
-
-  if (signUpRes.error) {
-    const msg = signUpRes.error.message ?? '';
-    if (isAuthRateLimitedMessage(msg)) {
-      return { success: false, error: 'AUTH_RATE_LIMIT' };
-    }
-    if (isAuthDuplicateMessage(msg)) {
-      return { success: false, error: 'LOGIN_TAKEN' };
-    }
-    return { success: false, error: msg || 'AUTH_SIGNUP_FAILED' };
-  }
-
-  const userId = signUpRes.data.user?.id ?? signUpRes.data.session?.user?.id;
-  if (!userId) {
-    return { success: false, error: 'SUPABASE_EMAIL_CONFIRM_REQUIRED' };
-  }
-
-  const accessCode = generateAccessCode();
-
-  const { error: upsertError } = await supabase.from('accounts').upsert(
-    {
-      access_code: accessCode,
-      user_name: username,
-      auth_user_id: userId,
-      login_username: username,
-      referral_source: params.referralSource,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'access_code' }
-  );
-
-  if (upsertError) {
-    await supabase.auth.signOut();
-    const msg = upsertError.message ?? '';
-    if (msg.includes('column') && msg.includes('does not exist')) {
-      return {
-        success: false,
-        error:
-          'DB_SCHEMA_OUTDATED: В Supabase выполните SQL из supabase/schema.sql (колонки auth_user_id, login_username, referral_source в accounts).',
-      };
-    }
-    if (isAuthDuplicateMessage(msg)) {
-      return { success: false, error: 'LOGIN_TAKEN' };
-    }
-    return { success: false, error: msg || 'ACCOUNTS_UPSERT_FAILED' };
-  }
-
-  await AsyncStorage.setItem('@access_code', accessCode);
-  await AsyncStorage.setItem('@user_name', username);
-  await AsyncStorage.setItem('@is_activated', 'true');
-
-  return { success: true };
-}
-
-export async function restoreLocalAccountKeysFromSupabase(): Promise<{
-  success: boolean;
-  error?: string;
-}> {
   const supabase = getSupabase();
   if (!supabase) {
     return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
   }
 
-  const sessionRes = await supabase.auth.getSession();
-  const session = sessionRes.data.session;
-  const userId = session?.user?.id;
-  if (!userId || !session?.user) {
-    return { success: false, error: 'NO_SESSION' };
+  // Поля совпадают с public.handle_new_user() (raw_user_meta_data) — триггер создаёт строку в profiles до клиентского upsert.
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: params.password,
+    options: {
+      data: {
+        login_username: email,
+        user_name: DEFAULT_USER_NAME,
+        referral_source: params.referralSource,
+      },
+    },
+  });
+
+  if (error) {
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('rate limit') || msg.includes('too many')) {
+      return { success: false, error: 'AUTH_RATE_LIMIT' };
+    }
+    if (
+      msg.includes('already registered') ||
+      msg.includes('user already') ||
+      msg.includes('already been registered')
+    ) {
+      return { success: false, error: 'EMAIL_TAKEN' };
+    }
+    return { success: false, error: error.message || 'SIGNUP_FAILED' };
   }
 
-  const row = await loadOrCreateAccountRow(supabase, userId, session.user);
-  if (!row) {
-    return {
-      success: false,
-      error:
-        'Не удалось создать или найти запись аккаунта в таблице accounts. Проверьте SQL-миграцию и RLS в Supabase.',
-    };
+  if (!data.session) {
+    return { success: false, error: 'SUPABASE_EMAIL_CONFIRM_REQUIRED' };
   }
 
-  await AsyncStorage.setItem('@access_code', row.access_code);
-  await AsyncStorage.setItem('@user_name', row.user_name ?? '');
-  await AsyncStorage.setItem('@is_activated', 'true');
+  try {
+    const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
+    const userId = data.session.user.id;
+    if (prevSyncId && prevSyncId !== userId) {
+      await clearLocalDataForAccountSwitch(prevSyncId);
+    }
+    await setAccountSyncId(userId);
+
+    const saveRes = await saveAccountToSupabase(userId, DEFAULT_USER_NAME, null, {
+      loginUsername: email,
+      referralSource: params.referralSource,
+    });
+    if (!saveRes.success) {
+      return { success: false, error: saveRes.error ?? 'PROFILE_ROW_FAILED' };
+    }
+
+    await AsyncStorage.removeItem('@user_name');
+    return { success: true };
+  } catch (e) {
+    console.warn('[auth-session] signUp follow-up:', e);
+    return { success: false, error: e instanceof Error ? e.message : 'SIGNUP_SETUP_FAILED' };
+  }
+}
+
+export async function signInWithEmailPassword(params: {
+  email: string;
+  password: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const email = normalizeEmail(params.email);
+  if (!isValidEmail(email)) {
+    return { success: false, error: 'EMAIL_INVALID' };
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: params.password });
+  if (error) {
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('rate limit') || msg.includes('too many')) {
+      return { success: false, error: 'AUTH_RATE_LIMIT' };
+    }
+    return { success: false, error: error.message || 'SIGNIN_FAILED' };
+  }
 
   return { success: true };
 }
 
-export async function signOutEverywhere(): Promise<void> {
+/** @deprecated Используйте signInWithEmailPassword; поле username = email. */
+export async function signInWithUsernamePassword(params: {
+  username: string;
+  password: string;
+}): Promise<{ success: boolean; error?: string }> {
+  return signInWithEmailPassword({ email: params.username, password: params.password });
+}
+
+export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: boolean; error?: string }> {
   const supabase = getSupabase();
-  if (supabase) {
-    await supabase.auth.signOut();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
   }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.user) {
+    return { success: false, error: 'NO_SESSION' };
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return { success: false, error: 'NO_USER_ID' };
+  }
+
+  const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
+  if (prevSyncId && prevSyncId !== userId) {
+    await clearLocalDataForAccountSwitch(prevSyncId);
+  }
+
+  await setAccountSyncId(userId);
+
+  let account = await getAccountFromSupabase(userId);
+  if (!account) {
+    const email = session.user.email?.trim();
+    const ensured = await saveAccountToSupabase(userId, DEFAULT_USER_NAME, null, {
+      loginUsername: email || undefined,
+    });
+    if (!ensured.success) {
+      return {
+        success: false,
+        error: ensured.error ?? 'Не удалось создать строку в profiles',
+      };
+    }
+    account = await getAccountFromSupabase(userId);
+  }
+  const rawName = account?.userName?.trim() ?? '';
+  const isPlaceholder = !rawName || rawName === DEFAULT_USER_NAME;
+  if (!isPlaceholder) {
+    await AsyncStorage.setItem('@user_name', rawName);
+  } else {
+    await AsyncStorage.removeItem('@user_name');
+  }
+
+  return { success: true };
+}
+
+/** URL для письма восстановления пароля (добавьте в Supabase → Authentication → URL configuration → Redirect URLs). */
+export function getPasswordRecoveryRedirectUrl(): string {
+  return Linking.createURL('/reset-password');
+}
+
+/** RPC из `subd`; при ошибке возвращает null — тогда письмо всё равно можно отправить. */
+export async function isAuthEmailRegistered(email: string): Promise<boolean | null> {
+  const e = normalizeEmail(email);
+  if (!isValidEmail(e)) return null;
+  const supabase = getSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('is_auth_email_registered', { check_email: e });
+  if (error) {
+    if (__DEV__) console.warn('[auth-session] is_auth_email_registered:', error.message);
+    return null;
+  }
+  return data === true;
+}
+
+export async function requestPasswordResetEmail(email: string): Promise<{ success: boolean; error?: string }> {
+  const e = normalizeEmail(email);
+  if (!isValidEmail(e)) {
+    return { success: false, error: 'EMAIL_INVALID' };
+  }
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const registered = await isAuthEmailRegistered(e);
+  if (registered === false) {
+    return { success: false, error: 'EMAIL_NOT_REGISTERED' };
+  }
+
+  const redirectTo = getPasswordRecoveryRedirectUrl();
+  const { error } = await supabase.auth.resetPasswordForEmail(e, { redirectTo });
+  if (error) {
+    const msg = (error.message || '').toLowerCase();
+    if (msg.includes('rate limit')) {
+      return { success: false, error: 'AUTH_RATE_LIMIT' };
+    }
+    return { success: false, error: error.message || 'RESET_EMAIL_FAILED' };
+  }
+  return { success: true };
+}
+
+function splitUrlQueryAndHash(url: string): { query: string; hash: string } {
+  const hashIdx = url.indexOf('#');
+  const hash = hashIdx >= 0 ? url.slice(hashIdx + 1) : '';
+  const base = hashIdx >= 0 ? url.slice(0, hashIdx) : url;
+  const qIdx = base.indexOf('?');
+  const query = qIdx >= 0 ? base.slice(qIdx + 1) : '';
+  return { query, hash };
+}
+
+export async function applyRecoverySessionFromUrl(url: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const { query, hash } = splitUrlQueryAndHash(url);
+  const qParams = new URLSearchParams(query);
+  const hParams = new URLSearchParams(hash);
+  const type = hParams.get('type') ?? qParams.get('type');
+  if (type && type !== 'recovery') {
+    return { success: false, error: 'NOT_RECOVERY_LINK' };
+  }
+
+  const code = qParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  const access_token = hParams.get('access_token') ?? qParams.get('access_token');
+  const refresh_token = hParams.get('refresh_token') ?? qParams.get('refresh_token');
+  if (!access_token || !refresh_token) {
+    return { success: false, error: 'NO_TOKENS_IN_URL' };
+  }
+  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+export async function updatePasswordAfterRecovery(newPassword: string): Promise<{ success: boolean; error?: string }> {
+  if (newPassword.length < 6) {
+    return { success: false, error: 'PASSWORD_TOO_SHORT' };
+  }
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  await supabase.auth.signOut();
+  return { success: true };
+}
+
+/**
+ * Полный "сброс" локального состояния, чтобы заново пройти онбординг/логин.
+ * Полезно для разработки (когда симулятор сохраняет сессию и флаги).
+ */
+export async function resetAppToOnboarding(): Promise<void> {
+  // Пытаемся выйти из Supabase-сессии (если Supabase настроен)
+  try {
+    const supabase = getSupabase();
+    await supabase?.auth.signOut();
+  } catch (e) {
+    if (__DEV__) console.warn('[auth-session] signOut during reset:', e);
+  }
+
+  // Чистим локальные ключи, влияющие на стартовый роут
+  const keysToRemove = [
+    '@has_seen_onboarding',
+    '@user_name',
+    '@user_avatar',
+    ACCOUNT_SYNC_ID_KEY,
+  ];
+
+  await AsyncStorage.multiRemove(keysToRemove);
 }

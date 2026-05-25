@@ -1,5 +1,14 @@
+import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import { projectCategories } from '@/constants/projectTemplates';
-import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, mergeReminders, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getAccountSyncId } from '@/utils/account-identity';
+import {
+  getRemindersStorageKey,
+  getSupabaseNotConfiguredAlertMessageOnce,
+  isSupabaseNotConfiguredError,
+  pushCoreOnlyToCloud,
+  scheduleSyncToCloud,
+  setLocalRemindersJsonForSyncId,
+} from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -26,10 +35,15 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
+
+/** Стабильный id для Expo (`NotificationRequestInput.identifier`, см. docs expo-notifications). */
+function getUserReminderNotificationIdentifier(reminderRowId: string): string {
+  return `app_user_reminder_${reminderRowId}`;
+}
 
 // Функция для безопасной загрузки expo-notifications (только при необходимости)
 // Это предотвращает автоматическую регистрацию push token listener при загрузке модуля
@@ -83,7 +97,7 @@ interface Reminder {
   notificationId?: string;
 }
 
-/** Упрощённый формат хранения: только id, название и дата (+ enabled, notificationId для работы). Один пользователь = один ключ по access_code. */
+/** Упрощённый формат хранения: только id, название и дата (+ enabled, notificationId для работы). Один пользователь = один ключ по id синхронизации. */
 type StoredReminder = {
   id: string;
   title: string;
@@ -122,11 +136,15 @@ function fromStoredReminder(r: StoredReminder): Reminder {
 }
 
 export default function RemindersListScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  /** Android: нет mode="datetime" у нативного пикера — только date + time по очереди (иначе dismiss падает). */
+  const [androidPickerStep, setAndroidPickerStep] = useState<'date' | 'time'>('date');
   const [customTitle, setCustomTitle] = useState('');
   const [customDescription, setCustomDescription] = useState('');
   const opacity = useSharedValue(0);
@@ -160,6 +178,8 @@ export default function RemindersListScreen() {
         runOnJS(setSelectedCategory)(null);
         runOnJS(setCustomTitle)('');
         runOnJS(setCustomDescription)('');
+        runOnJS(setShowDatePicker)(false);
+        runOnJS(setAndroidPickerStep)('date');
       }
     });
   }, []);
@@ -193,16 +213,10 @@ export default function RemindersListScreen() {
           [{ text: 'OK' }]
         );
       }
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : typeof error === 'object' && error && 'message' in error
-            ? String((error as { message?: unknown }).message ?? '')
-            : '';
-
+    } catch (error) {
       // Игнорируем ошибки в Expo Go
-      if (__DEV__ && !message.includes('Expo Go')) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (__DEV__ && !msg.includes('Expo Go')) {
         console.warn('Ошибка при запросе разрешений на уведомления:', error);
       }
     }
@@ -227,22 +241,14 @@ export default function RemindersListScreen() {
         return null;
       }
 
-      // Expo SDK 54+: trigger должен содержать `type`.
-      // https://docs.expo.dev/versions/latest/sdk/notifications/#notificationtriggerinput
-      let trigger: any;
+      const trigger: DateTriggerInput = {
+        type: SchedulableTriggerInputTypes.DATE,
+        date,
+      };
 
-      if (Platform.OS === 'ios') {
-        trigger = { type: 'date', date };
-      } else {
-        const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
-        if (seconds <= 0) {
-          console.warn('Invalid notification time');
-          return null;
-        }
-        trigger = { type: 'timeInterval', seconds };
-      }
-
+      const stableId = getUserReminderNotificationIdentifier(reminderId);
       const notificationId = await Notifications.scheduleNotificationAsync({
+        identifier: stableId,
         content: {
           title: title,
           body: body,
@@ -250,7 +256,7 @@ export default function RemindersListScreen() {
         },
         trigger: trigger,
       });
-      return notificationId;
+      return notificationId || stableId;
     } catch (error) {
       console.error('Error scheduling notification:', error);
       return null;
@@ -259,11 +265,11 @@ export default function RemindersListScreen() {
 
   const loadReminders = async () => {
     try {
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      const syncId = await getAccountSyncId();
+      const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
       let saved = await AsyncStorage.getItem(storageKey);
       // Миграция: если у профиля пусто, но есть старый общий ключ — переносим данные в ключ профиля
-      if ((!saved || saved === '[]') && accessCode) {
+      if ((!saved || saved === '[]') && syncId) {
         const legacy = await AsyncStorage.getItem('@reminders');
         if (legacy && legacy !== '[]') {
           await AsyncStorage.setItem(storageKey, legacy);
@@ -286,7 +292,7 @@ export default function RemindersListScreen() {
 
         if (validReminders.length === 0) {
           setReminders([]);
-          if (accessCode) await AsyncStorage.removeItem(storageKey);
+          if (syncId) await AsyncStorage.removeItem(storageKey);
           return;
         }
 
@@ -329,8 +335,8 @@ export default function RemindersListScreen() {
       console.error('Error loading reminders:', error);
       setReminders([]);
       try {
-        const accessCode = await AsyncStorage.getItem('@access_code');
-        const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+        const syncId = await getAccountSyncId();
+        const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
         await AsyncStorage.removeItem(storageKey);
       } catch (e) {
         // ignore
@@ -352,19 +358,25 @@ export default function RemindersListScreen() {
   };
 
   const saveRemindersAndPush = async (list: Reminder[]) => {
-    const accessCode = await AsyncStorage.getItem('@access_code');
-    const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
-    const existing = await AsyncStorage.getItem(storageKey);
+    const syncId = await getAccountSyncId();
     const storedList = list.map(toStoredReminder);
-    const merged = mergeReminders(existing, JSON.stringify(storedList));
-    await AsyncStorage.setItem(storageKey, merged);
-    return pushCoreOnlyToCloud();
+    const json = JSON.stringify(storedList);
+    // Нельзя mergeReminders(existing, list): объединение по id не удаляет записи — «удалить» не работает.
+    if (syncId) {
+      await setLocalRemindersJsonForSyncId(syncId, json);
+    } else {
+      await AsyncStorage.setItem('@reminders', json);
+    }
+    return pushCoreOnlyToCloud({ remindersAuthoritativeLocal: true });
   };
 
   const getRemindersFromStorage = async (): Promise<Reminder[]> => {
-    const accessCode = await AsyncStorage.getItem('@access_code');
-    const storageKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
-    const raw = await AsyncStorage.getItem(storageKey);
+    const syncId = await getAccountSyncId();
+    const storageKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
+    let raw = await AsyncStorage.getItem(storageKey);
+    if ((!raw || raw === '[]') && syncId) {
+      raw = (await AsyncStorage.getItem('@reminders')) ?? raw;
+    }
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw);
@@ -495,17 +507,31 @@ export default function RemindersListScreen() {
           text: 'Удалить',
           style: 'destructive',
           onPress: async () => {
-            if (reminder.notificationId) {
-              await cancelNotification(reminder.notificationId);
-            }
+            const stableNid = getUserReminderNotificationIdentifier(reminder.id);
+            await cancelNotification(reminder.notificationId ?? stableNid);
+            await cancelNotification(stableNid);
 
-            const updated = (await getRemindersFromStorage()).filter(r => r.id !== id);
+            const updated = currentList.filter((r) => r.id !== id);
             setReminders(updated);
 
             try {
-              await saveRemindersAndPush(updated);
+              const pushResult = await saveRemindersAndPush(updated);
+              if (pushResult.ok) {
+                scheduleSyncToCloud();
+              } else if (isSupabaseNotConfiguredError(pushResult.error)) {
+                const msg = getSupabaseNotConfiguredAlertMessageOnce();
+                if (msg) Alert.alert('Удалено на устройстве', msg);
+              } else {
+                Alert.alert(
+                  'Удалено локально',
+                  pushResult.error
+                    ? `В облако не удалось отправить: ${pushResult.error}. Проверьте интернет.`
+                    : 'Проверьте интернет и повторите синхронизацию.'
+                );
+              }
             } catch (error) {
               console.error('Error saving reminders:', error);
+              Alert.alert('Ошибка', 'Не удалось сохранить список после удаления.');
             }
           },
         },
@@ -530,7 +556,10 @@ export default function RemindersListScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 32 },
+          ]}
         >
           {/* Кнопка добавления */}
           <TouchableOpacity
@@ -554,8 +583,8 @@ export default function RemindersListScreen() {
               <Ionicons name="book-outline" size={24} color="#FFFFFF" />
             </View>
             <View style={styles.catalogButtonContent}>
-              <Text style={styles.catalogButtonTitle}>Бумажная версия</Text>
-              <Text style={styles.catalogButtonText}>Каталог товаров</Text>
+              <Text style={styles.catalogButtonTitle}>Купить бумажную версию</Text>
+              <Text style={styles.catalogButtonText}>Каталог</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
           </TouchableOpacity>
@@ -643,7 +672,13 @@ export default function RemindersListScreen() {
               style={styles.modalKeyboardAvoid}
               keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
             >
-              <Animated.View style={[styles.modalContent, modalContentAnimatedStyle]}>
+              <Animated.View
+                style={[
+                  styles.modalContent,
+                  { paddingBottom: bottomInset + 20 },
+                  modalContentAnimatedStyle,
+                ]}
+              >
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>Новое напоминание</Text>
                     <TouchableOpacity onPress={closeAddModal} activeOpacity={0.7}>
@@ -743,7 +778,10 @@ export default function RemindersListScreen() {
                 <Text style={styles.modalSectionTitle}>Дата и время</Text>
                 <TouchableOpacity
                   style={styles.dateButton}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={() => {
+                    setAndroidPickerStep('date');
+                    setShowDatePicker(true);
+                  }}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="calendar-outline" size={20} color="#C9A89A" />
@@ -784,30 +822,75 @@ export default function RemindersListScreen() {
               </View>
             </ScrollView>
 
-            {/* Датапикер */}
-            {showDatePicker && (
+            {/* Датапикер: iOS — datetime; Android — только date|time (datetime ломает dismiss в библиотеке) */}
+            {showDatePicker && Platform.OS === 'ios' ? (
               <DateTimePicker
                 value={selectedDate}
                 mode="datetime"
-                display={Platform.select({
-                  ios: 'spinner',
-                  android: 'default',
-                  default: 'default',
-                })}
+                display="spinner"
                 minimumDate={new Date()}
                 onChange={(event, date) => {
-                  if (Platform.OS === 'android') {
-                    setShowDatePicker(false);
-                  }
                   if (date && event.type !== 'dismissed') {
                     setSelectedDate(date);
                   }
                 }}
                 locale="ru-RU"
                 themeVariant="light"
-                textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                textColor="#8B6F5F"
               />
-            )}
+            ) : null}
+            {showDatePicker && Platform.OS === 'android' && androidPickerStep === 'date' ? (
+              <DateTimePicker
+                key="android-date"
+                value={selectedDate}
+                mode="date"
+                display="default"
+                minimumDate={new Date()}
+                onChange={(event, date) => {
+                  if (event.type === 'dismissed') {
+                    setShowDatePicker(false);
+                    setAndroidPickerStep('date');
+                    return;
+                  }
+                  if (date) {
+                    setSelectedDate((prev) => {
+                      const d = new Date(date);
+                      d.setHours(prev.getHours(), prev.getMinutes(), prev.getSeconds(), prev.getMilliseconds());
+                      return d;
+                    });
+                    setAndroidPickerStep('time');
+                  }
+                }}
+                locale="ru-RU"
+                themeVariant="light"
+              />
+            ) : null}
+            {showDatePicker && Platform.OS === 'android' && androidPickerStep === 'time' ? (
+              <DateTimePicker
+                key="android-time"
+                value={selectedDate}
+                mode="time"
+                display="default"
+                onChange={(event, date) => {
+                  if (event.type === 'dismissed') {
+                    setShowDatePicker(false);
+                    setAndroidPickerStep('date');
+                    return;
+                  }
+                  if (date) {
+                    setSelectedDate((prev) => {
+                      const d = new Date(prev);
+                      d.setHours(date.getHours(), date.getMinutes(), 0, 0);
+                      return d;
+                    });
+                  }
+                  setShowDatePicker(false);
+                  setAndroidPickerStep('date');
+                }}
+                locale="ru-RU"
+                themeVariant="light"
+              />
+            ) : null}
 
             {Platform.OS === 'ios' && showDatePicker && (
               <View style={styles.iosDatePickerButtons}>
@@ -863,7 +946,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
   },
   addButton: {
     flexDirection: 'row',
@@ -1100,7 +1182,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingTop: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     maxHeight: '90%',
     shadowColor: '#5B4E3F',
     shadowOffset: { width: 0, height: -4 },

@@ -11,18 +11,21 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: CustomTabButton,
-        contentStyle: { backgroundColor: '#FFFFFF' },
+        // Важно: фон сцены должен совпадать с фоном экранов (#FAF8F5),
+        // иначе над таббаром появляется «белая полоса».
+        contentStyle: { backgroundColor: '#FAF8F5' },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 0,
           height: Platform.OS === 'ios' ? 90 : 72,
           paddingBottom: Platform.OS === 'ios' ? 32 : 12,
           paddingTop: 12,
-          elevation: 8,
-          shadowColor: '#8B6F5F',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
+          // Убираем «полоску»/тень над таббаром
+          elevation: 0,
+          shadowColor: 'transparent',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0,
+          shadowRadius: 0,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
         },

@@ -79,8 +79,8 @@ const celebrations: Celebration[] = [
     icon: 'gift-outline',
     color: '#FF7043',
     gradient: ['#FF7043', '#FF5252'],
-    // В EAS исключаем папку `albums/`, поэтому здесь подставляем гарантированную картинку.
-    image: require('@/assets/images/albums/blank_white.png'),
+    // В репозитории нет `blank_white.png` — используем существующую светлую заглушку.
+    image: require('@/assets/images/albums/2.png'),
   },
   {
     id: 'travel',

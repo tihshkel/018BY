@@ -8,6 +8,13 @@ export function getGiftItemBySku(sku: string): GiftItem | null {
   return GIFT_ITEMS.find(gift => gift.sku === sku) || null;
 }
 
+/** Название товара из каталога (Wildberries), без внутренних артикулов DB1/DFA5. */
+export function getGiftDisplayTitle(sku: string, fallback = ''): string {
+  const gift = getGiftItemBySku(sku);
+  const title = gift?.title?.trim();
+  return title && title.length > 0 ? title : fallback;
+}
+
 /**
  * Находит товар в каталоге по изображению обложки
  * Сопоставляет thumbnailPath с COVER_BY_SKU для получения SKU

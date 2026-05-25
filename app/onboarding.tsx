@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Platform,
   InteractionManager,
-  useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import { router } from 'expo-router';
@@ -20,14 +20,9 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useResponsiveLayout, type ResponsiveLayout } from '@/utils/responsive';
 
 const ONBOARDING_KEY = '@has_seen_onboarding';
-
-const scaleSize = (size: number, contentWidth: number) => {
-  const guidelineBaseWidth = 375;
-  const scale = Math.min(contentWidth / guidelineBaseWidth, 1.15);
-  return Math.round(scale * size);
-};
 
 interface OnboardingSlide {
   id: number;
@@ -63,67 +58,187 @@ const onboardingData: OnboardingSlide[] = [
   },
 ];
 
+function createStyles(layout: ResponsiveLayout) {
+  const { isTablet, isLandscape, isCompactHeight, scale, verticalScale } = layout;
+
+  const imageWidth = isTablet ? 240 : scale(200);
+  const imageHeight = isTablet ? 312 : scale(260);
+  const titleSize = isTablet ? 34 : scale(32);
+  const titleLineHeight = isTablet ? 42 : scale(40);
+  const subtitleSize = isTablet ? 17 : scale(16);
+  const subtitleLineHeight = isTablet ? 26 : scale(24);
+
+  const slidePaddingTop = isTablet
+    ? isLandscape
+      ? 16
+      : isCompactHeight
+        ? 24
+        : 40
+    : verticalScale(60);
+
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+    },
+    main: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    scroll: {
+      flex: 1,
+      width: '100%',
+    },
+    scrollContent: {
+      flexGrow: 1,
+      width: '100%',
+      maxWidth: layout.contentMaxWidth,
+      alignSelf: 'center',
+      paddingHorizontal: layout.horizontalPadding,
+      paddingTop: slidePaddingTop,
+      paddingBottom: 16,
+      justifyContent: isTablet ? 'center' : 'flex-start',
+    },
+    slide: {
+      gap: isTablet ? 32 : 28,
+      alignItems: 'center',
+    },
+    imageWrapper: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    image: {
+      width: imageWidth,
+      height: imageHeight,
+      borderRadius: 18,
+      backgroundColor: '#F6EFEA',
+    },
+    textContainer: {
+      width: '100%',
+      gap: 16,
+      alignItems: isTablet ? 'center' : 'flex-start',
+    },
+    title: {
+      fontSize: titleSize,
+      color: '#8B6F5F',
+      textAlign: isTablet ? 'center' : 'left',
+      marginBottom: 8,
+      fontStyle: 'italic',
+      fontFamily: Platform.select({
+        ios: 'Georgia',
+        android: 'serif',
+        default: 'serif',
+      }),
+      fontWeight: '400',
+      letterSpacing: 0.5,
+      lineHeight: titleLineHeight,
+      textShadowColor: 'rgba(139, 111, 95, 0.1)',
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 2,
+    },
+    subtitle: {
+      fontSize: subtitleSize,
+      color: '#6B5D4F',
+      textAlign: isTablet ? 'center' : 'left',
+      lineHeight: subtitleLineHeight,
+      fontFamily: Platform.select({
+        ios: 'System',
+        android: 'sans-serif',
+        default: 'sans-serif',
+      }),
+      fontWeight: '400',
+      letterSpacing: 0.3,
+      opacity: 0.85,
+      maxWidth: isTablet ? layout.contentMaxWidth : 340,
+    },
+    bottomContainer: {
+      width: '100%',
+      maxWidth: layout.contentMaxWidth,
+      alignSelf: 'center',
+      paddingBottom: isTablet ? 40 : 56,
+      paddingHorizontal: layout.horizontalPadding,
+      gap: 24,
+    },
+    progressContainer: {
+      marginBottom: 0,
+    },
+    progressBar: {
+      width: '100%',
+      height: 2,
+      backgroundColor: 'rgba(139, 111, 95, 0.2)',
+      borderRadius: 1,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: '#B89B8B',
+      borderRadius: 1,
+    },
+    button: {
+      backgroundColor: '#C9A89A',
+      paddingVertical: 16,
+      paddingHorizontal: 48,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      shadowColor: '#8B6F5F',
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 17,
+      fontWeight: '600',
+      fontFamily: Platform.select({
+        ios: 'System',
+        android: 'sans-serif-medium',
+        default: 'sans-serif',
+      }),
+      letterSpacing: 1,
+    },
+  });
+}
+
 export default function OnboardingScreen() {
+  const layout = useResponsiveLayout();
+  const styles = useMemo(
+    () => createStyles(layout),
+    [
+      layout.width,
+      layout.height,
+      layout.isTablet,
+      layout.isLandscape,
+      layout.isCompactHeight,
+      layout.contentMaxWidth,
+      layout.horizontalPadding,
+      layout.fontScale,
+    ]
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { width, height } = useWindowDimensions();
   const textOpacity = useSharedValue(0);
   const imageOpacity = useSharedValue(1);
   const slideTranslateX = useSharedValue(0);
   const imageScale = useSharedValue(1);
   const progress = useSharedValue(33.33);
-  const isTablet = Math.min(width, height) >= 700;
-  const contentWidth = isTablet ? 420 : width;
 
-  const responsiveStyles = useMemo(
-    () => ({
-      slide: {
-        paddingTop: isTablet ? 40 : 60,
-        gap: isTablet ? 24 : 28,
-        justifyContent: isTablet ? 'center' as const : 'flex-start' as const,
-      },
-      image: {
-        width: isTablet ? 280 : scaleSize(200, contentWidth),
-        height: isTablet ? 340 : scaleSize(260, contentWidth),
-      },
-      textContainer: {
-        gap: isTablet ? 12 : 16,
-        maxWidth: isTablet ? 420 : 320,
-      },
-      title: {
-        fontSize: isTablet ? 38 : scaleSize(32, contentWidth),
-        lineHeight: isTablet ? 46 : scaleSize(40, contentWidth),
-        textAlign: isTablet ? 'center' as const : 'left' as const,
-      },
-      subtitle: {
-        fontSize: isTablet ? 18 : scaleSize(16, contentWidth),
-        lineHeight: isTablet ? 28 : scaleSize(24, contentWidth),
-        textAlign: isTablet ? 'center' as const : 'left' as const,
-      },
-      bottomContainer: {
-        paddingBottom: isTablet ? 40 : 56,
-        gap: isTablet ? 18 : 24,
-        maxWidth: isTablet ? 480 : undefined,
-      },
-    }),
-    [contentWidth, isTablet]
-  );
-
-  // Предзагрузка всех изображений онбординга при монтировании
   useEffect(() => {
     const preloadAllOnboardingImages = async () => {
       try {
-        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
-        const preloadPromises = onboardingData.map(slide => {
+        const preloadPromises = onboardingData.map((slide) => {
           if (typeof slide.image === 'string') {
             return Image.prefetch(slide.image);
           }
-          // Пропускаем локальные ресурсы (числа) - они загружаются быстро
           return Promise.resolve();
         });
         await Promise.all(preloadPromises);
       } catch (error) {
         console.warn('⚠️ Ошибка предзагрузки изображений онбординга:', error);
-        // В случае ошибки изображения все равно будут загружаться по требованию
       }
     };
 
@@ -143,32 +258,42 @@ export default function OnboardingScreen() {
         duration: progressDuration,
         easing: Easing.out(Easing.ease),
       });
-      
-      // Анимация появления нового слайда
+
       imageOpacity.value = 0;
       imageScale.value = 0.9;
       slideTranslateX.value = 50;
-      
-      imageOpacity.value = withDelay(imageDelay, withTiming(1, { 
-        duration: imageDuration,
-        easing: Easing.out(Easing.ease),
-      }));
-      imageScale.value = withDelay(imageDelay, withSpring(1, { 
-        damping: Platform.OS === 'android' ? 18 : 15, 
-        stiffness: Platform.OS === 'android' ? 180 : 150,
-      }));
-      slideTranslateX.value = withDelay(imageDelay, withSpring(0, { 
-        damping: Platform.OS === 'android' ? 18 : 15, 
-        stiffness: Platform.OS === 'android' ? 180 : 150,
-      }));
-      textOpacity.value = withDelay(textDelay, withTiming(1, { 
-        duration: textDuration,
-        easing: Easing.out(Easing.ease),
-      }));
+
+      imageOpacity.value = withDelay(
+        imageDelay,
+        withTiming(1, {
+          duration: imageDuration,
+          easing: Easing.out(Easing.ease),
+        })
+      );
+      imageScale.value = withDelay(
+        imageDelay,
+        withSpring(1, {
+          damping: Platform.OS === 'android' ? 18 : 15,
+          stiffness: Platform.OS === 'android' ? 180 : 150,
+        })
+      );
+      slideTranslateX.value = withDelay(
+        imageDelay,
+        withSpring(0, {
+          damping: Platform.OS === 'android' ? 18 : 15,
+          stiffness: Platform.OS === 'android' ? 180 : 150,
+        })
+      );
+      textOpacity.value = withDelay(
+        textDelay,
+        withTiming(1, {
+          duration: textDuration,
+          easing: Easing.out(Easing.ease),
+        })
+      );
     };
 
     if (Platform.OS === 'android' && currentIndex > 0) {
-      // На Android для последующих слайдов используем InteractionManager
       InteractionManager.runAfterInteractions(() => {
         animateSlide();
       });
@@ -181,38 +306,36 @@ export default function OnboardingScreen() {
   const handleNext = async () => {
     const hideDuration = Platform.OS === 'android' ? 250 : 200;
     const transitionDelay = Platform.OS === 'android' ? 250 : 200;
-    
-    // Анимация исчезновения текущего слайда
-    textOpacity.value = withTiming(0, { 
+
+    textOpacity.value = withTiming(0, {
       duration: hideDuration,
       easing: Easing.in(Easing.ease),
     });
-    imageOpacity.value = withTiming(0, { 
+    imageOpacity.value = withTiming(0, {
       duration: hideDuration,
       easing: Easing.in(Easing.ease),
     });
-    slideTranslateX.value = withTiming(-50, { 
+    slideTranslateX.value = withTiming(-50, {
       duration: hideDuration,
       easing: Easing.in(Easing.ease),
     });
-    
+
     setTimeout(async () => {
       if (currentIndex < onboardingData.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        // Сохраняем флаг о завершении онбординга
         try {
           await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
         } catch (error) {
           console.error('Error saving onboarding status:', error);
         }
-        
+
         if (Platform.OS === 'android') {
           InteractionManager.runAfterInteractions(() => {
-            router.replace('/activation');
+            router.replace('/login');
           });
         } else {
-          router.replace('/activation');
+          router.replace('/login');
         }
       }
     }, transitionDelay);
@@ -220,186 +343,69 @@ export default function OnboardingScreen() {
 
   const currentSlide = onboardingData[currentIndex];
 
-  const textAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: textOpacity.value,
-      transform: [{ translateX: slideTranslateX.value * 0.3 }],
-    };
-  });
+  const textAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ translateX: slideTranslateX.value * 0.3 }],
+  }));
 
-  const imageAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: imageOpacity.value,
-      transform: [
-        { translateX: slideTranslateX.value },
-        { scale: imageScale.value },
-      ],
-    };
-  });
+  const imageAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: imageOpacity.value,
+    transform: [{ translateX: slideTranslateX.value }, { scale: imageScale.value }],
+  }));
 
-  const progressAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      width: `${progress.value}%`,
-    };
-  });
+  const progressAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progress.value}%`,
+  }));
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={[styles.slide, responsiveStyles.slide]}>
-        <Animated.View style={[styles.imageWrapper, imageAnimatedStyle]}>
-          <Image
-            key={currentSlide.id}
-            source={currentSlide.image}
-            style={[styles.image, responsiveStyles.image]}
-            contentFit="contain"
-            priority="high"
-            cachePolicy="disk"
-            transition={0}
-            fadeDuration={0}
-            placeholderContentFit="cover"
-            recyclingKey={currentSlide.id.toString()}
-          />
-        </Animated.View>
-
-        <Animated.View style={[styles.textContainer, responsiveStyles.textContainer, textAnimatedStyle]}>
-          <Text style={[styles.title, responsiveStyles.title]}>{currentSlide.title}</Text>
-          <Text style={[styles.subtitle, responsiveStyles.subtitle]}>{currentSlide.subtitle}</Text>
-        </Animated.View>
-      </View>
-
-      <View style={[styles.bottomContainer, responsiveStyles.bottomContainer]}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleNext}
-          activeOpacity={0.7}
+      <View style={styles.main}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={layout.isTablet}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.buttonText}>{currentSlide.buttonText}</Text>
-        </TouchableOpacity>
+          <View style={styles.slide}>
+            <Animated.View style={[styles.imageWrapper, imageAnimatedStyle]}>
+              <Image
+                key={currentSlide.id}
+                source={currentSlide.image}
+                style={styles.image}
+                contentFit="cover"
+                priority="high"
+                cachePolicy="disk"
+                transition={0}
+                fadeDuration={0}
+                placeholderContentFit="cover"
+                recyclingKey={currentSlide.id.toString()}
+              />
+            </Animated.View>
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <Animated.View style={[styles.progressFill, progressAnimatedStyle]} />
+            <Animated.View style={[styles.textContainer, textAnimatedStyle]}>
+              <Text style={styles.title}>{currentSlide.title}</Text>
+              <Text style={styles.subtitle}>{currentSlide.subtitle}</Text>
+            </Animated.View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.bottomContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleNext}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>{currentSlide.buttonText}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <Animated.View style={[styles.progressFill, progressAnimatedStyle]} />
+            </View>
           </View>
         </View>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  slide: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 24,
-    gap: 28,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-  },
-  imageWrapper: {
-    width: '100%',
-    alignItems: 'center',
-  },
-  image: {
-    width: 200,
-    height: 260,
-    borderRadius: 18,
-    backgroundColor: '#F6EFEA',
-  },
-  textContainer: {
-    gap: 16,
-    paddingHorizontal: 4,
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 320,
-  },
-  title: {
-    fontSize: 32,
-    color: '#8B6F5F',
-    textAlign: 'left',
-    marginBottom: 8,
-    fontStyle: 'italic',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontWeight: '400',
-    letterSpacing: 0.5,
-    lineHeight: 40,
-    // Имитация Marck Script - декоративный почерк
-    textShadowColor: 'rgba(139, 111, 95, 0.1)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B5D4F',
-    textAlign: 'left',
-    lineHeight: 24,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    letterSpacing: 0.3,
-    opacity: 0.85,
-  },
-  bottomContainer: {
-    paddingBottom: 56,
-    paddingHorizontal: 32,
-    gap: 24,
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: undefined,
-  },
-  progressContainer: {
-    marginBottom: 0,
-  },
-  progressBar: {
-    width: '100%',
-    height: 2,
-    backgroundColor: 'rgba(139, 111, 95, 0.2)',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#B89B8B',
-    borderRadius: 1,
-  },
-  button: {
-    backgroundColor: '#C9A89A',
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'stretch',
-    shadowColor: '#8B6F5F',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    letterSpacing: 1,
-  },
-});
-

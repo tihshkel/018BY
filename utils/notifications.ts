@@ -1,4 +1,8 @@
-import { Platform } from 'react-native';
+import {
+  SchedulableTriggerInputTypes,
+  type DateTriggerInput,
+  type YearlyTriggerInput,
+} from 'expo-notifications';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 
@@ -9,7 +13,9 @@ if (!isExpoGo) {
   try {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
-        shouldShowAlert: true,
+        // `shouldShowAlert` deprecated в новых версиях expo-notifications
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
       }),
@@ -67,28 +73,24 @@ export const scheduleReminderNotification = async (
     return null;
   }
 
-  let trigger: Notifications.NotificationTrigger;
+  let trigger: Notifications.NotificationTriggerInput;
 
-  if (Platform.OS === 'ios') {
-    const dateComponents: Notifications.DateTriggerInput = {
-      month: notificationDate.getMonth() + 1,
+  if (repeats) {
+    // Ежегодно: месяц 0–11, как в JS Date (см. YearlyTriggerInput в expo-notifications)
+    const yearly: YearlyTriggerInput = {
+      type: SchedulableTriggerInputTypes.YEARLY,
+      month: notificationDate.getMonth(),
       day: notificationDate.getDate(),
       hour: notificationDate.getHours(),
       minute: notificationDate.getMinutes(),
     };
-    trigger = {
-      ...dateComponents,
-      repeats: repeats,
-    };
+    trigger = yearly;
   } else {
-    // Android doesn't support reliable yearly repeating triggers easily.
-    // We schedule a one-time notification for the next occurrence.
-    // A background task would be needed for true repeating functionality.
-    const seconds = Math.floor((notificationDate.getTime() - now.getTime()) / 1000);
-    if (seconds <= 0) {
-        return null;
-    }
-    trigger = { seconds };
+    const once: DateTriggerInput = {
+      type: SchedulableTriggerInputTypes.DATE,
+      date: notificationDate,
+    };
+    trigger = once;
   }
 
   try {

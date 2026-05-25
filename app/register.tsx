@@ -1,9 +1,9 @@
-import {
-  checkLoginUsernameAvailable,
+﻿import {
   getReferralSourceLabel,
-  normalizeUsername,
+  isValidEmail,
+  normalizeEmail,
   ReferralSource,
-  signUpWithUsernamePassword,
+  signUpWithEmailPassword,
 } from '@/utils/auth-session';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -24,13 +24,13 @@ import {
 } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 const REFERRAL_OPTIONS: ReferralSource[] = ['physical_album', 'instagram', 'organic'];
-const FIELD_MAX_WIDTH = 400;
 
 const shellBase = {
   width: '100%' as const,
-  maxWidth: FIELD_MAX_WIDTH,
+  maxWidth: AUTH_CONTENT_MAX_WIDTH,
   alignSelf: 'center' as const,
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
@@ -44,7 +44,8 @@ const shellBase = {
 };
 
 export default function RegisterScreen() {
-  const [username, setUsername] = useState('');
+  const { horizontalPadding } = useResponsiveLayout(AUTH_CONTENT_MAX_WIDTH);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [referralSource, setReferralSource] = useState<ReferralSource>('instagram');
@@ -53,53 +54,26 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [isReferralOpen, setIsReferralOpen] = useState(false);
-  const [loginCheck, setLoginCheck] = useState<
-    'empty' | 'too_short' | 'checking' | 'available' | 'taken' | 'error'
-  >('empty');
 
   const opacity = useSharedValue(0);
-  const usernameRef = useRef<TextInput | null>(null);
+  const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
   const passwordConfirmRef = useRef<TextInput | null>(null);
-  const loginCheckSeqRef = useRef(0);
 
   const passwordsMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
   const passwordsMatch = password.length > 0 && password === passwordConfirm && passwordConfirm.length > 0;
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.ease) });
-    const t = setTimeout(() => usernameRef.current?.focus(), 200);
+    const t = setTimeout(() => emailRef.current?.focus(), 200);
     return () => clearTimeout(t);
   }, [opacity]);
 
   const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 
-  useEffect(() => {
-    const normalized = normalizeUsername(username);
-    if (!normalized) {
-      loginCheckSeqRef.current += 1;
-      setLoginCheck('empty');
-      return;
-    }
-    if (normalized.length < 3) {
-      loginCheckSeqRef.current += 1;
-      setLoginCheck('too_short');
-      return;
-    }
-
-    const seq = ++loginCheckSeqRef.current;
-    setLoginCheck('checking');
-    const t = setTimeout(async () => {
-      const result = await checkLoginUsernameAvailable(username);
-      if (seq !== loginCheckSeqRef.current) return;
-      if (result === 'empty') setLoginCheck('empty');
-      else if (result === 'too_short') setLoginCheck('too_short');
-      else if (result === 'available') setLoginCheck('available');
-      else if (result === 'taken') setLoginCheck('taken');
-      else setLoginCheck('error');
-    }, 420);
-    return () => clearTimeout(t);
-  }, [username]);
+  const emailTrimmed = normalizeEmail(email);
+  const emailCheck: 'empty' | 'invalid' | 'ok' =
+    emailTrimmed.length === 0 ? 'empty' : isValidEmail(emailTrimmed) ? 'ok' : 'invalid';
 
   const dismissKeyboardAndDropdown = () => {
     Keyboard.dismiss();
@@ -108,12 +82,8 @@ export default function RegisterScreen() {
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
-    if (loginCheck === 'taken') {
-      setErrorText('Этот никнейм уже занят — выберите другой или войдите.');
-      return;
-    }
-    if (loginCheck === 'checking') {
-      setErrorText('Подождите, проверяем доступность логина…');
+    if (emailCheck !== 'ok') {
+      setErrorText('Укажите корректный адрес электронной почты.');
       return;
     }
     if (passwordConfirm.length === 0) {
@@ -128,28 +98,24 @@ export default function RegisterScreen() {
     setIsReferralOpen(false);
     setIsSubmitting(true);
     try {
-      const res = await signUpWithUsernamePassword({ username, password, referralSource });
+      const res = await signUpWithEmailPassword({ email, password, referralSource });
       if (!res.success) {
         const err = res.error ?? '';
         if (err === 'SUPABASE_NOT_CONFIGURED') {
           setErrorText('Сервис регистрации недоступен. Проверьте настройки Supabase.');
-        } else if (err === 'USERNAME_INVALID') {
-          setErrorText('Логин: минимум 3 символа, только латиница и цифры (без спецсимволов).');
+        } else if (err === 'EMAIL_INVALID') {
+          setErrorText('Некорректный email.');
         } else if (err === 'PASSWORD_TOO_SHORT') {
           setErrorText('Пароль: минимум 6 символов.');
         } else if (err === 'AUTH_RATE_LIMIT') {
           setErrorText(
             'Слишком много попыток регистрации за короткое время — сработал лимит Supabase (часто при тестах). Подождите 15–60 минут, в Dashboard отключите «Confirm email», либо попробуйте позже / с другой сети.'
           );
-        } else if (err === 'LOGIN_TAKEN') {
-          setErrorText('Этот логин уже занят. Выберите другой или войдите.');
+        } else if (err === 'EMAIL_TAKEN') {
+          setErrorText('Этот email уже зарегистрирован. Войдите или укажите другой адрес.');
         } else if (err === 'SUPABASE_EMAIL_CONFIRM_REQUIRED') {
           setErrorText(
-            'В Supabase включено подтверждение email — для нашего входа по логину его нужно отключить: Dashboard → Authentication → Providers → Email → выключить «Confirm email».'
-          );
-        } else if (err.startsWith('DB_SCHEMA_OUTDATED')) {
-          setErrorText(
-            'Таблица accounts в облаке без новых колонок. Откройте supabase/schema.sql и выполните блок миграции в SQL Editor.'
+            'В Supabase включено подтверждение email. Для быстрого входа отключите: Dashboard → Authentication → Providers → Email → выключить «Confirm email».'
           );
         } else if (err.length > 0) {
           setErrorText(`Не удалось зарегистрироваться: ${err}`);
@@ -158,7 +124,7 @@ export default function RegisterScreen() {
         }
         return;
       }
-      router.replace('/(tabs)' as any);
+      router.replace('/name-input' as any);
     } finally {
       setIsSubmitting(false);
     }
@@ -168,7 +134,7 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <TouchableWithoutFeedback onPress={dismissKeyboardAndDropdown} accessible={false}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
-          <Animated.View style={[styles.wrap, fadeStyle]}>
+          <Animated.View style={[styles.wrap, { paddingHorizontal: horizontalPadding }, fadeStyle]}>
             <ScrollView
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps="handled"
@@ -177,44 +143,40 @@ export default function RegisterScreen() {
               onScrollBeginDrag={() => setIsReferralOpen(false)}
             >
               <Text style={styles.heroTitle}>Регистрация</Text>
-              <Text style={styles.hint}>Логин и пароль — без лишнего.</Text>
+              <Text style={styles.hint}>Почта и пароль — без лишнего.</Text>
 
               <View style={styles.fieldsColumn}>
                 <View
                   style={[
                     styles.inputShell,
-                    loginCheck === 'available' && styles.inputShellOk,
-                    loginCheck === 'taken' && styles.inputShellBad,
+                    emailCheck === 'ok' && styles.inputShellOk,
+                    emailCheck === 'invalid' && styles.inputShellBad,
                   ]}
                 >
                   <TextInput
-                    ref={usernameRef}
-                    value={username}
-                    onChangeText={(t) => setUsername(normalizeUsername(t))}
-                    placeholder="Логин"
+                    ref={emailRef}
+                    value={email}
+                    onChangeText={(t) => {
+                      setEmail(normalizeEmail(t));
+                      setErrorText(null);
+                    }}
+                    placeholder="Email"
                     placeholderTextColor="#B9A99A"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    textContentType="emailAddress"
                     returnKeyType="next"
                     onSubmitEditing={() => passwordRef.current?.focus()}
                     style={styles.inputInShell}
                     underlineColorAndroid="transparent"
                   />
                 </View>
-                {loginCheck === 'available' ? (
-                  <Text style={[styles.usernameHint, styles.usernameHintOk]}>Этот никнейм свободен</Text>
-                ) : loginCheck === 'taken' ? (
-                  <Text style={[styles.usernameHint, styles.usernameHintBad]}>Этот никнейм уже занят</Text>
-                ) : loginCheck === 'checking' ? (
-                  <Text style={[styles.usernameHint, styles.usernameHintMuted]}>Проверяем…</Text>
-                ) : loginCheck === 'too_short' ? (
-                  <Text style={[styles.usernameHint, styles.usernameHintMuted]}>
-                    Минимум 3 символа: только латиница и цифры, без спецсимволов
-                  </Text>
-                ) : loginCheck === 'error' ? (
-                  <Text style={[styles.usernameHint, styles.usernameHintMuted]}>
-                    Не удалось проверить занятость — проверьте сеть и повторите ввод
-                  </Text>
+                {emailCheck === 'ok' ? (
+                  <Text style={[styles.usernameHint, styles.usernameHintOk]}>Формат email подходит</Text>
+                ) : emailCheck === 'invalid' ? (
+                  <Text style={[styles.usernameHint, styles.usernameHintBad]}>Проверьте написание email</Text>
                 ) : null}
 
                 <View style={[styles.inputShell, styles.passwordShell]}>
@@ -347,11 +309,11 @@ export default function RegisterScreen() {
               <TouchableOpacity
                 style={[
                   styles.primary,
-                  (isSubmitting || loginCheck === 'taken' || passwordsMismatch) && styles.primaryDisabled,
+                  (isSubmitting || emailCheck !== 'ok' || passwordsMismatch) && styles.primaryDisabled,
                 ]}
                 onPress={handleSubmit}
                 activeOpacity={0.88}
-                disabled={isSubmitting || loginCheck === 'taken' || passwordsMismatch}
+                disabled={isSubmitting || emailCheck !== 'ok' || passwordsMismatch}
               >
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFFFFF" />
@@ -381,14 +343,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 56 : 48,
     paddingBottom: 48,
     alignItems: 'center',
   },
   heroTitle: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 38,
     lineHeight: 44,
     color: '#8B6F5F',
@@ -405,7 +366,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 15,
     color: '#6B5D4F',
     lineHeight: 22,
@@ -416,7 +377,7 @@ const styles = StyleSheet.create({
   },
   fieldsColumn: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     gap: 14,
   },
   fieldLabel: {
@@ -535,7 +496,7 @@ const styles = StyleSheet.create({
   },
   errorConstrained: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     paddingHorizontal: 8,
   },
   primary: {
@@ -545,7 +506,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,

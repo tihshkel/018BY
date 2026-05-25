@@ -71,7 +71,31 @@ target '018BY' do
         # Keep pods aligned with the app deployment target to avoid simulator
         # deployment-target hard failures on newer Xcode versions.
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = podfile_properties['ios.deploymentTarget'] || '15.1'
+
+        # Debug: skip dSYM generation for pods (avoids GenerateDSYMFile failures in dev builds).
+        if config.name == 'Debug'
+          config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf'
+        end
       end
+    end
+
+    # App executable must not start with a digit (dsymutil / GenerateDSYMFile).
+    app_project_path = File.join(__dir__, '018BY.xcodeproj')
+    if File.exist?(app_project_path)
+      require 'xcodeproj'
+      app_project = Xcodeproj::Project.open(app_project_path)
+      app_project.native_targets.each do |target|
+        next unless target.name == '018BY'
+        target.build_configurations.each do |config|
+          config.build_settings['PRODUCT_NAME'] = 'App018BY'
+          if config.name == 'Debug'
+            config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf'
+          else
+            config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+          end
+        end
+      end
+      app_project.save
     end
   end
 end

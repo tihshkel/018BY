@@ -1,5 +1,5 @@
 import { getAlbumTemplateById, getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
-import { getGiftItemBySku } from '@/utils/albumGiftMapping';
+import { getGiftDisplayTitle } from '@/utils/albumGiftMapping';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
@@ -10,11 +10,22 @@ import {
     type ProjectProduct,
 } from '@/constants/projectTemplates';
 import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
 import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import {
+  FORM_MODAL_MAX_WIDTH,
+  getGridColumnCount,
+  getGridColumnWrapperStyle,
+  getGridListStyle,
+  getTabletBottomModalStyles,
+  getTabletContentShell,
+  getTabletSectionWrap,
+  PICKER_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -24,6 +35,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Alert,
+    FlatList,
     Modal,
     Platform,
     ScrollView,
@@ -37,7 +49,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface LocalParams {
   category?: string | string[];
@@ -129,7 +141,31 @@ const getDefaultDate = (categoryId: string): Date => {
   return defaultDate;
 };
 
+type CoverPickerRow = {
+  id: string;
+  name: string;
+  description: string;
+  imageSource?: unknown;
+  onPress: () => void;
+  features?: React.ReactNode;
+  priorityIndex?: number;
+};
+
 export default function ProjectTemplatesScreen() {
+  const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const modalLayout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
+  const contentShellStyle = getTabletContentShell(layout);
+  const sectionWrap = getTabletSectionWrap(layout, {
+    phonePadding: 24,
+    tabletPadding: 0,
+  });
+  const tabletModal = getTabletBottomModalStyles(modalLayout);
+  const coverColumnCount = getGridColumnCount(layout);
+  const gridListStyle = getGridListStyle(layout);
+  const gridColumnWrapper = getGridColumnWrapperStyle(16);
+
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams();
   const categoryId = formatCategoryId(params.category);
   const categoryTitle = getCategoryTitle(categoryId);
@@ -146,7 +182,6 @@ export default function ProjectTemplatesScreen() {
   const [coverDate, setCoverDate] = useState(new Date());
   const [showCoverDatePicker, setShowCoverDatePicker] = useState(false);
   const [isSavingCoverDate, setIsSavingCoverDate] = useState(false);
-  const [imageUris, setImageUris] = useState<Record<string, string>>({});
 
   const opacity = useSharedValue(0);
 
@@ -166,18 +201,16 @@ export default function ProjectTemplatesScreen() {
     }
     return productsByCategory[categoryId] ?? [];
   }, [categoryId, productsByCategory]);
+
   // Для «Ожидание чуда» — только 6 дизайнов DB1–DB6. Тип обложки выбирается при экспорте
   const pregnancyAlbums = useMemo(() => {
     if (categoryId === 'pregnancy') {
-      return PREGNANCY_COVER_DESIGNS.map((d) => {
-        const giftItem = getGiftItemBySku(d.sku);
-        return {
-          id: d.id,
-          name: giftItem?.title ?? d.title,
-          description: 'Дизайн обложки',
-          thumbnailPath: d.image,
-        } as AlbumTemplate;
-      });
+      return PREGNANCY_COVER_DESIGNS.map((d) => ({
+        id: d.id,
+        name: getGiftDisplayTitle(d.sku, 'Дневник беременности'),
+        description: 'Дизайн обложки',
+        thumbnailPath: d.image,
+      })) as AlbumTemplate[];
     }
     return [];
   }, [categoryId]);
@@ -186,11 +219,13 @@ export default function ProjectTemplatesScreen() {
   const kidsAlbums = useMemo(() => {
     if (categoryId === 'kids') {
       return KIDS_COVER_DESIGNS.map((d) => {
-        const giftItem = getGiftItemBySku(d.sku);
         const albumTemplate = getAlbumTemplateById(d.id);
         return {
           id: d.id,
-          name: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
+          name: getGiftDisplayTitle(
+            d.sku,
+            albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года'
+          ),
           description: 'Дизайн обложки',
           thumbnailPath: d.image,
         } as AlbumTemplate;
@@ -202,15 +237,12 @@ export default function ProjectTemplatesScreen() {
   // Для «Праздники и события» — обложки из albums/holiday
   const holidayAlbums = useMemo(() => {
     if (categoryId === 'holidays') {
-      return HOLIDAY_COVER_DESIGNS.map((d) => {
-        const giftItem = getGiftItemBySku(d.sku);
-        return {
-          id: d.id,
-          name: giftItem?.title ?? d.title,
-          description: 'Праздничный альбом',
-          thumbnailPath: d.image,
-        } as AlbumTemplate;
-      });
+      return HOLIDAY_COVER_DESIGNS.map((d) => ({
+        id: d.id,
+        name: getGiftDisplayTitle(d.sku, 'Праздничный альбом'),
+        description: 'Праздничный альбом',
+        thumbnailPath: d.image,
+      })) as AlbumTemplate[];
     }
     return [];
   }, [categoryId]);
@@ -218,15 +250,12 @@ export default function ProjectTemplatesScreen() {
   // Для «Семья» — обложки из albums/family
   const familyAlbums = useMemo(() => {
     if (categoryId === 'family') {
-      return FAMILY_COVER_DESIGNS.map((d) => {
-        const giftItem = getGiftItemBySku(d.sku);
-        return {
-          id: d.id,
-          name: giftItem?.title ?? d.title,
-          description: 'Семейный альбом',
-          thumbnailPath: d.image,
-        } as AlbumTemplate;
-      });
+      return FAMILY_COVER_DESIGNS.map((d) => ({
+        id: d.id,
+        name: getGiftDisplayTitle(d.sku, 'Семейный альбом'),
+        description: 'Семейный альбом',
+        thumbnailPath: d.image,
+      })) as AlbumTemplate[];
     }
     return [];
   }, [categoryId]);
@@ -238,48 +267,6 @@ export default function ProjectTemplatesScreen() {
     }
     return [];
   }, [categoryId]);
-
-  // На iOS (особенно при запуске из Xcode) `expo-image` иногда не рисует `require()` напрямую.
-  // Поэтому конвертируем все источники в `uri` через Asset API и используем `{ uri }` в `source`.
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-
-      const run = async () => {
-        const sources: Array<{ key: string; source: any }> = [];
-
-        for (const a of pregnancyAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
-        for (const a of kidsAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
-        for (const a of holidayAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
-        for (const a of familyAlbums) sources.push({ key: `album:${a.id}`, source: a.thumbnailPath });
-        for (const c of diaryCovers) sources.push({ key: `cover:${c.id}`, source: c.image });
-        for (const p of categoryProducts) sources.push({ key: `product:${p.id}`, source: p.coverImage });
-
-        const pairs = await Promise.all(
-          sources.map(async ({ key, source }) => {
-            const uri = await resolveImageSourceUri(source ?? null);
-            return uri ? ([key, uri] as const) : null;
-          })
-        );
-
-        if (cancelled) return;
-
-        const next: Record<string, string> = {};
-        for (const pair of pairs) {
-          if (!pair) continue;
-          next[pair[0]] = pair[1];
-        }
-        if (Object.keys(next).length > 0) {
-          setImageUris((prev) => ({ ...prev, ...next }));
-        }
-      };
-
-      run();
-      return () => {
-        cancelled = true;
-      };
-    }, [pregnancyAlbums, kidsAlbums, holidayAlbums, familyAlbums, diaryCovers, categoryProducts])
-  );
 
   // МАКСИМАЛЬНАЯ предзагрузка всех изображений для выбранной категории
   useFocusEffect(
@@ -458,8 +445,8 @@ export default function ProjectTemplatesScreen() {
         enabled: true,
       };
 
-      const accessCode = await AsyncStorage.getItem('@access_code');
-      const remindersKey = accessCode ? getRemindersStorageKey(accessCode) : '@reminders';
+      const syncId = await getAccountSyncId();
+      const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
       const existingReminders = await AsyncStorage.getItem(remindersKey);
       let allReminders = existingReminders ? JSON.parse(existingReminders) : [];
 
@@ -579,6 +566,124 @@ export default function ProjectTemplatesScreen() {
     }
   }, []);
 
+  const emptyAlbumsMessage =
+    'Пока нет готовых альбомов для этой категории. Попробуйте выбрать другую тему.';
+  const emptyDiaryMessage =
+    'Пока нет готовых дневников для этой категории. Попробуйте выбрать другую тему.';
+
+  const renderCoverCard = useCallback(
+    (row: CoverPickerRow, variant: 'row' | 'tile') => {
+      const isTile = variant === 'tile';
+      const priority =
+        (row.priorityIndex ?? 0) < 5 ? ('high' as const) : ('normal' as const);
+      return (
+        <TouchableOpacity
+          style={[
+            styles.productCard,
+            isTile && styles.productCardTile,
+          ]}
+          activeOpacity={0.85}
+          onPress={row.onPress}
+        >
+          <View style={[styles.productImage, isTile && styles.productImageTile]}>
+            {row.imageSource ? (
+              <Image
+                source={row.imageSource as React.ComponentProps<typeof Image>['source']}
+                style={styles.productImageContent}
+                contentFit="cover"
+                priority={priority}
+                cachePolicy="disk"
+                transition={0}
+                fadeDuration={0}
+                recyclingKey={row.id}
+              />
+            ) : (
+              <Ionicons name="book" size={isTile ? 40 : 48} color="#C9A89A" />
+            )}
+          </View>
+          <View
+            style={[styles.productContent, isTile && styles.productContentTile]}
+          >
+            {isTile ? (
+              <>
+                <Text style={styles.productNameTile} numberOfLines={3}>
+                  {row.name}
+                </Text>
+                <Text
+                  style={styles.productDescriptionTile}
+                  numberOfLines={2}
+                >
+                  {row.description}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.productName}>{row.name}</Text>
+                <Text style={styles.productDescription}>{row.description}</Text>
+                {row.features}
+              </>
+            )}
+          </View>
+          {!isTile && (
+            <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+          )}
+        </TouchableOpacity>
+      );
+    },
+    []
+  );
+
+  const renderCoverPickerList = useCallback(
+    (items: CoverPickerRow[], emptyMessage: string) => {
+      if (items.length === 0) {
+        return (
+          <View style={styles.emptyStateInline}>
+            <Ionicons name="document-outline" size={40} color="#D4C4B5" />
+            <Text style={styles.emptyStateInlineText}>{emptyMessage}</Text>
+          </View>
+        );
+      }
+      if (layout.isTablet) {
+        return (
+          <FlatList
+            key={`cover-picker-cols-${coverColumnCount}`}
+            data={items}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => renderCoverCard(item, 'tile')}
+            numColumns={coverColumnCount}
+            scrollEnabled={false}
+            style={gridListStyle}
+            columnWrapperStyle={
+              coverColumnCount > 1 ? gridColumnWrapper : undefined
+            }
+          />
+        );
+      }
+      return (
+        <>
+          {items.map((item) => (
+            <React.Fragment key={item.id}>
+              {renderCoverCard(item, 'row')}
+            </React.Fragment>
+          ))}
+        </>
+      );
+    },
+    [layout.isTablet, coverColumnCount, renderCoverCard, gridListStyle, gridColumnWrapper]
+  );
+
+  const albumToPickerRow = useCallback(
+    (album: AlbumTemplate, index: number): CoverPickerRow => ({
+      id: album.id,
+      name: album.name,
+      description: album.description ?? '',
+      imageSource: album.thumbnailPath,
+      onPress: () => handleCoverSelect(album),
+      priorityIndex: index,
+    }),
+    [handleCoverSelect]
+  );
+
   if (!categoryId) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -603,8 +708,8 @@ export default function ProjectTemplatesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.header}>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
+        <View style={[styles.header, sectionWrap]}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.headerBackButton}
@@ -618,313 +723,88 @@ export default function ProjectTemplatesScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            sectionWrap,
+            { paddingBottom: bottomInset + 40 },
+          ]}
         >
           <Text style={styles.subtitle}>
             {(categoryId === 'pregnancy' || categoryId === 'kids' || categoryId === 'diary') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
           </Text>
 
           {/* Для беременности, kids и diary показываем альбомы/обложки */}
-          {categoryId === 'pregnancy' ? (
-            pregnancyAlbums.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              pregnancyAlbums.map(album => (
-                <TouchableOpacity
-                  key={album.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleCoverSelect(album)}
-                >
-                  <View style={styles.productImage}>
-                    {album.thumbnailPath ? (
-                      <Image
-                        source={
-                          imageUris[`album:${album.id}`]
-                            ? { uri: imageUris[`album:${album.id}`] }
-                            : album.thumbnailPath
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={pregnancyAlbums.indexOf(album) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={album.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{album.name}</Text>
-                    <Text style={styles.productDescription}>
-                      {album.description}
-                    </Text>
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          ) : categoryId === 'kids' ? (
-            /* Для kids показываем альбомы */
-            kidsAlbums.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              kidsAlbums.map(album => (
-                <TouchableOpacity
-                  key={album.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleCoverSelect(album)}
-                >
-                  <View style={styles.productImage}>
-                    {album.thumbnailPath ? (
-                      <Image
-                        source={
-                          imageUris[`album:${album.id}`]
-                            ? { uri: imageUris[`album:${album.id}`] }
-                            : album.thumbnailPath
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={kidsAlbums.indexOf(album) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={album.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{album.name}</Text>
-                    <Text style={styles.productDescription}>
-                      {album.description}
-                    </Text>
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          ) : categoryId === 'holidays' ? (
-            /* Для праздников показываем обложки */
-            holidayAlbums.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              holidayAlbums.map(album => (
-                <TouchableOpacity
-                  key={album.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleCoverSelect(album)}
-                >
-                  <View style={styles.productImage}>
-                    {album.thumbnailPath ? (
-                      <Image
-                        source={
-                          imageUris[`album:${album.id}`]
-                            ? { uri: imageUris[`album:${album.id}`] }
-                            : album.thumbnailPath
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={holidayAlbums.indexOf(album) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={album.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{album.name}</Text>
-                    <Text style={styles.productDescription}>
-                      {album.description}
-                    </Text>
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          ) : categoryId === 'family' ? (
-            /* Для семьи показываем обложки */
-            familyAlbums.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              familyAlbums.map(album => (
-                <TouchableOpacity
-                  key={album.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleCoverSelect(album)}
-                >
-                  <View style={styles.productImage}>
-                    {album.thumbnailPath ? (
-                      <Image
-                        source={
-                          imageUris[`album:${album.id}`]
-                            ? { uri: imageUris[`album:${album.id}`] }
-                            : album.thumbnailPath
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={familyAlbums.indexOf(album) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={album.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{album.name}</Text>
-                    <Text style={styles.productDescription}>
-                      {album.description}
-                    </Text>
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          ) : categoryId === 'diary' ? (
-            /* Для дневников показываем обложки */
-            diaryCovers.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых дневников для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              diaryCovers.map((cover) => (
-                <TouchableOpacity
-                  key={cover.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleCoverSelect(cover)}
-                >
-                  <View style={styles.productImage}>
-                    {cover.image ? (
-                      <Image
-                        source={
-                          imageUris[`cover:${cover.id}`]
-                            ? { uri: imageUris[`cover:${cover.id}`] }
-                            : cover.image
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={diaryCovers.indexOf(cover) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={cover.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{cover.name}</Text>
-                    <Text style={styles.productDescription}>
-                      Личный дневник для записи мыслей и воспоминаний
-                    </Text>
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          ) : (
-            /* Для других категорий показываем продукты */
-            categoryProducts.length === 0 ? (
-              <View style={styles.emptyStateInline}>
-                <Ionicons name='document-outline' size={40} color='#D4C4B5' />
-                <Text style={styles.emptyStateInlineText}>
-                  Пока нет готовых альбомов для этой категории. Попробуйте выбрать
-                  другую тему.
-                </Text>
-              </View>
-            ) : (
-              categoryProducts.map(product => (
-                <TouchableOpacity
-                  key={product.id}
-                  style={styles.productCard}
-                  activeOpacity={0.85}
-                  onPress={() => handleProductSelect(product)}
-                >
-                  <View style={styles.productImage}>
-                    {product.coverImage ? (
-                      <Image
-                        source={
-                          imageUris[`product:${product.id}`]
-                            ? { uri: imageUris[`product:${product.id}`] }
-                            : product.coverImage
-                        }
-                        style={styles.productImageContent}
-                        contentFit="cover"
-                        priority={categoryProducts.indexOf(product) < 5 ? "high" : "normal"}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={product.id}
-                      />
-                    ) : (
-                      <Ionicons name='book' size={48} color='#C9A89A' />
-                    )}
-                  </View>
-                  <View style={styles.productContent}>
-                    <Text style={styles.productName}>{product.name}</Text>
-                    <Text style={styles.productDescription}>
-                      {product.description}
-                    </Text>
-                    {(product.hasReminders && (categoryId === 'pregnancy' || categoryId === 'kids')) && (
-                      <View style={styles.productFeatures}>
-                        <View style={styles.feature}>
-                          <Ionicons
-                            name='notifications-outline'
-                            size={16}
-                            color='#9B8E7F'
-                          />
-                          <Text style={styles.featureText}>Напоминания</Text>
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                  <Ionicons name='chevron-forward' size={22} color='#C9A89A' />
-                </TouchableOpacity>
-              ))
-            )
-          )}
+          {categoryId === 'pregnancy'
+            ? renderCoverPickerList(
+                pregnancyAlbums.map((album, index) =>
+                  albumToPickerRow(album, index)
+                ),
+                emptyAlbumsMessage
+              )
+            : categoryId === 'kids'
+              ? renderCoverPickerList(
+                  kidsAlbums.map((album, index) =>
+                    albumToPickerRow(album, index)
+                  ),
+                  emptyAlbumsMessage
+                )
+              : categoryId === 'holidays'
+                ? renderCoverPickerList(
+                    holidayAlbums.map((album, index) =>
+                      albumToPickerRow(album, index)
+                    ),
+                    emptyAlbumsMessage
+                  )
+                : categoryId === 'family'
+                  ? renderCoverPickerList(
+                      familyAlbums.map((album, index) =>
+                        albumToPickerRow(album, index)
+                      ),
+                      emptyAlbumsMessage
+                    )
+                  : categoryId === 'diary'
+                    ? renderCoverPickerList(
+                        diaryCovers.map((cover, index) => ({
+                          id: cover.id,
+                          name: getGiftDisplayTitle(
+                            cover.sku,
+                            cover.name || 'Личный дневник'
+                          ),
+                          description:
+                            'Личный дневник для записи мыслей и воспоминаний',
+                          imageSource: cover.image,
+                          onPress: () => handleCoverSelect(cover),
+                          priorityIndex: index,
+                        })),
+                        emptyDiaryMessage
+                      )
+                    : renderCoverPickerList(
+                        categoryProducts.map((product, index) => ({
+                          id: product.id,
+                          name: product.name,
+                          description: product.description,
+                          imageSource: product.coverImage,
+                          onPress: () => handleProductSelect(product),
+                          priorityIndex: index,
+                          features:
+                            product.hasReminders &&
+                            (categoryId === 'pregnancy' || categoryId === 'kids') ? (
+                              <View style={styles.productFeatures}>
+                                <View style={styles.feature}>
+                                  <Ionicons
+                                    name="notifications-outline"
+                                    size={16}
+                                    color="#9B8E7F"
+                                  />
+                                  <Text style={styles.featureText}>
+                                    Напоминания
+                                  </Text>
+                                </View>
+                              </View>
+                            ) : undefined,
+                        })),
+                        emptyAlbumsMessage
+                      )}
         </ScrollView>
       </Animated.View>
 
@@ -940,8 +820,14 @@ export default function ProjectTemplatesScreen() {
             animationType="slide"
             onRequestClose={handleCoverDateCancel}
           >
-            <View style={styles.coverDateModalOverlay}>
-              <View style={styles.coverDateModalContent}>
+            <View style={[styles.coverDateModalOverlay, tabletModal.overlay]}>
+              <View
+                style={[
+                  styles.coverDateModalContent,
+                  tabletModal.content,
+                  { paddingBottom: bottomInset + 20 },
+                ]}
+              >
                 <View style={styles.coverDateModalHeader}>
                   <Text style={styles.coverDateModalTitle}>{categoryInfo.title}</Text>
                   <TouchableOpacity onPress={handleCoverDateCancel}>
@@ -1161,7 +1047,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
     paddingTop: 18,
     paddingBottom: 18,
   },
@@ -1184,8 +1069,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
     gap: 16,
   },
   subtitle: {
@@ -1214,6 +1097,14 @@ const styles = StyleSheet.create({
     elevation: 4,
     gap: 16,
   },
+  productCardTile: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    padding: 16,
+    marginBottom: 0,
+    minWidth: 0,
+  },
   productImage: {
     width: 80,
     height: 100,
@@ -1227,9 +1118,47 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  productImageTile: {
+    width: '100%',
+    height: 200,
+    marginBottom: 12,
+  },
   productContent: {
     flex: 1,
     gap: 8,
+    minWidth: 0,
+  },
+  productContentTile: {
+    flex: 0,
+    width: '100%',
+  },
+  productNameTile: {
+    fontSize: 15,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    textAlign: 'left',
+    lineHeight: 20,
+    marginBottom: 4,
+    width: '100%',
+  },
+  productDescriptionTile: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    textAlign: 'left',
+    lineHeight: 18,
+    width: '100%',
   },
   productName: {
     fontSize: 18,
@@ -1241,6 +1170,7 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
+    flexShrink: 1,
   },
   productDescription: {
     fontSize: 14,
@@ -1252,6 +1182,7 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+    flexShrink: 1,
   },
   productFeatures: {
     flexDirection: 'row',
@@ -1458,7 +1389,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 24,
     paddingHorizontal: 24,
-    paddingBottom: 40,
     maxHeight: '80%',
   },
   coverDateModalHeader: {

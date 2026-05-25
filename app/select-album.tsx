@@ -1,8 +1,12 @@
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
-import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
-import { getAlbumImageUris, getAlbumImages } from '@/utils/albumImages';
-import { resolveImageSourceUri } from '@/utils/imageSourceUri';
+import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
+import {
+  getAlbumImageUrisForViewing,
+  getAlbumImages,
+  resolveInteriorAlbumId,
+} from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -69,7 +73,6 @@ export default function SelectAlbumScreen() {
   const opacity = useSharedValue(0);
   // Кеш для предзагруженных первых страниц альбомов
   const preloadedFirstPages = useRef<Map<string, string>>(new Map());
-  const [thumbnailUris, setThumbnailUris] = useState<Record<string, string>>({});
 
   const albumTemplates = useMemo(() => getAllAlbumTemplates(), []);
 
@@ -85,7 +88,7 @@ export default function SelectAlbumScreen() {
     React.useCallback(() => {
       const preloadEverything = async () => {
         try {
-          // 1. Предзагружаем миниатюры альбомов и сохраняем URI
+          // 1. Предзагружаем миниатюры альбомов
           const thumbnails = filteredAlbums
             .filter(album => album.thumbnailPath)
             .map(album => album.thumbnailPath!);
@@ -102,21 +105,6 @@ export default function SelectAlbumScreen() {
               // Игнорируем ошибки
             }
           });
-
-          const thumbnailUriPairs = await Promise.all(
-            filteredAlbums.map(async (album) => {
-              const uri = await resolveImageSourceUri(album.thumbnailPath ?? null);
-              return uri ? ([album.id, uri] as const) : null;
-            })
-          );
-          const nextThumbs: Record<string, string> = {};
-          for (const pair of thumbnailUriPairs) {
-            if (!pair) continue;
-            nextThumbs[pair[0]] = pair[1];
-          }
-          if (Object.keys(nextThumbs).length > 0) {
-            setThumbnailUris((prev) => ({ ...prev, ...nextThumbs }));
-          }
 
           // 2. Параллельно предзагружаем ПЕРВЫЕ СТРАНИЦЫ всех альбомов для мгновенного отображения
           const firstPagePromises = filteredAlbums.map(async (album) => {
@@ -191,13 +179,15 @@ export default function SelectAlbumScreen() {
       const projectId = Date.now().toString();
       
       // Сохраняем информацию о проекте
+      const interiorAlbumId = resolveInteriorAlbumId(album.id, album.category);
+
       const projectData = {
         id: projectId,
         title: album.name,
         category: album.category,
         hasPdfTemplate: true,
         pdfPath: album.pdfPath,
-        albumId: album.id, // Сохраняем ID альбома для поиска в шаблонах
+        albumId: interiorAlbumId,
         sourceTemplateId: productId ?? null,
         reminderDate: reminderDateISO,
         thumbnailPath: album.thumbnailPath, // Сохраняем путь к миниатюре
@@ -217,23 +207,17 @@ export default function SelectAlbumScreen() {
       const projects = existingProjects ? JSON.parse(existingProjects) : [];
       projects.push(projectData);
       await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-      syncToCloudNow();
-      scheduleSyncToCloud();
-      // Дожидаемся синхронизации, чтобы альбом точно попал в облако до выхода из аккаунта
-      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
-      // Загружаем ВСЕ страницы альбома перед переходом
+      // Готовим все страницы для просмотра без ожидания полной загрузки в кеш.
       console.log(`[SelectAlbum] Начинаем загрузку всех страниц альбома: ${album.id}`);
       
       try {
-        // Загружаем все изображения альбома
-        const imageUris = await getAlbumImageUris(album.id);
+        const imageUris = await getAlbumImageUrisForViewing(interiorAlbumId);
         
         if (imageUris && imageUris.length > 0) {
           // Сохраняем все страницы в проект
           await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
           console.log(`[SelectAlbum] Загружено и сохранено ${imageUris.length} страниц для проекта ${projectId}`);
-          scheduleSyncToCloud();
         } else {
           console.warn(`[SelectAlbum] Не удалось загрузить страницы для альбома ${album.id}`);
           // Fallback: сохраняем хотя бы одну страницу если есть
@@ -251,7 +235,20 @@ export default function SelectAlbumScreen() {
         }
       }
 
-      // Переходим к редактированию после загрузки всех страниц
+      // Напоминания и @pregnancy_info / @kids_info до этого могли быть с временным id — привязываем к проекту.
+      if (reminderDateISO) {
+        try {
+          await linkNewProjectToEventReminders(projectId, album.category, reminderDateISO);
+        } catch {
+          /* не блокируем создание */
+        }
+      }
+
+      // Дожидаемся синхронизации уже после записи страниц, чтобы в облако не уходил полупустой проект.
+      await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
+      scheduleSyncToCloud();
+
+      // Переходим к редактированию сразу: страницы уже доступны как кешированные URI или remote URL.
       console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);
       router.push(`/edit-album?id=${projectId}`);
     } catch (error) {
@@ -321,11 +318,7 @@ export default function SelectAlbumScreen() {
               <View style={styles.albumThumbnail}>
                 {album.thumbnailPath ? (
                   <Image
-                    source={
-                      thumbnailUris[album.id]
-                        ? { uri: thumbnailUris[album.id] }
-                        : album.thumbnailPath
-                    }
+                    source={album.thumbnailPath}
                     style={styles.albumImage}
                     contentFit="cover"
                     priority="high"

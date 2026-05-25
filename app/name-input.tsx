@@ -1,14 +1,13 @@
-import { generateAccessCode } from '@/utils/accessCode';
+import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
-import { ensureDeviceRegistered } from '@/utils/account-transfer';
-import { logUserRegistration } from '@/utils/registration-logger';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Dimensions,
     InteractionManager,
     Keyboard,
     Platform,
@@ -23,19 +22,19 @@ import Animated, {
     Easing,
     useAnimatedStyle,
     useSharedValue,
-    withSpring,
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export default function NameInputScreen() {
+  const { contentMaxWidth, horizontalPadding } = useResponsiveLayout(AUTH_CONTENT_MAX_WIDTH);
   const [name, setName] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const containerOpacity = useSharedValue(0);
   const greetingOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(0);
-  const keyboardShownRef = useRef(false);
+  const keyboardBottomInset = useSharedValue(0);
 
   useEffect(() => {
     // Используем InteractionManager для Android, чтобы анимации запускались после завершения всех взаимодействий
@@ -54,34 +53,34 @@ export default function NameInputScreen() {
       runAnimation();
     }
     
+    const applyKeyboardPadding = (e: { endCoordinates: { height: number; screenY: number } }) => {
+      const { height, screenY } = e.endCoordinates;
+      const windowHeight = Dimensions.get('window').height;
+      const obstruction =
+        screenY > 0 && screenY < windowHeight
+          ? Math.max(0, windowHeight - screenY)
+          : height;
+      const duration =
+        Platform.OS === 'ios' && 'duration' in e && typeof (e as { duration?: number }).duration === 'number'
+          ? (e as { duration: number }).duration
+          : 220;
+      keyboardBottomInset.value = withTiming(obstruction, {
+        duration,
+        easing: Easing.out(Easing.cubic),
+      });
+    };
+
     const keyboardWillShow = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        // Поднимаем сразу до финальной позиции только один раз
-        if (!keyboardShownRef.current) {
-          keyboardShownRef.current = true;
-          const offset = Platform.OS === 'android' ? -85 : -110;
-          
-          // Используем одинаковую плавную spring-анимацию для Android и iOS
-          contentTranslateY.value = withSpring(offset, {
-            damping: 30,
-            stiffness: 40,
-            mass: 0.8,
-          });
-        }
-      }
+      applyKeyboardPadding
     );
-    
+
     const keyboardWillHide = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => {
-        keyboardShownRef.current = false;
-        
-        // Используем одинаковую плавную spring-анимацию для Android и iOS
-        contentTranslateY.value = withSpring(0, {
-          damping: 30,
-          stiffness: 40,
-          mass: 0.8,
+        keyboardBottomInset.value = withTiming(0, {
+          duration: Platform.OS === 'ios' ? 220 : 180,
+          easing: Easing.out(Easing.cubic),
         });
       }
     );
@@ -96,8 +95,8 @@ export default function NameInputScreen() {
     opacity: containerOpacity.value,
   }));
 
-  const inputAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: contentTranslateY.value }],
+  const keyboardPadStyle = useAnimatedStyle(() => ({
+    paddingBottom: keyboardBottomInset.value,
   }));
 
   const greetingAnimatedStyle = useAnimatedStyle(() => ({
@@ -106,21 +105,10 @@ export default function NameInputScreen() {
 
   const handleDismissKeyboard = () => {
     Keyboard.dismiss();
-    
-    if (Platform.OS === 'android') {
-      // Для Android используем очень плавную timing-анимацию с bezier кривой
-      contentTranslateY.value = withTiming(0, {
-        duration: 300,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1), // Плавная кривая как на iOS
-      });
-    } else {
-      // Для iOS используем плавную spring-анимацию
-      contentTranslateY.value = withSpring(0, {
-        damping: 30,
-        stiffness: 40,
-        mass: 0.8,
-      });
-    }
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+    });
   };
 
   const handleContinue = async () => {
@@ -131,38 +119,29 @@ export default function NameInputScreen() {
     // Скрываем клавиатуру перед запуском анимации
     Keyboard.dismiss();
     
-    // Используем одинаковую плавную spring-анимацию для Android и iOS
-    contentTranslateY.value = withSpring(0, {
-      damping: 30,
-      stiffness: 40,
-      mass: 0.8,
+    keyboardBottomInset.value = withTiming(0, {
+      duration: 200,
+      easing: Easing.out(Easing.cubic),
     });
 
     setIsSubmitting(true);
 
     try {
       const trimmedName = name.trim();
-      const accessCode = generateAccessCode();
+      let syncId = await getAccountSyncId();
+      if (!syncId) {
+        syncId = await createAndStoreAccountSyncId();
+      }
 
-      await AsyncStorage.setItem('@access_code', accessCode);
       await AsyncStorage.setItem('@user_name', trimmedName);
-      await AsyncStorage.setItem('@is_activated', 'true');
-      await AsyncStorage.setItem('@show_access_code_modal', 'true');
+      await AsyncStorage.setItem('@has_seen_onboarding', 'true');
 
       setIsSubmitting(false);
       setShowGreeting(true);
 
       // Отправляем сетевые операции в фоне, чтобы кнопка не "подвисала"
       setTimeout(() => {
-        Promise.allSettled([
-          logUserRegistration({ userName: trimmedName, accessCode }),
-          ensureDeviceRegistered({
-            accessCode,
-            maxDevices: 4,
-            validityMonths: 100 * 12,
-          }),
-          saveAccountToSupabase(accessCode, trimmedName),
-        ])
+        Promise.allSettled([saveAccountToSupabase(syncId, trimmedName)])
           .then(() => syncToCloudNow())
           .catch((e) => console.warn('Background signup sync failed:', e));
       }, 0);
@@ -209,17 +188,24 @@ export default function NameInputScreen() {
       />
 
       <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-        <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <Animated.View
+          style={[
+            styles.content,
+            { paddingHorizontal: horizontalPadding },
+            containerAnimatedStyle,
+            keyboardPadStyle,
+          ]}
+        >
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.innerContent}>
-              <Animated.View style={[styles.header, inputAnimatedStyle]}>
+            <View style={[styles.innerContent, { maxWidth: contentMaxWidth }]}>
+              <Animated.View style={styles.header}>
                 <Text style={styles.title}>Как вас зовут?</Text>
                 <Text style={styles.subtitle}>
                   Мы хотим знать, как обращаться к вам в приложении
                 </Text>
               </Animated.View>
 
-              <Animated.View style={[styles.inputContainer, inputAnimatedStyle]}>
+              <Animated.View style={styles.inputContainer}>
                 <TextInput
                   style={styles.input}
                   value={name}
@@ -233,7 +219,7 @@ export default function NameInputScreen() {
                 />
               </Animated.View>
 
-              <Animated.View style={inputAnimatedStyle}>
+              <Animated.View>
                 <TouchableOpacity
                   style={[
                     styles.continueButton,
@@ -290,10 +276,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    width: '100%',
   },
   innerContent: {
     width: '100%',
+    alignSelf: 'center',
     alignItems: 'center',
   },
   header: {

@@ -1,4 +1,5 @@
 import { getAlbumTemplateById } from '@/albums';
+import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import type { ImageSourcePropType } from 'react-native';
@@ -76,8 +77,11 @@ export function isPregnancyAlbum(albumId: string | null): boolean {
  */
 export function getCoverForExport(albumId: string | null, category?: string): ImageSourcePropType | null {
   if (!albumId) return null;
+
+  const pickerImage = getCoverPickerImage(albumId, category);
+  if (pickerImage) return pickerImage;
   
-  // Для беременности используем специальный маппинг
+  // Для беременности используем специальный маппинг (мягкая обложка и legacy id)
   if (category === 'pregnancy' || isPregnancyAlbum(albumId)) {
     return getPregnancyCover(albumId);
   }

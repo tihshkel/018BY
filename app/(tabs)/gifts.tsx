@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useFocusEffect } from 'expo-router';
-import { resolveImageSourceUri } from '@/utils/imageSourceUri';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -17,13 +16,18 @@ import {
   TextInput,
   TouchableOpacity,
   View
+  , type StyleProp
+  , type ImageStyle
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
+import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export interface GiftItem {
   id: string;
@@ -110,12 +114,62 @@ const SKU_TO_CATEGORY: Record<string, string> = {
   'DD21': 'Для девочек',
 };
 
+function CatalogGiftCoverImage(props: {
+  item: GiftItem;
+  style: StyleProp<ImageStyle>;
+  imagePriority: 'high' | 'normal';
+}) {
+  const { item, style, imagePriority } = props;
+  const wbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
+  const [wbFailed, setWbFailed] = useState(false);
+  const useWb = Boolean(wbUri) && !wbFailed;
+
+  if (useWb && wbUri) {
+    return (
+      <Image
+        source={{ uri: wbUri }}
+        style={style}
+        contentFit="contain"
+        priority={imagePriority}
+        cachePolicy="disk"
+        transition={120}
+        accessibilityLabel={`Фото товара ${item.title} с Wildberries`}
+        recyclingKey={`wb-${item.sku}`}
+        onError={() => setWbFailed(true)}
+      />
+    );
+  }
+
+  if (item.cover) {
+    return (
+      <Image
+        source={item.cover}
+        style={style}
+        contentFit="contain"
+        priority={imagePriority}
+        cachePolicy="disk"
+        transition={0}
+        fadeDuration={0}
+        accessibilityLabel={`Обложка товара ${item.title}`}
+        placeholderContentFit="contain"
+      />
+    );
+  }
+
+  return (
+    <View style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
+      <Ionicons name="image-outline" size={40} color="#D4C4B5" />
+    </View>
+  );
+}
+
 export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
-  DB1: require('../../assets/images/albums/DB1.png'),
-  DB2: require('../../assets/images/albums/DB2.png'),
-  DB3: require('../../assets/images/albums/DB3.png'),
-  DB4: require('../../assets/images/albums/DB4.png'),
-  DB5: require('../../assets/images/albums/DB5.png'),
+  // В проекте реально существуют файлы DB*_0.png / DB*_п.png, поэтому используем их.
+  DB1: require('../../assets/images/albums/DB1_0.png'),
+  DB2: require('../../assets/images/albums/DB2_0.png'),
+  DB3: require('../../assets/images/albums/DB3_0.png'),
+  DB4: require('../../assets/images/albums/DB4_0.png'),
+  DB5: require('../../assets/images/albums/DB5_0.png'),
   EB1: require('../../assets/images/albums/EB1.png'),
   EB2: require('../../assets/images/albums/EB2.png'),
   EB3: require('../../assets/images/albums/EB3.png'),
@@ -903,6 +957,12 @@ export const GIFT_ITEMS: GiftItem[] = [
 ];
 
 export default function GiftsScreen() {
+  const layout = useResponsiveLayout(CATALOG_MAX_WIDTH);
+  const numColumns = !layout.isTablet ? 1 : layout.width >= 1000 ? 3 : 2;
+  const coverHeight = numColumns === 1 ? 280 : numColumns === 2 ? 220 : 200;
+
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] =
     useState<CategoryFilter>('Все');
@@ -912,7 +972,6 @@ export default function GiftsScreen() {
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
   const [showRegionModal, setShowRegionModal] = useState(false);
   const [isLoadingRegion, setIsLoadingRegion] = useState(true);
-  const [coverUris, setCoverUris] = useState<Record<string, string>>({});
 
   const opacity = useSharedValue(0);
 
@@ -921,26 +980,18 @@ export default function GiftsScreen() {
     React.useCallback(() => {
       const preloadGiftImages = async () => {
         try {
-          // Собираем все уникальные изображения из COVER_BY_SKU
-          const imageAssets = Object.values(COVER_BY_SKU);
-          
-          // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
-          await Promise.all(
-            imageAssets.map(imageSource => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch(err => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения подарка:', err);
-                });
-              }
-              // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-              return Promise.resolve();
-            })
+          const wbUrls = GIFT_ITEMS.map((g) => getWildberriesProductImageUrl(g.link)).filter(
+            (u): u is string => Boolean(u)
           );
-          
-          console.log('✅ Все изображения подарков предзагружены');
+          await Promise.all(
+            wbUrls.map((uri) =>
+              Image.prefetch(uri).catch((err) => {
+                console.warn('⚠️ Ошибка предзагрузки фото WB:', uri, err);
+              })
+            )
+          );
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений подарков:', error);
-          // В случае ошибки изображения все равно будут загружаться по требованию
         }
       };
 
@@ -1082,57 +1133,20 @@ export default function GiftsScreen() {
     });
   }, [searchQuery, activeCategory, selectedCategory, selectedCoverType]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-
-      const resolveCovers = async () => {
-        const pairs = await Promise.all(
-          filteredItems.map(async (item) => {
-            const uri = await resolveImageSourceUri(item.cover ?? null);
-            return uri ? ([item.id, uri] as const) : null;
-          })
-        );
-
-        if (cancelled) return;
-
-        const next: Record<string, string> = {};
-        for (const pair of pairs) {
-          if (!pair) continue;
-          next[pair[0]] = pair[1];
-        }
-        if (Object.keys(next).length > 0) {
-          setCoverUris((prev) => ({ ...prev, ...next }));
-        }
-      };
-
-      resolveCovers();
-      return () => {
-        cancelled = true;
-      };
-    }, [filteredItems])
-  );
-
   // Предзагрузка изображений для отфильтрованных элементов при смене фильтра
   useEffect(() => {
     const preloadFilteredImages = async () => {
       try {
-        // Собираем изображения только для отфильтрованных элементов
-        const imagesToPreload = filteredItems
-          .filter(item => item.cover)
-          .map(item => item.cover!);
+        const wbUrls = filteredItems
+          .map((item) => getWildberriesProductImageUrl(item.link))
+          .filter((u): u is string => Boolean(u));
 
-        // Предзагружаем только строковые URI (локальные ресурсы не требуют предзагрузки)
         await Promise.all(
-          imagesToPreload.map(imageSource => {
-            if (typeof imageSource === 'string') {
-              return Image.prefetch(imageSource).catch(err => {
-                console.warn('⚠️ Ошибка предзагрузки изображения отфильтрованного подарка:', err);
-              });
-            }
-            // Пропускаем локальные ресурсы (числа) - они загружаются быстро
-            return Promise.resolve();
-          })
+          wbUrls.map((uri) =>
+            Image.prefetch(uri).catch((err) => {
+              console.warn('⚠️ Ошибка предзагрузки фото WB (фильтр):', err);
+            })
+          )
         );
       } catch (error) {
         // Игнорируем ошибки, изображения загрузятся по требованию
@@ -1179,33 +1193,25 @@ export default function GiftsScreen() {
       const imagePriority = index < 10 ? 'high' : 'normal';
       
       return (
-        <View style={styles.card} accessible>
-          <View style={styles.coverWrapper}>
-            {item.cover ? (
-              <Image
-                source={coverUris[item.id] ? { uri: coverUris[item.id] } : item.cover}
-                style={styles.coverImage}
-                contentFit="contain"
-                priority={imagePriority}
-                cachePolicy="disk"
-                transition={0}
-                fadeDuration={0}
-                accessibilityLabel={`Обложка товара ${item.title}`}
-                placeholderContentFit="contain"
-              />
-            ) : (
-              <View style={styles.coverPlaceholder}>
-                <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-              </View>
-            )}
+        <View style={[styles.card, numColumns > 1 && styles.cardInGrid]} accessible>
+          <View style={[styles.coverWrapper, { height: coverHeight }]}>
+            <CatalogGiftCoverImage
+              item={item}
+              style={styles.coverImage}
+              imagePriority={imagePriority}
+            />
           </View>
 
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
+            <Text style={styles.cardTitle} numberOfLines={numColumns > 1 ? 3 : 2} ellipsizeMode="tail">
               {item.title}
             </Text>
             {item.description && (
-              <Text style={styles.cardDescription} numberOfLines={3} ellipsizeMode="tail">
+              <Text
+                style={styles.cardDescription}
+                numberOfLines={numColumns > 1 ? 2 : 3}
+                ellipsizeMode="tail"
+              >
                 {item.description}
               </Text>
             )}
@@ -1219,19 +1225,29 @@ export default function GiftsScreen() {
               accessibilityHint="Откроется карточка товара на Wildberries"
               onPress={() => handleOpenLink(item.link)}
             >
-              <Ionicons name="open-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.buyButtonText}>Открыть на Wildberries</Text>
+              <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
             </Pressable>
           </View>
         </View>
       );
     },
-    [handleOpenLink]
+    [handleOpenLink, numColumns, coverHeight]
   );
 
+  const contentShellStyle = layout.isTablet
+    ? {
+        width: '100%' as const,
+        maxWidth: layout.contentMaxWidth + layout.horizontalPadding * 2,
+        alignSelf: 'center' as const,
+        paddingHorizontal: layout.horizontalPadding,
+      }
+    : undefined;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
+    // В табах нижний safe-area уже учитывается таббаром; bottom-edge даёт “пустую полосу” над панелью.
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>
             Каталог
@@ -1285,26 +1301,33 @@ export default function GiftsScreen() {
         </View>
 
         <FlatList
+          key={`catalog-cols-${numColumns}`}
           data={filteredItems}
           keyExtractor={item => item.id}
           renderItem={renderItem}
+          numColumns={numColumns}
+          columnWrapperStyle={numColumns > 1 ? styles.catalogColumnWrapper : undefined}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
+          // Таббар с большим iOS-safe-area и скруглением перекрывает контент — даём больший нижний отступ.
+          contentContainerStyle={[styles.listContent, { paddingBottom: bottomInset + 140 }]}
           // Оптимизации для производительности
           removeClippedSubviews={true}
-          initialNumToRender={5}
-          maxToRenderPerBatch={3}
+          initialNumToRender={numColumns > 1 ? 6 : 5}
+          maxToRenderPerBatch={numColumns > 1 ? 6 : 3}
           updateCellsBatchingPeriod={50}
           windowSize={5}
-          getItemLayout={(data, index) => {
-            // Высота карточки: coverWrapper (280) + cardContent padding (40) + title (~30) + gap (12) + button (~56) + gap между карточками (20)
-            const itemHeight = 280 + 40 + 30 + 12 + 56 + 20; // ~438px
-            return {
-              length: itemHeight,
-              offset: itemHeight * index,
-              index,
-            };
-          }}
+          getItemLayout={
+            numColumns === 1
+              ? (_data, index) => {
+                  const itemHeight = coverHeight + 40 + 30 + 12 + 56 + 20;
+                  return {
+                    length: itemHeight,
+                    offset: itemHeight * index,
+                    index,
+                  };
+                }
+              : undefined
+          }
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="gift-outline" size={64} color="#D4C4B5" />
@@ -1765,8 +1788,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 24,
-    paddingBottom: 40,
+    paddingBottom: 0,
     gap: 20,
+  },
+  catalogColumnWrapper: {
+    gap: 16,
+    marginBottom: 16,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -1780,8 +1807,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
+  cardInGrid: {
+    flex: 1,
+  },
   coverWrapper: {
-    height: 280,
     backgroundColor: '#FAF8F5',
     alignItems: 'center',
     justifyContent: 'center',

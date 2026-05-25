@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
+import { SchedulableTriggerInputTypes, type TimeIntervalTriggerInput } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -23,7 +24,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface PaperAlbumNotification {
   id: string;
@@ -61,6 +62,8 @@ const ALBUM_TYPES: AlbumTypeOption[] = [
 ];
 
 export default function PaperAlbumNotificationsScreen() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [selectedType, setSelectedType] = useState<AlbumType>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -162,21 +165,11 @@ export default function PaperAlbumNotificationsScreen() {
             console.log('Has permission, scheduling notification...');
             // Отправляем уведомление немедленно (через минимальную задержку)
             try {
-              // Для немедленной отправки используем минимальную задержку
-              const now = new Date();
-              const notificationDate = new Date(now.getTime() + 1000); // 1 секунда задержка
-              
-              // Expo SDK 54+: trigger должен содержать `type`.
-              // https://docs.expo.dev/versions/latest/sdk/notifications/#notificationtriggerinput
-              let trigger: any;
-              if (Platform.OS === 'ios') {
-                trigger = { type: 'date', date: notificationDate };
-                console.log('iOS trigger date:', notificationDate.toISOString());
-              } else {
-                // Android: используем timeInterval (seconds), минимум 1 секунда
-                trigger = { type: 'timeInterval', seconds: 1 };
-                console.log('Android trigger seconds: 1');
-              }
+              const trigger: TimeIntervalTriggerInput = {
+                type: SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds: 1,
+              };
+              console.log('Scheduled test notification in 1s (TIME_INTERVAL)');
 
               const notificationId = await Notifications.scheduleNotificationAsync({
                 content: {
@@ -263,7 +256,10 @@ export default function PaperAlbumNotificationsScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: bottomInset + 32 },
+          ]}
         >
           <Text style={styles.subtitle}>
             Выберите тип альбома и дату, чтобы получать уведомления
@@ -354,7 +350,7 @@ export default function PaperAlbumNotificationsScreen() {
         {/* Date Picker Modal */}
         {showDatePicker && (
           <View style={styles.datePickerOverlay}>
-            <View style={styles.datePickerContainer}>
+            <View style={[styles.datePickerContainer, { paddingBottom: bottomInset }]}>
               <View style={styles.datePickerHeader}>
                 <Text style={styles.datePickerTitle}>
                   {selectedTypeInfo?.dateLabel}
@@ -438,7 +434,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
   },
   subtitle: {
     fontSize: 17,
@@ -600,7 +595,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     paddingHorizontal: 20,
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: -4 },

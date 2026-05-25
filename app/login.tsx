@@ -1,4 +1,9 @@
-import { normalizeUsername, restoreLocalAccountKeysFromSupabase, signInWithUsernamePassword } from '@/utils/auth-session';
+﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  normalizeEmail,
+  restoreLocalAccountKeysFromSupabase,
+  signInWithEmailPassword,
+} from '@/utils/auth-session';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -17,23 +22,23 @@ import {
 } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const FIELD_MAX_WIDTH = 400;
+import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('');
+  const { horizontalPadding } = useResponsiveLayout(AUTH_CONTENT_MAX_WIDTH);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const opacity = useSharedValue(0);
-  const usernameRef = useRef<TextInput | null>(null);
+  const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.ease) });
-    const t = setTimeout(() => usernameRef.current?.focus(), 200);
+    const t = setTimeout(() => emailRef.current?.focus(), 200);
     return () => clearTimeout(t);
   }, [opacity]);
 
@@ -44,16 +49,16 @@ export default function LoginScreen() {
     setErrorText(null);
     setIsSubmitting(true);
     try {
-      const res = await signInWithUsernamePassword({ username, password });
+      const res = await signInWithEmailPassword({ email, password });
       if (!res.success) {
         if (res.error === 'SUPABASE_NOT_CONFIGURED') {
           setErrorText('Сервис входа недоступен. Проверьте настройки Supabase.');
-        } else if (res.error === 'USERNAME_INVALID') {
-          setErrorText('Логин: минимум 3 символа, только латиница и цифры (без спецсимволов).');
+        } else if (res.error === 'EMAIL_INVALID') {
+          setErrorText('Укажите корректный email.');
         } else if (res.error && res.error.length > 0) {
           setErrorText(`Не удалось войти: ${res.error}`);
         } else {
-          setErrorText('Проверьте логин и пароль.');
+          setErrorText('Проверьте email и пароль.');
         }
         return;
       }
@@ -62,11 +67,16 @@ export default function LoginScreen() {
         setErrorText(
           restored.error && restored.error.length > 0
             ? `Вход выполнен, но облако не отдало профиль: ${restored.error}`
-            : 'Вход выполнен, но профиль в базе не найден. Проверьте таблицу accounts и миграцию schema.sql.'
+            : 'Вход выполнен, но профиль не найден. Проверьте таблицу profiles и RLS в Supabase.'
         );
         return;
       }
-      router.replace('/(tabs)' as any);
+      const name = await AsyncStorage.getItem('@user_name');
+      if (!name?.trim()) {
+        router.replace('/name-input' as any);
+      } else {
+        router.replace('/(tabs)' as any);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -79,19 +89,22 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.flex}
         >
-          <Animated.View style={[styles.inner, fadeStyle]}>
+          <Animated.View style={[styles.inner, { paddingHorizontal: horizontalPadding }, fadeStyle]}>
             <Text style={styles.heroTitle}>Вход</Text>
 
             <View style={styles.fieldsColumn}>
               <View style={styles.inputShell}>
                 <TextInput
-                  ref={usernameRef}
-                  value={username}
-                  onChangeText={(t) => setUsername(normalizeUsername(t))}
-                  placeholder="Логин"
+                  ref={emailRef}
+                  value={email}
+                  onChangeText={(t) => setEmail(normalizeEmail(t))}
+                  placeholder="Email"
                   placeholderTextColor="#B9A99A"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
                   returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                   style={styles.inputInShell}
@@ -125,6 +138,12 @@ export default function LoginScreen() {
                     size={22}
                     color="#9B8E7F"
                   />
+                </Pressable>
+              </View>
+
+              <View style={styles.forgotRow}>
+                <Pressable onPress={() => router.push('/forgot-password' as any)} hitSlop={8}>
+                  <Text style={styles.footerLink}>Забыли пароль?</Text>
                 </Pressable>
               </View>
             </View>
@@ -163,7 +182,7 @@ export default function LoginScreen() {
 
 const shellBase = {
   width: '100%' as const,
-  maxWidth: FIELD_MAX_WIDTH,
+  maxWidth: AUTH_CONTENT_MAX_WIDTH,
   alignSelf: 'center' as const,
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
@@ -181,7 +200,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   inner: {
     flex: 1,
-    paddingHorizontal: 24,
     justifyContent: 'center',
     paddingTop: Platform.OS === 'ios' ? 64 : 56,
     paddingBottom: 40,
@@ -189,7 +207,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 42,
     lineHeight: 48,
     color: '#8B6F5F',
@@ -206,7 +224,7 @@ const styles = StyleSheet.create({
   },
   fieldsColumn: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
     gap: 14,
   },
@@ -234,9 +252,16 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 4,
   },
+  forgotRow: {
+    width: '100%',
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
+    alignSelf: 'center',
+    marginTop: 10,
+    alignItems: 'flex-end',
+  },
   actionsColumn: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
     marginTop: 8,
   },
@@ -250,7 +275,7 @@ const styles = StyleSheet.create({
   },
   errorConstrained: {
     width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
+    maxWidth: AUTH_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
     paddingHorizontal: 8,
   },

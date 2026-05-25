@@ -2,8 +2,8 @@
   "expo": {
     "name": "018BY",
     "slug": "018by",
+    "scheme": "018by",
     "version": "1.0.0",
-    "scheme": "x018by",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -19,12 +19,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "22",
+      "buildNumber": "30",
       "runtimeVersion": {
         "policy": "appVersion"
       },
       "infoPlist": {
-        "NSCameraUsageDescription": "Камера нужна, чтобы сканировать QR‑код и перенести данные на новое устройство.",
+        "NSCameraUsageDescription": "Камера нужна, чтобы сделать фото для альбомов.",
         "NSPhotoLibraryUsageDescription": "Доступ к фото библиотеке нужен, чтобы добавлять фотографии в альбомы и сохранять созданные проекты.",
         "NSPhotoLibraryAddUsageDescription": "Доступ для сохранения нужен, чтобы сохранять созданные PDF файлы и экспортированные альбомы в галерею.",
         "NSUserNotificationsUsageDescription": "Уведомления нужны, чтобы напоминать о важных моментах беременности и развития ребёнка.",
@@ -43,9 +43,9 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.tihshkel.x018BY",
-      "versionCode": 2,
-      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.tihshkel.app018by",
+      "versionCode": 30,
+      "softwareKeyboardLayoutMode": "resize",
       "runtimeVersion": "1.0.0",
       "permissions": [
         "CAMERA",
@@ -63,7 +63,6 @@
     },
     "plugins": [
       "expo-router",
-      "expo-camera",
       [
         "expo-splash-screen",
         {

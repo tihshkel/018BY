@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +16,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isTablet = SCREEN_WIDTH > 768;
 
 // Категории с новыми названиями
 const CATALOG_CATEGORIES = [
@@ -64,11 +68,11 @@ export default function PaperCatalogScreen() {
           </Text>
 
           {/* Категории */}
-          <View style={styles.categoriesContainer}>
+          <View style={isTablet ? styles.categoriesGrid : styles.categoriesContainer}>
             {CATALOG_CATEGORIES.map(category => (
               <TouchableOpacity
                 key={category.id}
-                style={styles.categoryCard}
+                style={[styles.categoryCard, isTablet && styles.categoryCardTablet]}
                 onPress={() => handleCategorySelect(category.name)}
                 activeOpacity={0.7}
               >
@@ -148,6 +152,14 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 12,
   },
+  categoriesGrid: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'center',
+  },
   categoryCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -161,6 +173,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 2,
+  },
+  categoryCardTablet: {
+    width: (SCREEN_WIDTH - 80) / 2,
+    justifyContent: 'space-between',
   },
   categoryIcon: {
     width: 52,

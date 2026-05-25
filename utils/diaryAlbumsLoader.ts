@@ -1,8 +1,6 @@
 import { Asset } from 'expo-asset';
 import type { ImageSourcePropType } from 'react-native';
-import { COVER_BY_SKU } from '@/app/(tabs)/gifts';
-
-const PLACEHOLDER_IMAGE = require('@/assets/images/albums/blank_white.png');
+import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
 
 /**
  * Интерфейс для обложки дневника
@@ -49,141 +47,141 @@ const DIARY_COVERS_MAPPING: Record<string, DiaryCover> = {
   DD1: {
     id: 'diary_dd1',
     sku: 'DD1',
-    image: COVER_BY_SKU.DD1 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD1 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD1/first_page.png'),
+    imageSpring: require('@/albums/diary/DD1/first_page.png'),
     name: 'Личный дневник',
   },
   DD2: {
     id: 'diary_dd2',
     sku: 'DD2',
-    image: COVER_BY_SKU.DD2 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD2 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD2/first_page.png'),
+    imageSpring: require('@/albums/diary/DD2/first_page.png'),
     name: 'Личный дневник',
   },
   DD3: {
     id: 'diary_dd3',
     sku: 'DD3',
-    image: COVER_BY_SKU.DD3 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD3 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD3/first_page.png'),
+    imageSpring: require('@/albums/diary/DD3/first_page.png'),
     name: 'Личный дневник',
   },
   DD4: {
     id: 'diary_dd4',
     sku: 'DD4',
-    image: COVER_BY_SKU.DD4 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD4 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD4/first_page.png'),
+    imageSpring: require('@/albums/diary/DD4/first_page.png'),
     name: 'Личный дневник',
   },
   DD5: {
     id: 'diary_dd5',
     sku: 'DD5',
-    image: COVER_BY_SKU.DD5 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD5 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD5/first_page.png'),
+    imageSpring: require('@/albums/diary/DD5/first_page.png'),
     name: 'Личный дневник',
   },
   DD6: {
     id: 'diary_dd6',
     sku: 'DD6',
-    image: COVER_BY_SKU.DD6 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD6 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD6/first_page.png'),
+    imageSpring: require('@/albums/diary/DD6/first_page.png'),
     name: 'Личный дневник',
   },
   DD7: {
     id: 'diary_dd7',
     sku: 'DD7',
-    image: COVER_BY_SKU.DD7 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD7 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD7/first_page.png'),
+    imageSpring: require('@/albums/diary/DD7/first_page.png'),
     name: 'Личный дневник',
   },
   DD8: {
     id: 'diary_dd8',
     sku: 'DD8',
-    image: COVER_BY_SKU.DD8 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD8 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD8/first_page.png'),
+    imageSpring: require('@/albums/diary/DD8/first_page.png'),
     name: 'Личный дневник',
   },
   DD9: {
     id: 'diary_dd9',
     sku: 'DD9',
-    image: COVER_BY_SKU.DD9 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD9 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD9/first_page.png'),
+    imageSpring: require('@/albums/diary/DD9/first_page.png'),
     name: 'Личный дневник',
   },
   DD10: {
     id: 'diary_dd10',
     sku: 'DD10',
-    image: COVER_BY_SKU.DD10 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD10 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD10/first_page.png'),
+    imageSpring: require('@/albums/diary/DD10/first_page.png'),
     name: 'Личный дневник',
   },
   DD11: {
     id: 'diary_dd11',
     sku: 'DD11',
-    image: COVER_BY_SKU.DD11 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD11 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD11/first_page.png'),
+    imageSpring: require('@/albums/diary/DD11/first_page.png'),
     name: 'Личный дневник',
   },
   DD12: {
     id: 'diary_dd12',
     sku: 'DD12',
-    image: COVER_BY_SKU.DD12 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD12 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD12/first_page.png'),
+    imageSpring: require('@/albums/diary/DD12/first_page.png'),
     name: 'Личный дневник',
   },
   DD13: {
     id: 'diary_dd13',
     sku: 'DD13',
-    image: COVER_BY_SKU.DD13 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD13 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD13/first_page.png'),
+    imageSpring: require('@/albums/diary/DD13/first_page.png'),
     name: 'Личный дневник',
   },
   DD14: {
     id: 'diary_dd14',
     sku: 'DD14',
-    image: COVER_BY_SKU.DD14 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD14 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD14/first_page.png'),
+    imageSpring: require('@/albums/diary/DD14/first_page.png'),
     name: 'Личный дневник',
   },
   DD15: {
     id: 'diary_dd15',
     sku: 'DD15',
-    image: COVER_BY_SKU.DD15 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD15 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD15/first_page.png'),
+    imageSpring: require('@/albums/diary/DD15/first_page.png'),
     name: 'Личный дневник',
   },
   DD16: {
     id: 'diary_dd16',
     sku: 'DD16',
-    image: COVER_BY_SKU.DD16 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD16 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD16/first_page.png'),
+    imageSpring: require('@/albums/diary/DD16/first_page.png'),
     name: 'Личный дневник',
   },
   DD17: {
     id: 'diary_dd17',
     sku: 'DD17',
-    image: COVER_BY_SKU.DD17 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD17 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD17/first_page.png'),
+    imageSpring: require('@/albums/diary/DD17/first_page.png'),
     name: 'Личный дневник',
   },
   DD18: {
     id: 'diary_dd18',
     sku: 'DD18',
-    image: COVER_BY_SKU.DD18 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD18 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD18/first_page.png'),
+    imageSpring: require('@/albums/diary/DD18/first_page.png'),
     name: 'Личный дневник',
   },
   DD20: {
     id: 'diary_dd20',
     sku: 'DD20',
-    image: COVER_BY_SKU.DD20 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD20 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD20/first_page.png'),
+    imageSpring: require('@/albums/diary/DD20/first_page.png'),
     name: 'Личный дневник',
   },
   DD21: {
     id: 'diary_dd21',
     sku: 'DD21',
-    image: COVER_BY_SKU.DD21 ?? PLACEHOLDER_IMAGE,
-    imageSpring: COVER_BY_SKU.DD21 ?? PLACEHOLDER_IMAGE,
+    image: require('@/albums/diary/DD21/first_page.png'),
+    imageSpring: require('@/albums/diary/DD21/first_page.png'),
     name: 'Личный дневник',
   },
 };
@@ -209,10 +207,9 @@ export function getDiaryCoverById(id: string): DiaryCover | null {
   return Object.values(DIARY_COVERS_MAPPING).find(cover => cover.id === id) || null;
 }
 
-// В EAS Build не тащим тяжёлые папки `albums/**`. Для сборки используем заглушки.
-const brownBlockImages = Array.from({ length: 60 }, () => PLACEHOLDER_IMAGE);
-
-const purpleBlockImages = Array.from({ length: 40 }, () => PLACEHOLDER_IMAGE);
+/** Страницы блоков: albums/diary/cover/in album/Блок коричневый|фиолетовый _180х240_print */
+const brownBlockImages = DIARY_BROWN_PAGES;
+const purpleBlockImages = DIARY_PURPLE_PAGES;
 
 /**
  * Статический маппинг внутренних частей дневников
@@ -260,18 +257,19 @@ export async function getDiaryInteriorImageUris(interiorId: string): Promise<str
   }
 
   try {
-    // Все слоты могут ссылаться на один и тот же require (заглушка в production).
-    // Параллельный downloadAsync по одному модулю даёт гонки; достаточно одной загрузки.
-    const firstModule = interior.images[0];
-    const asset = Asset.fromModule(firstModule as any);
-    await asset.downloadAsync();
-    const uri = asset.localUri || asset.uri;
-    if (!uri) {
-      return null;
-    }
-    const pageCount = interior.pages > 0 ? interior.pages : interior.images.length;
-    // Каждая страница — отдельный элемент массива (порядок = номер страницы), URI может совпадать.
-    return Array.from({ length: pageCount }, () => uri);
+    const uris = await Promise.all(
+      interior.images.map(async (image) => {
+        try {
+          const asset = Asset.fromModule(image as number);
+          await asset.downloadAsync();
+          return asset.localUri || asset.uri || null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    const filtered = uris.filter((uri): uri is string => !!uri);
+    return filtered.length > 0 ? filtered : null;
   } catch (error) {
     console.error(`[Diary Loader] Ошибка при загрузке изображений внутренней части ${interiorId}:`, error);
     return null;

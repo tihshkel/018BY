@@ -1,3 +1,4 @@
+import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
 import {
     PREGNANCY_WEEKLY_NOTIFICATIONS,
@@ -5,8 +6,6 @@ import {
     PREGNANCY_PREPARATION_NOTIFICATIONS,
     type NotificationContent
 } from './pregnancyNotificationsData';
-import { Platform } from 'react-native';
-
 // Длительность беременности: 280 дней = 40 недель
 const TOTAL_PREGNANCY_DAYS = 280;
 
@@ -37,15 +36,10 @@ const scheduleNotification = async (
     }
 
     try {
-        let trigger: any;
-
-        if (Platform.OS === 'ios') {
-            trigger = { date };
-        } else {
-            const seconds = Math.floor((date.getTime() - now.getTime()) / 1000);
-            if (seconds <= 0) return;
-            trigger = { seconds };
-        }
+        const trigger: DateTriggerInput = {
+            type: SchedulableTriggerInputTypes.DATE,
+            date,
+        };
 
         const id = await Notifications.scheduleNotificationAsync({
             content: {
