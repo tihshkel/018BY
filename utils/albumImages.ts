@@ -47,9 +47,31 @@ function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
 }
 
+function toHex(n: number): string {
+  return (n >>> 0).toString(16).padStart(8, '0');
+}
+
+// Короткий стабильный ключ для путей с пробелами/кириллицей (iOS FS + file:// URI).
+function stablePathKey(input: string): string {
+  // djb2
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = ((hash << 5) + hash) ^ input.charCodeAt(i);
+  }
+  return toHex(hash);
+}
+
+function normalizeFileUri(uri: string): string {
+  if (!uri) return uri;
+  // Иногда iOS отдаёт абсолютные пути без схемы.
+  if (uri.startsWith('/')) return `file://${uri}`;
+  return uri;
+}
+
 function remotePageCachePath(folderPath: string, fileName: string): string {
-  const safeFolder = encodeURIComponent(folderPath);
-  return `${REMOTE_ALBUM_CACHE_DIR}${safeFolder}__${fileName}`;
+  // В пути не держим исходный folderPath (кириллица/пробелы) — используем короткий ключ.
+  const key = stablePathKey(folderPath);
+  return `${REMOTE_ALBUM_CACHE_DIR}${key}__${fileName}`;
 }
 
 function remotePageUrl(folderPath: string, fileName: string): string {
@@ -69,11 +91,11 @@ async function downloadRemotePageToCache(folderPath: string, fileName: string): 
     const localPath = remotePageCachePath(folderPath, fileName);
 
     const info = await getInfoAsync(localPath);
-    if (info.exists) return localPath;
+    if (info.exists) return normalizeFileUri(localPath);
 
     const url = remotePageUrl(folderPath, fileName);
     const res = await downloadAsync(url, localPath);
-    return res.uri;
+    return normalizeFileUri(res.uri);
   } catch (error) {
     console.warn('[albumImages] Не удалось скачать страницу', folderPath, fileName, error);
     return null;
@@ -99,6 +121,8 @@ async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Prom
 /**
  * Быстрый список страниц для просмотра: уже закешированные страницы отдаются с диска,
  * остальные сразу открываются по URL, а кеширование запускается в фоне.
+ *
+ * Это нужно, чтобы альбом открывался моментально (без ожидания скачивания всех 60 страниц).
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
@@ -113,7 +137,9 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
       const fileName = pageFileName(index + 1);
       const localPath = remotePageCachePath(spec.folderPath, fileName);
       const info = await getInfoAsync(localPath);
-      return info.exists ? localPath : remotePageUrl(spec.folderPath, fileName);
+      return info.exists
+        ? normalizeFileUri(localPath)
+        : remotePageUrl(spec.folderPath, fileName);
     })
   );
 
@@ -146,8 +172,14 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
     };
 
     await Promise.all(Array.from({ length: maxParallel }, () => worker()));
-    // Делаем порядок стабильным
-    return results.sort();
+    // Делаем порядок стабильным по номеру страницы (не по полному пути)
+    return results
+      .slice()
+      .sort((a, b) => {
+        const aNum = Number((a.match(/page_(\d+)\.png/) || [])[1] || 0);
+        const bNum = Number((b.match(/page_(\d+)\.png/) || [])[1] || 0);
+        return aNum - bNum;
+      });
   }
 
   const images = getAlbumImages(albumId);
@@ -180,39 +212,92 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
   return uris;
 }
 
-// Пустая белая страница для раздела «Праздники и события»
-const blankWhitePage = require('@/assets/images/albums/blank_white.png');
+// Пустой лист 180×240 мм @ 300 dpi — тот же формат, что у печатных блоков и экспорта PDF.
+const blankWhitePage = require('@/assets/images/albums/blank_interior_page.png');
+
+/** 180×240 мм @ 300 dpi (совпадает с albums/.../180х240_print и export 510×680 pt) */
+export const BLANK_INTERIOR_PAGE_WIDTH = 2126;
+export const BLANK_INTERIOR_PAGE_HEIGHT = 2835;
+
+/** Меняем при замене blank_interior_page.png, чтобы сбросить кеш expo-image */
+export const BLANK_INTERIOR_CACHE_REVISION = 'white-v3-2126x2835';
 const HOLIDAY_BLANK_PAGE_COUNT = 20;
 const FAMILY_BLANK_PAGE_COUNT = 20;
+
+function blankPageArray(count: number): typeof blankWhitePage[] {
+  return Array(count).fill(blankWhitePage);
+}
+
+/** ID обложки семейного альбома (SDFA1–7), не внутренняя часть */
+export function isFamilyCoverAlbumId(albumId: string | null | undefined): boolean {
+  return !!albumId && albumId.startsWith('family_sdfa');
+}
+
+/** Альбомы с одним пустым листом для добавления страниц (семья, праздники blank) */
+export function isBlankInteriorAlbum(
+  albumId: string | null | undefined,
+  category?: string | null
+): boolean {
+  const interiorId = resolveInteriorAlbumId(albumId ?? '', category);
+  return interiorId === 'family_blank' || interiorId === 'holidays_blank';
+}
+
+/** Один URI белого листа — для выбора при добавлении страницы */
+export async function getBlankInteriorPageUri(): Promise<string | null> {
+  try {
+    const asset = Asset.fromModule(blankWhitePage);
+    await asset.downloadAsync();
+    return asset.localUri || asset.uri || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * ID альбома для загрузки внутренних страниц (пустые листы для семьи/праздников и т.д.)
+ */
+export function resolveInteriorAlbumId(
+  albumId: string | null | undefined,
+  category?: string | null
+): string {
+  if (category === 'family') return 'family_blank';
+  if (category === 'kids') return 'kids_48';
+
+  if (!albumId) {
+    if (category === 'holidays') return 'holidays_blank';
+    return '';
+  }
+
+  if (albumId === 'family_blank' || isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
+  if (albumId.startsWith('holiday_')) {
+    if (albumId === 'holiday_dfa34' || albumId === 'holiday_dfa35') return 'holidays_birthday_60';
+    return 'holidays_blank';
+  }
+
+  return albumId;
+}
 
 /**
  * Получает массив изображений для альбома (require модули)
  */
 export function getAlbumImages(albumId: string): any[] {
-  switch (albumId) {
+  const interiorId = resolveInteriorAlbumId(albumId);
+
+  switch (interiorId) {
     case 'pregnancy_60':
       return [pregnancy60Preview];
     case 'pregnancy_a5':
       return [pregnancyA5Preview];
     case 'kids_48':
-      return [blankWhitePage];
+      return blankPageArray(48);
     case 'holidays_blank':
-      return Array(HOLIDAY_BLANK_PAGE_COUNT).fill(blankWhitePage);
+      return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':
       return [blankWhitePage];
     case 'family_blank':
-      return Array(FAMILY_BLANK_PAGE_COUNT).fill(blankWhitePage);
+      return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
     default:
-      // Для всех детских альбомов используем kids_48
-      if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) {
-        return [blankWhitePage];
-      }
-      if (albumId.startsWith('holiday_')) {
-        return Array(HOLIDAY_BLANK_PAGE_COUNT).fill(blankWhitePage);
-      }
-      if (albumId.startsWith('family_')) {
-        return Array(FAMILY_BLANK_PAGE_COUNT).fill(blankWhitePage);
-      }
       return [];
   }
 }
@@ -221,7 +306,9 @@ export function getAlbumImages(albumId: string): any[] {
  * Получает количество страниц для альбома
  */
 export function getAlbumPageCount(albumId: string): number {
-  switch (albumId) {
+  const interiorId = resolveInteriorAlbumId(albumId);
+
+  switch (interiorId) {
     case 'pregnancy_60':
       return 60;
     case 'pregnancy_a5':
@@ -235,16 +322,6 @@ export function getAlbumPageCount(albumId: string): number {
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
     default:
-      // Для всех детских альбомов используем 48 страниц
-      if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) {
-        return 48;
-      }
-      if (albumId.startsWith('holiday_')) {
-        return HOLIDAY_BLANK_PAGE_COUNT;
-      }
-      if (albumId.startsWith('family_')) {
-        return FAMILY_BLANK_PAGE_COUNT;
-      }
       return 0;
   }
 }

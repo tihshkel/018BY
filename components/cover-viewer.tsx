@@ -307,7 +307,9 @@ export default function CoverViewer({
         };
         onAnnotationAdd(newAnnotation);
         // Сбрасываем инструмент после добавления изображения
-        onToolReset();
+        if (onToolReset) {
+          onToolReset();
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -326,7 +328,7 @@ export default function CoverViewer({
 
     const { locationX, locationY } = event.nativeEvent || event;
     
-    if (currentTool === 'text') {
+    if (currentTool === 'text' && onAnnotationAdd) {
       const maxZIndex = annotations.length > 0 
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
@@ -371,10 +373,10 @@ export default function CoverViewer({
             annotationsRef.current?.startEditing?.(newAnnotation.id);
           });
         });
-        onToolReset();
+        if (onToolReset) onToolReset();
       };
       applyStyle();
-    } else if (currentTool === 'image') {
+    } else if (currentTool === 'image' && onAnnotationAdd) {
       // Открываем выбор изображения
       handlePickImage(locationX, locationY);
     }

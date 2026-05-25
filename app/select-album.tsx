@@ -2,7 +2,11 @@ import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
-import { getAlbumImageUrisForViewing, getAlbumImages } from '@/utils/albumImages';
+import {
+  getAlbumImageUrisForViewing,
+  getAlbumImages,
+  resolveInteriorAlbumId,
+} from '@/utils/albumImages';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -175,13 +179,15 @@ export default function SelectAlbumScreen() {
       const projectId = Date.now().toString();
       
       // Сохраняем информацию о проекте
+      const interiorAlbumId = resolveInteriorAlbumId(album.id, album.category);
+
       const projectData = {
         id: projectId,
         title: album.name,
         category: album.category,
         hasPdfTemplate: true,
         pdfPath: album.pdfPath,
-        albumId: album.id, // Сохраняем ID альбома для поиска в шаблонах
+        albumId: interiorAlbumId,
         sourceTemplateId: productId ?? null,
         reminderDate: reminderDateISO,
         thumbnailPath: album.thumbnailPath, // Сохраняем путь к миниатюре
@@ -206,7 +212,7 @@ export default function SelectAlbumScreen() {
       console.log(`[SelectAlbum] Начинаем загрузку всех страниц альбома: ${album.id}`);
       
       try {
-        const imageUris = await getAlbumImageUrisForViewing(album.id);
+        const imageUris = await getAlbumImageUrisForViewing(interiorAlbumId);
         
         if (imageUris && imageUris.length > 0) {
           // Сохраняем все страницы в проект

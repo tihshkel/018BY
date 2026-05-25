@@ -10,11 +10,20 @@ import {
   removeRemindersAndScheduledNotificationsForProject,
 } from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
-import { getAlbumImages, getAlbumImageUrisForViewing, getAlbumPageCount } from '@/utils/albumImages';
+import {
+  BLANK_INTERIOR_CACHE_REVISION,
+  getAlbumImages,
+  getAlbumImageUrisForViewing,
+  getAlbumPageCount,
+  getBlankInteriorPageUri,
+  isBlankInteriorAlbum,
+  resolveInteriorAlbumId,
+} from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
-import { getCoverForExport } from '@/utils/coverMapping';
+import { getCoverPickerImage } from '@/utils/coverPickerImage';
+import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { createId, ensureUniqueIds } from '@/utils/id';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,6 +52,30 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+const PREGNANCY_MOCKUP_ASSET_RE = /albums%2F2\.png|albums\/2\.png|\/2\.png(?:\?|$)/i;
+
+/** Старые проекты «Семья» — неверный шаблон (PDF, 2.png, битый blank_interior_page) */
+function shouldReloadFamilyInteriorCache(
+  category: string | undefined,
+  uris: string[]
+): boolean {
+  if (category !== 'family' || uris.length === 0) return false;
+  if (uris.length !== 20) return true;
+
+  const badUri = (u: string) =>
+    PREGNANCY_MOCKUP_ASSET_RE.test(u) ||
+    /БЕРЕМЕННОСТЬ|pregnancy|БОХО_ДЕТ|ДНЕЙ%20РОЖДЕНИЯ|assets\/pdfs/i.test(u);
+
+  if (uris.some((u) => typeof u === 'string' && badUri(u))) return true;
+
+  const first = uris[0];
+  if (typeof first !== 'string') return false;
+  const allSameTemplate = uris.every((u) => u === first);
+  if (allSameTemplate && !first.includes('blank_interior_page')) return true;
+
+  return false;
+}
 
 export default function EditAlbumScreen() {
   const insets = useSafeAreaInsets();
@@ -93,6 +126,12 @@ export default function EditAlbumScreen() {
   const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
+  const [effectiveCelebration, setEffectiveCelebration] = useState<string | undefined>(
+    typeof celebration === 'string' ? celebration : undefined
+  );
+  const [effectiveCoverType, setEffectiveCoverType] = useState<string | undefined>(
+    typeof coverType === 'string' ? coverType : undefined
+  );
   const annotationsRef = React.useRef<PdfAnnotationsRef>(null!);
   const lastFontFamilyRef = React.useRef<string | null>(null);
   const exportInProgressRef = React.useRef(false);
@@ -337,35 +376,56 @@ export default function EditAlbumScreen() {
       setIsLoading(true);
       let foundAlbumId: string | null = null;
       let foundAlbumName = '';
-      
+      let categoryForInterior: string | undefined =
+        typeof celebration === 'string' ? celebration : undefined;
+      let coverIdForViewer: string | undefined =
+        typeof coverType === 'string' ? coverType : undefined;
+
       console.log('[DEBUG] loadImagesData called:', { id, celebration, coverType, interiorType });
-      
+
       if (id) {
-        // Загружаем данные проекта из AsyncStorage
         const projectData = await AsyncStorage.getItem(`@project_${id}`);
-        
+
         if (projectData) {
           const project = JSON.parse(projectData);
           foundAlbumName = project.title || 'Альбом';
-          
-          // Получаем ID альбома
-          if (project.isReadyMadeAlbum) {
-            const originalAlbumId = project.albumId || id;
-            // Для детских альбомов используем единый ID для загрузки изображений
-            if (project.category === 'kids') {
-              foundAlbumId = 'kids_48';
-            } else {
-              foundAlbumId = originalAlbumId;
+          categoryForInterior = categoryForInterior || project.category;
+          coverIdForViewer = coverIdForViewer || project.coverType || undefined;
+          setEffectiveCelebration(categoryForInterior);
+          setEffectiveCoverType(coverIdForViewer);
+
+          const originalAlbumId = project.albumId || id;
+          foundAlbumId = resolveInteriorAlbumId(originalAlbumId, categoryForInterior);
+
+          if (
+            categoryForInterior === 'family' &&
+            project.blankInteriorRevision !== BLANK_INTERIOR_CACHE_REVISION
+          ) {
+            await AsyncStorage.removeItem(`@project_images_${id}`).catch(() => {});
+            const updated = {
+              ...project,
+              blankInteriorRevision: BLANK_INTERIOR_CACHE_REVISION,
+              albumId: 'family_blank',
+            };
+            await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(updated));
+            const listRaw = await AsyncStorage.getItem('@user_projects');
+            if (listRaw) {
+              const list = JSON.parse(listRaw) as { id: string }[];
+              const idx = list.findIndex((p) => p.id === id);
+              if (idx !== -1) {
+                list[idx] = { ...list[idx], ...updated };
+                await AsyncStorage.setItem('@user_projects', JSON.stringify(list));
+              }
             }
-          } else {
-            foundAlbumId = project.albumId || null;
           }
         }
       } else if (interiorType) {
-        // Если передан interiorType, используем соответствующий альбом
-        foundAlbumId = interiorType;
-        
-        // Для дневников получаем название из обложки
+        foundAlbumId = resolveInteriorAlbumId(interiorType, categoryForInterior);
+        categoryForInterior = categoryForInterior || (typeof celebration === 'string' ? celebration : undefined);
+        coverIdForViewer = typeof coverType === 'string' ? coverType : undefined;
+        setEffectiveCelebration(categoryForInterior);
+        setEffectiveCoverType(coverIdForViewer);
+
         if (celebration === 'diary' && coverType) {
           const diaryCover = getDiaryCoverById(coverType);
           if (diaryCover) {
@@ -388,33 +448,41 @@ export default function EditAlbumScreen() {
           }
         }
       } else if (coverType) {
-        // Если передан coverType, ищем альбом в шаблонах
         const albumTemplate = getAlbumTemplateById(coverType);
         if (albumTemplate) {
           foundAlbumName = albumTemplate.name;
-          // Для детских альбомов используем единый ID для загрузки изображений
-          if (albumTemplate.category === 'kids') {
-            foundAlbumId = 'kids_48';
-          } else {
-            foundAlbumId = coverType;
-          }
         }
+        categoryForInterior = categoryForInterior || (typeof celebration === 'string' ? celebration : undefined);
+        coverIdForViewer = coverType;
+        setEffectiveCelebration(categoryForInterior);
+        setEffectiveCoverType(coverIdForViewer);
+        foundAlbumId = resolveInteriorAlbumId(coverType, categoryForInterior);
       }
-      
-      // Если альбом не найден, используем дефолтный
-      console.log('[DEBUG] Album not found, using default:', { foundAlbumId, celebration });
+
+      if (!categoryForInterior && typeof celebration === 'string') {
+        categoryForInterior = celebration;
+        setEffectiveCelebration(celebration);
+      }
+      if (!coverIdForViewer && typeof coverType === 'string') {
+        coverIdForViewer = coverType;
+        setEffectiveCoverType(coverType);
+      }
+
+      console.log('[DEBUG] Album not found, using default:', { foundAlbumId, celebration: categoryForInterior });
       if (!foundAlbumId) {
-        if (celebration === 'kids') {
+        if (categoryForInterior === 'kids') {
           foundAlbumId = 'kids_48';
-        } else if (celebration === 'holidays') {
+        } else if (categoryForInterior === 'holidays') {
           foundAlbumId = 'holidays_blank';
-        } else if (celebration === 'family') {
+        } else if (categoryForInterior === 'family') {
           foundAlbumId = 'family_blank';
-        } else if (celebration === 'diary') {
+        } else if (categoryForInterior === 'diary') {
           foundAlbumId = 'diary_interior_brown';
         } else {
           foundAlbumId = 'pregnancy_60';
         }
+      } else {
+        foundAlbumId = resolveInteriorAlbumId(foundAlbumId, categoryForInterior);
       }
       
       setAlbumId(foundAlbumId);
@@ -550,9 +618,8 @@ export default function EditAlbumScreen() {
                 pagesCount: imageUris.length,
               };
               
-              if (celebration === 'diary' && diaryCover) {
-                projectData.thumbnailPath = diaryCover.image;
-              }
+              const thumb = getCoverThumbnailForProject(coverType, celebration);
+              if (thumb) projectData.thumbnailPath = thumb;
               if (eventDate) {
                 projectData.reminderDate = eventDate;
               }
@@ -610,14 +677,17 @@ export default function EditAlbumScreen() {
           try {
             const parsed = JSON.parse(savedImages);
             if (Array.isArray(parsed) && parsed.length > 0) {
+              const skipSavedInterior = shouldReloadFamilyInteriorCache(categoryForInterior, parsed);
+              if (skipSavedInterior && id) {
+                await AsyncStorage.removeItem(`@project_images_${id}`).catch(() => {});
+              }
+              if (!skipSavedInterior) {
               imageUris = parsed;
-              // Устанавливаем данные СРАЗУ, не ждем ничего
               setImages(imageUris);
               const savedTotalPages = await getSavedImagesTotalPages(id, imageUris.length, pageCount);
               setTotalPages(savedTotalPages);
               setIsLoading(false);
               
-              // Загружаем сохраненные аннотации ПЕРЕД выходом
               let loadedAnnotations: Annotation[] = [];
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
@@ -672,7 +742,8 @@ export default function EditAlbumScreen() {
                   }
                 });
               }
-              return; // Выходим сразу - данные уже установлены
+              return;
+              }
             }
           } catch {
             // Если ошибка парсинга, продолжаем обычную загрузку
@@ -885,8 +956,13 @@ export default function EditAlbumScreen() {
           hasPdfTemplate: true,
           pagesCount: imageUris.length || pageCount,
         };
+        if (celebration === 'family') {
+          projectData.blankInteriorRevision = BLANK_INTERIOR_CACHE_REVISION;
+        }
+
+        const thumb = getCoverThumbnailForProject(coverType, celebration);
+        if (thumb) projectData.thumbnailPath = thumb;
         
-        // Сохраняем дату события, если она передана
         if (eventDate) {
           projectData.reminderDate = eventDate;
         }
@@ -957,6 +1033,12 @@ export default function EditAlbumScreen() {
       opacity: containerOpacity.value,
     };
   });
+
+  const activeCelebration =
+    effectiveCelebration ?? (typeof celebration === 'string' ? celebration : undefined);
+  const activeCoverType =
+    effectiveCoverType ?? (typeof coverType === 'string' ? coverType : undefined);
+  const usesSingleBlankPage = isBlankInteriorAlbum(albumId, activeCelebration);
 
   const getCelebrationTitle = (celebrationId: string) => {
     const celebrationMap: { [key: string]: string } = {
@@ -1749,20 +1831,24 @@ export default function EditAlbumScreen() {
     });
   };
 
-  // Загружаем все страницы из шаблона альбома
+  // Шаблоны для «Добавить страницу»
   useEffect(() => {
     const loadTemplatePages = async () => {
       if (!albumId) return;
-      
+
       try {
-        // Для дневников используем специальную логику
-        if (celebration === 'diary' && albumId.startsWith('diary_interior_')) {
+        if (usesSingleBlankPage) {
+          const blankUri = await getBlankInteriorPageUri();
+          if (blankUri) setTemplatePages([blankUri]);
+          return;
+        }
+
+        if (activeCelebration === 'diary' && albumId.startsWith('diary_interior_')) {
           const interiorUris = await getDiaryInteriorImageUris(albumId);
           if (interiorUris && interiorUris.length > 0) {
             setTemplatePages(interiorUris);
           }
         } else {
-          // Для остальных альбомов используем быстрые URI для просмотра.
           const uris = await getAlbumImageUrisForViewing(albumId);
           if (uris && uris.length > 0) {
             setTemplatePages(uris);
@@ -1772,9 +1858,9 @@ export default function EditAlbumScreen() {
         console.error('Error loading template pages:', error);
       }
     };
-    
+
     loadTemplatePages();
-  }, [albumId, celebration]);
+  }, [albumId, activeCelebration, usesSingleBlankPage]);
 
   // Добавляем новую страницу в конец альбома
   const handleAddPage = async (sourcePageIndex: number) => {
@@ -2090,9 +2176,9 @@ export default function EditAlbumScreen() {
           {viewMode === 'cover' ? (
             fontsLoaded ? (
               <CoverViewer
-                albumId={coverType || albumId}
-                category={celebration}
-                coverType={coverType}
+                albumId={activeCoverType || undefined}
+                category={activeCelebration}
+                coverType={activeCoverType}
                 annotations={coverAnnotations}
                 onAnnotationAdd={handleCoverAnnotationAdd}
                 onAnnotationUpdate={handleCoverAnnotationUpdate}
@@ -2107,12 +2193,12 @@ export default function EditAlbumScreen() {
                 defaultTextStyle={lastTextStyle}
                 getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
                 firstPageImage={
-                  (celebration === 'family' || celebration === 'holidays')
+                  (activeCelebration === 'family' || activeCelebration === 'holidays') && activeCoverType
                     ? (() => {
-                        const coverSource = getCoverForExport(coverType || albumId, celebration);
+                        const coverSource = getCoverPickerImage(activeCoverType, activeCelebration);
                         return coverSource ? Asset.fromModule(coverSource as number | string).uri : undefined;
                       })()
-                    : (celebration === 'pregnancy' || celebration === 'kids' || celebration === 'diary') && images[0]
+                    : (activeCelebration === 'pregnancy' || activeCelebration === 'kids' || activeCelebration === 'diary') && images[0]
                       ? images[0]
                       : undefined
                 }
@@ -2281,7 +2367,13 @@ export default function EditAlbumScreen() {
 
                 <TouchableOpacity
                   style={styles.toolButton}
-                  onPress={() => setShowAddPageModal(true)}
+                  onPress={() => {
+                    if (usesSingleBlankPage && templatePages.length > 0) {
+                      handleAddPage(0);
+                    } else {
+                      setShowAddPageModal(true);
+                    }
+                  }}
                   activeOpacity={0.8}
                   accessibilityRole="button"
                   accessibilityLabel="Добавить страницу"
@@ -2432,7 +2524,6 @@ export default function EditAlbumScreen() {
         </View>
       </Modal>
 
-      {/* Модальное окно выбора страницы для добавления */}
       <Modal
         visible={showAddPageModal}
         transparent={true}
@@ -2444,7 +2535,9 @@ export default function EditAlbumScreen() {
         <View style={styles.pageSelectModalOverlay}>
           <View style={styles.pageSelectModalContent}>
             <View style={styles.pageSelectModalHeader}>
-              <Text style={styles.pageSelectModalTitle}>Выберите страницу для добавления</Text>
+              <Text style={styles.pageSelectModalTitle}>
+                {usesSingleBlankPage ? 'Добавить страницу' : 'Выберите страницу для добавления'}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setShowAddPageModal(false);
@@ -2485,11 +2578,11 @@ export default function EditAlbumScreen() {
                         <Image
                           source={{ uri: pageUri }}
                           style={styles.pageSelectThumbnailImage}
-                          contentFit="cover"
+                          contentFit={usesSingleBlankPage ? 'contain' : 'cover'}
                         />
                       </View>
                       <Text style={styles.pageSelectItemNumber}>
-                        Страница {index + 1}
+                        {usesSingleBlankPage ? 'Белый лист' : `Страница ${index + 1}`}
                       </Text>
                     </TouchableOpacity>
                   ))}
