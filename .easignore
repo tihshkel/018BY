@@ -29,6 +29,14 @@ ios/Pods/
 /albums/pregnant/
 /albums/diary/
 
+# Дневники: static require в diaryAlbumsLoader (DD*/first_page) и diaryInteriorAssets (блоки 60+40 стр.)
+!/albums/diary/
+!/albums/diary/DD*/
+!/albums/diary/DD*/**
+!/albums/diary/cover/
+!/albums/diary/cover/in album/
+!/albums/diary/cover/in album/**
+
 # These lightweight cover/first-page assets are referenced by static require().
 # They must stay in the EAS archive; otherwise Linux Metro cannot bundle them.
 !/albums/holiday/
