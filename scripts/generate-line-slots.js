@@ -1,0 +1,854 @@
+/* eslint-disable no-console */
+const fs = require('fs');
+const path = require('path');
+const { PNG } = require('pngjs');
+
+function clamp(value, min, max) {
+  if (Number.isNaN(value)) return min;
+  if (max < min) return min;
+  return Math.min(Math.max(value, min), max);
+}
+
+function readPng(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(new PNG())
+      .on('parsed', function parsed() {
+        resolve(this);
+      })
+      .on('error', reject);
+  });
+}
+
+function getLuminance(r, g, b) {
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function detectHorizontalLines(png, options) {
+  const width = png.width;
+  const height = png.height;
+  const data = png.data;
+
+  const xStart = Math.floor(width * options.sampleXStartRatio);
+  const xEnd = Math.floor(width * options.sampleXEndRatio);
+
+  const rowScore = new Array(height).fill(0);
+
+  for (let y = 0; y < height; y += 1) {
+    let darkCount = 0;
+    let total = 0;
+    for (let x = xStart; x < xEnd; x += 1) {
+      const idx = (width * y + x) << 2;
+      const a = data[idx + 3];
+      if (a < 10) continue;
+      total += 1;
+      const lum = getLuminance(data[idx], data[idx + 1], data[idx + 2]);
+      if (lum < options.luminanceThreshold) darkCount += 1;
+    }
+    rowScore[y] = total > 0 ? darkCount / total : 0;
+  }
+
+  const segments = [];
+  let inSeg = false;
+  let segStart = 0;
+  for (let y = 0; y < height; y += 1) {
+    const hit = rowScore[y] >= options.rowCoverageThreshold;
+    if (hit && !inSeg) {
+      inSeg = true;
+      segStart = y;
+    } else if (!hit && inSeg) {
+      inSeg = false;
+      segments.push([segStart, y - 1]);
+    }
+  }
+  if (inSeg) segments.push([segStart, height - 1]);
+
+  const lines = [];
+  for (const [start, end] of segments) {
+    const thickness = end - start + 1;
+    if (thickness > options.maxLineThicknessPx) continue;
+    lines.push(Math.round((start + end) / 2));
+  }
+
+  lines.sort((a, b) => a - b);
+  const deduped = [];
+  for (const y of lines) {
+    const prev = deduped[deduped.length - 1];
+    if (prev === undefined || Math.abs(y - prev) >= options.minLineGapPx) deduped.push(y);
+  }
+
+  return deduped.filter((y) => y >= options.topCutPx && y <= height - options.bottomCutPx);
+}
+
+function mergeLineCentersY(centers, minGapPx) {
+  const sorted = [...centers].sort((a, b) => a - b);
+  const deduped = [];
+  for (const y of sorted) {
+    const prev = deduped[deduped.length - 1];
+    if (prev === undefined || Math.abs(y - prev) >= minGapPx) deduped.push(y);
+  }
+  return deduped;
+}
+
+/** Дополнительный проход: длинные горизонтальные штрихи (короткие подчёркивания справа от подписи). */
+function detectLongRunLines(png, options) {
+  const width = png.width;
+  const height = png.height;
+  const data = png.data;
+  const xStart = Math.floor(width * options.sampleXStartRatio);
+  const xEnd = Math.floor(width * options.sampleXEndRatio);
+  const band = xEnd - xStart;
+  const minRunPx = Math.floor(band * (options.minRunWidthRatio ?? 0.12));
+  const threshold = options.luminanceThreshold;
+  const hits = [];
+
+  for (let y = options.topCutPx; y <= height - options.bottomCutPx; y += 1) {
+    let run = 0;
+    let maxRun = 0;
+    for (let x = xStart; x < xEnd; x += 1) {
+      const idx = (width * y + x) << 2;
+      if (isInkPixel(data, idx, threshold)) {
+        run += 1;
+        maxRun = Math.max(maxRun, run);
+      } else {
+        run = 0;
+      }
+    }
+    if (maxRun >= minRunPx) hits.push(y);
+  }
+
+  return mergeLineCentersY(hits, options.minLineGapPx);
+}
+
+function getMinLineGapPx(png, options) {
+  const fromNorm = Math.floor(png.height * (options.minLineGapNorm ?? 0.02));
+  return Math.max(options.minLineGapPx ?? 10, fromNorm);
+}
+
+function measureMaxUnderlineRunPx(png, centerY, options) {
+  const width = png.width;
+  const data = png.data;
+  const y0 = clamp(centerY, 0, png.height - 1);
+  const xStart = Math.floor(width * options.sampleXStartRatio);
+  const xEnd = Math.floor(width * options.sampleXEndRatio);
+  const threshold = options.luminanceThreshold;
+  let run = 0;
+  let maxRun = 0;
+  for (let x = xStart; x < xEnd; x += 1) {
+    const idx = (width * y0 + x) << 2;
+    if (isInkPixel(data, idx, threshold)) {
+      run += 1;
+      maxRun = Math.max(maxRun, run);
+    } else {
+      run = 0;
+    }
+  }
+  return maxRun;
+}
+
+function refineDetectedLines(png, linesPx, options) {
+  const minGapPx = getMinLineGapPx(png, options);
+  let lines = mergeLineCentersY(linesPx, minGapPx);
+
+  const minRunPx = Math.floor(
+    png.width * (options.minUnderlineRunRatio ?? 0.14) * (options.sampleXEndRatio - options.sampleXStartRatio)
+  );
+  lines = lines.filter((y) => measureMaxUnderlineRunPx(png, y, options) >= minRunPx);
+
+  const maxLines = options.maxLinesPerPage ?? 24;
+  if (lines.length > maxLines) {
+    const scored = lines.map((y) => ({
+      y,
+      score: measureMaxUnderlineRunPx(png, y, options),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    lines = scored
+      .slice(0, maxLines)
+      .map((s) => s.y)
+      .sort((a, b) => a - b);
+  }
+
+  return lines;
+}
+
+function detectAllHorizontalLines(png, options) {
+  const minGapPx = getMinLineGapPx(png, options);
+  const primary = detectHorizontalLines(png, options);
+  const sensitive = detectHorizontalLines(png, {
+    ...options,
+    luminanceThreshold: options.sensitiveLuminanceThreshold ?? 248,
+    rowCoverageThreshold: options.sensitiveRowCoverageThreshold ?? 0.035,
+  });
+  const longRun = detectLongRunLines(png, { ...options, minLineGapPx: minGapPx });
+  const merged = mergeLineCentersY([...primary, ...sensitive, ...longRun], minGapPx);
+  return merged.filter((y) => y >= options.topCutPx && y <= png.height - options.bottomCutPx);
+}
+
+function isDecorativeTopLine(png, centerY, options) {
+  const normY = centerY / png.height;
+  if (normY > 0.26) return false;
+  const { left, right } = measureLineExtents(png, centerY, options);
+  const span = (right - left) / png.width;
+  return span > 0.7;
+}
+
+function measureLineExtents(png, centerY, options) {
+  const width = png.width;
+  const data = png.data;
+  const y0 = clamp(centerY, 0, png.height - 1);
+  let left = width;
+  let right = 0;
+
+  for (let x = 0; x < width; x += 1) {
+    const idx = (width * y0 + x) << 2;
+    const a = data[idx + 3];
+    if (a < 10) continue;
+    const lum = getLuminance(data[idx], data[idx + 1], data[idx + 2]);
+    if (lum < options.luminanceThreshold) {
+      if (x < left) left = x;
+      if (x > right) right = x;
+    }
+  }
+
+  if (right <= left) {
+    const fallbackX = Math.floor(width * options.sampleXStartRatio);
+    const fallbackW = Math.floor(width * (options.sampleXEndRatio - options.sampleXStartRatio));
+    return { left: fallbackX, right: fallbackX + fallbackW };
+  }
+
+  const pad = Math.max(4, Math.floor(width * 0.01));
+  return {
+    left: clamp(left - pad, 0, width - 1),
+    right: clamp(right + pad, 0, width - 1),
+  };
+}
+
+function isInkPixel(data, idx, threshold) {
+  const a = data[idx + 3];
+  if (a < 10) return false;
+  return getLuminance(data[idx], data[idx + 1], data[idx + 2]) < threshold;
+}
+
+function findInkRunsOnRow(png, centerY, options, inkThreshold) {
+  const width = png.width;
+  const data = png.data;
+  const y0 = clamp(centerY, 0, png.height - 1);
+  const xStart = Math.floor(width * options.sampleXStartRatio);
+  const xEnd = Math.floor(width * options.sampleXEndRatio);
+  const threshold = inkThreshold ?? options.luminanceThreshold;
+
+  const runs = [];
+  let inRun = false;
+  let runStart = xStart;
+
+  for (let x = xStart; x < xEnd; x += 1) {
+    const idx = (width * y0 + x) << 2;
+    const isDark = isInkPixel(data, idx, threshold);
+
+    if (isDark && !inRun) {
+      inRun = true;
+      runStart = x;
+    } else if (!isDark && inRun) {
+      runs.push([runStart, x - 1]);
+      inRun = false;
+    }
+  }
+  if (inRun) runs.push([runStart, xEnd - 1]);
+
+  return runs;
+}
+
+/** Сканирует строки только ВЫШЕ линии — на самой линии подпись и штрих сливаются в один run */
+function findLabelRunsNearLine(png, centerY, options) {
+  const labelThreshold = options.labelLuminanceThreshold ?? 210;
+  const offsets = [-18, -14, -11, -8, -5];
+  const merged = new Map();
+
+  for (const off of offsets) {
+    const y = clamp(centerY + off, 0, png.height - 1);
+    const runs = findInkRunsOnRow(png, y, options, labelThreshold);
+    for (const [start, end] of runs) {
+      const key = `${start}-${end}`;
+      merged.set(key, [start, end]);
+    }
+  }
+
+  return Array.from(merged.values()).sort((a, b) => a[0] - b[0]);
+}
+
+function measureLabelEndPx(png, centerY, options) {
+  const width = png.width;
+  const threshold = options.labelLuminanceThreshold ?? 210;
+  const yTop = clamp(centerY - 20, 0, png.height - 1);
+  const yBottom = clamp(centerY + 1, 0, png.height - 1);
+  const xStart = Math.floor(width * 0.08);
+  const xEnd = Math.floor(width * 0.62);
+  let labelEnd = 0;
+  let lineStart = width;
+
+  for (let x = xStart; x < xEnd; x += 1) {
+    let textHits = 0;
+    let lineHits = 0;
+    for (let y = yTop; y <= yBottom; y += 1) {
+      const idx = (width * y + x) << 2;
+      if (!isInkPixel(png.data, idx, threshold)) continue;
+      if (y >= centerY - 1) lineHits += 1;
+      else textHits += 1;
+    }
+    if (textHits >= 1 || lineHits >= 1) {
+      if (lineHits >= 1 && lineStart === width) lineStart = x;
+      if (textHits >= 1) labelEnd = x;
+    }
+  }
+
+  if (labelEnd >= Math.floor(width * 0.12) && lineStart < width && labelEnd < lineStart + width * 0.05) {
+    return 0;
+  }
+
+  return labelEnd;
+}
+
+function resolveWritableBand(png, centerY, options, defaultMargins) {
+  const width = png.width;
+  const { right: lineRight } = measureLineExtents(png, centerY, options);
+  const labelRuns = findLabelRunsNearLine(png, centerY, options);
+  const pad = Math.max(8, Math.floor(width * 0.014));
+  const minLabelWidth = Math.floor(width * 0.035);
+  const labelZoneMaxX = Math.floor(width * 0.55);
+
+  let textStartPx = Math.floor(width * defaultMargins.x);
+  let textEndPx = lineRight;
+  let hasLabel = false;
+
+  const labelEndPx = measureLabelEndPx(png, centerY, options);
+  if (labelEndPx >= Math.floor(width * 0.12)) {
+    hasLabel = true;
+    textStartPx = labelEndPx + pad;
+    textEndPx = lineRight;
+  }
+
+  const labelCandidates = labelRuns.filter(([start, end]) => {
+    const runWidth = (end - start + 1) / width;
+    return (
+      start <= width * 0.24 &&
+      end < width * 0.62 &&
+      runWidth < 0.45 &&
+      end - start + 1 >= minLabelWidth
+    );
+  });
+
+  if (!hasLabel && labelCandidates.length > 0) {
+    const best = labelCandidates.sort((a, b) => b[1] - b[0] - (a[1] - a[0]))[0];
+    hasLabel = true;
+    textStartPx = best[1] + pad;
+    textEndPx = lineRight;
+  } else if (!hasLabel && labelRuns.length > 0) {
+    const first = labelRuns[0];
+    if (first[0] < labelZoneMaxX && first[1] - first[0] + 1 >= minLabelWidth * 0.5) {
+      hasLabel = true;
+      textStartPx = first[1] + pad;
+      textEndPx = lineRight;
+    }
+  }
+
+  let wPx = textEndPx - textStartPx;
+  if (wPx < width * 0.08) {
+    textStartPx = Math.floor(width * defaultMargins.x);
+    wPx = Math.floor(width * defaultMargins.width);
+    hasLabel = false;
+  }
+
+  return {
+    xPx: clamp(textStartPx, 0, width - 2),
+    wPx: clamp(wPx, Math.floor(width * 0.08), width - textStartPx),
+    hasLabel,
+  };
+}
+
+function isContinuationSlot(prev, curr) {
+  if (!prev || curr.hasLabel) return false;
+  if (Math.abs(curr.y - prev.y) < 0.003) return false;
+
+  const yGap = curr.y - prev.y;
+  if (yGap <= 0 || yGap > 0.08) return false;
+
+  if (prev.hasLabel) {
+    if (curr.x > 0.52 && curr.width < 0.5) return false;
+    if (curr.x > prev.x + prev.width * 0.25) return false;
+    return true;
+  }
+
+  const xSimilar = Math.abs(prev.x - curr.x) < 0.06;
+  return xSimilar && prev.width > 0.35 && curr.width > 0.35;
+}
+
+function assignContinuationGroups(slots) {
+  let groupId = 0;
+
+  for (let i = 0; i < slots.length; i += 1) {
+    const slot = slots[i];
+    const prev = i > 0 ? slots[i - 1] : null;
+
+    if (slot.hasLabel || !isContinuationSlot(prev, slot)) {
+      groupId += 1;
+    }
+    slot.continuationGroup = groupId;
+  }
+
+  return slots;
+}
+
+function buildSlotsForPage(png, lineCentersPx, options, defaultMargins) {
+  const height = png.height;
+  const width = png.width;
+  const slots = [];
+
+  for (let i = 0; i < lineCentersPx.length; i += 1) {
+    const centerY = lineCentersPx[i];
+    const prev = i > 0 ? lineCentersPx[i - 1] : null;
+    const next = i < lineCentersPx.length - 1 ? lineCentersPx[i + 1] : null;
+
+    let bandPx;
+    if (prev !== null && next !== null) bandPx = Math.min((next - prev) / 2, height * 0.08);
+    else if (next !== null) bandPx = next - centerY;
+    else if (prev !== null) bandPx = centerY - prev;
+    else bandPx = height * 0.028;
+
+    bandPx = clamp(bandPx, 10, Math.min(220, height * 0.12));
+
+    const { xPx, wPx, hasLabel } = resolveWritableBand(png, centerY, options, defaultMargins);
+
+    slots.push({
+      x: formatFloat(clamp(xPx / width, 0, 1)),
+      y: formatFloat(clamp(centerY / height, 0, 1)),
+      width: formatFloat(clamp(wPx / width, 0.05, 1)),
+      height: formatFloat(clamp(bandPx / height, 0.01, 0.2)),
+      hasLabel,
+    });
+  }
+
+  assignContinuationGroups(slots);
+
+  return slots;
+}
+
+function formatFloat(n) {
+  return Number(n.toFixed(5));
+}
+
+const { extractAllSlotsFromPdf } = require('./pdf-line-extractor');
+
+/** Базовые PDF-параметры как у альбомов беременности (точные подписи, без геометрии). */
+const PREGNANCY_PDF_BASE = {
+  inferLabelFromGeometry: false,
+  pdfMinSpanPt: 4,
+  pdfMaxSpanRatio: 0.92,
+  pdfMinNormY: 0.03,
+  pdfMaxNormY: 0.96,
+  pdfBottomCutPt: 55,
+  pdfTopCutPt: 40,
+  pdfFormStartNormY: 0.12,
+  pdfTextPadPt: 3,
+};
+
+/** Для макетов с пунктирными линиями и формами — склейка + фильтрация как у беременности. */
+const DASHED_FORM_PDF = {
+  ...PREGNANCY_PDF_BASE,
+  mergeDashedRows: true,
+  minSegmentSpanPt: 1.5,
+  mergeGapPt: 8,
+  minUnderlineRunRatio: 0.08,
+  pdfMaxSpanRatio: 0.85,
+  pdfBottomCutPt: 28,
+  pdfTopCutPt: 28,
+  pdfFormStartNormY: 0.05,
+  extractFlatCurves: true,
+  formLineRefine: true,
+  formMinScore: 0.2,
+  formYClusterEpsilon: 0.014,
+  collapseNearbyRows: true,
+  minRowGapNorm: 0.018,
+};
+
+/** Исходные PDF-макеты (векторные линии точнее PNG-скана). */
+const PDF_SOURCES = {
+  pregnancy_60: path.join('in albums', 'Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
+  pregnancy_a5: path.join('in albums', 'Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
+  kids_48: path.join('in albums', 'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf'),
+  holidays_birthday_60: path.join('in albums', 'Блок ДНЕЙ РОЖДЕНИЯ готов.pdf'),
+  diary_interior_brown: path.join('in albums', 'Блок коричневый _180х240_print.pdf'),
+  diary_interior_purple: path.join('in albums', 'Блок фиолетовый_180х240_print.pdf'),
+};
+
+const ALBUM_FOLDERS = [
+  {
+    albumId: 'pregnancy_60',
+    folder: 'Блок БЕРЕМЕННОСТЬ 60 стр',
+    margins: { x: 0.1, width: 0.8 },
+    options: {
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      luminanceThreshold: 235,
+      labelLuminanceThreshold: 210,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 22,
+      minLineGapNorm: 0.02,
+      minRunWidthRatio: 0.12,
+      minUnderlineRunRatio: 0.14,
+      maxLinesPerPage: 40,
+      formStartNormY: 0.26,
+      topCutPx: 80,
+      bottomCutPx: 80,
+    },
+  },
+  {
+    albumId: 'pregnancy_a5',
+    folder: 'Блок БЕРЕМЕННОСТЬ A5 другой блок',
+    margins: { x: 0.1, width: 0.8 },
+    options: {
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      luminanceThreshold: 235,
+      labelLuminanceThreshold: 210,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 18,
+      minLineGapNorm: 0.022,
+      minUnderlineRunRatio: 0.14,
+      maxLinesPerPage: 40,
+      formStartNormY: 0.22,
+      topCutPx: 70,
+      bottomCutPx: 70,
+    },
+  },
+  {
+    albumId: 'kids_48',
+    folder: 'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр',
+    margins: { x: 0.08, width: 0.84 },
+    preferPngOverrides: true,
+    options: {
+      ...DASHED_FORM_PDF,
+      inferLabelFromGeometry: true,
+      maxLinesPerPage: 12,
+      formMinScore: 0.2,
+      sampleXStartRatio: 0.12,
+      sampleXEndRatio: 0.92,
+      luminanceThreshold: 235,
+      labelLuminanceThreshold: 210,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 18,
+      minLineGapNorm: 0.02,
+      minRunWidthRatio: 0.12,
+      formStartNormY: 0.05,
+      topCutPx: 60,
+      bottomCutPx: 60,
+    },
+  },
+  {
+    albumId: 'holidays_birthday_60',
+    folder: 'Блок ДНЕЙ РОЖДЕНИЯ 60 стр',
+    margins: { x: 0.1, width: 0.8 },
+    pdfOnly: true,
+    options: {
+      slotMode: 'whiteBlocks',
+      maxBlocksPerPage: 12,
+      blockPadPt: 8,
+      whiteFillThreshold: 0.97,
+      allowCreamFill: true,
+      hybridLineFallback: true,
+      lineFallbackOptions: {
+        minSpanRatio: 0.1,
+        minSpanPt: 4,
+        maxSpanRatio: 0.85,
+        minNormY: 0.03,
+        maxNormY: 0.96,
+        formStartNormY: 0.05,
+        bottomCutPt: 28,
+        topCutPt: 28,
+        maxLinesPerPage: 10,
+        mergeDashedRows: true,
+        minSegmentSpanPt: 1.5,
+        mergeGapPt: 8,
+        extractFlatCurves: true,
+        inferLabelFromGeometry: false,
+        formLineRefine: true,
+        formMinScore: 0.22,
+      },
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      formStartNormY: 0.05,
+      topCutPx: 80,
+      bottomCutPx: 80,
+    },
+  },
+  {
+    albumId: 'diary_interior_brown',
+    folder: 'Блок коричневый _180х240_print',
+    margins: { x: 0.12, width: 0.76 },
+    pdfOnly: true,
+    options: {
+      ...DASHED_FORM_PDF,
+      maxLinesPerPage: 26,
+      minUnderlineRunRatio: 0.1,
+      formMinScore: 0.25,
+    },
+  },
+  {
+    albumId: 'diary_interior_purple',
+    folder: 'Блок фиолетовый_180х240_print',
+    margins: { x: 0.12, width: 0.76 },
+    pdfOnly: true,
+    options: {
+      ...DASHED_FORM_PDF,
+      maxLinesPerPage: 26,
+      minUnderlineRunRatio: 0.1,
+      formMinScore: 0.25,
+    },
+  },
+];
+
+function loadOverrides(projectRoot, fileName = 'line-slots-overrides.json') {
+  const file = path.join(projectRoot, 'constants', fileName);
+  if (!fs.existsSync(file)) return {};
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    console.warn(`Invalid ${fileName}`, e.message);
+    return {};
+  }
+}
+
+function pickPageSlots(pdfSlots, pngOverrideSlots, options = {}) {
+  const pdf = pdfSlots ?? [];
+  const png = pngOverrideSlots ?? [];
+
+  if (options.preferPngOverrides && png.length > 0) return png;
+  if (pdf.length === 0) return png;
+  if (png.length === 0) return pdf;
+
+  const avgWidth = (slots) =>
+    slots.reduce((sum, slot) => sum + slot.width, 0) / slots.length;
+  const pdfAvg = avgWidth(pdf);
+  const pngAvg = avgWidth(png);
+
+  if (pngAvg > 0.12 && pdfAvg < pngAvg * 0.55) return png;
+  if (pdf.length > png.length * 2) return png;
+  if (png.length > pdf.length * 2) return png;
+  if (png.length > pdf.length && pdf.length <= 2) return png;
+  return pdf;
+}
+
+async function generateForAlbumFromPdf(projectRoot, spec, overrides, pdfPath) {
+  const manualOverrides = loadOverrides(projectRoot, 'line-slots-manual-overrides.json');
+  const albumManualOverrides = manualOverrides[spec.albumId] ?? {};
+  const albumPngOverrides = overrides[spec.albumId] ?? {};
+  const pdfOptions = {
+    ...spec.options,
+    minSpanRatio: spec.options.minUnderlineRunRatio ?? 0.08,
+    minSpanPt: spec.options.pdfMinSpanPt ?? 4,
+    maxSpanRatio: spec.options.pdfMaxSpanRatio ?? 0.92,
+    minNormY: spec.options.pdfMinNormY ?? 0.03,
+    maxNormY: spec.options.pdfMaxNormY ?? 0.96,
+    bottomCutPt: spec.options.pdfBottomCutPt ?? 55,
+    topCutPt: spec.options.pdfTopCutPt ?? 40,
+    textPadPt: spec.options.pdfTextPadPt ?? 3,
+    formStartNormY: spec.options.pdfFormStartNormY ?? 0.12,
+    formLineRefine: spec.options.formLineRefine ?? false,
+    inferLabelFromGeometry: spec.options.inferLabelFromGeometry ?? false,
+    extractFlatCurves: spec.options.extractFlatCurves ?? false,
+    formMinScore: spec.options.formMinScore ?? 0.25,
+    formYClusterEpsilon: spec.options.formYClusterEpsilon ?? 0.012,
+    mergeDashedRows: spec.options.mergeDashedRows ?? false,
+    minSegmentSpanPt: spec.options.minSegmentSpanPt ?? 1.5,
+    mergeGapPt: spec.options.mergeGapPt,
+    collapseNearbyRows: spec.options.collapseNearbyRows ?? false,
+    minRowGapNorm: spec.options.minRowGapNorm ?? 0.016,
+    slotMode: spec.options.slotMode,
+    maxBlocksPerPage: spec.options.maxBlocksPerPage,
+    blockPadPt: spec.options.blockPadPt,
+    whiteFillThreshold: spec.options.whiteFillThreshold,
+    allowCreamFill: spec.options.allowCreamFill,
+    hybridLineFallback: spec.options.hybridLineFallback,
+    lineFallbackOptions: spec.options.lineFallbackOptions,
+  };
+
+  const pdfSlots = await extractAllSlotsFromPdf(pdfPath, pdfOptions);
+  const slotsByPage = {};
+  const guidesByPage = {};
+  const onlyPage = process.env.ONLY_PAGE;
+  const pageNumbers = Object.keys(pdfSlots).filter((pageNumber) => {
+    if (!onlyPage) return true;
+    const pageIndex = Number(pageNumber);
+    const onlyIndex = Number(onlyPage.match(/^page_(\d+)\.png$/i)?.[1] ?? onlyPage);
+    return pageIndex === onlyIndex;
+  });
+
+  for (const pageNumber of pageNumbers) {
+    if (Object.prototype.hasOwnProperty.call(albumManualOverrides, pageNumber)) {
+      const overrideSlots = albumManualOverrides[pageNumber];
+      slotsByPage[pageNumber] = overrideSlots;
+      guidesByPage[pageNumber] = overrideSlots.map((s) => s.y);
+      console.log(`[${spec.albumId}] page ${pageNumber}: manual ${overrideSlots.length} slots`);
+      continue;
+    }
+
+    const pdfPageSlots = pdfSlots[pageNumber] ?? [];
+    const usePngFallback = spec.pdfOnly !== true;
+    const pngPageOverride = usePngFallback ? albumPngOverrides[pageNumber] : undefined;
+    const slots = usePngFallback
+      ? pickPageSlots(pdfPageSlots, pngPageOverride, {
+          preferPngOverrides: spec.preferPngOverrides === true,
+        })
+      : pdfPageSlots;
+    const source = usePngFallback
+      ? pdfPageSlots.length === 0 && (pngPageOverride?.length ?? 0) > 0
+        ? 'png-fallback'
+        : pdfPageSlots.length > 0 &&
+            (pngPageOverride?.length ?? 0) > 0 &&
+            pickPageSlots(pdfPageSlots, pngPageOverride) === pngPageOverride
+          ? 'png-corrected'
+          : 'pdf'
+      : 'pdf';
+
+    slotsByPage[pageNumber] = slots;
+    guidesByPage[pageNumber] = slots.map((s) => s.y);
+    console.log(`[${spec.albumId}] page ${pageNumber}: ${source} ${slots.length} slots`);
+  }
+
+  return { slots: slotsByPage, guides: guidesByPage };
+}
+
+async function generateForAlbumFromPng(projectRoot, spec, overrides) {
+  const folderPath = path.join(projectRoot, 'assets', 'pdfs', spec.folder);
+  if (!fs.existsSync(folderPath)) {
+    console.warn(`Skip ${spec.albumId}: folder not found`, folderPath);
+    return null;
+  }
+
+  const files = fs
+    .readdirSync(folderPath)
+    .filter((f) => /^page_\d+\.png$/i.test(f))
+    .sort();
+
+  if (files.length === 0) return null;
+
+  const onlyAlbum = process.env.ONLY_ALBUM;
+  if (onlyAlbum && onlyAlbum !== spec.albumId) return null;
+
+  const albumOverrides = overrides[spec.albumId] ?? {};
+  const slotsByPage = {};
+  const guidesByPage = {};
+  const onlyPage = process.env.ONLY_PAGE;
+  const targetFiles = onlyPage ? files.filter((f) => f === onlyPage) : files;
+
+  for (const fileName of targetFiles) {
+    const pageNumber = String(Number(fileName.match(/^page_(\d+)\.png$/i)[1]));
+    if (Object.prototype.hasOwnProperty.call(albumOverrides, pageNumber)) {
+      const overrideSlots = albumOverrides[pageNumber];
+      slotsByPage[pageNumber] = overrideSlots;
+      guidesByPage[pageNumber] = overrideSlots.map((s) => s.y);
+      console.log(`[${spec.albumId}] ${fileName}: override ${overrideSlots.length} slots`);
+      continue;
+    }
+
+    const filePath = path.join(folderPath, fileName);
+    const png = await readPng(filePath);
+    const formStartNormY = spec.options.formStartNormY ?? 0;
+    const linesPx = refineDetectedLines(
+      png,
+      detectAllHorizontalLines(png, spec.options)
+        .filter((y) => !isDecorativeTopLine(png, y, spec.options))
+        .filter((y) => y / png.height >= formStartNormY),
+      spec.options
+    );
+    const slots = buildSlotsForPage(png, linesPx, spec.options, spec.margins);
+    slotsByPage[pageNumber] = slots;
+    guidesByPage[pageNumber] = slots.map((s) => s.y);
+    console.log(`[${spec.albumId}] ${fileName}: png ${slots.length} slots`);
+  }
+
+  return { slots: slotsByPage, guides: guidesByPage };
+}
+
+async function generateForAlbum(projectRoot, spec, overrides) {
+  const onlyAlbum = process.env.ONLY_ALBUM;
+  if (onlyAlbum && onlyAlbum !== spec.albumId) return null;
+
+  const pdfRel = PDF_SOURCES[spec.albumId];
+  const pdfPath = pdfRel ? path.join(projectRoot, pdfRel) : null;
+  const usePdf = pdfPath && fs.existsSync(pdfPath) && process.env.USE_PNG_SLOTS !== '1';
+
+  if (usePdf) {
+    console.log(`[${spec.albumId}] using PDF source:`, path.relative(projectRoot, pdfPath));
+    return generateForAlbumFromPdf(projectRoot, spec, overrides, pdfPath);
+  }
+
+  return generateForAlbumFromPng(projectRoot, spec, overrides);
+}
+
+async function main() {
+  const projectRoot = process.cwd();
+  const overrides = loadOverrides(projectRoot);
+  const lineSlots = {};
+  const lineGuides = {};
+  const report = { generatedAt: new Date().toISOString(), albums: {} };
+
+  for (const spec of ALBUM_FOLDERS) {
+    const result = await generateForAlbum(projectRoot, spec, overrides);
+    if (!result) continue;
+    lineSlots[spec.albumId] = result.slots;
+    lineGuides[spec.albumId] = result.guides;
+
+    const pages = Object.keys(result.slots);
+    const empty = pages.filter((p) => !result.slots[p]?.length);
+    report.albums[spec.albumId] = {
+      pageCount: pages.length,
+      emptyPages: empty,
+      emptyCount: empty.length,
+    };
+  }
+
+  const slotsFile = path.join(projectRoot, 'constants', 'line-slots.ts');
+  const guidesFile = path.join(projectRoot, 'constants', 'line-guides.ts');
+  const reportFile = path.join(projectRoot, 'scripts', 'line-slots-report.json');
+
+  fs.writeFileSync(
+    slotsFile,
+    `// Auto-generated by scripts/generate-line-slots.js\n// Do not edit manually.\n\n` +
+      `export type NormalizedLineSlot = {\n` +
+      `  x: number;\n` +
+      `  y: number;\n` +
+      `  width: number;\n` +
+      `  height: number;\n` +
+      `  hasLabel: boolean;\n` +
+      `  continuationGroup: number;\n` +
+      `  inputKind?: 'line' | 'block';\n` +
+      `};\n\n` +
+      `export const LINE_SLOTS = ${JSON.stringify(lineSlots, null, 2)} as const;\n`,
+    'utf8'
+  );
+
+  fs.writeFileSync(
+    guidesFile,
+    `// Auto-generated by scripts/generate-line-slots.js\n// Do not edit manually.\n\n` +
+      `export const LINE_GUIDES = ${JSON.stringify(lineGuides, null, 2)} as const;\n`,
+    'utf8'
+  );
+
+  fs.writeFileSync(reportFile, JSON.stringify(report, null, 2), 'utf8');
+
+  const jsonFile = path.join(projectRoot, 'constants', 'line-slots.json');
+  fs.writeFileSync(jsonFile, JSON.stringify(lineSlots, null, 2), 'utf8');
+
+  console.log('✅ Wrote', path.relative(projectRoot, slotsFile));
+  console.log('✅ Wrote', path.relative(projectRoot, jsonFile));
+  console.log('✅ Wrote', path.relative(projectRoot, guidesFile));
+  console.log('✅ Wrote', path.relative(projectRoot, reportFile));
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

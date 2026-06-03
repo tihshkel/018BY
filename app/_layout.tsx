@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
+import { ExportSubscriptionProvider } from '@/contexts/export-subscription-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { syncToCloudNow } from '@/utils/account-sync';
 import { getAndStorePushToken } from '@/utils/pushToken';
@@ -51,8 +52,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics ?? undefined}>
-      <MediaLibraryPermissionProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ExportSubscriptionProvider>
+        <MediaLibraryPermissionProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack 
             screenOptions={{ 
               headerShown: false,
@@ -86,8 +88,9 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
           </Stack>
           <StatusBar style="auto" />
-        </ThemeProvider>
-      </MediaLibraryPermissionProvider>
+          </ThemeProvider>
+        </MediaLibraryPermissionProvider>
+      </ExportSubscriptionProvider>
     </SafeAreaProvider>
   );
 }

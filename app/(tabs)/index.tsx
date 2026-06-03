@@ -1,4 +1,5 @@
 import { ProjectCard } from '@/components/project-card';
+import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
 import {
   formatProjectsCountLabel,
@@ -7,9 +8,7 @@ import {
   type UserProject,
 } from '@/utils/userProjects';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
-import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
-import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
+import { ensureSyncReady, pullLatestFromCloud, setOnSyncComplete } from '@/utils/account-sync';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -68,6 +67,7 @@ export default function HomeScreen() {
   const [selectedProject, setSelectedProject] = useState<UserProject | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedProjectForAction, setSelectedProjectForAction] = useState<UserProject | null>(null);
+  const [actionModalStep, setActionModalStep] = useState<'menu' | 'confirmDelete'>('menu');
 
   const previewProjects =
     projects.length > HOME_PROJECTS_PREVIEW_LIMIT
@@ -193,6 +193,7 @@ export default function HomeScreen() {
   const handleLongPress = (project: UserProject) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedProjectForAction(project);
+    setActionModalStep('menu');
     setShowActionModal(true);
   };
 
@@ -210,98 +211,47 @@ export default function HomeScreen() {
   };
 
   const handleDeleteProject = () => {
-    const project = selectedProjectForAction;
-    if (!project) return;
-    const projectId = String(project.id);
-    const title = project.title;
-    Alert.alert(
-      'Удалить проект',
-      `Вы уверены, что хотите удалить проект "${title}"? Это действие нельзя отменить.`,
-      [
-        {
-          text: 'Отмена',
-          style: 'cancel',
-        },
-        {
-          text: 'Удалить',
-          style: 'destructive',
-          onPress: () => setTimeout(() => confirmDeleteProject(project), 0),
-        },
-      ]
-    );
+    if (!selectedProjectForAction) return;
+    setActionModalStep('confirmDelete');
   };
 
-  const confirmDeleteProject = async (projectArg?: UserProject | null) => {
-    const project = projectArg ?? selectedProjectForAction;
+  const handleDeleteConfirmCancel = () => {
+    setActionModalStep('menu');
+  };
+
+  const handleDeleteConfirm = async () => {
+    const project = selectedProjectForAction;
     if (!project) return;
 
-    const projectId = String(project.id);
+    const projectId = project.id;
+    closeActionModal();
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    setSelectedProject((prev) => (prev?.id === projectId ? null : prev));
+
     try {
-      await removeRemindersAndScheduledNotificationsForProject(projectId, {
-        category: project.category,
-        reminderDate: project.reminderDate ?? null,
-      });
-
-      // Удаляем все данные проекта из AsyncStorage (метаданные, изображения, аннотации и т.д.)
-      const projectKeys = [
-        `@project_${projectId}`,
-        `@project_images_${projectId}`,
-        `@project_annotations_${projectId}`,
-        `@project_cover_annotations_${projectId}`,
-        `@project_viewport_${projectId}`,
-        `@project_cover_viewport_${projectId}`,
-        `@project_pdf_${projectId}`,
-        `@project_last_text_style_${projectId}`,
-      ];
-      await AsyncStorage.multiRemove(projectKeys);
-
-      // Удаляем проект из списка @user_projects (сравниваем id как строки)
-      const existingProjects = await AsyncStorage.getItem('@user_projects');
-      if (existingProjects) {
-        const projectsList = JSON.parse(existingProjects);
-        const updatedProjects = projectsList.filter(
-          (p: any) => String(p.id) !== projectId
-        );
-        const updatedJson = JSON.stringify(updatedProjects);
-        await AsyncStorage.setItem('@user_projects', updatedJson);
-
-        // Удаляем проект в Supabase + обновляем облачный @user_projects,
-        // иначе pullLatestFromCloud подтянет проект обратно.
-        try {
-          const syncId = await getAccountSyncId();
-          if (syncId && isSupabaseConfigured()) {
-            const delRes = await deleteProjectInSupabase({
-              accessCode: syncId,
-              projectId,
-              updatedUserProjectsJson: updatedJson,
-            });
-            if (!delRes.success) {
-              console.warn('[Supabase] deleteProjectInSupabase failed:', delRes.error);
-            }
-          }
-        } catch (e) {
-          console.warn('[Supabase] deleteProjectInSupabase exception:', e);
-        }
-
-        // Пушим core; напоминания без merge с облаком — иначе mergeReminders вернёт удалённые записи в БД.
-        await pushAccountDataToCloud({ remindersAuthoritativeLocal: true });
-        scheduleSyncToCloud();
-      }
-
-      // Всегда обновляем UI и закрываем модалку
+      await deleteUserProjectLocally(project);
       await loadProjects();
-      setShowActionModal(false);
-      setSelectedProjectForAction(null);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('Error deleting project:', error);
+      await loadProjects();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Ошибка', 'Не удалось удалить проект. Попробуйте снова.');
     }
   };
 
   const closeActionModal = () => {
     setShowActionModal(false);
     setSelectedProjectForAction(null);
+    setActionModalStep('menu');
+  };
+
+  const handleActionModalRequestClose = () => {
+    if (actionModalStep === 'confirmDelete') {
+      setActionModalStep('menu');
+      return;
+    }
+    closeActionModal();
   };
 
   const handleDevVerifyStorage = async () => {
@@ -543,51 +493,83 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Модальное окно с опциями действий */}
+      {showActionModal ? (
       <Modal
-        visible={showActionModal}
+        visible
         transparent={true}
         animationType="fade"
-        onRequestClose={closeActionModal}
+        onRequestClose={handleActionModalRequestClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {selectedProjectForAction?.title}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              Выберите действие
-            </Text>
-            
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.editButton]}
-                onPress={handleEditProject}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="create-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Редактировать</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton]}
-                onPress={handleDeleteProject}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Удалить</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={closeActionModal}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
+            {actionModalStep === 'menu' ? (
+              <>
+                <Text style={styles.modalTitle}>
+                  {selectedProjectForAction?.title}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  Выберите действие
+                </Text>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.editButton]}
+                    onPress={handleEditProject}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Редактировать</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDeleteProject}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeActionModal}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Удалить проект?</Text>
+                <Text style={styles.modalSubtitle}>
+                  {`Проект «${selectedProjectForAction?.title ?? ''}» будет удалён без возможности восстановления.`}
+                </Text>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDeleteConfirm}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleDeleteConfirmCancel}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
+      ) : null}
 
     </SafeAreaView>
   );

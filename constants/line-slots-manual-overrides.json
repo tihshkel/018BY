@@ -1,0 +1,33 @@
+{
+  "holidays_birthday_60": {
+    "1": [
+      {
+        "x": 0,
+        "y": 0.16676,
+        "width": 0.6869,
+        "height": 0.04014,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.23482,
+        "y": 0.59148,
+        "width": 0.53319,
+        "height": 0.065,
+        "hasLabel": false,
+        "inputKind": "block",
+        "continuationGroup": 2
+      },
+      {
+        "x": 0.18359,
+        "y": 0.76974,
+        "width": 0.59469,
+        "height": 0.065,
+        "hasLabel": false,
+        "inputKind": "block",
+        "continuationGroup": 3
+      }
+    ]
+  }
+}

@@ -13,7 +13,14 @@ async function requireSupabaseAuthUserId(
   const supabase = getSupabase();
   if (!supabase) return { ok: false, error: 'Supabase не настроен.' };
   try {
-    const { data, error } = await supabase.auth.getUser();
+    const getUserPromise = supabase.auth.getUser();
+    const timeoutMs = 12_000;
+    const { data, error } = await Promise.race([
+      getUserPromise,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('AUTH_CHECK_TIMEOUT')), timeoutMs);
+      }),
+    ]);
     const authedId = data?.user?.id ?? '';
     if (error || !authedId) {
       return {

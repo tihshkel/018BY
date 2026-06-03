@@ -3,11 +3,10 @@ import { useMediaLibraryPermission } from '@/components/media-library-permission
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { createId } from '@/utils/id';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
@@ -58,6 +57,7 @@ interface CoverViewerProps {
   onToolReset: () => void;
   onToolDeactivate?: () => void; // Мягкий сброс (только выключить выбранный инструмент)
   onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void;
+  onTextSelectionChange?: (hasSelection: boolean) => void;
   annotationsRef?: React.RefObject<PdfAnnotationsRef>;
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта
   defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
@@ -78,6 +78,7 @@ export default function CoverViewer({
   onToolReset,
   onToolDeactivate,
   onTextEditingStateChange,
+  onTextSelectionChange,
   annotationsRef: externalAnnotationsRef,
   onViewportChange,
   defaultTextStyle,
@@ -275,15 +276,11 @@ export default function CoverViewer({
 
   const handlePickImage = async (x: number, y: number) => {
     try {
+      annotationsRef.current?.blurEditingInput?.();
       const hasPermission = await ensureMediaLibraryPermission();
       if (!hasPermission) return;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: getImagePickerImagesMediaTypes(),
-        allowsEditing: false,
-        // Важно: не ухудшаем качество пользовательских фото
-        quality: 1,
-      });
+      const result = await launchPhotoLibrary();
 
       if (!result.canceled && result.assets[0] && onAnnotationAdd) {
         const maxZIndex = annotations.length > 0 
@@ -469,6 +466,7 @@ export default function CoverViewer({
                   currentTool={currentTool}
                   onToolDeactivate={onToolDeactivate}
                   onEditingStateChange={handleEditingStateChange}
+                  onTextSelectionChange={onTextSelectionChange}
                   viewportWidth={viewportSize.width}
                   viewportHeight={viewportSize.height}
                 />

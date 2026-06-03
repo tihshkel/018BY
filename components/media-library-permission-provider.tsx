@@ -74,7 +74,10 @@ export function MediaLibraryPermissionProvider({ children }: { children: React.R
     setIsVisible(false);
     const resolve = pendingResolveRef.current;
     pendingResolveRef.current = null;
-    resolve?.(result);
+    // resolve на следующем тике — Modal успевает скрыться до launchImageLibraryAsync
+    if (resolve) {
+      requestAnimationFrame(() => resolve(result));
+    }
   }, []);
 
   const showModalAndWait = useCallback(
@@ -173,7 +176,8 @@ export function MediaLibraryPermissionProvider({ children }: { children: React.R
   return (
     <MediaLibraryPermissionContext.Provider value={ctxValue}>
       {children}
-      <Modal visible={isVisible} transparent animationType="none" onRequestClose={() => close(false)}>
+      {isVisible ? (
+      <Modal visible animationType="none" transparent onRequestClose={() => close(false)}>
         <Animated.View style={[styles.overlay, overlayStyle]}>
           <Animated.View style={[styles.card, cardStyle]}>
             <View style={styles.iconCircle}>
@@ -209,6 +213,7 @@ export function MediaLibraryPermissionProvider({ children }: { children: React.R
           </Animated.View>
         </Animated.View>
       </Modal>
+      ) : null}
     </MediaLibraryPermissionContext.Provider>
   );
 }

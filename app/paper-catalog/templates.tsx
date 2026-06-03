@@ -9,8 +9,9 @@ import {
   Linking,
   Modal,
 } from 'react-native';
+import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 import { Image } from 'expo-image';
-import { Asset } from 'expo-asset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -19,8 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { GIFT_ITEMS, type GiftItem } from '../(tabs)/gifts';
-import { resolveImageSourceUri } from '@/utils/imageSourceUri';
+import { GIFT_ITEMS } from '../(tabs)/gifts';
 
 interface LocalParams {
   category?: string | string[];
@@ -85,8 +85,6 @@ export default function PaperCatalogTemplatesScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryName);
   const [selectedCoverType, setSelectedCoverType] = useState<CoverType>('all');
-  const [coverUris, setCoverUris] = useState<Record<string, string>>({});
-
   // Обновляем selectedCategory при изменении categoryName
   useEffect(() => {
     if (categoryName) {
@@ -152,100 +150,25 @@ export default function PaperCatalogTemplatesScreen() {
     return filtered;
   }, [categoryName, selectedCategory, selectedCoverType]);
 
-  // На iOS в некоторых сборках `expo-image` может не отрисовать `require()` напрямую.
-  // Конвертируем cover -> uri и используем { uri }.
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-      const resolveCovers = async () => {
-        if (categoryItems.length === 0) return;
-        const pairs = await Promise.all(
-          categoryItems.map(async (item) => {
-            const uri = await resolveImageSourceUri(item.cover ?? null);
-            return uri ? ([item.id, uri] as const) : null;
-          })
-        );
-        if (cancelled) return;
-        const next: Record<string, string> = {};
-        for (const pair of pairs) {
-          if (!pair) continue;
-          next[pair[0]] = pair[1];
-        }
-        if (Object.keys(next).length > 0) {
-          setCoverUris((prev) => ({ ...prev, ...next }));
-        }
-      };
-      resolveCovers();
-      return () => {
-        cancelled = true;
-      };
-    }, [categoryItems])
-  );
-
-  // Лёгкая предзагрузка 2–3 первых изображений (в т.ч. локальных require),
-  // чтобы первый экран каталога не "мигал" в релизе и в Expo Go.
-  // Не предзагружаем всё сразу — это тяжело.
-  useFocusEffect(
-    React.useCallback(() => {
-      const preloadTopImages = async () => {
-        if (categoryItems.length === 0) return;
-        const top = categoryItems
-          .map((i) => i.cover)
-          .filter(Boolean)
-          .slice(0, 3) as Array<string | number>;
-
-        await Promise.all(
-          top.map(async (src) => {
-            try {
-              if (typeof src === 'string') {
-                await Image.prefetch(src);
-              } else {
-                await Asset.fromModule(src).downloadAsync();
-              }
-            } catch {
-              // ignore
-            }
-          })
-        );
-      };
-
-      preloadTopImages();
-    }, [categoryItems])
-  );
-
-  // Предзагрузка всех изображений для выбранной категории (только URL)
+  // Предзагрузка фото WB — как на вкладке «Каталог»
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
-        if (!categoryName || categoryItems.length === 0) {
-          return;
-        }
+        if (categoryItems.length === 0) return;
 
-        try {
-          const imagesToPreload = categoryItems
-            .filter(item => item.cover)
-            .map(item => item.cover!);
+        const wbUrls = categoryItems
+          .map((item) => getWildberriesProductImageUrl(item.link))
+          .filter((u): u is string => Boolean(u));
 
-          await Promise.all(
-            imagesToPreload.map((imageSource) => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch((err) => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения:', err);
-                });
-              }
-              // Локальные require предзагружаем только первые 2–3 (см. preloadTopImages)
-              return Promise.resolve();
-            })
-          );
-          
-          console.log(`✅ Все изображения категории "${categoryName}" предзагружены`);
-        } catch (error) {
-          console.error('❌ Ошибка предзагрузки изображений:', error);
-        }
+        await Promise.all(
+          wbUrls.map((uri) =>
+            Image.prefetch(uri).catch(() => undefined)
+          )
+        );
       };
 
       preloadCategoryImages();
-    }, [categoryName, categoryItems])
+    }, [categoryItems])
   );
 
   const handleOpenLink = useCallback(async (url: string) => {
@@ -337,27 +260,11 @@ export default function PaperCatalogTemplatesScreen() {
               return (
                 <View key={item.id} style={styles.card}>
                   <View style={styles.coverWrapper}>
-                    {item.cover ? (
-                      <Image
-                        source={
-                          coverUris[item.id]
-                            ? { uri: coverUris[item.id] }
-                            : item.cover
-                        }
-                        style={styles.coverImage}
-                        contentFit="contain"
-                        priority={imagePriority}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        accessibilityLabel={`Обложка товара ${item.title}`}
-                        placeholderContentFit="contain"
-                      />
-                    ) : (
-                      <View style={styles.coverPlaceholder}>
-                        <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-                      </View>
-                    )}
+                    <CatalogGiftCoverImage
+                      item={item}
+                      style={styles.coverImage}
+                      imagePriority={imagePriority}
+                    />
                   </View>
 
                   <View style={styles.cardContent}>

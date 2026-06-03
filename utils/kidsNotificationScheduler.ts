@@ -171,7 +171,8 @@ function getFirstSeasonDate(birthDate: Date, seasonMonth: number): Date {
  */
 export async function scheduleKidsNotifications(
     birthDate: Date,
-    projectId: string
+    projectId: string,
+    options?: { skipCloudSync?: boolean }
 ): Promise<void> {
     // Всегда сохраняем дату рождения в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
     await saveKidsInfo(birthDate, projectId);
@@ -179,7 +180,7 @@ export async function scheduleKidsNotifications(
     const Notifications = getNotifications();
     if (!Notifications) {
         console.log('[KidsNotifications] Notifications not available, saving birth date and reminders only');
-        await saveNotificationsAsReminders(birthDate);
+        await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
         return;
     }
 
@@ -207,7 +208,7 @@ export async function scheduleKidsNotifications(
         
         if (!hasPermission) {
             console.log('[KidsNotifications] Permission not granted. Birth date and reminders saved.');
-            await saveNotificationsAsReminders(birthDate);
+            await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
             return;
         }
         
@@ -270,7 +271,7 @@ export async function scheduleKidsNotifications(
         }
 
         // Сохраняем все уведомления как напоминания в AsyncStorage для отображения в списке
-        await saveNotificationsAsReminders(birthDate);
+        await saveNotificationsAsReminders(birthDate, options?.skipCloudSync);
 
         console.log('[KidsNotifications] All notifications scheduled successfully');
     } catch (error) {
@@ -281,7 +282,7 @@ export async function scheduleKidsNotifications(
 /**
  * Сохранить уведомления как напоминания для отображения в списке
  */
-async function saveNotificationsAsReminders(birthDate: Date): Promise<void> {
+async function saveNotificationsAsReminders(birthDate: Date, skipCloudSync?: boolean): Promise<void> {
     try {
         const syncId = await getAccountSyncId();
         const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
@@ -305,7 +306,9 @@ async function saveNotificationsAsReminders(birthDate: Date): Promise<void> {
 
         allReminders.push(...reminders);
         await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
-        await pushCoreOnlyToCloud();
+        if (!skipCloudSync) {
+            await pushCoreOnlyToCloud();
+        }
         console.log('[KidsNotifications] Saved reminders to list and cloud');
     } catch (error) {
         console.error('[KidsNotifications] Failed to save reminders:', error);

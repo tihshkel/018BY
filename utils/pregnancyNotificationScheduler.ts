@@ -188,7 +188,8 @@ export async function loadPregnancyInfo(): Promise<{ dueDate: Date; projectId: s
  */
 export async function schedulePregnancyNotifications(
     dueDate: Date,
-    projectId: string
+    projectId: string,
+    options?: { skipCloudSync?: boolean }
 ): Promise<void> {
     // Всегда сохраняем ПДР в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
     await savePregnancyInfo(dueDate, projectId);
@@ -197,7 +198,7 @@ export async function schedulePregnancyNotifications(
     const Notifications = getNotifications();
     if (!Notifications) {
         console.log('[PregnancyNotifications] Notifications not available, saving PDR and reminders only');
-        await saveNotificationsAsReminders(dueDate, currentWeek);
+        await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
         return;
     }
 
@@ -224,7 +225,7 @@ export async function schedulePregnancyNotifications(
         
         if (!hasPermission) {
             console.log('[PregnancyNotifications] Permission not granted. PDR and reminders saved.');
-            await saveNotificationsAsReminders(dueDate, currentWeek);
+            await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
             return;
         }
         
@@ -382,7 +383,7 @@ export async function schedulePregnancyNotifications(
         }
 
         // Сохраняем все уведомления как напоминания в AsyncStorage для отображения в списке
-        await saveNotificationsAsReminders(dueDate, currentWeek);
+        await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
 
         console.log('[PregnancyNotifications] All notifications scheduled successfully');
     } catch (error) {
@@ -393,7 +394,11 @@ export async function schedulePregnancyNotifications(
 /**
  * Сохранить уведомления как напоминания для отображения в списке
  */
-async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number): Promise<void> {
+async function saveNotificationsAsReminders(
+    dueDate: Date,
+    currentWeek: number,
+    skipCloudSync?: boolean
+): Promise<void> {
     try {
         const syncId = await getAccountSyncId();
         const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
@@ -417,7 +422,9 @@ async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number):
 
         allReminders.push(...reminders);
         await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
-        await pushCoreOnlyToCloud();
+        if (!skipCloudSync) {
+            await pushCoreOnlyToCloud();
+        }
         console.log('[PregnancyNotifications] Saved reminders to list and cloud');
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save reminders:', error);

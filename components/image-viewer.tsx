@@ -1,16 +1,27 @@
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
   BLANK_INTERIOR_PAGE_HEIGHT,
   BLANK_INTERIOR_PAGE_WIDTH,
 } from '@/utils/albumImages';
+import { LineGuideDevOverlay } from '@/components/line-guide-dev-overlay';
+import { LineSlotPressables } from '@/components/line-slot-pressables';
 import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
+import { setPageSourceSize } from '@/utils/pageSourceDimensions';
+import {
+  buildLineSlotsContext,
+  findAnnotationForSlot,
+  hasLineGuides,
+  hitTestLineSlot,
+  layoutAnnotationFromSlot,
+  type GetLineSlotsParams,
+} from '@/utils/textLineSlots';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
@@ -85,6 +96,7 @@ interface ImageViewerProps {
   onToolReset?: () => void; // Callback для сброса инструмента
   onToolDeactivate?: () => void; // Мягкий сброс (только выключить выбранный инструмент)
   onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void; // Callback для отслеживания состояния редактирования текста
+  onTextSelectionChange?: (hasSelection: boolean) => void;
   annotationsRef?: React.RefObject<PdfAnnotationsRef>; // Ref для доступа к методам PdfAnnotations
   zoomLevel?: number; // Уровень масштабирования
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта (координаты)
@@ -109,6 +121,7 @@ export default function ImageViewer({
   onToolReset,
   onToolDeactivate,
   onTextEditingStateChange,
+  onTextSelectionChange,
   annotationsRef: externalAnnotationsRef,
   zoomLevel = 1,
   onViewportChange,
@@ -124,6 +137,9 @@ export default function ImageViewer({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
+  const [pageSourceSizes, setPageSourceSizes] = useState<
+    Record<number, { width: number; height: number }>
+  >({});
   const internalAnnotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const annotationsRef = externalAnnotationsRef || internalAnnotationsRef;
   const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
@@ -165,9 +181,53 @@ export default function ImageViewer({
   }, [defaultTextStyle?.color, defaultTextStyle?.fontSize, defaultTextStyle?.fontFamily]);
 
   const isBlankInteriorAlbum =
-    lineGuideId === 'family_blank' ||
-    lineGuideId === 'holidays_blank' ||
-    lineGuideId === 'kids_48';
+    lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
+
+  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+    const imageUri = images[page - 1];
+    const cached = imageUri ? getCachedPageSourceSize(imageUri) : null;
+    const size = pageSourceSizes[page] ?? cached ?? undefined;
+    return {
+      lineGuideId,
+      page,
+      viewportWidth: SCREEN_WIDTH,
+      viewportHeight: containerHeight,
+      sourceWidth: size?.width,
+      sourceHeight: size?.height,
+    };
+  };
+
+  // Размеры PNG до onLoad — иначе contentRect = весь экран и слоты «съезжают»
+  useEffect(() => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return;
+    const pages = [currentPage, currentPage - 1, currentPage + 1].filter(
+      (p) => p >= 1 && p <= images.length
+    );
+    for (const page of pages) {
+      const uri = images[page - 1];
+      if (!uri || pageSourceSizes[page]) continue;
+      const cached = getCachedPageSourceSize(uri);
+      if (cached) {
+        setPageSourceSizes((prev) => ({ ...prev, [page]: cached }));
+        continue;
+      }
+      void resolvePageSourceSize(uri).then((size) => {
+        if (!size) return;
+        setPageSourceSizes((prev) =>
+          prev[page]?.width === size.width && prev[page]?.height === size.height
+            ? prev
+            : { ...prev, [page]: size }
+        );
+      });
+    }
+  }, [lineGuideId, images, currentPage]);
+
+  const handlePageImageLoad = (page: number, imageUri: string, width: number, height: number) => {
+    if (width <= 0 || height <= 0) return;
+    setPageSourceSizes((prev) => ({ ...prev, [page]: { width, height } }));
+    setPageSourceSize(imageUri, { width, height });
+  };
 
   const blankPageLayout = useMemo(() => {
     if (!isBlankInteriorAlbum) return null;
@@ -262,13 +322,112 @@ export default function ImageViewer({
     }
   };
 
+  const loadTextStyleForNewAnnotation = async (pageForAnnotation: number) => {
+    let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+    let savedFont: string | null = null;
+    try {
+      const [raw, fontRaw] = await Promise.all([
+        AsyncStorage.getItem('@last_text_style'),
+        AsyncStorage.getItem('@last_text_font_family'),
+      ]);
+      if (raw) savedStyle = JSON.parse(raw) as typeof savedStyle;
+      if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
+    } catch {
+      // ignore
+    }
+
+    const isPregnancyFirstPage =
+      lineGuideId &&
+      (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) &&
+      pageForAnnotation === 1;
+
+    const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
+    const fontSize = isPregnancyFirstPage
+      ? (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 18)
+      : (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16);
+    const fontFamily =
+      getLastFontFamily?.() ??
+      savedStyle?.fontFamily ??
+      savedFont ??
+      defaultTextStyle?.fontFamily ??
+      lastTextStyle?.fontFamily ??
+      (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+
+    return { color, fontSize, fontFamily: fontFamily || 'default' };
+  };
+
+  const startAnnotationEditing = (annotationId: string) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        annotationsRef.current?.startEditing?.(annotationId);
+      });
+    });
+  };
+
+  const handleLineSlotTap = async (x: number, y: number, pageForAnnotation: number) => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId) || !onAnnotationAdd) return false;
+
+    const slotParams = buildSlotParams(pageForAnnotation);
+    if (!slotParams) return false;
+    const { slots } = buildLineSlotsContext(slotParams);
+    const slot = hitTestLineSlot({ x, y, slots });
+    if (!slot) return false;
+
+    const pageAnnotations = annotations.filter(
+      (ann) => (typeof ann.page === 'number' ? ann.page : currentPage) === pageForAnnotation
+    );
+    const existing = findAnnotationForSlot(pageAnnotations, pageForAnnotation, slot.index);
+    if (existing) {
+      startAnnotationEditing(existing.id);
+      onToolDeactivate?.();
+      return true;
+    }
+
+    const maxZIndex =
+      annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
+    const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+    const layout = layoutAnnotationFromSlot(slot);
+
+    const newAnnotation: Annotation = {
+      id: createId('ann'),
+      type: 'text',
+      ...layout,
+      content: '',
+      color: style.color,
+      fontSize: style.fontSize,
+      fontFamily: style.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageForAnnotation,
+    };
+
+    onAnnotationAdd(newAnnotation);
+    startAnnotationEditing(newAnnotation.id);
+    onToolDeactivate?.();
+    return true;
+  };
+
   const handleImagePress = (x: number, y: number, tappedPage?: number) => {
     const pageForAnnotation = tappedPage ?? currentPage;
-    // Если редактируется текст — тап по пустому месту должен просто закрыть клавиатуру,
-    // а редактирование оставить (чтобы можно было нажать галочку после)
-    if (isTextEditing) {
+    // При инструменте «Фото» тап по странице открывает галерею (не блокируем из‑за текста/линий)
+    if (isTextEditing && currentTool !== 'image') {
       Keyboard.dismiss();
       return;
+    }
+
+    if (
+      isEditing &&
+      lineGuideId &&
+      hasLineGuides(lineGuideId) &&
+      currentTool !== 'image'
+    ) {
+      const slotParams = buildSlotParams(pageForAnnotation);
+      if (slotParams) {
+        const { slots } = buildLineSlotsContext(slotParams);
+        if (hitTestLineSlot({ x, y, slots })) {
+          void handleLineSlotTap(x, y, pageForAnnotation);
+          return;
+        }
+      }
     }
 
     // Если мы в режиме редактирования, но инструмент не выбран — тап по пустому месту
@@ -291,58 +450,48 @@ export default function ImageViewer({
       const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
       const nextX = clamp(proposedX, 0, viewportWidth - TEXT_ANNOTATION_DEFAULT_WIDTH);
       const clampedY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+      const size = pageSourceSizes[pageForAnnotation];
       const snappedY = snapYToNearestTemplateLine({
         lineGuideId,
         page: pageForAnnotation,
         y: clampedY,
         viewportHeight,
+        viewportWidth,
+        sourceWidth: size?.width,
+        sourceHeight: size?.height,
       });
       const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
-      const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && pageForAnnotation === 1;
-
-      // Всегда берём последний сохранённый стиль из AsyncStorage в момент тапа
       const applyStyle = async () => {
-        let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
-        let savedFont: string | null = null;
-        try {
-          const [raw, fontRaw] = await Promise.all([
-            AsyncStorage.getItem('@last_text_style'),
-            AsyncStorage.getItem('@last_text_font_family'),
-          ]);
-          if (raw) savedStyle = JSON.parse(raw) as any;
-          if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
-        } catch (_) {}
-        const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
-        const fontSize = isPregnancyFirstPage
-          ? (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 18)
-          : (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16);
-        const fontFamily = (getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily)
-          ?? (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+        const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+        const slotParams = buildSlotParams(pageForAnnotation);
+        const snappedSlot = slotParams
+          ? buildLineSlotsContext(slotParams).slots.find((s) => Math.abs(s.y - nextY) < 4)
+          : undefined;
 
         const newAnnotation: Annotation = {
           id: createId('ann'),
           type: 'text',
-          x: nextX,
-          y: nextY,
-          width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-          height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-          content: 'Новый текст',
-          color,
-          fontSize,
-          fontFamily: fontFamily || 'default',
+          ...(snappedSlot
+            ? { ...layoutAnnotationFromSlot(snappedSlot), content: '' }
+            : {
+                x: nextX,
+                y: nextY,
+                width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+                height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+                content: 'Новый текст',
+              }),
+          color: style.color,
+          fontSize: style.fontSize,
+          fontFamily: style.fontFamily,
           zIndex: maxZIndex + 1,
           page: pageForAnnotation,
         };
         onAnnotationAdd(newAnnotation);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            annotationsRef.current?.startEditing?.(newAnnotation.id);
-          });
-        });
+        startAnnotationEditing(newAnnotation.id);
         if (onToolReset) onToolReset();
       };
-      applyStyle();
+      void applyStyle();
     } else if (currentTool === 'image' && onAnnotationAdd) {
       handlePickImage(x, y, pageForAnnotation);
     }
@@ -405,14 +554,13 @@ export default function ImageViewer({
 
   const handlePickImage = async (x: number, y: number, page: number = currentPage) => {
     try {
+      Keyboard.dismiss();
+      annotationsRef.current?.blurEditingInput?.();
+
       const hasPermission = await ensureMediaLibraryPermission();
       if (!hasPermission) return;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: getImagePickerImagesMediaTypes(),
-        allowsEditing: false,
-        quality: 1,
-      });
+      const result = await launchPhotoLibrary();
 
       if (!result.canceled && result.assets[0] && onAnnotationAdd) {
         const maxZIndex = annotations.length > 0 
@@ -571,8 +719,37 @@ export default function ImageViewer({
                           cachePolicy="disk"
                           priority={index < 3 ? 'high' : 'normal'}
                           recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                          onLoad={(event) => {
+                            const w = event.source?.width;
+                            const h = event.source?.height;
+                            if (w && h) {
+                              handlePageImageLoad(pageNumber, imageUri, w, h);
+                            }
+                          }}
                         />
                       )}
+
+                      {(() => {
+                        const slotParams = buildSlotParams(pageNumber);
+                        if (!slotParams) return null;
+                        return (
+                          <>
+                            {isEditing &&
+                            !currentTool &&
+                            !isTextEditing &&
+                            hasLineGuides(lineGuideId) ? (
+                              <LineSlotPressables
+                                slotParams={slotParams}
+                                enabled
+                                onSlotPress={(tapX, tapY) =>
+                                  void handleLineSlotTap(tapX, tapY, pageNumber)
+                                }
+                              />
+                            ) : null}
+                            {__DEV__ ? <LineGuideDevOverlay {...slotParams} /> : null}
+                          </>
+                        );
+                      })()}
 
                       <PdfAnnotations
                         ref={pageNumber === currentPage ? annotationsRef : null}
@@ -588,7 +765,10 @@ export default function ImageViewer({
                         zoomLevel={zoomLevel}
                         viewportWidth={SCREEN_WIDTH}
                         viewportHeight={containerHeight}
+                        sourceWidth={pageSourceSizes[pageNumber]?.width}
+                        sourceHeight={pageSourceSizes[pageNumber]?.height}
                         lineGuideId={lineGuideId}
+                        onTextSelectionChange={onTextSelectionChange}
                       />
                     </View>
                   </TouchableOpacity>

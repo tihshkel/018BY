@@ -1,5 +1,7 @@
 import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
-import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getRemindersStorageKey } from '@/utils/account-sync';
+import { withTimeout } from '@/utils/asyncTimeout';
+import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
@@ -8,8 +10,6 @@ import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { getGiftDisplayTitle } from '@/utils/albumGiftMapping';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -631,60 +631,39 @@ export default function SelectCoverScreen() {
     if (isSavingDate) return;
     setIsSavingDate(true);
 
+    const coverId = selectedCoverId;
+    const eventDateIso = dueDate.toISOString();
+
     try {
-      // Сохраняем дату события как напоминание
-      await scheduleReminder(dueDate, celebration);
-
-      // Для беременности планируем все уведомления (42 недели + триместры + ПДР и т.д.)
-      if (celebration === 'pregnancy') {
-        const projectId = `pregnancy_${Date.now()}`;
-        console.log('[SelectCover] Scheduling pregnancy notifications for due date:', dueDate.toLocaleDateString());
-        await schedulePregnancyNotifications(dueDate, projectId);
-      }
-      // Для детей планируем все уведомления по дате рождения
-      if (celebration === 'kids') {
-        const projectId = `kids_${Date.now()}`;
-        console.log('[SelectCover] Scheduling kids notifications for birth date:', dueDate.toLocaleDateString());
-        await scheduleKidsNotifications(dueDate, projectId);
-      }
-
-      const pushResult = await pushCoreOnlyToCloud();
-      if (!pushResult.ok) {
-        console.warn('[SelectCover] Sync failed:', pushResult.error);
-        if (isSupabaseNotConfiguredError(pushResult.error)) {
-          const msg = getSupabaseNotConfiguredAlertMessageOnce();
-          if (msg) Alert.alert('Сохранено на устройстве', msg);
-        } else {
-          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
-        }
-      }
-
-      setShowDateModal(false);
-
-      router.push({
-        pathname: '/select-action',
-        params: {
-          celebration,
-          coverType: selectedCoverId,
-          eventDate: dueDate.toISOString(),
-        }
-      });
-
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      const syncId = await getAccountSyncId();
-      if (!syncId) {
-        Alert.alert(
-          'Данные сохранены на устройстве',
-          'Чтобы дата и напоминания синхронизировались между устройствами, настройте учётную запись в разделе «Профиль».'
-        );
-      }
+      await withTimeout(scheduleReminder(dueDate, celebration), 8_000, 'save-reminder');
     } catch (error) {
-      console.error('Error saving event date:', error);
-      const categoryInfo = getCategoryInfo(celebration);
-      Alert.alert('Ошибка', `Не удалось сохранить ${categoryInfo.title.toLowerCase()}`);
-    } finally {
-      setIsSavingDate(false);
+      console.warn('[SelectCover] Reminder save timed out or failed:', error);
+    }
+
+    setShowDateModal(false);
+    setIsSavingDate(false);
+
+    router.push({
+      pathname: '/select-action',
+      params: {
+        celebration,
+        coverType: coverId,
+        eventDate: eventDateIso,
+      },
+    });
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (celebration === 'pregnancy' || celebration === 'kids') {
+      runDueDateBackgroundSetup(dueDate, celebration);
+    }
+
+    const syncId = await getAccountSyncId();
+    if (!syncId) {
+      Alert.alert(
+        'Данные сохранены на устройстве',
+        'Чтобы дата и напоминания синхронизировались между устройствами, настройте учётную запись в разделе «Профиль».'
+      );
     }
   };
 

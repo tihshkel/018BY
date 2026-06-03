@@ -1,25 +1,21 @@
 import { ProjectCard } from '@/components/project-card';
-import { getAccountSyncId } from '@/utils/account-identity';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
-import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
-import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
+import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import {
   formatProjectsCountLabel,
   loadUserProjects,
   type UserProject,
 } from '@/utils/userProjects';
 import {
-  getGridColumnWrapperStyle,
   getTabletContentShell,
   getTabletSectionWrap,
   HOME_CONTENT_MAX_WIDTH,
   useResponsiveLayout,
 } from '@/utils/responsive';
+import { Ionicons } from '@expo/vector-icons';
 
 const ALL_STORIES_GRID_COLUMNS = 2;
-const ALL_STORIES_GRID_GAP = 16;
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+const ALL_STORIES_GRID_GAP = 12;
+const PHONE_HORIZONTAL_PAD = 20;
 import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -39,21 +35,21 @@ export default function AllStoriesScreen() {
   const layout = useResponsiveLayout(HOME_CONTENT_MAX_WIDTH);
   const contentShellStyle = getTabletContentShell(layout);
   const sectionWrap = getTabletSectionWrap(layout, {
-    phonePadding: 24,
+    phonePadding: PHONE_HORIZONTAL_PAD,
     tabletPadding: 0,
   });
-  const gridColumnWrapper = getGridColumnWrapperStyle(ALL_STORIES_GRID_GAP);
-  const phoneSectionPad = 24;
-  const gridListWidth = layout.isTablet
+  const horizontalPad = layout.isTablet ? 0 : PHONE_HORIZONTAL_PAD;
+  const gridContentWidth = layout.isTablet
     ? layout.contentMaxWidth
-    : layout.width - phoneSectionPad * 2;
-  const gridCardWidth =
-    (gridListWidth - ALL_STORIES_GRID_GAP * (ALL_STORIES_GRID_COLUMNS - 1)) /
-    ALL_STORIES_GRID_COLUMNS;
+    : layout.width - horizontalPad * 2;
+  const gridCardWidth = Math.floor(
+    (gridContentWidth - ALL_STORIES_GRID_GAP) / ALL_STORIES_GRID_COLUMNS
+  );
 
   const [projects, setProjects] = useState<UserProject[]>([]);
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<UserProject | null>(null);
+  const [actionModalStep, setActionModalStep] = useState<'menu' | 'confirmDelete'>('menu');
 
   const refreshProjects = useCallback(async () => {
     try {
@@ -82,12 +78,22 @@ export default function AllStoriesScreen() {
   const handleLongPress = (project: UserProject) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedProject(project);
+    setActionModalStep('menu');
     setShowActionModal(true);
   };
 
   const closeActionModal = () => {
     setShowActionModal(false);
     setSelectedProject(null);
+    setActionModalStep('menu');
+  };
+
+  const handleActionModalRequestClose = () => {
+    if (actionModalStep === 'confirmDelete') {
+      setActionModalStep('menu');
+      return;
+    }
+    closeActionModal();
   };
 
   const handleEdit = () => {
@@ -98,79 +104,36 @@ export default function AllStoriesScreen() {
 
   const handleDelete = () => {
     if (!selectedProject) return;
-    const project = selectedProject;
-    Alert.alert(
-      'Удалить проект',
-      `Вы уверены, что хотите удалить проект "${project.title}"? Это действие нельзя отменить.`,
-      [
-        { text: 'Отмена', style: 'cancel' },
-        {
-          text: 'Удалить',
-          style: 'destructive',
-          onPress: () => confirmDelete(project),
-        },
-      ]
-    );
+    setActionModalStep('confirmDelete');
   };
 
-  const confirmDelete = async (project: UserProject) => {
-    const projectId = String(project.id);
+  const handleDeleteConfirmCancel = () => {
+    setActionModalStep('menu');
+  };
+
+  const handleDeleteConfirm = async () => {
+    const project = selectedProject;
+    if (!project) return;
+
+    const projectId = project.id;
+    closeActionModal();
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+
     try {
-      await removeRemindersAndScheduledNotificationsForProject(projectId, {
-        category: project.category,
-        reminderDate: project.reminderDate ?? null,
-      });
-
-      const projectKeys = [
-        `@project_${projectId}`,
-        `@project_images_${projectId}`,
-        `@project_annotations_${projectId}`,
-        `@project_cover_annotations_${projectId}`,
-        `@project_viewport_${projectId}`,
-        `@project_cover_viewport_${projectId}`,
-        `@project_pdf_${projectId}`,
-        `@project_last_text_style_${projectId}`,
-      ];
-      await AsyncStorage.multiRemove(projectKeys);
-
-      const existingProjects = await AsyncStorage.getItem('@user_projects');
-      if (existingProjects) {
-        const projectsList = JSON.parse(existingProjects);
-        const updatedProjects = projectsList.filter(
-          (p: { id?: string }) => String(p.id) !== projectId
-        );
-        const updatedJson = JSON.stringify(updatedProjects);
-        await AsyncStorage.setItem('@user_projects', updatedJson);
-
-        try {
-          const syncId = await getAccountSyncId();
-          if (syncId && isSupabaseConfigured()) {
-            await deleteProjectInSupabase({
-              accessCode: syncId,
-              projectId,
-              updatedUserProjectsJson: updatedJson,
-            });
-          }
-        } catch (e) {
-          console.warn('[AllStories] Supabase delete failed:', e);
-        }
-
-        await pushAccountDataToCloud({ remindersAuthoritativeLocal: true });
-        scheduleSyncToCloud();
-      }
-
+      await deleteUserProjectLocally(project);
       await refreshProjects();
-      closeActionModal();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('[AllStories] delete error:', error);
+      await refreshProjects();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Ошибка', 'Не удалось удалить проект. Попробуйте снова.');
     }
   };
 
   const renderItem = useCallback(
     ({ item, index }: { item: UserProject; index: number }) => (
-      <View style={{ width: gridCardWidth }}>
+      <View style={[styles.gridCell, { width: gridCardWidth }]}>
         <ProjectCard
           project={item}
           cardWidth={gridCardWidth}
@@ -221,56 +184,90 @@ export default function AllStoriesScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             numColumns={ALL_STORIES_GRID_COLUMNS}
-            style={[
-              styles.gridList,
-              { width: gridListWidth },
-              sectionWrap,
+            style={styles.gridList}
+            columnWrapperStyle={styles.gridRow}
+            contentContainerStyle={[
+              styles.listContent,
+              {
+                paddingHorizontal: horizontalPad,
+                maxWidth: layout.isTablet ? layout.contentMaxWidth : undefined,
+                alignSelf: 'center',
+                width: layout.isTablet ? layout.contentMaxWidth : '100%',
+              },
             ]}
-            columnWrapperStyle={gridColumnWrapper}
-            contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           />
         )}
       </View>
 
+      {showActionModal ? (
       <Modal
-        visible={showActionModal}
+        visible
         transparent
         animationType="fade"
-        onRequestClose={closeActionModal}
+        onRequestClose={handleActionModalRequestClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{selectedProject?.title}</Text>
-            <Text style={styles.modalSubtitle}>Выберите действие</Text>
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.editButton]}
-                onPress={handleEdit}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="create-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Редактировать</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton]}
-                onPress={handleDelete}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Удалить</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={closeActionModal}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
+            {actionModalStep === 'menu' ? (
+              <>
+                <Text style={styles.modalTitle}>{selectedProject?.title}</Text>
+                <Text style={styles.modalSubtitle}>Выберите действие</Text>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.editButton]}
+                    onPress={handleEdit}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Редактировать</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDelete}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeActionModal}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Удалить проект?</Text>
+                <Text style={styles.modalSubtitle}>
+                  {`Проект «${selectedProject?.title ?? ''}» будет удалён без возможности восстановления.`}
+                </Text>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDeleteConfirm}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleDeleteConfirmCancel}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -308,10 +305,20 @@ const styles = StyleSheet.create({
     color: '#9B8E7F',
   },
   gridList: {
-    alignSelf: 'center',
+    flex: 1,
+  },
+  gridRow: {
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: ALL_STORIES_GRID_GAP,
+  },
+  gridCell: {
+    flexGrow: 0,
+    flexShrink: 0,
   },
   listContent: {
     paddingBottom: 40,
+    width: '100%',
   },
   empty: {
     flex: 1,

@@ -61,14 +61,22 @@ export function ProjectCard({
           <Ionicons name="book" size={40} color="#C9A89A" />
         )}
       </View>
-      <Text style={styles.cardTitle} numberOfLines={isGrid ? 2 : undefined}>
+      <Text
+        style={[styles.cardTitle, isGrid && styles.cardTitleGrid]}
+        numberOfLines={isGrid ? 3 : undefined}
+      >
         {project.title}
       </Text>
-      {project.category !== 'diary' && (
-        <Text style={styles.cardCategory} numberOfLines={isGrid ? 1 : undefined}>
+      {project.category !== 'diary' ? (
+        <Text
+          style={[styles.cardCategory, isGrid && styles.cardCategoryGrid]}
+          numberOfLines={isGrid ? 2 : undefined}
+        >
           {categoryLabel}
         </Text>
-      )}
+      ) : isGrid ? (
+        <View style={styles.cardCategorySpacer} />
+      ) : null}
       <View style={styles.cardStats}>
         <Text style={styles.cardStatText}>{project.pagesCount} стр.</Text>
       </View>
@@ -92,8 +100,9 @@ const styles = StyleSheet.create({
   },
   projectCardGrid: {
     marginRight: 0,
-    padding: 14,
+    padding: 12,
     minWidth: 0,
+    alignSelf: 'flex-start',
   },
   projectCardPressed: {
     opacity: 0.9,
@@ -117,8 +126,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardImageGrid: {
-    height: 160,
-    marginBottom: 14,
+    height: 128,
+    marginBottom: 10,
   },
   cardImageContent: {
     width: '100%',
@@ -136,6 +145,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     marginBottom: 4,
   },
+  cardTitleGrid: {
+    fontSize: 15,
+    lineHeight: 20,
+    marginBottom: 6,
+  },
   cardCategory: {
     fontSize: 14,
     color: '#9B8E7F',
@@ -147,8 +161,17 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     marginBottom: 12,
   },
+  cardCategoryGrid: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  cardCategorySpacer: {
+    minHeight: 24,
+    marginBottom: 8,
+  },
   cardStats: {
-    paddingTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#F0E8E0',
   },

@@ -3,7 +3,7 @@
     "name": "018BY",
     "slug": "018by",
     "scheme": "018by",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -19,11 +19,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "30",
+      "buildNumber": "35",
       "runtimeVersion": {
         "policy": "appVersion"
       },
       "infoPlist": {
+        "LSApplicationQueriesSchemes": ["itms-apps"],
         "NSCameraUsageDescription": "Камера нужна, чтобы сделать фото для альбомов.",
         "NSPhotoLibraryUsageDescription": "Доступ к фото библиотеке нужен, чтобы добавлять фотографии в альбомы и сохранять созданные проекты.",
         "NSPhotoLibraryAddUsageDescription": "Доступ для сохранения нужен, чтобы сохранять созданные PDF файлы и экспортированные альбомы в галерею.",
@@ -44,9 +45,9 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.tihshkel.app018by",
-      "versionCode": 30,
+      "versionCode": 35,
       "softwareKeyboardLayoutMode": "resize",
-      "runtimeVersion": "1.0.0",
+      "runtimeVersion": "1.0.1",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -62,6 +63,7 @@
       "bundler": "metro"
     },
     "plugins": [
+      "expo-iap",
       "expo-router",
       [
         "expo-splash-screen",

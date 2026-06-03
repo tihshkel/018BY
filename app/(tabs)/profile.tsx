@@ -1,3 +1,5 @@
+import { APPLE_PURCHASE_HISTORY_URL } from '@/constants/subscription';
+import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
@@ -41,6 +43,15 @@ export default function ProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
+  const {
+    isSubscribed,
+    isLoading: isSubscriptionLoading,
+    isIapEnabled,
+    priceLabel,
+    restore,
+    refresh,
+  } = useExportSubscription();
+  const [isRestoringPurchases, setIsRestoringPurchases] = useState(false);
 
   useEffect(() => {
     // Запускаем анимацию сразу, не дожидаясь загрузки данных
@@ -56,7 +67,10 @@ export default function ProfileScreen() {
       if (!isInitialMount.current) {
         loadUserData();
       }
-    }, [])
+      if (isIapEnabled) {
+        refresh();
+      }
+    }, [isIapEnabled, refresh])
   );
 
   const loadUserData = async () => {
@@ -170,13 +184,46 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleRateApp = () => {
-    const url = Platform.select({
-      ios: 'https://apps.apple.com/app/id123456789',
-      android: 'https://play.google.com/store/apps/details?id=com.yourapp',
-    });
-    if (url) {
-      Linking.openURL(url);
+  const handleRestorePurchases = async () => {
+    setIsRestoringPurchases(true);
+    try {
+      const restored = await restore();
+      Alert.alert(
+        restored ? 'Готово' : 'Покупки не найдены',
+        restored
+          ? 'Доступ к экспорту для печати восстановлен.'
+          : 'Покупка для этого Apple ID не найдена.'
+      );
+    } finally {
+      setIsRestoringPurchases(false);
+    }
+  };
+
+  const handleOpenPurchaseHistory = () => {
+    Linking.openURL(APPLE_PURCHASE_HISTORY_URL).catch(() => {});
+  };
+
+  const handleRateApp = async () => {
+    const iosStoreId = '6761551531';
+    const iosHttps = `https://apps.apple.com/app/id${iosStoreId}`;
+    const iosItms = `itms-apps://apps.apple.com/app/id${iosStoreId}`;
+
+    try {
+      if (Platform.OS === 'ios') {
+        // itms-apps открывает App Store напрямую; https — запасной вариант
+        const canOpenItms = await Linking.canOpenURL(iosItms);
+        await Linking.openURL(canOpenItms ? iosItms : iosHttps);
+        return;
+      }
+      if (Platform.OS === 'android') {
+        await Linking.openURL(
+          'https://play.google.com/store/apps/details?id=com.tihshkel.app018by'
+        );
+      }
+    } catch {
+      if (Platform.OS === 'ios') {
+        Linking.openURL(iosHttps).catch(() => {});
+      }
     }
   };
 
@@ -260,6 +307,47 @@ export default function ProfileScreen() {
             <Text style={styles.userName}>{userName || 'Пользователь'}</Text>
 
           </View>
+
+          {isIapEnabled ? (
+            <View style={styles.subscriptionSection}>
+              <Text style={styles.subscriptionSectionTitle}>Экспорт для печати</Text>
+              <Text style={styles.subscriptionStatus}>
+                {isSubscriptionLoading
+                  ? 'Проверяем статус…'
+                  : isSubscribed
+                    ? 'Куплено — PDF для твёрдой и мягкой обложки навсегда'
+                    : priceLabel
+                      ? `Не куплено · ${priceLabel} (один раз)`
+                      : 'Не куплено'}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.subscriptionAction}
+                onPress={handleRestorePurchases}
+                disabled={isRestoringPurchases}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuIcon}>
+                  <Ionicons name="refresh-outline" size={24} color="#C9A89A" />
+                </View>
+                <Text style={styles.menuText}>
+                  {isRestoringPurchases ? 'Восстановление…' : 'Восстановить покупки'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.subscriptionAction}
+                onPress={handleOpenPurchaseHistory}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuIcon}>
+                  <Ionicons name="receipt-outline" size={24} color="#C9A89A" />
+                </View>
+                <Text style={styles.menuText}>История покупок Apple ID</Text>
+                <Ionicons name="open-outline" size={18} color="#D4C4B5" />
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           {/* Меню */}
           <View style={styles.menuSection}>
@@ -358,6 +446,34 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     marginBottom: 10,
     textAlign: 'center',
+  },
+  subscriptionSection: {
+    marginHorizontal: 24,
+    marginTop: 24,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+  },
+  subscriptionSectionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#8B6F5F',
+    marginBottom: 8,
+  },
+  subscriptionStatus: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#9B8E7F',
+    marginBottom: 16,
+  },
+  subscriptionAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F5F0EB',
   },
   menuSection: {
     paddingHorizontal: 24,

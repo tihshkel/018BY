@@ -26,6 +26,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { PDF_CATALOG_GIFT_ITEMS } from '@/constants/pdf-catalog-gift-items';
 import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
@@ -113,55 +115,6 @@ const SKU_TO_CATEGORY: Record<string, string> = {
   'DD20': 'Для девочек',
   'DD21': 'Для девочек',
 };
-
-function CatalogGiftCoverImage(props: {
-  item: GiftItem;
-  style: StyleProp<ImageStyle>;
-  imagePriority: 'high' | 'normal';
-}) {
-  const { item, style, imagePriority } = props;
-  const wbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
-  const [wbFailed, setWbFailed] = useState(false);
-  const useWb = Boolean(wbUri) && !wbFailed;
-
-  if (useWb && wbUri) {
-    return (
-      <Image
-        source={{ uri: wbUri }}
-        style={style}
-        contentFit="contain"
-        priority={imagePriority}
-        cachePolicy="disk"
-        transition={120}
-        accessibilityLabel={`Фото товара ${item.title} с Wildberries`}
-        recyclingKey={`wb-${item.sku}`}
-        onError={() => setWbFailed(true)}
-      />
-    );
-  }
-
-  if (item.cover) {
-    return (
-      <Image
-        source={item.cover}
-        style={style}
-        contentFit="contain"
-        priority={imagePriority}
-        cachePolicy="disk"
-        transition={0}
-        fadeDuration={0}
-        accessibilityLabel={`Обложка товара ${item.title}`}
-        placeholderContentFit="contain"
-      />
-    );
-  }
-
-  return (
-    <View style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
-      <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-    </View>
-  );
-}
 
 export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
   // В проекте реально существуют файлы DB*_0.png / DB*_п.png, поэтому используем их.
@@ -954,6 +907,7 @@ export const GIFT_ITEMS: GiftItem[] = [
     cover: COVER_BY_SKU.SVA9W,
     description: "Фотоальбом выполнен из твердой обложки как в книжном переплете 1,75 мм. Внутренний блок сотоит из 60 страниц, плотной белой бумаги 250 гр., переплетенной на качественную металлическую пружину. Альбом для фото вмещает от 120 фотографий разного формата. Наш альбом предназначен для творческого подхода в его наполнении. В комплекте к альбому идет большой набор тематических наклеек стикеров. Его можно использовать как фотоальбом семейный так и свадебный альбом. Все фотоальбомы из этой серии идут в размере 18х24 см по страничкам внутреннего блока. Фотоальбом большой, что позволит сохранить множество приятных моментов. Альбом для фотографий - это отличная возможно запечатлить свои эмоции на долгие годы. Фотоальбом свадебный можно использовать не только как место для вклеивания фотографий, но и как книгу пожеланий гостей, посетивших ваше мероприятие. Альбом для фото семейный будет отличным подарком на торжество и любой важное событие. Свадебный фотоальбом можно наполнять не только фотографиями, но и вклеивать его наши наклейки посвященные этому событию, а также делать различные записи и рисунки в процессе его наполнения. Не смотря на то, что альбом для фото большой его удобно хранить на полках в вашем интерьере. Семейный фотоальбом - это красивый подарок для пары. Наши фотоальбомы для фотографий идут в подарочной упаковке - это готовый подарок на любой юбилей. Особенно приятно дарить наши фотоальбомы для женщин. Подарите наш фотоальбом семейный большой своим родителям заранее наполнив его впечатляющими фотографиями из их жизни. Семейный альбом всегда напоминает нам о ценности и сохранении семейных традиций. Свадебный фото альбом можно пересматривать через много лет и вспоминать как вы впервые стали семьей. Свадебный альбом для фото напомнит вам о ваших друзьях и близких, которые были одном из самых важных событий в вашей жизни. Молодожены будут рады получить в подарок альбом свадебный. Альбом для фото свадебный выполнен в минималистическом стиле.",
   },
+  ...PDF_CATALOG_GIFT_ITEMS,
 ];
 
 export default function GiftsScreen() {
@@ -1085,35 +1039,40 @@ export default function GiftsScreen() {
         const skuCategory = SKU_TO_CATEGORY[item.sku];
         if (skuCategory === filterCategory) {
           // Продолжаем проверку типа обложки
+        } else if (item.celebrations.includes(filterCategory)) {
+          // Товары из PDF-каталога и новые позиции с прямым совпадением категории
         } else {
           // Маппинг категорий на старые названия celebrations
           const categoryToCelebrations: Record<string, string[]> = {
-            'Будущим мамам': ['Беременность'],
-            'В подарок': ['День рождения'],
-            'Для новорождённых': ['Выписка', 'Первый год'],
-            'Молодожёнам': ['Молодожёнам'], // Свадебные товары
+            'Будущим мамам': ['Беременность', 'Будущим мамам'],
+            'В подарок': ['День рождения', 'В подарок'],
+            'Для новорождённых': ['Выписка', 'Первый год', 'Для новорождённых'],
+            'Молодожёнам': ['Молодожёнам'],
+            'Для семьи': ['Для семьи'],
+            'Для детей': ['Для детей'],
           };
-          
-          // Для категории "Молодожёнам" проверяем свадебные товары (SVA) или celebrations
+
           if (filterCategory === 'Молодожёнам') {
-            const matches = item.sku.startsWith('SVA') || item.celebrations.includes('Молодожёнам');
+            const matches =
+              item.sku.startsWith('SVA') ||
+              item.sku.startsWith('SVO') ||
+              item.sku.startsWith('SB') ||
+              item.celebrations.includes('Молодожёнам');
             if (!matches) return false;
           } else if (filterCategory === 'В подарок') {
-            // Для категории "В подарок" исключаем дневники для девочек (DD1-DD21)
             const isGirlsDiary = SKU_TO_CATEGORY[item.sku] === 'Для девочек';
-            const matches = item.celebrations.includes('День рождения') && !isGirlsDiary;
+            const matches =
+              (item.celebrations.includes('День рождения') ||
+                item.celebrations.includes('В подарок')) &&
+              !isGirlsDiary;
             if (!matches) return false;
           } else {
-            // Для остальных категорий проверяем через маппинг
             const celebrationsToMatch = categoryToCelebrations[filterCategory] || [];
             if (celebrationsToMatch.length > 0) {
-              const matches = item.celebrations.some(celeb => celebrationsToMatch.includes(celeb));
+              const matches = item.celebrations.some((celeb) =>
+                celebrationsToMatch.includes(celeb)
+              );
               if (!matches) return false;
-            } else {
-              // Для категорий "Для семьи" и "Для детей" пока возвращаем false
-              if (filterCategory === 'Для семьи' || filterCategory === 'Для детей') {
-                return false;
-              }
             }
           }
         }

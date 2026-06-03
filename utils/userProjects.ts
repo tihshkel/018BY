@@ -1,5 +1,8 @@
 import { getAlbumTemplateById } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
+import { getPregnancyCoverPdf } from '@/utils/coverPdfMapping';
+import { getGiftDisplayTitle, getGiftItemByAlbumName } from '@/utils/albumGiftMapping';
+import { filterProjectsByDeleted, loadDeletedProjectIds } from '@/utils/deleted-project-ids';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HOME_PROJECTS_PREVIEW_LIMIT = 2;
@@ -58,9 +61,71 @@ const countPhotoAnnotations = (items: unknown[]): number => {
   ).length;
 };
 
+function resolveGiftSku(params: {
+  albumId: string | null;
+  coverType: string | null;
+}): string | null {
+  const { albumId, coverType } = params;
+
+  const tryDiarySku = (value: string | null): string | null => {
+    if (!value) return null;
+    if (/^DD\d+$/i.test(value)) return value.toUpperCase();
+    const diaryMatch = value.match(/diary_dd(\d+)/i);
+    if (diaryMatch) return `DD${diaryMatch[1]}`;
+    return null;
+  };
+
+  const tryDfaSku = (value: string | null): string | null => {
+    if (!value) return null;
+    const normalized = value.toLowerCase();
+    if (!normalized.startsWith('dfa_')) return null;
+    const numPart = normalized.replace('dfa_', '');
+    return numPart ? `DFA${numPart.toUpperCase()}` : null;
+  };
+
+  const diarySku = tryDiarySku(albumId) || tryDiarySku(coverType);
+  if (diarySku) return diarySku;
+
+  const dfaSku = tryDfaSku(coverType) || tryDfaSku(albumId);
+  if (dfaSku) return dfaSku;
+
+  const pregnancySku = getPregnancyCoverPdf(coverType) || getPregnancyCoverPdf(albumId);
+  if (pregnancySku) return pregnancySku;
+
+  return null;
+}
+
+function resolveProjectTitleFromWildberries(params: {
+  title: string;
+  albumId: string | null;
+  coverType: string | null;
+}): string {
+  const { title, albumId, coverType } = params;
+  const fallbackTitle = title.trim();
+  const sku = resolveGiftSku({ albumId, coverType });
+  if (sku) {
+    const wbTitleBySku = getGiftDisplayTitle(sku, fallbackTitle);
+    if (wbTitleBySku.trim().length > 0) return wbTitleBySku.trim();
+  }
+
+  const wbByAlbumName = getGiftItemByAlbumName(fallbackTitle);
+  if (wbByAlbumName?.title?.trim()) return wbByAlbumName.title.trim();
+
+  if (albumId) {
+    const template = getAlbumTemplateById(albumId);
+    if (template?.name) {
+      const wbByTemplateName = getGiftItemByAlbumName(template.name);
+      if (wbByTemplateName?.title?.trim()) return wbByTemplateName.title.trim();
+    }
+  }
+
+  return fallbackTitle;
+}
+
 async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> {
   const projectId = String(p?.id ?? '');
   const albumId = typeof p?.albumId === 'string' ? p.albumId : null;
+  const coverType = (p?.coverType as string) || null;
   const createdAt =
     typeof p?.createdAt === 'string' ? p.createdAt : new Date().toISOString();
   const remindersCount = p?.reminderDate || p?.date ? 1 : 0;
@@ -99,10 +164,14 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
 
   return {
     id: projectId,
-    title: String(p?.title ?? ''),
+    title: resolveProjectTitleFromWildberries({
+      title: String(p?.title ?? ''),
+      albumId,
+      coverType,
+    }),
     category: String(p?.category ?? ''),
     albumId,
-    coverType: (p?.coverType as string) || null,
+    coverType,
     pagesCount,
     photosCount,
     remindersCount,
@@ -123,8 +192,15 @@ export async function loadUserProjects(): Promise<UserProject[]> {
   const parsedProjects = JSON.parse(savedProjects) as unknown[];
   if (!Array.isArray(parsedProjects) || parsedProjects.length === 0) return [];
 
+  const deletedIds = await loadDeletedProjectIds();
+  const visibleProjects = filterProjectsByDeleted(
+    parsedProjects as Array<{ id?: string }>,
+    deletedIds
+  );
+  if (visibleProjects.length === 0) return [];
+
   const formatted = await Promise.all(
-    parsedProjects.map((p) => hydrateProject(p as Record<string, unknown>))
+    visibleProjects.map((p) => hydrateProject(p as Record<string, unknown>))
   );
 
   return formatted.sort(

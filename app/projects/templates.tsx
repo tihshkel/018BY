@@ -9,12 +9,11 @@ import {
     projectCategories,
     type ProjectProduct,
 } from '@/constants/projectTemplates';
-import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
-import { getAccountSyncId } from '@/utils/account-identity';
+import { getRemindersStorageKey } from '@/utils/account-sync';
+import { withTimeout } from '@/utils/asyncTimeout';
+import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 import {
   FORM_MODAL_MAX_WIDTH,
   getGridColumnCount,
@@ -486,49 +485,29 @@ export default function ProjectTemplatesScreen() {
     if (isSavingCoverDate) return;
     setIsSavingCoverDate(true);
 
+    const albumId = selectedAlbumForDate.id;
+    const eventDateIso = coverDate.toISOString();
+
     try {
-      // Save reminder
-      await scheduleReminder(coverDate, categoryId);
-
-      // Для беременности планируем все уведомления
-      if (categoryId === 'pregnancy') {
-        const projectId = `pregnancy_${Date.now()}`;
-        console.log('[Templates] Scheduling pregnancy notifications for due date:', coverDate.toLocaleDateString());
-        await schedulePregnancyNotifications(coverDate, projectId);
-      }
-      // Для детей планируем все уведомления по дате рождения
-      if (categoryId === 'kids') {
-        const projectId = `kids_${Date.now()}`;
-        console.log('[Templates] Scheduling kids notifications for birth date:', coverDate.toLocaleDateString());
-        await scheduleKidsNotifications(coverDate, projectId);
-      }
-
-      const pushResult = await pushCoreOnlyToCloud();
-      if (!pushResult.ok) {
-        console.warn('[Templates] Sync failed:', pushResult.error);
-        if (isSupabaseNotConfiguredError(pushResult.error)) {
-          const msg = getSupabaseNotConfiguredAlertMessageOnce();
-          if (msg) Alert.alert('Сохранено на устройстве', msg);
-        } else {
-          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
-        }
-      }
-
-      setShowCoverDateModal(false);
-
-      router.push({
-        pathname: '/select-action',
-        params: {
-          celebration: categoryId,
-          coverType: selectedAlbumForDate.id,
-          eventDate: coverDate.toISOString(),
-        },
-      });
+      await withTimeout(scheduleReminder(coverDate, categoryId), 8_000, 'save-reminder');
     } catch (error) {
-      console.error('Error saving event date:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить дату. Попробуйте ещё раз.');
-    } finally {
-      setIsSavingCoverDate(false);
+      console.warn('[Templates] Reminder save timed out or failed:', error);
+    }
+
+    setShowCoverDateModal(false);
+    setIsSavingCoverDate(false);
+
+    router.push({
+      pathname: '/select-action',
+      params: {
+        celebration: categoryId,
+        coverType: albumId,
+        eventDate: eventDateIso,
+      },
+    });
+
+    if (categoryId === 'pregnancy' || categoryId === 'kids') {
+      runDueDateBackgroundSetup(coverDate, categoryId);
     }
   }, [selectedAlbumForDate, categoryId, coverDate, isSavingCoverDate]);
 

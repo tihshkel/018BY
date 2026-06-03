@@ -152,6 +152,43 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
  * Получает массив URI изображений для альбома
  * Конвертирует require() модули в URI через Asset API
  */
+/**
+ * Перед экспортом PDF: все страницы должны быть локальными file:// (не https из редактора).
+ * Скачивает недостающие страницы в кэш и возвращает URI в порядке страниц.
+ */
+export async function ensureAlbumPagesCachedForExport(
+  albumId: string,
+  category?: string | null,
+  onProgress?: (done: number, total: number) => void
+): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId, category);
+  const spec = getRemoteAlbumSpec(interiorId);
+  if (!spec) {
+    const uris = await getAlbumImageUris(interiorId);
+    if (uris.length > 0) {
+      onProgress?.(uris.length, uris.length);
+    }
+    return uris;
+  }
+
+  await ensureRemoteAlbumCacheDir();
+  const uris: string[] = [];
+  for (let page = 1; page <= spec.pageCount; page += 1) {
+    const fileName = pageFileName(page);
+    const uri = await downloadRemotePageToCache(spec.folderPath, fileName);
+    if (uri) uris.push(uri);
+    onProgress?.(page, spec.pageCount);
+  }
+
+  return uris
+    .slice()
+    .sort((a, b) => {
+      const aNum = Number((a.match(/page_(\d+)\.png/) || [])[1] || 0);
+      const bNum = Number((b.match(/page_(\d+)\.png/) || [])[1] || 0);
+      return aNum - bNum;
+    });
+}
+
 export async function getAlbumImageUris(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
   if (spec) {

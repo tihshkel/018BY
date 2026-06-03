@@ -1,7 +1,7 @@
 import { getAlbumTemplateById } from '@/albums';
 import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
-import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import { Annotation, AnnotationTextAlign, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -24,8 +24,10 @@ import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
-import { createId, ensureUniqueIds } from '@/utils/id';
+import { createId } from '@/utils/id';
+import { normalizeProjectAnnotations } from '@/utils/migrateTemplateLineAnnotations';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import { useFonts } from 'expo-font';
@@ -35,7 +37,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
+    BackHandler,
     Dimensions,
+    Keyboard,
     Modal,
     Platform,
     ScrollView,
@@ -115,6 +119,7 @@ export default function EditAlbumScreen() {
   const [coverViewport, setCoverViewport] = useState<{ width: number; height: number } | null>(null);
   const [isAddingText, setIsAddingText] = useState(false);
   const [editingTextAnnotationId, setEditingTextAnnotationId] = useState<string | null>(null);
+  const [hasTextSelection, setHasTextSelection] = useState(false);
   const [currentTextAnnotation, setCurrentTextAnnotation] = useState<Annotation | null>(null);
   const [lastTextStyle, setLastTextStyle] = useState<{
     color: string;
@@ -125,6 +130,8 @@ export default function EditAlbumScreen() {
   const [showPageSelectModal, setShowPageSelectModal] = useState(false);
   const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
+  const [exitActionInProgress, setExitActionInProgress] = useState(false);
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
   const [effectiveCelebration, setEffectiveCelebration] = useState<string | undefined>(
     typeof celebration === 'string' ? celebration : undefined
@@ -523,7 +530,7 @@ export default function EditAlbumScreen() {
                   const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
                   if (savedAnnotations) {
                     const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    const { items, changed } = normalizeProjectAnnotations(parsed);
                     setAnnotations(items);
                     if (changed) {
                       await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -534,7 +541,7 @@ export default function EditAlbumScreen() {
                   const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
                   if (savedCoverAnnotations) {
                     const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    const { items, changed } = normalizeProjectAnnotations(parsed);
                     setCoverAnnotations(items);
                     if (changed) {
                       await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
@@ -572,7 +579,7 @@ export default function EditAlbumScreen() {
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 diaryAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
@@ -584,7 +591,7 @@ export default function EditAlbumScreen() {
               const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 diaryCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
@@ -692,7 +699,7 @@ export default function EditAlbumScreen() {
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 loadedAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
@@ -705,7 +712,7 @@ export default function EditAlbumScreen() {
               const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 loadedCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
@@ -774,7 +781,7 @@ export default function EditAlbumScreen() {
                 const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
                 if (savedAnnotations) {
                   const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  const { items, changed } = normalizeProjectAnnotations(parsed);
                   loadedAnnotations2 = items;
                   setAnnotations(items);
                   if (changed) {
@@ -787,7 +794,7 @@ export default function EditAlbumScreen() {
                 const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
                 if (savedCoverAnnotations) {
                   const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  const { items, changed } = normalizeProjectAnnotations(parsed);
                   loadedCoverAnnotations2 = items;
                   setCoverAnnotations(items);
                   if (changed) {
@@ -916,7 +923,7 @@ export default function EditAlbumScreen() {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
           const parsed = JSON.parse(savedAnnotations) as Annotation[];
-          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          const { items, changed } = normalizeProjectAnnotations(parsed);
           finalAnnotations = items;
           setAnnotations(items);
           if (changed) {
@@ -928,7 +935,7 @@ export default function EditAlbumScreen() {
         const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
         if (savedCoverAnnotations) {
           const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          const { items, changed } = normalizeProjectAnnotations(parsed);
           finalCoverAnnotations = items;
           setCoverAnnotations(items);
           if (changed) {
@@ -1280,8 +1287,12 @@ export default function EditAlbumScreen() {
     if (__DEV__) console.log('[EditAlbum] ensureProjectInUserProjects: saved', storageId, 'list length', list.length);
   };
 
-  // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). Возвращает результат синхронизации с БД.
-  const saveAllData = async (opts?: { silent?: boolean; markCommitted?: boolean }): Promise<{ pushOk: boolean; pushError?: string }> => {
+  // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). skipCloud: только локально + фоновая синхронизация (выход из редактора).
+  const saveAllData = async (opts?: {
+    silent?: boolean;
+    markCommitted?: boolean;
+    skipCloud?: boolean;
+  }): Promise<{ pushOk: boolean; pushError?: string }> => {
     const silent = opts?.silent ?? false;
     const out = { pushOk: false, pushError: undefined as string | undefined };
 
@@ -1391,6 +1402,12 @@ export default function EditAlbumScreen() {
       }
       if (__DEV__) console.log('[EditAlbum] saveAllData: @user_projects verified, count=', verifyList.length, 'projectInList=', true);
 
+      if (opts?.skipCloud) {
+        scheduleSyncToCloud();
+        out.pushOk = true;
+        return out;
+      }
+
       // 4. Отправка в облако (Supabase)
       await new Promise((r) => setTimeout(r, 200));
       let pushResult = await pushAccountDataToCloud({ forceIncludeProjectIds: [effectiveId] });
@@ -1421,49 +1438,42 @@ export default function EditAlbumScreen() {
       out.pushError = (error as Error).message;
       if (!silent) {
         Alert.alert('Ошибка', 'Не удалось сохранить проект. Попробуйте снова.', [{ text: 'OK' }]);
+        throw error;
       }
     }
     return out;
   };
 
-  // Периодическое автосохранение в облако каждые 60 сек (текст, фото, аннотации), чтобы данные не терялись
+  // Периодическое автосохранение + debounce при изменениях
   const saveAllDataRef = React.useRef(saveAllData);
   saveAllDataRef.current = saveAllData;
+  const autosaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const AUTOSAVE_DEBOUNCE_MS = 2000;
+  const AUTOSAVE_INTERVAL_MS = 30000;
+
+  useEffect(() => {
+    if (!storageId || isLoading) return;
+
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+    };
+  }, [images, annotations, coverAnnotations, storageId, isLoading]);
+
   useEffect(() => {
     if (!storageId) return;
     const interval = setInterval(() => {
-      saveAllDataRef.current?.({ silent: true });
-    }, 60000);
+      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+    }, AUTOSAVE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [storageId]);
-
-  // Проверка наличия несохраненных изменений
-  const hasUnsavedChanges = (): boolean => {
-    // Если начальное состояние еще не сохранено, считаем что изменений нет
-    if (!lastSavedStateRef.current) return false;
-    
-    const saved = lastSavedStateRef.current;
-    
-    // Проверяем изменения в изображениях
-    if (saved.images.length !== images.length) return true;
-    for (let i = 0; i < images.length; i++) {
-      if (saved.images[i] !== images[i]) return true;
-    }
-    
-    // Проверяем изменения в аннотациях страниц
-    if (saved.annotations.length !== annotations.length) return true;
-    const savedAnnotationsStr = JSON.stringify(saved.annotations);
-    const currentAnnotationsStr = JSON.stringify(annotations);
-    if (savedAnnotationsStr !== currentAnnotationsStr) return true;
-    
-    // Проверяем изменения в аннотациях обложки
-    if (saved.coverAnnotations.length !== coverAnnotations.length) return true;
-    const savedCoverAnnotationsStr = JSON.stringify(saved.coverAnnotations);
-    const currentCoverAnnotationsStr = JSON.stringify(coverAnnotations);
-    if (savedCoverAnnotationsStr !== currentCoverAnnotationsStr) return true;
-    
-    return false;
-  };
 
   const hasUserContent = (): boolean => {
     // "Пустой проект" для пользователя: нет добавленных фото/текста/рисунков.
@@ -1529,106 +1539,120 @@ export default function EditAlbumScreen() {
     }
   };
 
-  const discardToLastSaved = async (projectId: string) => {
-    const saved = lastSavedStateRef.current;
-    if (!saved) return;
-    const pid = String(projectId);
-
-    setImages([...saved.images]);
-    setAnnotations(JSON.parse(JSON.stringify(saved.annotations)));
-    setCoverAnnotations(JSON.parse(JSON.stringify(saved.coverAnnotations)));
-
-    await Promise.all([
-      AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(saved.images)),
-      AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(saved.annotations)),
-      AsyncStorage.setItem(`@project_cover_annotations_${pid}`, JSON.stringify(saved.coverAnnotations)),
-      saved.projectMetaJson != null
-        ? AsyncStorage.setItem(`@project_${pid}`, saved.projectMetaJson)
-        : Promise.resolve(),
-    ]);
+  const dismissActiveEditing = () => {
+    annotationsRef.current?.closeEditing?.();
+    Keyboard.dismiss();
+    setIsAddingText(false);
+    setEditingTextAnnotationId(null);
+    setCurrentTextAnnotation(null);
+    setHasTextSelection(false);
   };
 
-  const handleBack = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    // Если проект ещё не был "сохранён пользователем" и он пустой — при выходе удаляем его целиком.
-    // Это покрывает кейс: "создал новый, ничего не заполнил, вышел — не должен оставаться в списке".
-    const canHardDeleteEmpty =
-      !!storageId && userCommittedRef.current === false && hasUserContent() === false;
-
-    // Проверяем наличие несохраненных изменений
-    if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Несохраненные изменения',
-        'У вас есть несохраненные изменения. Хотите сохранить их перед выходом?',
-        [
-          {
-            text: 'Отмена',
-            style: 'cancel',
-          },
-          {
-            text: 'Не сохранять',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                if (canHardDeleteEmpty && storageId) {
-                  await deleteProjectEverywhere(storageId);
-                } else if (storageId && userCommittedRef.current) {
-                  // Было сохранение раньше — откатываем только последние правки
-                  await discardToLastSaved(storageId);
-                }
-              } finally {
-                router.replace('/(tabs)');
-              }
-            },
-          },
-          {
-            text: 'Сохранить',
-            onPress: async () => {
-              try {
-                await ensureSyncReady();
-                const result = await saveAllData({ silent: true, markCommitted: true });
-                if (result.pushOk) {
-                  router.replace('/(tabs)');
-                } else {
-                  if (isSupabaseNotConfiguredError(result.pushError)) {
-                    const msg = getSupabaseNotConfiguredAlertMessageOnce();
-                    if (msg) Alert.alert('Сохранено на устройстве', msg, [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]);
-                    else router.replace('/(tabs)');
-                  } else {
-                    Alert.alert(
-                      'Сохранено на устройстве',
-                      result.pushError ? `В облако не отправлено: ${result.pushError}` : 'В облако не отправлено. Проверьте интернет.',
-                      [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-                    );
-                  }
-                }
-              } catch (e) {
-                Alert.alert(
-                  'Ошибка сохранения',
-                  (e as Error).message || 'Попробуйте снова.',
-                  [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-                );
-              }
-            },
-          },
-        ]
-      );
-    } else {
-      // Если изменений нет:
-      // - пустой новый проект удаляем
-      // - иначе просто выходим
-      if (canHardDeleteEmpty && storageId) {
-        try {
-          await deleteProjectEverywhere(storageId);
-        } finally {
-          router.replace('/(tabs)');
-        }
-      } else {
-        router.replace('/(tabs)');
-      }
+  const clearPendingAutosave = () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
     }
   };
+
+  const navigateToProjectsList = () => {
+    setShowExitConfirmModal(false);
+    router.replace('/(tabs)/');
+  };
+
+  const getCanHardDeleteEmpty = () =>
+    !!storageId && userCommittedRef.current === false && hasUserContent() === false;
+
+  const restoreLastSavedSnapshot = async () => {
+    const pid = storageId;
+    const snap = lastSavedStateRef.current;
+    if (!pid || !snap) return;
+
+    await Promise.all([
+      AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(snap.images)),
+      AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(snap.annotations)),
+      AsyncStorage.setItem(`@project_cover_annotations_${pid}`, JSON.stringify(snap.coverAnnotations)),
+    ]);
+    if (snap.projectMetaJson) {
+      await AsyncStorage.setItem(`@project_${pid}`, snap.projectMetaJson);
+    }
+  };
+
+  const performExitWithSave = async () => {
+    if (exitActionInProgress) return;
+    setExitActionInProgress(true);
+    setShowExitConfirmModal(false);
+    clearPendingAutosave();
+
+    try {
+      await saveAllData({ silent: false, markCommitted: true, skipCloud: true });
+      navigateToProjectsList();
+    } catch (e) {
+      Alert.alert(
+        'Не удалось сохранить',
+        (e as Error).message || 'Попробуйте ещё раз',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setExitActionInProgress(false);
+    }
+  };
+
+  const performExitWithoutSave = async () => {
+    if (exitActionInProgress) return;
+    setExitActionInProgress(true);
+    setShowExitConfirmModal(false);
+    clearPendingAutosave();
+
+    try {
+      if (getCanHardDeleteEmpty() && storageId) {
+        await deleteProjectEverywhere(storageId);
+      } else {
+        await restoreLastSavedSnapshot();
+      }
+      navigateToProjectsList();
+    } catch (e) {
+      Alert.alert(
+        'Не удалось выйти',
+        (e as Error).message || 'Попробуйте ещё раз',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setExitActionInProgress(false);
+    }
+  };
+
+  const handleExitConfirmCancel = () => {
+    if (exitActionInProgress) return;
+    setShowExitConfirmModal(false);
+  };
+
+  const showExitConfirmDialog = () => {
+    if (exitActionInProgress || showExitConfirmModal) return;
+    dismissActiveEditing();
+    Keyboard.dismiss();
+    requestAnimationFrame(() => {
+      setShowExitConfirmModal(true);
+    });
+  };
+
+  const handleBackRef = React.useRef(showExitConfirmDialog);
+  handleBackRef.current = showExitConfirmDialog;
+
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (exitActionInProgress) return;
+    handleBackRef.current();
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (exitActionInProgress) return true;
+      handleBackRef.current();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [exitActionInProgress]);
 
   const handleZoomIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1642,6 +1666,10 @@ export default function EditAlbumScreen() {
 
   const handleToolSelect = (tool: 'text' | 'image' | 'drawing' | null) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (tool === 'image') {
+      annotationsRef.current?.blurEditingInput?.();
+      Keyboard.dismiss();
+    }
     setCurrentTool(tool);
     setIsEditing(true);
   };
@@ -1671,6 +1699,10 @@ export default function EditAlbumScreen() {
   const handleTextEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
     setIsAddingText(isEditing);
     setEditingTextAnnotationId(annotationId);
+
+    if (!isEditing) {
+      setHasTextSelection(false);
+    }
     
     if (annotationId) {
       // Находим текущую аннотацию для отображения в верхней панели
@@ -1725,14 +1757,29 @@ export default function EditAlbumScreen() {
     annotationsRef.current?.openFontPicker?.();
   };
 
-  const handleToggleEdit = async () => {
+  const handleTextSelectionChange = (hasSelection: boolean) => {
+    setHasTextSelection(hasSelection);
+  };
+
+  const handleTextAlignPress = (align: AnnotationTextAlign) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    annotationsRef.current?.setTextAlign?.(align);
+    setCurrentTextAnnotation((prev) => (prev ? { ...prev, textAlign: align } : null));
+    setHasTextSelection(false);
+  };
+
+  const handleToggleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsEditing(prev => !prev);
+
     if (isEditing) {
+      dismissActiveEditing();
       setCurrentTool(null);
-      // При выходе из режима редактирования сохраняем все данные
-      await saveAllData();
+      setIsEditing(false);
+      void saveAllData({ silent: true, markCommitted: true, skipCloud: true });
+      return;
     }
+
+    setIsEditing(true);
   };
 
   const handleViewModeToggle = () => {
@@ -1862,7 +1909,7 @@ export default function EditAlbumScreen() {
     loadTemplatePages();
   }, [albumId, activeCelebration, usesSingleBlankPage]);
 
-  // Добавляем новую страницу в конец альбома
+  // Добавляем страницу из шаблона сразу после текущей страницы
   const handleAddPage = async (sourcePageIndex: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
@@ -1873,21 +1920,37 @@ export default function EditAlbumScreen() {
     
     // Получаем изображение страницы из шаблона
     const newPageUri = templatePages[sourcePageIndex];
-    const newImages = [...images, newPageUri];
+    const targetPageIndex = Math.max(0, Math.min(images.length - 1, currentPage - 1));
+    const insertedPage = targetPageIndex + 2; // 1-indexed страница, следующая за текущей
+    const newImages = [...images];
+    newImages.splice(targetPageIndex + 1, 0, newPageUri);
+
+    // Новая страница пустая, поэтому сдвигаем аннотации только для страниц после точки вставки
+    const updatedAnnotations = annotations.map(ann => {
+      const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
+      if (annPage > targetPageIndex + 1) {
+        return { ...ann, page: annPage + 1 };
+      }
+      return ann;
+    });
     
     setImages(newImages);
     setTotalPages(newImages.length);
+    setAnnotations(updatedAnnotations);
     
     if (storageId) {
-      await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
-      await markUserPageEdits(storageId, newImages.length);
+      await Promise.all([
+        AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages)),
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations)),
+        markUserPageEdits(storageId, newImages.length),
+      ]);
     }
     
     setShowAddPageModal(false);
     
     // Переходим на новую страницу
     setTimeout(() => {
-      setCurrentPage(newImages.length);
+      setCurrentPage(insertedPage);
     }, 100);
   };
 
@@ -2044,6 +2107,7 @@ export default function EditAlbumScreen() {
             style={styles.backButton}
             onPress={handleBack}
             activeOpacity={0.7}
+            disabled={exitActionInProgress}
             accessibilityRole="button"
             accessibilityLabel="Назад"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -2119,8 +2183,50 @@ export default function EditAlbumScreen() {
           </View>
         )}
 
+        {/* Панель выравнивания — как в Word, при выделении текста */}
+        {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && hasTextSelection && (
+          <View style={styles.textAlignControlsPanel}>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                (currentTextAnnotation.textAlign ?? 'left') === 'left' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('left')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по левому краю"
+            >
+              <MaterialIcons name="format-align-left" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                currentTextAnnotation.textAlign === 'center' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('center')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по центру"
+            >
+              <MaterialIcons name="format-align-center" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                currentTextAnnotation.textAlign === 'right' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('right')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по правому краю"
+            >
+              <MaterialIcons name="format-align-right" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Панель редактирования текста - показывается только когда добавляется текст */}
-        {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && (
+        {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && !hasTextSelection && (
           <View style={styles.textEditControlsPanel}>
             {/* Кнопка цвета */}
             <TouchableOpacity
@@ -2188,6 +2294,7 @@ export default function EditAlbumScreen() {
                 onToolReset={handleToolReset}
                 onToolDeactivate={handleToolDeactivate}
                 onTextEditingStateChange={handleTextEditingStateChange}
+                onTextSelectionChange={handleTextSelectionChange}
                 annotationsRef={annotationsRef}
                 onViewportChange={setCoverViewport}
                 defaultTextStyle={lastTextStyle}
@@ -2226,6 +2333,7 @@ export default function EditAlbumScreen() {
               onToolReset={handleToolReset}
               onToolDeactivate={handleToolDeactivate}
               onTextEditingStateChange={handleTextEditingStateChange}
+              onTextSelectionChange={handleTextSelectionChange}
               annotationsRef={annotationsRef}
               zoomLevel={zoomLevel}
               onViewportChange={setPagesViewport}
@@ -2593,6 +2701,57 @@ export default function EditAlbumScreen() {
         </View>
       </Modal>
 
+      <Modal
+        visible={showExitConfirmModal}
+        transparent
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        onRequestClose={handleExitConfirmCancel}
+      >
+        <View style={styles.exitConfirmOverlay}>
+          <View style={styles.exitConfirmCard}>
+            <Text style={styles.exitConfirmTitle}>Несохранённые изменения</Text>
+            <Text style={styles.exitConfirmMessage}>
+              Сохранить изменения перед выходом на главный экран?
+            </Text>
+            <TouchableOpacity
+              style={[styles.exitConfirmButton, styles.exitConfirmButtonDestructive]}
+              onPress={() => {
+                void performExitWithoutSave();
+              }}
+              activeOpacity={0.7}
+              disabled={exitActionInProgress}
+              accessibilityRole="button"
+              accessibilityLabel="Не сохранять"
+            >
+              <Text style={styles.exitConfirmButtonDestructiveText}>Не сохранять</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.exitConfirmButton}
+              onPress={() => {
+                void performExitWithSave();
+              }}
+              activeOpacity={0.7}
+              disabled={exitActionInProgress}
+              accessibilityRole="button"
+              accessibilityLabel="Сохранить"
+            >
+              <Text style={styles.exitConfirmButtonPrimaryText}>Сохранить</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.exitConfirmButton}
+              onPress={handleExitConfirmCancel}
+              activeOpacity={0.7}
+              disabled={exitActionInProgress}
+              accessibilityRole="button"
+              accessibilityLabel="Отмена"
+            >
+              <Text style={styles.exitConfirmButtonCancelText}>Отмена</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -2777,6 +2936,31 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F5F0EB',
     gap: 20,
   },
+  textAlignControlsPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F0EB',
+    gap: 16,
+  },
+  textAlignControlButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FAF8F5',
+    width: 52,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+  },
+  textAlignControlButtonActive: {
+    backgroundColor: '#F0E6DC',
+    borderColor: '#C9A89A',
+  },
   textEditControlButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2954,6 +3138,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 8,
+    zIndex: 1000,
   },
   toolsScrollView: {
     flexGrow: 0,
@@ -3014,6 +3199,62 @@ const styles = StyleSheet.create({
   toolButtonTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  exitConfirmOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  exitConfirmCard: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  exitConfirmTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#000000',
+    textAlign: 'center',
+    paddingTop: 22,
+    paddingHorizontal: 20,
+  },
+  exitConfirmMessage: {
+    fontSize: 13,
+    color: '#333333',
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingTop: 8,
+    paddingBottom: 18,
+    paddingHorizontal: 20,
+  },
+  exitConfirmButton: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exitConfirmButtonDestructive: {
+    borderTopWidth: 0,
+  },
+  exitConfirmButtonDestructiveText: {
+    fontSize: 17,
+    color: '#FF3B30',
+    fontWeight: '400',
+  },
+  exitConfirmButtonPrimaryText: {
+    fontSize: 17,
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  exitConfirmButtonCancelText: {
+    fontSize: 17,
+    color: '#007AFF',
+    fontWeight: '400',
   },
   pageSelectModalOverlay: {
     flex: 1,
