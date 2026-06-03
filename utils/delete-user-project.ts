@@ -13,6 +13,7 @@ const PROJECT_STORAGE_KEYS = (projectId: string) => [
   `@project_cover_annotations_${projectId}`,
   `@project_viewport_${projectId}`,
   `@project_cover_viewport_${projectId}`,
+  `@project_viewport_migrated_${projectId}`,
   `@project_pdf_${projectId}`,
   `@project_last_text_style_${projectId}`,
   `@project_user_committed_${projectId}`,

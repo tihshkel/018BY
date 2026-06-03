@@ -22,6 +22,10 @@ export type TextLineSlot = {
   hasLabel: boolean;
   continuationGroup: number;
   inputKind?: 'line' | 'block';
+  /** Нормализованный центр слота по Y (0–1), для типографики */
+  normY?: number;
+  /** Нормализованная высота слота (0–1), для типографики */
+  normHeight?: number;
 };
 
 export type GetLineSlotsParams = {
@@ -118,6 +122,8 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       hasLabel: norm.hasLabel ?? true,
       continuationGroup: norm.continuationGroup ?? index + 1,
       inputKind: norm.inputKind,
+      normY: norm.y,
+      normHeight: norm.height,
     };
   });
 }

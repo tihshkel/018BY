@@ -9,6 +9,7 @@ import {
 } from '@/utils/userProjects';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { ensureSyncReady, pullLatestFromCloud, setOnSyncComplete } from '@/utils/account-sync';
+import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -110,6 +111,7 @@ export default function HomeScreen() {
           if (changed) {
             loadProjects();
             loadUserData();
+            void refreshAllAlbumNotifications({ skipCloudSync: true }).catch(() => {});
           } else {
             // Если pullLatestFromCloud не обнаружил изменений, но проектов локально 0 —
             // повторная попытка через 3 сек (облачная синхронизация после входа могла ещё не завершиться)

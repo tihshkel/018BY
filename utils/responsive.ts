@@ -3,6 +3,12 @@ import { Platform, useWindowDimensions } from 'react-native';
 /** Minimum width (dp) to treat as tablet layout on Android and in landscape phones. */
 export const TABLET_BREAKPOINT = 768;
 
+/** Reference page canvas width (iPhone) — used on tablets so annotation coords match phone + export. */
+export const EDITOR_PAGE_VIEWPORT_WIDTH = 390;
+
+/** Max visual upscale on tablet (display only; coordinate space stays EDITOR_PAGE_VIEWPORT_WIDTH). */
+export const EDITOR_PAGE_DISPLAY_MAX_SCALE = 1.65;
+
 export const AUTH_CONTENT_MAX_WIDTH = 400;
 export const ONBOARDING_CONTENT_MAX_WIDTH = 520;
 /** @deprecated Use HOME_CONTENT_MAX_WIDTH — единая ширина главного экрана. */
@@ -168,6 +174,36 @@ export function isTabletLayout(width: number): boolean {
     return true;
   }
   return width >= TABLET_BREAKPOINT;
+}
+
+/** Viewport width passed to page editor / PdfAnnotations (phone = full width, tablet = fixed). */
+export function getEditorPageViewportWidth(windowWidth: number): number {
+  return isTabletLayout(windowWidth) ? EDITOR_PAGE_VIEWPORT_WIDTH : windowWidth;
+}
+
+/**
+ * Visual-only scale for tablet editor: album looks larger on screen while coords stay at 390px width.
+ */
+export function getEditorPageDisplayScale(
+  windowWidth: number,
+  windowHeight: number,
+  coordinateViewportWidth: number = EDITOR_PAGE_VIEWPORT_WIDTH
+): number {
+  if (!isTabletLayout(windowWidth)) return 1;
+
+  const chromeHeight = 280;
+  const horizontalInset = 48;
+  const availableHeight = Math.max(windowHeight - chromeHeight, coordinateViewportWidth);
+  const availableWidth = Math.max(windowWidth - horizontalInset, coordinateViewportWidth);
+
+  const targetSize = Math.min(
+    availableWidth * 0.72,
+    availableHeight * 0.78,
+    coordinateViewportWidth * EDITOR_PAGE_DISPLAY_MAX_SCALE
+  );
+
+  const scale = targetSize / coordinateViewportWidth;
+  return Math.min(Math.max(scale, 1), EDITOR_PAGE_DISPLAY_MAX_SCALE);
 }
 
 export function useResponsiveLayout(

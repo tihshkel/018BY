@@ -5,6 +5,7 @@
 
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
@@ -67,6 +68,7 @@ async function scheduleNotification(
                 title,
                 body,
                 sound: true,
+                data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
             identifier,
@@ -166,13 +168,69 @@ function getFirstSeasonDate(birthDate: Date, seasonMonth: number): Date {
     return seasonDate;
 }
 
+type KidsNotificationCandidate = {
+    title: string;
+    body: string;
+    date: Date;
+    identifier: string;
+};
+
+function buildKidsNotificationCandidates(birthDate: Date, now: Date): KidsNotificationCandidate[] {
+    const baseDate = new Date(birthDate);
+    baseDate.setHours(0, 0, 0, 0);
+
+    const candidates: KidsNotificationCandidate[] = [];
+
+    for (const item of KIDS_NOTIFICATIONS) {
+        const notificationDate = new Date(baseDate);
+
+        if (item.triggerType === 'days') {
+            notificationDate.setDate(baseDate.getDate() + item.triggerValue);
+        } else if (item.triggerType === 'months') {
+            notificationDate.setMonth(baseDate.getMonth() + item.triggerValue);
+        } else if (item.triggerType === 'years') {
+            notificationDate.setFullYear(baseDate.getFullYear() + item.triggerValue);
+        }
+
+        if (item.id === 'first_new_year') {
+            notificationDate.setTime(getFirstNewYearDate(baseDate).getTime());
+        } else if (item.id === 'first_winter') {
+            notificationDate.setTime(getFirstSeasonDate(baseDate, 11).getTime());
+        } else if (item.id === 'first_spring') {
+            notificationDate.setTime(getFirstSeasonDate(baseDate, 2).getTime());
+        } else if (item.id === 'first_summer') {
+            notificationDate.setTime(getFirstSeasonDate(baseDate, 5).getTime());
+        } else if (item.id === 'first_autumn') {
+            notificationDate.setTime(getFirstSeasonDate(baseDate, 8).getTime());
+        }
+
+        if (item.offsetDays) {
+            notificationDate.setDate(notificationDate.getDate() + item.offsetDays);
+        }
+
+        const [hours, minutes] = item.time.split(':').map(Number);
+        notificationDate.setHours(hours, minutes, 0, 0);
+
+        if (notificationDate > now) {
+            candidates.push({
+                title: item.title,
+                body: item.body,
+                date: notificationDate,
+                identifier: `kids_${item.id}`,
+            });
+        }
+    }
+
+    return candidates.sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
 /**
  * Главная функция: запланировать все уведомления для детей
  */
 export async function scheduleKidsNotifications(
     birthDate: Date,
     projectId: string,
-    options?: { skipCloudSync?: boolean }
+    options?: { skipCloudSync?: boolean; maxNotifications?: number }
 ): Promise<void> {
     // Всегда сохраняем дату рождения в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
     await saveKidsInfo(birthDate, projectId);
@@ -218,56 +276,20 @@ export async function scheduleKidsNotifications(
         await cancelAllKidsNotifications();
 
         const now = new Date();
-        // Сбрасываем время рождения на 00:00 для корректных расчетов дней
-        const baseDate = new Date(birthDate);
-        baseDate.setHours(0, 0, 0, 0);
+        const maxNotifications = options?.maxNotifications ?? 56;
+        const candidates = buildKidsNotificationCandidates(birthDate, now).slice(0, maxNotifications);
 
-        console.log(`[KidsNotifications] Starting scheduling for Birth Date: ${birthDate.toLocaleDateString()}`);
+        console.log(
+            `[KidsNotifications] Scheduling ${candidates.length}/${maxNotifications} nearest notifications for Birth Date: ${birthDate.toLocaleDateString()}`
+        );
 
-        // Планируем все уведомления из списка
-        for (const item of KIDS_NOTIFICATIONS) {
-            const notificationDate = new Date(baseDate);
-
-            // Рассчитываем дату в зависимости от типа триггера
-            if (item.triggerType === 'days') {
-                notificationDate.setDate(baseDate.getDate() + item.triggerValue);
-            } else if (item.triggerType === 'months') {
-                notificationDate.setMonth(baseDate.getMonth() + item.triggerValue);
-            } else if (item.triggerType === 'years') {
-                notificationDate.setFullYear(baseDate.getFullYear() + item.triggerValue);
-            }
-
-            // Специальная обработка для сезонных уведомлений
-            if (item.id === 'first_new_year') {
-                notificationDate.setTime(getFirstNewYearDate(baseDate).getTime());
-            } else if (item.id === 'first_winter') {
-                notificationDate.setTime(getFirstSeasonDate(baseDate, 11).getTime()); // Декабрь
-            } else if (item.id === 'first_spring') {
-                notificationDate.setTime(getFirstSeasonDate(baseDate, 2).getTime()); // Март
-            } else if (item.id === 'first_summer') {
-                notificationDate.setTime(getFirstSeasonDate(baseDate, 5).getTime()); // Июнь
-            } else if (item.id === 'first_autumn') {
-                notificationDate.setTime(getFirstSeasonDate(baseDate, 8).getTime()); // Сентябрь
-            }
-
-            // Добавляем смещение (если есть) - например для диапазонов "5-6 месяцев"
-            if (item.offsetDays) {
-                notificationDate.setDate(notificationDate.getDate() + item.offsetDays);
-            }
-
-            // Устанавливаем время
-            const [hours, minutes] = item.time.split(':').map(Number);
-            notificationDate.setHours(hours, minutes, 0, 0);
-
-            // Планируем только будущие уведомления
-            if (notificationDate > now) {
-                await scheduleNotification(
-                    item.title,
-                    item.body,
-                    notificationDate,
-                    `kids_${item.id}`
-                );
-            }
+        for (const candidate of candidates) {
+            await scheduleNotification(
+                candidate.title,
+                candidate.body,
+                candidate.date,
+                candidate.identifier
+            );
         }
 
         // Сохраняем все уведомления как напоминания в AsyncStorage для отображения в списке
@@ -319,8 +341,6 @@ async function saveNotificationsAsReminders(birthDate: Date, skipCloudSync?: boo
  * Перепланировать уведомления (вызывать при открытии приложения)
  */
 export async function refreshKidsNotifications(): Promise<void> {
-    const kidsInfo = await loadKidsInfo();
-    if (kidsInfo) {
-        await scheduleKidsNotifications(kidsInfo.birthDate, kidsInfo.projectId);
-    }
+    const { refreshAllAlbumNotifications } = await import('@/utils/albumNotificationCoordinator');
+    await refreshAllAlbumNotifications({ skipCloudSync: true });
 }

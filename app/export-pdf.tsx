@@ -6,7 +6,7 @@ import { requiresPrintSubscription } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
-import { getKidsFirstLastPages, getPregnancyFirstLastPagesFromGitHub, getFamilyOrHolidayFirstLastPages } from '@/utils/albumFirstLastPages';
+import { getKidsFirstLastPages, getPregnancyFirstLastPagesForExport, getFamilyOrHolidayFirstLastPages } from '@/utils/albumFirstLastPages';
 import {
   ensureAlbumPagesCachedForExport,
   getAlbumImageUris,
@@ -775,7 +775,7 @@ export default function ExportPdfScreen() {
             if (lastPage) firstLastImages.push(lastPage);
             console.log(`[PDF Export] Загружена первая/последняя для kids: ${firstLastImages.length} стр.`);
           } else {
-            const { firstPage, lastPages } = await getPregnancyFirstLastPagesFromGitHub(coverIdForFirstLast, coverFormat);
+            const { firstPage, lastPages } = await getPregnancyFirstLastPagesForExport(coverIdForFirstLast, coverFormat);
             if (firstPage) firstLastImages.push(firstPage);
             if (lastPages.length > 0) firstLastImages.push(...lastPages);
             console.log(`[PDF Export] Загружена первая/последняя для pregnancy: ${firstLastImages.length} стр.`);

@@ -3,8 +3,127 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { getPregnancyCoverPdf } from './coverPdfMapping';
 import { getCoverForExport } from './coverMapping';
 import { FAMILY_COVER_DESIGNS } from './familyCoverDesigns';
+import { githubRawFileUrl } from './githubRawAssets';
 
 const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
+
+/** Декоративная финальная страница (форзац) для A5 / электронной версии. */
+const PREGNANCY_A5_CLOSING_PAGE_MODULES: Record<string, any | Record<string, any>> = {
+  DB1: (() => {
+    try { return require('@/albums/pregnant/A5/last_str_DB1_page_001.png'); } catch { return null; }
+  })(),
+  DB2: (() => {
+    try { return require('@/albums/pregnant/A5/last_str_DB2_page_001.png'); } catch { return null; }
+  })(),
+  DB3: {
+    '002': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB3_page_002.png'); } catch { return null; }
+    })(),
+    '003': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB3_page_003.png'); } catch { return null; }
+    })(),
+    '004': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB3_page_004.png'); } catch { return null; }
+    })(),
+  },
+  DB4: (() => {
+    try { return require('@/albums/pregnant/A5/last_str_DB4_page_001.png'); } catch { return null; }
+  })(),
+  DB5: {
+    '002': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB5_page_002.png'); } catch { return null; }
+    })(),
+    '003': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB5_page_003.png'); } catch { return null; }
+    })(),
+    '004': (() => {
+      try { return require('@/albums/pregnant/A5/last_str_DB5_page_004.png'); } catch { return null; }
+    })(),
+  },
+};
+
+const PREGNANCY_A5_CLOSING_PAGE_URLS: Record<string, string | Record<string, string>> = {
+  DB1: 'albums/pregnant/A5/last_str_DB1_page_001.png',
+  DB2: 'albums/pregnant/A5/last_str_DB2_page_001.png',
+  DB3: {
+    '002': 'albums/pregnant/A5/last_str_DB3_page_002.png',
+    '003': 'albums/pregnant/A5/last_str_DB3_page_003.png',
+    '004': 'albums/pregnant/A5/last_str_DB3_page_004.png',
+  },
+  DB4: 'albums/pregnant/A5/last_str_DB4_page_001.png',
+  DB5: {
+    '002': 'albums/pregnant/A5/last_str_DB5_page_002.png',
+    '003': 'albums/pregnant/A5/last_str_DB5_page_003.png',
+    '004': 'albums/pregnant/A5/last_str_DB5_page_004.png',
+  },
+};
+
+function resolvePregnancyA5ClosingPageSuffix(dbNumber: string, albumId: string | null): string {
+  if (dbNumber !== 'DB3' && dbNumber !== 'DB5') {
+    return '001';
+  }
+
+  const normalizedId = (albumId || '').toLowerCase();
+  if (normalizedId.includes('_soft') || normalizedId.endsWith('_a5')) {
+    return '003';
+  }
+
+  return '002';
+}
+
+function resolvePregnancyA5ClosingPageModule(dbNumber: string, albumId: string | null): any | null {
+  const entry = PREGNANCY_A5_CLOSING_PAGE_MODULES[dbNumber];
+  if (!entry) {
+    return null;
+  }
+
+  if (typeof entry === 'object' && entry !== null && '002' in entry) {
+    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId);
+    return entry[suffix] ?? entry['002'] ?? null;
+  }
+
+  return entry;
+}
+
+function resolvePregnancyA5ClosingPageUrl(dbNumber: string, albumId: string | null): string | null {
+  const entry = PREGNANCY_A5_CLOSING_PAGE_URLS[dbNumber];
+  if (!entry) {
+    return null;
+  }
+
+  if (typeof entry === 'object') {
+    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId);
+    return entry[suffix] ?? entry['002'] ?? null;
+  }
+
+  return entry;
+}
+
+async function loadPregnancyA5ClosingPageUri(albumId: string | null): Promise<string | null> {
+  const dbNumber = getPregnancyCoverPdf(albumId);
+  if (!dbNumber) {
+    return null;
+  }
+
+  const closingModule = resolvePregnancyA5ClosingPageModule(dbNumber, albumId);
+  if (closingModule) {
+    try {
+      const asset = Asset.fromModule(closingModule);
+      await asset.downloadAsync();
+      return asset.localUri || asset.uri || null;
+    } catch (error) {
+      console.warn(`[First/Last Pages] Локальная финальная страница ${dbNumber} недоступна:`, error);
+    }
+  }
+
+  const closingUrl = resolvePregnancyA5ClosingPageUrl(dbNumber, albumId);
+  if (!closingUrl) {
+    return null;
+  }
+
+  const fileName = closingUrl.split('/').pop() || 'closing_page.png';
+  return downloadImageToCache(githubRawFileUrl(closingUrl), `${dbNumber}_closing_${fileName}`);
+}
 
 const PREGNANCY_FIRST_LAST_PAGES_URLS: Record<string, { firstPage: string | null; lastPages: string[] }> = {
   'DB1_hard': {
@@ -886,6 +1005,29 @@ export async function getPregnancyFirstLastPages(
     console.error(`[First/Last Pages] Ошибка при загрузке страниц для ${mappingKey}:`, error);
     return { firstPage: null, lastPages: [] };
   }
+}
+
+/**
+ * Первая/последние страницы для экспорта: GitHub + локальный форзац A5 для soft/electronic.
+ */
+export async function getPregnancyFirstLastPagesForExport(
+  albumId: string | null,
+  formatType: 'hard' | 'soft' = 'hard'
+): Promise<{ firstPage: string | null; lastPages: string[] }> {
+  const localPages = await getPregnancyFirstLastPages(albumId, formatType);
+  const remotePages = await getPregnancyFirstLastPagesFromGitHub(albumId, formatType);
+
+  const firstPage = localPages.firstPage || remotePages.firstPage;
+  let lastPages = remotePages.lastPages.length > 0 ? remotePages.lastPages : localPages.lastPages;
+
+  if (formatType === 'soft') {
+    const closingUri = await loadPregnancyA5ClosingPageUri(albumId);
+    if (closingUri && !lastPages.includes(closingUri)) {
+      lastPages = [...lastPages, closingUri];
+    }
+  }
+
+  return { firstPage, lastPages };
 }
 
 export async function getPregnancyFirstLastPagesFromGitHub(

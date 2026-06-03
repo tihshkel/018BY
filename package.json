@@ -30,7 +30,8 @@
     "visualize:line-slots": "node ./scripts/visualize-line-slots.js",
     "audit:line-slots": "node ./scripts/audit-line-slots.js",
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
-    "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js"
+    "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
+    "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

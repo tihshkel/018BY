@@ -1,18 +1,27 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs, useSegments } from 'expo-router';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomTabButton } from '@/components/custom-tab-button';
+import { useNotificationTabContext } from '@/contexts/notification-tab-context';
 
 export default function TabLayout() {
+  const { isNotificationTabActive, deactivateNotificationTab } = useNotificationTabContext();
+  const segments = useSegments();
+  const isOnNotificationsTab = (segments as readonly string[]).includes('notifications');
+
+  useEffect(() => {
+    if (isNotificationTabActive && !isOnNotificationsTab) {
+      deactivateNotificationTab();
+    }
+  }, [deactivateNotificationTab, isNotificationTabActive, isOnNotificationsTab]);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: CustomTabButton,
-        // Важно: фон сцены должен совпадать с фоном экранов (#FAF8F5),
-        // иначе над таббаром появляется «белая полоса».
         contentStyle: { backgroundColor: '#FAF8F5' },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -20,7 +29,6 @@ export default function TabLayout() {
           height: Platform.OS === 'ios' ? 90 : 72,
           paddingBottom: Platform.OS === 'ios' ? 32 : 12,
           paddingTop: 12,
-          // Убираем «полоску»/тень над таббаром
           elevation: 0,
           shadowColor: 'transparent',
           shadowOffset: { width: 0, height: 0 },
@@ -87,10 +95,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
+          href: isNotificationTabActive ? null : undefined,
           title: 'Профиль',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}
+              size={26}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: isNotificationTabActive ? undefined : null,
+          title: 'Уведомления',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'notifications' : 'notifications-outline'}
               size={26}
               color={color}
             />

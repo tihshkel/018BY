@@ -1,10 +1,17 @@
 import type { Annotation } from '@/components/pdf-annotations';
 import type { Color, PDFPage, PDFFont } from 'pdf-lib';
+import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   getContentRect,
   getViewportToPdfScale,
   type ContentRect,
 } from '@/utils/imageContentRect';
+import {
+  distributeTextWithinContinuationGroup,
+  getContinuationGroupSlots,
+  getEffectiveTemplateFontSize,
+  getTemplateLineTextTop,
+} from '@/utils/templateLineText';
 import { getLineSlotsForPage } from '@/utils/textLineSlots';
 
 type DrawTemplateTextParams = {
@@ -65,6 +72,17 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   if (slots.length === 0) return false;
 
+  const startSlot = slots[ann.templateLineStart];
+  if (!startSlot) return false;
+
+  const effectiveFontSize = getEffectiveTemplateFontSize(
+    lineGuideId,
+    startSlot,
+    ann.fontSize || 16
+  );
+  const profile = getTemplateTypographyProfile(lineGuideId);
+  const baselineRatio = profile.lineFontOffsetRatio;
+
   const pdfImageRect: ContentRect = {
     offsetX,
     offsetY,
@@ -73,31 +91,38 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   };
 
   const { scaleX, scaleY } = getViewportToPdfScale(editorContentRect, actualImageWidth, actualImageHeight);
-
-  const lines = ann.content.split('\n');
-  const start = ann.templateLineStart;
-  const scaledFontSize = (ann.fontSize || 16) * scaleY;
+  const scaledFontSize = effectiveFontSize * scaleY;
   const textAlign = ann.textAlign ?? 'left';
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (!line) continue;
-    const slot = slots[start + i];
+  const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
+  const { segments } = distributeTextWithinContinuationGroup({
+    text: ann.content,
+    startSlotIndex,
+    slots,
+    fontSize: effectiveFontSize,
+    lineGuideId,
+  });
+
+  for (const segment of segments) {
+    if (!segment.content) continue;
+
+    const slot = slots[segment.slotIndex];
     if (!slot) break;
 
+    const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
     const relX = slot.x - editorContentRect.offsetX;
-    const relY = slot.y - editorContentRect.offsetY;
+    const relY = textTop - editorContentRect.offsetY;
 
     const scaledX = pdfImageRect.offsetX + relX * scaleX;
     const scaledY =
       pdfImageRect.offsetY +
       pdfImageRect.height -
       relY * scaleY -
-      scaledFontSize * 0.85;
+      scaledFontSize * baselineRatio;
 
     let drawX = scaledX;
     if (font && textAlign !== 'left') {
-      const textWidth = font.widthOfTextAtSize(line, scaledFontSize);
+      const textWidth = font.widthOfTextAtSize(segment.content, scaledFontSize);
       const slotWidth = slot.width * scaleX;
       if (textAlign === 'center') {
         drawX = scaledX + (slotWidth - textWidth) / 2;
@@ -106,7 +131,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
       }
     }
 
-    page.drawText(line, {
+    page.drawText(segment.content, {
       x: drawX,
       y: scaledY,
       size: scaledFontSize,

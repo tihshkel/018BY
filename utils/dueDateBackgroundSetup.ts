@@ -1,13 +1,13 @@
-import { pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { setupAlbumNotificationsForCelebration, refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
 import { withTimeout } from '@/utils/asyncTimeout';
-import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { pushCoreOnlyToCloud } from '@/utils/account-sync';
 
 const NOTIFICATIONS_TIMEOUT_MS = 45_000;
 const CLOUD_SYNC_TIMEOUT_MS = 15_000;
 
 /**
  * Планирование уведомлений и синхронизация с облаком — не блокируют UI создания альбома.
+ * Перепланирует push для всех типов альбомов (беременность + дети), если оба сохранены.
  */
 export function runDueDateBackgroundSetup(
   dueDate: Date,
@@ -15,21 +15,11 @@ export function runDueDateBackgroundSetup(
 ): void {
   void (async () => {
     try {
-      if (celebration === 'pregnancy') {
-        const projectId = `pregnancy_${Date.now()}`;
-        await withTimeout(
-          schedulePregnancyNotifications(dueDate, projectId, { skipCloudSync: true }),
-          NOTIFICATIONS_TIMEOUT_MS,
-          'pregnancy-notifications'
-        );
-      } else {
-        const projectId = `kids_${Date.now()}`;
-        await withTimeout(
-          scheduleKidsNotifications(dueDate, projectId, { skipCloudSync: true }),
-          NOTIFICATIONS_TIMEOUT_MS,
-          'kids-notifications'
-        );
-      }
+      await withTimeout(
+        setupAlbumNotificationsForCelebration(dueDate, celebration),
+        NOTIFICATIONS_TIMEOUT_MS,
+        `${celebration}-notifications`
+      );
 
       await withTimeout(pushCoreOnlyToCloud(), CLOUD_SYNC_TIMEOUT_MS, 'cloud-sync');
     } catch (error) {
@@ -37,3 +27,5 @@ export function runDueDateBackgroundSetup(
     }
   })();
 }
+
+export { refreshAllAlbumNotifications };

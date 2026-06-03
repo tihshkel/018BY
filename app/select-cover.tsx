@@ -1,5 +1,6 @@
-import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
+import { getAllAlbumTemplates } from '@/albums';
 import { getRemindersStorageKey } from '@/utils/account-sync';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -7,7 +8,7 @@ import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
-import { getGiftDisplayTitle } from '@/utils/albumGiftMapping';
+import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { Ionicons } from '@expo/vector-icons';
@@ -165,10 +166,7 @@ export default function SelectCoverScreen() {
         const gradient = categoryGradients.diary;
         return {
           id: cover.id,
-          title: getGiftDisplayTitle(
-            cover.sku,
-            cover.name || 'Личный дневник'
-          ),
+          title: getCoverSelectTitleBySku(cover.sku, 'diary'),
           description: 'Личный дневник для записи мыслей и воспоминаний',
           image: cover.image,
           color: gradient[0],
@@ -182,7 +180,7 @@ export default function SelectCoverScreen() {
       const gradient = categoryGradients.pregnancy;
       return PREGNANCY_COVER_DESIGNS.map((design) => ({
         id: design.id,
-        title: getGiftDisplayTitle(design.sku, 'Дневник беременности'),
+        title: getCoverSelectTitleBySku(design.sku, 'pregnancy'),
         description: 'Дизайн обложки',
         image: design.image,
         color: gradient[0],
@@ -194,13 +192,9 @@ export default function SelectCoverScreen() {
     if (celebration === 'kids') {
       const gradient = categoryGradients.kids;
       return KIDS_COVER_DESIGNS.map((design) => {
-        const albumTemplate = getAlbumTemplateById(design.id);
         return {
           id: design.id,
-          title: getGiftDisplayTitle(
-            design.sku,
-            albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года'
-          ),
+          title: getCoverSelectTitleBySku(design.sku, 'kids'),
           description: 'Дизайн обложки',
           image: design.image,
           color: gradient[0],
@@ -214,7 +208,7 @@ export default function SelectCoverScreen() {
       const gradient = categoryGradients.holidays;
       return HOLIDAY_COVER_DESIGNS.map((design) => ({
         id: design.id,
-        title: getGiftDisplayTitle(design.sku, 'Праздничный альбом'),
+        title: getCoverSelectTitleBySku(design.sku, 'holidays'),
         description: 'Праздничный альбом',
         image: design.image,
         color: gradient[0],
@@ -227,7 +221,7 @@ export default function SelectCoverScreen() {
       const gradient = categoryGradients.family;
       return FAMILY_COVER_DESIGNS.map((design) => ({
         id: design.id,
-        title: getGiftDisplayTitle(design.sku, 'Семейный альбом'),
+        title: getCoverSelectTitleBySku(design.sku, 'family'),
         description: 'Семейный альбом',
         image: design.image,
         color: gradient[0],
@@ -568,6 +562,7 @@ export default function SelectCoverScreen() {
               title: categoryInfo.notificationTitle,
               body: categoryInfo.notificationBody,
               sound: true,
+              data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
           });
@@ -585,6 +580,7 @@ export default function SelectCoverScreen() {
               title: categoryInfo.notificationTitle,
               body: categoryInfo.notificationBody,
               sound: true,
+              data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
           });

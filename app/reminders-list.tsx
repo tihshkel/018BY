@@ -9,6 +9,7 @@ import {
   scheduleSyncToCloud,
   setLocalRemindersJsonForSyncId,
 } from '@/utils/account-sync';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -253,6 +254,7 @@ export default function RemindersListScreen() {
           title: title,
           body: body,
           sound: true,
+          data: OPEN_NOTIFICATIONS_INBOX_DATA,
         },
         trigger: trigger,
       });

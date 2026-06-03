@@ -1,4 +1,4 @@
-import { APPLE_PURCHASE_HISTORY_URL } from '@/constants/subscription';
+import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
@@ -47,11 +47,8 @@ export default function ProfileScreen() {
     isSubscribed,
     isLoading: isSubscriptionLoading,
     isIapEnabled,
-    priceLabel,
-    restore,
     refresh,
   } = useExportSubscription();
-  const [isRestoringPurchases, setIsRestoringPurchases] = useState(false);
 
   useEffect(() => {
     // Запускаем анимацию сразу, не дожидаясь загрузки данных
@@ -184,23 +181,8 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleRestorePurchases = async () => {
-    setIsRestoringPurchases(true);
-    try {
-      const restored = await restore();
-      Alert.alert(
-        restored ? 'Готово' : 'Покупки не найдены',
-        restored
-          ? 'Доступ к экспорту для печати восстановлен.'
-          : 'Покупка для этого Apple ID не найдена.'
-      );
-    } finally {
-      setIsRestoringPurchases(false);
-    }
-  };
-
-  const handleOpenPurchaseHistory = () => {
-    Linking.openURL(APPLE_PURCHASE_HISTORY_URL).catch(() => {});
+  const handleOpenExportSubscription = () => {
+    router.push('/export-subscription');
   };
 
   const handleRateApp = async () => {
@@ -306,48 +288,12 @@ export default function ProfileScreen() {
 
             <Text style={styles.userName}>{userName || 'Пользователь'}</Text>
 
+            <ProfileSubscriptionStatusBadge
+              isPremium={isSubscribed}
+              isLoading={isIapEnabled && isSubscriptionLoading}
+              onPress={handleOpenExportSubscription}
+            />
           </View>
-
-          {isIapEnabled ? (
-            <View style={styles.subscriptionSection}>
-              <Text style={styles.subscriptionSectionTitle}>Экспорт для печати</Text>
-              <Text style={styles.subscriptionStatus}>
-                {isSubscriptionLoading
-                  ? 'Проверяем статус…'
-                  : isSubscribed
-                    ? 'Куплено — PDF для твёрдой и мягкой обложки навсегда'
-                    : priceLabel
-                      ? `Не куплено · ${priceLabel} (один раз)`
-                      : 'Не куплено'}
-              </Text>
-
-              <TouchableOpacity
-                style={styles.subscriptionAction}
-                onPress={handleRestorePurchases}
-                disabled={isRestoringPurchases}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuIcon}>
-                  <Ionicons name="refresh-outline" size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.menuText}>
-                  {isRestoringPurchases ? 'Восстановление…' : 'Восстановить покупки'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.subscriptionAction}
-                onPress={handleOpenPurchaseHistory}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuIcon}>
-                  <Ionicons name="receipt-outline" size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.menuText}>История покупок Apple ID</Text>
-                <Ionicons name="open-outline" size={18} color="#D4C4B5" />
-              </TouchableOpacity>
-            </View>
-          ) : null}
 
           {/* Меню */}
           <View style={styles.menuSection}>
@@ -444,36 +390,8 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 10,
+    marginBottom: 4,
     textAlign: 'center',
-  },
-  subscriptionSection: {
-    marginHorizontal: 24,
-    marginTop: 24,
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  subscriptionSectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#8B6F5F',
-    marginBottom: 8,
-  },
-  subscriptionStatus: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#9B8E7F',
-    marginBottom: 16,
-  },
-  subscriptionAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F5F0EB',
   },
   menuSection: {
     paddingHorizontal: 24,

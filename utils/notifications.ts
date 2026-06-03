@@ -8,6 +8,9 @@ import * as Notifications from 'expo-notifications';
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
+/** Payload для перехода на экран истории уведомлений по тапу. */
+export const OPEN_NOTIFICATIONS_INBOX_DATA = { openNotifications: true as const };
+
 // Set the notification handler for the app (only if not in Expo Go)
 if (!isExpoGo) {
   try {
@@ -99,6 +102,7 @@ export const scheduleReminderNotification = async (
         title,
         body,
         sound: true,
+        data: OPEN_NOTIFICATIONS_INBOX_DATA,
       },
       trigger,
     });

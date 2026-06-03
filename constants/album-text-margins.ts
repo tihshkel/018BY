@@ -30,3 +30,100 @@ export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   if (!lineGuideId) return false;
   return BLANK_LINE_GUIDE_IDS.has(lineGuideId);
 }
+
+/** Белые листы — классический free-form текст (поле + перетаскивание) */
+export function usesFreeFormTextEditing(lineGuideId?: string): boolean {
+  return isBlankLineGuideAlbum(lineGuideId);
+}
+
+export type TemplateTypographyProfile = {
+  fixedLineFontSize: number | null;
+  /** Доля fontSize на символ (кириллица ~0.5–0.55). */
+  charWidthRatio: number;
+  /** Запас к ширине слота (1.0 = без запаса). */
+  lineWidthSlackRatio: number;
+  lineCenterRatio: number;
+  lineFontOffsetRatio: number;
+  blockCenterRatio: number;
+  blockFontOffsetRatio: number;
+  blockMaxFontSize: number;
+};
+
+const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
+  fixedLineFontSize: null,
+  charWidthRatio: 0.52,
+  lineWidthSlackRatio: 1.0,
+  lineCenterRatio: 0.46,
+  lineFontOffsetRatio: 0.92,
+  blockCenterRatio: 0.66,
+  blockFontOffsetRatio: 0.72,
+  blockMaxFontSize: 21,
+};
+
+const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
+  pregnancy_60: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.02,
+    lineCenterRatio: 0.48,
+    lineFontOffsetRatio: 0.85,
+    blockCenterRatio: 0.66,
+    blockFontOffsetRatio: 0.72,
+    blockMaxFontSize: 21,
+  },
+  pregnancy_a5: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.02,
+    lineCenterRatio: 0.48,
+    lineFontOffsetRatio: 0.85,
+    blockCenterRatio: 0.66,
+    blockFontOffsetRatio: 0.72,
+    blockMaxFontSize: 21,
+  },
+  kids_48: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.02,
+    lineCenterRatio: 0.45,
+    lineFontOffsetRatio: 0.88,
+    blockCenterRatio: 0.63,
+    blockFontOffsetRatio: 0.75,
+    blockMaxFontSize: 21,
+  },
+  holidays_birthday_60: {
+    fixedLineFontSize: null,
+    charWidthRatio: 0.52,
+    lineWidthSlackRatio: 1.0,
+    lineCenterRatio: 0.32,
+    lineFontOffsetRatio: 1.02,
+    blockCenterRatio: 0.66,
+    blockFontOffsetRatio: 0.72,
+    blockMaxFontSize: 21,
+  },
+  diary_interior_brown: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.02,
+    lineCenterRatio: 0.54,
+    lineFontOffsetRatio: 0.78,
+    blockCenterRatio: 0.66,
+    blockFontOffsetRatio: 0.72,
+    blockMaxFontSize: 21,
+  },
+  diary_interior_purple: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.02,
+    lineCenterRatio: 0.52,
+    lineFontOffsetRatio: 0.8,
+    blockCenterRatio: 0.66,
+    blockFontOffsetRatio: 0.72,
+    blockMaxFontSize: 21,
+  },
+};
+
+export function getTemplateTypographyProfile(lineGuideId?: string): TemplateTypographyProfile {
+  if (!lineGuideId) return DEFAULT_TYPOGRAPHY;
+  return ALBUM_TYPOGRAPHY[lineGuideId] ?? DEFAULT_TYPOGRAPHY;
+}

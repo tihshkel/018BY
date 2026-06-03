@@ -1,4 +1,26 @@
 {
+  "diary_interior_brown": {
+    "1": [
+      {
+        "x": 0.27498,
+        "y": 0.33007,
+        "width": 0.45482,
+        "height": 0.03919,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.28351,
+        "y": 0.36926,
+        "width": 0.45342,
+        "height": 0.03919,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
+    "2": [],
+    "3": []
+  },
   "holidays_birthday_60": {
     "1": [
       {

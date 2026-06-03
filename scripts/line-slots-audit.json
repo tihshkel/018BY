@@ -1,23 +1,2027 @@
 {
-  "generatedAt": "2026-06-02T23:54:37.523Z",
+  "generatedAt": "2026-06-03T21:22:54.305Z",
   "albums": [
     {
-      "albumId": "holidays_birthday_60",
+      "albumId": "pregnancy_60",
       "pageCount": 60,
-      "emptyPages": 15,
-      "issuePages": 42,
+      "emptyPages": 11,
+      "issuePages": 47,
       "pages": [
         {
           "page": "1",
-          "slotCount": 10,
+          "slotCount": 7,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 22,
           "overrideUsed": false,
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0136 between slots 8 and 9"
+              "detail": "gap 0.0000 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 3 and 4"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0002 between slots 4 and 5"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 17 and 18"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 19 and 20"
             }
           ],
           "ok": false,
+          "empty": false
+        },
+        {
+          "page": "3",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 2 and 3"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0009 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 12 and 13"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 14 and 15"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "5",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "6",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "7",
+          "slotCount": 33,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 0 and 1"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 2 and 3"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 4 and 5"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 6 and 7"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 8 and 9"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 12 and 13"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 14 and 15"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 16 and 17"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 18 and 19"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 20 and 21"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 22 and 23"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 24 and 25"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 26 and 27"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 28 and 29"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 30 and 31"
+            },
+            {
+              "code": "TOO_MANY_SLOTS",
+              "detail": "count=33"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "8",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "9",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "11",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "15",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "19",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "21",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "22",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "23",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "28",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "30",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "34",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "35",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "36",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "37",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "38",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "39",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "40",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "41",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "42",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "43",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "44",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "45",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "46",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "47",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "48",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "49",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "50",
+          "slotCount": 36,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 0 and 1"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 2 and 3"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 4 and 5"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 6 and 7"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 8 and 9"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 12 and 13"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 14 and 15"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 16 and 17"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 18 and 19"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 20 and 21"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 22 and 23"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 24 and 25"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 26 and 27"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 28 and 29"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 30 and 31"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 32 and 33"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 34 and 35"
+            },
+            {
+              "code": "TOO_MANY_SLOTS",
+              "detail": "count=36"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "51",
+          "slotCount": 18,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0138 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0001 between slots 2 and 3"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 3 and 4"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 5 and 6"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0001 between slots 6 and 7"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0123 between slots 7 and 8"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0001 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 11 and 12"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 13 and 14"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0001 between slots 14 and 15"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0133 between slots 15 and 16"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "52",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0007 between slots 2 and 3"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0120 between slots 9 and 10"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0014 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0014 between slots 12 and 13"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0083 between slots 13 and 14"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "53",
+          "slotCount": 15,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "ALL_FULL_WIDTH_NO_LABEL",
+              "detail": "label detection likely failed for entire page"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "54",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 1 and 2"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "55",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "56",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "57",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "58",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "59",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "60",
+          "slotCount": 17,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "ALL_FULL_WIDTH_NO_LABEL",
+              "detail": "label detection likely failed for entire page"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        }
+      ]
+    },
+    {
+      "albumId": "pregnancy_a5",
+      "pageCount": 48,
+      "emptyPages": 6,
+      "issuePages": 40,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 7,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "3",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 14 and 15"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 16 and 17"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "5",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "6",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "7",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "8",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "9",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "11",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "15",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "19",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "21",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "22",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "23",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "28",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "30",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "34",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "35",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "36",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "37",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "38",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "39",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "40",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "41",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "42",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "43",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0004 between slots 4 and 5"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "44",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0008 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0006 between slots 9 and 10"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0006 between slots 11 and 12"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0071 between slots 12 and 13"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "45",
+          "slotCount": 15,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "46",
+          "slotCount": 8,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 1 and 2"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "47",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "48",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        }
+      ]
+    },
+    {
+      "albumId": "kids_48",
+      "pageCount": 48,
+      "emptyPages": 17,
+      "issuePages": 4,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 5,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "3",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 0 and 1"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "5",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "6",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "7",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "8",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "9",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 1 and 2"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 3 and 4"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 5 and 6"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 7 and 8"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0019 between slots 9 and 10"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0019 between slots 11 and 12"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0019 between slots 13 and 14"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0019 between slots 15 and 16"
+            },
+            {
+              "code": "WIDTH_TOO_SMALL",
+              "detail": "slot 19 width=0.05308"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "11",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 0 and 1"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 2 and 3"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 4 and 5"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 6 and 7"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 8 and 9"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 10 and 11"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 12 and 13"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 14 and 15"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 16 and 17"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 18 and 19"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 20 and 21"
+            },
+            {
+              "code": "Y_TOO_CLOSE",
+              "detail": "gap 0.0000 between slots 22 and 23"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "15",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "19",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "21",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "22",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "23",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "28",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "30",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "34",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "35",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "36",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "37",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "38",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "39",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "40",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "41",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [
+            {
+              "code": "WIDTH_TOO_SMALL",
+              "detail": "slot 0 width=0.05496"
+            }
+          ],
+          "ok": false,
+          "empty": false
+        },
+        {
+          "page": "42",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "43",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "44",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "45",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "46",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "47",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "48",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        }
+      ]
+    },
+    {
+      "albumId": "holidays_birthday_60",
+      "pageCount": 60,
+      "emptyPages": 15,
+      "issuePages": 29,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 3,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -26,12 +2030,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.30949 < y[0]=0.91425"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.6048 between slots 0 and 1"
+              "detail": "gap 0.0000 between slots 0 and 1"
             },
             {
               "code": "Y_TOO_CLOSE",
@@ -40,10 +2040,6 @@
             {
               "code": "Y_TOO_CLOSE",
               "detail": "gap 0.0000 between slots 2 and 3"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 3 and 4"
             }
           ],
           "ok": false,
@@ -85,19 +2081,11 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
               "detail": "gap 0.0000 between slots 1 and 2"
             },
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[3]=0.0965 < y[2]=0.27896"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1825 between slots 2 and 3"
+              "detail": "gap 0.0000 between slots 2 and 3"
             }
           ],
           "ok": false,
@@ -105,43 +2093,10 @@
         },
         {
           "page": "7",
-          "slotCount": 5,
+          "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[3]=0.7151 < y[2]=0.82789"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1128 between slots 2 and 3"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[4]=0.69096 < y[3]=0.7151"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0241 between slots 3 and 4"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -151,15 +2106,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.09235 < y[1]=0.26825"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1759 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -171,24 +2118,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
+              "detail": "gap 0.0000 between slots 0 and 1"
             }
           ],
           "ok": false,
@@ -211,25 +2142,8 @@
           "page": "11",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -239,15 +2153,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.08888 < y[1]=0.26917"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1803 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -257,25 +2163,8 @@
           "page": "13",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -285,15 +2174,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.09084 < y[1]=0.27202"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1812 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -305,32 +2186,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[4]=0.01851 < y[3]=0.82789"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.8094 between slots 3 and 4"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -353,25 +2210,8 @@
           "page": "17",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -381,15 +2221,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.09132 < y[1]=0.2672"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1759 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -399,25 +2231,8 @@
           "page": "19",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -427,15 +2242,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.09036 < y[1]=0.25958"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1692 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -447,24 +2254,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
+              "detail": "gap 0.0000 between slots 0 and 1"
             }
           ],
           "ok": false,
@@ -487,25 +2278,8 @@
           "page": "23",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -514,24 +2288,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.26512 < y[0]=0.89446"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.6293 between slots 0 and 1"
-            },
-            {
               "code": "Y_TOO_CLOSE",
               "detail": "gap 0.0000 between slots 1 and 2"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[3]=0.08614 < y[2]=0.26512"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1790 between slots 2 and 3"
             }
           ],
           "ok": false,
@@ -541,25 +2299,8 @@
           "page": "25",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -569,15 +2310,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.08651 < y[1]=0.25618"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1697 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -589,32 +2322,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[4]=0.04263 < y[3]=0.82789"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.7853 between slots 3 and 4"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -637,25 +2346,8 @@
           "page": "29",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -665,15 +2357,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.08632 < y[1]=0.26054"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1742 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -683,25 +2367,8 @@
           "page": "31",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -711,15 +2378,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.08453 < y[1]=0.25639"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1719 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -731,32 +2390,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[4]=0.01537 < y[3]=0.82789"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.8125 between slots 3 and 4"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -779,25 +2414,8 @@
           "page": "35",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -806,32 +2424,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.79255 < y[0]=0.85787"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0653 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.25958 < y[1]=0.79255"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.5330 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 2 and 3"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[4]=0.08703 < y[3]=0.25958"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1725 between slots 3 and 4"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -841,25 +2435,8 @@
           "page": "37",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -869,15 +2446,7 @@
           "issues": [
             {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap 0.0000 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.08824 < y[1]=0.26317"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.1749 between slots 1 and 2"
+              "detail": "gap 0.0000 between slots 1 and 2"
             }
           ],
           "ok": false,
@@ -889,24 +2458,8 @@
           "overrideUsed": false,
           "issues": [
             {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
               "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.8279 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0000 between slots 2 and 3"
+              "detail": "gap 0.0000 between slots 0 and 1"
             }
           ],
           "ok": false,
@@ -929,25 +2482,8 @@
           "page": "41",
           "slotCount": 3,
           "overrideUsed": false,
-          "issues": [
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[1]=0.88178 < y[0]=0.93567"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 0 and 1"
-            },
-            {
-              "code": "Y_NOT_ASCENDING",
-              "detail": "y[2]=0.82789 < y[1]=0.88178"
-            },
-            {
-              "code": "Y_TOO_CLOSE",
-              "detail": "gap -0.0539 between slots 1 and 2"
-            }
-          ],
-          "ok": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         },
         {
@@ -1100,6 +2636,816 @@
             }
           ],
           "ok": false,
+          "empty": false
+        }
+      ]
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "pageCount": 60,
+      "emptyPages": 6,
+      "issuePages": 0,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 13,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "3",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 5,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "5",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "6",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "7",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "8",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "9",
+          "slotCount": 6,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "11",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 22,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "15",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "19",
+          "slotCount": 9,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "21",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "22",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "23",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 15,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "28",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 13,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "30",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 15,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "34",
+          "slotCount": 17,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "35",
+          "slotCount": 12,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "36",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "37",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "38",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "39",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "40",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "41",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "42",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "43",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "44",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "45",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "46",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "47",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "48",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "49",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "50",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "51",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "52",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "53",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "54",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "55",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "56",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "57",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "58",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "59",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "60",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        }
+      ]
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "pageCount": 40,
+      "emptyPages": 0,
+      "issuePages": 0,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "3",
+          "slotCount": 22,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "5",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "6",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "7",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "8",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "9",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "11",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "15",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "19",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 18,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "21",
+          "slotCount": 8,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "22",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "23",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 20,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 19,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "28",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "30",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 23,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "34",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "35",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "36",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "37",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "38",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "39",
+          "slotCount": 24,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "40",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
           "empty": false
         }
       ]

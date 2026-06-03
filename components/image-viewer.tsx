@@ -1,3 +1,4 @@
+import { usesFreeFormTextEditing } from '@/constants/album-text-margins';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
 import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
@@ -19,6 +20,8 @@ import {
   layoutAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
+import { getEffectiveTemplateFontSize } from '@/utils/templateLineText';
+import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -26,7 +29,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Animated,
-    Dimensions,
     FlatList,
     Keyboard,
     Modal,
@@ -35,11 +37,10 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
 const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
@@ -128,8 +129,16 @@ export default function ImageViewer({
   defaultTextStyle,
   getLastFontFamily,
 }: ImageViewerProps) {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
+  const isTabletEditor = isTabletLayout(windowWidth);
+  const displayScale = isTabletEditor
+    ? getEditorPageDisplayScale(windowWidth, windowHeight, editorViewportWidth)
+    : 1;
+  const visualScale = displayScale * (zoomLevel > 0 ? zoomLevel : 1);
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
+  const [containerHeight, setContainerHeight] = useState(windowHeight);
   const [showPageMenu, setShowPageMenu] = useState(false);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
@@ -180,8 +189,7 @@ export default function ImageViewer({
     }
   }, [defaultTextStyle?.color, defaultTextStyle?.fontSize, defaultTextStyle?.fontFamily]);
 
-  const isBlankInteriorAlbum =
-    lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
+  const isBlankInteriorAlbum = usesFreeFormTextEditing(lineGuideId);
 
   const buildSlotParams = (page: number): GetLineSlotsParams | null => {
     if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
@@ -191,7 +199,7 @@ export default function ImageViewer({
     return {
       lineGuideId,
       page,
-      viewportWidth: SCREEN_WIDTH,
+      viewportWidth: editorViewportWidth,
       viewportHeight: containerHeight,
       sourceWidth: size?.width,
       sourceHeight: size?.height,
@@ -232,7 +240,7 @@ export default function ImageViewer({
   const blankPageLayout = useMemo(() => {
     if (!isBlankInteriorAlbum) return null;
     const aspect = BLANK_INTERIOR_PAGE_WIDTH / BLANK_INTERIOR_PAGE_HEIGHT;
-    let width = SCREEN_WIDTH * 0.9;
+    let width = editorViewportWidth * 0.9;
     let height = width / aspect;
     const maxHeight = containerHeight * 0.9;
     if (height > maxHeight) {
@@ -240,7 +248,7 @@ export default function ImageViewer({
       width = height * aspect;
     }
     return { width, height };
-  }, [isBlankInteriorAlbum, containerHeight]);
+  }, [isBlankInteriorAlbum, containerHeight, editorViewportWidth]);
 
   const annotationsByPage = useMemo(() => {
     const map = new Map<number, Annotation[]>();
@@ -318,7 +326,7 @@ export default function ImageViewer({
     const { height } = event.nativeEvent.layout;
     if (height > 0 && height !== containerHeight) {
       setContainerHeight(height);
-      onViewportChange?.({ width: SCREEN_WIDTH, height });
+      onViewportChange?.({ width: editorViewportWidth, height });
     }
   };
 
@@ -387,6 +395,7 @@ export default function ImageViewer({
       annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
     const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
     const layout = layoutAnnotationFromSlot(slot);
+    const effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, style.fontSize);
 
     const newAnnotation: Annotation = {
       id: createId('ann'),
@@ -394,7 +403,7 @@ export default function ImageViewer({
       ...layout,
       content: '',
       color: style.color,
-      fontSize: style.fontSize,
+      fontSize: effectiveFontSize,
       fontFamily: style.fontFamily,
       zIndex: maxZIndex + 1,
       page: pageForAnnotation,
@@ -444,11 +453,38 @@ export default function ImageViewer({
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
 
-      const viewportWidth = SCREEN_WIDTH;
+      const viewportWidth = editorViewportWidth;
       const viewportHeight = containerHeight;
       const proposedX = x - TEXT_ANNOTATION_DEFAULT_WIDTH / 2;
       const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
       const nextX = clamp(proposedX, 0, viewportWidth - TEXT_ANNOTATION_DEFAULT_WIDTH);
+      const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+
+      if (usesFreeFormTextEditing(lineGuideId)) {
+        const applyFreeFormStyle = async () => {
+          const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+          const newAnnotation: Annotation = {
+            id: createId('ann'),
+            type: 'text',
+            x: nextX,
+            y: nextY,
+            width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+            height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+            content: 'Новый текст',
+            color: style.color,
+            fontSize: style.fontSize,
+            fontFamily: style.fontFamily,
+            zIndex: maxZIndex + 1,
+            page: pageForAnnotation,
+          };
+          onAnnotationAdd(newAnnotation);
+          startAnnotationEditing(newAnnotation.id);
+          if (onToolReset) onToolReset();
+        };
+        void applyFreeFormStyle();
+        return;
+      }
+
       const clampedY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
       const size = pageSourceSizes[pageForAnnotation];
       const snappedY = snapYToNearestTemplateLine({
@@ -460,13 +496,13 @@ export default function ImageViewer({
         sourceWidth: size?.width,
         sourceHeight: size?.height,
       });
-      const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+      const snappedNextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
       const applyStyle = async () => {
         const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
         const slotParams = buildSlotParams(pageForAnnotation);
         const snappedSlot = slotParams
-          ? buildLineSlotsContext(slotParams).slots.find((s) => Math.abs(s.y - nextY) < 4)
+          ? buildLineSlotsContext(slotParams).slots.find((s) => Math.abs(s.y - snappedNextY) < 4)
           : undefined;
 
         const newAnnotation: Annotation = {
@@ -476,7 +512,7 @@ export default function ImageViewer({
             ? { ...layoutAnnotationFromSlot(snappedSlot), content: '' }
             : {
                 x: nextX,
-                y: nextY,
+                y: snappedNextY,
                 width: TEXT_ANNOTATION_DEFAULT_WIDTH,
                 height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
                 content: 'Новый текст',
@@ -573,7 +609,7 @@ export default function ImageViewer({
         const scale = maxSide / Math.max(origW, origH);
         const fitW = Math.round(origW * scale);
         const fitH = Math.round(origH * scale);
-        const viewportWidth = SCREEN_WIDTH;
+        const viewportWidth = editorViewportWidth;
         const viewportHeight = containerHeight;
         const nextX = clamp(x, 0, viewportWidth - fitW);
         const nextY = clamp(y, 0, viewportHeight - fitH);
@@ -662,7 +698,11 @@ export default function ImageViewer({
             <View
               style={[
                 styles.pageContainer,
-                { height: containerHeight },
+                {
+                  width: isTabletEditor ? '100%' : editorViewportWidth,
+                  height: containerHeight,
+                  alignSelf: isTabletEditor ? 'center' : undefined,
+                },
                 isBlankInteriorAlbum && styles.blankPageContainer,
                 index === images.length - 1 && styles.lastPageContainer,
               ]}
@@ -679,8 +719,13 @@ export default function ImageViewer({
                     activeOpacity={1}
                     onPress={(e) => {
                       const { locationX, locationY } = e.nativeEvent;
-                      const x = locationX / (zoomLevel > 0 ? zoomLevel : 1);
-                      const y = locationY / (zoomLevel > 0 ? zoomLevel : 1);
+                      const { x, y } = mapScreenPointToUnscaledPagePoint({
+                        locationX,
+                        locationY,
+                        viewportWidth: editorViewportWidth,
+                        viewportHeight: containerHeight,
+                        zoomLevel: visualScale,
+                      });
                       handleImagePress(x, y, pageNumber);
                     }}
                     onLongPress={() => handleImageLongPress(index)}
@@ -688,11 +733,11 @@ export default function ImageViewer({
                   >
                     <View
                       style={{
-                        width: SCREEN_WIDTH,
+                        width: editorViewportWidth,
                         height: containerHeight,
                         justifyContent: 'center',
                         alignItems: 'center',
-                        transform: [{ scale: zoomLevel }],
+                        transform: [{ scale: visualScale }],
                       }}
                     >
                       {isBlankInteriorAlbum && blankPageLayout ? (
@@ -762,8 +807,8 @@ export default function ImageViewer({
                         onToolDeactivate={onToolDeactivate}
                         onEditingStateChange={handleEditingStateChange}
                         onInteractionChange={setIsInteractingWithAnnotation}
-                        zoomLevel={zoomLevel}
-                        viewportWidth={SCREEN_WIDTH}
+                        zoomLevel={visualScale}
+                        viewportWidth={editorViewportWidth}
                         viewportHeight={containerHeight}
                         sourceWidth={pageSourceSizes[pageNumber]?.width}
                         sourceHeight={pageSourceSizes[pageNumber]?.height}
@@ -852,7 +897,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pageContainer: {
-    width: SCREEN_WIDTH,
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#FAF8F5',
@@ -873,7 +917,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   zoomWrapper: {
-    width: SCREEN_WIDTH,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -904,7 +947,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    maxWidth: SCREEN_WIDTH,
   },
   blankPageFrame: {
     backgroundColor: '#FFFFFF',

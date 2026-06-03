@@ -1,5 +1,5 @@
-import { getAlbumTemplateById, getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
-import { getGiftDisplayTitle } from '@/utils/albumGiftMapping';
+import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
+import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
@@ -206,7 +206,7 @@ export default function ProjectTemplatesScreen() {
     if (categoryId === 'pregnancy') {
       return PREGNANCY_COVER_DESIGNS.map((d) => ({
         id: d.id,
-        name: getGiftDisplayTitle(d.sku, 'Дневник беременности'),
+        name: getCoverSelectTitleBySku(d.sku, 'pregnancy'),
         description: 'Дизайн обложки',
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
@@ -217,18 +217,12 @@ export default function ProjectTemplatesScreen() {
   // Для «Первые годы малыша» — только first_page из albums/kids. Тип обложки выбирается при экспорте
   const kidsAlbums = useMemo(() => {
     if (categoryId === 'kids') {
-      return KIDS_COVER_DESIGNS.map((d) => {
-        const albumTemplate = getAlbumTemplateById(d.id);
-        return {
-          id: d.id,
-          name: getGiftDisplayTitle(
-            d.sku,
-            albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года'
-          ),
-          description: 'Дизайн обложки',
-          thumbnailPath: d.image,
-        } as AlbumTemplate;
-      });
+      return KIDS_COVER_DESIGNS.map((d) => ({
+        id: d.id,
+        name: getCoverSelectTitleBySku(d.sku, 'kids'),
+        description: 'Дизайн обложки',
+        thumbnailPath: d.image,
+      })) as AlbumTemplate[];
     }
     return [];
   }, [categoryId]);
@@ -238,7 +232,7 @@ export default function ProjectTemplatesScreen() {
     if (categoryId === 'holidays') {
       return HOLIDAY_COVER_DESIGNS.map((d) => ({
         id: d.id,
-        name: getGiftDisplayTitle(d.sku, 'Праздничный альбом'),
+        name: getCoverSelectTitleBySku(d.sku, 'holidays'),
         description: 'Праздничный альбом',
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
@@ -251,7 +245,7 @@ export default function ProjectTemplatesScreen() {
     if (categoryId === 'family') {
       return FAMILY_COVER_DESIGNS.map((d) => ({
         id: d.id,
-        name: getGiftDisplayTitle(d.sku, 'Семейный альбом'),
+        name: getCoverSelectTitleBySku(d.sku, 'family'),
         description: 'Семейный альбом',
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
@@ -745,10 +739,7 @@ export default function ProjectTemplatesScreen() {
                     ? renderCoverPickerList(
                         diaryCovers.map((cover, index) => ({
                           id: cover.id,
-                          name: getGiftDisplayTitle(
-                            cover.sku,
-                            cover.name || 'Личный дневник'
-                          ),
+                          name: getCoverSelectTitleBySku(cover.sku, 'diary'),
                           description:
                             'Личный дневник для записи мыслей и воспоминаний',
                           imageSource: cover.image,

@@ -1,77 +1,28 @@
 {
-  "generatedAt": "2026-06-03T00:06:52.331Z",
+  "generatedAt": "2026-06-03T22:10:31.458Z",
   "albums": {
-    "pregnancy_60": {
-      "pageCount": 60,
-      "emptyPages": [
-        "5",
-        "8",
-        "18",
-        "33",
-        "48",
-        "49",
-        "55",
-        "56",
-        "57",
-        "58",
-        "59"
-      ],
-      "emptyCount": 11
-    },
-    "pregnancy_a5": {
-      "pageCount": 48,
-      "emptyPages": [
-        "2",
-        "4",
-        "14",
-        "29",
-        "47",
-        "48"
-      ],
-      "emptyCount": 6
-    },
-    "kids_48": {
-      "pageCount": 48,
-      "emptyPages": [],
-      "emptyCount": 0
-    },
-    "holidays_birthday_60": {
-      "pageCount": 60,
-      "emptyPages": [
-        "43",
-        "44",
-        "45",
-        "46",
-        "47",
-        "48",
-        "49",
-        "50",
-        "51",
-        "52",
-        "53",
-        "54",
-        "55",
-        "56",
-        "57"
-      ],
-      "emptyCount": 15
-    },
     "diary_interior_brown": {
       "pageCount": 60,
       "emptyPages": [
+        "2",
+        "3",
+        "4",
         "5",
         "10",
+        "14",
+        "18",
         "22",
         "27",
+        "29",
+        "34",
+        "35",
+        "36",
+        "57",
         "58",
-        "59"
+        "59",
+        "60"
       ],
-      "emptyCount": 6
-    },
-    "diary_interior_purple": {
-      "pageCount": 40,
-      "emptyPages": [],
-      "emptyCount": 0
+      "emptyCount": 17
     }
   }
 }
