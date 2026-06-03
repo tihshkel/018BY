@@ -3,10 +3,12 @@
  * Используется для предзагрузки и единообразного доступа к изображениям
  */
 
-// Логотипы
-/** Тот же логотип, что на splash (`app.json`); отдельный `logo-for-activaty-page.png` был белой заглушкой. */
+// Логотипы (источник: assets/images/logo-source.svg, logov2)
 export const LogoImages = {
-  purchase: require('../assets/images/splash-icon.png'),
+  app: require('../assets/images/logo.png'),
+  purchase: require('../assets/images/logo.png'),
+  splash: require('../assets/images/splash-icon.png'),
+  icon: require('../assets/images/icon.png'),
 } as const;
 
 // Онбординг

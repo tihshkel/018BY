@@ -65,7 +65,7 @@ export function SubscriptionPaywallModal({
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/images/logo.png')}
             style={styles.logo}
             contentFit="contain"
           />

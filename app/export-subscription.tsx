@@ -122,7 +122,7 @@ export default function ExportSubscriptionScreen() {
         >
           <View style={styles.heroCard}>
             <Image
-              source={require('@/assets/images/icon.png')}
+              source={require('@/assets/images/logo.png')}
               style={styles.logo}
               contentFit="contain"
             />
