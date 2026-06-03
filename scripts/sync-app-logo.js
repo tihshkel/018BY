@@ -16,6 +16,11 @@ const iosIcon = path.join(
 );
 const androidRes = path.join(root, 'android/app/src/main/res');
 
+const iosSplashDir = path.join(
+  root,
+  'ios/018BY/Images.xcassets/SplashScreenLogo.imageset'
+);
+
 const WHITE_BG = { r: 255, g: 255, b: 255, alpha: 1 };
 const TRANSPARENT_BG = { r: 0, g: 0, b: 0, alpha: 0 };
 
@@ -26,6 +31,15 @@ const ANDROID_DENSITIES = {
   xxhdpi: 3,
   xxxhdpi: 4,
 };
+
+/** Expo splash `imageWidth: 200` → iOS 1x/2x/3x and Android mdpi base 288. */
+const IOS_SPLASH_FILES = {
+  'image.png': 200,
+  'image@2x.png': 400,
+  'image@3x.png': 600,
+};
+const ANDROID_SPLASH_BASE_PX = 288;
+const ANDROID_NOTIFICATION_BASE_PX = 24;
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -108,6 +122,34 @@ async function syncIosIcon() {
   await writePng(await iconPipeline(1024), iosIcon);
 }
 
+async function syncIosSplash() {
+  for (const [filename, size] of Object.entries(IOS_SPLASH_FILES)) {
+    await writePng(await logoPipeline(size), path.join(iosSplashDir, filename));
+  }
+}
+
+async function syncAndroidDrawables() {
+  const masterNotification = path.join(assetsDir, 'notification-icon.png');
+
+  for (const [density, scale] of Object.entries(ANDROID_DENSITIES)) {
+    const drawableDir = path.join(androidRes, `drawable-${density}`);
+    const splashSize = Math.round(ANDROID_SPLASH_BASE_PX * scale);
+    const notificationSize = Math.round(ANDROID_NOTIFICATION_BASE_PX * scale);
+
+    await writePng(
+      await logoPipeline(splashSize),
+      path.join(drawableDir, 'splashscreen_logo.png')
+    );
+    await writePng(
+      sharp(masterNotification).resize(notificationSize, notificationSize, {
+        fit: 'contain',
+        background: TRANSPARENT_BG,
+      }),
+      path.join(drawableDir, 'notification_icon.png')
+    );
+  }
+}
+
 async function syncAndroidMipmaps() {
   const masterIcon = path.join(assetsDir, 'icon.png');
   const masterForeground = path.join(assetsDir, 'android-icon-foreground.png');
@@ -146,9 +188,13 @@ async function main() {
 
   await syncExpoAssets();
   await syncIosIcon();
+  await syncIosSplash();
+  await syncAndroidDrawables();
   await syncAndroidMipmaps();
 
-  console.log('App logo synced from logo-source.svg to all targets.');
+  console.log(
+    'App logo synced: Expo assets, iOS AppIcon/Splash, Android launcher/splash/notifications.'
+  );
 }
 
 main().catch((err) => {
