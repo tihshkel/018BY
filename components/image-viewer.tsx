@@ -1,4 +1,7 @@
-import { usesFreeFormTextEditing } from '@/constants/album-text-margins';
+import {
+  usesFreeFormTextEditing,
+  usesTemplateLineTextEditing,
+} from '@/constants/album-text-margins';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
 import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
@@ -14,13 +17,16 @@ import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   buildLineSlotsContext,
-  findAnnotationForSlot,
+  findAnnotationForContinuationGroup,
   hasLineGuides,
   hitTestLineSlot,
   layoutAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
-import { getEffectiveTemplateFontSize } from '@/utils/templateLineText';
+import {
+  getContinuationGroupSlots,
+  getEffectiveTemplateFontSize,
+} from '@/utils/templateLineText';
 import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -345,8 +351,8 @@ export default function ImageViewer({
     }
 
     const isPregnancyFirstPage =
-      lineGuideId &&
-      (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) &&
+      usesTemplateLineTextEditing(lineGuideId) &&
+      (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
       pageForAnnotation === 1;
 
     const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
@@ -381,10 +387,18 @@ export default function ImageViewer({
     const slot = hitTestLineSlot({ x, y, slots });
     if (!slot) return false;
 
+    const { startSlotIndex } = getContinuationGroupSlots(slots, slot.index);
+    const startSlot = slots[startSlotIndex] ?? slot;
+
     const pageAnnotations = annotations.filter(
       (ann) => (typeof ann.page === 'number' ? ann.page : currentPage) === pageForAnnotation
     );
-    const existing = findAnnotationForSlot(pageAnnotations, pageForAnnotation, slot.index);
+    const existing = findAnnotationForContinuationGroup(
+      pageAnnotations,
+      pageForAnnotation,
+      slots,
+      slot.index
+    );
     if (existing) {
       startAnnotationEditing(existing.id);
       onToolDeactivate?.();
@@ -394,8 +408,12 @@ export default function ImageViewer({
     const maxZIndex =
       annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
     const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
-    const layout = layoutAnnotationFromSlot(slot);
-    const effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, style.fontSize);
+    const layout = layoutAnnotationFromSlot(startSlot);
+    const effectiveFontSize = getEffectiveTemplateFontSize(
+      lineGuideId,
+      startSlot,
+      style.fontSize
+    );
 
     const newAnnotation: Annotation = {
       id: createId('ann'),
@@ -449,6 +467,18 @@ export default function ImageViewer({
     if (!isEditing || !currentTool) return;
 
     if (currentTool === 'text' && onAnnotationAdd) {
+      if (usesTemplateLineTextEditing(lineGuideId)) {
+        const slotParams = buildSlotParams(pageForAnnotation);
+        if (slotParams) {
+          const { slots } = buildLineSlotsContext(slotParams);
+          if (hitTestLineSlot({ x, y, slots })) {
+            void handleLineSlotTap(x, y, pageForAnnotation);
+            return;
+          }
+        }
+        return;
+      }
+
       const maxZIndex = annotations.length > 0 
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
@@ -780,9 +810,11 @@ export default function ImageViewer({
                         return (
                           <>
                             {isEditing &&
-                            !currentTool &&
                             !isTextEditing &&
-                            hasLineGuides(lineGuideId) ? (
+                            hasLineGuides(lineGuideId) &&
+                            (!currentTool ||
+                              (currentTool === 'text' &&
+                                usesTemplateLineTextEditing(lineGuideId))) ? (
                               <LineSlotPressables
                                 slotParams={slotParams}
                                 enabled

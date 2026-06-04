@@ -17,6 +17,7 @@ import {
   getBlankInteriorPageUri,
   isBlankInteriorAlbum,
   resolveInteriorAlbumId,
+  resolveLineGuideId,
 } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
@@ -242,7 +243,10 @@ export default function EditAlbumScreen() {
 
         const result = await maybeMigrateProjectViewport({
           projectId: id,
-          lineGuideId: albumId,
+          lineGuideId: resolveLineGuideId(
+            albumId,
+            effectiveCelebration ?? (typeof celebration === 'string' ? celebration : undefined)
+          ),
           annotations: storedAnnotations,
           coverAnnotations: storedCoverAnnotations,
           sampleImageUri: images[0] ?? null,
@@ -2282,7 +2286,7 @@ export default function EditAlbumScreen() {
             <ImageViewer
               images={images}
               albumName={albumName || getCelebrationTitle(celebration || '')}
-              lineGuideId={albumId || undefined}
+              lineGuideId={resolveLineGuideId(albumId, effectiveCelebration) || undefined}
               onPageChange={handlePageChange}
               onError={handleError}
               annotations={annotations}

@@ -11,6 +11,7 @@ import {
   ensureAlbumPagesCachedForExport,
   getAlbumImageUris,
   resolveInteriorAlbumId,
+  resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
 import {
@@ -1679,7 +1680,7 @@ export default function ExportPdfScreen() {
                     pageNumber,
                     viewport: pagesViewport,
                     lineGuideId: albumId
-                      ? resolveInteriorAlbumId(albumId, projectCategory)
+                      ? resolveLineGuideId(albumId, projectCategory)
                       : undefined,
                   });
                   setTimeout(() => {
@@ -1876,7 +1877,7 @@ export default function ExportPdfScreen() {
                 const fontId = ann.fontFamily || 'default';
                 const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
                 const lineGuideId = albumId
-                  ? resolveInteriorAlbumId(albumId, projectCategory)
+                  ? resolveLineGuideId(albumId, projectCategory)
                   : null;
 
                 drawTextAnnotationOnPdfPage({

@@ -315,6 +315,67 @@ export function resolveInteriorAlbumId(
   return albumId;
 }
 
+/** Канонические ID сетки строк (LINE_SLOTS / LINE_GUIDES). */
+export const TEMPLATE_LINE_GUIDE_IDS = new Set([
+  'pregnancy_60',
+  'pregnancy_a5',
+  'kids_48',
+  'holidays_birthday_60',
+  'diary_interior_brown',
+  'diary_interior_purple',
+]);
+
+function isPregnancyA5LineGuide(albumId: string): boolean {
+  return (
+    albumId === 'pregnancy_a5' ||
+    albumId.includes('a5') ||
+    albumId.includes('_soft') ||
+    albumId.includes('_п')
+  );
+}
+
+/**
+ * ID макета строк для редактора и экспорта (может отличаться от interior id обложки).
+ * Беременность / дети / ДР / дневники → ввод по строкам; семья, свадьба, праздники blank и т.д. → free-form.
+ */
+export function resolveLineGuideId(
+  albumId: string | null | undefined,
+  category?: string | null
+): string {
+  const interior = resolveInteriorAlbumId(albumId, category);
+
+  if (interior.startsWith('diary_interior_')) {
+    return interior;
+  }
+  if (
+    interior === 'kids_48' ||
+    albumId?.startsWith('dfa_') ||
+    albumId?.startsWith('kids_') ||
+    category === 'kids'
+  ) {
+    return 'kids_48';
+  }
+  if (interior === 'holidays_birthday_60') {
+    return 'holidays_birthday_60';
+  }
+  if (interior.startsWith('pregnancy_') || category === 'pregnancy') {
+    return isPregnancyA5LineGuide(interior) ? 'pregnancy_a5' : 'pregnancy_60';
+  }
+  if (category === 'diary') {
+    return interior.startsWith('diary_interior_') ? interior : 'diary_interior_brown';
+  }
+
+  return interior;
+}
+
+export function usesTemplateLineTextEditing(
+  lineGuideId?: string | null,
+  category?: string | null
+): boolean {
+  const resolved = resolveLineGuideId(lineGuideId ?? '', category);
+  return TEMPLATE_LINE_GUIDE_IDS.has(resolved);
+}
+
 /**
  * Получает массив изображений для альбома (require модули)
  */

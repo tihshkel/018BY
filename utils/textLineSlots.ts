@@ -1,4 +1,5 @@
 import { getAlbumTextMargins, isBlankLineGuideAlbum } from '@/constants/album-text-margins';
+import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import {
   LINE_SLOTS,
@@ -73,11 +74,12 @@ function getNormalizedSlotsForPage(
   });
 }
 
-export function hasLineGuides(lineGuideId?: string): boolean {
-  if (!lineGuideId || isBlankLineGuideAlbum(lineGuideId)) return false;
-  const slotSet = (LINE_SLOTS as Record<string, Record<string, readonly unknown[]>>)[lineGuideId];
+export function hasLineGuides(lineGuideId?: string, category?: string | null): boolean {
+  const resolved = resolveLineGuideId(lineGuideId, category);
+  if (!resolved || isBlankLineGuideAlbum(resolved)) return false;
+  const slotSet = (LINE_SLOTS as Record<string, Record<string, readonly unknown[]>>)[resolved];
   if (slotSet && Object.keys(slotSet).length > 0) return true;
-  const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId];
+  const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[resolved];
   return !!guideSet && Object.keys(guideSet).length > 0;
 }
 
@@ -92,6 +94,29 @@ export function resolveContentRectForPage(params: GetLineSlotsParams): ContentRe
   );
 }
 
+function clamp01(value: number): number {
+  return Math.min(Math.max(value, 0), 0.98);
+}
+
+/** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
+function refineNormalizedSlotForTextLayout(
+  lineGuideId: string,
+  _page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (!lineGuideId?.startsWith('diary_interior_')) {
+    return norm;
+  }
+
+  const isBlock = norm.inputKind === 'block';
+  const xInset = isBlock ? 0 : norm.hasLabel ? 0.003 : 0.006;
+  const widthTrim = isBlock ? 0 : norm.hasLabel ? 0.004 : 0.01;
+  const x = clamp01(norm.x + xInset);
+  const width = Math.max(0.05, Math.min(norm.width - widthTrim, 0.98 - x));
+
+  return { ...norm, x, width };
+}
+
 export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
   if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
@@ -104,11 +129,12 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
   const rect = resolveContentRectForPage(params);
 
   return normalized.map((norm, index) => {
+    const layoutNorm = refineNormalizedSlotForTextLayout(lineGuideId, page, norm);
     const mapped = mapSourceNormToViewport(
-      norm.x,
-      norm.y - norm.height / 2,
-      norm.width,
-      norm.height,
+      layoutNorm.x,
+      layoutNorm.y - layoutNorm.height / 2,
+      layoutNorm.width,
+      layoutNorm.height,
       rect
     );
 
@@ -126,6 +152,58 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       normHeight: norm.height,
     };
   });
+}
+
+export type LineSlotGroupBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  startSlotIndex: number;
+};
+
+function slotHorizontalOverlapRatio(a: TextLineSlot, b: TextLineSlot): number {
+  const left = Math.max(a.x, b.x);
+  const right = Math.min(a.x + a.width, b.x + b.width);
+  const overlap = Math.max(0, right - left);
+  const minSpan = Math.min(a.width, b.width);
+  if (minSpan <= 0) return 0;
+  return overlap / minSpan;
+}
+
+export function getLineSlotGroups(slots: TextLineSlot[]): TextLineSlot[][] {
+  const map = new Map<number, TextLineSlot[]>();
+  for (const slot of slots) {
+    if (!map.has(slot.continuationGroup)) {
+      map.set(slot.continuationGroup, []);
+    }
+    map.get(slot.continuationGroup)!.push(slot);
+  }
+
+  return [...map.values()].map((group) => group.sort((a, b) => a.index - b.index));
+}
+
+export function getLineSlotGroupBounds(groupSlots: TextLineSlot[]): LineSlotGroupBounds {
+  const startSlot = groupSlots[0]!;
+  let minX = startSlot.x;
+  let maxX = startSlot.x + startSlot.width;
+  let minY = startSlot.y;
+  let maxY = startSlot.y + startSlot.lineHeight;
+
+  for (const slot of groupSlots) {
+    minX = Math.min(minX, slot.x);
+    maxX = Math.max(maxX, slot.x + slot.width);
+    minY = Math.min(minY, slot.y);
+    maxY = Math.max(maxY, slot.y + slot.lineHeight);
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX,
+    height: maxY - minY,
+    startSlotIndex: startSlot.index,
+  };
 }
 
 export function hitTestLineSlot(params: {
@@ -165,6 +243,25 @@ export function findAnnotationForSlot(
     const count = ann.templateLineCount ?? 1;
     if (count === 1) return ann.templateLineStart === slotIndex;
     return slotIndex >= ann.templateLineStart && slotIndex < ann.templateLineStart + count;
+  });
+}
+
+/** Любая аннотация группы продолжения (тап по 2–3-й строке блока). */
+export function findAnnotationForContinuationGroup(
+  annotations: Annotation[],
+  page: number,
+  slots: TextLineSlot[],
+  slotIndex: number
+): Annotation | undefined {
+  const tapped = slots[slotIndex];
+  if (!tapped) return undefined;
+
+  const groupId = tapped.continuationGroup;
+  return annotations.find((ann) => {
+    if (ann.type !== 'text' || ann.page !== page) return false;
+    if (typeof ann.templateLineStart !== 'number') return false;
+    const start = slots[ann.templateLineStart];
+    return start?.continuationGroup === groupId;
   });
 }
 

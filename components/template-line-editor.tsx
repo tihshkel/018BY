@@ -90,10 +90,10 @@ export function TemplateLineEditor({
   );
 
   const handleInputChange = useCallback(
-    (newFirstLine: string) => {
+    (newText: string) => {
       onChangeText(
         mergeFirstLineEdit({
-          newFirstLine,
+          newFirstLine: newText,
           previousText: value,
           startSlotIndex,
           slots: allSlots,

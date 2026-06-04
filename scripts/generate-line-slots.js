@@ -476,9 +476,15 @@ const PDF_SOURCES = {
   pregnancy_a5: path.join('in albums', 'Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
   kids_48: path.join('in albums', 'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf'),
   holidays_birthday_60: path.join('in albums', 'Блок ДНЕЙ РОЖДЕНИЯ готов.pdf'),
-  diary_interior_brown: path.join('in albums', 'Блок коричневый _180х240_print.pdf'),
-  diary_interior_purple: path.join('in albums', 'Блок фиолетовый_180х240_print.pdf'),
+  diary_interior_brown: path.join('in albums', '06.26_Блок коричневый _180х240_print.pdf'),
+  diary_interior_purple: path.join('in albums', '06.26_Блок фиолетовый_180х240_print.pdf'),
 };
+
+function matchesOnlyAlbum(albumId) {
+  const only = process.env.ONLY_ALBUM;
+  if (!only) return true;
+  return only.split(',').map((s) => s.trim()).includes(albumId);
+}
 
 const ALBUM_FOLDERS = [
   {
@@ -601,7 +607,14 @@ const ALBUM_FOLDERS = [
     options: {
       ...DASHED_FORM_PDF,
       diaryBrownFormMode: true,
-      singleRowGroups: true,
+      diaryQuestionnairePageNumber: 6,
+      brownCareerAnswerFirstNormY: 0.768,
+      inferLabelFromGeometry: true,
+      singleRowGroups: false,
+      brownGroupRowGapMax: 0.055,
+      brownGroupColumnEpsilon: 0.1,
+      brownGroupMinLines: 2,
+      brownBoxMinLeftRatio: 0.05,
       maxLinesPerPage: 30,
       minUnderlineRunRatio: 0.08,
       mergeGapPt: 6,
@@ -614,8 +627,12 @@ const ALBUM_FOLDERS = [
       brownRowMergeGapNorm: 0.016,
       brownMinRowGapNorm: 0.018,
       brownFormEndNormY: 0.88,
-      brownQuestionnaireStartNormY: 0.24,
-      brownQuestionnaireEndNormY: 0.78,
+      brownQuestionnaireStartNormY: 0.14,
+      brownQuestionnaireEndNormY: 0.94,
+      brownBoxMinSpanRatio: 0.18,
+      brownBoxMaxSpanRatio: 0.52,
+      brownBoxMaxLeftRatio: 0.28,
+      brownBoxColumnSplitRatio: 0.5,
       brownCoverGapRatio: 0.055,
       brownSolidMinLeftRatio: 0.28,
       brownDashClusterGapRatio: 0.032,
@@ -628,14 +645,47 @@ const ALBUM_FOLDERS = [
     pdfOnly: true,
     options: {
       ...DASHED_FORM_PDF,
-      diaryFormMode: true,
-      singleRowGroups: true,
-      columnGapRatio: 0.07,
-      maxLinesPerPage: 26,
+      diaryBrownFormMode: true,
+      diaryQuestionnairePageNumber: 5,
+      inferLabelFromGeometry: true,
+      brownSingleLineGroups: true,
+      singleRowGroups: false,
+      brownGroupRowGapMax: 0.055,
+      brownGroupColumnEpsilon: 0.1,
+      brownGroupMinLines: 2,
+      brownBoxMinLeftRatio: 0.05,
+      maxLinesPerPage: 30,
       minUnderlineRunRatio: 0.08,
-      formMinScore: 0.22,
-      mergeGapPt: 10,
+      mergeGapPt: 6,
       minSegmentSpanPt: 1.2,
+      brownInputMinSpanRatio: 0.35,
+      brownInputMinSpanFallback: 0.14,
+      brownInputMinRightRatio: 0.85,
+      brownInputMinRightShort: 0.45,
+      brownInputMinGapRatio: 0.018,
+      brownRowMergeGapNorm: 0.016,
+      brownMinRowGapNorm: 0.018,
+      brownFormEndNormY: 0.88,
+      brownQuestionnaireStartNormY: 0.14,
+      brownQuestionnaireEndNormY: 0.94,
+      brownBoxMinSpanRatio: 0.18,
+      brownBoxMaxSpanRatio: 0.52,
+      brownBoxMaxLeftRatio: 0.28,
+      brownBoxColumnSplitRatio: 0.5,
+      brownCoverGapRatio: 0.055,
+      brownCoverMinNormY: 0.48,
+      brownCoverMaxNormY: 0.72,
+      brownCoverMinLeftRatio: 0.14,
+      brownCoverMaxLeftRatio: 0.55,
+      brownCoverMinSpanRatio: 0.22,
+      brownCoverMaxSpanRatio: 0.78,
+      brownCoverRowGap: 0.055,
+      brownInferLabelMaxLeftRatio: 0.58,
+      brownInferLabelMaxSpanRatio: 0.78,
+      brownSolidMinLeftRatio: 0.28,
+      brownDashClusterGapRatio: 0.032,
+      brownCareerAnswerMinWidth: 0.35,
+      brownCareerAnswerFirstNormY: 0.78,
     },
   },
 ];
@@ -698,6 +748,9 @@ async function generateForAlbumFromPdf(projectRoot, spec, overrides, pdfPath) {
     minRowGapNorm: spec.options.minRowGapNorm ?? 0.016,
     diaryFormMode: spec.options.diaryFormMode ?? false,
     diaryBrownFormMode: spec.options.diaryBrownFormMode ?? false,
+    diaryQuestionnairePageNumber: spec.options.diaryQuestionnairePageNumber,
+    brownCareerAnswerFirstNormY: spec.options.brownCareerAnswerFirstNormY,
+    brownCareerAnswerMinWidth: spec.options.brownCareerAnswerMinWidth,
     brownQuestionnaireStartNormY: spec.options.brownQuestionnaireStartNormY,
     brownQuestionnaireEndNormY: spec.options.brownQuestionnaireEndNormY,
     brownInputMinSpanFallback: spec.options.brownInputMinSpanFallback,
@@ -778,8 +831,7 @@ async function generateForAlbumFromPng(projectRoot, spec, overrides) {
 
   if (files.length === 0) return null;
 
-  const onlyAlbum = process.env.ONLY_ALBUM;
-  if (onlyAlbum && onlyAlbum !== spec.albumId) return null;
+  if (!matchesOnlyAlbum(spec.albumId)) return null;
 
   const albumOverrides = overrides[spec.albumId] ?? {};
   const slotsByPage = {};
@@ -817,8 +869,7 @@ async function generateForAlbumFromPng(projectRoot, spec, overrides) {
 }
 
 async function generateForAlbum(projectRoot, spec, overrides) {
-  const onlyAlbum = process.env.ONLY_ALBUM;
-  if (onlyAlbum && onlyAlbum !== spec.albumId) return null;
+  if (!matchesOnlyAlbum(spec.albumId)) return null;
 
   const pdfRel = PDF_SOURCES[spec.albumId];
   const pdfPath = pdfRel ? path.join(projectRoot, pdfRel) : null;
@@ -838,8 +889,30 @@ async function main() {
   const lineSlots = {};
   const lineGuides = {};
   const report = { generatedAt: new Date().toISOString(), albums: {} };
+  const slotsJsonPath = path.join(projectRoot, 'constants', 'line-slots.json');
+  const guidesJsonPath = path.join(projectRoot, 'constants', 'line-guides.json');
+
+  if (process.env.ONLY_ALBUM) {
+    for (const [file, target] of [
+      [slotsJsonPath, lineSlots],
+      [guidesJsonPath, lineGuides],
+    ]) {
+      if (!fs.existsSync(file)) {
+        console.warn(
+          `ONLY_ALBUM=${process.env.ONLY_ALBUM}: нет ${path.basename(file)} — остальные альбомы будут удалены из выхода. Сначала запустите полный generate:line-slots.`
+        );
+        continue;
+      }
+      try {
+        Object.assign(target, JSON.parse(fs.readFileSync(file, 'utf8')));
+      } catch (e) {
+        console.warn(`Could not merge ${path.basename(file)}`, e.message);
+      }
+    }
+  }
 
   for (const spec of ALBUM_FOLDERS) {
+    if (!matchesOnlyAlbum(spec.albumId)) continue;
     const result = await generateForAlbum(projectRoot, spec, overrides);
     if (!result) continue;
     lineSlots[spec.albumId] = result.slots;
@@ -847,10 +920,15 @@ async function main() {
 
     const pages = Object.keys(result.slots);
     const empty = pages.filter((p) => !result.slots[p]?.length);
+    const totalSlots = pages.reduce((sum, p) => sum + (result.slots[p]?.length ?? 0), 0);
     report.albums[spec.albumId] = {
       pageCount: pages.length,
+      totalSlots,
       emptyPages: empty,
       emptyCount: empty.length,
+      slotsPerPage: Object.fromEntries(
+        pages.map((p) => [p, result.slots[p]?.length ?? 0])
+      ),
     };
   }
 
@@ -885,9 +963,11 @@ async function main() {
 
   const jsonFile = path.join(projectRoot, 'constants', 'line-slots.json');
   fs.writeFileSync(jsonFile, JSON.stringify(lineSlots, null, 2), 'utf8');
+  fs.writeFileSync(guidesJsonPath, JSON.stringify(lineGuides, null, 2), 'utf8');
 
   console.log('✅ Wrote', path.relative(projectRoot, slotsFile));
   console.log('✅ Wrote', path.relative(projectRoot, jsonFile));
+  console.log('✅ Wrote', path.relative(projectRoot, guidesJsonPath));
   console.log('✅ Wrote', path.relative(projectRoot, guidesFile));
   console.log('✅ Wrote', path.relative(projectRoot, reportFile));
 }

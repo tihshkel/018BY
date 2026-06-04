@@ -3,6 +3,11 @@
  * Y-координаты строк — из LINE_GUIDES (generate-line-guides.js).
  */
 
+import {
+  resolveLineGuideId,
+  usesTemplateLineTextEditing as usesTemplateLineTextEditingFromAlbum,
+} from '@/utils/albumImages';
+
 export type AlbumTextMargins = {
   x: number;
   width: number;
@@ -31,9 +36,27 @@ export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   return BLANK_LINE_GUIDE_IDS.has(lineGuideId);
 }
 
-/** Белые листы — классический free-form текст (поле + перетаскивание) */
-export function usesFreeFormTextEditing(lineGuideId?: string): boolean {
-  return isBlankLineGuideAlbum(lineGuideId);
+/** Ввод по строкам макета (беременность, дети, ДР, дневники). */
+export function usesTemplateLineTextEditing(
+  lineGuideId?: string,
+  category?: string | null
+): boolean {
+  return usesTemplateLineTextEditingFromAlbum(lineGuideId, category);
+}
+
+/** Свободный текст с перетаскиванием (семья, свадьба, праздники blank и пр.). */
+export function usesFreeFormTextEditing(
+  lineGuideId?: string,
+  category?: string | null
+): boolean {
+  return !usesTemplateLineTextEditing(lineGuideId, category);
+}
+
+export function getResolvedLineGuideId(
+  lineGuideId?: string,
+  category?: string | null
+): string {
+  return resolveLineGuideId(lineGuideId, category);
 }
 
 export type TemplateTypographyProfile = {
@@ -103,23 +126,23 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   },
   diary_interior_brown: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 1.02,
+    charWidthRatio: 0.46,
+    lineWidthSlackRatio: 1.06,
     lineCenterRatio: 0.54,
-    lineFontOffsetRatio: 0.78,
-    blockCenterRatio: 0.66,
-    blockFontOffsetRatio: 0.72,
-    blockMaxFontSize: 21,
+    lineFontOffsetRatio: 0.92,
+    blockCenterRatio: 0.72,
+    blockFontOffsetRatio: 0.88,
+    blockMaxFontSize: 18,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 1.02,
+    charWidthRatio: 0.46,
+    lineWidthSlackRatio: 1.06,
     lineCenterRatio: 0.52,
-    lineFontOffsetRatio: 0.8,
-    blockCenterRatio: 0.66,
-    blockFontOffsetRatio: 0.72,
-    blockMaxFontSize: 21,
+    lineFontOffsetRatio: 0.9,
+    blockCenterRatio: 0.72,
+    blockFontOffsetRatio: 0.88,
+    blockMaxFontSize: 18,
   },
 };
 

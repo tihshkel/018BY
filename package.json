@@ -32,7 +32,9 @@
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
-    "sync:app-logo": "node ./scripts/sync-app-logo.js"
+    "sync:app-logo": "node ./scripts/sync-app-logo.js",
+    "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
+    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

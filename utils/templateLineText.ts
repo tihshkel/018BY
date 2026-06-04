@@ -173,9 +173,13 @@ export function getTemplateLineTypography(
   lineGuideId?: string
 ) {
   const fittedSize = fitFontSizeToSlot(fontSize, lineHeight, inputKind, lineGuideId);
+  const isDiaryBlock =
+    inputKind === 'block' &&
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple');
+
   return {
     fontSize: fittedSize,
-    lineHeight: inputKind === 'block' ? fittedSize * 1.05 : fittedSize,
+    lineHeight: isDiaryBlock ? fittedSize : inputKind === 'block' ? fittedSize * 1.05 : fittedSize,
     inputHeight: inputKind === 'block' ? lineHeight : fittedSize,
   };
 }
@@ -187,14 +191,37 @@ function resolveTemplateTextVerticalRatios(
   const profile = getTemplateTypographyProfile(lineGuideId);
   const inputKind = slot.inputKind ?? 'line';
 
+  if (
+    inputKind === 'block' &&
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple')
+  ) {
+    return { centerRatio: 0.72, fontOffsetRatio: 0.88 };
+  }
+
   if (inputKind === 'line') {
     if (
       lineGuideId === 'diary_interior_brown' ||
       lineGuideId === 'diary_interior_purple'
     ) {
+      const isBrownCoverField =
+        lineGuideId === 'diary_interior_brown' &&
+        slot.normY != null &&
+        slot.normY >= 0.52 &&
+        slot.normY <= 0.62;
+      const isPurpleCoverField =
+        lineGuideId === 'diary_interior_purple' &&
+        slot.normY != null &&
+        slot.normY >= 0.58 &&
+        slot.normY <= 0.72;
+
       return {
-        centerRatio: lineGuideId === 'diary_interior_brown' ? 0.54 : 0.52,
-        fontOffsetRatio: lineGuideId === 'diary_interior_brown' ? 0.78 : 0.8,
+        centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 0.52,
+        fontOffsetRatio:
+          isBrownCoverField || isPurpleCoverField
+            ? 1.02
+            : lineGuideId === 'diary_interior_brown'
+              ? 0.92
+              : 0.9,
       };
     }
 
@@ -239,6 +266,29 @@ export function getTemplateLineTextTop(
     inputKind,
     lineGuideId
   );
+
+  if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
+    const lineCenterY = slot.y + slot.lineHeight / 2;
+    const isPurpleCoverField =
+      lineGuideId === 'diary_interior_purple' &&
+      slot.normY != null &&
+      slot.normY >= 0.58 &&
+      slot.normY <= 0.72;
+    if (isPurpleCoverField) {
+      return lineCenterY - fittedSize * 1.02;
+    }
+    const isBrownCareerAnswerRow =
+      slot.normY != null &&
+      slot.normY >= 0.73 &&
+      slot.normY <= 0.83;
+    const fontOffsetRatio = isBrownCareerAnswerRow
+      ? 0.7
+      : inputKind === 'block'
+        ? 0.86
+        : 0.9;
+    return lineCenterY - fittedSize * fontOffsetRatio;
+  }
+
   const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
 
   if (inputKind === 'block') {
@@ -389,7 +439,10 @@ export function distributeTextWithinContinuationGroup(params: {
   let remaining = text;
 
   for (const slot of groupSlots) {
-    if (!remaining) break;
+    if (!remaining) {
+      segments.push({ slotIndex: slot.index, content: '' });
+      continue;
+    }
     const { line, rest } = consumeOneLineForSlot(remaining, slot, fontSize, lineGuideId);
     segments.push({ slotIndex: slot.index, content: line });
     remaining = rest;

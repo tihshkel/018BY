@@ -1,6 +1,6 @@
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
-import { usesFreeFormTextEditing } from '@/constants/album-text-margins';
+import { usesTemplateLineTextEditing } from '@/constants/album-text-margins';
 import { TemplateLineEditor } from '@/components/template-line-editor';
 import {
   distributeTextAcrossSlots,
@@ -184,9 +184,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     });
   };
 
+  const isTemplateLineAlbum = usesTemplateLineTextEditing(lineGuideId);
+
   const snapTextY = (page: number, y: number) =>
     lineGuideId &&
-    !usesFreeFormTextEditing(lineGuideId) &&
+    isTemplateLineAlbum &&
     lineSlotsContext.viewportHeight > 0
       ? snapYToNearestTemplateLine({
           lineGuideId,
@@ -269,6 +271,31 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const editGroup = templateSlots[editing.templateLineStart ?? 0]?.continuationGroup;
     const annGroup = templateSlots[annotation.templateLineStart]?.continuationGroup;
     return editGroup != null && editGroup === annGroup;
+  };
+
+  /** После сохранения по строкам — не дублировать текст; показываем только «главную» аннотацию группы. */
+  const shouldHideTemplateGroupDisplaySibling = (
+    annotation: Annotation,
+    pageNumberForSlots: number | null,
+    templateSlots: ReturnType<typeof getSlotsForPage>
+  ): boolean => {
+    if (typeof annotation.templateLineStart !== 'number' || !pageNumberForSlots) return false;
+    if (templateSlots.length === 0) return false;
+
+    const { startSlotIndex, groupSlots } = getContinuationGroupSlots(
+      templateSlots,
+      annotation.templateLineStart
+    );
+    if (groupSlots.length <= 1) return false;
+
+    const pageAnnotations = annotations.filter(
+      (ann) => getPageNumber(ann) === pageNumberForSlots && isTemplateLineAnnotation(ann)
+    );
+    const primary = pageAnnotations.find(
+      (ann) => (ann.templateLineStart ?? -1) === startSlotIndex
+    );
+    if (!primary) return false;
+    return annotation.id !== primary.id;
   };
 
   const dismissTextEditing = () => {
@@ -640,6 +667,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       return;
     }
 
+    if (isTemplateLineAlbum || isTemplateLineAnnotation(currentAnnotation)) {
+      dragButtonResponderRef.current = null;
+      return;
+    }
+
     let isDraggingStarted = false;
     let startX = 0;
     let startY = 0;
@@ -665,7 +697,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const shouldSnap =
           currentAnnotation.type === 'text' &&
           !!lineGuideId &&
-          !usesFreeFormTextEditing(lineGuideId) &&
+          isTemplateLineAlbum &&
           typeof viewportHeight === 'number' &&
           viewportHeight > 0 &&
           typeof currentAnnotation.page === 'number';
@@ -773,6 +805,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const createPanResponder = (annotation: Annotation) => {
     // Не создаем PanResponder для текста, который редактируется
     if (annotation.type === 'text' && editingAnnotationRef.current === annotation.id) {
+      return null;
+    }
+
+    if (annotation.type === 'text' && isTemplateLineAlbum) {
       return null;
     }
 
@@ -1421,7 +1457,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         !!current &&
         current.type === 'text' &&
         !!lineGuideId &&
-        !usesFreeFormTextEditing(lineGuideId) &&
+        isTemplateLineAlbum &&
         typeof viewportHeight === 'number' &&
         viewportHeight > 0 &&
         typeof current.page === 'number';
@@ -2004,27 +2040,28 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         return null;
       }
 
+      if (shouldHideTemplateGroupDisplaySibling(annotation, pageNumberForSlots, templateSlots)) {
+        return null;
+      }
+
       if (isTemplateLineAnnotation(annotation)) {
         const slotIndex = annotation.templateLineStart ?? 0;
         const slot = templateSlots[slotIndex];
         if (!slot) return null;
 
         const { groupSlots, startSlotIndex } = getContinuationGroupSlots(templateSlots, slotIndex);
-        const effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, currentFontSize);
-        const { fontSize: fittedSize, lineHeight: fittedLineHeight } = getTemplateLineTypography(
-          effectiveFontSize,
-          slot.lineHeight,
-          slot.inputKind,
-          lineGuideId
+        const startSlot = templateSlots[startSlotIndex] ?? slot;
+        const effectiveFontSize = getEffectiveTemplateFontSize(
+          lineGuideId,
+          startSlot,
+          currentFontSize
         );
-        const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
-
         if (isEditingText) {
           return (
             <TemplateLineEditor
               key={annotation.id}
-              slot={slot}
-              groupSlots={groupSlots.length > 0 ? groupSlots : [slot]}
+              slot={startSlot}
+              groupSlots={groupSlots.length > 0 ? groupSlots : [startSlot]}
               allSlots={templateSlots}
               value={editingText}
               color={currentColor}
@@ -2052,37 +2089,74 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           fontSize: effectiveFontSize,
           lineGuideId,
         });
-        const displayContent =
-          displaySegments.find((segment) => segment.slotIndex === slotIndex)?.content ??
-          annotation.content ??
-          '';
+        const linesToRender =
+          groupSlots.length > 1
+            ? displaySegments
+                .map((segment) => {
+                  const lineSlot = templateSlots[segment.slotIndex];
+                  if (!lineSlot) return null;
+                  return {
+                    slotIndex: segment.slotIndex,
+                    content: segment.content,
+                    lineSlot,
+                  };
+                })
+                .filter((row): row is NonNullable<typeof row> => !!row && !!row.content)
+            : [
+                {
+                  slotIndex,
+                  content:
+                    displaySegments.find((segment) => segment.slotIndex === slotIndex)
+                      ?.content ??
+                    annotation.content ??
+                    '',
+                  lineSlot: slot,
+                },
+              ].filter((row) => row.content);
 
         return (
-          <Text
-            key={annotation.id}
-            style={[
-              styles.textAnnotation,
-              styles.templateLineText,
-              {
-                position: 'absolute',
-                left: slot.x,
-                top: textTop,
-                width: slot.width,
-                color: currentColor,
-                fontSize: fittedSize,
-                fontFamily: currentFontFamily,
-                lineHeight: fittedLineHeight,
-                includeFontPadding: false,
-                textAlign: getTextAlign(annotation),
-                zIndex: annotation.zIndex,
-              },
-            ]}
-            pointerEvents="none"
-            numberOfLines={1}
-            ellipsizeMode="clip"
-          >
-            {displayContent}
-          </Text>
+          <>
+            {linesToRender.map((row) => {
+              const rowTop = getTemplateLineTextTop(
+                row.lineSlot,
+                effectiveFontSize,
+                lineGuideId
+              );
+              const rowTypography = getTemplateLineTypography(
+                effectiveFontSize,
+                row.lineSlot.lineHeight,
+                row.lineSlot.inputKind,
+                lineGuideId
+              );
+              return (
+                <Text
+                  key={`${annotation.id}-line-${row.slotIndex}`}
+                  style={[
+                    styles.textAnnotation,
+                    styles.templateLineText,
+                    {
+                      position: 'absolute',
+                      left: row.lineSlot.x,
+                      top: rowTop,
+                      width: row.lineSlot.width,
+                      color: currentColor,
+                      fontSize: rowTypography.fontSize,
+                      fontFamily: currentFontFamily,
+                      lineHeight: rowTypography.lineHeight,
+                      includeFontPadding: false,
+                      textAlign: getTextAlign(annotation),
+                      zIndex: annotation.zIndex,
+                    },
+                  ]}
+                  pointerEvents="none"
+                  numberOfLines={1}
+                  ellipsizeMode="clip"
+                >
+                  {row.content}
+                </Text>
+              );
+            })}
+          </>
         );
       }
 
@@ -2212,12 +2286,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 </View>
                 {/* Кнопки: Перетащить (оранжевая), Перенос строки, Принять и Удалить за полем ввода */}
                 <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
-                  <View
-                    style={[styles.actionButton, styles.dragButton]}
-                    {...(dragButtonResponderRef.current?.panHandlers || {})}
-                  >
-                    <Ionicons name="move" size={18} color="#FFFFFF" />
-                  </View>
+                  {!isTemplateLineAlbum ? (
+                    <View
+                      style={[styles.actionButton, styles.dragButton]}
+                      {...(dragButtonResponderRef.current?.panHandlers || {})}
+                    >
+                      <Ionicons name="move" size={18} color="#FFFFFF" />
+                    </View>
+                  ) : null}
                   <TouchableOpacity
                     style={[
                       styles.actionButton, 
