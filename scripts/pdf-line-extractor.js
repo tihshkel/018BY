@@ -1,0 +1,2522 @@
+/* eslint-disable no-console */
+const fs = require('fs');
+
+const PATH_OPS = {
+  moveTo: 13,
+  lineTo: 14,
+  curveTo: 15,
+  closePath: 18,
+  rectangle: 19,
+};
+
+function clamp(value, min, max) {
+  if (Number.isNaN(value)) return min;
+  if (max < min) return min;
+  return Math.min(Math.max(value, min), max);
+}
+
+function formatFloat(n) {
+  return Number(n.toFixed(5));
+}
+
+function isBlockContinuationSlot(prev, curr) {
+  if (!prev || curr.hasLabel) return false;
+  if (Math.abs(curr.y - prev.y) < 0.003) return false;
+
+  const yGap = curr.y - prev.y;
+  if (yGap <= 0 || yGap > 0.12) return false;
+
+  const minWide = 0.38;
+  if (prev.width < minWide || curr.width < minWide) return false;
+
+  const overlap =
+    Math.max(0, Math.min(prev.x + prev.width, curr.x + curr.width) - Math.max(prev.x, curr.x)) /
+    Math.min(prev.width, curr.width);
+
+  return overlap >= 0.5;
+}
+
+function isContinuationSlot(prev, curr) {
+  if (!prev || curr.hasLabel) return false;
+  if (Math.abs(curr.y - prev.y) < 0.003) return false;
+
+  if (prev.inputKind === 'block' || curr.inputKind === 'block') {
+    return isBlockContinuationSlot(prev, curr);
+  }
+
+  const yGap = curr.y - prev.y;
+  if (yGap <= 0 || yGap > 0.08) return false;
+
+  if (prev.hasLabel) {
+    if (curr.x > 0.52 && curr.width < 0.5) return false;
+    if (curr.x > prev.x + prev.width * 0.25) return false;
+    return true;
+  }
+
+  const xSimilar = Math.abs(prev.x - curr.x) < 0.06;
+  return xSimilar && prev.width > 0.35 && curr.width > 0.35;
+}
+
+function isNewLabelledBlockField(prev, curr) {
+  if (!prev || !curr) return false;
+  if (!isBlockContinuationSlot(prev, curr)) return false;
+
+  const prevIsFullWidth = prev.width >= 0.72 && prev.x < 0.35;
+  const currIsFieldStart = curr.width >= 0.55 && curr.width < 0.82 && curr.x >= 0.12;
+
+  return prevIsFullWidth && currIsFieldStart;
+}
+
+function assignBlockFieldGroups(slots) {
+  let groupId = 0;
+
+  for (let i = 0; i < slots.length; i += 1) {
+    const slot = slots[i];
+    const prev = i > 0 ? slots[i - 1] : null;
+
+    if (!prev || slot.hasLabel || !isBlockContinuationSlot(prev, slot) || isNewLabelledBlockField(prev, slot)) {
+      groupId += 1;
+    }
+
+    slot.continuationGroup = groupId;
+  }
+
+  return slots;
+}
+
+function assignContinuationGroups(slots, options = {}) {
+  if (options.singleRowGroups === true) {
+    for (let i = 0; i < slots.length; i += 1) {
+      slots[i].continuationGroup = i + 1;
+    }
+    return slots;
+  }
+
+  let groupId = 0;
+
+  for (let i = 0; i < slots.length; i += 1) {
+    const slot = slots[i];
+    const prev = i > 0 ? slots[i - 1] : null;
+
+    if (slot.hasLabel || !isContinuationSlot(prev, slot)) {
+      groupId += 1;
+    }
+    slot.continuationGroup = groupId;
+  }
+
+  return slots;
+}
+
+function multiplyMatrix(a, b) {
+  return [
+    a[0] * b[0] + a[2] * b[1],
+    a[1] * b[0] + a[3] * b[1],
+    a[0] * b[2] + a[2] * b[3],
+    a[1] * b[2] + a[3] * b[3],
+    a[0] * b[4] + a[2] * b[5] + a[4],
+    a[1] * b[4] + a[3] * b[5] + a[5],
+  ];
+}
+
+function transformPoint(ctm, x, y) {
+  return [ctm[0] * x + ctm[2] * y + ctm[4], ctm[1] * x + ctm[3] * y + ctm[5]];
+}
+
+function parseConstructPath(pathOps, coords, ctm, segments, options = {}) {
+  const extractFlatCurves = options.extractFlatCurves === true;
+  const maxCurveFlatDeltaPt = options.maxCurveFlatDeltaPt ?? 0.8;
+  let i = 0;
+  let cx = 0;
+  let cy = 0;
+
+  for (const op of pathOps) {
+    if (op === PATH_OPS.moveTo) {
+      cx = coords[i];
+      cy = coords[i + 1];
+      i += 2;
+    } else if (op === PATH_OPS.lineTo) {
+      const nx = coords[i];
+      const ny = coords[i + 1];
+      i += 2;
+      const [x1, y1] = transformPoint(ctm, cx, cy);
+      const [x2, y2] = transformPoint(ctm, nx, ny);
+      segments.push({ x1, y1, x2, y2 });
+      cx = nx;
+      cy = ny;
+    } else if (op === PATH_OPS.curveTo) {
+      const x4 = coords[i + 4];
+      const y4 = coords[i + 5];
+      i += 6;
+      if (extractFlatCurves) {
+        const [x1, y1] = transformPoint(ctm, cx, cy);
+        const [x2, y2] = transformPoint(ctm, x4, y4);
+        if (Math.abs(y1 - y2) <= maxCurveFlatDeltaPt) {
+          segments.push({ x1, y1, x2, y2 });
+        }
+      }
+      cx = x4;
+      cy = y4;
+    } else if (op === PATH_OPS.rectangle) {
+      const rx = coords[i];
+      const ry = coords[i + 1];
+      const rw = coords[i + 2];
+      const rh = coords[i + 3];
+      i += 4;
+      const corners = [
+        transformPoint(ctm, rx, ry),
+        transformPoint(ctm, rx + rw, ry),
+        transformPoint(ctm, rx + rw, ry + rh),
+        transformPoint(ctm, rx, ry + rh),
+      ];
+      for (let c = 0; c < 4; c += 1) {
+        const [x1, y1] = corners[c];
+        const [x2, y2] = corners[(c + 1) % 4];
+        segments.push({ x1, y1, x2, y2 });
+      }
+    } else if (op === PATH_OPS.closePath) {
+      // no-op
+    }
+  }
+}
+
+async function collectPathSegments(page, options = {}) {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const ops = await page.getOperatorList();
+  const fn = pdfjs.OPS;
+  let ctm = [1, 0, 0, 1, 0, 0];
+  const stack = [];
+  const segments = [];
+
+  for (let i = 0; i < ops.fnArray.length; i += 1) {
+    const op = ops.fnArray[i];
+    const args = ops.argsArray[i];
+    if (op === fn.save) stack.push([...ctm]);
+    else if (op === fn.restore) ctm = stack.pop() ?? ctm;
+    else if (op === fn.transform) ctm = multiplyMatrix(ctm, args);
+    else if (op === fn.constructPath) parseConstructPath(args[0], args[1], ctm, segments, options);
+  }
+
+  return segments;
+}
+
+function horizontalOverlap(a, b) {
+  return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+}
+
+/** Прерывистая линия в PDF — много коротких сегментов на одной Y; склеиваем в один span. */
+function mergeRowToFullSpan(rowSegments) {
+  const left = Math.min(...rowSegments.map((s) => s.left));
+  const right = Math.max(...rowSegments.map((s) => s.right));
+  const y = rowSegments.reduce((acc, seg) => acc + seg.y, 0) / rowSegments.length;
+  return { y, left, right, span: right - left };
+}
+
+function dedupeNearbyHorizontalLines(lines, mergeGapPt) {
+  const sorted = [...lines].sort((a, b) => b.y - a.y || a.left - b.left);
+  const deduped = [];
+
+  for (const line of sorted) {
+    const prev = deduped[deduped.length - 1];
+    if (prev && Math.abs(prev.y - line.y) <= mergeGapPt) {
+      if (line.span > prev.span) {
+        deduped[deduped.length - 1] = line;
+      }
+      continue;
+    }
+    deduped.push(line);
+  }
+
+  return deduped;
+}
+
+/** Схлопывает двойные штрихи и «лесенку» Y на одной визуальной строке. */
+function collapseNearbyRows(lines, pageHeight, minRowGapNorm = 0.016) {
+  const sorted = [...lines].sort((a, b) => b.y - a.y || a.left - b.left);
+  const collapsed = [];
+
+  for (const line of sorted) {
+    const duplicate = collapsed.find((prev) => {
+      const prevNorm = (pageHeight - prev.y) / pageHeight;
+      const norm = (pageHeight - line.y) / pageHeight;
+      if (Math.abs(prevNorm - norm) >= minRowGapNorm) return false;
+      return horizontalOverlap(prev, line) / Math.min(prev.span, line.span) > 0.35;
+    });
+
+    if (duplicate) {
+      if (line.span > duplicate.span) {
+        const idx = collapsed.indexOf(duplicate);
+        collapsed[idx] = line;
+      }
+      continue;
+    }
+
+    collapsed.push(line);
+  }
+
+  return collapsed;
+}
+
+/** На одной строке объединяем только сегменты без колоночного разрыва. */
+function clusterRowSegments(rowSegments, columnGapPx) {
+  const sorted = [...rowSegments].sort((a, b) => a.left - b.left);
+  const clusters = [];
+
+  for (const seg of sorted) {
+    const last = clusters[clusters.length - 1];
+    if (last && seg.left - last.right <= columnGapPx) {
+      last.y = (last.y + seg.y) / 2;
+      last.right = Math.max(last.right, seg.right);
+      last.span = last.right - last.left;
+    } else {
+      clusters.push({ y: seg.y, left: seg.left, right: seg.right, span: seg.span });
+    }
+  }
+
+  return clusters;
+}
+
+function isPageBorderLine(line, pageWidth, pageHeight, normY) {
+  const spanRatio = line.span / pageWidth;
+  if (spanRatio > 0.78 && (normY < 0.04 || normY > 0.96)) return true;
+  if (normY < 0 || normY > 1) return true;
+  if (spanRatio > 0.92) return true;
+  if (normY < 0.14 && spanRatio > 0.82) return true;
+  if (normY > 0.93 && spanRatio > 0.75) return true;
+  return false;
+}
+
+function mergeHorizontalLines(segments, pageWidth, pageHeight, options) {
+  const mergeDashedRows = options.mergeDashedRows === true;
+  const minSpanPx = Math.max(
+    pageWidth * (options.minSpanRatio ?? 0.08),
+    options.minSpanPt ?? 4
+  );
+  const minSegmentSpanPt = options.minSegmentSpanPt ?? 1.5;
+  const maxSpanPx = pageWidth * (options.maxSpanRatio ?? 0.92);
+  const bottomCutPt = options.bottomCutPt ?? 55;
+  const topCutPt = options.topCutPt ?? 40;
+  const mergeGapPt = options.mergeGapPt ?? (mergeDashedRows ? 6 : 4);
+  const maxNormY = options.maxNormY ?? 0.96;
+  const minNormY = options.minNormY ?? 0.03;
+  const formStartNormY = options.formStartNormY ?? 0;
+  const columnGapPx = pageWidth * (options.columnGapRatio ?? 0.035);
+  const maxHorizontalDeltaPt = options.maxHorizontalDeltaPt ?? 1.2;
+
+  const candidates = segments
+    .filter((s) => Math.abs(s.y1 - s.y2) <= maxHorizontalDeltaPt)
+    .map((s) => {
+      const left = Math.min(s.x1, s.x2);
+      const right = Math.max(s.x1, s.x2);
+      const y = (s.y1 + s.y2) / 2;
+      return { y, left, right, span: right - left };
+    })
+    .filter((l) => l.span >= (mergeDashedRows ? minSegmentSpanPt : minSpanPx))
+    .filter((l) => l.y >= bottomCutPt && l.y <= pageHeight - topCutPt);
+
+  const rowBins = new Map();
+  for (const line of candidates) {
+    const normY = (pageHeight - line.y) / pageHeight;
+    if (normY > maxNormY || normY < minNormY) continue;
+    if (normY < formStartNormY) continue;
+
+    const bin = Math.round(line.y / mergeGapPt);
+    if (!rowBins.has(bin)) rowBins.set(bin, []);
+    rowBins.get(bin).push(line);
+  }
+
+  const useDiaryClusters = mergeDashedRows && options.diaryFormMode === true;
+  const lines = [];
+  for (const rowSegments of rowBins.values()) {
+    if (useDiaryClusters) {
+      for (const clustered of clusterRowSegments(rowSegments, columnGapPx)) {
+        const normY = (pageHeight - clustered.y) / pageHeight;
+        if (clustered.span >= minSpanPx && clustered.span <= maxSpanPx) {
+          if (!isPageBorderLine(clustered, pageWidth, pageHeight, normY)) {
+            lines.push(clustered);
+          }
+        }
+      }
+    } else if (mergeDashedRows) {
+      const merged = mergeRowToFullSpan(rowSegments);
+      if (merged.span >= minSpanPx && merged.span <= maxSpanPx) {
+        const normY = (pageHeight - merged.y) / pageHeight;
+        if (!isPageBorderLine(merged, pageWidth, pageHeight, normY)) {
+          lines.push(merged);
+        }
+      }
+    } else {
+      for (const clustered of clusterRowSegments(rowSegments, columnGapPx)) {
+        const normY = (pageHeight - clustered.y) / pageHeight;
+        if (isPageBorderLine(clustered, pageWidth, pageHeight, normY)) continue;
+        lines.push(clustered);
+      }
+    }
+  }
+
+  lines.sort((a, b) => b.y - a.y || a.left - b.left);
+
+  let deduped = mergeDashedRows ? dedupeNearbyHorizontalLines(lines, mergeGapPt) : lines;
+  deduped = deduped.filter((line, index, arr) => {
+    const normY = (pageHeight - line.y) / pageHeight;
+    if (isPageBorderLine(line, pageWidth, pageHeight, normY)) return false;
+    return !arr.slice(0, index).some(
+      (prev) =>
+        Math.abs(prev.y - line.y) <= mergeGapPt &&
+        horizontalOverlap(prev, line) / Math.min(prev.span, line.span) > 0.45
+    );
+  });
+
+  const maxLines = options.maxLinesPerPage ?? 40;
+  if (deduped.length > maxLines) {
+    const scored = deduped.map((l) => ({ ...l, score: l.span }));
+    scored.sort((a, b) => b.score - a.score);
+    return scored
+      .slice(0, maxLines)
+      .sort((a, b) => b.y - a.y || a.left - b.left);
+  }
+
+  return deduped;
+}
+
+function scoreFormLine(line, pageWidth, pageHeight, options = {}) {
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  const normY = (pageHeight - line.y) / pageHeight;
+  let score = spanRatio * 4;
+  if (spanRatio >= 0.18) score += 2.5;
+  else if (spanRatio >= 0.08) score += 1;
+  if (spanRatio >= 0.038 && spanRatio <= 0.075) score += 0.18;
+  if (normY > 0.84 && spanRatio >= 0.008 && spanRatio <= 0.035) score += 0.3;
+  if (spanRatio < 0.018) score -= 3;
+  else if (spanRatio < 0.06 && normY <= 0.84) score -= 1;
+  if (
+    normY < 0.22 &&
+    leftRatio > 0.22 &&
+    leftRatio < 0.72 &&
+    spanRatio >= 0.07 &&
+    spanRatio <= 0.11
+  ) {
+    score -= 2.5;
+  }
+
+  if (options.diaryFormMode === true) {
+    if (leftRatio >= 0.24 && spanRatio >= 0.32 && spanRatio <= 0.72) score += 3;
+    if (leftRatio < 0.12 && spanRatio > 0.55) score -= 4;
+    if (leftRatio < 0.2 && spanRatio > 0.75) score -= 2;
+    if (
+      leftRatio >= 0.08 &&
+      leftRatio <= 0.2 &&
+      spanRatio >= 0.2 &&
+      spanRatio <= 0.42
+    ) {
+      score -= 2.5;
+    }
+  }
+
+  return score;
+}
+
+function groupLinesByNormY(lines, pageHeight, epsilonNorm = 0.012) {
+  const enriched = lines
+    .map((line) => ({
+      line,
+      normY: (pageHeight - line.y) / pageHeight,
+    }))
+    .sort((a, b) => b.normY - a.normY);
+
+  const groups = [];
+  for (const item of enriched) {
+    const last = groups[groups.length - 1];
+    if (last && Math.abs(last.normY - item.normY) <= epsilonNorm) {
+      last.lines.push(item.line);
+    } else {
+      groups.push({ normY: item.normY, lines: [item.line] });
+    }
+  }
+  return groups;
+}
+
+/** Две короткие линии на одной высоте — типичный boho-орнамент, не поле ввода. */
+function isDecorativePairRow(lines, pageWidth, pageHeight) {
+  if (lines.length < 2) return false;
+  const spans = lines.map((line) => line.span / pageWidth);
+  if (!spans.every((span) => span >= 0.07 && span <= 0.12)) return false;
+  const lefts = lines.map((line) => line.left / pageWidth);
+  const spread = Math.max(...lefts) - Math.min(...lefts);
+  if (spread < 0.08 || spread > 0.45) return false;
+
+  const avgNormY =
+    lines.reduce((sum, line) => sum + (pageHeight - line.y) / pageHeight, 0) / lines.length;
+  return avgNormY < 0.22;
+}
+
+function pickNonOverlappingColumnLines(scoredItems) {
+  const lines = scoredItems.map((item) => item.line).sort((a, b) => a.left - b.left);
+  const picked = [];
+
+  for (const line of lines) {
+    const overlaps = picked.some(
+      (prev) => horizontalOverlap(prev, line) / Math.min(prev.span, line.span) > 0.3
+    );
+    if (!overlaps) picked.push(line);
+  }
+
+  return picked;
+}
+
+/** «Маму зовут | Папу зовут» — две колонки на одной строке, не одна линия. */
+function isSideBySideFieldRow(lines, pageWidth) {
+  if (lines.length < 2) return false;
+
+  const sorted = [...lines].sort((a, b) => a.left - b.left);
+  for (let i = 1; i < sorted.length; i += 1) {
+    const gap = sorted[i].left - sorted[i - 1].right;
+    if (gap / pageWidth < 0.06) return false;
+  }
+
+  const spans = lines.map((line) => line.span / pageWidth);
+  if (spans.some((span) => span > 0.38)) return false;
+
+  return true;
+}
+
+/** Две близкие строки с одинаковыми колонками — верх/низ облака; оставляем более узкие линии ввода. */
+function dedupeDuplicateFieldRows(lines, pageWidth, pageHeight, maxRowGapNorm = 0.08) {
+  if (lines.length <= 2) return lines;
+
+  const rows = [];
+  for (const line of [...lines].sort((a, b) => (pageHeight - a.y) / pageHeight - (pageHeight - b.y) / pageHeight)) {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const last = rows[rows.length - 1];
+    if (last && Math.abs(last.normY - normY) <= 0.012) {
+      last.lines.push(line);
+    } else {
+      rows.push({ normY, lines: [line] });
+    }
+  }
+
+  if (rows.length <= 1) return lines;
+
+  const toDrop = new Set();
+  for (let i = 0; i < rows.length - 1; i += 1) {
+    const upper = rows[i];
+    const lower = rows[i + 1];
+    if (Math.abs(lower.normY - upper.normY) > maxRowGapNorm) continue;
+    if (upper.lines.length !== lower.lines.length || upper.lines.length < 2) continue;
+
+    const upperLefts = [...upper.lines].sort((a, b) => a.left - b.left).map((l) => l.left);
+    const lowerLefts = [...lower.lines].sort((a, b) => a.left - b.left).map((l) => l.left);
+    const columnsMatch = upperLefts.every(
+      (left, idx) => Math.abs(left - lowerLefts[idx]) / pageWidth < 0.04
+    );
+    if (!columnsMatch) continue;
+
+    const avgSpan = (row) => row.lines.reduce((sum, l) => sum + l.span, 0) / row.lines.length;
+    const avgSpanUpper = avgSpan(upper);
+    const avgSpanLower = avgSpan(lower);
+    const spanRatio =
+      Math.max(avgSpanUpper, avgSpanLower) / Math.max(Math.min(avgSpanUpper, avgSpanLower), 1);
+    if (spanRatio < 1.08) continue;
+
+    const dropRow = avgSpanUpper <= avgSpanLower ? lower : upper;
+    dropRow.lines.forEach((line) => toDrop.add(line));
+  }
+
+  return lines.filter((line) => !toDrop.has(line));
+}
+
+/** Дневники: подпись слева + пунктир справа — убираем подчёркивания подписей и обрезаем «склеенные» строки. */
+function filterDiaryFormLines(lines, pageWidth, pageHeight, options = {}) {
+  const minInputLeft = options.diaryInputMinLeftRatio ?? 0.28;
+  const labelMaxLeft = options.diaryLabelMaxLeftRatio ?? 0.2;
+  const labelMaxSpan = options.diaryLabelMaxSpanRatio ?? 0.45;
+  const rowEpsilon = options.formYClusterEpsilon ?? 0.014;
+  const labelPairGapNorm = options.diaryLabelPairGapNorm ?? 0.045;
+
+  const meta = lines.map((line) => ({
+    line,
+    normY: (pageHeight - line.y) / pageHeight,
+    leftRatio: line.left / pageWidth,
+    spanRatio: line.span / pageWidth,
+  }));
+
+  const filtered = meta.filter((item, index, arr) => {
+    const { normY, leftRatio, spanRatio } = item;
+
+    if (normY < 0.2 && spanRatio < 0.12 && leftRatio > 0.2 && leftRatio < 0.75) {
+      return false;
+    }
+
+    const hasInputPartner = (gapNorm) =>
+      arr.some(
+        (other, otherIndex) =>
+          otherIndex !== index &&
+          Math.abs(other.normY - normY) <= gapNorm &&
+          other.leftRatio >= minInputLeft &&
+          other.spanRatio >= 0.3
+      );
+
+    if (leftRatio <= labelMaxLeft && spanRatio <= labelMaxSpan) {
+      if (hasInputPartner(labelPairGapNorm)) return false;
+    }
+
+    if (leftRatio < 0.15 && spanRatio < 0.48 && normY >= 0.25 && normY <= 0.85) {
+      if (hasInputPartner(labelPairGapNorm)) return false;
+    }
+
+    if (leftRatio < 0.15 && spanRatio < 0.35 && normY >= 0.28 && normY <= 0.75) {
+      return false;
+    }
+
+    if (leftRatio < 0.12 && spanRatio < 0.55) {
+      if (hasInputPartner(rowEpsilon)) return false;
+    }
+
+    return true;
+  });
+
+  const trimmed = filtered.map(({ line, leftRatio, spanRatio }) => {
+    if (leftRatio < 0.18 && spanRatio > 0.45) {
+      const trimLeft = pageWidth * (spanRatio > 0.55 ? 0.32 : minInputLeft);
+      const right = line.right;
+      if (right - trimLeft >= pageWidth * 0.22) {
+        return { y: line.y, left: trimLeft, right, span: right - trimLeft };
+      }
+    }
+
+    return line;
+  });
+
+  const deduped = [];
+  for (const line of trimmed.sort((a, b) => b.y - a.y || a.left - b.left)) {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const duplicateIndex = deduped.findIndex(
+      (prev) => Math.abs((pageHeight - prev.y) / pageHeight - normY) <= rowEpsilon
+    );
+
+    if (duplicateIndex >= 0) {
+      const prev = deduped[duplicateIndex];
+      const prevLeft = prev.left / pageWidth;
+      const lineLeft = line.left / pageWidth;
+      const keepLine =
+        lineLeft >= prevLeft + 0.05 ||
+        (Math.abs(lineLeft - prevLeft) < 0.05 && line.span > prev.span);
+      if (keepLine) deduped[duplicateIndex] = line;
+      continue;
+    }
+
+    deduped.push(line);
+  }
+
+  return deduped.sort((a, b) => b.y - a.y || a.left - b.left);
+}
+
+function isBrownFullRowArtifact(line, pageWidth) {
+  if (line.source === 'box' || line.source === 'wide-block') return false;
+
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  if (leftRatio < 0.12 && spanRatio > 0.65 && spanRatio < 0.95) return false;
+  if (leftRatio < 0.12 && spanRatio > 0.65) return true;
+  if (leftRatio < 0.2 && spanRatio > 0.78) return true;
+  return false;
+}
+
+function isBrownInputDashSegment(seg, pageWidth, options = {}) {
+  const minSpan = options.brownInputMinSpanRatio ?? 0.35;
+  const minRight = options.brownInputMinRightRatio ?? 0.85;
+  const leftRatio = seg.left / pageWidth;
+  const spanRatio = seg.span / pageWidth;
+  const rightRatio = seg.right / pageWidth;
+  if (spanRatio < minSpan || rightRatio < minRight) return false;
+  if (leftRatio < 0.14) return false;
+  if (leftRatio < 0.12 && spanRatio > 0.65) return false;
+  return true;
+}
+
+function findBrownGapInput(sorted, pageWidth, options = {}) {
+  const minFallbackSpan = options.brownInputMinSpanFallback ?? 0.14;
+  const minRightShort = options.brownInputMinRightShort ?? 0.45;
+  const minGapRatio = options.brownInputMinGapRatio ?? 0.018;
+
+  let best = null;
+  let bestScore = -1;
+
+  for (let gapIndex = 1; gapIndex < sorted.length; gapIndex += 1) {
+    const gap = sorted[gapIndex].left - sorted[gapIndex - 1].right;
+    if (gap < pageWidth * minGapRatio) continue;
+
+    const preGap = sorted.slice(0, gapIndex);
+    const inputSegs = sorted.slice(gapIndex);
+    const preRight = Math.max(...preGap.map((seg) => seg.right));
+    const left = Math.min(...inputSegs.map((seg) => seg.left));
+    const right = Math.max(...inputSegs.map((seg) => seg.right));
+    const span = right - left;
+    const spanRatio = span / pageWidth;
+    const rightRatio = right / pageWidth;
+    const leftRatio = left / pageWidth;
+    const preRightRatio = preRight / pageWidth;
+    const gapRatio = gap / pageWidth;
+
+    if (spanRatio < minFallbackSpan || rightRatio < minRightShort) continue;
+    if (leftRatio < preRightRatio + 0.012) continue;
+    if (preRightRatio < 0.1 && gapIndex === 1) continue;
+    if (preRightRatio > 0.74) continue;
+
+    let score = spanRatio + rightRatio * 0.45 + gapRatio * 2;
+    if (preRightRatio >= 0.14 && preRightRatio <= 0.5) score += 0.45;
+    if (preRightRatio > 0.5 && preRightRatio <= 0.72) score += 0.55;
+    if (leftRatio >= 0.26 && leftRatio <= 0.72) score += 0.35;
+    if (gapRatio >= 0.022) score += 0.25;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = { left, right, span, source: 'gap' };
+    }
+  }
+
+  return best;
+}
+
+function hasBrownSolidInputSegment(rowSegments, pageWidth, options = {}) {
+  const minLongSpan = options.brownInputMinSpanRatio ?? 0.35;
+  const minRightLong = options.brownInputMinRightRatio ?? 0.85;
+  const minLeft = options.brownSolidMinLeftRatio ?? 0.28;
+  return rowSegments.some((seg) => {
+    const leftRatio = seg.left / pageWidth;
+    const spanRatio = seg.span / pageWidth;
+    const rightRatio = seg.right / pageWidth;
+    return spanRatio >= minLongSpan && rightRatio >= minRightLong && leftRatio >= minLeft;
+  });
+}
+
+/** Сплошная линия ввода — один длинный сегмент справа от подписи. */
+function pickBrownSolidRowInputLine(rowSegments, pageWidth, options = {}) {
+  const minLongSpan = options.brownInputMinSpanRatio ?? 0.35;
+  const minRightLong = options.brownInputMinRightRatio ?? 0.85;
+  const minLeft = options.brownSolidMinLeftRatio ?? 0.28;
+
+  const candidates = rowSegments
+    .filter((seg) => {
+      const leftRatio = seg.left / pageWidth;
+      const spanRatio = seg.span / pageWidth;
+      const rightRatio = seg.right / pageWidth;
+      return spanRatio >= minLongSpan && rightRatio >= minRightLong && leftRatio >= minLeft;
+    })
+    .sort((a, b) => b.span - a.span || b.right - a.right);
+
+  if (!candidates.length) return null;
+
+  const best = candidates[0];
+  return {
+    y: best.y,
+    left: best.left,
+    right: best.right,
+    span: best.span,
+    source: 'solid',
+  };
+}
+
+function isBrownDecorativeDashedRow(rowSegments, pageWidth) {
+  if (hasBrownSolidInputSegment(rowSegments, pageWidth)) return false;
+
+  const left = Math.min(...rowSegments.map((seg) => seg.left));
+  const right = Math.max(...rowSegments.map((seg) => seg.right));
+  const totalSpan = (right - left) / pageWidth;
+  const maxRight = right / pageWidth;
+  const maxSpan = Math.max(...rowSegments.map((seg) => seg.span / pageWidth));
+
+  if (maxSpan < 0.012) return true;
+  if (totalSpan < 0.15 && maxRight < 0.55) return true;
+  if (maxSpan < 0.05 && maxRight < 0.45) return true;
+  return false;
+}
+
+/** Пунктирная линия — склеиваем короткие штрихи после разрыва под подписью. */
+function pickBrownDashedRowInputLine(rowSegments, pageWidth, pageHeight, options = {}) {
+  const minFallbackSpan = options.brownInputMinSpanFallback ?? 0.14;
+  const minRightShort = options.brownInputMinRightShort ?? 0.45;
+  const minShortFieldSpan = options.brownDashedShortFieldSpan ?? 0.12;
+  const columnGapPx = pageWidth * (options.brownDashClusterGapRatio ?? 0.032);
+  const rowY =
+    rowSegments.reduce((sum, seg) => sum + seg.y, 0) / Math.max(rowSegments.length, 1);
+  const sortedRow = [...rowSegments].sort((a, b) => a.left - b.left);
+  const gapFromRow = findBrownGapInput(sortedRow, pageWidth, options);
+  if (gapFromRow) {
+    const leftRatio = gapFromRow.left / pageWidth;
+    if (leftRatio >= 0.28) {
+      return { y: rowY, ...gapFromRow, source: 'dashed-gap' };
+    }
+  }
+
+  const prominentDash = rowSegments
+    .filter((seg) => {
+      const spanRatio = seg.span / pageWidth;
+      const rightRatio = seg.right / pageWidth;
+      const leftRatio = seg.left / pageWidth;
+      return spanRatio >= minShortFieldSpan && rightRatio >= minRightShort && leftRatio >= 0.2;
+    })
+    .sort((a, b) => b.span - a.span || b.right - a.right)[0];
+
+  if (prominentDash) {
+    return {
+      y: prominentDash.y,
+      left: prominentDash.left,
+      right: prominentDash.right,
+      span: prominentDash.span,
+      source: 'dashed',
+    };
+  }
+
+  const dashedSegs = rowSegments.filter((seg) => seg.span / pageWidth < 0.12);
+  if (dashedSegs.length < 2) return null;
+
+  const sorted = [...dashedSegs].sort((a, b) => a.left - b.left);
+  let gapIndex = 1;
+  let gapSize = 0;
+  for (let i = 1; i < sorted.length; i += 1) {
+    const gap = sorted[i].left - sorted[i - 1].right;
+    if (gap > gapSize) {
+      gapSize = gap;
+      gapIndex = i;
+    }
+  }
+
+  if (gapSize >= pageWidth * (options.brownInputMinGapRatio ?? 0.018)) {
+    const inputSegs = sorted.slice(gapIndex);
+    const left = Math.min(...inputSegs.map((seg) => seg.left));
+    const right = Math.max(...inputSegs.map((seg) => seg.right));
+    const span = right - left;
+    const spanRatio = span / pageWidth;
+    const rightRatio = right / pageWidth;
+    const leftRatio = left / pageWidth;
+    const y = inputSegs.reduce((sum, seg) => sum + seg.y, 0) / inputSegs.length;
+
+    if (spanRatio >= minFallbackSpan && rightRatio >= minRightShort && leftRatio >= 0.2) {
+      return { y, left, right, span, source: 'dashed-gap' };
+    }
+  }
+
+  const clusters = clusterRowSegments(dashedSegs, columnGapPx);
+  const y = dashedSegs.reduce((sum, seg) => sum + seg.y, 0) / dashedSegs.length;
+  const clusterSegments = clusters
+    .map((cluster) => ({
+      y: cluster.y,
+      left: cluster.left,
+      right: cluster.right,
+      span: cluster.span,
+    }))
+    .sort((a, b) => a.left - b.left);
+
+  const gapInput = findBrownGapInput(clusterSegments, pageWidth, options);
+  if (gapInput) {
+    return { y, ...gapInput, source: 'dashed-gap' };
+  }
+
+  const bestCluster = clusters
+    .filter((cluster) => {
+      const spanRatio = cluster.span / pageWidth;
+      const rightRatio = cluster.right / pageWidth;
+      const leftRatio = cluster.left / pageWidth;
+      return spanRatio >= minFallbackSpan && rightRatio >= minRightShort && leftRatio >= 0.2;
+    })
+    .sort((a, b) => b.span - a.span || b.right - a.right)[0];
+
+  if (!bestCluster) return null;
+
+  return {
+    y: bestCluster.y,
+    left: bestCluster.left,
+    right: bestCluster.right,
+    span: bestCluster.span,
+    source: 'dashed',
+  };
+}
+
+/** Одна визуальная строка: сплошная линия или склеенный пунктир. */
+function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {}) {
+  if (!rowSegments.length) return null;
+
+  const solid = pickBrownSolidRowInputLine(rowSegments, pageWidth, options);
+  if (solid) return solid;
+
+  const dashed = pickBrownDashedRowInputLine(rowSegments, pageWidth, pageHeight, options);
+  if (dashed) return dashed;
+
+  const minLongSpan = options.brownInputMinSpanRatio ?? 0.35;
+  const minFallbackSpan = options.brownInputMinSpanFallback ?? 0.14;
+  const minRightLong = options.brownInputMinRightRatio ?? 0.85;
+  const minRightShort = options.brownInputMinRightShort ?? 0.45;
+  const y = rowSegments.reduce((sum, seg) => sum + seg.y, 0) / rowSegments.length;
+  const sorted = [...rowSegments].sort((a, b) => a.left - b.left);
+
+  const gapInput = findBrownGapInput(sorted, pageWidth, options);
+  if (gapInput) {
+    return { y, ...gapInput, source: 'gap' };
+  }
+
+  for (const minSpan of [minLongSpan, minFallbackSpan]) {
+    const longCandidates = rowSegments
+      .filter((seg) => {
+        const leftRatio = seg.left / pageWidth;
+        const spanRatio = seg.span / pageWidth;
+        const rightRatio = seg.right / pageWidth;
+        return spanRatio >= minSpan && rightRatio >= minRightLong && leftRatio >= 0.22;
+      })
+      .sort((a, b) => b.span - a.span || b.right - a.right);
+
+    if (longCandidates.length > 0) {
+      const best = longCandidates[0];
+      return {
+        y: best.y,
+        left: best.left,
+        right: best.right,
+        span: best.span,
+        source: 'input',
+      };
+    }
+  }
+
+  const rowRight = Math.max(...rowSegments.map((seg) => seg.right));
+  const rowRightRatio = rowRight / pageWidth;
+  if (rowRightRatio >= 0.78) {
+    const inputSegs = sorted.filter((seg) => seg.left / pageWidth >= 0.22);
+    if (inputSegs.length > 0) {
+      const left = Math.min(...inputSegs.map((seg) => seg.left));
+      const right = Math.max(...inputSegs.map((seg) => seg.right));
+      const span = right - left;
+      const spanRatio = span / pageWidth;
+      if (spanRatio >= minFallbackSpan && right / pageWidth >= minRightShort) {
+        return { y, left, right, span, source: 'rowtrim' };
+      }
+    }
+  }
+
+  const columnGapPx = pageWidth * (options.brownClusterGapRatio ?? 0.04);
+  const clusters = clusterRowSegments(
+    rowSegments.filter((seg) => seg.left / pageWidth >= 0.16),
+    columnGapPx
+  );
+  const bestCluster = clusters
+    .filter((cluster) => {
+      const spanRatio = cluster.span / pageWidth;
+      const rightRatio = cluster.right / pageWidth;
+      return spanRatio >= minFallbackSpan && rightRatio >= minRightShort;
+    })
+    .sort((a, b) => b.span - a.span || b.right - a.right)[0];
+
+  if (bestCluster) {
+    return {
+      y: bestCluster.y,
+      left: bestCluster.left,
+      right: bestCluster.right,
+      span: bestCluster.span,
+      source: 'cluster',
+    };
+  }
+
+  return null;
+}
+
+function groupBrownDiaryRowBins(rowBins, pageHeight, mergeGapNorm = 0.024) {
+  const groups = [];
+  const sorted = [...rowBins.entries()].sort(
+    (a, b) => b[1][0].y - a[1][0].y
+  );
+
+  for (const [, segments] of sorted) {
+    const normY = (pageHeight - segments[0].y) / pageHeight;
+    const last = groups[groups.length - 1];
+    if (last && Math.abs(last.normY - normY) <= mergeGapNorm) {
+      last.segments.push(...segments);
+      last.normY = (last.normY + normY) / 2;
+      continue;
+    }
+    groups.push({ normY, segments: [...segments] });
+  }
+
+  return groups;
+}
+
+function extractBrownCoverRowLines(rowSegments, pageWidth, pageHeight, options = {}) {
+  const columnGapPx = pageWidth * (options.brownCoverGapRatio ?? 0.055);
+  const clusters = clusterRowSegments(rowSegments, columnGapPx);
+
+  const valid = clusters.filter((cluster) => {
+    const leftRatio = cluster.left / pageWidth;
+    const spanRatio = cluster.span / pageWidth;
+    if (spanRatio < 0.1) return false;
+    if (leftRatio < 0.22) return false;
+    if (spanRatio > 0.72) return false;
+    if (isBrownFullRowArtifact(cluster, pageWidth)) return false;
+    return true;
+  });
+
+  if (valid.length === 0) return [];
+
+  const best = valid.sort((a, b) => {
+    const score = (cluster) => {
+      const leftRatio = cluster.left / pageWidth;
+      const spanRatio = cluster.span / pageWidth;
+      let value = spanRatio;
+      if (leftRatio >= 0.24 && leftRatio <= 0.58) value += 0.35;
+      if (leftRatio >= 0.26 && leftRatio <= 0.38) value += 0.3;
+      if (leftRatio > 0.48) value -= 0.25;
+      return value;
+    };
+    return score(b) - score(a);
+  })[0];
+
+  return [
+    {
+      y: best.y,
+      left: best.left,
+      right: best.right,
+      span: best.span,
+      source: 'cover',
+    },
+  ];
+}
+
+/** Коричневый дневник: поле ввода = длинный пунктир справа от подписи (из сегментов PDF). */
+function mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, options = {}) {
+  if (options.pageNumber === 1) {
+    const coverLines = extractBrownCoverPageLines(segments, pageWidth, pageHeight, options);
+    if (coverLines.length > 0) {
+      return coverLines;
+    }
+  }
+
+  const mergeGapPt = options.mergeGapPt ?? 10;
+  const minSegmentSpanPt = options.minSegmentSpanPt ?? 1.2;
+  const bottomCutPt = options.bottomCutPt ?? 28;
+  const topCutPt = options.topCutPt ?? 40;
+  const formStartNormY = options.formStartNormY ?? 0.05;
+  const maxHorizontalDeltaPt = options.maxHorizontalDeltaPt ?? 1.2;
+  const maxNormY = options.maxNormY ?? 0.96;
+
+  const candidates = segments
+    .filter((s) => Math.abs(s.y1 - s.y2) <= maxHorizontalDeltaPt)
+    .map((s) => {
+      const left = Math.min(s.x1, s.x2);
+      const right = Math.max(s.x1, s.x2);
+      const y = (s.y1 + s.y2) / 2;
+      return { y, left, right, span: right - left };
+    })
+    .filter((l) => l.span >= minSegmentSpanPt)
+    .filter((l) => l.y >= bottomCutPt && l.y <= pageHeight - topCutPt);
+
+  const rowBins = new Map();
+  for (const seg of candidates) {
+    const normY = (pageHeight - seg.y) / pageHeight;
+    if (normY > maxNormY || normY < formStartNormY) continue;
+    const bin = Math.round(seg.y / mergeGapPt);
+    if (!rowBins.has(bin)) rowBins.set(bin, []);
+    rowBins.get(bin).push(seg);
+  }
+
+  const rowGroups = groupBrownDiaryRowBins(
+    rowBins,
+    pageHeight,
+    options.brownRowMergeGapNorm ?? 0.024
+  );
+
+  let lines = [];
+  for (const group of rowGroups) {
+    if (isBrownDecorativeDashedRow(group.segments, pageWidth)) continue;
+
+    const boxLines = extractBrownBoxedInputLinesFromRow(
+      group.segments,
+      pageWidth,
+      pageHeight,
+      options
+    );
+    if (boxLines.length > 0) {
+      lines.push(...boxLines);
+      continue;
+    }
+
+    const wideBlockLines = extractBrownWideBlockLinesFromRow(
+      group.segments,
+      pageWidth,
+      pageHeight,
+      options
+    );
+    if (wideBlockLines.length > 0) {
+      lines.push(...wideBlockLines);
+      continue;
+    }
+
+    const picked = pickBrownRowInputLine(group.segments, pageWidth, pageHeight, options);
+    if (picked) {
+      lines.push(picked);
+      continue;
+    }
+
+    if (
+      options.pageNumber !== 1 &&
+      group.normY >= (options.brownCoverFallbackMinNormY ?? 0.28) &&
+      group.normY <= (options.brownCoverFallbackMaxNormY ?? 0.44)
+    ) {
+      lines.push(...extractBrownCoverRowLines(group.segments, pageWidth, pageHeight, options));
+    }
+  }
+
+  return finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options);
+}
+
+function extractBrownBoxedInputLinesFromSegmentList(
+  rowSegments,
+  pageWidth,
+  pageHeight,
+  columnBounds,
+  options = {}
+) {
+  const minSpan = options.brownBoxMinSpanRatio ?? 0.18;
+  const maxSpan = options.brownBoxMaxSpanRatio ?? 0.52;
+  const minLeft = columnBounds.minLeft ?? options.brownBoxMinLeftRatio ?? 0.05;
+  const maxLeft = columnBounds.maxLeft ?? options.brownBoxMaxLeftRatio ?? 0.28;
+  const minNormY = options.brownBoxMinNormY ?? 0.14;
+  const maxNormY = options.brownBoxMaxNormY ?? 0.96;
+
+  const valid = rowSegments.filter((seg) => {
+    const spanRatio = seg.span / pageWidth;
+    const leftRatio = seg.left / pageWidth;
+    const normY = (pageHeight - seg.y) / pageHeight;
+    if (normY < minNormY || normY > maxNormY) return false;
+    if (spanRatio < minSpan || spanRatio > maxSpan) return false;
+    if (leftRatio < minLeft || leftRatio > maxLeft) return false;
+    if (spanRatio > 0.72) return false;
+    return true;
+  });
+
+  return valid.map((seg) => ({
+    y: seg.y,
+    left: seg.left,
+    right: seg.right,
+    span: seg.span,
+    source: 'box',
+  }));
+}
+
+/** Розовые блоки «Мечты» и др.: короткие линии в двух колонках (PDF-вектор). */
+function extractBrownBoxedInputLinesFromRow(rowSegments, pageWidth, pageHeight, options = {}) {
+  const splitRatio = options.brownBoxColumnSplitRatio ?? 0.5;
+  const splitX = pageWidth * splitRatio;
+  const leftSegs = rowSegments.filter((seg) => seg.right <= splitX + pageWidth * 0.04);
+  const rightSegs = rowSegments.filter((seg) => seg.left >= splitX - pageWidth * 0.04);
+
+  const lines = [
+    ...extractBrownBoxedInputLinesFromSegmentList(
+      leftSegs,
+      pageWidth,
+      pageHeight,
+      { minLeft: 0.05, maxLeft: 0.28 },
+      options
+    ),
+    ...extractBrownBoxedInputLinesFromSegmentList(
+      rightSegs,
+      pageWidth,
+      pageHeight,
+      { minLeft: 0.42, maxLeft: 0.78 },
+      options
+    ),
+  ];
+
+  return lines;
+}
+
+/** Широкие белые линии внутри розового блока (стр. «Твой день», «Мечты» и т.п.). */
+function extractBrownWideBlockLinesFromRow(rowSegments, pageWidth, pageHeight, options = {}) {
+  const minSpan = options.brownWideBlockMinSpanRatio ?? 0.45;
+  const maxSpan = options.brownWideBlockMaxSpanRatio ?? 0.95;
+  const maxLeft = options.brownWideBlockMaxLeftRatio ?? 0.2;
+  const minNormY = options.brownWideBlockMinNormY ?? 0.28;
+  const maxNormY = options.brownWideBlockMaxNormY ?? 0.92;
+
+  return rowSegments
+    .filter((seg) => {
+      const spanRatio = seg.span / pageWidth;
+      const leftRatio = seg.left / pageWidth;
+      const normY = (pageHeight - seg.y) / pageHeight;
+      if (normY < minNormY || normY > maxNormY) return false;
+      if (spanRatio < minSpan || spanRatio > maxSpan) return false;
+      if (leftRatio > maxLeft) return false;
+      return true;
+    })
+    .map((seg) => ({
+      y: seg.y,
+      left: seg.left,
+      right: seg.right,
+      span: seg.span,
+      source: 'wide-block',
+    }));
+}
+
+function scoreBrownDiaryLine(line, pageWidth, pageHeight) {
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  const normY = (pageHeight - line.y) / pageHeight;
+  let score = spanRatio;
+  if (line.source === 'solid' || line.source === 'dashed' || line.source === 'dashed-gap') score += 2.5;
+  if (line.source === 'input' || line.source === 'gap' || line.source === 'cluster' || line.source === 'rowtrim') score += 2;
+  if (leftRatio >= 0.18) score += 0.5;
+  if (rightRatio(line, pageWidth) >= 0.82) score += 0.35;
+  if (normY > 0.82 && spanRatio < 0.25) score -= 1;
+  if (normY > 0.72 && spanRatio < 0.22) score -= 1.5;
+  return score;
+}
+
+function rightRatio(line, pageWidth) {
+  return line.right / pageWidth;
+}
+
+function scoreBrownCoverLine(line, pageWidth) {
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  let score = spanRatio;
+  if (leftRatio >= 0.24 && leftRatio <= 0.38) score += 0.6;
+  if (spanRatio >= 0.35 && spanRatio <= 0.58) score += 0.35;
+  if (leftRatio > 0.48) score -= 0.4;
+  return score;
+}
+
+function isBrownCoverPage(_lines, _pageWidth, _pageHeight, options = {}) {
+  return options.pageNumber === 1;
+}
+
+/** Обложка коричневого блока: две сплошные линии «принадлежит» (из вектора PDF, не PNG). */
+function extractBrownCoverPageLines(segments, pageWidth, pageHeight, options = {}) {
+  const maxHorizontalDeltaPt = options.maxHorizontalDeltaPt ?? 1.2;
+  const minSegmentSpanPt = options.minSegmentSpanPt ?? 1.2;
+  const bottomCutPt = options.bottomCutPt ?? 28;
+  const topCutPt = options.topCutPt ?? 40;
+  const minNormY = options.brownCoverMinNormY ?? 0.45;
+  const maxNormY = options.brownCoverMaxNormY ?? 0.68;
+  const minSpanRatio = options.brownCoverMinSpanRatio ?? 0.38;
+  const maxSpanRatio = options.brownCoverMaxSpanRatio ?? 0.72;
+  const minLeftRatio = options.brownCoverMinLeftRatio ?? 0.14;
+  const maxLeftRatio = options.brownCoverMaxLeftRatio ?? 0.28;
+  const minRightRatio = options.brownCoverMinRightRatio ?? 0.75;
+
+  const candidates = segments
+    .filter((s) => Math.abs(s.y1 - s.y2) <= maxHorizontalDeltaPt)
+    .map((s) => {
+      const left = Math.min(s.x1, s.x2);
+      const right = Math.max(s.x1, s.x2);
+      const y = (s.y1 + s.y2) / 2;
+      return { y, left, right, span: right - left };
+    })
+    .filter((l) => l.span >= minSegmentSpanPt)
+    .filter((l) => l.y >= bottomCutPt && l.y <= pageHeight - topCutPt);
+
+  const rows = [];
+  for (const line of candidates) {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const spanRatio = line.span / pageWidth;
+    const leftRatio = line.left / pageWidth;
+    const rightRatio = line.right / pageWidth;
+    if (normY < minNormY || normY > maxNormY) continue;
+    if (spanRatio < minSpanRatio || spanRatio > maxSpanRatio) continue;
+    if (leftRatio < minLeftRatio || leftRatio > maxLeftRatio) continue;
+    if (rightRatio < minRightRatio) continue;
+    rows.push({ ...line, normY });
+  }
+
+  rows.sort((a, b) => a.normY - b.normY);
+  const clustered = [];
+  for (const row of rows) {
+    const last = clustered[clustered.length - 1];
+    if (last && Math.abs(last.normY - row.normY) < 0.028) {
+      if (row.span > last.span) clustered[clustered.length - 1] = row;
+      continue;
+    }
+    clustered.push(row);
+  }
+
+  return clustered.slice(0, 2).map(({ normY, ...line }) => ({ ...line, source: 'cover-input' }));
+}
+
+function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {}) {
+  const minRowGap = options.brownMinRowGapNorm ?? 0.022;
+  const formEndNormY = options.brownFormEndNormY ?? 0.88;
+
+  let filtered = lines.filter((line) => {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const spanRatio = line.span / pageWidth;
+    const leftRatio = line.left / pageWidth;
+    if (isBrownFullRowArtifact(line, pageWidth)) return false;
+    if (
+      line.source !== 'box' &&
+      line.source !== 'wide-block' &&
+      normY > formEndNormY &&
+      spanRatio > 0.6
+    ) {
+      return false;
+    }
+    if (spanRatio < 0.08) return false;
+    if (
+      line.source !== 'box' &&
+      line.source !== 'wide-block' &&
+      leftRatio > 0.58 &&
+      spanRatio < 0.32
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  if (isBrownCoverPage(lines, pageWidth, pageHeight, options)) {
+    const minCoverY = options.brownCoverMinNormY ?? 0.45;
+    const maxCoverY = options.brownCoverMaxNormY ?? 0.68;
+    filtered = filtered.filter((line) => {
+      const normY = (pageHeight - line.y) / pageHeight;
+      const spanRatio = line.span / pageWidth;
+      const leftRatio = line.left / pageWidth;
+      return (
+        normY >= minCoverY &&
+        normY <= maxCoverY &&
+        spanRatio >= 0.35 &&
+        spanRatio <= 0.72 &&
+        leftRatio >= 0.14 &&
+        leftRatio <= 0.28
+      );
+    });
+    filtered.sort(
+      (a, b) => (pageHeight - a.y) / pageHeight - (pageHeight - b.y) / pageHeight
+    );
+    const scored = filtered
+      .map((line) => ({ line, score: scoreBrownCoverLine(line, pageWidth) }))
+      .filter((item) => item.line.span / pageWidth >= 0.15)
+      .sort((a, b) => b.score - a.score);
+    const picked = [];
+    for (const { line } of scored) {
+      const normY = (pageHeight - line.y) / pageHeight;
+      if (picked.some((prev) => Math.abs((pageHeight - prev.y) / pageHeight - normY) < 0.028)) {
+        continue;
+      }
+      picked.push(line);
+      if (picked.length >= 2) break;
+    }
+    picked.sort(
+      (a, b) => (pageHeight - a.y) / pageHeight - (pageHeight - b.y) / pageHeight
+    );
+    return picked.map(({ source, ...line }) => line);
+  }
+
+  const formStartNormY = options.brownQuestionnaireStartNormY ?? 0.14;
+  const questionnaireEndNormY = options.brownQuestionnaireEndNormY ?? 0.94;
+  filtered = filtered.filter((line) => {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const spanRatio = line.span / pageWidth;
+    const leftRatio = line.left / pageWidth;
+    if (line.source === 'box') {
+      const boxMinY = options.brownBoxMinNormY ?? 0.14;
+      const boxMaxY = options.brownBoxMaxNormY ?? 0.96;
+      if (normY < boxMinY || normY > boxMaxY) return false;
+      return true;
+    }
+    if (line.source === 'wide-block') {
+      if (normY < (options.brownWideBlockMinNormY ?? 0.28)) return false;
+      if (normY > (options.brownWideBlockMaxNormY ?? 0.92)) return false;
+      if (normY > 0.88 && leftRatio < 0.14 && spanRatio > 0.75) return false;
+      return true;
+    }
+    if (normY < formStartNormY) return false;
+    if (normY > questionnaireEndNormY) return false;
+    if (normY > 0.86 && spanRatio < 0.32) return false;
+    return true;
+  });
+
+  filtered.sort((a, b) => b.y - a.y || a.left - b.left);
+  const collapsed = [];
+
+  for (const line of filtered) {
+    const normY = (pageHeight - line.y) / pageHeight;
+    const duplicate = collapsed.find((prev) => {
+      const prevNorm = (pageHeight - prev.y) / pageHeight;
+      if (Math.abs(prevNorm - normY) >= minRowGap) return false;
+      const overlap =
+        horizontalOverlap(prev, line) / Math.min(prev.span, line.span);
+      return overlap > 0.35;
+    });
+
+    if (duplicate) {
+      if (scoreBrownDiaryLine(line, pageWidth, pageHeight) >
+          scoreBrownDiaryLine(duplicate, pageWidth, pageHeight)) {
+        const idx = collapsed.indexOf(duplicate);
+        collapsed[idx] = line;
+      }
+      continue;
+    }
+
+    collapsed.push(line);
+  }
+
+  collapsed.sort((a, b) => b.y - a.y || a.left - b.left);
+  const maxLines = options.maxLinesPerPage ?? 30;
+  return collapsed.slice(0, maxLines);
+}
+
+function refineFormInputLines(lines, pageWidth, pageHeight, options) {
+  const groups = groupLinesByNormY(
+    lines,
+    pageHeight,
+    options.formYClusterEpsilon ?? 0.012
+  );
+  const minScore = options.formMinScore ?? 0.25;
+  const picked = [];
+
+  for (const group of groups) {
+    if (isDecorativePairRow(group.lines, pageWidth, pageHeight)) continue;
+
+    const scored = group.lines
+      .map((line) => ({ line, score: scoreFormLine(line, pageWidth, pageHeight, options) }))
+      .filter((item) => item.score >= minScore)
+      .sort((a, b) => b.score - a.score);
+
+    if (scored.length === 0) continue;
+
+    const columnLines = pickNonOverlappingColumnLines(scored);
+    if (isSideBySideFieldRow(columnLines, pageWidth)) {
+      picked.push(...columnLines);
+      continue;
+    }
+
+    picked.push(scored[0].line);
+  }
+
+  let deduped = dedupeDuplicateFieldRows(picked, pageWidth, pageHeight);
+  deduped.sort((a, b) => b.y - a.y || a.left - b.left);
+  const maxLines = options.maxLinesPerPage ?? 12;
+  if (deduped.length <= maxLines) return deduped;
+
+  return deduped
+    .map((line) => ({ line, score: scoreFormLine(line, pageWidth, pageHeight, options) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxLines)
+    .map((item) => item.line)
+    .sort((a, b) => b.y - a.y || a.left - b.left);
+}
+
+async function collectTextItems(page) {
+  const textContent = await page.getTextContent();
+  return textContent.items
+    .filter((item) => typeof item.str === 'string' && item.str.trim().length > 0)
+    .map((item) => {
+      const transform = item.transform ?? [1, 0, 0, 1, 0, 0];
+      const x = transform[4];
+      const y = transform[5];
+      const width = item.width ?? 0;
+      return {
+        str: item.str.trim(),
+        x,
+        y,
+        right: x + width,
+      };
+    });
+}
+
+/** Правая граница подписи на строке (вопрос «Кем ты хочешь…» и т.п.). */
+function getBrownRowLabelExtents(textItems, line, pageWidth, pageHeight, options = {}) {
+  const labelYWindow = pageHeight * (options.brownLabelYWindowRatio ?? 0.026);
+  const maxLabelLeft = pageWidth * (options.brownLabelMaxLeftRatio ?? 0.88);
+
+  const onRow = textItems.filter((item) => {
+    if (Math.abs(item.y - line.y) > labelYWindow) return false;
+    const compact = item.str.replace(/\s+/g, '');
+    if (compact.length === 0) return false;
+    if (compact.toLowerCase() === 'лет') return false;
+    if (item.x > maxLabelLeft) return false;
+    return item.right <= line.right + pageWidth * 0.03;
+  });
+
+  if (!onRow.length) return null;
+
+  return {
+    left: Math.min(...onRow.map((item) => item.x)),
+    right: Math.max(...onRow.map((item) => item.right)),
+  };
+}
+
+/** Сдвигает left поля ввода за конец подписи (длинные вопросы анкеты). */
+function trimBrownWritableLineFromLabels(line, textItems, pageWidth, pageHeight, options = {}) {
+  const extents = getBrownRowLabelExtents(textItems, line, pageWidth, pageHeight, options);
+  if (!extents) return line;
+
+  const gapPx = options.brownLabelInputGapPt ?? 5;
+  const minLeft = extents.right + gapPx;
+  const minSpanPx = pageWidth * (options.brownMinWritableSpanRatio ?? 0.12);
+
+  if (minLeft <= line.left + pageWidth * 0.01) return line;
+
+  const newLeft = Math.min(minLeft, line.right - minSpanPx);
+  if (newLeft >= line.right - minSpanPx) return line;
+
+  return { ...line, left: newLeft, span: line.right - newLeft };
+}
+
+function detectHasLabel(textItems, line, pageWidth, pageHeight, options = {}) {
+  const labelYWindow = pageHeight * 0.018;
+  const labels = textItems.filter(
+    (item) =>
+      Math.abs(item.y - line.y) <= labelYWindow &&
+      item.x < line.left + pageWidth * 0.04 &&
+      item.x <= pageWidth * 0.62
+  );
+
+  if (labels.length > 0) {
+    const meaningful = labels.filter((item) => {
+      const compact = item.str.replace(/\s+/g, '');
+      if (compact.length === 0) return false;
+      if (compact.toLowerCase() === 'лет') return false;
+      return true;
+    });
+    if (meaningful.length > 0) return true;
+  }
+
+  if (!options.inferLabelFromGeometry) return false;
+
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  const maxLeft = options.brownInferLabelMaxLeftRatio ?? 0.42;
+  const maxSpan = options.brownInferLabelMaxSpanRatio ?? 0.72;
+  return leftRatio < maxLeft && spanRatio < maxSpan;
+}
+
+function buildSlotsFromPdfLines(lines, textItems, pageWidth, pageHeight, options) {
+  if (!lines.length) return [];
+
+  const slots = [];
+  const normYs = lines.map((line) => (pageHeight - line.y) / pageHeight);
+  const rowEpsilon = 0.002;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    let line = lines[i];
+    if (
+      options.diaryBrownFormMode === true &&
+      line.source !== 'box' &&
+      line.source !== 'wide-block'
+    ) {
+      line = trimBrownWritableLineFromLabels(line, textItems, pageWidth, pageHeight, options);
+    }
+    const normY = normYs[i];
+
+    let prevRowNorm = null;
+    for (let j = i - 1; j >= 0; j -= 1) {
+      if (Math.abs(normYs[j] - normY) > rowEpsilon) {
+        prevRowNorm = normYs[j];
+        break;
+      }
+    }
+    let nextRowNorm = null;
+    for (let j = i + 1; j < normYs.length; j += 1) {
+      if (Math.abs(normYs[j] - normY) > rowEpsilon) {
+        nextRowNorm = normYs[j];
+        break;
+      }
+    }
+
+    let bandNorm;
+    if (prevRowNorm !== null && nextRowNorm !== null) {
+      bandNorm = Math.min((nextRowNorm - prevRowNorm) / 2, 0.08);
+    } else if (nextRowNorm !== null) {
+      bandNorm = nextRowNorm - normY;
+    } else if (prevRowNorm !== null) {
+      bandNorm = normY - prevRowNorm;
+    } else {
+      bandNorm = 0.028;
+    }
+
+    bandNorm = clamp(bandNorm, 0.012, 0.12);
+
+    const padNorm = (options.textPadPt ?? 4) / pageWidth;
+    const hasLabel = detectHasLabel(textItems, line, pageWidth, pageHeight, options);
+    const isPdfBoxLine =
+      options.diaryBrownFormMode === true &&
+      (line.source === 'box' || line.source === 'wide-block');
+    const xNorm = isPdfBoxLine
+      ? clamp(line.left / pageWidth, 0, 0.98)
+      : clamp(line.left / pageWidth + (hasLabel ? padNorm : 0), 0, 0.98);
+    const widthNorm = isPdfBoxLine
+      ? clamp(line.span / pageWidth, 0.05, 1)
+      : clamp((line.right - line.left) / pageWidth - (hasLabel ? padNorm : 0), 0.05, 1);
+
+    slots.push({
+      x: formatFloat(xNorm),
+      y: formatFloat(clamp(normY, 0, 1)),
+      width: formatFloat(widthNorm),
+      height: formatFloat(bandNorm),
+      hasLabel,
+      lineSource: line.source,
+    });
+  }
+
+  if (options.diaryBrownFormMode === true) {
+    return slots;
+  }
+
+  return assignContinuationGroups(slots, options);
+}
+
+function normalizeRgb(color) {
+  if (!color || color.length < 3) return [0, 0, 0];
+  const max = Math.max(color[0], color[1], color[2]);
+  if (max > 1.5) return [color[0] / 255, color[1] / 255, color[2] / 255];
+  return [color[0], color[1], color[2]];
+}
+
+function isNearWhiteFill(color, threshold = 0.97, options = {}) {
+  const [r, g, b] = normalizeRgb(color);
+  if (r >= threshold && g >= threshold && b >= threshold) return true;
+
+  if (options.allowCreamFill !== true) return false;
+
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const sat = Math.max(r, g, b) - Math.min(r, g, b);
+  return lum >= 0.92 && sat <= 0.09 && Math.min(r, g, b) >= 0.88;
+}
+
+function isBirthdayInputFill(color, options = {}) {
+  const threshold = options.whiteFillThreshold ?? 0.97;
+  if (isNearWhiteFill(color, threshold, options)) return true;
+
+  const [r, g, b] = normalizeRgb(color);
+  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  const sat = Math.max(r, g, b) - Math.min(r, g, b);
+  return lum >= 0.88 && sat <= 0.12;
+}
+
+/** Белые «таблетки» и широкие поля ввода в альбоме дня рождения. */
+function isWhiteInputBlock(wRatio, hRatio) {
+  const aspect = wRatio / Math.max(hRatio, 0.001);
+
+  if (wRatio > 0.92 && hRatio > 0.85) return false;
+  if (hRatio > 0.12) return false;
+  if (aspect >= 0.85 && aspect <= 1.25 && hRatio > 0.055) return false;
+
+  if (wRatio >= 0.35 && hRatio >= 0.022 && hRatio <= 0.05) return true;
+  if (wRatio >= 0.12 && hRatio >= 0.034 && hRatio <= 0.058 && aspect >= 1.6) return true;
+  if (wRatio >= 0.15 && hRatio >= 0.055 && hRatio <= 0.12 && aspect >= 1.2) return true;
+
+  return false;
+}
+
+function dedupeWhiteBlocks(blocks, pageWidth, pageHeight) {
+  const sorted = [...blocks].sort((a, b) => b.normY - a.normY || a.left - b.left);
+  const deduped = [];
+
+  for (const block of sorted) {
+    const duplicate = deduped.some((prev) => {
+      const yGap = Math.abs(prev.normY - block.normY);
+      const overlap =
+        Math.max(0, Math.min(prev.right, block.right) - Math.max(prev.left, block.left)) /
+        Math.min(prev.span, block.span);
+      return yGap < 0.008 && overlap > 0.7;
+    });
+    if (!duplicate) deduped.push(block);
+  }
+
+  return deduped;
+}
+
+function getPathBoundingBox(pathOps, coords, ctm) {
+  let j = 0;
+  const xs = [];
+  const ys = [];
+
+  for (const op of pathOps) {
+    if (op === PATH_OPS.moveTo || op === PATH_OPS.lineTo) {
+      const [x, y] = transformPoint(ctm, coords[j], coords[j + 1]);
+      xs.push(x);
+      ys.push(y);
+      j += 2;
+    } else if (op === PATH_OPS.curveTo) {
+      for (let k = 0; k < 3; k += 1) {
+        const [x, y] = transformPoint(ctm, coords[j], coords[j + 1]);
+        xs.push(x);
+        ys.push(y);
+        j += 2;
+      }
+    } else if (op === PATH_OPS.rectangle) {
+      const rx = coords[j];
+      const ry = coords[j + 1];
+      const rw = coords[j + 2];
+      const rh = coords[j + 3];
+      j += 4;
+      for (const [px, py] of [
+        [rx, ry],
+        [rx + rw, ry],
+        [rx + rw, ry + rh],
+        [rx, ry + rh],
+      ]) {
+        const [x, y] = transformPoint(ctm, px, py);
+        xs.push(x);
+        ys.push(y);
+      }
+    }
+  }
+
+  if (!xs.length) return null;
+
+  return {
+    left: Math.min(...xs),
+    right: Math.max(...xs),
+    bottom: Math.min(...ys),
+    top: Math.max(...ys),
+  };
+}
+
+async function collectWhiteInputBlocks(page, options = {}) {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const viewport = page.getViewport({ scale: 1 });
+  const { width: pageWidth, height: pageHeight } = viewport;
+  const ops = await page.getOperatorList();
+  const fn = pdfjs.OPS;
+  let ctm = [1, 0, 0, 1, 0, 0];
+  const stack = [];
+  let fillColor = [0, 0, 0];
+  let lastPathOps = null;
+  let lastCoords = null;
+  const blocks = [];
+  const whiteThreshold = options.whiteFillThreshold ?? 0.97;
+
+  for (let i = 0; i < ops.fnArray.length; i += 1) {
+    const op = ops.fnArray[i];
+    const args = ops.argsArray[i];
+
+    if (op === fn.save) {
+      stack.push({ ctm: [...ctm], fill: [...fillColor] });
+    } else if (op === fn.restore) {
+      const saved = stack.pop();
+      if (saved) {
+        ctm = saved.ctm;
+        fillColor = saved.fill;
+      }
+    } else if (op === fn.transform) {
+      ctm = multiplyMatrix(ctm, args);
+    } else if (op === fn.setFillRGBColor) {
+      fillColor = args;
+    } else if (op === fn.setFillGray) {
+      fillColor = [args[0], args[0], args[0]];
+    } else if (op === fn.constructPath) {
+      lastPathOps = args[0];
+      lastCoords = args[1];
+    } else if (op === fn.fill || op === fn.eoFill) {
+      if (!lastPathOps || !lastCoords) continue;
+      if (!isBirthdayInputFill(fillColor, options)) continue;
+
+      const bounds = getPathBoundingBox(lastPathOps, lastCoords, ctm);
+      if (!bounds) continue;
+
+      const span = bounds.right - bounds.left;
+      const blockHeight = bounds.top - bounds.bottom;
+      const wRatio = span / pageWidth;
+      const hRatio = blockHeight / pageHeight;
+
+      if (!isWhiteInputBlock(wRatio, hRatio)) continue;
+
+      const centerY = (bounds.bottom + bounds.top) / 2;
+      blocks.push({
+        left: bounds.left,
+        right: bounds.right,
+        bottom: bounds.bottom,
+        top: bounds.top,
+        y: centerY,
+        span,
+        normY: (pageHeight - centerY) / pageHeight,
+      });
+    }
+  }
+
+  return dedupeWhiteBlocks(blocks, pageWidth, pageHeight);
+}
+
+function detectBlockHasLabel(textItems, block, pageWidth, pageHeight, options = {}) {
+  const labelYWindow = pageHeight * (options.blockLabelYWindow ?? 0.028);
+
+  const labels = textItems.filter((item) => {
+    if (Math.abs(item.y - block.y) > labelYWindow) return false;
+    if (item.x >= block.left + pageWidth * 0.08) return false;
+    if (item.right > block.left + pageWidth * 0.62) return false;
+    const compact = item.str.replace(/\s+/g, '');
+    return compact.length >= 3;
+  });
+
+  return labels.length > 0;
+}
+
+function filterBirthdayNoiseBlocks(blocks, pageWidth, options = {}) {
+  if (options.slotMode !== 'whiteBlocks') return blocks;
+
+  const rowEpsilon = 0.008;
+  const rowCounts = new Map();
+  for (const block of blocks) {
+    const rowKey = Math.round(block.normY / rowEpsilon);
+    rowCounts.set(rowKey, (rowCounts.get(rowKey) || 0) + 1);
+  }
+
+  return blocks.filter((block) => {
+    const widthRatio = block.span / pageWidth;
+    const leftRatio = block.left / pageWidth;
+    const rowKey = Math.round(block.normY / rowEpsilon);
+    const rowSize = rowCounts.get(rowKey) || 0;
+
+    // Узкие блоки справа в одиночку (декор у торта) — не поля ввода.
+    if (widthRatio < 0.22 && leftRatio > 0.55 && rowSize <= 1) {
+      return false;
+    }
+    return true;
+  });
+}
+
+function buildSlotsFromWhiteBlocks(blocks, textItems, pageWidth, pageHeight, options) {
+  if (!blocks.length) return [];
+
+  const padPt = options.blockPadPt ?? 8;
+  const padNormX = padPt / pageWidth;
+  const padNormY = padPt / pageHeight;
+  const sorted = [...blocks].sort((a, b) => b.normY - a.normY);
+  const slots = [];
+
+  for (let i = 0; i < sorted.length; i += 1) {
+    const block = sorted[i];
+    const normY = block.normY;
+    const blockHeightNorm = (block.top - block.bottom) / pageHeight;
+    const xNorm = clamp(block.left / pageWidth + padNormX, 0, 0.98);
+    const widthNorm = clamp(block.span / pageWidth - padNormX * 2, 0.05, 1);
+    const hasLabel = detectBlockHasLabel(textItems, block, pageWidth, pageHeight, options);
+
+    slots.push({
+      x: formatFloat(xNorm),
+      y: formatFloat(clamp(normY, 0, 1)),
+      width: formatFloat(widthNorm),
+      height: formatFloat(clamp(blockHeightNorm * 0.92, 0.034, 0.065)),
+      hasLabel,
+      inputKind: 'block',
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+  return assignBlockFieldGroups(slots);
+}
+
+async function extractLineSlotsForPage(page, pageWidth, pageHeight, options) {
+  const segments = await collectPathSegments(page, options);
+  let lines;
+
+  if (options.diaryBrownFormMode === true) {
+    lines = mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, options);
+  } else {
+    lines = mergeHorizontalLines(segments, pageWidth, pageHeight, options);
+    if (options.formLineRefine) {
+      lines = refineFormInputLines(lines, pageWidth, pageHeight, options);
+    }
+    if (options.collapseNearbyRows) {
+      lines = collapseNearbyRows(lines, pageHeight, options.minRowGapNorm ?? 0.016);
+    }
+    if (options.diaryFormMode === true) {
+      lines = filterDiaryFormLines(lines, pageWidth, pageHeight, options);
+    }
+  }
+
+  const textItems = await collectTextItems(page);
+  let slots = buildSlotsFromPdfLines(lines, textItems, pageWidth, pageHeight, options);
+
+  if (options.diaryBrownFormMode === true) {
+    slots = normalizeBrownSlotBandHeights(slots);
+    slots = assignBrownDiarySlotGroups(slots, options);
+  } else {
+    slots = assignContinuationGroups(slots, options);
+  }
+
+  return slots;
+}
+
+function brownSlotHorizontalOverlapRatio(a, b) {
+  const left = Math.max(a.x, b.x);
+  const right = Math.min(a.x + a.width, b.x + b.width);
+  const overlap = Math.max(0, right - left);
+  const minSpan = Math.min(a.width, b.width);
+  if (minSpan <= 0) return 0;
+  return overlap / minSpan;
+}
+
+function isBrownQuestionnaireWideLine(slot) {
+  return slot.width >= 0.52;
+}
+
+function isBrownPeachBlockLine(slot) {
+  return slot.width >= 0.16 && slot.width <= 0.58 && slot.x <= 0.22;
+}
+
+function canJoinBrownBoxLines(prev, slot, clusterMinY, options = {}) {
+  if (!prev || !slot) return false;
+
+  const isWideBlock =
+    prev.lineSource === 'wide-block' || slot.lineSource === 'wide-block';
+  const rowGap = slot.y - prev.y;
+  const rowGapMin = options.brownGroupRowGapMin ?? 0.003;
+  const rowGapMax = isWideBlock
+    ? (options.brownWideGroupRowGapMax ?? 0.048)
+    : (options.brownGroupRowGapMax ?? 0.043);
+  const overlapMin = isWideBlock
+    ? (options.brownWideGroupOverlapMin ?? 0.25)
+    : (options.brownGroupOverlapMin ?? 0.38);
+  const maxBlockSpan = isWideBlock
+    ? (options.brownWideGroupMaxHeight ?? 0.55)
+    : (options.brownGroupMaxHeight ?? 0.1);
+
+  if (rowGap <= rowGapMin || rowGap >= rowGapMax) return false;
+  if (slot.y - clusterMinY > maxBlockSpan) return false;
+
+  if (isWideBlock) {
+    return (
+      prev.lineSource === 'wide-block' &&
+      slot.lineSource === 'wide-block' &&
+      Math.abs(prev.x - slot.x) < 0.1
+    );
+  }
+
+  if (brownSlotHorizontalOverlapRatio(prev, slot) < overlapMin) return false;
+
+  if (isBrownQuestionnaireWideLine(prev) || isBrownQuestionnaireWideLine(slot)) {
+    return false;
+  }
+
+  const fromBoxSource = prev.lineSource === 'box' && slot.lineSource === 'box';
+  const fromPeachHeuristic =
+    isBrownPeachBlockLine(prev) &&
+    isBrownPeachBlockLine(slot) &&
+    Math.abs(prev.x - slot.x) < 0.14;
+
+  return fromBoxSource || fromPeachHeuristic;
+}
+
+function isBrownFooterArtifactSlot(slot) {
+  return slot.x < 0.12 && slot.width > 0.7 && slot.y > 0.88;
+}
+
+function isBrownWishExcludeSlot(slot) {
+  return slot.x < 0.12 && slot.width > 0.7 && slot.y > 0.79;
+}
+
+function isDiaryQuestionnairePage(options = {}) {
+  const page = options.diaryQuestionnairePageNumber ?? 6;
+  return options.pageNumber === page;
+}
+
+/**
+ * «Кем ты хочешь стать…»: две розовые линии ответа (PDF часто даёт одну).
+ */
+function ensureDiaryQuestionnaireCareerAnswerSlots(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || !slots.length) return;
+
+  const rowGap = options.brownCareerAnswerRowGap ?? 0.042;
+  const bandNorm = options.brownCareerAnswerBandNorm ?? 0.042;
+  const minAnswerWidth = options.brownCareerAnswerMinWidth ?? 0.35;
+  const careerMinY = options.brownCareerAnswerMinNormY ?? 0.735;
+
+  const careerLines = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.width >= minAnswerWidth &&
+        s.y >= careerMinY &&
+        s.y <= 0.83
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (!careerLines.length) return;
+
+  const anchor = careerLines[0];
+  const firstY =
+    options.brownCareerAnswerFirstNormY != null
+      ? formatFloat(options.brownCareerAnswerFirstNormY)
+      : formatFloat(anchor.y);
+  const secondY = formatFloat(firstY + rowGap);
+
+  anchor.y = firstY;
+  anchor.height = formatFloat(anchor.height ?? bandNorm);
+
+  let second = careerLines.find((s) => s !== anchor && Math.abs(s.y - secondY) < 0.02);
+  if (!second) {
+    slots.push({
+      x: anchor.x,
+      y: secondY,
+      width: anchor.width,
+      height: anchor.height,
+      hasLabel: false,
+    });
+  } else {
+    second.y = formatFloat(secondY);
+    second.height = formatFloat(second.height ?? bandNorm);
+  }
+}
+
+/** Строка с текстом вопроса над полем ответа — не слот ввода. */
+function isBrownQuestionHeaderRowSlot(slot, slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return false;
+  if (!slot.hasLabel) return false;
+
+  return slots.some(
+    (candidate) =>
+      !candidate.hasLabel &&
+      candidate.y > slot.y &&
+      candidate.y - slot.y >= 0.02 &&
+      candidate.y - slot.y <= 0.095 &&
+      brownSlotHorizontalOverlapRatio(slot, candidate) >= 0.25
+  );
+}
+
+/** Синтетическая/лишняя линия в зоне текста вопроса (не поле ответа). */
+function isBrownPage6QuestionBandSlot(slot, slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return false;
+  if (slot.y < 0.698 || slot.y > 0.778) return false;
+  if (slot.width < 0.38) return false;
+  if (slot.hasLabel) return false;
+
+  return slots.some(
+    (candidate) =>
+      !candidate.hasLabel &&
+      candidate.y >= 0.73 &&
+      candidate.y <= 0.83 &&
+      candidate.y > slot.y + 0.02 &&
+      brownSlotHorizontalOverlapRatio(slot, candidate) >= 0.2
+  );
+}
+
+/**
+ * PDF иногда не даёт вторую линию («Кем ты хочешь стать…»), а ниже сразу футер.
+ */
+function injectBrownQuestionnaireMissingWideLine(slots, options = {}) {
+  const typicalGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+  const toAdd = [];
+
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const prev = sorted[i];
+    const next = sorted[i + 1];
+    if (prev.width < 0.45 || prev.y < 0.7 || prev.y > 0.8) continue;
+    if (isDiaryQuestionnairePage(options) && prev.hasLabel && prev.y < 0.735) continue;
+    if (!isBrownWishExcludeSlot(next) && !isBrownFooterArtifactSlot(next)) continue;
+
+    const gap = next.y - prev.y;
+    if (gap < 0.085 || gap > 0.12) continue;
+
+    const midY = formatFloat(prev.y + typicalGap);
+    if (sorted.some((s) => Math.abs(s.y - midY) < 0.018)) continue;
+
+    toAdd.push({
+      x: prev.x,
+      y: midY,
+      width: prev.width,
+      height: prev.height,
+      hasLabel: false,
+      lineSource: prev.lineSource,
+    });
+  }
+
+  if (toAdd.length) {
+    slots.push(...toAdd);
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
+}
+
+/** Левые розовые блоки («Мечты»): 2–4 короткие линии с равномерным шагом. */
+function mergeBrownPeachColumnStacks(slots, options = {}) {
+  const rowGapMax = options.brownPeachStackRowGapMax ?? 0.056;
+  const minLines = options.brownPeachStackMinLines ?? 2;
+  const maxLines = options.brownPeachStackMaxLines ?? 4;
+
+  const leftPeach = slots
+    .filter(
+      (s) =>
+        isBrownPeachBlockLine(s) &&
+        !isBrownFooterArtifactSlot(s) &&
+        !isBrownWishExcludeSlot(s)
+    )
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let i = 0;
+  while (i < leftPeach.length) {
+    const slot = leftPeach[i];
+    const run = [slot];
+    let j = i + 1;
+    while (j < leftPeach.length) {
+      const prev = run[run.length - 1];
+      const next = leftPeach[j];
+      const gap = next.y - prev.y;
+      if (
+        Math.abs(next.x - slot.x) > 0.08 ||
+        gap <= 0.003 ||
+        gap > rowGapMax ||
+        brownSlotHorizontalOverlapRatio(prev, next) < 0.2
+      ) {
+        break;
+      }
+      run.push(next);
+      j += 1;
+      if (run.length >= maxLines) break;
+    }
+
+    if (run.length >= minLines) {
+      const mergedGroupId = run[0].continuationGroup;
+      for (let k = 1; k < run.length; k += 1) {
+        run[k].continuationGroup = mergedGroupId;
+        run[k].inputKind = 'block';
+      }
+      run[0].inputKind = 'block';
+    }
+
+    i = j;
+  }
+}
+
+function isBrownAdjacentWideMergeCandidate(slot) {
+  if (isBrownFooterArtifactSlot(slot) || isBrownWishExcludeSlot(slot)) return false;
+  if (slot.width < 0.4) return false;
+  if (slot.y < 0.68 || slot.y > 0.82) return false;
+  return true;
+}
+
+/** Пара широких строк анкеты с типичным шагом (~0.04), когда PDF не отдал вторую линию. */
+function mergeBrownAdjacentQuestionnaireWideLines(slots, options = {}) {
+  const rowGapMin = options.brownAdjacentWideGapMin ?? 0.034;
+  const rowGapMax = options.brownAdjacentWideGapMax ?? 0.048;
+  const maxLines = options.brownAdjacentWideMaxLines ?? 2;
+
+  const sorted = slots
+    .filter(isBrownAdjacentWideMergeCandidate)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let i = 0;
+  while (i < sorted.length) {
+    const run = [sorted[i]];
+    let j = i + 1;
+    while (j < sorted.length) {
+      const gap = sorted[j].y - run[run.length - 1].y;
+      if (gap < rowGapMin || gap > rowGapMax) break;
+      run.push(sorted[j]);
+      j += 1;
+      if (run.length >= maxLines) break;
+    }
+
+    if (run.length >= 2) {
+      const mergedGroupId = run[0].continuationGroup;
+      for (let k = 1; k < run.length; k += 1) {
+        run[k].continuationGroup = mergedGroupId;
+        run[k].inputKind = 'block';
+      }
+      run[0].inputKind = 'block';
+    }
+
+    i = j;
+  }
+}
+
+/**
+ * Двухстрочные вопросы анкеты («Кем ты хочешь стать…»): 2+ широких линии с близким шагом.
+ */
+function mergeBrownWideQuestionnaireFieldRuns(slots, options = {}) {
+  const rowGapMin = options.brownFieldRunGapMin ?? 0.07;
+  const rowGapMax = options.brownFieldRunGapMax ?? 0.11;
+  const minLines = options.brownFieldRunMinLines ?? 2;
+  const maxLines = options.brownFieldRunMaxLines ?? 2;
+  const minWidth = options.brownFieldRunMinWidth ?? 0.28;
+  const minStartY = options.brownFieldRunMinStartNormY ?? 0.68;
+  const maxEndY = options.brownFieldRunMaxEndNormY ?? 0.87;
+
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+  let i = 0;
+
+  while (i < sorted.length) {
+    const slot = sorted[i];
+    if (
+      slot.inputKind === 'block' ||
+      slot.width < minWidth ||
+      slot.y < minStartY ||
+      slot.y > maxEndY ||
+      isBrownFooterArtifactSlot(slot)
+    ) {
+      i += 1;
+      continue;
+    }
+
+    const run = [slot];
+    let j = i + 1;
+    while (j < sorted.length) {
+      const prev = run[run.length - 1];
+      const next = sorted[j];
+      const gap = next.y - prev.y;
+      if (
+        next.inputKind === 'block' ||
+        next.width < minWidth ||
+        next.y > maxEndY ||
+        isBrownFooterArtifactSlot(next) ||
+        isBrownWishExcludeSlot(next) ||
+        gap < rowGapMin ||
+        gap > rowGapMax ||
+        brownSlotHorizontalOverlapRatio(prev, next) < 0.15
+      ) {
+        break;
+      }
+      run.push(next);
+      j += 1;
+      if (run.length >= maxLines) break;
+    }
+
+    if (run.length >= minLines) {
+      const mergedGroupId = run[0].continuationGroup;
+      for (let k = 1; k < run.length; k += 1) {
+        run[k].continuationGroup = mergedGroupId;
+        run[k].inputKind = 'block';
+      }
+      run[0].inputKind = 'block';
+    }
+
+    i = j;
+  }
+}
+
+/** Последняя пара широких строк («Кем ты хочешь стать…» — 2-я линия ниже). */
+function mergeBrownLastWideDualLinePair(slots, options = {}) {
+  const rowGapMin = options.brownDualLineGapMin ?? 0.07;
+  const rowGapMax = options.brownDualLineGapMax ?? 0.11;
+  const minWidth = options.brownFieldRunMinWidth ?? 0.28;
+
+  const singles = [...slots]
+    .filter(
+      (s) =>
+        s.inputKind !== 'block' &&
+        s.width >= minWidth &&
+        !isBrownFooterArtifactSlot(s) &&
+        !isBrownWishExcludeSlot(s)
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (singles.length < 2) return;
+
+  const last = singles[singles.length - 1];
+  const prev = singles[singles.length - 2];
+  const gap = last.y - prev.y;
+
+  if (gap < rowGapMin || gap > rowGapMax) return;
+
+  const mergedGroupId = prev.continuationGroup;
+  last.continuationGroup = mergedGroupId;
+  last.inputKind = 'block';
+  prev.inputKind = 'block';
+}
+
+/**
+ * Нижний блок анкеты («Пожелания…»): 3–6 строк подряд с равномерным шагом.
+ */
+function mergeBrownQuestionnaireWishTail(slots, options = {}) {
+  const minSlotsOnPage = options.brownWishPageMinSlots ?? 10;
+  const minLines = options.brownWishMinLines ?? 3;
+  const maxLines = options.brownWishMaxLines ?? 6;
+  const rowGapMax = options.brownWishRowGapMax ?? 0.048;
+  const minStartY = options.brownWishMinStartNormY ?? 0.625;
+  const maxEndY = options.brownWishMaxEndNormY ?? 0.82;
+  const minWidth = options.brownWishMinWidth ?? 0.28;
+
+  if (slots.length < minSlotsOnPage) return;
+
+  const peachLineCount = slots.filter(
+    (s) => s.x < 0.22 && s.width >= 0.16 && s.width <= 0.55
+  ).length;
+  if (peachLineCount >= (options.brownWishSkipPeachLines ?? 6)) return;
+
+  const candidates = [...slots]
+    .filter(
+      (s) =>
+        s.y >= minStartY &&
+        s.y <= maxEndY &&
+        s.width >= minWidth &&
+        !isBrownWishExcludeSlot(s)
+    )
+    .sort((a, b) => b.y - a.y || a.x - b.x);
+
+  if (!candidates.length || candidates[0].y < 0.76) return;
+
+  const bestRun = [candidates[0]];
+  for (let i = 1; i < candidates.length; i += 1) {
+    const gap = bestRun[0].y - candidates[i].y;
+    if (gap <= 0 || gap > rowGapMax) break;
+    bestRun.unshift(candidates[i]);
+    if (bestRun.length >= maxLines) break;
+  }
+
+  if (bestRun.length < minLines) return;
+  if (bestRun[bestRun.length - 1].y < 0.76) return;
+
+  const mergedGroupId = bestRun[0].continuationGroup;
+  for (let k = 1; k < bestRun.length; k += 1) {
+    bestRun[k].continuationGroup = mergedGroupId;
+    bestRun[k].inputKind = 'block';
+  }
+  bestRun[0].inputKind = 'block';
+}
+
+/** Высота полосы слота из шага до соседней строки PDF (эталон — normY линии). */
+function normalizeBrownSlotBandHeights(slots) {
+  if (!slots.length) return slots;
+
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+  for (let i = 0; i < sorted.length; i += 1) {
+    const slot = sorted[i];
+    const prev = sorted[i - 1];
+    const next = sorted[i + 1];
+    let band = slot.height;
+
+    if (next && next.y - slot.y < 0.12) {
+      band = Math.min(band, (next.y - slot.y) * 0.9);
+    }
+    if (prev && slot.y - prev.y < 0.12) {
+      band = Math.min(band, (slot.y - prev.y) * 0.9);
+    }
+
+    slot.height = formatFloat(clamp(band, 0.028, 0.058));
+  }
+
+  return slots;
+}
+
+/** Соседние строки PDF → одна группа переноса; x/y/width каждой линии не трогаем. */
+function canJoinBrownSimpleAdjacentLines(prev, next, options = {}) {
+  const gapMin = options.brownSimpleGapMin ?? 0.03;
+  const gapMax = options.brownSimpleGapMax ?? 0.058;
+  const gap = next.y - prev.y;
+  if (gap < gapMin || gap > gapMax) return false;
+  if (isBrownFooterArtifactSlot(next) || isBrownWishExcludeSlot(next)) return false;
+
+  const columnEpsilon = options.brownSimpleColumnEpsilon ?? 0.04;
+  const xAlign = Math.abs(prev.x - next.x) <= columnEpsilon;
+  const overlap = brownSlotHorizontalOverlapRatio(prev, next);
+
+  const fromBox =
+    prev.lineSource === 'box' && next.lineSource === 'box' && xAlign;
+
+  const fromWide =
+    prev.lineSource === 'wide-block' &&
+    next.lineSource === 'wide-block' &&
+    xAlign;
+
+  const blocksQuestionnaireToCareer =
+    isDiaryQuestionnairePage(options) &&
+    prev.y >= 0.65 &&
+    prev.y <= 0.72 &&
+    next.y >= 0.725;
+
+  const blocksQuestionRowToAnswer =
+    isDiaryQuestionnairePage(options) &&
+    prev.hasLabel &&
+    prev.y >= 0.68 &&
+    prev.y <= 0.72 &&
+    next.y >= 0.73 &&
+    next.y <= 0.83;
+
+  const careerAnswerPair =
+    isDiaryQuestionnairePage(options) &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.y >= 0.73 &&
+    next.y >= 0.73 &&
+    next.y <= 0.83 &&
+    gap >= 0.034 &&
+    gap <= 0.05 &&
+    xAlign &&
+    overlap >= 0.45;
+
+  const wishTail =
+    !options.brownSingleLineGroups &&
+    prev.y >= 0.648 &&
+    next.y >= 0.648 &&
+    next.y <= 0.805 &&
+    !blocksQuestionnaireToCareer &&
+    !blocksQuestionRowToAnswer &&
+    gap <= 0.052 &&
+    overlap >= 0.18 &&
+    xAlign;
+
+  if (careerAnswerPair) return true;
+  if (wishTail) return true;
+  return fromBox || fromWide;
+}
+
+/** Обложка дневника: две строки «принадлежит» и «телефон», если PDF дал одну. */
+function ensureDiaryCoverPageSlots(slots, options = {}) {
+  if (options.pageNumber !== 1 || slots.length === 0) return;
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  if (slots.length >= 2) {
+    slots[0].continuationGroup = 1;
+    slots[1].continuationGroup = 2;
+    return;
+  }
+
+  const first = slots[0];
+  const rowGap = options.brownCoverRowGap ?? 0.055;
+  const secondY = formatFloat(first.y + rowGap);
+
+  slots.push({
+    x: first.x,
+    y: secondY,
+    width: first.width,
+    height: first.height ?? 0.028,
+    hasLabel: first.hasLabel ?? false,
+  });
+  first.continuationGroup = 1;
+  slots[1].continuationGroup = 2;
+}
+
+/**
+ * Эталон PDF → слоты: одна линия = координаты из вектора.
+ * Группа только для переноса (continuationGroup), без сдвига геометрии.
+ */
+function assignBrownDiarySlotGroups(slots, options = {}) {
+  if (!slots.length) return slots;
+
+  const minLinesInBlock = options.brownSimpleMinLines ?? 2;
+  const maxLinesInBlock = options.brownSimpleMaxLines ?? 6;
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  injectBrownQuestionnaireMissingWideLine(slots, options);
+
+  const working = slots.filter(
+    (slot) =>
+      !isBrownFooterArtifactSlot(slot) &&
+      !isBrownWishExcludeSlot(slot) &&
+      !isBrownQuestionHeaderRowSlot(slot, slots, options) &&
+      !isBrownPage6QuestionBandSlot(slot, slots, options)
+  );
+
+  ensureDiaryQuestionnaireCareerAnswerSlots(working, options);
+  ensureDiaryCoverPageSlots(working, options);
+  working.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let groupId = 0;
+  for (let i = 0; i < working.length; i += 1) {
+    groupId += 1;
+    working[i].continuationGroup = groupId;
+  }
+
+  if (options.brownSingleLineGroups === true) {
+    for (const slot of working) {
+      delete slot.lineSource;
+    }
+    return working;
+  }
+
+  let i = 0;
+  while (i < working.length) {
+    const start = working[i];
+    const run = [start];
+    let j = i + 1;
+    while (j < working.length) {
+      const next = working[j];
+      if (!canJoinBrownSimpleAdjacentLines(run[run.length - 1], next, options)) {
+        break;
+      }
+      run.push(next);
+      j += 1;
+      if (run.length >= maxLinesInBlock) break;
+    }
+
+    if (run.length >= minLinesInBlock) {
+      const mergedGroupId = run[0].continuationGroup;
+      for (let k = 1; k < run.length; k += 1) {
+        run[k].continuationGroup = mergedGroupId;
+        run[k].inputKind = 'block';
+      }
+      run[0].inputKind = 'block';
+    }
+
+    i = j;
+  }
+
+  for (const slot of working) {
+    delete slot.lineSource;
+  }
+
+  return working;
+}
+
+async function extractSlotsForPdfPage(pdfDocument, pageNumber, options) {
+  const page = await pdfDocument.getPage(pageNumber);
+  const viewport = page.getViewport({ scale: 1 });
+  const { width: pageWidth, height: pageHeight } = viewport;
+  const pageOptions = { ...options, pageNumber };
+
+  if (pageOptions.slotMode === 'whiteBlocks') {
+    let blocks = await collectWhiteInputBlocks(page, pageOptions);
+    blocks = filterBirthdayNoiseBlocks(blocks, pageWidth, pageOptions);
+    const maxBlocks = pageOptions.maxBlocksPerPage ?? 12;
+    if (blocks.length > maxBlocks) {
+      blocks = [...blocks]
+        .sort((a, b) => b.span - a.span)
+        .slice(0, maxBlocks)
+        .sort((a, b) => b.normY - a.normY);
+    }
+    const textItems = await collectTextItems(page);
+    const blockSlots = buildSlotsFromWhiteBlocks(blocks, textItems, pageWidth, pageHeight, pageOptions);
+    if (blockSlots.length > 0) {
+      return blockSlots;
+    }
+    if (pageOptions.hybridLineFallback !== false) {
+      return extractLineSlotsForPage(
+        page,
+        pageWidth,
+        pageHeight,
+        pageOptions.lineFallbackOptions ?? pageOptions
+      );
+    }
+    return blockSlots;
+  }
+
+  return extractLineSlotsForPage(page, pageWidth, pageHeight, pageOptions);
+}
+
+let pdfjsModulePromise;
+
+async function getPdfJs() {
+  if (!pdfjsModulePromise) {
+    pdfjsModulePromise = import('pdfjs-dist/legacy/build/pdf.mjs');
+  }
+  return pdfjsModulePromise;
+}
+
+async function loadPdfDocument(pdfPath) {
+  const pdfjs = await getPdfJs();
+  const data = new Uint8Array(fs.readFileSync(pdfPath));
+  return pdfjs.getDocument({ data, useSystemFonts: true }).promise;
+}
+
+async function extractAllSlotsFromPdf(pdfPath, options = {}) {
+  const doc = await loadPdfDocument(pdfPath);
+  const slotsByPage = {};
+  const pageCount = doc.numPages;
+
+  for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+    slotsByPage[String(pageNumber)] = await extractSlotsForPdfPage(doc, pageNumber, options);
+  }
+
+  return slotsByPage;
+}
+
+module.exports = {
+  assignContinuationGroups,
+  buildSlotsFromPdfLines,
+  buildSlotsFromWhiteBlocks,
+  collapseNearbyRows,
+  collectWhiteInputBlocks,
+  extractAllSlotsFromPdf,
+  extractSlotsForPdfPage,
+  loadPdfDocument,
+  mergeBrownDiaryFormLines,
+  mergeHorizontalLines,
+  refineFormInputLines,
+};

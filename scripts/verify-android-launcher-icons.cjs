@@ -24,13 +24,27 @@ function listLauncherIcons() {
   return out;
 }
 
-async function toSmallRgbaBuffer(filePath) {
+const DENSITY_SCALE = {
+  mdpi: 1,
+  hdpi: 1.5,
+  xhdpi: 2,
+  xxhdpi: 3,
+  xxxhdpi: 4,
+};
+
+function getLauncherSize(iconPath) {
+  const match = iconPath.match(/mipmap-(\w+)/);
+  const scale = DENSITY_SCALE[match?.[1] ?? ''] ?? 1;
+  return Math.round(48 * scale);
+}
+
+async function toSmallRgbaBuffer(filePath, size) {
   const { data, info } = await sharp(filePath)
     .ensureAlpha()
-    .resize(64, 64, { fit: 'fill' })
+    .resize(size, size, { fit: 'fill' })
     .raw()
     .toBuffer({ resolveWithObject: true });
-  if (info.width !== 64 || info.height !== 64 || info.channels !== 4) {
+  if (info.width !== size || info.height !== size || info.channels !== 4) {
     throw new Error(`Unexpected image shape for ${filePath}: ${info.width}x${info.height}x${info.channels}`);
   }
   return data;
@@ -57,11 +71,12 @@ async function main() {
     process.exit(1);
   }
 
-  const srcBuf = await toSmallRgbaBuffer(sourceIcon);
   const failures = [];
 
   for (const iconPath of launcherIcons) {
-    const buf = await toSmallRgbaBuffer(iconPath);
+    const size = getLauncherSize(iconPath);
+    const srcBuf = await toSmallRgbaBuffer(sourceIcon, size);
+    const buf = await toSmallRgbaBuffer(iconPath, size);
     const diff = meanAbsDiff(srcBuf, buf);
 
     // 0.00 = identical after normalization.

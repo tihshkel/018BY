@@ -1,21 +1,40 @@
+import {
+  usesFreeFormTextEditing,
+  usesTemplateLineTextEditing,
+} from '@/constants/album-text-margins';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
   BLANK_INTERIOR_PAGE_HEIGHT,
   BLANK_INTERIOR_PAGE_WIDTH,
 } from '@/utils/albumImages';
+import { LineGuideDevOverlay } from '@/components/line-guide-dev-overlay';
+import { LineSlotPressables } from '@/components/line-slot-pressables';
 import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
+import { setPageSourceSize } from '@/utils/pageSourceDimensions';
+import {
+  buildLineSlotsContext,
+  findAnnotationForContinuationGroup,
+  hasLineGuides,
+  hitTestLineSlot,
+  layoutAnnotationFromSlot,
+  type GetLineSlotsParams,
+} from '@/utils/textLineSlots';
+import {
+  getContinuationGroupSlots,
+  getEffectiveTemplateFontSize,
+} from '@/utils/templateLineText';
+import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Animated,
-    Dimensions,
     FlatList,
     Keyboard,
     Modal,
@@ -24,11 +43,10 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
 const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
@@ -85,6 +103,7 @@ interface ImageViewerProps {
   onToolReset?: () => void; // Callback для сброса инструмента
   onToolDeactivate?: () => void; // Мягкий сброс (только выключить выбранный инструмент)
   onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void; // Callback для отслеживания состояния редактирования текста
+  onTextSelectionChange?: (hasSelection: boolean) => void;
   annotationsRef?: React.RefObject<PdfAnnotationsRef>; // Ref для доступа к методам PdfAnnotations
   zoomLevel?: number; // Уровень масштабирования
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта (координаты)
@@ -109,14 +128,23 @@ export default function ImageViewer({
   onToolReset,
   onToolDeactivate,
   onTextEditingStateChange,
+  onTextSelectionChange,
   annotationsRef: externalAnnotationsRef,
   zoomLevel = 1,
   onViewportChange,
   defaultTextStyle,
   getLastFontFamily,
 }: ImageViewerProps) {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
+  const isTabletEditor = isTabletLayout(windowWidth);
+  const displayScale = isTabletEditor
+    ? getEditorPageDisplayScale(windowWidth, windowHeight, editorViewportWidth)
+    : 1;
+  const visualScale = displayScale * (zoomLevel > 0 ? zoomLevel : 1);
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
+  const [containerHeight, setContainerHeight] = useState(windowHeight);
   const [showPageMenu, setShowPageMenu] = useState(false);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number | null>(null);
   const [isTextEditing, setIsTextEditing] = useState(false);
@@ -124,6 +152,9 @@ export default function ImageViewer({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
+  const [pageSourceSizes, setPageSourceSizes] = useState<
+    Record<number, { width: number; height: number }>
+  >({});
   const internalAnnotationsRef = React.useRef<PdfAnnotationsRef | null>(null);
   const annotationsRef = externalAnnotationsRef || internalAnnotationsRef;
   const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
@@ -164,15 +195,58 @@ export default function ImageViewer({
     }
   }, [defaultTextStyle?.color, defaultTextStyle?.fontSize, defaultTextStyle?.fontFamily]);
 
-  const isBlankInteriorAlbum =
-    lineGuideId === 'family_blank' ||
-    lineGuideId === 'holidays_blank' ||
-    lineGuideId === 'kids_48';
+  const isBlankInteriorAlbum = usesFreeFormTextEditing(lineGuideId);
+
+  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+    const imageUri = images[page - 1];
+    const cached = imageUri ? getCachedPageSourceSize(imageUri) : null;
+    const size = pageSourceSizes[page] ?? cached ?? undefined;
+    return {
+      lineGuideId,
+      page,
+      viewportWidth: editorViewportWidth,
+      viewportHeight: containerHeight,
+      sourceWidth: size?.width,
+      sourceHeight: size?.height,
+    };
+  };
+
+  // Размеры PNG до onLoad — иначе contentRect = весь экран и слоты «съезжают»
+  useEffect(() => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return;
+    const pages = [currentPage, currentPage - 1, currentPage + 1].filter(
+      (p) => p >= 1 && p <= images.length
+    );
+    for (const page of pages) {
+      const uri = images[page - 1];
+      if (!uri || pageSourceSizes[page]) continue;
+      const cached = getCachedPageSourceSize(uri);
+      if (cached) {
+        setPageSourceSizes((prev) => ({ ...prev, [page]: cached }));
+        continue;
+      }
+      void resolvePageSourceSize(uri).then((size) => {
+        if (!size) return;
+        setPageSourceSizes((prev) =>
+          prev[page]?.width === size.width && prev[page]?.height === size.height
+            ? prev
+            : { ...prev, [page]: size }
+        );
+      });
+    }
+  }, [lineGuideId, images, currentPage]);
+
+  const handlePageImageLoad = (page: number, imageUri: string, width: number, height: number) => {
+    if (width <= 0 || height <= 0) return;
+    setPageSourceSizes((prev) => ({ ...prev, [page]: { width, height } }));
+    setPageSourceSize(imageUri, { width, height });
+  };
 
   const blankPageLayout = useMemo(() => {
     if (!isBlankInteriorAlbum) return null;
     const aspect = BLANK_INTERIOR_PAGE_WIDTH / BLANK_INTERIOR_PAGE_HEIGHT;
-    let width = SCREEN_WIDTH * 0.9;
+    let width = editorViewportWidth * 0.9;
     let height = width / aspect;
     const maxHeight = containerHeight * 0.9;
     if (height > maxHeight) {
@@ -180,7 +254,7 @@ export default function ImageViewer({
       width = height * aspect;
     }
     return { width, height };
-  }, [isBlankInteriorAlbum, containerHeight]);
+  }, [isBlankInteriorAlbum, containerHeight, editorViewportWidth]);
 
   const annotationsByPage = useMemo(() => {
     const map = new Map<number, Annotation[]>();
@@ -258,17 +332,129 @@ export default function ImageViewer({
     const { height } = event.nativeEvent.layout;
     if (height > 0 && height !== containerHeight) {
       setContainerHeight(height);
-      onViewportChange?.({ width: SCREEN_WIDTH, height });
+      onViewportChange?.({ width: editorViewportWidth, height });
     }
+  };
+
+  const loadTextStyleForNewAnnotation = async (pageForAnnotation: number) => {
+    let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+    let savedFont: string | null = null;
+    try {
+      const [raw, fontRaw] = await Promise.all([
+        AsyncStorage.getItem('@last_text_style'),
+        AsyncStorage.getItem('@last_text_font_family'),
+      ]);
+      if (raw) savedStyle = JSON.parse(raw) as typeof savedStyle;
+      if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
+    } catch {
+      // ignore
+    }
+
+    const isPregnancyFirstPage =
+      usesTemplateLineTextEditing(lineGuideId) &&
+      (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+      pageForAnnotation === 1;
+
+    const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
+    const fontSize = isPregnancyFirstPage
+      ? (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 18)
+      : (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16);
+    const fontFamily =
+      getLastFontFamily?.() ??
+      savedStyle?.fontFamily ??
+      savedFont ??
+      defaultTextStyle?.fontFamily ??
+      lastTextStyle?.fontFamily ??
+      (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+
+    return { color, fontSize, fontFamily: fontFamily || 'default' };
+  };
+
+  const startAnnotationEditing = (annotationId: string) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        annotationsRef.current?.startEditing?.(annotationId);
+      });
+    });
+  };
+
+  const handleLineSlotTap = async (x: number, y: number, pageForAnnotation: number) => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId) || !onAnnotationAdd) return false;
+
+    const slotParams = buildSlotParams(pageForAnnotation);
+    if (!slotParams) return false;
+    const { slots } = buildLineSlotsContext(slotParams);
+    const slot = hitTestLineSlot({ x, y, slots });
+    if (!slot) return false;
+
+    const { startSlotIndex } = getContinuationGroupSlots(slots, slot.index);
+    const startSlot = slots[startSlotIndex] ?? slot;
+
+    const pageAnnotations = annotations.filter(
+      (ann) => (typeof ann.page === 'number' ? ann.page : currentPage) === pageForAnnotation
+    );
+    const existing = findAnnotationForContinuationGroup(
+      pageAnnotations,
+      pageForAnnotation,
+      slots,
+      slot.index
+    );
+    if (existing) {
+      startAnnotationEditing(existing.id);
+      onToolDeactivate?.();
+      return true;
+    }
+
+    const maxZIndex =
+      annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
+    const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+    const layout = layoutAnnotationFromSlot(startSlot);
+    const effectiveFontSize = getEffectiveTemplateFontSize(
+      lineGuideId,
+      startSlot,
+      style.fontSize
+    );
+
+    const newAnnotation: Annotation = {
+      id: createId('ann'),
+      type: 'text',
+      ...layout,
+      content: '',
+      color: style.color,
+      fontSize: effectiveFontSize,
+      fontFamily: style.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageForAnnotation,
+    };
+
+    onAnnotationAdd(newAnnotation);
+    startAnnotationEditing(newAnnotation.id);
+    onToolDeactivate?.();
+    return true;
   };
 
   const handleImagePress = (x: number, y: number, tappedPage?: number) => {
     const pageForAnnotation = tappedPage ?? currentPage;
-    // Если редактируется текст — тап по пустому месту должен просто закрыть клавиатуру,
-    // а редактирование оставить (чтобы можно было нажать галочку после)
-    if (isTextEditing) {
+    // При инструменте «Фото» тап по странице открывает галерею (не блокируем из‑за текста/линий)
+    if (isTextEditing && currentTool !== 'image') {
       Keyboard.dismiss();
       return;
+    }
+
+    if (
+      isEditing &&
+      lineGuideId &&
+      hasLineGuides(lineGuideId) &&
+      currentTool !== 'image'
+    ) {
+      const slotParams = buildSlotParams(pageForAnnotation);
+      if (slotParams) {
+        const { slots } = buildLineSlotsContext(slotParams);
+        if (hitTestLineSlot({ x, y, slots })) {
+          void handleLineSlotTap(x, y, pageForAnnotation);
+          return;
+        }
+      }
     }
 
     // Если мы в режиме редактирования, но инструмент не выбран — тап по пустому месту
@@ -281,68 +467,97 @@ export default function ImageViewer({
     if (!isEditing || !currentTool) return;
 
     if (currentTool === 'text' && onAnnotationAdd) {
+      if (usesTemplateLineTextEditing(lineGuideId)) {
+        const slotParams = buildSlotParams(pageForAnnotation);
+        if (slotParams) {
+          const { slots } = buildLineSlotsContext(slotParams);
+          if (hitTestLineSlot({ x, y, slots })) {
+            void handleLineSlotTap(x, y, pageForAnnotation);
+            return;
+          }
+        }
+        return;
+      }
+
       const maxZIndex = annotations.length > 0 
         ? Math.max(...annotations.map(ann => ann.zIndex), 0)
         : 0;
 
-      const viewportWidth = SCREEN_WIDTH;
+      const viewportWidth = editorViewportWidth;
       const viewportHeight = containerHeight;
       const proposedX = x - TEXT_ANNOTATION_DEFAULT_WIDTH / 2;
       const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
       const nextX = clamp(proposedX, 0, viewportWidth - TEXT_ANNOTATION_DEFAULT_WIDTH);
+      const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+
+      if (usesFreeFormTextEditing(lineGuideId)) {
+        const applyFreeFormStyle = async () => {
+          const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+          const newAnnotation: Annotation = {
+            id: createId('ann'),
+            type: 'text',
+            x: nextX,
+            y: nextY,
+            width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+            height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+            content: 'Новый текст',
+            color: style.color,
+            fontSize: style.fontSize,
+            fontFamily: style.fontFamily,
+            zIndex: maxZIndex + 1,
+            page: pageForAnnotation,
+          };
+          onAnnotationAdd(newAnnotation);
+          startAnnotationEditing(newAnnotation.id);
+          if (onToolReset) onToolReset();
+        };
+        void applyFreeFormStyle();
+        return;
+      }
+
       const clampedY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+      const size = pageSourceSizes[pageForAnnotation];
       const snappedY = snapYToNearestTemplateLine({
         lineGuideId,
         page: pageForAnnotation,
         y: clampedY,
         viewportHeight,
+        viewportWidth,
+        sourceWidth: size?.width,
+        sourceHeight: size?.height,
       });
-      const nextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+      const snappedNextY = clamp(snappedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
-      const isPregnancyFirstPage = lineGuideId && (lineGuideId === 'pregnancy_60' || String(lineGuideId).includes('pregnancy')) && pageForAnnotation === 1;
-
-      // Всегда берём последний сохранённый стиль из AsyncStorage в момент тапа
       const applyStyle = async () => {
-        let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
-        let savedFont: string | null = null;
-        try {
-          const [raw, fontRaw] = await Promise.all([
-            AsyncStorage.getItem('@last_text_style'),
-            AsyncStorage.getItem('@last_text_font_family'),
-          ]);
-          if (raw) savedStyle = JSON.parse(raw) as any;
-          if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
-        } catch (_) {}
-        const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
-        const fontSize = isPregnancyFirstPage
-          ? (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 18)
-          : (savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16);
-        const fontFamily = (getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily)
-          ?? (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+        const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+        const slotParams = buildSlotParams(pageForAnnotation);
+        const snappedSlot = slotParams
+          ? buildLineSlotsContext(slotParams).slots.find((s) => Math.abs(s.y - snappedNextY) < 4)
+          : undefined;
 
         const newAnnotation: Annotation = {
           id: createId('ann'),
           type: 'text',
-          x: nextX,
-          y: nextY,
-          width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-          height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-          content: 'Новый текст',
-          color,
-          fontSize,
-          fontFamily: fontFamily || 'default',
+          ...(snappedSlot
+            ? { ...layoutAnnotationFromSlot(snappedSlot), content: '' }
+            : {
+                x: nextX,
+                y: snappedNextY,
+                width: TEXT_ANNOTATION_DEFAULT_WIDTH,
+                height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+                content: 'Новый текст',
+              }),
+          color: style.color,
+          fontSize: style.fontSize,
+          fontFamily: style.fontFamily,
           zIndex: maxZIndex + 1,
           page: pageForAnnotation,
         };
         onAnnotationAdd(newAnnotation);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            annotationsRef.current?.startEditing?.(newAnnotation.id);
-          });
-        });
+        startAnnotationEditing(newAnnotation.id);
         if (onToolReset) onToolReset();
       };
-      applyStyle();
+      void applyStyle();
     } else if (currentTool === 'image' && onAnnotationAdd) {
       handlePickImage(x, y, pageForAnnotation);
     }
@@ -405,14 +620,13 @@ export default function ImageViewer({
 
   const handlePickImage = async (x: number, y: number, page: number = currentPage) => {
     try {
+      Keyboard.dismiss();
+      annotationsRef.current?.blurEditingInput?.();
+
       const hasPermission = await ensureMediaLibraryPermission();
       if (!hasPermission) return;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: getImagePickerImagesMediaTypes(),
-        allowsEditing: false,
-        quality: 1,
-      });
+      const result = await launchPhotoLibrary();
 
       if (!result.canceled && result.assets[0] && onAnnotationAdd) {
         const maxZIndex = annotations.length > 0 
@@ -425,7 +639,7 @@ export default function ImageViewer({
         const scale = maxSide / Math.max(origW, origH);
         const fitW = Math.round(origW * scale);
         const fitH = Math.round(origH * scale);
-        const viewportWidth = SCREEN_WIDTH;
+        const viewportWidth = editorViewportWidth;
         const viewportHeight = containerHeight;
         const nextX = clamp(x, 0, viewportWidth - fitW);
         const nextY = clamp(y, 0, viewportHeight - fitH);
@@ -514,7 +728,11 @@ export default function ImageViewer({
             <View
               style={[
                 styles.pageContainer,
-                { height: containerHeight },
+                {
+                  width: isTabletEditor ? '100%' : editorViewportWidth,
+                  height: containerHeight,
+                  alignSelf: isTabletEditor ? 'center' : undefined,
+                },
                 isBlankInteriorAlbum && styles.blankPageContainer,
                 index === images.length - 1 && styles.lastPageContainer,
               ]}
@@ -531,8 +749,13 @@ export default function ImageViewer({
                     activeOpacity={1}
                     onPress={(e) => {
                       const { locationX, locationY } = e.nativeEvent;
-                      const x = locationX / (zoomLevel > 0 ? zoomLevel : 1);
-                      const y = locationY / (zoomLevel > 0 ? zoomLevel : 1);
+                      const { x, y } = mapScreenPointToUnscaledPagePoint({
+                        locationX,
+                        locationY,
+                        viewportWidth: editorViewportWidth,
+                        viewportHeight: containerHeight,
+                        zoomLevel: visualScale,
+                      });
                       handleImagePress(x, y, pageNumber);
                     }}
                     onLongPress={() => handleImageLongPress(index)}
@@ -540,11 +763,11 @@ export default function ImageViewer({
                   >
                     <View
                       style={{
-                        width: SCREEN_WIDTH,
+                        width: editorViewportWidth,
                         height: containerHeight,
                         justifyContent: 'center',
                         alignItems: 'center',
-                        transform: [{ scale: zoomLevel }],
+                        transform: [{ scale: visualScale }],
                       }}
                     >
                       {isBlankInteriorAlbum && blankPageLayout ? (
@@ -571,8 +794,39 @@ export default function ImageViewer({
                           cachePolicy="disk"
                           priority={index < 3 ? 'high' : 'normal'}
                           recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                          onLoad={(event) => {
+                            const w = event.source?.width;
+                            const h = event.source?.height;
+                            if (w && h) {
+                              handlePageImageLoad(pageNumber, imageUri, w, h);
+                            }
+                          }}
                         />
                       )}
+
+                      {(() => {
+                        const slotParams = buildSlotParams(pageNumber);
+                        if (!slotParams) return null;
+                        return (
+                          <>
+                            {isEditing &&
+                            !isTextEditing &&
+                            hasLineGuides(lineGuideId) &&
+                            (!currentTool ||
+                              (currentTool === 'text' &&
+                                usesTemplateLineTextEditing(lineGuideId))) ? (
+                              <LineSlotPressables
+                                slotParams={slotParams}
+                                enabled
+                                onSlotPress={(tapX, tapY) =>
+                                  void handleLineSlotTap(tapX, tapY, pageNumber)
+                                }
+                              />
+                            ) : null}
+                            {__DEV__ ? <LineGuideDevOverlay {...slotParams} /> : null}
+                          </>
+                        );
+                      })()}
 
                       <PdfAnnotations
                         ref={pageNumber === currentPage ? annotationsRef : null}
@@ -585,10 +839,13 @@ export default function ImageViewer({
                         onToolDeactivate={onToolDeactivate}
                         onEditingStateChange={handleEditingStateChange}
                         onInteractionChange={setIsInteractingWithAnnotation}
-                        zoomLevel={zoomLevel}
-                        viewportWidth={SCREEN_WIDTH}
+                        zoomLevel={visualScale}
+                        viewportWidth={editorViewportWidth}
                         viewportHeight={containerHeight}
+                        sourceWidth={pageSourceSizes[pageNumber]?.width}
+                        sourceHeight={pageSourceSizes[pageNumber]?.height}
                         lineGuideId={lineGuideId}
+                        onTextSelectionChange={onTextSelectionChange}
                       />
                     </View>
                   </TouchableOpacity>
@@ -672,7 +929,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pageContainer: {
-    width: SCREEN_WIDTH,
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#FAF8F5',
@@ -693,7 +949,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   zoomWrapper: {
-    width: SCREEN_WIDTH,
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -724,7 +979,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    maxWidth: SCREEN_WIDTH,
   },
   blankPageFrame: {
     backgroundColor: '#FFFFFF',

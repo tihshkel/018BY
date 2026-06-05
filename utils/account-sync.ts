@@ -1,6 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAccountSyncId } from './account-identity';
 import { exportAccountData } from './account-transfer';
+import {
+  filterProjectsByDeleted,
+  isProjectDeleted,
+  loadDeletedProjectIds,
+} from './deleted-project-ids';
 import { getStoredPushToken } from './pushToken';
 import {
   getAccountDataFromSupabase,
@@ -131,8 +136,13 @@ export async function importAccountData(
   protectProjectIds?: Set<string>
 ): Promise<void> {
   try {
+    const deletedIds = await loadDeletedProjectIds();
     for (const [key, value] of Object.entries(data)) {
       if (!key || typeof value !== 'string') continue;
+      if (key.startsWith(PROJECT_PREFIX)) {
+        const projectId = getProjectIdFromKey(key);
+        if (projectId && isProjectDeleted(projectId, deletedIds)) continue;
+      }
       if (protectProjectIds?.size && key.startsWith(PROJECT_PREFIX)) {
         const projectId = getProjectIdFromKey(key);
         if (projectId && protectProjectIds.has(projectId)) continue;
@@ -159,11 +169,11 @@ export async function importAccountData(
           }
         })();
         const byId = new Map<string, any>();
-        for (const p of cloudList) {
+        for (const p of filterProjectsByDeleted(cloudList, deletedIds)) {
           const id = p?.id != null ? String(p.id) : '';
           if (id) byId.set(id, p);
         }
-        for (const p of localList) {
+        for (const p of filterProjectsByDeleted(localList, deletedIds)) {
           const id = p?.id != null ? String(p.id) : '';
           if (id && !byId.has(id)) byId.set(id, p);
         }
@@ -537,11 +547,16 @@ export function mergeReminders(
 export type PushCoreOnlyOptions = {
   /** После удаления напоминаний: записать в БД ровно локальный список, без merge с облаком. */
   remindersAuthoritativeLocal?: boolean;
+  /** После удаления проекта: записать в БД локальный @user_projects без merge с облаком. */
+  userProjectsAuthoritativeLocal?: boolean;
 };
 
 export async function pushCoreOnlyToCloud(options?: PushCoreOnlyOptions): Promise<PushToCloudResult> {
   try {
     const accessCode = await ensureSyncIdAndName();
+    if (!accessCode) {
+      return { ok: false, error: 'NOT_ACTIVATED' };
+    }
     const data = await exportAccountData({
       allowPrefixes: SYNC_DATA_PREFIXES,
     });
@@ -553,6 +568,14 @@ export async function pushCoreOnlyToCloud(options?: PushCoreOnlyOptions): Promis
     data['@reminders'] = authLocal
       ? (localRemindersJson ?? '[]')
       : mergeReminders(cloudRemindersJson, localRemindersJson ?? '[]');
+
+    if (options?.userProjectsAuthoritativeLocal === true) {
+      const localProjectsRaw = await AsyncStorage.getItem('@user_projects');
+      if (localProjectsRaw) {
+        data['@user_projects'] = localProjectsRaw;
+      }
+    }
+
     const pregnancyJson = await AsyncStorage.getItem('@pregnancy_info');
     if (pregnancyJson) data['@pregnancy_info'] = pregnancyJson;
     const kidsJson = await AsyncStorage.getItem('@kids_info');
@@ -714,8 +737,10 @@ export async function pullLatestFromCloud(): Promise<boolean> {
     })();
 
     if (cloudUserProjectsList.length === 0 && Object.keys(projectsData).length > 0) {
+      const deletedIds = await loadDeletedProjectIds();
       const builtList: any[] = [];
       for (const projectId of Object.keys(projectsData)) {
+        if (isProjectDeleted(projectId, deletedIds)) continue;
         const metaStr = projectsData[projectId][`@project_${projectId}`];
         if (metaStr) {
           try {
@@ -734,6 +759,30 @@ export async function pullLatestFromCloud(): Promise<boolean> {
       }
       cloudData['@user_projects'] = JSON.stringify(builtList);
       if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from user_project_data, count=', builtList.length);
+    }
+
+    const deletedIds = await loadDeletedProjectIds();
+    if (deletedIds.size > 0) {
+      if (cloudData['@user_projects']) {
+        try {
+          const list = JSON.parse(cloudData['@user_projects']);
+          if (Array.isArray(list)) {
+            cloudData['@user_projects'] = JSON.stringify(filterProjectsByDeleted(list, deletedIds));
+          }
+        } catch {
+          // ignore
+        }
+      }
+      for (const deletedId of deletedIds) {
+        delete projectsData[deletedId];
+      }
+      for (const key of Object.keys(cloudData)) {
+        if (!key.startsWith(PROJECT_PREFIX)) continue;
+        const pid = getProjectIdFromKey(key);
+        if (isProjectDeleted(pid, deletedIds)) {
+          delete cloudData[key];
+        }
+      }
     }
 
     // Сохраняем текущий список проектов до импорта

@@ -41,18 +41,9 @@ export function getCoverSku(coverType: string | null | undefined, category: stri
     return null;
   }
 
-  // Для детских альбомов: coverType = 'dfa_5' -> SKU = 'DFA5'
+  // Для детских альбомов: coverType = 'dfa_8' -> SKU = 'DFA8'
   if (category === 'kids') {
-    const dfaNumber = extractDFANumber(coverType);
-    if (dfaNumber) {
-      return `DFA${dfaNumber}`;
-    }
-    // Fallback: пробуем найти номер в нормализованном coverType
-    const dfaNumberFallback = extractDFANumber(normalizedCoverType);
-    if (dfaNumberFallback) {
-      return `DFA${dfaNumberFallback}`;
-    }
-    return null;
+    return extractDFANumber(coverType) || extractDFANumber(normalizedCoverType);
   }
 
   // Для беременности: coverType = 'pregnancy_60' -> SKU = 'DB1'

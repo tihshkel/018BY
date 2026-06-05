@@ -3,6 +3,7 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
 import PdfAnnotations, { type Annotation } from './pdf-annotations';
+import { setPageSourceSize } from '@/utils/pageSourceDimensions';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -17,6 +18,9 @@ interface PageRendererProps {
   annotations: Annotation[];
   width?: number;
   height?: number;
+  lineGuideId?: string;
+  sourceWidth?: number;
+  sourceHeight?: number;
   onReady?: () => void;
   captureScale?: number;
   captureFormat?: CaptureFormat;
@@ -33,6 +37,9 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     annotations,
     width = SCREEN_WIDTH,
     height = SCREEN_HEIGHT,
+    lineGuideId,
+    sourceWidth: sourceWidthProp,
+    sourceHeight: sourceHeightProp,
     onReady,
     captureScale = 1.35,
     captureFormat = 'jpg',
@@ -40,17 +47,55 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   }, ref) => {
   const viewRef = useRef<View>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [loadedAnnotationImageUris, setLoadedAnnotationImageUris] = useState<Set<string>>(new Set());
+  const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(
+    sourceWidthProp && sourceHeightProp
+      ? { width: sourceWidthProp, height: sourceHeightProp }
+      : null
+  );
+
+  const pendingAnnotationImageUris = React.useMemo(
+    () =>
+      annotations
+        .filter((ann) => ann.type === 'image' && ann.imageUri)
+        .map((ann) => ann.imageUri as string),
+    [annotations]
+  );
+
+  const sourceWidth = sourceSize?.width ?? sourceWidthProp;
+  const sourceHeight = sourceSize?.height ?? sourceHeightProp;
 
   useEffect(() => {
-    if (isImageLoaded && onReady) {
-      // Небольшая задержка, чтобы убедиться, что все отрендерилось
-      setTimeout(() => {
-        onReady();
-      }, 100);
-    }
-  }, [isImageLoaded, onReady]);
+    setLoadedAnnotationImageUris(new Set());
+  }, [imageUri, pendingAnnotationImageUris.join('|')]);
 
-  // Функция для создания скриншота с максимальным качеством
+  useEffect(() => {
+    if (!isImageLoaded || !onReady) return;
+
+    const annotationImagesReady =
+      pendingAnnotationImageUris.length === 0 ||
+      pendingAnnotationImageUris.every((uri) => loadedAnnotationImageUris.has(uri));
+
+    if (!annotationImagesReady) return;
+
+    const settleMs = pendingAnnotationImageUris.length > 0 ? 400 : 150;
+
+    const timer = setTimeout(() => {
+      onReady();
+    }, settleMs);
+
+    return () => clearTimeout(timer);
+  }, [isImageLoaded, loadedAnnotationImageUris, pendingAnnotationImageUris, onReady]);
+
+  const handleAnnotationImageLoad = React.useCallback((uri: string) => {
+    setLoadedAnnotationImageUris((prev) => {
+      if (prev.has(uri)) return prev;
+      const next = new Set(prev);
+      next.add(uri);
+      return next;
+    });
+  }, []);
+
   const capture = async (): Promise<string | null> => {
     if (!viewRef.current || !isImageLoaded) {
       return null;
@@ -63,7 +108,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         result: 'tmpfile',
         width: width * captureScale,
         height: height * captureScale,
-        snapshotContentContainer: false, // Захватываем весь View
+        snapshotContentContainer: false,
       });
       
       return uri || null;
@@ -73,7 +118,6 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     }
   };
 
-  // Экспортируем функцию capture через ref
   React.useImperativeHandle(ref, () => ({
     capture,
   }));
@@ -110,9 +154,16 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           fadeDuration={0}
           cachePolicy="disk"
           priority="high"
-          // Используем максимальное качество для четких изображений
           allowDownscaling={false}
-          onLoad={() => setIsImageLoaded(true)}
+          onLoad={(event) => {
+            const w = event.source?.width;
+            const h = event.source?.height;
+            if (w && h) {
+              setSourceSize({ width: w, height: h });
+              setPageSourceSize(imageUri, { width: w, height: h });
+            }
+            setIsImageLoaded(true);
+          }}
         />
 
         {isImageLoaded && (
@@ -126,6 +177,10 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
             zoomLevel={1}
             viewportWidth={width}
             viewportHeight={height}
+            sourceWidth={sourceWidth}
+            sourceHeight={sourceHeight}
+            lineGuideId={lineGuideId}
+            onImageAnnotationLoad={handleAnnotationImageLoad}
           />
         )}
       </View>
@@ -151,4 +206,3 @@ const styles = StyleSheet.create({
 });
 
 export default PageRenderer;
-

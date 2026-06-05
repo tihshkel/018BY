@@ -1,8 +1,11 @@
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
-import { getDiaryCoverById, extractSkuFromFilename } from '@/utils/diaryAlbumsLoader';
+import { getCoverPickerImage } from '@/utils/coverPickerImage';
+import { getCoverSelectTitle } from '@/utils/coverSelectTitle';
+import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -52,6 +55,42 @@ export default function SelectActionScreen() {
   const isDiary = celebration === 'diary';
   const isHoliday = celebration === 'holidays';
   const isFamily = celebration === 'family';
+  const isKids = celebration === 'kids';
+  const pregnancyDesign =
+    coverType && isPregnancy ? PREGNANCY_COVER_DESIGNS.find((d) => d.id === coverType) ?? null : null;
+  const holidayDesign =
+    coverType && isHoliday ? HOLIDAY_COVER_DESIGNS.find((d) => d.id === coverType) ?? null : null;
+  const familyDesign =
+    coverType && isFamily ? FAMILY_COVER_DESIGNS.find((d) => d.id === coverType) ?? null : null;
+  const coverImage = coverType ? getCoverPickerImage(coverType, celebration) : null;
+  const coverName =
+    coverType && celebration
+      ? getCoverSelectTitle(coverType, celebration)
+      : isFamily && familyCover
+        ? familyCover.title
+        : isHoliday && holidayCover
+          ? holidayCover.title
+          : isDiary && diaryCover
+            ? diaryCover.name
+            : albumTemplate?.name ?? '';
+  const coverDescription =
+    isFamily && familyCover
+      ? 'Семейный альбом'
+      : isHoliday && holidayCover
+        ? 'Праздничный альбом'
+        : isDiary && diaryCover
+          ? 'Личный дневник для записи мыслей и воспоминаний'
+          : albumTemplate?.description ?? 'Дизайн обложки';
+  const hasSelection = Boolean(
+    coverImage ||
+      albumTemplate ||
+      diaryCover ||
+      holidayCover ||
+      familyCover ||
+      pregnancyDesign ||
+      holidayDesign ||
+      familyDesign
+  );
 
   const handleEdit = () => {
     if (!coverType || !celebration) return;
@@ -136,11 +175,12 @@ export default function SelectActionScreen() {
         familyCover.image as any,
         familyCover.sku
       );
+    } else if (pregnancyDesign || holidayDesign || familyDesign || isKids) {
+      wbLink = getWildberriesLink(coverName, coverImage ?? undefined, coverType ?? undefined);
     } else if (albumTemplate) {
-      // Для остальных категорий используем стандартную логику
       wbLink = getWildberriesLink(
-        albumTemplate.name, 
-        albumTemplate.thumbnailPath as any, 
+        albumTemplate.name,
+        (coverImage ?? albumTemplate.thumbnailPath) as any,
         albumTemplate.id
       );
     }
@@ -203,7 +243,7 @@ export default function SelectActionScreen() {
         </View>
 
         {/* Показываем выбранную обложку и кнопки действий */}
-        {(albumTemplate || diaryCover || holidayCover || familyCover) && (
+        {hasSelection && (
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -212,9 +252,9 @@ export default function SelectActionScreen() {
             {/* Карточка с выбранной обложкой */}
             <View style={styles.coverCard}>
               <View style={styles.coverImageContainer}>
-                {(isFamily && familyCover ? familyCover.image : (isHoliday && holidayCover ? holidayCover.image : (isDiary && diaryCover ? diaryCover.image : albumTemplate?.thumbnailPath))) && (
+                {coverImage && (
                   <Image
-                    source={isFamily && familyCover ? familyCover.image : (isHoliday && holidayCover ? holidayCover.image : (isDiary && diaryCover ? diaryCover.image : albumTemplate!.thumbnailPath!))}
+                    source={coverImage}
                     style={styles.coverImage}
                     contentFit="cover"
                     priority="high"
@@ -226,12 +266,8 @@ export default function SelectActionScreen() {
                 )}
               </View>
               <View style={styles.coverInfo}>
-                <Text style={styles.coverName}>
-                  {isFamily && familyCover ? familyCover.title : (isHoliday && holidayCover ? holidayCover.title : (isDiary && diaryCover ? diaryCover.name : albumTemplate!.name))}
-                </Text>
-                <Text style={styles.coverDescription}>
-                  {isFamily && familyCover ? 'Семейный альбом' : (isHoliday && holidayCover ? 'Праздничный альбом' : (isDiary && diaryCover ? 'Личный дневник для записи мыслей и воспоминаний' : albumTemplate!.description))}
-                </Text>
+                <Text style={styles.coverName}>{coverName}</Text>
+                <Text style={styles.coverDescription}>{coverDescription}</Text>
               </View>
             </View>
 
@@ -257,7 +293,7 @@ export default function SelectActionScreen() {
                 <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
               </TouchableOpacity>
 
-              {/* Кнопка покупки */}
+              {/* Переход к бумажной версии */}
               <TouchableOpacity
                 style={styles.actionCard}
                 onPress={handleBuy}
@@ -265,13 +301,13 @@ export default function SelectActionScreen() {
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="cart-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="open-outline" size={28} color="#8B6F5F" />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionTitleSolid}>Купить бумажную версию</Text>
+                  <Text style={styles.actionTitleSolid}>Бумажная версия</Text>
                   <Text style={styles.actionDescriptionSolid}>
-                    Перейти на Wildberries
+                    Открыть на Wildberries
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={22} color="#C9A89A" />

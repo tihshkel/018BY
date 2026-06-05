@@ -9,9 +9,10 @@ import {
   Linking,
   Modal,
 } from 'react-native';
+import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 import { Image } from 'expo-image';
-import { Asset } from 'expo-asset';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,7 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { GIFT_ITEMS, type GiftItem } from '../(tabs)/gifts';
+import { GIFT_ITEMS } from '../(tabs)/gifts';
 
 interface LocalParams {
   category?: string | string[];
@@ -77,8 +78,6 @@ const getCoverType = (title: string): 'hard' | 'soft' | null => {
 };
 
 export default function PaperCatalogTemplatesScreen() {
-  const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams();
   const categoryName = formatCategoryName(params.category);
   const categoryTitle = categoryName || 'Категория не выбрана';
@@ -86,7 +85,6 @@ export default function PaperCatalogTemplatesScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryName);
   const [selectedCoverType, setSelectedCoverType] = useState<CoverType>('all');
-
   // Обновляем selectedCategory при изменении categoryName
   useEffect(() => {
     if (categoryName) {
@@ -152,70 +150,25 @@ export default function PaperCatalogTemplatesScreen() {
     return filtered;
   }, [categoryName, selectedCategory, selectedCoverType]);
 
-  // Лёгкая предзагрузка 2–3 первых изображений (в т.ч. локальных require),
-  // чтобы первый экран каталога не "мигал" в релизе и в Expo Go.
-  // Не предзагружаем всё сразу — это тяжело.
-  useFocusEffect(
-    React.useCallback(() => {
-      const preloadTopImages = async () => {
-        if (categoryItems.length === 0) return;
-        const top = categoryItems
-          .map((i) => i.cover)
-          .filter(Boolean)
-          .slice(0, 3) as Array<string | number>;
-
-        await Promise.all(
-          top.map(async (src) => {
-            try {
-              if (typeof src === 'string') {
-                await Image.prefetch(src);
-              } else {
-                await Asset.fromModule(src).downloadAsync();
-              }
-            } catch {
-              // ignore
-            }
-          })
-        );
-      };
-
-      preloadTopImages();
-    }, [categoryItems])
-  );
-
-  // Предзагрузка всех изображений для выбранной категории (только URL)
+  // Предзагрузка фото WB — как на вкладке «Каталог»
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
-        if (!categoryName || categoryItems.length === 0) {
-          return;
-        }
+        if (categoryItems.length === 0) return;
 
-        try {
-          const imagesToPreload = categoryItems
-            .filter(item => item.cover)
-            .map(item => item.cover!);
+        const wbUrls = categoryItems
+          .map((item) => getWildberriesProductImageUrl(item.link))
+          .filter((u): u is string => Boolean(u));
 
-          await Promise.all(
-            imagesToPreload.map((imageSource) => {
-              if (typeof imageSource === 'string') {
-                return Image.prefetch(imageSource).catch((err) => {
-                  console.warn('⚠️ Ошибка предзагрузки изображения:', err);
-                });
-              }
-              // Локальные require предзагружаем только первые 2–3 (см. preloadTopImages)
-              return Promise.resolve();
-            })
-          );
-          
-          console.log(`✅ Все изображения категории "${categoryName}" предзагружены`);
-        } catch (error) {
-          console.error('❌ Ошибка предзагрузки изображений:', error);
-        }
+        await Promise.all(
+          wbUrls.map((uri) =>
+            Image.prefetch(uri).catch(() => undefined)
+          )
+        );
       };
 
       preloadCategoryImages();
-    }, [categoryName, categoryItems])
+    }, [categoryItems])
   );
 
   const handleOpenLink = useCallback(async (url: string) => {
@@ -235,7 +188,7 @@ export default function PaperCatalogTemplatesScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyState}>
           <Ionicons name='alert-circle-outline' size={48} color='#C9A89A' />
-          <Text style={styles.emptyStateTitle}>Не удалось определить категорию</Text>
+          <Text style={styles.emptyStateText}>Не удалось определить категорию</Text>
           <Text style={styles.emptyStateText}>
             Вернитесь к списку и выберите категорию ещё раз.
           </Text>
@@ -291,10 +244,7 @@ export default function PaperCatalogTemplatesScreen() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: bottomInset + 72 },
-          ]}
+          contentContainerStyle={styles.scrollContent}
         >
           {categoryItems.length === 0 ? (
             <View style={styles.emptyState}>
@@ -310,23 +260,11 @@ export default function PaperCatalogTemplatesScreen() {
               return (
                 <View key={item.id} style={styles.card}>
                   <View style={styles.coverWrapper}>
-                    {item.cover ? (
-                      <Image
-                        source={item.cover}
-                        style={styles.coverImage}
-                        contentFit="contain"
-                        priority={imagePriority}
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        accessibilityLabel={`Обложка товара ${item.title}`}
-                        placeholderContentFit="contain"
-                      />
-                    ) : (
-                      <View style={styles.coverPlaceholder}>
-                        <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-                      </View>
-                    )}
+                    <CatalogGiftCoverImage
+                      item={item}
+                      style={styles.coverImage}
+                      imagePriority={imagePriority}
+                    />
                   </View>
 
                   <View style={styles.cardContent}>
@@ -336,8 +274,8 @@ export default function PaperCatalogTemplatesScreen() {
                       onPress={() => handleOpenLink(item.link)}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
+                      <Ionicons name="open-outline" size={20} color="#FFFFFF" />
+                      <Text style={styles.buyButtonText}>Открыть на Wildberries</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -366,11 +304,7 @@ export default function PaperCatalogTemplatesScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              style={styles.modalScroll}
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               {/* Фильтр по разделу */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Раздел</Text>
@@ -470,7 +404,7 @@ export default function PaperCatalogTemplatesScreen() {
             </ScrollView>
 
             {/* Кнопки действий */}
-            <View style={[styles.modalActions, { paddingBottom: bottomInset }]}>
+            <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.resetButton}
                 onPress={() => {
@@ -536,6 +470,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingVertical: 24,
+    paddingBottom: 100,
     gap: 20,
   },
   subtitle: {
@@ -712,9 +647,6 @@ const styles = StyleSheet.create({
   modalScroll: {
     maxHeight: 400,
   },
-  modalScrollContent: {
-    paddingBottom: 8,
-  },
   filterSection: {
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -766,6 +698,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: '#F0E8E0',

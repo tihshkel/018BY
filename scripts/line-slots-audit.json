@@ -1,0 +1,332 @@
+{
+  "generatedAt": "2026-06-04T16:22:34.970Z",
+  "albums": [
+    {
+      "albumId": "diary_interior_purple",
+      "pageCount": 40,
+      "emptyPages": 1,
+      "issuePages": 0,
+      "pages": [
+        {
+          "page": "1",
+          "slotCount": 2,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "2",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "3",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "4",
+          "slotCount": 8,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "5",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "6",
+          "slotCount": 13,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "7",
+          "slotCount": 13,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "8",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "9",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "10",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "11",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "12",
+          "slotCount": 12,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "13",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "14",
+          "slotCount": 18,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "15",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "16",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "17",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "18",
+          "slotCount": 14,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "19",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "20",
+          "slotCount": 0,
+          "issues": [],
+          "ok": true,
+          "empty": true
+        },
+        {
+          "page": "21",
+          "slotCount": 3,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "22",
+          "slotCount": 15,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "23",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "24",
+          "slotCount": 13,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "25",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "26",
+          "slotCount": 11,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "27",
+          "slotCount": 10,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "28",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "29",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "30",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "31",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "32",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "33",
+          "slotCount": 21,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "34",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "35",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "36",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "37",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "38",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "39",
+          "slotCount": 16,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        },
+        {
+          "page": "40",
+          "slotCount": 1,
+          "overrideUsed": false,
+          "issues": [],
+          "ok": true,
+          "empty": false
+        }
+      ]
+    }
+  ]
+}

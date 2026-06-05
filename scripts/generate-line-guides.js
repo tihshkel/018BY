@@ -21,14 +21,9 @@ function readPng(filePath) {
 }
 
 function getLuminance(r, g, b) {
-  // perceived luminance
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
-/**
- * Roughly detects thin horizontal "rule lines" by scanning each row and
- * measuring dark pixel coverage within a central band.
- */
 function detectHorizontalLines(png, options) {
   const width = png.width;
   const height = png.height;
@@ -56,7 +51,6 @@ function detectHorizontalLines(png, options) {
     rowScore[y] = total > 0 ? darkCount / total : 0;
   }
 
-  // find candidate segments
   const segments = [];
   let inSeg = false;
   let segStart = 0;
@@ -72,7 +66,6 @@ function detectHorizontalLines(png, options) {
   }
   if (inSeg) segments.push([segStart, height - 1]);
 
-  // reduce segments -> line centers
   const lines = [];
   for (const [start, end] of segments) {
     const thickness = end - start + 1;
@@ -81,7 +74,6 @@ function detectHorizontalLines(png, options) {
     lines.push(center);
   }
 
-  // de-duplicate close lines
   lines.sort((a, b) => a - b);
   const deduped = [];
   for (const y of lines) {
@@ -89,75 +81,135 @@ function detectHorizontalLines(png, options) {
     if (prev === undefined || Math.abs(y - prev) >= options.minLineGapPx) deduped.push(y);
   }
 
-  // drop lines too close to top/bottom margins (often headers/footers)
-  return deduped.filter(y => y >= options.topCutPx && y <= height - options.bottomCutPx);
+  return deduped.filter(
+    (y) => y >= options.topCutPx && y <= height - options.bottomCutPx
+  );
 }
 
 function formatFloat(n) {
-  // keep file size smaller, precision is enough for snapping
   return Number(n.toFixed(5));
+}
+
+const ALBUM_FOLDERS = [
+  {
+    albumId: 'pregnancy_60',
+    folder: 'Блок БЕРЕМЕННОСТЬ 60 стр',
+    options: {
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      luminanceThreshold: 235,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 10,
+      topCutPx: 80,
+      bottomCutPx: 80,
+    },
+  },
+  {
+    albumId: 'pregnancy_a5',
+    folder: 'Блок БЕРЕМЕННОСТЬ A5 другой блок',
+    options: {
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      luminanceThreshold: 235,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 10,
+      topCutPx: 70,
+      bottomCutPx: 70,
+    },
+  },
+  {
+    albumId: 'kids_48',
+    folder: 'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр',
+    options: {
+      sampleXStartRatio: 0.12,
+      sampleXEndRatio: 0.92,
+      luminanceThreshold: 230,
+      rowCoverageThreshold: 0.05,
+      maxLineThicknessPx: 8,
+      minLineGapPx: 8,
+      topCutPx: 60,
+      bottomCutPx: 60,
+    },
+  },
+  {
+    albumId: 'holidays_birthday_60',
+    folder: 'Блок ДНЕЙ РОЖДЕНИЯ 60 стр',
+    options: {
+      sampleXStartRatio: 0.15,
+      sampleXEndRatio: 0.95,
+      luminanceThreshold: 235,
+      rowCoverageThreshold: 0.06,
+      maxLineThicknessPx: 6,
+      minLineGapPx: 10,
+      topCutPx: 80,
+      bottomCutPx: 80,
+    },
+  },
+];
+
+async function generateForAlbum(projectRoot, spec) {
+  const folderPath = path.join(projectRoot, 'assets', 'pdfs', spec.folder);
+  if (!fs.existsSync(folderPath)) {
+    console.warn(`Skip ${spec.albumId}: folder not found`, folderPath);
+    return null;
+  }
+
+  const files = fs
+    .readdirSync(folderPath)
+    .filter((f) => /^page_\d+\.png$/i.test(f))
+    .sort();
+
+  if (files.length === 0) {
+    console.warn(`Skip ${spec.albumId}: no page_*.png`);
+    return null;
+  }
+
+  const onlyAlbum = process.env.ONLY_ALBUM;
+  if (onlyAlbum && onlyAlbum !== spec.albumId) return null;
+
+  const guides = {};
+  const onlyPage = process.env.ONLY_PAGE;
+  const targetFiles = onlyPage ? files.filter((f) => f === onlyPage) : files;
+
+  for (const fileName of targetFiles) {
+    const filePath = path.join(folderPath, fileName);
+    const png = await readPng(filePath);
+    const linesPx = detectHorizontalLines(png, spec.options);
+    const linesNorm = linesPx.map((y) => formatFloat(clamp(y / png.height, 0, 1)));
+    const pageNumber = Number(fileName.match(/^page_(\d+)\.png$/i)[1]);
+    guides[String(pageNumber)] = linesNorm;
+    console.log(`[${spec.albumId}] ${fileName}: ${linesNorm.length} lines`);
+  }
+
+  return guides;
 }
 
 async function main() {
   const projectRoot = process.cwd();
-  const pregnancyFolder = path.join(projectRoot, 'assets', 'pdfs', 'Блок БЕРЕМЕННОСТЬ 60 стр');
+  const lineGuides = {};
 
-  const files = fs
-    .readdirSync(pregnancyFolder)
-    .filter(f => /^page_\d+\.png$/i.test(f))
-    .sort();
-
-  if (files.length === 0) {
-    console.error('No pregnancy_60 page_*.png files found in:', pregnancyFolder);
-    process.exit(1);
+  for (const spec of ALBUM_FOLDERS) {
+    const guides = await generateForAlbum(projectRoot, spec);
+    if (guides) {
+      lineGuides[spec.albumId] = guides;
+    }
   }
 
-  const options = {
-    // Lines in templates are light gray; detect "slightly darker than white" rows.
-    sampleXStartRatio: 0.15,
-    sampleXEndRatio: 0.95,
-    luminanceThreshold: 235,
-    rowCoverageThreshold: 0.06,
-    maxLineThicknessPx: 6,
-    minLineGapPx: 10,
-    topCutPx: 80,
-    bottomCutPx: 80,
-  };
-
-  const guides = {};
-
-  const onlyPage = process.env.ONLY_PAGE;
-  const targetFiles = onlyPage ? files.filter(f => f === onlyPage) : files;
-
-  for (const fileName of targetFiles) {
-    const filePath = path.join(pregnancyFolder, fileName);
-    const png = await readPng(filePath);
-    const linesPx = detectHorizontalLines(png, options);
-    const linesNorm = linesPx.map(y => formatFloat(clamp(y / png.height, 0, 1)));
-
-    // page_001.png -> 1
-    const pageNumber = Number(fileName.match(/^page_(\d+)\.png$/i)[1]);
-    guides[String(pageNumber)] = linesNorm;
-    console.log(`${fileName}: detected ${linesNorm.length} lines`);
-  }
-
-  const outDir = path.join(projectRoot, 'constants');
-  const outFile = path.join(outDir, 'line-guides.ts');
+  const outFile = path.join(projectRoot, 'constants', 'line-guides.ts');
   const content =
     `// Auto-generated by scripts/generate-line-guides.js\n` +
     `// Do not edit manually.\n` +
     `\n` +
-    `export const LINE_GUIDES = {\n` +
-    `  pregnancy_60: ${JSON.stringify(guides, null, 2)},\n` +
-    `} as const;\n`;
+    `export const LINE_GUIDES = ${JSON.stringify(lineGuides, null, 2)} as const;\n`;
 
   fs.writeFileSync(outFile, content, 'utf8');
   console.log('✅ Wrote', path.relative(projectRoot, outFile));
+  console.log('Albums:', Object.keys(lineGuides).join(', '));
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
-

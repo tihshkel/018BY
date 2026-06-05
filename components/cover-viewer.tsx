@@ -3,27 +3,25 @@ import { useMediaLibraryPermission } from '@/components/media-library-permission
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { createId } from '@/utils/id';
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
+import { getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
-    Dimensions,
     Keyboard,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
+    useWindowDimensions,
     View,
 } from 'react-native';
 import PdfAnnotations, { type Annotation, PdfAnnotationsRef } from './pdf-annotations';
 import PdfSkeletonLoader from './pdf-skeleton-loader';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
 const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
@@ -58,6 +56,7 @@ interface CoverViewerProps {
   onToolReset: () => void;
   onToolDeactivate?: () => void; // Мягкий сброс (только выключить выбранный инструмент)
   onTextEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void;
+  onTextSelectionChange?: (hasSelection: boolean) => void;
   annotationsRef?: React.RefObject<PdfAnnotationsRef>;
   onViewportChange?: (viewport: { width: number; height: number }) => void; // Для точного экспорта
   defaultTextStyle?: { color?: string; fontSize?: number; fontFamily?: string };
@@ -78,12 +77,17 @@ export default function CoverViewer({
   onToolReset,
   onToolDeactivate,
   onTextEditingStateChange,
+  onTextSelectionChange,
   annotationsRef: externalAnnotationsRef,
   onViewportChange,
   defaultTextStyle,
   firstPageImage,
   getLastFontFamily,
 }: CoverViewerProps) {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
+  const isTabletEditor = isTabletLayout(windowWidth);
+
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 
   // Загружаем последние настройки текста при монтировании (шрифт — из отдельного ключа)
@@ -145,8 +149,8 @@ export default function CoverViewer({
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [viewportSize, setViewportSize] = useState<{ width: number; height: number }>({
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+    width: editorViewportWidth,
+    height: windowHeight,
   });
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const pageShiftY = useRef(new Animated.Value(0)).current;
@@ -275,15 +279,11 @@ export default function CoverViewer({
 
   const handlePickImage = async (x: number, y: number) => {
     try {
+      annotationsRef.current?.blurEditingInput?.();
       const hasPermission = await ensureMediaLibraryPermission();
       if (!hasPermission) return;
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: getImagePickerImagesMediaTypes(),
-        allowsEditing: false,
-        // Важно: не ухудшаем качество пользовательских фото
-        quality: 1,
-      });
+      const result = await launchPhotoLibrary();
 
       if (!result.canceled && result.assets[0] && onAnnotationAdd) {
         const maxZIndex = annotations.length > 0 
@@ -424,16 +424,20 @@ export default function CoverViewer({
         keyboardShouldPersistTaps="always"
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(event) => {
-          const pageIndex = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+          const pageIndex = Math.round(event.nativeEvent.contentOffset.x / windowWidth);
           setCurrentPage(pageIndex);
         }}
         style={styles.scrollView}
       >
         {coverImages.map((imageUri, index) => (
-          <View key={index} style={styles.imageContainer}>
+          <View
+            key={index}
+            style={[styles.imageContainer, { width: windowWidth, alignItems: isTabletEditor ? 'center' : 'stretch' }]}
+          >
             <Animated.View
               style={[
                 styles.imageWrapper,
+                isTabletEditor && { width: editorViewportWidth, flex: undefined },
                 { transform: [{ translateY: pageShiftY }] },
               ]}
             >
@@ -442,8 +446,9 @@ export default function CoverViewer({
                 activeOpacity={1}
                 onPress={handleImagePress}
                 onLayout={(event) => {
-                  const { width, height } = event.nativeEvent.layout;
-                  if (!width || !height) return;
+                  const { height } = event.nativeEvent.layout;
+                  if (!height) return;
+                  const width = editorViewportWidth;
                   setViewportSize(prev => {
                     if (prev.width === width && prev.height === height) return prev;
                     return { width, height };
@@ -469,6 +474,7 @@ export default function CoverViewer({
                   currentTool={currentTool}
                   onToolDeactivate={onToolDeactivate}
                   onEditingStateChange={handleEditingStateChange}
+                  onTextSelectionChange={onTextSelectionChange}
                   viewportWidth={viewportSize.width}
                   viewportHeight={viewportSize.height}
                 />
@@ -499,7 +505,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imageContainer: {
-    width: SCREEN_WIDTH,
     flex: 1,
     position: 'relative',
   },

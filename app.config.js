@@ -9,27 +9,29 @@ const EAS_PROJECT_ID = 'cb0b872b-bcbb-450d-aee7-e2c3148df391';
 
 module.exports = ({ config } = {}) => {
   const base = appJson.expo;
-  const fromCli = config ?? {};
+  const fromCli = config?.expo ?? {};
 
   return {
-    ...base,
-    ...fromCli,
-    // `config` от Expo CLI может содержать `newArchEnabled: false` и перезаписать app.json —
-    // тогда на EAS падает pod install (Reanimated 4: assert_new_architecture_enabled).
-    newArchEnabled: base.newArchEnabled,
-    extra: {
-      ...(base.extra ?? {}),
-      ...(fromCli.extra ?? {}),
-      eas: {
-        ...(base.extra?.eas ?? {}),
-        ...(fromCli.extra?.eas ?? {}),
-        projectId:
-          fromCli.extra?.eas?.projectId ??
-          base.extra?.eas?.projectId ??
-          EAS_PROJECT_ID,
+    expo: {
+      ...base,
+      ...fromCli,
+      // `config` от Expo CLI может содержать `newArchEnabled: false` и перезаписать app.json —
+      // тогда на EAS падает pod install (Reanimated 4: assert_new_architecture_enabled).
+      newArchEnabled: base.newArchEnabled,
+      extra: {
+        ...(base.extra ?? {}),
+        ...(fromCli.extra ?? {}),
+        eas: {
+          ...(base.extra?.eas ?? {}),
+          ...(fromCli.extra?.eas ?? {}),
+          projectId:
+            fromCli.extra?.eas?.projectId ??
+            base.extra?.eas?.projectId ??
+            EAS_PROJECT_ID,
+        },
+        supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
+        supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
       },
-      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
     },
   };
 };

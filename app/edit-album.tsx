@@ -1,7 +1,6 @@
 import { getAlbumTemplateById } from '@/albums';
-import CoverViewer from '@/components/cover-viewer';
 import ImageViewer from '@/components/image-viewer';
-import { Annotation, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import { Annotation, AnnotationTextAlign, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -18,14 +17,18 @@ import {
   getBlankInteriorPageUri,
   isBlankInteriorAlbum,
   resolveInteriorAlbumId,
+  resolveLineGuideId,
 } from '@/utils/albumImages';
 import { getDiaryCoverById, getDiaryInteriorById, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
-import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
-import { createId, ensureUniqueIds } from '@/utils/id';
+import { createId } from '@/utils/id';
+import { normalizeProjectAnnotations } from '@/utils/migrateTemplateLineAnnotations';
+import { maybeMigrateProjectViewport } from '@/utils/migrateAnnotationViewport';
+import { getEditorPageDisplayScale, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import { useFonts } from 'expo-font';
@@ -35,7 +38,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
+    BackHandler,
     Dimensions,
+    Keyboard,
     Modal,
     Platform,
     ScrollView,
@@ -109,12 +114,12 @@ export default function EditAlbumScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentTool, setCurrentTool] = useState<'text' | 'image' | 'drawing' | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [viewMode, setViewMode] = useState<'pages' | 'cover'>('pages');
   const [coverAnnotations, setCoverAnnotations] = useState<Annotation[]>([]);
   const [pagesViewport, setPagesViewport] = useState<{ width: number; height: number } | null>(null);
   const [coverViewport, setCoverViewport] = useState<{ width: number; height: number } | null>(null);
   const [isAddingText, setIsAddingText] = useState(false);
   const [editingTextAnnotationId, setEditingTextAnnotationId] = useState<string | null>(null);
+  const [hasTextSelection, setHasTextSelection] = useState(false);
   const [currentTextAnnotation, setCurrentTextAnnotation] = useState<Annotation | null>(null);
   const [lastTextStyle, setLastTextStyle] = useState<{
     color: string;
@@ -125,6 +130,7 @@ export default function EditAlbumScreen() {
   const [showPageSelectModal, setShowPageSelectModal] = useState(false);
   const [targetPageIndexForDuplicate, setTargetPageIndexForDuplicate] = useState<number | null>(null);
   const [showAddPageModal, setShowAddPageModal] = useState(false);
+  const [exitActionInProgress, setExitActionInProgress] = useState(false);
   const [effectiveProjectId, setEffectiveProjectId] = useState<string | null>(null);
   const [effectiveCelebration, setEffectiveCelebration] = useState<string | undefined>(
     typeof celebration === 'string' ? celebration : undefined
@@ -211,6 +217,50 @@ export default function EditAlbumScreen() {
     containerOpacity.value = withTiming(1, { duration: 400 });
     loadImagesData();
   }, [id, coverType, interiorType]);
+
+  const viewportMigrationAttemptedRef = React.useRef<string | null>(null);
+
+  useEffect(() => {
+    viewportMigrationAttemptedRef.current = null;
+  }, [id]);
+
+  useEffect(() => {
+    if (!id || isLoading || !albumId) return;
+    if (viewportMigrationAttemptedRef.current === id) return;
+    viewportMigrationAttemptedRef.current = id;
+
+    void (async () => {
+      try {
+        const [annRaw, coverRaw] = await Promise.all([
+          AsyncStorage.getItem(`@project_annotations_${id}`),
+          AsyncStorage.getItem(`@project_cover_annotations_${id}`),
+        ]);
+        const storedAnnotations: Annotation[] = annRaw ? JSON.parse(annRaw) : [];
+        const storedCoverAnnotations: Annotation[] = coverRaw ? JSON.parse(coverRaw) : [];
+        if (storedAnnotations.length === 0 && storedCoverAnnotations.length === 0) {
+          return;
+        }
+
+        const result = await maybeMigrateProjectViewport({
+          projectId: id,
+          lineGuideId: resolveLineGuideId(
+            albumId,
+            effectiveCelebration ?? (typeof celebration === 'string' ? celebration : undefined)
+          ),
+          annotations: storedAnnotations,
+          coverAnnotations: storedCoverAnnotations,
+          sampleImageUri: images[0] ?? null,
+        });
+
+        if (result.changed) {
+          setAnnotations(result.annotations);
+          setCoverAnnotations(result.coverAnnotations);
+        }
+      } catch (error) {
+        console.warn('[Viewport Migration] Failed:', error);
+      }
+    })();
+  }, [id, isLoading, albumId, images]);
 
   // Актуальные страницы/аннотации для отложенного снимка baseline (прогрессивная догрузка URI меняет images[] без «правок» пользователя)
   const baselineSourceRef = React.useRef({ images, annotations, coverAnnotations });
@@ -328,9 +378,7 @@ export default function EditAlbumScreen() {
     }
 
     const nextAnnotation =
-      viewMode === 'cover'
-        ? coverAnnotations.find(ann => ann.id === editingTextAnnotationId) || null
-        : annotations.find(ann => ann.id === editingTextAnnotationId) || null;
+      annotations.find(ann => ann.id === editingTextAnnotationId) || null;
 
     setCurrentTextAnnotation(nextAnnotation);
     
@@ -358,7 +406,7 @@ export default function EditAlbumScreen() {
         // Игнорируем ошибки парсинга
       }
     }).catch(() => {});
-  }, [editingTextAnnotationId, viewMode, annotations, coverAnnotations, id]);
+  }, [editingTextAnnotationId, annotations, id]);
 
   // Сохраняем viewport размеров редактора — это нужно, чтобы экспорт маппил координаты 1:1
   useEffect(() => {
@@ -523,7 +571,7 @@ export default function EditAlbumScreen() {
                   const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
                   if (savedAnnotations) {
                     const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    const { items, changed } = normalizeProjectAnnotations(parsed);
                     setAnnotations(items);
                     if (changed) {
                       await AsyncStorage.setItem(`@project_annotations_${id}`, JSON.stringify(items));
@@ -534,7 +582,7 @@ export default function EditAlbumScreen() {
                   const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
                   if (savedCoverAnnotations) {
                     const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                    const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                    const { items, changed } = normalizeProjectAnnotations(parsed);
                     setCoverAnnotations(items);
                     if (changed) {
                       await AsyncStorage.setItem(`@project_cover_annotations_${id}`, JSON.stringify(items));
@@ -572,7 +620,7 @@ export default function EditAlbumScreen() {
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 diaryAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
@@ -584,7 +632,7 @@ export default function EditAlbumScreen() {
               const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 diaryCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
@@ -606,12 +654,13 @@ export default function EditAlbumScreen() {
               setEffectiveProjectId(newProjectId);
               const diaryCover = coverType ? getDiaryCoverById(coverType) : null;
               
-              const projectData: any = {
-                id: newProjectId,
-                title: diaryCover?.name || foundAlbumName || getCelebrationTitle(celebration),
-                category: celebration,
-                albumId: foundAlbumId,
-                coverType: coverType || null,
+        const projectData: any = {
+          id: newProjectId,
+          title: diaryCover?.name || foundAlbumName || getCelebrationTitle(celebration),
+          category: celebration,
+          albumId: foundAlbumId,
+          interiorType: foundAlbumId,
+          coverType: coverType || null,
                 createdAt: new Date().toISOString(),
                 isReadyMadeAlbum: true,
                 hasPdfTemplate: true,
@@ -692,7 +741,7 @@ export default function EditAlbumScreen() {
               const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
               if (savedAnnotations) {
                 const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 loadedAnnotations = items;
                 setAnnotations(items);
                 if (changed) {
@@ -705,7 +754,7 @@ export default function EditAlbumScreen() {
               const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
               if (savedCoverAnnotations) {
                 const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                const { items, changed } = normalizeProjectAnnotations(parsed);
                 loadedCoverAnnotations = items;
                 setCoverAnnotations(items);
                 if (changed) {
@@ -774,7 +823,7 @@ export default function EditAlbumScreen() {
                 const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
                 if (savedAnnotations) {
                   const parsed = JSON.parse(savedAnnotations) as Annotation[];
-                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  const { items, changed } = normalizeProjectAnnotations(parsed);
                   loadedAnnotations2 = items;
                   setAnnotations(items);
                   if (changed) {
@@ -787,7 +836,7 @@ export default function EditAlbumScreen() {
                 const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
                 if (savedCoverAnnotations) {
                   const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-                  const { items, changed } = ensureUniqueIds(parsed, 'ann');
+                  const { items, changed } = normalizeProjectAnnotations(parsed);
                   loadedCoverAnnotations2 = items;
                   setCoverAnnotations(items);
                   if (changed) {
@@ -916,7 +965,7 @@ export default function EditAlbumScreen() {
         const savedAnnotations = await AsyncStorage.getItem(`@project_annotations_${id}`);
         if (savedAnnotations) {
           const parsed = JSON.parse(savedAnnotations) as Annotation[];
-          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          const { items, changed } = normalizeProjectAnnotations(parsed);
           finalAnnotations = items;
           setAnnotations(items);
           if (changed) {
@@ -928,7 +977,7 @@ export default function EditAlbumScreen() {
         const savedCoverAnnotations = await AsyncStorage.getItem(`@project_cover_annotations_${id}`);
         if (savedCoverAnnotations) {
           const parsed = JSON.parse(savedCoverAnnotations) as Annotation[];
-          const { items, changed } = ensureUniqueIds(parsed, 'ann');
+          const { items, changed } = normalizeProjectAnnotations(parsed);
           finalCoverAnnotations = items;
           setCoverAnnotations(items);
           if (changed) {
@@ -950,6 +999,7 @@ export default function EditAlbumScreen() {
           title: albumTemplate?.name || foundAlbumName || getCelebrationTitle(celebration),
           category: celebration,
           albumId: foundAlbumId,
+          interiorType: interiorType || foundAlbumId,
           coverType: coverType || null,
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
@@ -1280,8 +1330,12 @@ export default function EditAlbumScreen() {
     if (__DEV__) console.log('[EditAlbum] ensureProjectInUserProjects: saved', storageId, 'list length', list.length);
   };
 
-  // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). Возвращает результат синхронизации с БД.
-  const saveAllData = async (opts?: { silent?: boolean; markCommitted?: boolean }): Promise<{ pushOk: boolean; pushError?: string }> => {
+  // Функция для сохранения всех данных проекта (локально и в облако). silent: не показывать алерт при ошибке синхронизации (для автосохранения). skipCloud: только локально + фоновая синхронизация (выход из редактора).
+  const saveAllData = async (opts?: {
+    silent?: boolean;
+    markCommitted?: boolean;
+    skipCloud?: boolean;
+  }): Promise<{ pushOk: boolean; pushError?: string }> => {
     const silent = opts?.silent ?? false;
     const out = { pushOk: false, pushError: undefined as string | undefined };
 
@@ -1391,6 +1445,12 @@ export default function EditAlbumScreen() {
       }
       if (__DEV__) console.log('[EditAlbum] saveAllData: @user_projects verified, count=', verifyList.length, 'projectInList=', true);
 
+      if (opts?.skipCloud) {
+        scheduleSyncToCloud();
+        out.pushOk = true;
+        return out;
+      }
+
       // 4. Отправка в облако (Supabase)
       await new Promise((r) => setTimeout(r, 200));
       let pushResult = await pushAccountDataToCloud({ forceIncludeProjectIds: [effectiveId] });
@@ -1421,49 +1481,42 @@ export default function EditAlbumScreen() {
       out.pushError = (error as Error).message;
       if (!silent) {
         Alert.alert('Ошибка', 'Не удалось сохранить проект. Попробуйте снова.', [{ text: 'OK' }]);
+        throw error;
       }
     }
     return out;
   };
 
-  // Периодическое автосохранение в облако каждые 60 сек (текст, фото, аннотации), чтобы данные не терялись
+  // Периодическое автосохранение + debounce при изменениях
   const saveAllDataRef = React.useRef(saveAllData);
   saveAllDataRef.current = saveAllData;
+  const autosaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const AUTOSAVE_DEBOUNCE_MS = 2000;
+  const AUTOSAVE_INTERVAL_MS = 30000;
+
+  useEffect(() => {
+    if (!storageId || isLoading) return;
+
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+    };
+  }, [images, annotations, coverAnnotations, storageId, isLoading]);
+
   useEffect(() => {
     if (!storageId) return;
     const interval = setInterval(() => {
-      saveAllDataRef.current?.({ silent: true });
-    }, 60000);
+      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+    }, AUTOSAVE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [storageId]);
-
-  // Проверка наличия несохраненных изменений
-  const hasUnsavedChanges = (): boolean => {
-    // Если начальное состояние еще не сохранено, считаем что изменений нет
-    if (!lastSavedStateRef.current) return false;
-    
-    const saved = lastSavedStateRef.current;
-    
-    // Проверяем изменения в изображениях
-    if (saved.images.length !== images.length) return true;
-    for (let i = 0; i < images.length; i++) {
-      if (saved.images[i] !== images[i]) return true;
-    }
-    
-    // Проверяем изменения в аннотациях страниц
-    if (saved.annotations.length !== annotations.length) return true;
-    const savedAnnotationsStr = JSON.stringify(saved.annotations);
-    const currentAnnotationsStr = JSON.stringify(annotations);
-    if (savedAnnotationsStr !== currentAnnotationsStr) return true;
-    
-    // Проверяем изменения в аннотациях обложки
-    if (saved.coverAnnotations.length !== coverAnnotations.length) return true;
-    const savedCoverAnnotationsStr = JSON.stringify(saved.coverAnnotations);
-    const currentCoverAnnotationsStr = JSON.stringify(coverAnnotations);
-    if (savedCoverAnnotationsStr !== currentCoverAnnotationsStr) return true;
-    
-    return false;
-  };
 
   const hasUserContent = (): boolean => {
     // "Пустой проект" для пользователя: нет добавленных фото/текста/рисунков.
@@ -1529,38 +1582,122 @@ export default function EditAlbumScreen() {
     }
   };
 
-  const discardToLastSaved = async (projectId: string) => {
-    const saved = lastSavedStateRef.current;
-    if (!saved) return;
-    const pid = String(projectId);
-
-    setImages([...saved.images]);
-    setAnnotations(JSON.parse(JSON.stringify(saved.annotations)));
-    setCoverAnnotations(JSON.parse(JSON.stringify(saved.coverAnnotations)));
-
-    await Promise.all([
-      AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(saved.images)),
-      AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(saved.annotations)),
-      AsyncStorage.setItem(`@project_cover_annotations_${pid}`, JSON.stringify(saved.coverAnnotations)),
-      saved.projectMetaJson != null
-        ? AsyncStorage.setItem(`@project_${pid}`, saved.projectMetaJson)
-        : Promise.resolve(),
-    ]);
+  const dismissActiveEditing = () => {
+    annotationsRef.current?.closeEditing?.();
+    Keyboard.dismiss();
+    setIsAddingText(false);
+    setEditingTextAnnotationId(null);
+    setCurrentTextAnnotation(null);
+    setHasTextSelection(false);
   };
 
-  const handleBack = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
-    // Если проект ещё не был "сохранён пользователем" и он пустой — при выходе удаляем его целиком.
-    // Это покрывает кейс: "создал новый, ничего не заполнил, вышел — не должен оставаться в списке".
-    const canHardDeleteEmpty =
-      !!storageId && userCommittedRef.current === false && hasUserContent() === false;
+  const clearPendingAutosave = () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+  };
 
-    // Проверяем наличие несохраненных изменений
-    if (hasUnsavedChanges()) {
+  const navigateToProjectsList = () => {
+    router.replace('/(tabs)/');
+  };
+
+  const getCanHardDeleteEmpty = () =>
+    !!storageId && userCommittedRef.current === false && hasUserContent() === false;
+
+  const restoreLastSavedSnapshot = async () => {
+    const pid = storageId;
+    const snap = lastSavedStateRef.current;
+    if (!pid || !snap) return;
+
+    await Promise.all([
+      AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(snap.images)),
+      AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(snap.annotations)),
+      AsyncStorage.setItem(`@project_cover_annotations_${pid}`, JSON.stringify(snap.coverAnnotations)),
+    ]);
+    if (snap.projectMetaJson) {
+      await AsyncStorage.setItem(`@project_${pid}`, snap.projectMetaJson);
+    }
+  };
+
+  const performExitWithSave = async () => {
+    if (exitActionInProgress) return;
+    setExitActionInProgress(true);
+    clearPendingAutosave();
+
+    try {
+      await saveAllData({ silent: false, markCommitted: true, skipCloud: true });
+      navigateToProjectsList();
+    } catch (e) {
       Alert.alert(
-        'Несохраненные изменения',
-        'У вас есть несохраненные изменения. Хотите сохранить их перед выходом?',
+        'Не удалось сохранить',
+        (e as Error).message || 'Попробуйте ещё раз',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setExitActionInProgress(false);
+    }
+  };
+
+  const performExitWithoutSave = async () => {
+    if (exitActionInProgress) return;
+    setExitActionInProgress(true);
+    clearPendingAutosave();
+
+    try {
+      if (getCanHardDeleteEmpty() && storageId) {
+        await deleteProjectEverywhere(storageId);
+      } else {
+        await restoreLastSavedSnapshot();
+      }
+      navigateToProjectsList();
+    } catch (e) {
+      Alert.alert(
+        'Не удалось выйти',
+        (e as Error).message || 'Попробуйте ещё раз',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setExitActionInProgress(false);
+    }
+  };
+
+  const showExitConfirmDialog = () => {
+    if (exitActionInProgress) return;
+    dismissActiveEditing();
+    Keyboard.dismiss();
+
+    const presentDialog = () => {
+      if (Platform.OS === 'ios') {
+        Alert.alert(
+          'Сохранить изменения?',
+          'Сохранить проект перед выходом на главный экран?',
+          [
+            {
+              text: 'Отмена',
+              style: 'cancel',
+            },
+            {
+              text: 'Не сохранять',
+              style: 'destructive',
+              onPress: () => {
+                void performExitWithoutSave();
+              },
+            },
+            {
+              text: 'Сохранить',
+              onPress: () => {
+                void performExitWithSave();
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      Alert.alert(
+        'Несохранённые изменения',
+        'Сохранить изменения перед выходом на главный экран?',
         [
           {
             text: 'Отмена',
@@ -1569,66 +1706,41 @@ export default function EditAlbumScreen() {
           {
             text: 'Не сохранять',
             style: 'destructive',
-            onPress: async () => {
-              try {
-                if (canHardDeleteEmpty && storageId) {
-                  await deleteProjectEverywhere(storageId);
-                } else if (storageId && userCommittedRef.current) {
-                  // Было сохранение раньше — откатываем только последние правки
-                  await discardToLastSaved(storageId);
-                }
-              } finally {
-                router.replace('/(tabs)');
-              }
+            onPress: () => {
+              void performExitWithoutSave();
             },
           },
           {
             text: 'Сохранить',
-            onPress: async () => {
-              try {
-                await ensureSyncReady();
-                const result = await saveAllData({ silent: true, markCommitted: true });
-                if (result.pushOk) {
-                  router.replace('/(tabs)');
-                } else {
-                  if (isSupabaseNotConfiguredError(result.pushError)) {
-                    const msg = getSupabaseNotConfiguredAlertMessageOnce();
-                    if (msg) Alert.alert('Сохранено на устройстве', msg, [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]);
-                    else router.replace('/(tabs)');
-                  } else {
-                    Alert.alert(
-                      'Сохранено на устройстве',
-                      result.pushError ? `В облако не отправлено: ${result.pushError}` : 'В облако не отправлено. Проверьте интернет.',
-                      [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-                    );
-                  }
-                }
-              } catch (e) {
-                Alert.alert(
-                  'Ошибка сохранения',
-                  (e as Error).message || 'Попробуйте снова.',
-                  [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-                );
-              }
+            onPress: () => {
+              void performExitWithSave();
             },
           },
-        ]
+        ],
+        { cancelable: true }
       );
-    } else {
-      // Если изменений нет:
-      // - пустой новый проект удаляем
-      // - иначе просто выходим
-      if (canHardDeleteEmpty && storageId) {
-        try {
-          await deleteProjectEverywhere(storageId);
-        } finally {
-          router.replace('/(tabs)');
-        }
-      } else {
-        router.replace('/(tabs)');
-      }
-    }
+    };
+
+    requestAnimationFrame(presentDialog);
   };
+
+  const handleBackRef = React.useRef(showExitConfirmDialog);
+  handleBackRef.current = showExitConfirmDialog;
+
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (exitActionInProgress) return;
+    handleBackRef.current();
+  };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (exitActionInProgress) return true;
+      handleBackRef.current();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [exitActionInProgress]);
 
   const handleZoomIn = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -1642,6 +1754,10 @@ export default function EditAlbumScreen() {
 
   const handleToolSelect = (tool: 'text' | 'image' | 'drawing' | null) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (tool === 'image') {
+      annotationsRef.current?.blurEditingInput?.();
+      Keyboard.dismiss();
+    }
     setCurrentTool(tool);
     setIsEditing(true);
   };
@@ -1671,12 +1787,14 @@ export default function EditAlbumScreen() {
   const handleTextEditingStateChange = (isEditing: boolean, annotationId: string | null) => {
     setIsAddingText(isEditing);
     setEditingTextAnnotationId(annotationId);
+
+    if (!isEditing) {
+      setHasTextSelection(false);
+    }
     
     if (annotationId) {
       // Находим текущую аннотацию для отображения в верхней панели
-      const annotation = viewMode === 'cover' 
-        ? coverAnnotations.find(ann => ann.id === annotationId)
-        : annotations.find(ann => ann.id === annotationId);
+      const annotation = annotations.find(ann => ann.id === annotationId);
       setCurrentTextAnnotation(annotation || null);
 
       if (annotation && annotation.type === 'text') {
@@ -1720,115 +1838,39 @@ export default function EditAlbumScreen() {
     annotationsRef.current?.openFontSizePicker?.();
   };
 
+  const isEditingTemplateLine =
+    !!albumId &&
+    typeof currentTextAnnotation?.templateLineStart === 'number' &&
+    (currentTextAnnotation.templateLineCount ?? 1) === 1;
+
   const handleFontButtonPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     annotationsRef.current?.openFontPicker?.();
   };
 
-  const handleToggleEdit = async () => {
+  const handleTextSelectionChange = (hasSelection: boolean) => {
+    setHasTextSelection(hasSelection);
+  };
+
+  const handleTextAlignPress = (align: AnnotationTextAlign) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    annotationsRef.current?.setTextAlign?.(align);
+    setCurrentTextAnnotation((prev) => (prev ? { ...prev, textAlign: align } : null));
+    setHasTextSelection(false);
+  };
+
+  const handleToggleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsEditing(prev => !prev);
+
     if (isEditing) {
+      dismissActiveEditing();
       setCurrentTool(null);
-      // При выходе из режима редактирования сохраняем все данные
-      await saveAllData();
+      setIsEditing(false);
+      void saveAllData({ silent: true, markCommitted: true, skipCloud: true });
+      return;
     }
-  };
 
-  const handleViewModeToggle = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
-    if (viewMode === 'pages') {
-      if (storageId) {
-        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(annotations));
-        scheduleSyncToCloud();
-      }
-      setViewMode('cover');
-    } else {
-      if (storageId) {
-        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(coverAnnotations));
-        scheduleSyncToCloud();
-      }
-      setViewMode('pages');
-    }
-    setCurrentTool(null);
-  };
-
-  const handleCoverButtonPress = async () => {
-    const warned = await AsyncStorage.getItem('@cover_warning_shown');
-    if (!warned) {
-      Alert.alert(
-        'Обложка',
-        'Текст на обложке отображается только в мягком переплёте и электронной версии. В твёрдом переплёте текст не будет виден.',
-        [{ text: 'Понятно', onPress: async () => {
-          await AsyncStorage.setItem('@cover_warning_shown', 'true');
-          handleViewModeToggle();
-        }}]
-      );
-    } else {
-      handleViewModeToggle();
-    }
-  };
-
-  const handleCoverAnnotationAdd = (annotation: Annotation) => {
-    setCoverAnnotations(prev => {
-      const existingIds = new Set(prev.map(a => a.id));
-      const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
-      const newAnnotation = { ...annotation, id: safeId, page: 'cover' };
-      const next = [...prev, newAnnotation];
-      if (storageId) {
-        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
-  };
-
-  const handleCoverAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
-    setCoverAnnotations(prev => {
-      const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
-      if (storageId) {
-        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
-
-    if (updates.color || updates.fontSize || updates.fontFamily) {
-      if (updates.fontFamily) lastFontFamilyRef.current = updates.fontFamily;
-      setLastTextStyle((prev) => {
-        const nextStyle = {
-          color: updates.color ?? prev.color,
-          fontSize: updates.fontSize ?? prev.fontSize,
-          fontFamily: updates.fontFamily ?? prev.fontFamily,
-        };
-        if (nextStyle.fontFamily) AsyncStorage.setItem('@last_text_font_family', nextStyle.fontFamily).catch(() => {});
-        Promise.all([
-          AsyncStorage.getItem('@last_text_style'),
-          AsyncStorage.getItem('@last_text_font_family'),
-        ]).then(([raw, fontRaw]) => {
-          let mergedFont = nextStyle.fontFamily;
-          if (mergedFont == null && raw) {
-            try { mergedFont = (JSON.parse(raw) as { fontFamily?: string }).fontFamily; } catch (_) {}
-          }
-          if (mergedFont == null && fontRaw) mergedFont = fontRaw;
-          const toSave = { ...nextStyle, fontFamily: mergedFont ?? nextStyle.fontFamily };
-          if (toSave.fontFamily) AsyncStorage.setItem('@last_text_font_family', toSave.fontFamily).catch(() => {});
-          const styleJson = JSON.stringify(toSave);
-          if (storageId) AsyncStorage.setItem(`@project_last_text_style_${storageId}`, styleJson).catch(() => {});
-          AsyncStorage.setItem('@last_text_style', styleJson).catch(() => {});
-        }).catch(() => {});
-        return nextStyle;
-      });
-    }
-  };
-
-  const handleCoverAnnotationDelete = (annotationId: string) => {
-    setCoverAnnotations(prev => {
-      const next = prev.filter(ann => ann.id !== annotationId);
-      if (storageId) {
-        AsyncStorage.setItem(`@project_cover_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
+    setIsEditing(true);
   };
 
   // Шаблоны для «Добавить страницу»
@@ -1862,7 +1904,7 @@ export default function EditAlbumScreen() {
     loadTemplatePages();
   }, [albumId, activeCelebration, usesSingleBlankPage]);
 
-  // Добавляем новую страницу в конец альбома
+  // Добавляем страницу из шаблона сразу после текущей страницы
   const handleAddPage = async (sourcePageIndex: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     
@@ -1873,21 +1915,37 @@ export default function EditAlbumScreen() {
     
     // Получаем изображение страницы из шаблона
     const newPageUri = templatePages[sourcePageIndex];
-    const newImages = [...images, newPageUri];
+    const targetPageIndex = Math.max(0, Math.min(images.length - 1, currentPage - 1));
+    const insertedPage = targetPageIndex + 2; // 1-indexed страница, следующая за текущей
+    const newImages = [...images];
+    newImages.splice(targetPageIndex + 1, 0, newPageUri);
+
+    // Новая страница пустая, поэтому сдвигаем аннотации только для страниц после точки вставки
+    const updatedAnnotations = annotations.map(ann => {
+      const annPage = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
+      if (annPage > targetPageIndex + 1) {
+        return { ...ann, page: annPage + 1 };
+      }
+      return ann;
+    });
     
     setImages(newImages);
     setTotalPages(newImages.length);
+    setAnnotations(updatedAnnotations);
     
     if (storageId) {
-      await AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages));
-      await markUserPageEdits(storageId, newImages.length);
+      await Promise.all([
+        AsyncStorage.setItem(`@project_images_${storageId}`, JSON.stringify(newImages)),
+        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(updatedAnnotations)),
+        markUserPageEdits(storageId, newImages.length),
+      ]);
     }
     
     setShowAddPageModal(false);
     
     // Переходим на новую страницу
     setTimeout(() => {
-      setCurrentPage(newImages.length);
+      setCurrentPage(insertedPage);
     }, 100);
   };
 
@@ -2044,6 +2102,7 @@ export default function EditAlbumScreen() {
             style={styles.backButton}
             onPress={handleBack}
             activeOpacity={0.7}
+            disabled={exitActionInProgress}
             accessibilityRole="button"
             accessibilityLabel="Назад"
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -2055,16 +2114,11 @@ export default function EditAlbumScreen() {
           
           <View style={styles.titleContainer} pointerEvents="none">
             <Text style={styles.albumTitle} numberOfLines={1}>
-              {viewMode === 'cover' ? 'Развертка обложки' : (albumName || getCelebrationTitle(celebration || ''))}
+              {albumName || getCelebrationTitle(celebration || '')}
             </Text>
-            {!isLoading && images.length > 0 && viewMode === 'pages' && (
+            {!isLoading && images.length > 0 && (
               <Text style={styles.pageInfo}>
                 Страница {currentPage} из {totalPages}
-              </Text>
-            )}
-            {viewMode === 'cover' && (
-              <Text style={styles.pageInfo}>
-                Редактирование развертки
               </Text>
             )}
           </View>
@@ -2084,7 +2138,7 @@ export default function EditAlbumScreen() {
         </View>
 
         {/* Панель масштабирования - показывается только когда не добавляется текст */}
-        {!isLoading && images.length > 0 && viewMode === 'pages' && !isAddingText && (
+        {!isLoading && images.length > 0 && !isAddingText && (
           <View style={styles.zoomControls}>
             <TouchableOpacity
               style={styles.zoomButton}
@@ -2097,7 +2151,16 @@ export default function EditAlbumScreen() {
             </TouchableOpacity>
             
             <View style={styles.zoomLevel}>
-              <Text style={styles.zoomLevelText}>{Math.round(zoomLevel * 100)}%</Text>
+              <Text style={styles.zoomLevelText}>
+                {Math.round(
+                  (isTabletLayout(SCREEN_WIDTH)
+                    ? getEditorPageDisplayScale(SCREEN_WIDTH, SCREEN_HEIGHT)
+                    : 1) *
+                    zoomLevel *
+                    100
+                )}
+                %
+              </Text>
             </View>
             
             <TouchableOpacity
@@ -2119,8 +2182,50 @@ export default function EditAlbumScreen() {
           </View>
         )}
 
+        {/* Панель выравнивания — как в Word, при выделении текста */}
+        {!isLoading && images.length > 0 && isAddingText && currentTextAnnotation && hasTextSelection && (
+          <View style={styles.textAlignControlsPanel}>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                (currentTextAnnotation.textAlign ?? 'left') === 'left' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('left')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по левому краю"
+            >
+              <MaterialIcons name="format-align-left" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                currentTextAnnotation.textAlign === 'center' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('center')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по центру"
+            >
+              <MaterialIcons name="format-align-center" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.textAlignControlButton,
+                currentTextAnnotation.textAlign === 'right' && styles.textAlignControlButtonActive,
+              ]}
+              onPress={() => handleTextAlignPress('right')}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Выровнять по правому краю"
+            >
+              <MaterialIcons name="format-align-right" size={22} color="#8B6F5F" />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Панель редактирования текста - показывается только когда добавляется текст */}
-        {!isLoading && ((viewMode === 'pages' && images.length > 0) || viewMode === 'cover') && isAddingText && currentTextAnnotation && (
+        {!isLoading && images.length > 0 && isAddingText && currentTextAnnotation && !hasTextSelection && (
           <View style={styles.textEditControlsPanel}>
             {/* Кнопка цвета */}
             <TouchableOpacity
@@ -2134,7 +2239,8 @@ export default function EditAlbumScreen() {
               <Text style={styles.textEditControlButtonText}>Цвет</Text>
             </TouchableOpacity>
             
-            {/* Кнопка размера */}
+            {/* Размер фиксирован для строк макета (templateLine) */}
+            {!isEditingTemplateLine ? (
             <TouchableOpacity
               style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
               onPress={handleFontSizeButtonPress}
@@ -2145,6 +2251,7 @@ export default function EditAlbumScreen() {
               <Ionicons name="text-outline" size={18} color="#8B6F5F" />
               <Text style={styles.textEditControlButtonText}>{currentTextAnnotation.fontSize || 16}px</Text>
             </TouchableOpacity>
+            ) : null}
             
             {/* Кнопка шрифта */}
             <TouchableOpacity
@@ -2173,46 +2280,13 @@ export default function EditAlbumScreen() {
 
         {/* Image Viewer или Cover Viewer */}
         <View style={styles.pdfContainer}>
-          {viewMode === 'cover' ? (
-            fontsLoaded ? (
-              <CoverViewer
-                albumId={activeCoverType || undefined}
-                category={activeCelebration}
-                coverType={activeCoverType}
-                annotations={coverAnnotations}
-                onAnnotationAdd={handleCoverAnnotationAdd}
-                onAnnotationUpdate={handleCoverAnnotationUpdate}
-                onAnnotationDelete={handleCoverAnnotationDelete}
-                isEditing={isEditing}
-                currentTool={currentTool}
-                onToolReset={handleToolReset}
-                onToolDeactivate={handleToolDeactivate}
-                onTextEditingStateChange={handleTextEditingStateChange}
-                annotationsRef={annotationsRef}
-                onViewportChange={setCoverViewport}
-                defaultTextStyle={lastTextStyle}
-                getLastFontFamily={() => lastFontFamilyRef.current ?? lastTextStyle?.fontFamily ?? undefined}
-                firstPageImage={
-                  (activeCelebration === 'family' || activeCelebration === 'holidays') && activeCoverType
-                    ? (() => {
-                        const coverSource = getCoverPickerImage(activeCoverType, activeCelebration);
-                        return coverSource ? Asset.fromModule(coverSource as number | string).uri : undefined;
-                      })()
-                    : (activeCelebration === 'pregnancy' || activeCelebration === 'kids' || activeCelebration === 'diary') && images[0]
-                      ? images[0]
-                      : undefined
-                }
-              />
-            ) : (
-              <PdfSkeletonLoader />
-            )
-          ) : isLoading || (images.length > 0 && !fontsLoaded) ? (
+          {isLoading || (images.length > 0 && !fontsLoaded) ? (
             <PdfSkeletonLoader />
           ) : images.length > 0 ? (
             <ImageViewer
               images={images}
               albumName={albumName || getCelebrationTitle(celebration || '')}
-              lineGuideId={albumId || undefined}
+              lineGuideId={resolveLineGuideId(albumId, effectiveCelebration) || undefined}
               onPageChange={handlePageChange}
               onError={handleError}
               annotations={annotations}
@@ -2226,6 +2300,7 @@ export default function EditAlbumScreen() {
               onToolReset={handleToolReset}
               onToolDeactivate={handleToolDeactivate}
               onTextEditingStateChange={handleTextEditingStateChange}
+              onTextSelectionChange={handleTextSelectionChange}
               annotationsRef={annotationsRef}
               zoomLevel={zoomLevel}
               onViewportChange={setPagesViewport}
@@ -2287,33 +2362,7 @@ export default function EditAlbumScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Кнопка "Обложка" / "Страницы" — всегда видна */}
-            <TouchableOpacity
-              style={[
-                styles.toolButton,
-                viewMode === 'cover' ? styles.toolButtonPrimary : undefined
-              ]}
-              onPress={viewMode === 'cover' ? handleViewModeToggle : handleCoverButtonPress}
-              activeOpacity={0.8}
-              accessibilityRole="button"
-              accessibilityLabel={viewMode === 'cover' ? 'Вернуться к страницам' : 'Редактировать обложку'}
-            >
-              <View style={styles.toolIconContainer}>
-                <Ionicons 
-                  name={viewMode === 'cover' ? 'documents-outline' : 'book-outline'} 
-                  size={22} 
-                  color={viewMode === 'cover' ? '#C9A89A' : '#8B6F5F'} 
-                />
-              </View>
-              <Text 
-                style={[styles.toolButtonText, viewMode === 'cover' && { color: '#C9A89A', fontWeight: '600' }]}
-                numberOfLines={1}
-              >
-                {viewMode === 'cover' ? 'Страницы' : 'Обложка'}
-              </Text>
-            </TouchableOpacity>
-
-            {isEditing && viewMode === 'pages' && (
+            {isEditing && (
               <>
                 <TouchableOpacity
                   style={[
@@ -2390,60 +2439,6 @@ export default function EditAlbumScreen() {
                     numberOfLines={1}
                   >
                     Страница
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {isEditing && viewMode === 'cover' && (
-              <>
-                <TouchableOpacity
-                  style={[
-                    styles.toolButton,
-                    currentTool === 'text' && styles.toolButtonActive
-                  ]}
-                  onPress={() => handleToolToggle('text')}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Добавить текст"
-                >
-                  <View style={styles.toolIconContainer}>
-                    <Ionicons 
-                      name="text-outline" 
-                      size={22} 
-                      color={currentTool === 'text' ? '#FFFFFF' : '#8B6F5F'} 
-                    />
-                  </View>
-                  <Text 
-                    style={[styles.toolButtonText, currentTool === 'text' && styles.toolButtonTextActive]}
-                    numberOfLines={1}
-                  >
-                    Текст
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.toolButton,
-                    currentTool === 'image' && styles.toolButtonActive
-                  ]}
-                  onPress={() => handleToolToggle('image')}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel="Добавить фото"
-                >
-                  <View style={styles.toolIconContainer}>
-                    <Ionicons 
-                      name="image-outline" 
-                      size={22} 
-                      color={currentTool === 'image' ? '#FFFFFF' : '#8B6F5F'} 
-                    />
-                  </View>
-                  <Text 
-                    style={[styles.toolButtonText, currentTool === 'image' && styles.toolButtonTextActive]}
-                    numberOfLines={1}
-                  >
-                    Фото
                   </Text>
                 </TouchableOpacity>
               </>
@@ -2777,6 +2772,31 @@ const styles = StyleSheet.create({
     borderBottomColor: '#F5F0EB',
     gap: 20,
   },
+  textAlignControlsPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F0EB',
+    gap: 16,
+  },
+  textAlignControlButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FAF8F5',
+    width: 52,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+  },
+  textAlignControlButtonActive: {
+    backgroundColor: '#F0E6DC',
+    borderColor: '#C9A89A',
+  },
   textEditControlButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2954,6 +2974,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 8,
+    zIndex: 1000,
   },
   toolsScrollView: {
     flexGrow: 0,

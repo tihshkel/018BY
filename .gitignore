@@ -31,6 +31,9 @@ local.properties
 *.keystore
 !debug.keystore
 
+# Python venv (PDF → PNG scripts)
+.venv/
+
 # node.js
 node_modules/
 npm-debug.log

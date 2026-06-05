@@ -15,9 +15,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  type StyleProp,
-  type ImageStyle,
+  View
+  , type StyleProp
+  , type ImageStyle
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -26,7 +26,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { PDF_CATALOG_GIFT_ITEMS } from '@/constants/pdf-catalog-gift-items';
 import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
+import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export interface GiftItem {
   id: string;
@@ -114,6 +117,7 @@ const SKU_TO_CATEGORY: Record<string, string> = {
 };
 
 export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
+  // В проекте реально существуют файлы DB*_0.png / DB*_п.png, поэтому используем их.
   DB1: require('../../assets/images/albums/DB1_0.png'),
   DB2: require('../../assets/images/albums/DB2_0.png'),
   DB3: require('../../assets/images/albums/DB3_0.png'),
@@ -124,78 +128,77 @@ export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
   EB3: require('../../assets/images/albums/EB3.png'),
   EB4: require('../../assets/images/albums/EB4.png'),
   EB5: require('../../assets/images/albums/EB5.png'),
-  DFA5: require('@/albums/kids/DFA5/first_page.png'),
-  DFA7: require('@/albums/kids/DFA7/first_page.png'),
-  DFA8: require('@/albums/kids/DFA8/first_page.png'),
-  DFA9: require('@/albums/kids/DFA9/first_page.png'),
+  DFA5: require('../../assets/images/albums/DFA5.png'),
+  DFA7: require('../../assets/images/albums/DFA7.png'),
+  DFA8: require('../../assets/images/albums/DFA8.png'),
+  DFA9: require('../../assets/images/albums/DFA9.png'),
   DFA14: require('../../assets/images/albums/DFA14.png'),
-  DFA15: require('@/albums/kids/DFA15/first_page.png'),
-  DFA16: require('@/albums/kids/DFA16/first_page.png'),
-  DFA19: require('@/albums/kids/DFA19/first_page.png'),
-  DFA21: require('@/albums/kids/DFA21/first_page.png'),
-  DFA23: require('@/albums/kids/DFA23/first_page.png'),
-  DFA24: require('@/albums/kids/DFA24/first_page.png'),
-  DFA25: require('@/albums/kids/DFA25/first_page.png'),
-  DFA26: require('@/albums/kids/DFA26/first_page.png'),
-  DFA27: require('@/albums/kids/DFA27/first_page.png'),
-  DFA28: require('@/albums/kids/DFA28/first_page.png'),
-  DFA29: require('@/albums/kids/DFA29/first_page.png'),
-  DFA31: require('@/albums/kids/DFA31/first_page.png'),
-  DFA46: require('@/albums/kids/DFA46/first_page.png'),
-  DFA47: require('@/albums/kids/DFA47/first_page.png'),
-  DFA50: require('@/albums/kids/DFA50/first_page.png'),
-  DFA52: require('@/albums/kids/DFA52/first_page.png'),
-  DFA53: require('@/albums/kids/DFA53/first_page.png'),
+  DFA15: require('../../assets/images/albums/DFA15.png'),
+  DFA16: require('../../assets/images/albums/DFA16.png'),
+  DFA19: require('../../assets/images/albums/DFA19.png'),
+  DFA21: require('../../assets/images/albums/DFA21.png'),
+  DFA23: require('../../assets/images/albums/DFA23.png'),
+  DFA24: require('../../assets/images/albums/DFA24.png'),
+  DFA25: require('../../assets/images/albums/DFA25.png'),
+  DFA26: require('../../assets/images/albums/DFA26.png'),
+  DFA27: require('../../assets/images/albums/DFA27.png'),
+  DFA28: require('../../assets/images/albums/DFA28.png'),
+  DFA29: require('../../assets/images/albums/DFA29.png'),
+  DFA31: require('../../assets/images/albums/DFA31.png'),
+  DFA46: require('../../assets/images/albums/DFA46.png'),
+  DFA47: require('../../assets/images/albums/DFA47.png'),
+  DFA50: require('../../assets/images/albums/DFA50.png'),
+  DFA52: require('../../assets/images/albums/DFA52.png'),
+  DFA53: require('../../assets/images/albums/DFA53.png'),
   DFA57: require('../../assets/images/albums/DFA57.png'),
-  DFA59: require('@/albums/kids/DFA59/first_page.png'),
-  DFA60: require('@/albums/kids/DFA60/first_page.png'),
-  DFA71: require('@/albums/kids/DFA71/first_page.png'),
-  DFA72: require('@/albums/kids/DFA72/first_page.png'),
-  DFA74: require('@/albums/kids/DFA74/first_page.png'),
+  DFA59: require('../../assets/images/albums/DFA59.png'),
+  DFA60: require('../../assets/images/albums/DFA60.png'),
+  DFA71: require('../../assets/images/albums/DFA71.png'),
+  DFA72: require('../../assets/images/albums/DFA72.png'),
+  DFA74: require('../../assets/images/albums/DFA74.png'),
   DFA300: require('../../assets/images/albums/DFA300.png'),
-  DFA301: require('@/albums/kids/DFA301/first_page.png'),
-  DFA302: require('@/albums/kids/DFA302/first_page.png'),
-  DFA304: require('@/albums/kids/DFA304/first_page.png'),
-  DFA305: require('@/albums/kids/DFA305/first_page.png'),
-  DFA306: require('@/albums/kids/DFA306/first_page.png'),
-  DFA307: require('@/albums/kids/DFA307/first_page.png'),
+  DFA301: require('../../assets/images/albums/DFA301.png'),
+  DFA302: require('../../assets/images/albums/DFA302.png'),
+  DFA304: require('../../assets/images/albums/DFA304.png'),
+  DFA305: require('../../assets/images/albums/DFA305.png'),
+  DFA306: require('../../assets/images/albums/DFA306.png'),
+  DFA307: require('../../assets/images/albums/DFA307.png'),
   DFA308: require('../../assets/images/albums/DFA308.png'),
-  'DFA309 (2)': require('@/albums/kids/DFA309/first_page.png'),
-  DFA207: require('@/albums/kids/DFA207/first_page.png'),
-  DFA208: require('@/albums/kids/DFA208/first_page.png'),
+  'DFA309 (2)': require('../../assets/images/albums/DFA309 (2).png'),
+  DFA207: require('../../assets/images/albums/DFA207.png'),
+  DFA208: require('../../assets/images/albums/DFA208.png'),
   // Личные дневники для девочки большой
-  DD1: require('../../assets/images/albums/DD_1.png'),
-  DD2: require('../../assets/images/albums/DD_2.png'),
-  DD3: require('../../assets/images/albums/DD_3.png'),
-  DD4: require('../../assets/images/albums/DD_4.png'),
-  DD5: require('../../assets/images/albums/DD_5.png'),
-  DD6: require('../../assets/images/albums/DD_6.png'),
-  DD7: require('../../assets/images/albums/DD_7.png'),
-  DD8: require('../../assets/images/albums/DD_8.png'),
-  DD9: require('../../assets/images/albums/DD_9.png'),
-  DD10: require('../../assets/images/albums/DD_10.png'),
-  DD11: require('../../assets/images/albums/DD_11.png'),
-  DD12: require('../../assets/images/albums/DD_12.png'),
-  DD13: require('../../assets/images/albums/DD_13.png'),
-  DD14: require('../../assets/images/albums/DD_14.png'),
-  DD15: require('../../assets/images/albums/DD_15.png'),
-  DD16: require('../../assets/images/albums/DD_16.png'),
-  DD17: require('../../assets/images/albums/DD_17.png'),
-  DD18: require('../../assets/images/albums/DD_18.png'),
-  DD20: require('../../assets/images/albums/DD_20.png'),
-  DD21: require('../../assets/images/albums/DD_21.png'),
+  DD1: require('../../assets/images/albums/DD1.png'),
+  DD2: require('../../assets/images/albums/DD2.png'),
+  DD3: require('../../assets/images/albums/DD3.png'),
+  DD4: require('../../assets/images/albums/DD4.png'),
+  DD5: require('../../assets/images/albums/DD5.png'),
+  DD6: require('../../assets/images/albums/DD6.png'),
+  DD7: require('../../assets/images/albums/DD7.png'),
+  DD8: require('../../assets/images/albums/DD8.png'),
+  DD9: require('../../assets/images/albums/DD9.png'),
+  DD10: require('../../assets/images/albums/DD10.png'),
+  DD11: require('../../assets/images/albums/DD11.png'),
+  DD12: require('../../assets/images/albums/DD12.png'),
+  DD13: require('../../assets/images/albums/DD13.png'),
+  DD14: require('../../assets/images/albums/DD14.png'),
+  DD15: require('../../assets/images/albums/DD15.png'),
+  DD16: require('../../assets/images/albums/DD16.png'),
+  DD17: require('../../assets/images/albums/DD17.png'),
+  DD18: require('../../assets/images/albums/DD18.png'),
+  DD20: require('../../assets/images/albums/DD20.png'),
+  DD21: require('../../assets/images/albums/DD21.png'),
   // Фотоальбомы свадебные
-  SVA2W: require('../../assets/images/albums/SVA_2.png'),
-  SVA3W: require('../../assets/images/albums/SVA_3.png'),
-  SVA5W: require('../../assets/images/albums/SVA_5.png'),
-  SVA7W: require('../../assets/images/albums/SVA_7.png'),
-  SVA9W: require('../../assets/images/albums/SVA_9.png'),
-  DB6: require('@/albums/DB6/page_001.png'),
+  SVA2W: require('../../assets/images/albums/SVA2W.png'),
+  SVA3W: require('../../assets/images/albums/SVA3W.png'),
+  SVA5W: require('../../assets/images/albums/SVA5W.png'),
+  SVA7W: require('../../assets/images/albums/SVA7W.png'),
+  SVA9W: require('../../assets/images/albums/SVA9W.png'),  DB6: require('../../assets/images/albums/DB6.png'),
   DFA303: require('../../assets/images/albums/DFA303.png'),
-  DFA309: require('@/albums/kids/DFA309/first_page.png'),
-  DFA205: require('@/albums/kids/DFA205/first_page.png'),
-  DFA43: require('@/albums/kids/DFA43/first_page.png'),
-  DFA206: require('@/albums/kids/DFA206/first_page.png'),
+  DFA309: require('../../assets/images/albums/DFA309.png'),
+  DFA205: require('../../assets/images/albums/DFA205.png'),
+  DFA43: require('../../assets/images/albums/DFA43.png'),
+  DFA206: require('../../assets/images/albums/DFA206.png'),
 
 };
 
@@ -904,63 +907,14 @@ export const GIFT_ITEMS: GiftItem[] = [
     cover: COVER_BY_SKU.SVA9W,
     description: "Фотоальбом выполнен из твердой обложки как в книжном переплете 1,75 мм. Внутренний блок сотоит из 60 страниц, плотной белой бумаги 250 гр., переплетенной на качественную металлическую пружину. Альбом для фото вмещает от 120 фотографий разного формата. Наш альбом предназначен для творческого подхода в его наполнении. В комплекте к альбому идет большой набор тематических наклеек стикеров. Его можно использовать как фотоальбом семейный так и свадебный альбом. Все фотоальбомы из этой серии идут в размере 18х24 см по страничкам внутреннего блока. Фотоальбом большой, что позволит сохранить множество приятных моментов. Альбом для фотографий - это отличная возможно запечатлить свои эмоции на долгие годы. Фотоальбом свадебный можно использовать не только как место для вклеивания фотографий, но и как книгу пожеланий гостей, посетивших ваше мероприятие. Альбом для фото семейный будет отличным подарком на торжество и любой важное событие. Свадебный фотоальбом можно наполнять не только фотографиями, но и вклеивать его наши наклейки посвященные этому событию, а также делать различные записи и рисунки в процессе его наполнения. Не смотря на то, что альбом для фото большой его удобно хранить на полках в вашем интерьере. Семейный фотоальбом - это красивый подарок для пары. Наши фотоальбомы для фотографий идут в подарочной упаковке - это готовый подарок на любой юбилей. Особенно приятно дарить наши фотоальбомы для женщин. Подарите наш фотоальбом семейный большой своим родителям заранее наполнив его впечатляющими фотографиями из их жизни. Семейный альбом всегда напоминает нам о ценности и сохранении семейных традиций. Свадебный фото альбом можно пересматривать через много лет и вспоминать как вы впервые стали семьей. Свадебный альбом для фото напомнит вам о ваших друзьях и близких, которые были одном из самых важных событий в вашей жизни. Молодожены будут рады получить в подарок альбом свадебный. Альбом для фото свадебный выполнен в минималистическом стиле.",
   },
+  ...PDF_CATALOG_GIFT_ITEMS,
 ];
 
-type ImagePriority = 'high' | 'normal';
-
-function CatalogGiftCoverImage({
-  item,
-  style,
-  imagePriority,
-}: {
-  item: GiftItem;
-  style: StyleProp<ImageStyle>;
-  imagePriority: ImagePriority;
-}) {
-  const wbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
-  const [wbFailed, setWbFailed] = useState(false);
-  const useWb = Boolean(wbUri) && !wbFailed;
-
-  if (useWb && wbUri) {
-    return (
-      <Image
-        source={{ uri: wbUri }}
-        style={style}
-        contentFit="contain"
-        priority={imagePriority}
-        cachePolicy="disk"
-        transition={120}
-        accessibilityLabel={`Фото товара ${item.title} с Wildberries`}
-        recyclingKey={`wb-${item.sku}`}
-        onError={() => setWbFailed(true)}
-      />
-    );
-  }
-
-  if (item.cover) {
-    return (
-      <Image
-        source={item.cover}
-        style={style}
-        contentFit="contain"
-        priority={imagePriority}
-        cachePolicy="disk"
-        transition={0}
-        fadeDuration={0}
-        accessibilityLabel={`Обложка товара ${item.title}`}
-        placeholderContentFit="contain"
-      />
-    );
-  }
-
-  return (
-    <View style={[style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
-      <Ionicons name="image-outline" size={40} color="#D4C4B5" />
-    </View>
-  );
-}
-
 export default function GiftsScreen() {
+  const layout = useResponsiveLayout(CATALOG_MAX_WIDTH);
+  const numColumns = !layout.isTablet ? 1 : layout.width >= 1000 ? 3 : 2;
+  const coverHeight = numColumns === 1 ? 280 : numColumns === 2 ? 220 : 200;
+
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1085,35 +1039,40 @@ export default function GiftsScreen() {
         const skuCategory = SKU_TO_CATEGORY[item.sku];
         if (skuCategory === filterCategory) {
           // Продолжаем проверку типа обложки
+        } else if (item.celebrations.includes(filterCategory)) {
+          // Товары из PDF-каталога и новые позиции с прямым совпадением категории
         } else {
           // Маппинг категорий на старые названия celebrations
           const categoryToCelebrations: Record<string, string[]> = {
-            'Будущим мамам': ['Беременность'],
-            'В подарок': ['День рождения'],
-            'Для новорождённых': ['Выписка', 'Первый год'],
-            'Молодожёнам': ['Молодожёнам'], // Свадебные товары
+            'Будущим мамам': ['Беременность', 'Будущим мамам'],
+            'В подарок': ['День рождения', 'В подарок'],
+            'Для новорождённых': ['Выписка', 'Первый год', 'Для новорождённых'],
+            'Молодожёнам': ['Молодожёнам'],
+            'Для семьи': ['Для семьи'],
+            'Для детей': ['Для детей'],
           };
-          
-          // Для категории "Молодожёнам" проверяем свадебные товары (SVA) или celebrations
+
           if (filterCategory === 'Молодожёнам') {
-            const matches = item.sku.startsWith('SVA') || item.celebrations.includes('Молодожёнам');
+            const matches =
+              item.sku.startsWith('SVA') ||
+              item.sku.startsWith('SVO') ||
+              item.sku.startsWith('SB') ||
+              item.celebrations.includes('Молодожёнам');
             if (!matches) return false;
           } else if (filterCategory === 'В подарок') {
-            // Для категории "В подарок" исключаем дневники для девочек (DD1-DD21)
             const isGirlsDiary = SKU_TO_CATEGORY[item.sku] === 'Для девочек';
-            const matches = item.celebrations.includes('День рождения') && !isGirlsDiary;
+            const matches =
+              (item.celebrations.includes('День рождения') ||
+                item.celebrations.includes('В подарок')) &&
+              !isGirlsDiary;
             if (!matches) return false;
           } else {
-            // Для остальных категорий проверяем через маппинг
             const celebrationsToMatch = categoryToCelebrations[filterCategory] || [];
             if (celebrationsToMatch.length > 0) {
-              const matches = item.celebrations.some(celeb => celebrationsToMatch.includes(celeb));
+              const matches = item.celebrations.some((celeb) =>
+                celebrationsToMatch.includes(celeb)
+              );
               if (!matches) return false;
-            } else {
-              // Для категорий "Для семьи" и "Для детей" пока возвращаем false
-              if (filterCategory === 'Для семьи' || filterCategory === 'Для детей') {
-                return false;
-              }
             }
           }
         }
@@ -1137,7 +1096,6 @@ export default function GiftsScreen() {
   useEffect(() => {
     const preloadFilteredImages = async () => {
       try {
-        // Собираем изображения только для отфильтрованных элементов
         const wbUrls = filteredItems
           .map((item) => getWildberriesProductImageUrl(item.link))
           .filter((u): u is string => Boolean(u));
@@ -1194,8 +1152,8 @@ export default function GiftsScreen() {
       const imagePriority = index < 10 ? 'high' : 'normal';
       
       return (
-        <View style={styles.card} accessible>
-          <View style={styles.coverWrapper}>
+        <View style={[styles.card, numColumns > 1 && styles.cardInGrid]} accessible>
+          <View style={[styles.coverWrapper, { height: coverHeight }]}>
             <CatalogGiftCoverImage
               item={item}
               style={styles.coverImage}
@@ -1204,11 +1162,15 @@ export default function GiftsScreen() {
           </View>
 
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle} numberOfLines={2} ellipsizeMode="tail">
+            <Text style={styles.cardTitle} numberOfLines={numColumns > 1 ? 3 : 2} ellipsizeMode="tail">
               {item.title}
             </Text>
             {item.description && (
-              <Text style={styles.cardDescription} numberOfLines={3} ellipsizeMode="tail">
+              <Text
+                style={styles.cardDescription}
+                numberOfLines={numColumns > 1 ? 2 : 3}
+                ellipsizeMode="tail"
+              >
                 {item.description}
               </Text>
             )}
@@ -1229,12 +1191,22 @@ export default function GiftsScreen() {
         </View>
       );
     },
-    [handleOpenLink]
+    [handleOpenLink, numColumns, coverHeight]
   );
 
+  const contentShellStyle = layout.isTablet
+    ? {
+        width: '100%' as const,
+        maxWidth: layout.contentMaxWidth + layout.horizontalPadding * 2,
+        alignSelf: 'center' as const,
+        paddingHorizontal: layout.horizontalPadding,
+      }
+    : undefined;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
+    // В табах нижний safe-area уже учитывается таббаром; bottom-edge даёт “пустую полосу” над панелью.
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>
             Каталог
@@ -1288,29 +1260,33 @@ export default function GiftsScreen() {
         </View>
 
         <FlatList
+          key={`catalog-cols-${numColumns}`}
           data={filteredItems}
           keyExtractor={item => item.id}
           renderItem={renderItem}
+          numColumns={numColumns}
+          columnWrapperStyle={numColumns > 1 ? styles.catalogColumnWrapper : undefined}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.listContent,
-            { paddingBottom: bottomInset + 72 },
-          ]}
+          // Таббар с большим iOS-safe-area и скруглением перекрывает контент — даём больший нижний отступ.
+          contentContainerStyle={[styles.listContent, { paddingBottom: bottomInset + 140 }]}
           // Оптимизации для производительности
           removeClippedSubviews={true}
-          initialNumToRender={5}
-          maxToRenderPerBatch={3}
+          initialNumToRender={numColumns > 1 ? 6 : 5}
+          maxToRenderPerBatch={numColumns > 1 ? 6 : 3}
           updateCellsBatchingPeriod={50}
           windowSize={5}
-          getItemLayout={(data, index) => {
-            // Высота карточки: coverWrapper (280) + cardContent padding (40) + title (~30) + gap (12) + button (~56) + gap между карточками (20)
-            const itemHeight = 280 + 40 + 30 + 12 + 56 + 20; // ~438px
-            return {
-              length: itemHeight,
-              offset: itemHeight * index,
-              index,
-            };
-          }}
+          getItemLayout={
+            numColumns === 1
+              ? (_data, index) => {
+                  const itemHeight = coverHeight + 40 + 30 + 12 + 56 + 20;
+                  return {
+                    length: itemHeight,
+                    offset: itemHeight * index,
+                    index,
+                  };
+                }
+              : undefined
+          }
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="gift-outline" size={64} color="#D4C4B5" />
@@ -1341,11 +1317,7 @@ export default function GiftsScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              style={styles.modalScroll}
-              contentContainerStyle={styles.modalScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
               {/* Фильтр по разделу */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterSectionTitle}>Раздел</Text>
@@ -1445,7 +1417,7 @@ export default function GiftsScreen() {
             </ScrollView>
 
             {/* Кнопки действий */}
-            <View style={[styles.modalActions, { paddingBottom: bottomInset }]}>
+            <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.resetButton}
                 onPress={() => {
@@ -1676,9 +1648,6 @@ const styles = StyleSheet.create({
   modalScroll: {
     maxHeight: 400,
   },
-  modalScrollContent: {
-    paddingBottom: 8,
-  },
   filterSection: {
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -1730,6 +1699,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
     borderTopColor: '#F0E8E0',
@@ -1777,7 +1747,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: 24,
+    paddingBottom: 0,
     gap: 20,
+  },
+  catalogColumnWrapper: {
+    gap: 16,
+    marginBottom: 16,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -1791,8 +1766,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
+  cardInGrid: {
+    flex: 1,
+  },
   coverWrapper: {
-    height: 280,
     backgroundColor: '#FAF8F5',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1800,6 +1777,11 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: '100%',
+  },
+  coverPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardContent: {
     padding: 20,

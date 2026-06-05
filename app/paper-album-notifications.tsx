@@ -1,6 +1,6 @@
 import { scheduleSyncToCloud } from '@/utils/account-sync';
-import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
+import { setupAlbumNotificationsForCelebration } from '@/utils/albumNotificationCoordinator';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -128,11 +128,9 @@ export default function PaperAlbumNotificationsScreen() {
       await AsyncStorage.setItem('@paper_albums', JSON.stringify(paperAlbums));
       scheduleSyncToCloud();
 
-      // Планируем уведомления в зависимости от типа
-      if (selectedType === 'pregnancy') {
-        await schedulePregnancyNotifications(selectedDate, projectId);
-      } else if (selectedType === 'kids') {
-        await scheduleKidsNotifications(selectedDate, projectId);
+      // Планируем уведомления для выбранного типа и перепланируем все сохранённые альбомы
+      if (selectedType === 'pregnancy' || selectedType === 'kids') {
+        await setupAlbumNotificationsForCelebration(selectedDate, selectedType, projectId);
       }
 
       // Отправляем push-уведомление об успешном подключении
@@ -174,10 +172,11 @@ export default function PaperAlbumNotificationsScreen() {
               const notificationId = await Notifications.scheduleNotificationAsync({
                 content: {
                   title: '✅ Уведомления подключены',
-                  body: selectedType === 'pregnancy' 
+                  body: selectedType === 'pregnancy'
                     ? 'Уведомления для альбома беременности успешно настроены. Вы будете получать напоминания о развитии беременности.'
                     : 'Уведомления для детского альбома успешно настроены. Вы будете получать напоминания о развитии ребёнка.',
                   sound: true,
+                  data: OPEN_NOTIFICATIONS_INBOX_DATA,
                 },
                 trigger,
               });

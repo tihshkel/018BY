@@ -1,4 +1,5 @@
-import { GOOGLE_PLAY_STORE_URL } from '@/constants/store-links';
+import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
+import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
@@ -42,6 +43,12 @@ export default function ProfileScreen() {
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
+  const {
+    isSubscribed,
+    isLoading: isSubscriptionLoading,
+    isIapEnabled,
+    refresh,
+  } = useExportSubscription();
 
   useEffect(() => {
     // Запускаем анимацию сразу, не дожидаясь загрузки данных
@@ -57,7 +64,10 @@ export default function ProfileScreen() {
       if (!isInitialMount.current) {
         loadUserData();
       }
-    }, [])
+      if (isIapEnabled) {
+        refresh();
+      }
+    }, [isIapEnabled, refresh])
   );
 
   const loadUserData = async () => {
@@ -171,13 +181,31 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleRateApp = () => {
-    const url = Platform.select({
-      ios: 'https://apps.apple.com/app/id123456789',
-      android: GOOGLE_PLAY_STORE_URL,
-    });
-    if (url) {
-      Linking.openURL(url);
+  const handleOpenExportSubscription = () => {
+    router.push('/export-subscription');
+  };
+
+  const handleRateApp = async () => {
+    const iosStoreId = '6761551531';
+    const iosHttps = `https://apps.apple.com/app/id${iosStoreId}`;
+    const iosItms = `itms-apps://apps.apple.com/app/id${iosStoreId}`;
+
+    try {
+      if (Platform.OS === 'ios') {
+        // itms-apps открывает App Store напрямую; https — запасной вариант
+        const canOpenItms = await Linking.canOpenURL(iosItms);
+        await Linking.openURL(canOpenItms ? iosItms : iosHttps);
+        return;
+      }
+      if (Platform.OS === 'android') {
+        await Linking.openURL(
+          'https://play.google.com/store/apps/details?id=com.tihshkel.app018by'
+        );
+      }
+    } catch {
+      if (Platform.OS === 'ios') {
+        Linking.openURL(iosHttps).catch(() => {});
+      }
     }
   };
 
@@ -260,6 +288,11 @@ export default function ProfileScreen() {
 
             <Text style={styles.userName}>{userName || 'Пользователь'}</Text>
 
+            <ProfileSubscriptionStatusBadge
+              isPremium={isSubscribed}
+              isLoading={isIapEnabled && isSubscriptionLoading}
+              onPress={handleOpenExportSubscription}
+            />
           </View>
 
           {/* Меню */}
@@ -357,7 +390,7 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 10,
+    marginBottom: 4,
     textAlign: 'center',
   },
   menuSection: {

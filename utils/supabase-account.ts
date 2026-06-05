@@ -7,6 +7,45 @@ export function isSupabaseUserIdKey(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id.trim());
 }
 
+async function requireSupabaseAuthUserId(
+  expectedUserId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = getSupabase();
+  if (!supabase) return { ok: false, error: 'Supabase не настроен.' };
+  try {
+    const getUserPromise = supabase.auth.getUser();
+    const timeoutMs = 12_000;
+    const { data, error } = await Promise.race([
+      getUserPromise,
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('AUTH_CHECK_TIMEOUT')), timeoutMs);
+      }),
+    ]);
+    const authedId = data?.user?.id ?? '';
+    if (error || !authedId) {
+      return {
+        ok: false,
+        error:
+          'Для сохранения в облако нужно войти в аккаунт (email и пароль). Откройте «Профиль» → войдите / зарегистрируйтесь.',
+      };
+    }
+    if (authedId !== expectedUserId) {
+      return {
+        ok: false,
+        error:
+          'Аккаунт Supabase не совпадает с текущим профилем на устройстве. Выйдите и войдите заново тем же аккаунтом.',
+      };
+    }
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error:
+        'Не удалось проверить вход в Supabase. Проверьте интернет и повторите попытку.',
+    };
+  }
+}
+
 export type SaveProfileOptions = {
   loginUsername?: string | null;
   referralSource?: string | null;
@@ -28,6 +67,11 @@ export async function saveAccountToSupabase(
 
   if (!isSupabaseUserIdKey(userId)) {
     return { success: false, error: 'Некорректный идентификатор пользователя для облака' };
+  }
+
+  const authCheck = await requireSupabaseAuthUserId(userId);
+  if (!authCheck.ok) {
+    return { success: false, error: authCheck.error };
   }
 
   const name = (userName || '').trim();
@@ -137,6 +181,11 @@ export async function pushCoreDataToSupabase(
     return { success: false, error: 'Некорректный идентификатор пользователя' };
   }
 
+  const authCheck = await requireSupabaseAuthUserId(userId);
+  if (!authCheck.ok) {
+    return { success: false, error: authCheck.error };
+  }
+
   try {
     const { error } = await supabase.from('user_sync').upsert(
       {
@@ -170,6 +219,11 @@ export async function pushProjectDataToSupabase(
 
   if (!isSupabaseUserIdKey(userId)) {
     return { success: false, error: 'Некорректный идентификатор пользователя' };
+  }
+
+  const authCheck = await requireSupabaseAuthUserId(userId);
+  if (!authCheck.ok) {
+    return { success: false, error: authCheck.error };
   }
 
   try {

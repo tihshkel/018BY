@@ -1,15 +1,16 @@
-import { getAllAlbumTemplates, getAlbumTemplateById } from '@/albums';
-import { getRemindersStorageKey, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { getAllAlbumTemplates } from '@/albums';
+import { getRemindersStorageKey } from '@/utils/account-sync';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
+import { withTimeout } from '@/utils/asyncTimeout';
+import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
-import { getGiftItemBySku } from '@/utils/albumGiftMapping';
+import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { scheduleKidsNotifications } from '@/utils/kidsNotificationScheduler';
-import { schedulePregnancyNotifications } from '@/utils/pregnancyNotificationScheduler';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -20,10 +21,10 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Alert,
-    Dimensions,
+    FlatList,
     Modal,
     Platform,
     ScrollView,
@@ -38,6 +39,17 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  FORM_MODAL_MAX_WIDTH,
+  getGridColumnCount,
+  getGridColumnWrapperStyle,
+  getGridListStyle,
+  getTabletBottomModalStyles,
+  getTabletContentShell,
+  getTabletSectionWrap,
+  PICKER_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -82,8 +94,6 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
   }
 };
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 interface CoverType {
   id: string;
   title: string;
@@ -102,6 +112,18 @@ interface CategoryInfo {
 }
 
 export default function SelectCoverScreen() {
+  const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const modalLayout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
+  const contentShellStyle = getTabletContentShell(layout);
+  const sectionWrap = getTabletSectionWrap(layout, {
+    phonePadding: 24,
+    tabletPadding: 0,
+  });
+  const tabletModal = getTabletBottomModalStyles(modalLayout);
+  const coverColumnCount = getGridColumnCount(layout);
+  const gridListStyle = getGridListStyle(layout);
+  const gridColumnWrapper = getGridColumnWrapperStyle(16);
+
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const params = useLocalSearchParams<{ celebration: string | string[] }>();
@@ -144,7 +166,7 @@ export default function SelectCoverScreen() {
         const gradient = categoryGradients.diary;
         return {
           id: cover.id,
-          title: cover.name,
+          title: getCoverSelectTitleBySku(cover.sku, 'diary'),
           description: 'Личный дневник для записи мыслей и воспоминаний',
           image: cover.image,
           color: gradient[0],
@@ -156,28 +178,23 @@ export default function SelectCoverScreen() {
     // Для беременности — только 6 дизайнов (DB1–DB6). Тип обложки выбирается при экспорте
     if (celebration === 'pregnancy') {
       const gradient = categoryGradients.pregnancy;
-      return PREGNANCY_COVER_DESIGNS.map((design) => {
-        const giftItem = getGiftItemBySku(design.sku);
-        return {
-          id: design.id,
-          title: giftItem?.title ?? design.title,
-          description: 'Дизайн обложки',
-          image: design.image,
-          color: gradient[0],
-          gradient,
-        };
-      });
+      return PREGNANCY_COVER_DESIGNS.map((design) => ({
+        id: design.id,
+        title: getCoverSelectTitleBySku(design.sku, 'pregnancy'),
+        description: 'Дизайн обложки',
+        image: design.image,
+        color: gradient[0],
+        gradient,
+      }));
     }
 
     // Для kids — только first_page из albums/kids. Тип обложки выбирается при экспорте
     if (celebration === 'kids') {
       const gradient = categoryGradients.kids;
       return KIDS_COVER_DESIGNS.map((design) => {
-        const giftItem = getGiftItemBySku(design.sku);
-        const albumTemplate = getAlbumTemplateById(design.id);
         return {
           id: design.id,
-          title: giftItem?.title ?? albumTemplate?.name ?? 'Фотоальбом от 0 до 1 года',
+          title: getCoverSelectTitleBySku(design.sku, 'kids'),
           description: 'Дизайн обложки',
           image: design.image,
           color: gradient[0],
@@ -189,33 +206,27 @@ export default function SelectCoverScreen() {
     // Для праздников — обложки из albums/holiday
     if (celebration === 'holidays') {
       const gradient = categoryGradients.holidays;
-      return HOLIDAY_COVER_DESIGNS.map((design) => {
-        const giftItem = getGiftItemBySku(design.sku);
-        return {
-          id: design.id,
-          title: giftItem?.title ?? design.title,
-          description: 'Праздничный альбом',
-          image: design.image,
-          color: gradient[0],
-          gradient,
-        };
-      });
+      return HOLIDAY_COVER_DESIGNS.map((design) => ({
+        id: design.id,
+        title: getCoverSelectTitleBySku(design.sku, 'holidays'),
+        description: 'Праздничный альбом',
+        image: design.image,
+        color: gradient[0],
+        gradient,
+      }));
     }
 
     // Для семьи — обложки из albums/family
     if (celebration === 'family') {
       const gradient = categoryGradients.family;
-      return FAMILY_COVER_DESIGNS.map((design) => {
-        const giftItem = getGiftItemBySku(design.sku);
-        return {
-          id: design.id,
-          title: giftItem?.title ?? design.title,
-          description: 'Семейный альбом',
-          image: design.image,
-          color: gradient[0],
-          gradient,
-        };
-      });
+      return FAMILY_COVER_DESIGNS.map((design) => ({
+        id: design.id,
+        title: getCoverSelectTitleBySku(design.sku, 'family'),
+        description: 'Семейный альбом',
+        image: design.image,
+        color: gradient[0],
+        gradient,
+      }));
     }
 
     // Фильтруем альбомы по категории для остальных категорий
@@ -551,6 +562,7 @@ export default function SelectCoverScreen() {
               title: categoryInfo.notificationTitle,
               body: categoryInfo.notificationBody,
               sound: true,
+              data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
           });
@@ -568,6 +580,7 @@ export default function SelectCoverScreen() {
               title: categoryInfo.notificationTitle,
               body: categoryInfo.notificationBody,
               sound: true,
+              data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
           });
@@ -614,60 +627,39 @@ export default function SelectCoverScreen() {
     if (isSavingDate) return;
     setIsSavingDate(true);
 
+    const coverId = selectedCoverId;
+    const eventDateIso = dueDate.toISOString();
+
     try {
-      // Сохраняем дату события как напоминание
-      await scheduleReminder(dueDate, celebration);
-
-      // Для беременности планируем все уведомления (42 недели + триместры + ПДР и т.д.)
-      if (celebration === 'pregnancy') {
-        const projectId = `pregnancy_${Date.now()}`;
-        console.log('[SelectCover] Scheduling pregnancy notifications for due date:', dueDate.toLocaleDateString());
-        await schedulePregnancyNotifications(dueDate, projectId);
-      }
-      // Для детей планируем все уведомления по дате рождения
-      if (celebration === 'kids') {
-        const projectId = `kids_${Date.now()}`;
-        console.log('[SelectCover] Scheduling kids notifications for birth date:', dueDate.toLocaleDateString());
-        await scheduleKidsNotifications(dueDate, projectId);
-      }
-
-      const pushResult = await pushCoreOnlyToCloud();
-      if (!pushResult.ok) {
-        console.warn('[SelectCover] Sync failed:', pushResult.error);
-        if (isSupabaseNotConfiguredError(pushResult.error)) {
-          const msg = getSupabaseNotConfiguredAlertMessageOnce();
-          if (msg) Alert.alert('Сохранено на устройстве', msg);
-        } else {
-          Alert.alert('Сохранено на устройстве', `В облако не удалось отправить: ${pushResult.error ?? 'неизвестная ошибка'}. Проверьте интернет и .env.`);
-        }
-      }
-
-      setShowDateModal(false);
-
-      router.push({
-        pathname: '/select-action',
-        params: {
-          celebration,
-          coverType: selectedCoverId,
-          eventDate: dueDate.toISOString(),
-        }
-      });
-
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-      const syncId = await getAccountSyncId();
-      if (!syncId) {
-        Alert.alert(
-          'Данные сохранены на устройстве',
-          'Чтобы дата и напоминания синхронизировались между устройствами, настройте учётную запись в разделе «Профиль».'
-        );
-      }
+      await withTimeout(scheduleReminder(dueDate, celebration), 8_000, 'save-reminder');
     } catch (error) {
-      console.error('Error saving event date:', error);
-      const categoryInfo = getCategoryInfo(celebration);
-      Alert.alert('Ошибка', `Не удалось сохранить ${categoryInfo.title.toLowerCase()}`);
-    } finally {
-      setIsSavingDate(false);
+      console.warn('[SelectCover] Reminder save timed out or failed:', error);
+    }
+
+    setShowDateModal(false);
+    setIsSavingDate(false);
+
+    router.push({
+      pathname: '/select-action',
+      params: {
+        celebration,
+        coverType: coverId,
+        eventDate: eventDateIso,
+      },
+    });
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (celebration === 'pregnancy' || celebration === 'kids') {
+      runDueDateBackgroundSetup(dueDate, celebration);
+    }
+
+    const syncId = await getAccountSyncId();
+    if (!syncId) {
+      Alert.alert(
+        'Данные сохранены на устройстве',
+        'Чтобы дата и напоминания синхронизировались между устройствами, настройте учётную запись в разделе «Профиль».'
+      );
     }
   };
 
@@ -694,6 +686,99 @@ export default function SelectCoverScreen() {
     return celebrationMap[celebrationId] || 'Праздник';
   };
 
+  const renderCoverCard = useCallback(
+    (cover: CoverType, variant: 'row' | 'tile') => {
+      const isTile = variant === 'tile';
+      return (
+        <TouchableOpacity
+          style={[styles.coverCard, isTile && styles.coverCardTile]}
+          onPress={() => handleCoverSelect(cover.id)}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#FFFFFF', '#FFFFFF']}
+            style={[styles.cardGradient, isTile && styles.cardGradientTile]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <View
+              style={[styles.cardContent, isTile && styles.cardContentTile]}
+            >
+              <View
+                style={[
+                  styles.cardImageContainer,
+                  isTile && styles.cardImageContainerTile,
+                ]}
+              >
+                <Image
+                  source={cover.image}
+                  style={styles.cardImage}
+                  contentFit="cover"
+                  priority="high"
+                  cachePolicy="memory-disk"
+                  transition={0}
+                  fadeDuration={0}
+                  recyclingKey={cover.id}
+                  placeholderContentFit="cover"
+                />
+              </View>
+              <View style={styles.cardTextContainer}>
+                {isTile ? (
+                  <>
+                    <Text style={styles.cardTitleTile} numberOfLines={3}>
+                      {cover.title}
+                    </Text>
+                    <Text
+                      style={styles.cardDescriptionTile}
+                      numberOfLines={2}
+                    >
+                      {cover.description}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.cardTitle}>{cover.title}</Text>
+                    <Text style={styles.cardDescription}>
+                      {cover.description}
+                    </Text>
+                  </>
+                )}
+              </View>
+              {!isTile && (
+                <Ionicons name="chevron-forward" size={24} color="#C9A89A" />
+              )}
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    },
+    [handleCoverSelect]
+  );
+
+  const renderCoverList = () => {
+    if (layout.isTablet) {
+      return (
+        <FlatList
+          key={`select-cover-cols-${coverColumnCount}`}
+          data={coverTypes}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => renderCoverCard(item, 'tile')}
+          numColumns={coverColumnCount}
+          scrollEnabled={false}
+          style={gridListStyle}
+          columnWrapperStyle={
+            coverColumnCount > 1 ? gridColumnWrapper : undefined
+          }
+        />
+      );
+    }
+    return coverTypes.map((cover) => (
+      <React.Fragment key={cover.id}>
+        {renderCoverCard(cover, 'row')}
+      </React.Fragment>
+    ));
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
@@ -703,9 +788,11 @@ export default function SelectCoverScreen() {
         end={{ x: 1, y: 1 }}
       />
 
-      <Animated.View style={[styles.content, containerAnimatedStyle]}>
+      <Animated.View
+        style={[styles.content, contentShellStyle, containerAnimatedStyle]}
+      >
         {/* Заголовок с кнопкой назад */}
-        <View style={styles.header}>
+        <View style={[styles.header, sectionWrap]}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={handleBack}
@@ -728,50 +815,11 @@ export default function SelectCoverScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
+            sectionWrap,
             { paddingBottom: bottomInset + 24 },
           ]}
         >
-          {coverTypes.map((cover) => (
-            <TouchableOpacity
-              key={cover.id}
-              style={styles.coverCard}
-              onPress={() => handleCoverSelect(cover.id)}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#FFFFFF', '#FFFFFF']}
-                style={styles.cardGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.cardContent}>
-                  <View style={styles.cardImageContainer}>
-                    <Image
-                      source={cover.image}
-                      style={styles.cardImage}
-                      contentFit="cover"
-                      priority="high"
-                      cachePolicy="memory-disk"
-                      transition={0}
-                      fadeDuration={0}
-                      recyclingKey={cover.id}
-                      placeholderContentFit="cover"
-                    />
-                  </View>
-
-                  <View style={styles.cardTextContainer}>
-                    <Text style={styles.cardTitle}>
-                      {cover.title}
-                    </Text>
-                    <Text style={styles.cardDescription}>
-                      {cover.description}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color="#C9A89A" />
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
+          {renderCoverList()}
         </ScrollView>
       </Animated.View>
 
@@ -787,8 +835,14 @@ export default function SelectCoverScreen() {
             animationType="slide"
             onRequestClose={handleDateCancel}
           >
-            <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, { paddingBottom: bottomInset + 20 }]}>
+            <View style={[styles.modalOverlay, tabletModal.overlay]}>
+              <View
+                style={[
+                  styles.modalContent,
+                  tabletModal.content,
+                  { paddingBottom: bottomInset + 20 },
+                ]}
+              >
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{categoryInfo.title}</Text>
                   <TouchableOpacity onPress={handleDateCancel}>
@@ -906,7 +960,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 32,
   },
@@ -953,9 +1006,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-  },
+  scrollContent: {},
   coverCard: {
     marginBottom: 16,
     borderRadius: 20,
@@ -966,13 +1017,25 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 4,
   },
+  coverCardTile: {
+    flex: 1,
+    marginBottom: 0,
+    minWidth: 0,
+  },
   cardGradient: {
     padding: 20,
+  },
+  cardGradientTile: {
+    padding: 16,
   },
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  cardContentTile: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   cardImageContainer: {
     width: 110,
@@ -981,12 +1044,47 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#FAF8F5',
   },
+  cardImageContainerTile: {
+    width: '100%',
+    height: 200,
+    marginBottom: 12,
+  },
+  cardTitleTile: {
+    fontSize: 15,
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    textAlign: 'left',
+    lineHeight: 20,
+    marginBottom: 4,
+    width: '100%',
+  },
+  cardDescriptionTile: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    textAlign: 'left',
+    lineHeight: 18,
+    flexShrink: 1,
+    width: '100%',
+  },
   cardImage: {
     width: '100%',
     height: '100%',
   },
   cardTextContainer: {
     flex: 1,
+    minWidth: 0,
   },
   cardTitle: {
     fontSize: 15,
@@ -999,6 +1097,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     fontWeight: '400',
     marginBottom: 4,
+    flexShrink: 1,
   },
   cardDescription: {
     fontSize: 12,
@@ -1010,6 +1109,7 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 17,
+    flexShrink: 1,
   },
   modalOverlay: {
     flex: 1,
@@ -1068,6 +1168,7 @@ const styles = StyleSheet.create({
   },
   dateButtonTextContainer: {
     flex: 1,
+    minWidth: 0,
   },
   dateButtonLabel: {
     fontSize: 12,

@@ -1,19 +1,25 @@
-import { getAlbumTemplateById } from '@/albums';
-import { getCoverForExport } from '@/utils/coverMapping';
+import { ProjectCard } from '@/components/project-card';
+import { deleteUserProjectLocally } from '@/utils/delete-user-project';
+import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
+import {
+  formatProjectsCountLabel,
+  HOME_PROJECTS_PREVIEW_LIMIT,
+  loadUserProjects,
+  type UserProject,
+} from '@/utils/userProjects';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { ensureSyncReady, pullLatestFromCloud, pushAccountDataToCloud, scheduleSyncToCloud, setOnSyncComplete } from '@/utils/account-sync';
-import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
-import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
+import { ensureSyncReady, pullLatestFromCloud, setOnSyncComplete } from '@/utils/account-sync';
+import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
 import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage } from '@/utils/verify-project-save';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { router, useFocusEffect } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
-    Dimensions,
+    FlatList,
     Modal,
     Platform,
     Pressable,
@@ -29,84 +35,46 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.75;
-
-// Функция для получения изображения по категории
-const getCategoryImage = (category: string) => {
-  switch (category) {
-    case 'pregnancy':
-      return require('@/assets/images/albums/blank_white.png');
-    case 'kids':
-      return require('@/assets/images/albums/blank_white.png');
-    case 'family':
-      return require('@/assets/images/albums/blank_white.png');
-    case 'wedding':
-      return require('@/assets/images/albums/blank_white.png');
-    case 'travel':
-      return require('@/assets/images/albums/blank_white.png');
-    case 'holidays':
-      // В продакшен-сборках не тянем локальные папки `albums/*` с большими файлами.
-      return require('@/assets/images/albums/blank_white.png');
-    default:
-      return null;
-  }
-};
-
-// Функция для получения обложки проекта
-// Приоритет: 1) coverType (выбранная обложка), 2) albumId (для старых проектов), 3) thumbnailPath, 4) category fallback
-const getProjectCoverImage = (project: Project): any => {
-  // Если есть coverType (выбранная обложка), используем её
-  if (project.coverType) {
-    const coverImage = getCoverForExport(project.coverType, project.category);
-    if (coverImage) {
-      return coverImage;
-    }
-  }
-  
-  // Fallback: albumId для проектов без сохранённого coverType (обратная совместимость)
-  if (project.albumId) {
-    const coverImage = getCoverForExport(project.albumId, project.category);
-    if (coverImage) {
-      return coverImage;
-    }
-  }
-  
-  // Fallback на thumbnailPath
-  if (project.thumbnailPath) {
-    return project.thumbnailPath;
-  }
-  
-  // Fallback на category
-  return getCategoryImage(project.category);
-};
-
-interface Project {
-  id: string;
-  title: string;
-  category: string;
-  albumId?: string | null;
-  coverType?: string | null; // ID выбранной обложки
-  coverImage?: string;
-  pagesCount: number;
-  photosCount: number;
-  remindersCount: number;
-  dateStarted: string;
-  isReadyMadeAlbum?: boolean;
-  hasPdfTemplate?: boolean;
-  thumbnailPath?: any;
-  reminderDate?: string | null;
-  date?: string | null;
-}
-
+import {
+  getGridColumnCount,
+  getGridItemWidth,
+  getTabletContentShell,
+  getGridColumnWrapperStyle,
+  getGridListStyle,
+  getTabletSectionWrap,
+  HOME_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 
 export default function HomeScreen() {
+  const layout = useResponsiveLayout(HOME_CONTENT_MAX_WIDTH);
+  const contentShellStyle = getTabletContentShell(layout);
+  const sectionWrap = getTabletSectionWrap(layout, {
+    phonePadding: 24,
+    tabletPadding: 0,
+  });
+  const gridListStyle = getGridListStyle(layout);
+  const gridColumnWrapper = getGridColumnWrapperStyle(16);
+
+  const isTabletLayout = layout.isTablet;
+  const projectsColumnCount = getGridColumnCount(layout);
+  const phoneCardWidth = getGridItemWidth(layout, 1);
+  const singleProjectCardWidth = layout.isTablet
+    ? Math.min(400, layout.contentMaxWidth * 0.5)
+    : undefined;
+
   const [userName, setUserName] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projects, setProjects] = useState<UserProject[]>([]);
+  const [selectedProject, setSelectedProject] = useState<UserProject | null>(null);
   const [showActionModal, setShowActionModal] = useState(false);
-  const [selectedProjectForAction, setSelectedProjectForAction] = useState<Project | null>(null);
+  const [selectedProjectForAction, setSelectedProjectForAction] = useState<UserProject | null>(null);
+  const [actionModalStep, setActionModalStep] = useState<'menu' | 'confirmDelete'>('menu');
+
+  const previewProjects =
+    projects.length > HOME_PROJECTS_PREVIEW_LIMIT
+      ? projects.slice(0, HOME_PROJECTS_PREVIEW_LIMIT)
+      : projects;
+  const showAllStoriesLink = projects.length > HOME_PROJECTS_PREVIEW_LIMIT;
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -143,6 +111,7 @@ export default function HomeScreen() {
           if (changed) {
             loadProjects();
             loadUserData();
+            void refreshAllAlbumNotifications({ skipCloudSync: true }).catch(() => {});
           } else {
             // Если pullLatestFromCloud не обнаружил изменений, но проектов локально 0 —
             // повторная попытка через 3 сек (облачная синхронизация после входа могла ещё не завершиться)
@@ -182,101 +151,8 @@ export default function HomeScreen() {
 
   const loadProjects = async () => {
     try {
-      const savedProjects = await AsyncStorage.getItem('@user_projects');
-      if (!savedProjects) {
-        setProjects([]);
-        setSelectedProject(null);
-        return;
-      }
-
-      const parsedProjects = JSON.parse(savedProjects) as any[];
-      if (!Array.isArray(parsedProjects) || parsedProjects.length === 0) {
-        setProjects([]);
-        setSelectedProject(null);
-        return;
-      }
-
-      const safeParseArray = (raw: string | null): any[] => {
-        if (!raw) return [];
-        try {
-          const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch {
-          return [];
-        }
-      };
-
-      const countPhotoAnnotations = (items: any[]): number => {
-        if (!Array.isArray(items) || items.length === 0) return 0;
-        return items.filter((ann) => ann?.type === 'image' && typeof ann?.imageUri === 'string' && ann.imageUri.length > 0).length;
-      };
-
-      const hydrateProject = async (p: any): Promise<Project> => {
-        const projectId = String(p?.id ?? '');
-        const albumId = typeof p?.albumId === 'string' ? p.albumId : null;
-        const createdAt = typeof p?.createdAt === 'string' ? p.createdAt : new Date().toISOString();
-
-        const remindersCount = p?.reminderDate || p?.date ? 1 : 0;
-
-        const keys = [
-          `@project_images_${projectId}`,
-          `@project_annotations_${projectId}`,
-          `@project_cover_annotations_${projectId}`,
-        ] as const;
-
-        let pagesCount = 0;
-        let photosCount = 0;
-
-        try {
-          const results = await AsyncStorage.multiGet(keys as unknown as string[]);
-          const imagesRaw = results.find(([k]) => k === keys[0])?.[1] ?? null;
-          const annotationsRaw = results.find(([k]) => k === keys[1])?.[1] ?? null;
-          const coverAnnotationsRaw = results.find(([k]) => k === keys[2])?.[1] ?? null;
-
-          const savedImages = safeParseArray(imagesRaw);
-          if (savedImages.length > 0) {
-            pagesCount = savedImages.length;
-          } else if (albumId) {
-            const template = getAlbumTemplateById(albumId);
-            if (typeof template?.pages === 'number') {
-              pagesCount = template.pages;
-            } else {
-              pagesCount = savedImages.length;
-            }
-          } else {
-            pagesCount = savedImages.length;
-          }
-
-          const anns = safeParseArray(annotationsRaw);
-          const coverAnns = safeParseArray(coverAnnotationsRaw);
-          photosCount = countPhotoAnnotations(anns) + countPhotoAnnotations(coverAnns);
-        } catch {
-          // ignore – оставим 0, но UI не упадёт
-        }
-
-        return {
-          id: projectId,
-          title: String(p?.title ?? ''),
-          category: String(p?.category ?? ''),
-          albumId,
-          coverType: p?.coverType || null, // ID выбранной обложки
-          pagesCount,
-          photosCount,
-          remindersCount,
-          dateStarted: createdAt,
-          isReadyMadeAlbum: !!p?.isReadyMadeAlbum,
-          hasPdfTemplate: !!p?.hasPdfTemplate,
-          thumbnailPath: p?.thumbnailPath || null,
-          reminderDate: p?.reminderDate ?? null,
-          date: p?.date ?? null,
-        };
-      };
-
-      const formattedProjects = await Promise.all(parsedProjects.map(hydrateProject));
-
+      const formattedProjects = await loadUserProjects();
       setProjects(formattedProjects);
-
-      // сохраняем выбор, если возможно
       setSelectedProject((prev) => {
         if (prev) {
           const stillExists = formattedProjects.find((x) => x.id === prev.id);
@@ -295,7 +171,12 @@ export default function HomeScreen() {
     opacity: opacity.value,
   }));
 
-  const handleProjectPress = (project: Project) => {
+  const handleAllStories = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/all-stories');
+  };
+
+  const handleProjectPress = (project: UserProject) => {
     // Если это готовый альбом с PDF, переходим к edit-album
     // Иначе переходим к обычному edit-project
     if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
@@ -311,9 +192,10 @@ export default function HomeScreen() {
     router.push('/projects');
   };
 
-  const handleLongPress = (project: Project) => {
+  const handleLongPress = (project: UserProject) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedProjectForAction(project);
+    setActionModalStep('menu');
     setShowActionModal(true);
   };
 
@@ -331,98 +213,47 @@ export default function HomeScreen() {
   };
 
   const handleDeleteProject = () => {
-    const project = selectedProjectForAction;
-    if (!project) return;
-    const projectId = String(project.id);
-    const title = project.title;
-    Alert.alert(
-      'Удалить проект',
-      `Вы уверены, что хотите удалить проект "${title}"? Это действие нельзя отменить.`,
-      [
-        {
-          text: 'Отмена',
-          style: 'cancel',
-        },
-        {
-          text: 'Удалить',
-          style: 'destructive',
-          onPress: () => setTimeout(() => confirmDeleteProject(project), 0),
-        },
-      ]
-    );
+    if (!selectedProjectForAction) return;
+    setActionModalStep('confirmDelete');
   };
 
-  const confirmDeleteProject = async (projectArg?: Project | null) => {
-    const project = projectArg ?? selectedProjectForAction;
+  const handleDeleteConfirmCancel = () => {
+    setActionModalStep('menu');
+  };
+
+  const handleDeleteConfirm = async () => {
+    const project = selectedProjectForAction;
     if (!project) return;
 
-    const projectId = String(project.id);
+    const projectId = project.id;
+    closeActionModal();
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    setSelectedProject((prev) => (prev?.id === projectId ? null : prev));
+
     try {
-      await removeRemindersAndScheduledNotificationsForProject(projectId, {
-        category: project.category,
-        reminderDate: project.reminderDate ?? null,
-      });
-
-      // Удаляем все данные проекта из AsyncStorage (метаданные, изображения, аннотации и т.д.)
-      const projectKeys = [
-        `@project_${projectId}`,
-        `@project_images_${projectId}`,
-        `@project_annotations_${projectId}`,
-        `@project_cover_annotations_${projectId}`,
-        `@project_viewport_${projectId}`,
-        `@project_cover_viewport_${projectId}`,
-        `@project_pdf_${projectId}`,
-        `@project_last_text_style_${projectId}`,
-      ];
-      await AsyncStorage.multiRemove(projectKeys);
-
-      // Удаляем проект из списка @user_projects (сравниваем id как строки)
-      const existingProjects = await AsyncStorage.getItem('@user_projects');
-      if (existingProjects) {
-        const projectsList = JSON.parse(existingProjects);
-        const updatedProjects = projectsList.filter(
-          (p: any) => String(p.id) !== projectId
-        );
-        const updatedJson = JSON.stringify(updatedProjects);
-        await AsyncStorage.setItem('@user_projects', updatedJson);
-
-        // Удаляем проект в Supabase + обновляем облачный @user_projects,
-        // иначе pullLatestFromCloud подтянет проект обратно.
-        try {
-          const syncId = await getAccountSyncId();
-          if (syncId && isSupabaseConfigured()) {
-            const delRes = await deleteProjectInSupabase({
-              accessCode: syncId,
-              projectId,
-              updatedUserProjectsJson: updatedJson,
-            });
-            if (!delRes.success) {
-              console.warn('[Supabase] deleteProjectInSupabase failed:', delRes.error);
-            }
-          }
-        } catch (e) {
-          console.warn('[Supabase] deleteProjectInSupabase exception:', e);
-        }
-
-        // Пушим core; напоминания без merge с облаком — иначе mergeReminders вернёт удалённые записи в БД.
-        await pushAccountDataToCloud({ remindersAuthoritativeLocal: true });
-        scheduleSyncToCloud();
-      }
-
-      // Всегда обновляем UI и закрываем модалку
+      await deleteUserProjectLocally(project);
       await loadProjects();
-      setShowActionModal(false);
-      setSelectedProjectForAction(null);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('Error deleting project:', error);
+      await loadProjects();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Ошибка', 'Не удалось удалить проект. Попробуйте снова.');
     }
   };
 
   const closeActionModal = () => {
     setShowActionModal(false);
     setSelectedProjectForAction(null);
+    setActionModalStep('menu');
+  };
+
+  const handleActionModalRequestClose = () => {
+    if (actionModalStep === 'confirmDelete') {
+      setActionModalStep('menu');
+      return;
+    }
+    closeActionModal();
   };
 
   const handleDevVerifyStorage = async () => {
@@ -456,9 +287,29 @@ export default function HomeScreen() {
     }
   };
 
+  const renderProjectCard = useCallback(
+    (project: UserProject, cardWidth: number, isGrid: boolean, index: number) => (
+      <ProjectCard
+        project={project}
+        cardWidth={cardWidth}
+        isGrid={isGrid}
+        imagePriority={index < 3 ? 'high' : 'normal'}
+        onPress={() => handleProjectPress(project)}
+        onLongPress={() => handleLongPress(project)}
+      />
+    ),
+    [handleProjectPress, handleLongPress]
+  );
+
+  const renderTabletProjectItem = useCallback(
+    ({ item, index }: { item: UserProject; index: number }) =>
+      renderProjectCard(item, 0, true, index),
+    [renderProjectCard]
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -466,18 +317,23 @@ export default function HomeScreen() {
         >
           {/* Приветствие: показываем имя только если оно задано и не дефолтное «Пользователь». В __DEV__ долгое нажатие — проверка сохранения проектов. */}
           <Pressable
-            style={styles.header}
+            style={[styles.header, sectionWrap]}
             onLongPress={__DEV__ ? handleDevVerifyStorage : undefined}
             delayLongPress={800}
           >
-            <Text style={styles.greeting}>
+            <Text
+              style={[
+                styles.greeting,
+                layout.isTablet && styles.greetingTablet,
+              ]}
+            >
               Привет{(userName && userName.trim() && userName !== 'Пользователь') ? `, ${userName.trim()}` : ''}!
             </Text>
           </Pressable>
 
           {/* Основной проект или список проектов */}
           {projects.length === 0 ? (
-            <View style={styles.emptyState}>
+            <View style={[styles.emptyState, sectionWrap]}>
               <Ionicons name="book-outline" size={64} color="#D4C4B5" />
               <Text style={styles.emptyStateTitle}>У вас пока нет альбомов</Text>
               <Text style={styles.emptyStateText}>
@@ -494,10 +350,14 @@ export default function HomeScreen() {
               <Text style={styles.buyPaperVersionText}>Купить бумажную версию</Text>
             </View>
           ) : projects.length === 1 ? (
-            <View style={styles.singleProject}>
+            <View style={[styles.singleProject, sectionWrap]}>
               <Pressable
                 style={({ pressed }) => [
                   styles.projectCover,
+                  singleProjectCardWidth != null && {
+                    width: singleProjectCardWidth,
+                    alignSelf: 'center',
+                  },
                   pressed && styles.projectCardPressed,
                 ]}
                 onPress={() => selectedProject && handleProjectPress(selectedProject)}
@@ -505,9 +365,9 @@ export default function HomeScreen() {
               >
                 <View style={styles.projectImagePlaceholder}>
                   {selectedProject && (
-                    getProjectCoverImage(selectedProject) ? (
+                    getProjectCoverImageSource(selectedProject) ? (
                       <Image
-                        source={getProjectCoverImage(selectedProject)}
+                        source={getProjectCoverImageSource(selectedProject)}
                         style={styles.projectImage}
                         contentFit="cover"
                         priority="high"
@@ -528,60 +388,55 @@ export default function HomeScreen() {
               </Pressable>
             </View>
           ) : (
-            <>
-              {/* Горизонтальный скролл проектов */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.projectsScroll}
-                snapToInterval={CARD_WIDTH + 16}
-                decelerationRate="fast"
-              >
-                {projects.map((project) => (
-                  <Pressable
-                    key={project.id}
-                    style={({ pressed }) => [
-                      styles.projectCard,
-                      pressed && styles.projectCardPressed,
-                    ]}
-                    onPress={() => handleProjectPress(project)}
-                    onLongPress={() => handleLongPress(project)}
-                  >
-                    <View style={styles.cardImage}>
-                      {getProjectCoverImage(project) ? (
-                        <Image
-                          source={getProjectCoverImage(project)}
-                          style={styles.cardImageContent}
-                          contentFit="contain"
-                          priority={projects.indexOf(project) < 3 ? "high" : "normal"}
-                          cachePolicy="disk"
-                          transition={0}
-                          fadeDuration={0}
-                          recyclingKey={project.id}
-                          placeholderContentFit="contain"
-                        />
-                      ) : (
-                        <Ionicons name="book" size={40} color="#C9A89A" />
-                      )}
-                    </View>
-                    <Text style={styles.cardTitle}>{project.title}</Text>
-                    {project.category !== 'diary' && (
-                      <Text style={styles.cardCategory}>{project.category}</Text>
-                    )}
-                    <View style={styles.cardStats}>
-                      <Text style={styles.cardStatText}>
-                        {project.pagesCount} стр.
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </>
+            <View style={sectionWrap}>
+              {isTabletLayout ? (
+                <FlatList
+                  key={`home-projects-cols-${projectsColumnCount}`}
+                  data={previewProjects}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderTabletProjectItem}
+                  numColumns={projectsColumnCount}
+                  scrollEnabled={false}
+                  style={gridListStyle}
+                  columnWrapperStyle={
+                    projectsColumnCount > 1 ? gridColumnWrapper : undefined
+                  }
+                  contentContainerStyle={styles.projectsGridList}
+                />
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.projectsScroll}
+                  snapToInterval={phoneCardWidth + 16}
+                  decelerationRate="fast"
+                >
+                  {previewProjects.map((project, index) => (
+                    <React.Fragment key={project.id}>
+                      {renderProjectCard(project, phoneCardWidth, false, index)}
+                    </React.Fragment>
+                  ))}
+                </ScrollView>
+              )}
+              {showAllStoriesLink && (
+                <TouchableOpacity
+                  style={styles.allStoriesLink}
+                  onPress={handleAllStories}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.allStoriesLinkText}>Все истории</Text>
+                  <Text style={styles.allStoriesLinkCount}>
+                    {formatProjectsCountLabel(projects.length)}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+                </TouchableOpacity>
+              )}
+            </View>
           )}
 
           {/* Кнопка "Мои истории" */}
           {projects.length > 0 && (
-            <View style={styles.createMoreContainer}>
+            <View style={[styles.createMoreContainer, sectionWrap]}>
               <TouchableOpacity
                 style={styles.createMoreButton}
                 onPress={handleMyStories}
@@ -602,7 +457,7 @@ export default function HomeScreen() {
           )}
 
           {/* Кнопка помощника заполнения с напоминаниями */}
-          <View style={styles.catalogContainer}>
+          <View style={[styles.catalogContainer, sectionWrap]}>
             <TouchableOpacity
               style={styles.paperAlbumButton}
               onPress={() => router.push('/paper-album-notifications')}
@@ -620,7 +475,7 @@ export default function HomeScreen() {
           </View>
 
           {/* Кнопка каталога товаров */}
-          <View style={styles.catalogContainer}>
+          <View style={[styles.catalogContainer, sectionWrap]}>
             <TouchableOpacity
               style={styles.catalogButton}
               onPress={() => router.push('/paper-catalog')}
@@ -640,51 +495,83 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Модальное окно с опциями действий */}
+      {showActionModal ? (
       <Modal
-        visible={showActionModal}
+        visible
         transparent={true}
         animationType="fade"
-        onRequestClose={closeActionModal}
+        onRequestClose={handleActionModalRequestClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {selectedProjectForAction?.title}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              Выберите действие
-            </Text>
-            
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.editButton]}
-                onPress={handleEditProject}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="create-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Редактировать</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.actionButton, styles.deleteButton]}
-                onPress={handleDeleteProject}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.actionButtonText}>Удалить</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={closeActionModal}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
+            {actionModalStep === 'menu' ? (
+              <>
+                <Text style={styles.modalTitle}>
+                  {selectedProjectForAction?.title}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  Выберите действие
+                </Text>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.editButton]}
+                    onPress={handleEditProject}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Редактировать</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDeleteProject}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={closeActionModal}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Удалить проект?</Text>
+                <Text style={styles.modalSubtitle}>
+                  {`Проект «${selectedProjectForAction?.title ?? ''}» будет удалён без возможности восстановления.`}
+                </Text>
+
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.deleteButton]}
+                    onPress={handleDeleteConfirm}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+                    <Text style={styles.actionButtonText}>Удалить</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleDeleteConfirmCancel}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
+      ) : null}
 
     </SafeAreaView>
   );
@@ -705,7 +592,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   header: {
-    paddingHorizontal: 24,
     paddingTop: 24,
     paddingBottom: 32,
   },
@@ -721,6 +607,10 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: 0.3,
     lineHeight: 44,
+  },
+  greetingTablet: {
+    fontSize: 40,
+    lineHeight: 48,
   },
   emptyState: {
     alignItems: 'center',
@@ -793,9 +683,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
-  singleProject: {
-    paddingHorizontal: 24,
-  },
+  singleProject: {},
   projectCover: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
@@ -890,11 +778,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0E8E0',
   },
   projectsScroll: {
-    paddingHorizontal: 24,
     gap: 16,
   },
+  projectsGridList: {
+    paddingVertical: 8,
+  },
+  allStoriesLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F0E8E0',
+    gap: 8,
+  },
+  allStoriesLinkText: {
+    flex: 1,
+    fontSize: 17,
+    color: '#8B6F5F',
+    fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+  },
+  allStoriesLinkCount: {
+    fontSize: 14,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+  },
   projectCard: {
-    width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
@@ -906,6 +827,16 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderWidth: 1,
     borderColor: '#F5F0EB',
+  },
+  projectCardGrid: {
+    flex: 1,
+    marginRight: 0,
+    padding: 18,
+    minWidth: 0,
+  },
+  cardImageGrid: {
+    height: 160,
+    marginBottom: 14,
   },
   projectCardPressed: {
     opacity: 0.9,
@@ -971,7 +902,6 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   createMoreContainer: {
-    paddingHorizontal: 24,
     marginTop: 28,
     marginBottom: 20,
   },
@@ -1000,7 +930,9 @@ const styles = StyleSheet.create({
   },
   createMoreContent: {
     flex: 1,
+    flexShrink: 1,
     gap: 4,
+    minWidth: 0,
   },
   createMoreTitle: {
     fontSize: 18,
@@ -1022,9 +954,9 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+    flexShrink: 1,
   },
   catalogContainer: {
-    paddingHorizontal: 24,
     marginTop: 4,
     marginBottom: 20,
   },

@@ -14,6 +14,7 @@ import {
 } from '@/constants/pregnancyNotificationTexts';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -109,6 +110,7 @@ async function scheduleNotification(
                 title,
                 body,
                 sound: true,
+                data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
             identifier,
@@ -188,7 +190,8 @@ export async function loadPregnancyInfo(): Promise<{ dueDate: Date; projectId: s
  */
 export async function schedulePregnancyNotifications(
     dueDate: Date,
-    projectId: string
+    projectId: string,
+    options?: { skipCloudSync?: boolean; maxNotifications?: number }
 ): Promise<void> {
     // Всегда сохраняем ПДР в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
     await savePregnancyInfo(dueDate, projectId);
@@ -197,7 +200,7 @@ export async function schedulePregnancyNotifications(
     const Notifications = getNotifications();
     if (!Notifications) {
         console.log('[PregnancyNotifications] Notifications not available, saving PDR and reminders only');
-        await saveNotificationsAsReminders(dueDate, currentWeek);
+        await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
         return;
     }
 
@@ -224,7 +227,7 @@ export async function schedulePregnancyNotifications(
         
         if (!hasPermission) {
             console.log('[PregnancyNotifications] Permission not granted. PDR and reminders saved.');
-            await saveNotificationsAsReminders(dueDate, currentWeek);
+            await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
             return;
         }
         
@@ -233,16 +236,31 @@ export async function schedulePregnancyNotifications(
         // Отменяем старые уведомления
         await cancelAllPregnancyNotifications();
         const now = new Date();
-
-        // Ограничение: планируем только на 4 недели вперёд (для iOS лимита в 64 уведомления)
+        const maxNotifications = options?.maxNotifications ?? 56;
         const maxWeeksAhead = 4;
-        const scheduledIds: string[] = [];
+        let scheduledCount = 0;
+
+        const trySchedule = async (
+            title: string,
+            body: string,
+            triggerDate: Date,
+            identifier?: string
+        ): Promise<string | null> => {
+            if (scheduledCount >= maxNotifications) {
+                return null;
+            }
+            const notificationId = await scheduleNotification(title, body, triggerDate, identifier);
+            if (notificationId) {
+                scheduledCount += 1;
+            }
+            return notificationId;
+        };
 
         console.log(`[PregnancyNotifications] Current week: ${currentWeek}, Due date: ${dueDate.toLocaleDateString()}`);
 
         // 1. Приветственное уведомление (сразу)
         const welcomeDate = new Date(now.getTime() + 5000); // через 5 секунд
-        await scheduleNotification(
+        await trySchedule(
             WELCOME_NOTIFICATION.title,
             WELCOME_NOTIFICATION.body,
             welcomeDate,
@@ -255,7 +273,7 @@ export async function schedulePregnancyNotifications(
             if (notification) {
                 const weekDate = getWeekStartDate(dueDate, week);
                 if (weekDate > now) {
-                    await scheduleNotification(
+                    await trySchedule(
                         notification.title,
                         notification.body,
                         weekDate,
@@ -271,7 +289,7 @@ export async function schedulePregnancyNotifications(
                 const trimesterDate = getWeekStartDate(dueDate, trimester.weekStart);
                 trimesterDate.setHours(10, 0, 0, 0); // 10:00
                 if (trimesterDate > now) {
-                    await scheduleNotification(
+                    await trySchedule(
                         trimester.title,
                         trimester.body,
                         trimesterDate,
@@ -288,7 +306,7 @@ export async function schedulePregnancyNotifications(
         const before14 = new Date(dueDateMs - 14 * 24 * 60 * 60 * 1000);
         before14.setHours(10, 0, 0, 0);
         if (before14 > now) {
-            await scheduleNotification(
+            await trySchedule(
                 DUE_DATE_NOTIFICATIONS.before14Days.title,
                 DUE_DATE_NOTIFICATIONS.before14Days.body,
                 before14,
@@ -300,7 +318,7 @@ export async function schedulePregnancyNotifications(
         const before7 = new Date(dueDateMs - 7 * 24 * 60 * 60 * 1000);
         before7.setHours(10, 0, 0, 0);
         if (before7 > now) {
-            await scheduleNotification(
+            await trySchedule(
                 DUE_DATE_NOTIFICATIONS.before7Days.title,
                 DUE_DATE_NOTIFICATIONS.before7Days.body,
                 before7,
@@ -312,7 +330,7 @@ export async function schedulePregnancyNotifications(
         const onDueDate = new Date(dueDate);
         onDueDate.setHours(8, 0, 0, 0);
         if (onDueDate > now) {
-            await scheduleNotification(
+            await trySchedule(
                 DUE_DATE_NOTIFICATIONS.onDay.title,
                 DUE_DATE_NOTIFICATIONS.onDay.body,
                 onDueDate,
@@ -325,7 +343,7 @@ export async function schedulePregnancyNotifications(
             const bagDate = getWeekStartDate(dueDate, 34);
             bagDate.setHours(10, 0, 0, 0);
             if (bagDate > now) {
-                await scheduleNotification(
+                await trySchedule(
                     PREPARATION_NOTIFICATIONS.hospitalBag.title,
                     PREPARATION_NOTIFICATIONS.hospitalBag.body,
                     bagDate,
@@ -338,7 +356,7 @@ export async function schedulePregnancyNotifications(
         if (currentWeek >= 20 && currentWeek <= 28) {
             const nameDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // через 3 дня
             nameDate.setHours(9, 30, 0, 0);
-            await scheduleNotification(
+            await trySchedule(
                 PREPARATION_NOTIFICATIONS.chooseName.title,
                 PREPARATION_NOTIFICATIONS.chooseName.body,
                 nameDate,
@@ -357,7 +375,7 @@ export async function schedulePregnancyNotifications(
 
             const randomMessage = morningMessages[Math.floor(Math.random() * morningMessages.length)];
             if (randomMessage) {
-                await scheduleNotification(
+                await trySchedule(
                     'Доброе утро! 🌸',
                     randomMessage,
                     morningDate,
@@ -373,7 +391,7 @@ export async function schedulePregnancyNotifications(
             const helperDate = new Date(now.getTime() + (5 + i * 4) * 24 * 60 * 60 * 1000);
             helperDate.setHours(12 + Math.floor(Math.random() * 6), 0, 0, 0); // 12:00-18:00
 
-            await scheduleNotification(
+            await trySchedule(
                 helper.title,
                 helper.body,
                 helperDate,
@@ -381,8 +399,12 @@ export async function schedulePregnancyNotifications(
             );
         }
 
+        console.log(
+            `[PregnancyNotifications] Scheduled ${scheduledCount}/${maxNotifications} notifications`
+        );
+
         // Сохраняем все уведомления как напоминания в AsyncStorage для отображения в списке
-        await saveNotificationsAsReminders(dueDate, currentWeek);
+        await saveNotificationsAsReminders(dueDate, currentWeek, options?.skipCloudSync);
 
         console.log('[PregnancyNotifications] All notifications scheduled successfully');
     } catch (error) {
@@ -393,7 +415,11 @@ export async function schedulePregnancyNotifications(
 /**
  * Сохранить уведомления как напоминания для отображения в списке
  */
-async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number): Promise<void> {
+async function saveNotificationsAsReminders(
+    dueDate: Date,
+    currentWeek: number,
+    skipCloudSync?: boolean
+): Promise<void> {
     try {
         const syncId = await getAccountSyncId();
         const remindersKey = syncId ? getRemindersStorageKey(syncId) : '@reminders';
@@ -417,7 +443,9 @@ async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number):
 
         allReminders.push(...reminders);
         await AsyncStorage.setItem(remindersKey, JSON.stringify(allReminders));
-        await pushCoreOnlyToCloud();
+        if (!skipCloudSync) {
+            await pushCoreOnlyToCloud();
+        }
         console.log('[PregnancyNotifications] Saved reminders to list and cloud');
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save reminders:', error);
@@ -428,8 +456,6 @@ async function saveNotificationsAsReminders(dueDate: Date, currentWeek: number):
  * Перепланировать уведомления (вызывать при открытии приложения)
  */
 export async function refreshPregnancyNotifications(): Promise<void> {
-    const pregnancyInfo = await loadPregnancyInfo();
-    if (pregnancyInfo) {
-        await schedulePregnancyNotifications(pregnancyInfo.dueDate, pregnancyInfo.projectId);
-    }
+    const { refreshAllAlbumNotifications } = await import('@/utils/albumNotificationCoordinator');
+    await refreshAllAlbumNotifications({ skipCloudSync: true });
 }

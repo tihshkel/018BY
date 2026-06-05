@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getRemindersStorageKey, pushCoreOnlyToCloud, setLocalRemindersJsonForSyncId } from '@/utils/account-sync';
+import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinator';
 import { cancelAllKidsNotifications, loadKidsInfo, saveKidsInfo } from '@/utils/kidsNotificationScheduler';
 import {
   cancelAllPregnancyNotifications,
@@ -221,4 +222,12 @@ export async function linkNewProjectToEventReminders(
   }
 
   await attachProjectIdToTemplateReminders(pid, cat, eventDateISO);
+
+  if (cat === 'pregnancy' || cat === 'kids') {
+    try {
+      await refreshAllAlbumNotifications({ skipCloudSync: true });
+    } catch (error) {
+      console.warn('[ProjectReminders] Failed to refresh album notifications after link:', error);
+    }
+  }
 }

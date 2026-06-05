@@ -1,5 +1,6 @@
 import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
+import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import {
     PREGNANCY_WEEKLY_NOTIFICATIONS,
     PREGNANCY_TRIMESTER_NOTIFICATIONS,
@@ -46,6 +47,7 @@ const scheduleNotification = async (
                 title,
                 body,
                 sound: true,
+                data: OPEN_NOTIFICATIONS_INBOX_DATA,
             },
             trigger,
         });
