@@ -10,7 +10,7 @@ import {
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
 import { createId } from '@/utils/id';
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineTextTop, getTemplateLineTypography } from '@/utils/templateLineText';
+import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -134,6 +134,8 @@ interface PdfAnnotationsProps {
   onInteractionChange?: (isInteracting: boolean) => void;
   /** Выделение текста при редактировании (как в Word — показать панель выравнивания) */
   onTextSelectionChange?: (hasSelection: boolean) => void;
+  /** Выбранная аннотация (рамка / кнопка «Редактировать») — чтобы не перекрывать слотами */
+  onSelectionChange?: (annotationId: string | null) => void;
   /** Сигнал о загрузке фото-аннотации (для экспорта через PageRenderer) */
   onImageAnnotationLoad?: (imageUri: string) => void;
 }
@@ -155,6 +157,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   onToolDeactivate,
   onInteractionChange,
   onTextSelectionChange,
+  onSelectionChange,
   onImageAnnotationLoad,
 }, ref) => {
   // Получаем актуальные размеры экрана
@@ -223,11 +226,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     slots: ReturnType<typeof getSlotsForPage>
   ): string => {
     const { groupSlots } = getContinuationGroupSlots(slots, startSlotIndex);
-    const merged = groupSlots
-      .map((s) => findAnnotationForSlot(annotations, pageNumber, s.index)?.content?.trim() ?? '')
-      .filter(Boolean)
-      .join(' ');
-    return merged || annotation.content || '';
+    const parts = groupSlots.map((s) => ({
+      content: findAnnotationForSlot(annotations, pageNumber, s.index)?.content ?? '',
+    }));
+    const merged = joinContinuationSegmentTexts(parts);
+    return merged.trim() || annotation.content || '';
   };
 
   const openTextEditing = (annotation: Annotation) => {
@@ -583,6 +586,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   useEffect(() => {
     selectedAnnotationRef.current = selectedAnnotation;
   }, [selectedAnnotation]);
+
+  useEffect(() => {
+    onSelectionChange?.(selectedAnnotation);
+  }, [selectedAnnotation, onSelectionChange]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setSelectedAnnotation(null);
+    }
+  }, [isEditing]);
 
   // Обновляем editingText при открытии редактирования (для сохранения текста при повторном открытии)
   const previousEditingAnnotation = useRef<string | null>(null);
@@ -2125,7 +2138,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               const rowTypography = getTemplateLineTypography(
                 effectiveFontSize,
                 row.lineSlot.lineHeight,
-                row.lineSlot.inputKind,
+                getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
               return (
@@ -2418,11 +2431,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               )}
               {/* Кнопки редактирования при долгом нажатии */}
               {isSelected && isEditing && !isDragging && (
-                <View style={styles.textControlsOverlay}>
+                <View style={styles.textControlsOverlay} pointerEvents="box-none">
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditText(annotation)}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                     <Text style={styles.editButtonText}>Редактировать</Text>
@@ -2872,7 +2886,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 12,
+    zIndex: 200,
   },
   editButton: {
     flexDirection: 'row',

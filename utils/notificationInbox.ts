@@ -68,15 +68,18 @@ function inferSource(notification: Notification): 'local' | 'remote' {
 
 export function notificationToInboxItem(notification: Notification): NotificationInboxItem {
   const content = notification.request.content;
-  const id =
-    notification.request.identifier ||
-    `${content.title ?? ''}_${content.body ?? ''}_${Date.now()}`;
+  const deliveryMs =
+    typeof notification.date === 'number' && Number.isFinite(notification.date)
+      ? notification.date
+      : Date.now();
+  const baseId = notification.request.identifier || 'notification';
+  const id = `${baseId}_${deliveryMs}`;
 
   return {
     id,
     title: content.title ?? 'Уведомление',
     body: content.body ?? '',
-    receivedAt: new Date().toISOString(),
+    receivedAt: new Date(deliveryMs).toISOString(),
     source: inferSource(notification),
   };
 }

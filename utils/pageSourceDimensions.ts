@@ -5,6 +5,12 @@ export type PageSourceSize = {
   height: number;
 };
 
+/** Печатный блок дневника 180×240 мм (все PNG `Блок *_180х240_print`). */
+export const DIARY_BLOCK_PAGE_SIZE: PageSourceSize = {
+  width: 2219,
+  height: 2927,
+};
+
 const cache = new Map<string, PageSourceSize>();
 
 export function getCachedPageSourceSize(uri: string): PageSourceSize | null {

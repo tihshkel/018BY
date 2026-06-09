@@ -358,6 +358,30 @@ export async function updatePasswordAfterRecovery(newPassword: string): Promise<
   return { success: true };
 }
 
+/** Выход из аккаунта: сессия Supabase и локальные данные пользователя. */
+export async function signOutFromAccount(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
+
+    try {
+      const supabase = getSupabase();
+      await supabase?.auth.signOut();
+    } catch (e) {
+      if (__DEV__) console.warn('[auth-session] signOut:', e);
+    }
+
+    await clearLocalDataForAccountSwitch(prevSyncId);
+    await AsyncStorage.removeItem(ACCOUNT_SYNC_ID_KEY);
+
+    return { success: true };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : 'SIGNOUT_FAILED',
+    };
+  }
+}
+
 /**
  * Полный "сброс" локального состояния, чтобы заново пройти онбординг/логин.
  * Полезно для разработки (когда симулятор сохраняет сессию и флаги).

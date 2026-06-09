@@ -151,12 +151,43 @@ export async function cancelAllPregnancyNotifications(): Promise<void> {
 /**
  * Сохранить информацию о беременности
  */
-export async function savePregnancyInfo(dueDate: Date, projectId: string): Promise<void> {
+type StoredPregnancyInfo = {
+    dueDate: string;
+    projectId: string;
+    createdAt: string;
+    welcomeNotificationScheduled?: boolean;
+};
+
+async function readStoredPregnancyInfo(): Promise<StoredPregnancyInfo | null> {
     try {
-        const pregnancyInfo = {
+        const data = await AsyncStorage.getItem('@pregnancy_info');
+        if (!data) return null;
+        const parsed = JSON.parse(data) as StoredPregnancyInfo;
+        if (!parsed?.dueDate || !parsed?.projectId) return null;
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+export async function savePregnancyInfo(
+    dueDate: Date,
+    projectId: string,
+    options?: { welcomeNotificationScheduled?: boolean }
+): Promise<void> {
+    try {
+        const existing = await readStoredPregnancyInfo();
+        const isSameProject = existing?.projectId === projectId;
+        const pregnancyInfo: StoredPregnancyInfo = {
             dueDate: dueDate.toISOString(),
             projectId,
-            createdAt: new Date().toISOString(),
+            createdAt: isSameProject && existing?.createdAt
+                ? existing.createdAt
+                : new Date().toISOString(),
+            welcomeNotificationScheduled:
+                options?.welcomeNotificationScheduled ??
+                (isSameProject ? existing?.welcomeNotificationScheduled : false) ??
+                false,
         };
         await AsyncStorage.setItem('@pregnancy_info', JSON.stringify(pregnancyInfo));
         console.log('[PregnancyNotifications] Saved pregnancy info');
@@ -168,15 +199,19 @@ export async function savePregnancyInfo(dueDate: Date, projectId: string): Promi
 /**
  * Загрузить информацию о беременности
  */
-export async function loadPregnancyInfo(): Promise<{ dueDate: Date; projectId: string } | null> {
+export async function loadPregnancyInfo(): Promise<{
+    dueDate: Date;
+    projectId: string;
+    welcomeNotificationScheduled: boolean;
+} | null> {
     try {
-        const data = await AsyncStorage.getItem('@pregnancy_info');
-        if (!data) return null;
+        const parsed = await readStoredPregnancyInfo();
+        if (!parsed) return null;
 
-        const parsed = JSON.parse(data);
         return {
             dueDate: new Date(parsed.dueDate),
             projectId: parsed.projectId,
+            welcomeNotificationScheduled: parsed.welcomeNotificationScheduled === true,
         };
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to load pregnancy info:', error);
@@ -258,14 +293,36 @@ export async function schedulePregnancyNotifications(
 
         console.log(`[PregnancyNotifications] Current week: ${currentWeek}, Due date: ${dueDate.toLocaleDateString()}`);
 
-        // 1. Приветственное уведомление (сразу)
-        const welcomeDate = new Date(now.getTime() + 5000); // через 5 секунд
-        await trySchedule(
-            WELCOME_NOTIFICATION.title,
-            WELCOME_NOTIFICATION.body,
-            welcomeDate,
-            'pregnancy_welcome'
-        );
+        const storedInfo = await readStoredPregnancyInfo();
+        let welcomeAlreadyScheduled =
+            storedInfo?.projectId === projectId && storedInfo.welcomeNotificationScheduled === true;
+
+        // Старые установки без флага: приветствие уже уходило при каждом открытии приложения
+        if (
+            !welcomeAlreadyScheduled &&
+            storedInfo?.projectId === projectId &&
+            storedInfo.createdAt &&
+            Date.now() - new Date(storedInfo.createdAt).getTime() > 60_000
+        ) {
+            await savePregnancyInfo(dueDate, projectId, { welcomeNotificationScheduled: true });
+            welcomeAlreadyScheduled = true;
+        }
+
+        // 1. Приветственное уведомление — только один раз при создании альбома
+        if (!welcomeAlreadyScheduled) {
+            const welcomeDate = new Date(now.getTime() + 5000);
+            const welcomeId = await trySchedule(
+                WELCOME_NOTIFICATION.title,
+                WELCOME_NOTIFICATION.body,
+                welcomeDate,
+                'pregnancy_welcome'
+            );
+            if (welcomeId) {
+                await savePregnancyInfo(dueDate, projectId, {
+                    welcomeNotificationScheduled: true,
+                });
+            }
+        }
 
         // 2. Еженедельные уведомления
         for (let week = currentWeek; week <= Math.min(currentWeek + maxWeeksAhead, 42); week++) {

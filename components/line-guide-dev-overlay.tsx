@@ -1,12 +1,13 @@
+import { isLineSlotDebugEnabled } from '@/constants/line-slot-debug';
 import { buildLineSlotsContext, type GetLineSlotsParams } from '@/utils/textLineSlots';
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 type LineGuideDevOverlayProps = GetLineSlotsParams;
 
-/** Dev-only: подсветка зон строк (совпадает с hit-test) */
+/** Подсветка зон строк (совпадает с hit-test). Только EXPO_PUBLIC_SHOW_LINE_SLOT_DEBUG=1 */
 export function LineGuideDevOverlay(props: LineGuideDevOverlayProps) {
-  if (!__DEV__) return null;
+  if (!isLineSlotDebugEnabled()) return null;
 
   const { slots } = useMemo(() => buildLineSlotsContext(props), [
     props.lineGuideId,

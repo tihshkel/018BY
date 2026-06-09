@@ -9,7 +9,9 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "RCT_NEW_ARCH_ENABLED": "1"
+        "RCT_NEW_ARCH_ENABLED": "1",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xbjssrfenkaefudhlgks.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_fZast52ijbl0oqRyFv0UnA__cabgPkZ"
       },
       "ios": {
         "simulator": true
@@ -30,7 +32,9 @@
       },
       "env": {
         "NODE_ENV": "production",
-        "RCT_NEW_ARCH_ENABLED": "1"
+        "RCT_NEW_ARCH_ENABLED": "1",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xbjssrfenkaefudhlgks.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_fZast52ijbl0oqRyFv0UnA__cabgPkZ"
       }
     },
     "production": {
@@ -46,7 +50,9 @@
       },
       "env": {
         "NODE_ENV": "production",
-        "RCT_NEW_ARCH_ENABLED": "1"
+        "RCT_NEW_ARCH_ENABLED": "1",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xbjssrfenkaefudhlgks.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_fZast52ijbl0oqRyFv0UnA__cabgPkZ"
       }
     }
   },

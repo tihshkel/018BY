@@ -1,10 +1,11 @@
 import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinContinuationGroup,
-  getFirstLineInputValue,
+  getActiveEditSlotIndex,
   getTemplateLineTextTop,
   getTemplateLineTypography,
-  mergeFirstLineEdit,
+  getWishSlotInputKind,
+  mergeActiveLineEdit,
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -31,8 +32,8 @@ type TemplateLineEditorProps = {
 };
 
 /**
- * Редактор строк макета: TextInput только на первой строке группы, Text на продолжениях.
- * В TextInput — только первая строка (iOS иначе сжимает длинный value в одну линию).
+ * Редактор строк макета: TextInput на активной строке (последняя с текстом), остальное — Text.
+ * В TextInput — только текущая строка (iOS иначе сжимает длинный value в одну линию).
  */
 export function TemplateLineEditor({
   slot,
@@ -59,8 +60,8 @@ export function TemplateLineEditor({
   const startSlot = slotsToRender[0] ?? slot;
   const startSlotIndex = startSlot.index;
 
-  const segmentBySlotIndex = useMemo(() => {
-    const { segments } = distributeTextWithinContinuationGroup({
+  const { segments, segmentBySlotIndex } = useMemo(() => {
+    const distributed = distributeTextWithinContinuationGroup({
       text: value,
       startSlotIndex,
       slots: allSlots,
@@ -68,33 +69,29 @@ export function TemplateLineEditor({
       lineGuideId,
     });
     const map = new Map<number, string>();
-    for (const segment of segments) {
+    for (const segment of distributed.segments) {
       map.set(
         segment.slotIndex,
         truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId)
       );
     }
-    return map;
+    return { segments: distributed.segments, segmentBySlotIndex: map };
   }, [allSlots, fontSize, lineGuideId, startSlotIndex, value]);
 
-  const inputValue = useMemo(
-    () =>
-      getFirstLineInputValue({
-        text: value,
-        startSlotIndex,
-        slots: allSlots,
-        fontSize,
-        lineGuideId,
-      }),
-    [allSlots, fontSize, lineGuideId, startSlotIndex, value]
+  const activeInputSlotIndex = useMemo(
+    () => getActiveEditSlotIndex(segments, startSlotIndex),
+    [segments, startSlotIndex]
   );
+
+  const inputValue = segmentBySlotIndex.get(activeInputSlotIndex) ?? '';
 
   const handleInputChange = useCallback(
     (newText: string) => {
       onChangeText(
-        mergeFirstLineEdit({
-          newFirstLine: newText,
+        mergeActiveLineEdit({
+          newLineText: newText,
           previousText: value,
+          editSlotIndex: activeInputSlotIndex,
           startSlotIndex,
           slots: allSlots,
           fontSize,
@@ -102,7 +99,7 @@ export function TemplateLineEditor({
         })
       );
     },
-    [allSlots, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [activeInputSlotIndex, allSlots, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
   );
 
   useEffect(() => {
@@ -110,7 +107,7 @@ export function TemplateLineEditor({
       const t = setTimeout(() => inputRef.current?.focus(), 50);
       return () => clearTimeout(t);
     }
-  }, [autoFocus, inputRef, startSlotIndex]);
+  }, [autoFocus, inputRef, activeInputSlotIndex]);
 
   return (
     <>
@@ -119,11 +116,11 @@ export function TemplateLineEditor({
         const lineTypography = getTemplateLineTypography(
           fontSize,
           lineSlot.lineHeight,
-          lineSlot.inputKind,
+          getWishSlotInputKind(lineSlot, lineGuideId),
           lineGuideId
         );
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
-        const isInputSlot = lineSlot.index === startSlotIndex;
+        const isInputSlot = lineSlot.index === activeInputSlotIndex;
 
         return (
           <View
@@ -141,6 +138,7 @@ export function TemplateLineEditor({
           >
             {isInputSlot ? (
               <TextInput
+                key={activeInputSlotIndex}
                 ref={inputRef}
                 style={[
                   styles.input,

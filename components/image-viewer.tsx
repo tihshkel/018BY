@@ -4,13 +4,18 @@ import {
 } from '@/constants/album-text-margins';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
-import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import {
+  DIARY_BLOCK_PAGE_SIZE,
+  getCachedPageSourceSize,
+  resolvePageSourceSize,
+} from '@/utils/pageSourceDimensions';
 import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
   BLANK_INTERIOR_PAGE_HEIGHT,
   BLANK_INTERIOR_PAGE_WIDTH,
 } from '@/utils/albumImages';
+import { isLineSlotDebugEnabled } from '@/constants/line-slot-debug';
 import { LineGuideDevOverlay } from '@/components/line-guide-dev-overlay';
 import { LineSlotPressables } from '@/components/line-slot-pressables';
 import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
@@ -39,6 +44,7 @@ import {
     Keyboard,
     Modal,
     Platform,
+    Pressable,
     ScrollView,
     StyleSheet,
     Text,
@@ -151,6 +157,7 @@ export default function ImageViewer({
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
   const [pageSourceSizes, setPageSourceSizes] = useState<
     Record<number, { width: number; height: number }>
@@ -197,20 +204,51 @@ export default function ImageViewer({
 
   const isBlankInteriorAlbum = usesFreeFormTextEditing(lineGuideId);
 
-  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
-    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+  const resolvePageSourceSizeForPage = (page: number) => {
     const imageUri = images[page - 1];
     const cached = imageUri ? getCachedPageSourceSize(imageUri) : null;
-    const size = pageSourceSizes[page] ?? cached ?? undefined;
+    const measured = pageSourceSizes[page] ?? cached;
+    if (measured?.width && measured?.height) {
+      return measured;
+    }
+    if (lineGuideId?.startsWith('diary_interior_')) {
+      return DIARY_BLOCK_PAGE_SIZE;
+    }
+    return {
+      width: editorViewportWidth,
+      height: containerHeight,
+    };
+  };
+
+  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+    const size = resolvePageSourceSizeForPage(page);
     return {
       lineGuideId,
       page,
       viewportWidth: editorViewportWidth,
       viewportHeight: containerHeight,
-      sourceWidth: size?.width,
-      sourceHeight: size?.height,
+      sourceWidth: size.width,
+      sourceHeight: size.height,
     };
   };
+
+  // Дневники: фиксированный размер блока 180×240 до onLoad — иначе слоты не попадают в линии
+  useEffect(() => {
+    if (!lineGuideId?.startsWith('diary_interior_') || images.length === 0) return;
+    setPageSourceSizes((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (let page = 1; page <= images.length; page += 1) {
+        if (next[page]?.width === DIARY_BLOCK_PAGE_SIZE.width) continue;
+        next[page] = DIARY_BLOCK_PAGE_SIZE;
+        changed = true;
+        const uri = images[page - 1];
+        if (uri) setPageSourceSize(uri, DIARY_BLOCK_PAGE_SIZE);
+      }
+      return changed ? next : prev;
+    });
+  }, [lineGuideId, images]);
 
   // Размеры PNG до onLoad — иначе contentRect = весь экран и слоты «съезжают»
   useEffect(() => {
@@ -378,13 +416,23 @@ export default function ImageViewer({
     });
   };
 
-  const handleLineSlotTap = async (x: number, y: number, pageForAnnotation: number) => {
+  const handleLineSlotTap = async (
+    pageForAnnotation: number,
+    slotIndex?: number,
+    tapX?: number,
+    tapY?: number
+  ) => {
     if (!lineGuideId || !hasLineGuides(lineGuideId) || !onAnnotationAdd) return false;
 
     const slotParams = buildSlotParams(pageForAnnotation);
     if (!slotParams) return false;
     const { slots } = buildLineSlotsContext(slotParams);
-    const slot = hitTestLineSlot({ x, y, slots });
+    const slot =
+      slotIndex != null
+        ? slots[slotIndex] ?? null
+        : tapX != null && tapY != null
+          ? hitTestLineSlot({ x: tapX, y: tapY, slots, slotParams })
+          : null;
     if (!slot) return false;
 
     const { startSlotIndex } = getContinuationGroupSlots(slots, slot.index);
@@ -450,8 +498,8 @@ export default function ImageViewer({
       const slotParams = buildSlotParams(pageForAnnotation);
       if (slotParams) {
         const { slots } = buildLineSlotsContext(slotParams);
-        if (hitTestLineSlot({ x, y, slots })) {
-          void handleLineSlotTap(x, y, pageForAnnotation);
+        if (hitTestLineSlot({ x, y, slots, slotParams })) {
+          void handleLineSlotTap(pageForAnnotation, undefined, x, y);
           return;
         }
       }
@@ -460,6 +508,14 @@ export default function ImageViewer({
     // Если мы в режиме редактирования, но инструмент не выбран — тап по пустому месту
     // должен закрывать выделение (рамку/ручки/корзину) у фото/аннотаций.
     if (isEditing && !currentTool) {
+      const slotParams = buildSlotParams(pageForAnnotation);
+      if (slotParams) {
+        const { slots } = buildLineSlotsContext(slotParams);
+        if (hitTestLineSlot({ x, y, slots, slotParams })) {
+          void handleLineSlotTap(pageForAnnotation, undefined, x, y);
+          return;
+        }
+      }
       annotationsRef.current?.clearSelection?.();
       return;
     }
@@ -471,8 +527,8 @@ export default function ImageViewer({
         const slotParams = buildSlotParams(pageForAnnotation);
         if (slotParams) {
           const { slots } = buildLineSlotsContext(slotParams);
-          if (hitTestLineSlot({ x, y, slots })) {
-            void handleLineSlotTap(x, y, pageForAnnotation);
+          if (hitTestLineSlot({ x, y, slots, slotParams })) {
+            void handleLineSlotTap(pageForAnnotation, undefined, x, y);
             return;
           }
         }
@@ -744,23 +800,23 @@ export default function ImageViewer({
                     isEditingOnThisPage && { transform: [{ translateY: pageShiftY }] },
                   ]}
                 >
-                  <TouchableOpacity
-                    style={styles.imageContainerInner}
-                    activeOpacity={1}
-                    onPress={(e) => {
-                      const { locationX, locationY } = e.nativeEvent;
-                      const { x, y } = mapScreenPointToUnscaledPagePoint({
-                        locationX,
-                        locationY,
-                        viewportWidth: editorViewportWidth,
-                        viewportHeight: containerHeight,
-                        zoomLevel: visualScale,
-                      });
-                      handleImagePress(x, y, pageNumber);
-                    }}
-                    onLongPress={() => handleImageLongPress(index)}
-                    delayLongPress={500}
-                  >
+                  <View style={styles.imageContainerInner}>
+                    <Pressable
+                      style={StyleSheet.absoluteFill}
+                      onPress={(e) => {
+                        const { locationX, locationY } = e.nativeEvent;
+                        const { x, y } = mapScreenPointToUnscaledPagePoint({
+                          locationX,
+                          locationY,
+                          viewportWidth: editorViewportWidth,
+                          viewportHeight: containerHeight,
+                          zoomLevel: visualScale,
+                        });
+                        handleImagePress(x, y, pageNumber);
+                      }}
+                      onLongPress={() => handleImageLongPress(index)}
+                      delayLongPress={500}
+                    />
                     <View
                       style={{
                         width: editorViewportWidth,
@@ -769,9 +825,10 @@ export default function ImageViewer({
                         alignItems: 'center',
                         transform: [{ scale: visualScale }],
                       }}
+                      pointerEvents="box-none"
                     >
                       {isBlankInteriorAlbum && blankPageLayout ? (
-                        <View style={[styles.blankPageFrame, blankPageLayout]}>
+                        <View style={[styles.blankPageFrame, blankPageLayout]} pointerEvents="none">
                           <Image
                             source={{ uri: imageUri }}
                             style={styles.blankPageImage}
@@ -794,6 +851,7 @@ export default function ImageViewer({
                           cachePolicy="disk"
                           priority={index < 3 ? 'high' : 'normal'}
                           recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                          pointerEvents="none"
                           onLoad={(event) => {
                             const w = event.source?.width;
                             const h = event.source?.height;
@@ -806,49 +864,58 @@ export default function ImageViewer({
 
                       {(() => {
                         const slotParams = buildSlotParams(pageNumber);
-                        if (!slotParams) return null;
+                        const showSlotPressables =
+                          pageNumber === currentPage &&
+                          !!slotParams &&
+                          isEditing &&
+                          !isTextEditing &&
+                          !selectedAnnotationId &&
+                          hasLineGuides(lineGuideId) &&
+                          (!currentTool ||
+                            (currentTool === 'text' &&
+                              usesTemplateLineTextEditing(lineGuideId)));
+
                         return (
                           <>
-                            {isEditing &&
-                            !isTextEditing &&
-                            hasLineGuides(lineGuideId) &&
-                            (!currentTool ||
-                              (currentTool === 'text' &&
-                                usesTemplateLineTextEditing(lineGuideId))) ? (
+                            {showSlotPressables ? (
                               <LineSlotPressables
                                 slotParams={slotParams}
                                 enabled
-                                onSlotPress={(tapX, tapY) =>
-                                  void handleLineSlotTap(tapX, tapY, pageNumber)
+                                onSlotPress={(slotIndex) =>
+                                  void handleLineSlotTap(pageNumber, slotIndex)
                                 }
                               />
                             ) : null}
-                            {__DEV__ ? <LineGuideDevOverlay {...slotParams} /> : null}
+                            <PdfAnnotations
+                              ref={pageNumber === currentPage ? annotationsRef : null}
+                              annotations={pageAnnotations}
+                              onAnnotationAdd={onAnnotationAdd || (() => {})}
+                              onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                              onAnnotationDelete={onAnnotationDelete || (() => {})}
+                              isEditing={isEditing}
+                              currentTool={currentTool}
+                              onToolDeactivate={onToolDeactivate}
+                              onEditingStateChange={handleEditingStateChange}
+                              onInteractionChange={setIsInteractingWithAnnotation}
+                              onSelectionChange={
+                                pageNumber === currentPage ? setSelectedAnnotationId : undefined
+                              }
+                              zoomLevel={visualScale}
+                              viewportWidth={editorViewportWidth}
+                              viewportHeight={containerHeight}
+                              sourceWidth={resolvePageSourceSizeForPage(pageNumber).width}
+                              sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
+                              lineGuideId={lineGuideId}
+                              onTextSelectionChange={onTextSelectionChange}
+                            />
+                            {slotParams && isLineSlotDebugEnabled() ? (
+                              <LineGuideDevOverlay {...slotParams} />
+                            ) : null}
                           </>
                         );
                       })()}
-
-                      <PdfAnnotations
-                        ref={pageNumber === currentPage ? annotationsRef : null}
-                        annotations={pageAnnotations}
-                        onAnnotationAdd={onAnnotationAdd || (() => {})}
-                        onAnnotationUpdate={onAnnotationUpdate || (() => {})}
-                        onAnnotationDelete={onAnnotationDelete || (() => {})}
-                        isEditing={isEditing}
-                        currentTool={currentTool}
-                        onToolDeactivate={onToolDeactivate}
-                        onEditingStateChange={handleEditingStateChange}
-                        onInteractionChange={setIsInteractingWithAnnotation}
-                        zoomLevel={visualScale}
-                        viewportWidth={editorViewportWidth}
-                        viewportHeight={containerHeight}
-                        sourceWidth={pageSourceSizes[pageNumber]?.width}
-                        sourceHeight={pageSourceSizes[pageNumber]?.height}
-                        lineGuideId={lineGuideId}
-                        onTextSelectionChange={onTextSelectionChange}
-                      />
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </Animated.View>
               </View>
             </View>

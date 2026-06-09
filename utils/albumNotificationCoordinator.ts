@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { pushCoreOnlyToCloud } from '@/utils/account-sync';
 import {
   loadKidsInfo,
@@ -16,7 +18,12 @@ const USER_REMINDER_SLOT_RESERVE = 8;
 
 export type AlbumNotificationRefreshOptions = {
   skipCloudSync?: boolean;
+  /** Перепланировать сразу (создание альбома), без интервала. */
+  force?: boolean;
 };
+
+const LAST_ALBUM_NOTIFICATION_REFRESH_KEY = '@album_notifications_last_refresh_at';
+const MIN_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 function getNotificationBudgets(hasPregnancy: boolean, hasKids: boolean): {
   pregnancy: number;
@@ -39,6 +46,15 @@ function getNotificationBudgets(hasPregnancy: boolean, hasKids: boolean): {
 export async function refreshAllAlbumNotifications(
   options?: AlbumNotificationRefreshOptions
 ): Promise<void> {
+  if (!options?.force) {
+    const lastRaw = await AsyncStorage.getItem(LAST_ALBUM_NOTIFICATION_REFRESH_KEY);
+    const lastRefreshAt = lastRaw ? Number(lastRaw) : 0;
+    if (lastRefreshAt > 0 && Date.now() - lastRefreshAt < MIN_REFRESH_INTERVAL_MS) {
+      console.log('[AlbumNotifications] Skipping refresh — last run was recent');
+      return;
+    }
+  }
+
   const pregnancyInfo = await loadPregnancyInfo();
   const kidsInfo = await loadKidsInfo();
 
@@ -62,6 +78,11 @@ export async function refreshAllAlbumNotifications(
     });
   }
 
+  await AsyncStorage.setItem(
+    LAST_ALBUM_NOTIFICATION_REFRESH_KEY,
+    String(Date.now())
+  );
+
   if (!options?.skipCloudSync) {
     await pushCoreOnlyToCloud();
   }
@@ -81,5 +102,5 @@ export async function setupAlbumNotificationsForCelebration(
     await saveKidsInfo(dueDate, resolvedProjectId);
   }
 
-  await refreshAllAlbumNotifications({ skipCloudSync: true });
+  await refreshAllAlbumNotifications({ skipCloudSync: true, force: true });
 }

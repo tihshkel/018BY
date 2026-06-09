@@ -2,6 +2,7 @@ import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscriptio
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { signOutFromAccount } from '@/utils/auth-session';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
 import { uploadImageToStorage } from '@/utils/supabase-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -185,6 +186,46 @@ export default function ProfileScreen() {
     router.push('/export-subscription');
   };
 
+  const navigateAfterSignOut = (target: 'login' | 'register') => {
+    router.replace(target === 'register' ? '/register' : '/login');
+  };
+
+  const completeSignOut = async (target: 'login' | 'register') => {
+    const result = await signOutFromAccount();
+    if (!result.success) {
+      Alert.alert('Ошибка', result.error ?? 'Не удалось выйти из аккаунта');
+      return;
+    }
+    setUserName('');
+    setAvatarUri(null);
+    if (Platform.OS === 'ios') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    navigateAfterSignOut(target);
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Выйти из аккаунта',
+      'Вы выйдете из текущего аккаунта. Локальные проекты на этом устройстве будут удалены. Куда перейти дальше?',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Войти',
+          onPress: () => {
+            void completeSignOut('login');
+          },
+        },
+        {
+          text: 'Регистрация',
+          onPress: () => {
+            void completeSignOut('register');
+          },
+        },
+      ]
+    );
+  };
+
   const handleRateApp = async () => {
     const iosStoreId = '6761551531';
     const iosHttps = `https://apps.apple.com/app/id${iosStoreId}`;
@@ -246,6 +287,12 @@ export default function ProfileScreen() {
       icon: 'star-outline',
       action: handleRateApp,
     },
+    {
+      id: 'logout',
+      title: 'Выйти из аккаунта',
+      icon: 'log-out-outline',
+      action: handleLogout,
+    },
   ];
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -297,20 +344,31 @@ export default function ProfileScreen() {
 
           {/* Меню */}
           <View style={styles.menuSection}>
-            {menuItems.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.menuItem}
-                onPress={() => handleMenuPress(item)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.menuIcon}>
-                  <Ionicons name={item.icon as any} size={24} color="#C9A89A" />
-                </View>
-                <Text style={styles.menuText}>{item.title}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
-              </TouchableOpacity>
-            ))}
+            {menuItems.map((item) => {
+              const isLogout = item.id === 'logout';
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.menuItem, isLogout && styles.menuItemLogout]}
+                  onPress={() => handleMenuPress(item)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.menuIcon, isLogout && styles.menuIconLogout]}>
+                    <Ionicons
+                      name={item.icon as any}
+                      size={24}
+                      color={isLogout ? '#C45C5C' : '#C9A89A'}
+                    />
+                  </View>
+                  <Text style={[styles.menuText, isLogout && styles.menuTextLogout]}>
+                    {item.title}
+                  </Text>
+                  {!isLogout && (
+                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       </Animated.View>
@@ -431,5 +489,16 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '500',
+  },
+  menuItemLogout: {
+    marginBottom: 0,
+    borderColor: '#F5E0E0',
+    backgroundColor: '#FFFBFB',
+  },
+  menuIconLogout: {
+    backgroundColor: '#FFF5F5',
+  },
+  menuTextLogout: {
+    color: '#C45C5C',
   },
 });

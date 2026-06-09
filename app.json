@@ -116,8 +116,9 @@
       "eas": {
         "projectId": "cb0b872b-bcbb-450d-aee7-e2c3148df391"
       },
-      "supabaseUrl": "",
-      "supabaseAnonKey": ""
+      "supabaseUrl": "https://xbjssrfenkaefudhlgks.supabase.co",
+      "supabaseAnonKey": "sb_publishable_fZast52ijbl0oqRyFv0UnA__cabgPkZ",
+      "showLineSlotDebug": "0"
     }
   }
 }

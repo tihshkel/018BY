@@ -195,7 +195,12 @@ function resolveTemplateTextVerticalRatios(
     inputKind === 'block' &&
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple')
   ) {
-    return { centerRatio: 0.72, fontOffsetRatio: 0.88 };
+    const isPeachCellField =
+      slot.normY != null && slot.normY >= 0.74 && slot.normY <= 0.93;
+    if (isPeachCellField) {
+      return { centerRatio: 0.58, fontOffsetRatio: 0.88 };
+    }
+    return { centerRatio: 1, fontOffsetRatio: 1.04 };
   }
 
   if (inputKind === 'line') {
@@ -215,13 +220,9 @@ function resolveTemplateTextVerticalRatios(
         slot.normY <= 0.72;
 
       return {
-        centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 0.52,
+        centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 1,
         fontOffsetRatio:
-          isBrownCoverField || isPurpleCoverField
-            ? 1.02
-            : lineGuideId === 'diary_interior_brown'
-              ? 0.92
-              : 0.9,
+          isBrownCoverField || isPurpleCoverField ? 1.06 : 1.05,
       };
     }
 
@@ -254,8 +255,62 @@ function resolveTemplateTextVerticalRatios(
   };
 }
 
+function getDiaryCareerQuestionPage(lineGuideId?: string): number {
+  return lineGuideId === 'diary_interior_purple' ? 5 : 6;
+}
+
+export function isBrownWishSlot(
+  slot: Pick<TextLineSlot, 'normY' | 'hasLabel' | 'page'>,
+  lineGuideId?: string
+): boolean {
+  const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  if (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    slot.page === careerPage &&
+    slot.normY != null &&
+    slot.normY >= 0.755 &&
+    slot.normY <= 0.845
+  ) {
+    return false;
+  }
+
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    !slot.hasLabel &&
+    slot.normY != null &&
+    slot.normY >= 0.772 &&
+    slot.normY <= 0.92
+  );
+}
+
+/** Стр. 6: «Кем ты хочешь стать…» — хвост после «?» и широкие строки ответа. */
+export function isBrownCareerAnswerSlot(
+  slot: Pick<TextLineSlot, 'normY' | 'hasLabel' | 'page'>,
+  lineGuideId?: string
+): boolean {
+  const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    slot.page === careerPage &&
+    !slot.hasLabel &&
+    slot.normY != null &&
+    slot.normY >= 0.755 &&
+    slot.normY <= 0.845
+  );
+}
+
+export function getWishSlotInputKind(
+  slot: Pick<TextLineSlot, 'normY' | 'hasLabel' | 'inputKind' | 'page'>,
+  lineGuideId?: string
+): 'line' | 'block' {
+  if (lineGuideId === 'diary_interior_brown' && slot.page === 15) return 'line';
+  if (isBrownWishSlot(slot, lineGuideId)) return 'line';
+  if (isBrownCareerAnswerSlot(slot, lineGuideId)) return 'line';
+  return slot.inputKind ?? 'line';
+}
+
 export function getTemplateLineTextTop(
-  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight'>,
+  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page'>,
   fontSize: number,
   lineGuideId?: string
 ): number {
@@ -268,25 +323,68 @@ export function getTemplateLineTextTop(
   );
 
   if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
-    const lineCenterY = slot.y + slot.lineHeight / 2;
+    const inputKind = slot.inputKind ?? 'line';
+    const isBrownPeachDreamsPage =
+      lineGuideId === 'diary_interior_brown' && slot.page === 15;
+    if (isBrownPeachDreamsPage) {
+      const lineY = slot.y + slot.lineHeight;
+      const lineFitted = fitFontSizeToSlot(
+        fontSize,
+        slot.lineHeight,
+        'line',
+        lineGuideId
+      );
+      return lineY - lineFitted * 1.05;
+    }
+    const isPeachCellField =
+      inputKind === 'block' &&
+      slot.normY != null &&
+      slot.normY >= 0.74 &&
+      slot.normY <= 0.93;
+    if (isPeachCellField) {
+      const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(
+        slot,
+        lineGuideId
+      );
+      return slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+    }
+
+    // norm.y из PDF = штрих подчёркивания; нижний край слота совпадает с линией
+    const lineY = slot.y + slot.lineHeight;
     const isPurpleCoverField =
       lineGuideId === 'diary_interior_purple' &&
       slot.normY != null &&
       slot.normY >= 0.58 &&
       slot.normY <= 0.72;
-    if (isPurpleCoverField) {
-      return lineCenterY - fittedSize * 1.02;
-    }
-    const isBrownCareerAnswerRow =
+    const isBrownCoverField =
+      lineGuideId === 'diary_interior_brown' &&
       slot.normY != null &&
-      slot.normY >= 0.73 &&
-      slot.normY <= 0.83;
-    const fontOffsetRatio = isBrownCareerAnswerRow
-      ? 0.7
-      : inputKind === 'block'
-        ? 0.86
-        : 0.9;
-    return lineCenterY - fittedSize * fontOffsetRatio;
+      slot.normY >= 0.52 &&
+      slot.normY <= 0.62;
+
+    if (isPurpleCoverField || isBrownCoverField) {
+      return lineY - fittedSize * 1.06;
+    }
+    if (isBrownWishSlot(slot, lineGuideId)) {
+      const lineFitted = fitFontSizeToSlot(
+        fontSize,
+        slot.lineHeight,
+        'line',
+        lineGuideId
+      );
+      return lineY - lineFitted * 1.05;
+    }
+    if (isBrownCareerAnswerSlot(slot, lineGuideId)) {
+      const lineFitted = fitFontSizeToSlot(
+        fontSize,
+        slot.lineHeight,
+        'line',
+        lineGuideId
+      );
+      return lineY - lineFitted * 1.05;
+    }
+    const fontOffsetRatio = inputKind === 'block' ? 1.04 : 1.05;
+    return lineY - fittedSize * fontOffsetRatio;
   }
 
   const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
@@ -378,6 +476,17 @@ export function getFirstLineInputValue(params: {
   return trimmed.slice(0, trimmed.length - rest.length);
 }
 
+export function joinContinuationSegmentTexts(segments: readonly { content: string }[]): string {
+  return segments.reduce((full, segment) => {
+    if (!segment.content) return full;
+    if (!full) return segment.content;
+    if (full.endsWith(' ') || segment.content.startsWith(' ')) {
+      return full + segment.content;
+    }
+    return `${full} ${segment.content}`;
+  }, '');
+}
+
 /** Собирает полный текст после правки только первой строки. */
 export function mergeFirstLineEdit(params: {
   newFirstLine: string;
@@ -388,7 +497,7 @@ export function mergeFirstLineEdit(params: {
   lineGuideId?: string;
 }): string {
   const { newFirstLine, previousText, startSlotIndex, slots, fontSize, lineGuideId } = params;
-  const tail = getTailAfterFirstLine({
+  const { segments } = distributeTextWithinContinuationGroup({
     text: previousText,
     startSlotIndex,
     slots,
@@ -396,18 +505,69 @@ export function mergeFirstLineEdit(params: {
     lineGuideId,
   });
 
-  if (!tail) return newFirstLine;
+  if (!segments.length) return newFirstLine;
 
-  const trimmedFirst = newFirstLine.replace(/\s+$/, '');
-  const trailingSpaces = newFirstLine.match(/\s+$/)?.[0] ?? '';
+  const headIndex = segments[0]?.slotIndex ?? startSlotIndex;
+  const updated = segments.map((segment) =>
+    segment.slotIndex === headIndex
+      ? { ...segment, content: newFirstLine }
+      : segment
+  );
 
-  if (!trimmedFirst) return tail;
+  return joinContinuationSegmentTexts(updated);
+}
 
-  if (trailingSpaces.length > 0) {
-    return `${trimmedFirst}${trailingSpaces}${tail}`;
+/** Индекс слота для TextInput: последняя строка с текстом (курсор не убегает на пустую ниже). */
+export function getActiveEditSlotIndex(
+  segments: { slotIndex: number; content: string }[],
+  startSlotIndex: number
+): number {
+  let lastFilled = startSlotIndex;
+
+  for (const segment of segments) {
+    if (segment.content.length > 0) {
+      lastFilled = segment.slotIndex;
+    }
   }
 
-  return `${trimmedFirst} ${tail}`;
+  return lastFilled;
+}
+
+/** Собирает полный текст после правки одной строки в группе продолжений. */
+export function mergeActiveLineEdit(params: {
+  newLineText: string;
+  previousText: string;
+  editSlotIndex: number;
+  startSlotIndex: number;
+  slots: TextLineSlot[];
+  fontSize: number;
+  lineGuideId?: string;
+}): string {
+  const {
+    newLineText,
+    previousText,
+    editSlotIndex,
+    startSlotIndex,
+    slots,
+    fontSize,
+    lineGuideId,
+  } = params;
+
+  const { segments } = distributeTextWithinContinuationGroup({
+    text: previousText,
+    startSlotIndex,
+    slots,
+    fontSize,
+    lineGuideId,
+  });
+
+  const updated = segments.map((segment) =>
+    segment.slotIndex === editSlotIndex
+      ? { ...segment, content: newLineText }
+      : segment
+  );
+
+  return joinContinuationSegmentTexts(updated);
 }
 
 export function distributeTextWithinContinuationGroup(params: {
@@ -437,6 +597,7 @@ export function distributeTextWithinContinuationGroup(params: {
 
   const segments: { slotIndex: number; content: string }[] = [];
   let remaining = text;
+  const headIndex = groupSlots[0]?.index ?? startSlotIndex;
 
   for (const slot of groupSlots) {
     if (!remaining) {
@@ -444,7 +605,8 @@ export function distributeTextWithinContinuationGroup(params: {
       continue;
     }
     const { line, rest } = consumeOneLineForSlot(remaining, slot, fontSize, lineGuideId);
-    segments.push({ slotIndex: slot.index, content: line });
+    const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
+    segments.push({ slotIndex: slot.index, content });
     remaining = rest;
   }
 

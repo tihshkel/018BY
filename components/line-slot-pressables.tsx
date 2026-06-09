@@ -1,16 +1,73 @@
-import { buildLineSlotsContext, hitTestLineSlot, type GetLineSlotsParams } from '@/utils/textLineSlots';
+import {
+  buildLineSlotsContext,
+  hitTestLineSlot,
+  resolveContentRectForPage,
+  type GetLineSlotsParams,
+  type TextLineSlot,
+} from '@/utils/textLineSlots';
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 type LineSlotPressablesProps = {
   slotParams: GetLineSlotsParams;
   enabled: boolean;
-  onSlotPress: (x: number, y: number) => void;
+  onSlotPress: (slotIndex: number) => void;
 };
+
+function getSlotPressableRect(
+  slot: TextLineSlot,
+  slotParams: GetLineSlotsParams,
+  hitBounds: { top: number; height: number }
+): { left: number; top: number; width: number; height: number } {
+  let left = slot.x;
+  let width = slot.width;
+
+  if (
+    slotParams.lineGuideId === 'diary_interior_purple' &&
+    !slot.hasLabel &&
+    slot.normY != null &&
+    slot.normY < 0.42
+  ) {
+    const rect = resolveContentRectForPage(slotParams);
+    const minLeft = rect.offsetX + rect.width * 0.12;
+    if (left > minLeft + 2) {
+      width += left - minLeft;
+      left = minLeft;
+    }
+  }
+
+  return { left, top: hitBounds.top, width, height: hitBounds.height };
+}
+
+function getSlotHitBounds(
+  slot: TextLineSlot,
+  slots: TextLineSlot[],
+  minHitPx = 28
+): { top: number; height: number } {
+  if (slot.lineHeight >= minHitPx) {
+    return { top: slot.y, height: slot.lineHeight };
+  }
+
+  const prev = slots[slot.index - 1];
+  const next = slots[slot.index + 1];
+  const slotBottom = slot.y + slot.lineHeight;
+
+  const gapAbove = prev ? Math.max(0, slot.y - (prev.y + prev.lineHeight)) : Infinity;
+  const gapBelow = next ? Math.max(0, next.y - slotBottom) : Infinity;
+
+  const needExpand = minHitPx - slot.lineHeight;
+  const expandUp = Math.min(needExpand / 2, gapAbove / 2);
+  const expandDown = Math.min(needExpand - expandUp, gapBelow / 2);
+
+  return {
+    top: slot.y - expandUp,
+    height: slot.lineHeight + expandUp + expandDown,
+  };
+}
 
 /**
  * Невидимые зоны тапа по строкам шаблона (поверх PNG, под аннотациями).
- * Для многострочных групп — одна общая зона на весь блок.
+ * Каждая строка — отдельная зона; индекс слота передаётся напрямую (без повторного hit-test).
  */
 export function LineSlotPressables({
   slotParams,
@@ -34,12 +91,8 @@ export function LineSlotPressables({
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       {slots.map((slot) => {
-        const minHitPx = 28;
-        const expandHit = slot.lineHeight < 24;
-        const hitHeight = expandHit ? Math.max(slot.lineHeight, minHitPx) : slot.lineHeight;
-        const hitTop = expandHit
-          ? slot.y - Math.max(0, (hitHeight - slot.lineHeight) / 2)
-          : slot.y;
+        const hitBounds = getSlotHitBounds(slot, slots);
+        const pressable = getSlotPressableRect(slot, slotParams, hitBounds);
 
         return (
           <Pressable
@@ -47,16 +100,13 @@ export function LineSlotPressables({
             style={[
               styles.hitArea,
               {
-                left: slot.x,
-                top: hitTop,
-                width: slot.width,
-                height: hitHeight,
+                left: pressable.left,
+                top: pressable.top,
+                width: pressable.width,
+                height: pressable.height,
               },
             ]}
-            onPress={(event) => {
-              const { locationX, locationY } = event.nativeEvent;
-              onSlotPress(slot.x + locationX, hitTop + locationY);
-            }}
+            onPress={() => onSlotPress(slot.index)}
           />
         );
       })}
@@ -70,7 +120,7 @@ export function isPointOnLineSlot(
   slotParams: GetLineSlotsParams
 ): boolean {
   const { slots } = buildLineSlotsContext(slotParams);
-  return hitTestLineSlot({ x, y, slots }) !== null;
+  return hitTestLineSlot({ x, y, slots, slotParams }) !== null;
 }
 
 const styles = StyleSheet.create({

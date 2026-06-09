@@ -26,6 +26,7 @@ import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { createId } from '@/utils/id';
 import { normalizeProjectAnnotations } from '@/utils/migrateTemplateLineAnnotations';
 import { maybeMigrateProjectViewport } from '@/utils/migrateAnnotationViewport';
+import { DIARY_BLOCK_PAGE_SIZE, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { getEditorPageDisplayScale, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -156,13 +157,30 @@ export default function EditAlbumScreen() {
   // ID для сохранения: из URL или созданный при открытии без id (чтобы текст/фото не терялись до router.replace)
   const storageId = id || effectiveProjectId;
   
-  // Отслеживание последнего сохраненного состояния для проверки изменений
-  const lastSavedStateRef = React.useRef<{
+  type ProjectSnapshot = {
     images: string[];
     annotations: Annotation[];
     coverAnnotations: Annotation[];
     projectMetaJson?: string | null;
-  } | null>(null);
+  };
+
+  // Последнее явно сохранённое состояние (обновляется при save / выходе «Сохранить»)
+  const lastSavedStateRef = React.useRef<ProjectSnapshot | null>(null);
+
+  // Снимок на момент входа в редактор — не трогается автосохранением («Не сохранять» откатывает сюда)
+  const sessionEntrySnapshotRef = React.useRef<ProjectSnapshot | null>(null);
+  const sessionEntryCapturedRef = React.useRef(false);
+
+  const captureSessionEntrySnapshot = (snap: ProjectSnapshot) => {
+    if (sessionEntryCapturedRef.current) return;
+    sessionEntryCapturedRef.current = true;
+    sessionEntrySnapshotRef.current = {
+      images: [...snap.images],
+      annotations: JSON.parse(JSON.stringify(snap.annotations)),
+      coverAnnotations: JSON.parse(JSON.stringify(snap.coverAnnotations)),
+      projectMetaJson: snap.projectMetaJson ?? null,
+    };
+  };
 
   // Флаг "пользователь явно сохранял этот проект".
   // Нужен, чтобы пустые/черновые проекты можно было удалять целиком при выходе "Не сохранять",
@@ -266,10 +284,21 @@ export default function EditAlbumScreen() {
   const baselineSourceRef = React.useRef({ images, annotations, coverAnnotations });
   baselineSourceRef.current = { images, annotations, coverAnnotations };
 
+  /** Синхронный снимок для saveAllData — обновляется сразу в хендлерах, не ждёт re-render React */
+  const liveProjectRef = React.useRef({ images, annotations, coverAnnotations });
+  liveProjectRef.current = { images, annotations, coverAnnotations };
+
+  const waitForEditorFlush = () =>
+    new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
   /** Один раз после открытия проекта: зафиксировать baseline, когда догружен весь шаблон (images.length >= totalPages), иначе ложные «несохранённые изменения». */
   const initialBaselineCapturedRef = React.useRef(false);
   useEffect(() => {
     initialBaselineCapturedRef.current = false;
+    sessionEntryCapturedRef.current = false;
+    sessionEntrySnapshotRef.current = null;
   }, [storageId]);
 
   useEffect(() => {
@@ -279,12 +308,14 @@ export default function EditAlbumScreen() {
 
     const t = setTimeout(() => {
       const src = baselineSourceRef.current;
-      lastSavedStateRef.current = {
+      const snap: ProjectSnapshot = {
         images: [...src.images],
         annotations: JSON.parse(JSON.stringify(src.annotations)),
         coverAnnotations: JSON.parse(JSON.stringify(src.coverAnnotations)),
         projectMetaJson: lastSavedStateRef.current?.projectMetaJson ?? null,
       };
+      captureSessionEntrySnapshot(snap);
+      lastSavedStateRef.current = snap;
       initialBaselineCapturedRef.current = true;
     }, 550);
     return () => clearTimeout(t);
@@ -603,6 +634,9 @@ export default function EditAlbumScreen() {
           console.log('[DEBUG] Interior URIs loaded:', interiorUris?.length || 0);
           if (interiorUris && interiorUris.length > 0) {
             imageUris = interiorUris;
+            for (const uri of imageUris) {
+              setPageSourceSize(uri, DIARY_BLOCK_PAGE_SIZE);
+            }
             console.log('[DEBUG] Setting images:', imageUris.length, 'pages');
             setImages(imageUris);
             console.log('[DEBUG] totalPages will be set to:', pageCount);
@@ -640,12 +674,13 @@ export default function EditAlbumScreen() {
                 }
               }
               
-              // Сохраняем начальное состояние для отслеживания изменений
-              lastSavedStateRef.current = {
+              const entrySnap: ProjectSnapshot = {
                 images: [...imageUris],
                 annotations: JSON.parse(JSON.stringify(diaryAnnotations)),
                 coverAnnotations: JSON.parse(JSON.stringify(diaryCoverAnnotations)),
               };
+              captureSessionEntrySnapshot(entrySnap);
+              lastSavedStateRef.current = entrySnap;
             }
             
             // Если проекта нет, создаём его сразу — чтобы сохранение текста/фото работало до обновления URL
@@ -762,12 +797,13 @@ export default function EditAlbumScreen() {
                 }
               }
               
-              // Сохраняем начальное состояние для отслеживания изменений
-              lastSavedStateRef.current = {
+              const entrySnap: ProjectSnapshot = {
                 images: [...imageUris],
                 annotations: JSON.parse(JSON.stringify(loadedAnnotations)),
                 coverAnnotations: JSON.parse(JSON.stringify(loadedCoverAnnotations)),
               };
+              captureSessionEntrySnapshot(entrySnap);
+              lastSavedStateRef.current = entrySnap;
               
               // Параллельно загружаем остальные страницы в фоне (не блокируем)
               // ВАЖНО: Догружаем только если сохраненных страниц меньше оригинальных
@@ -844,12 +880,13 @@ export default function EditAlbumScreen() {
                   }
                 }
                 
-                // Сохраняем начальное состояние для отслеживания изменений
-                lastSavedStateRef.current = {
+                const entrySnap: ProjectSnapshot = {
                   images: [...parsed],
                   annotations: JSON.parse(JSON.stringify(loadedAnnotations2)),
                   coverAnnotations: JSON.parse(JSON.stringify(loadedCoverAnnotations2)),
                 };
+                captureSessionEntrySnapshot(entrySnap);
+                lastSavedStateRef.current = entrySnap;
                 
                 return; // Выходим - используем сохраненные данные
               }
@@ -1216,27 +1253,27 @@ export default function EditAlbumScreen() {
     );
   };
 
+  const persistAnnotations = (next: Annotation[]) => {
+    liveProjectRef.current = { ...liveProjectRef.current, annotations: next };
+    if (storageId) {
+      void AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next));
+    }
+    setAnnotations(next);
+  };
+
   const handleAnnotationAdd = (annotation: Annotation) => {
-    setAnnotations(prev => {
-      const existingIds = new Set(prev.map(a => a.id));
-      const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
-      const newAnnotation = { ...annotation, id: safeId, page: currentPage };
-      const next = [...prev, newAnnotation];
-      if (storageId) {
-        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
+    const prev = liveProjectRef.current.annotations;
+    const existingIds = new Set(prev.map((a) => a.id));
+    const safeId = existingIds.has(annotation.id) ? createId('ann') : annotation.id;
+    const newAnnotation = { ...annotation, id: safeId, page: currentPage };
+    persistAnnotations([...prev, newAnnotation]);
   };
 
   const handleAnnotationUpdate = (annotationId: string, updates: Partial<Annotation>) => {
-    setAnnotations(prev => {
-      const next = prev.map(ann => (ann.id === annotationId ? { ...ann, ...updates } : ann));
-      if (storageId) {
-        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
+    const next = liveProjectRef.current.annotations.map((ann) =>
+      ann.id === annotationId ? { ...ann, ...updates } : ann
+    );
+    persistAnnotations(next);
 
     if (updates.color || updates.fontSize || updates.fontFamily) {
       if (updates.fontFamily) lastFontFamilyRef.current = updates.fontFamily;
@@ -1268,13 +1305,8 @@ export default function EditAlbumScreen() {
   };
 
   const handleAnnotationDelete = (annotationId: string) => {
-    setAnnotations(prev => {
-      const next = prev.filter(ann => ann.id !== annotationId);
-      if (storageId) {
-        AsyncStorage.setItem(`@project_annotations_${storageId}`, JSON.stringify(next)).catch(() => {});
-      }
-      return next;
-    });
+    const next = liveProjectRef.current.annotations.filter((ann) => ann.id !== annotationId);
+    persistAnnotations(next);
   };
 
   // Подсчёт фото в аннотациях для метаданных проекта
@@ -1335,15 +1367,27 @@ export default function EditAlbumScreen() {
     silent?: boolean;
     markCommitted?: boolean;
     skipCloud?: boolean;
-  }): Promise<{ pushOk: boolean; pushError?: string }> => {
+    /** false для автосохранения — не затирает снимок «на момент входа» */
+    updateBaseline?: boolean;
+  }): Promise<{ pushOk: boolean; pushError?: string; effectiveId?: string }> => {
     const silent = opts?.silent ?? false;
+    const skipCloud = opts?.skipCloud ?? false;
+    const updateBaseline = opts?.updateBaseline ?? true;
     const out = { pushOk: false, pushError: undefined as string | undefined };
 
-    // Гарантируем строку в profiles (UUID Auth) перед пушем — см. ensureSyncReady / user_sync
-    try { await ensureSyncReady(); } catch (_) { /* не блокируем сохранение */ }
+    // Облачный пуш требует profiles; при локальном выходе (skipCloud) не ждём сеть — так же на Android
+    if (!skipCloud) {
+      try { await ensureSyncReady(); } catch (_) { /* не блокируем сохранение */ }
+    }
+
+    const live = liveProjectRef.current;
+    const saveImages = live.images;
+    const saveAnnotations = live.annotations;
+    const saveCoverAnnotations = live.coverAnnotations;
 
     let effectiveId = storageId;
-    const hasContent = images.length > 0 || annotations.length > 0 || coverAnnotations.length > 0;
+    const hasContent =
+      saveImages.length > 0 || saveAnnotations.length > 0 || saveCoverAnnotations.length > 0;
     if (!effectiveId && hasContent) {
       effectiveId = Date.now().toString();
       setEffectiveProjectId(effectiveId);
@@ -1356,8 +1400,9 @@ export default function EditAlbumScreen() {
         createdAt: new Date().toISOString(),
         isReadyMadeAlbum: true,
         hasPdfTemplate: true,
-        pagesCount: images.length,
-        photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+        pagesCount: saveImages.length,
+        photosCount:
+          countPhotoAnnotations(saveAnnotations) + countPhotoAnnotations(saveCoverAnnotations),
       };
       if (eventDate) projectData.reminderDate = eventDate;
       await AsyncStorage.setItem(`@project_${effectiveId}`, JSON.stringify(projectData));
@@ -1376,18 +1421,34 @@ export default function EditAlbumScreen() {
     try {
       // 1. Локальное сохранение — изображения, аннотации
       await Promise.all([
-        AsyncStorage.setItem(`@project_images_${effectiveId}`, JSON.stringify(images)),
-        AsyncStorage.setItem(`@project_annotations_${effectiveId}`, JSON.stringify(annotations)),
-        AsyncStorage.setItem(`@project_cover_annotations_${effectiveId}`, JSON.stringify(coverAnnotations)),
+        AsyncStorage.setItem(`@project_images_${effectiveId}`, JSON.stringify(saveImages)),
+        AsyncStorage.setItem(`@project_annotations_${effectiveId}`, JSON.stringify(saveAnnotations)),
+        AsyncStorage.setItem(
+          `@project_cover_annotations_${effectiveId}`,
+          JSON.stringify(saveCoverAnnotations)
+        ),
       ]);
-      if (__DEV__) console.log('[EditAlbum] saveAllData: local save OK for', effectiveId, '| images:', images.length, '| annotations:', annotations.length, '| coverAnnotations:', coverAnnotations.length);
+      if (__DEV__) {
+        console.log(
+          '[EditAlbum] saveAllData: local save OK for',
+          effectiveId,
+          '| images:',
+          saveImages.length,
+          '| annotations:',
+          saveAnnotations.length,
+          '| coverAnnotations:',
+          saveCoverAnnotations.length
+        );
+      }
 
-      lastSavedStateRef.current = {
-        images: [...images],
-        annotations: JSON.parse(JSON.stringify(annotations)),
-        coverAnnotations: JSON.parse(JSON.stringify(coverAnnotations)),
-        projectMetaJson: await AsyncStorage.getItem(`@project_${effectiveId}`),
-      };
+      if (updateBaseline) {
+        lastSavedStateRef.current = {
+          images: [...saveImages],
+          annotations: JSON.parse(JSON.stringify(saveAnnotations)),
+          coverAnnotations: JSON.parse(JSON.stringify(saveCoverAnnotations)),
+          projectMetaJson: await AsyncStorage.getItem(`@project_${effectiveId}`),
+        };
+      }
 
       if (opts?.markCommitted && effectiveId) {
         userCommittedRef.current = true;
@@ -1407,8 +1468,9 @@ export default function EditAlbumScreen() {
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
           hasPdfTemplate: true,
-          pagesCount: images.length,
-          photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+          pagesCount: saveImages.length,
+          photosCount:
+            countPhotoAnnotations(saveAnnotations) + countPhotoAnnotations(saveCoverAnnotations),
         };
         if (eventDate) projectData.reminderDate = eventDate;
         await AsyncStorage.setItem(`@project_${effectiveId}`, JSON.stringify(projectData));
@@ -1420,12 +1482,17 @@ export default function EditAlbumScreen() {
         await AsyncStorage.setItem('@user_projects', JSON.stringify(list2));
       }
 
-      // 3. Верификация: перечитываем @user_projects и проверяем что проект в списке
+      if (skipCloud) {
+        out.pushOk = true;
+        out.effectiveId = effectiveId;
+        return out;
+      }
+
+      // 3. Верификация перед облаком: перечитываем @user_projects
       const verifyRaw = await AsyncStorage.getItem('@user_projects');
       const verifyList: any[] = verifyRaw ? JSON.parse(verifyRaw) : [];
       const inList = verifyList.some((p: any) => String(p?.id) === String(effectiveId));
       if (!inList) {
-        // Если проекта нет — добавляем принудительно
         if (__DEV__) console.warn('[EditAlbum] saveAllData: project NOT in @user_projects after save, force-adding');
         const fallbackData: any = {
           id: effectiveId,
@@ -1436,20 +1503,15 @@ export default function EditAlbumScreen() {
           createdAt: new Date().toISOString(),
           isReadyMadeAlbum: true,
           hasPdfTemplate: true,
-          pagesCount: images.length,
-          photosCount: countPhotoAnnotations(annotations) + countPhotoAnnotations(coverAnnotations),
+          pagesCount: saveImages.length,
+          photosCount:
+            countPhotoAnnotations(saveAnnotations) + countPhotoAnnotations(saveCoverAnnotations),
         };
         if (eventDate) fallbackData.reminderDate = eventDate;
         verifyList.push(fallbackData);
         await AsyncStorage.setItem('@user_projects', JSON.stringify(verifyList));
       }
       if (__DEV__) console.log('[EditAlbum] saveAllData: @user_projects verified, count=', verifyList.length, 'projectInList=', true);
-
-      if (opts?.skipCloud) {
-        scheduleSyncToCloud();
-        out.pushOk = true;
-        return out;
-      }
 
       // 4. Отправка в облако (Supabase)
       await new Promise((r) => setTimeout(r, 200));
@@ -1462,6 +1524,7 @@ export default function EditAlbumScreen() {
       scheduleSyncToCloud();
       out.pushOk = pushResult.ok;
       out.pushError = pushResult.error;
+      out.effectiveId = effectiveId;
       if (__DEV__) console.log('[EditAlbum] saveAllData: push result ok=', pushResult.ok, 'error=', pushResult.error ?? 'none');
       if (!pushResult.ok && !silent) {
         if (isSupabaseNotConfiguredError(pushResult.error)) {
@@ -1499,7 +1562,12 @@ export default function EditAlbumScreen() {
 
     if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
     autosaveTimerRef.current = setTimeout(() => {
-      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+      saveAllDataRef.current?.({
+        silent: true,
+        markCommitted: true,
+        skipCloud: true,
+        updateBaseline: false,
+      });
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
@@ -1513,7 +1581,12 @@ export default function EditAlbumScreen() {
   useEffect(() => {
     if (!storageId) return;
     const interval = setInterval(() => {
-      saveAllDataRef.current?.({ silent: true, markCommitted: true, skipCloud: true });
+      saveAllDataRef.current?.({
+        silent: true,
+        markCommitted: true,
+        skipCloud: true,
+        updateBaseline: false,
+      });
     }, AUTOSAVE_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [storageId]);
@@ -1605,9 +1678,9 @@ export default function EditAlbumScreen() {
   const getCanHardDeleteEmpty = () =>
     !!storageId && userCommittedRef.current === false && hasUserContent() === false;
 
-  const restoreLastSavedSnapshot = async () => {
+  const restoreSessionEntrySnapshot = async () => {
     const pid = storageId;
-    const snap = lastSavedStateRef.current;
+    const snap = sessionEntrySnapshotRef.current ?? lastSavedStateRef.current;
     if (!pid || !snap) return;
 
     await Promise.all([
@@ -1626,8 +1699,28 @@ export default function EditAlbumScreen() {
     clearPendingAutosave();
 
     try {
-      await saveAllData({ silent: false, markCommitted: true, skipCloud: true });
+      annotationsRef.current?.closeEditing?.();
+      dismissActiveEditing();
+      await waitForEditorFlush();
+      const saveResult = await saveAllData({
+        silent: false,
+        markCommitted: true,
+        skipCloud: true,
+        updateBaseline: true,
+      });
+      const projectId = saveResult.effectiveId ?? storageId ?? effectiveProjectId;
       navigateToProjectsList();
+      if (projectId) {
+        void pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] })
+          .then(() => scheduleSyncToCloud())
+          .catch((e) => {
+            if (__DEV__) {
+              console.warn('[EditAlbum] background cloud sync after exit save:', e);
+            }
+          });
+      } else {
+        scheduleSyncToCloud();
+      }
     } catch (e) {
       Alert.alert(
         'Не удалось сохранить',
@@ -1644,13 +1737,16 @@ export default function EditAlbumScreen() {
     setExitActionInProgress(true);
     clearPendingAutosave();
 
+    const pid = storageId;
+    const shouldHardDelete = getCanHardDeleteEmpty() && !!pid;
+
     try {
-      if (getCanHardDeleteEmpty() && storageId) {
-        await deleteProjectEverywhere(storageId);
-      } else {
-        await restoreLastSavedSnapshot();
-      }
       navigateToProjectsList();
+      if (shouldHardDelete && pid) {
+        await deleteProjectEverywhere(pid);
+      } else {
+        await restoreSessionEntrySnapshot();
+      }
     } catch (e) {
       Alert.alert(
         'Не удалось выйти',
@@ -1866,7 +1962,12 @@ export default function EditAlbumScreen() {
       dismissActiveEditing();
       setCurrentTool(null);
       setIsEditing(false);
-      void saveAllData({ silent: true, markCommitted: true, skipCloud: true });
+      void saveAllData({
+        silent: true,
+        markCommitted: true,
+        skipCloud: true,
+        updateBaseline: true,
+      });
       return;
     }
 
