@@ -756,6 +756,15 @@ export default function ImageViewer({
     });
   };
 
+  const navigateToPage = React.useCallback(
+    (page: number) => {
+      const clampedPage = Math.max(1, Math.min(page, images.length));
+      setCurrentPage(clampedPage);
+      scrollToPage(clampedPage);
+    },
+    [containerHeight, images.length]
+  );
+
   if (images.length === 0) {
     return (
       <View style={styles.errorContainer}>
@@ -895,8 +904,10 @@ export default function ImageViewer({
                           !isTextEditing &&
                           !selectedAnnotationId &&
                           hasLineGuides(lineGuideId) &&
-                          currentTool === 'text' &&
-                          usesTemplateLineTextEditing(lineGuideId);
+                          usesTemplateLineTextEditing(lineGuideId) &&
+                          currentTool !== 'image' &&
+                          currentTool !== 'drawing' &&
+                          currentTool !== 'floatingText';
 
                         return (
                           <>
@@ -930,6 +941,15 @@ export default function ImageViewer({
                               sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
                               lineGuideId={lineGuideId}
                               onTextSelectionChange={onTextSelectionChange}
+                              totalPages={
+                                pageNumber === currentPage ? images.length : undefined
+                              }
+                              onNavigateToPage={
+                                pageNumber === currentPage ? navigateToPage : undefined
+                              }
+                              resolveSlotParams={
+                                pageNumber === currentPage ? buildSlotParams : undefined
+                              }
                             />
                             {slotParams && isLineSlotDebugEnabled() ? (
                               <LineGuideDevOverlay {...slotParams} />

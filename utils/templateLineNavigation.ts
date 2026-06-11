@@ -13,6 +13,7 @@ export type TemplateLineFieldAnnotation = Pick<
 >;
 
 export type TemplateLineFieldTarget = {
+  page: number;
   startSlotIndex: number;
   continuationGroup: number;
   isEmpty: boolean;
@@ -71,6 +72,7 @@ export function getPageFieldTargets(
         : isFieldEmpty(annotations, page, slots, startSlotIndex);
 
     targets.push({
+      page,
       startSlotIndex,
       continuationGroup: groupSlots[0]!.continuationGroup,
       isEmpty,
@@ -80,18 +82,54 @@ export function getPageFieldTargets(
   return targets.sort((a, b) => a.startSlotIndex - b.startSlotIndex);
 }
 
+export function getAlbumFieldTargets(
+  totalPages: number,
+  getSlotsForPage: (page: number) => TextLineSlot[],
+  annotations: TemplateLineFieldAnnotation[],
+  liveFieldOverride?: { page: number; startSlotIndex: number; isEmpty: boolean }
+): TemplateLineFieldTarget[] {
+  const targets: TemplateLineFieldTarget[] = [];
+
+  for (let page = 1; page <= totalPages; page += 1) {
+    const slots = getSlotsForPage(page);
+    if (slots.length === 0) continue;
+
+    const pageTargets = getPageFieldTargets(
+      slots,
+      annotations,
+      page,
+      liveFieldOverride?.page === page
+        ? {
+            startSlotIndex: liveFieldOverride.startSlotIndex,
+            isEmpty: liveFieldOverride.isEmpty,
+          }
+        : undefined
+    );
+    targets.push(...pageTargets);
+  }
+
+  return targets.sort((a, b) => {
+    if (a.page !== b.page) return a.page - b.page;
+    return a.startSlotIndex - b.startSlotIndex;
+  });
+}
+
 function resolveCurrentFieldIndex(
   targets: TemplateLineFieldTarget[],
+  currentPage: number,
   currentStartSlotIndex: number
 ): number {
-  return targets.findIndex((target) => target.startSlotIndex === currentStartSlotIndex);
+  return targets.findIndex(
+    (target) => target.page === currentPage && target.startSlotIndex === currentStartSlotIndex
+  );
 }
 
 export function findNextEmptyFieldTarget(
   targets: TemplateLineFieldTarget[],
+  currentPage: number,
   currentStartSlotIndex: number
 ): TemplateLineFieldTarget | null {
-  const currentIndex = resolveCurrentFieldIndex(targets, currentStartSlotIndex);
+  const currentIndex = resolveCurrentFieldIndex(targets, currentPage, currentStartSlotIndex);
   if (currentIndex < 0) {
     return targets.find((target) => target.isEmpty) ?? null;
   }
@@ -107,14 +145,30 @@ export function findNextEmptyFieldTarget(
 
 export function findPreviousFieldTarget(
   targets: TemplateLineFieldTarget[],
+  currentPage: number,
   currentStartSlotIndex: number
 ): TemplateLineFieldTarget | null {
-  const currentIndex = resolveCurrentFieldIndex(targets, currentStartSlotIndex);
+  const currentIndex = resolveCurrentFieldIndex(targets, currentPage, currentStartSlotIndex);
   if (currentIndex <= 0) return null;
   return targets[currentIndex - 1] ?? null;
 }
 
 export function getFieldNavigationState(
+  targets: TemplateLineFieldTarget[],
+  currentPage: number,
+  currentStartSlotIndex: number
+): TemplateLineFieldNavigationState {
+  const currentIndex = resolveCurrentFieldIndex(targets, currentPage, currentStartSlotIndex);
+  const nextEmpty = findNextEmptyFieldTarget(targets, currentPage, currentStartSlotIndex);
+
+  return {
+    canGoBack: currentIndex > 0,
+    canGoNext: nextEmpty != null || currentIndex < targets.length - 1,
+    nextWouldDismiss: nextEmpty == null,
+  };
+}
+
+export function getPageFieldNavigationState(
   slots: TextLineSlot[],
   annotations: TemplateLineFieldAnnotation[],
   page: number,
@@ -122,12 +176,5 @@ export function getFieldNavigationState(
   liveFieldOverride?: { startSlotIndex: number; isEmpty: boolean }
 ): TemplateLineFieldNavigationState {
   const targets = getPageFieldTargets(slots, annotations, page, liveFieldOverride);
-  const currentIndex = resolveCurrentFieldIndex(targets, currentStartSlotIndex);
-  const nextEmpty = findNextEmptyFieldTarget(targets, currentStartSlotIndex);
-
-  return {
-    canGoBack: currentIndex > 0,
-    canGoNext: targets.length > 0,
-    nextWouldDismiss: nextEmpty == null,
-  };
+  return getFieldNavigationState(targets, page, currentStartSlotIndex);
 }

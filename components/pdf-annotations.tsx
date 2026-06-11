@@ -16,9 +16,11 @@ import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fi
 import {
   findNextEmptyFieldTarget,
   findPreviousFieldTarget,
+  getAlbumFieldTargets,
   getFieldNavigationState,
   getPageFieldTargets,
 } from '@/utils/templateLineNavigation';
+import type { GetLineSlotsParams } from '@/utils/textLineSlots';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -154,6 +156,10 @@ interface PdfAnnotationsProps {
   onSelectionChange?: (annotationId: string | null) => void;
   /** Сигнал о загрузке фото-аннотации (для экспорта через PageRenderer) */
   onImageAnnotationLoad?: (imageUri: string) => void;
+  /** Навигация по полям шаблона на всех страницах альбома */
+  totalPages?: number;
+  onNavigateToPage?: (page: number) => void;
+  resolveSlotParams?: (page: number) => GetLineSlotsParams | null;
 }
 
 const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(({
@@ -175,6 +181,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   onTextSelectionChange,
   onSelectionChange,
   onImageAnnotationLoad,
+  totalPages,
+  onNavigateToPage,
+  resolveSlotParams,
 }, ref) => {
   // Получаем актуальные размеры экрана
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -190,6 +199,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   );
 
   const getSlotsForPage = (pageNumber: number) => {
+    const resolvedParams = resolveSlotParams?.(pageNumber);
+    if (resolvedParams) {
+      return getLineSlotsForPage(resolvedParams);
+    }
+
     if (!lineGuideId || lineSlotsContext.viewportWidth <= 0 || lineSlotsContext.viewportHeight <= 0) {
       return [];
     }
@@ -202,6 +216,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       sourceHeight: lineSlotsContext.sourceHeight,
     });
   };
+
+  const usesAlbumWideFieldNavigation = (totalPages ?? 0) > 1 && !!resolveSlotParams;
 
   const isTemplateLineAlbum = usesTemplateLineTextEditing(lineGuideId);
 
@@ -1540,7 +1556,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const getLiveFieldOverride = (
     pageNumber: number,
     startSlotIndex: number
-  ): { startSlotIndex: number; isEmpty: boolean } | undefined => {
+  ): { page: number; startSlotIndex: number; isEmpty: boolean } | undefined => {
     const editingId = editingAnnotationRef.current;
     if (!editingId) return undefined;
 
@@ -1557,25 +1573,39 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     if (editingGroupStart !== startSlotIndex) return undefined;
 
     return {
+      page: pageNumber,
       startSlotIndex,
       isEmpty: editingTextRef.current.trim() === '',
     };
   };
 
   const getTemplateLineNavigationTargets = (pageNumber: number, startSlotIndex: number) => {
+    const liveOverride = getLiveFieldOverride(pageNumber, startSlotIndex);
+
+    if (usesAlbumWideFieldNavigation && totalPages) {
+      return getAlbumFieldTargets(
+        totalPages,
+        getSlotsForPage,
+        annotationsListRef.current,
+        liveOverride
+      );
+    }
+
     const slots = getSlotsForPage(pageNumber);
     return getPageFieldTargets(
       slots,
       annotationsListRef.current,
       pageNumber,
-      getLiveFieldOverride(pageNumber, startSlotIndex)
+      liveOverride
+        ? {
+            startSlotIndex: liveOverride.startSlotIndex,
+            isEmpty: liveOverride.isEmpty,
+          }
+        : undefined
     );
   };
 
-  const beginTemplateLineFieldAtSlot = (startSlotIndex: number) => {
-    const pageNumber = getActivePageNumber();
-    if (pageNumber == null) return;
-
+  const openTemplateLineFieldOnPage = (pageNumber: number, startSlotIndex: number) => {
     const slots = getSlotsForPage(pageNumber);
     const startSlot = slots[startSlotIndex];
     if (!startSlot) return;
@@ -1640,6 +1670,27 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     tryOpen(8);
   };
 
+  const beginTemplateLineFieldAtSlot = (pageNumber: number, startSlotIndex: number) => {
+    const activePageNumber = getActivePageNumber();
+    if (activePageNumber != null && activePageNumber !== pageNumber && onNavigateToPage) {
+      onNavigateToPage(pageNumber);
+      const tryOpenOnPage = (attemptsLeft: number) => {
+        const slots = getSlotsForPage(pageNumber);
+        if (slots[startSlotIndex]) {
+          openTemplateLineFieldOnPage(pageNumber, startSlotIndex);
+          return;
+        }
+        if (attemptsLeft > 0) {
+          requestAnimationFrame(() => tryOpenOnPage(attemptsLeft - 1));
+        }
+      };
+      requestAnimationFrame(() => tryOpenOnPage(12));
+      return;
+    }
+
+    openTemplateLineFieldOnPage(pageNumber, startSlotIndex);
+  };
+
   const navigateTemplateLinePrevious = () => {
     const editingId = editingAnnotationRef.current;
     if (!editingId) return;
@@ -1655,10 +1706,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const slots = getSlotsForPage(pageNumber);
     const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
     const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
-    const previousTarget = findPreviousFieldTarget(targets, startSlotIndex);
+    const previousTarget = findPreviousFieldTarget(targets, pageNumber, startSlotIndex);
     if (!previousTarget) return;
 
-    beginTemplateLineFieldAtSlot(previousTarget.startSlotIndex);
+    beginTemplateLineFieldAtSlot(previousTarget.page, previousTarget.startSlotIndex);
   };
 
   const navigateTemplateLineNext = () => {
@@ -1676,10 +1727,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const slots = getSlotsForPage(pageNumber);
     const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
     const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
-    const nextTarget = findNextEmptyFieldTarget(targets, startSlotIndex);
+    const nextTarget = findNextEmptyFieldTarget(targets, pageNumber, startSlotIndex);
 
     if (nextTarget) {
-      beginTemplateLineFieldAtSlot(nextTarget.startSlotIndex);
+      beginTemplateLineFieldAtSlot(nextTarget.page, nextTarget.startSlotIndex);
       return;
     }
 
@@ -1704,13 +1755,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     const slots = getSlotsForPage(pageNumber);
     const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
-    const state = getFieldNavigationState(
-      slots,
-      annotationsListRef.current,
-      pageNumber,
-      startSlotIndex,
-      getLiveFieldOverride(pageNumber, startSlotIndex)
-    );
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const state = getFieldNavigationState(targets, pageNumber, startSlotIndex);
 
     return {
       canGoBack: state.canGoBack,
@@ -2443,7 +2489,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
-              const rowTopInset = Math.max(0, rowTypography.inputHeight - rowTypography.lineHeight);
               return (
                 <Text
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2453,7 +2498,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     {
                       position: 'absolute',
                       left: row.lineSlot.x,
-                      top: rowTop - rowTopInset,
+                      top: rowTop,
                       width: row.lineSlot.width,
                       color: currentColor,
                       fontSize: rowTypography.fontSize,

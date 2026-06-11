@@ -1984,10 +1984,12 @@ export default function EditAlbumScreen() {
     refreshTemplateLineNavigationState();
   }, [
     annotations,
+    currentPage,
     editingTextAnnotationId,
     hasTextSelection,
     isAddingText,
     isEditingTemplateLine,
+    keyboardHeight,
     refreshTemplateLineNavigationState,
   ]);
 

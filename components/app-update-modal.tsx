@@ -32,33 +32,41 @@ export function AppUpdateModal({
   const storeName = Platform.OS === 'android' ? 'Google Play' : 'App Store';
   const title = isStoreUpdate ? 'Доступно обновление' : 'Обновление готово';
   const description = isStoreUpdate
-    ? `В ${storeName} уже есть версия ${prompt.latestVersion}. Обновите приложение, чтобы получить новые функции и исправления.`
-    : 'Новая версия приложения уже скачана. Установите её сейчас — это займёт несколько секунд.';
-  const primaryLabel = isStoreUpdate ? `Обновить в ${storeName}` : 'Установить сейчас';
+    ? `Новая версия уже в ${storeName}. Обновите приложение, чтобы получить исправления и улучшения.`
+    : 'Новая версия уже скачана. Установите её сейчас — это займёт несколько секунд.';
+  const primaryLabel = isStoreUpdate ? `Открыть ${storeName}` : 'Установить сейчас';
   const handlePrimaryPress = isStoreUpdate ? onOpenStore : onApplyOta;
 
   return (
-    <Modal
-      visible
-      transparent
-      animationType="fade"
-      onRequestClose={onDismiss}
-    >
+    <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onDismiss} accessibilityLabel="Закрыть" />
         <View style={styles.card}>
-          <View style={styles.iconWrap}>
-            <Ionicons name="arrow-up-circle-outline" size={28} color="#8B6F5F" />
+          <View style={styles.headerRow}>
+            <View style={styles.headerText}>
+              <Text style={styles.eyebrow}>Обновление</Text>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+            <Pressable
+              style={styles.closeButton}
+              onPress={onDismiss}
+              disabled={isApplyingOta}
+              accessibilityRole="button"
+              accessibilityLabel="Закрыть"
+            >
+              <Ionicons name="close" size={22} color="#8B6F5F" />
+            </Pressable>
           </View>
 
-          <Text style={styles.eyebrow}>Обновление</Text>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.description}>{description}</Text>
+          <Text style={styles.subtitle}>{description}</Text>
 
           {isStoreUpdate ? (
-            <Text style={styles.versionMeta}>
-              Текущая версия {prompt.currentVersion}
-            </Text>
+            <View style={styles.versionBlock}>
+              <Text style={styles.versionValue}>{prompt.latestVersion}</Text>
+              <Text style={styles.versionHint}>
+                сейчас у вас {prompt.currentVersion}
+              </Text>
+            </View>
           ) : null}
 
           <Pressable
@@ -76,13 +84,13 @@ export function AppUpdateModal({
           </Pressable>
 
           <Pressable
-            style={styles.secondaryButton}
+            style={styles.laterButton}
             onPress={onDismiss}
             disabled={isApplyingOta}
             accessibilityRole="button"
             accessibilityLabel="Позже"
           >
-            <Text style={styles.secondaryButtonText}>Позже</Text>
+            <Text style={styles.laterButtonText}>Позже</Text>
           </Pressable>
         </View>
       </View>
@@ -96,51 +104,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    paddingVertical: 28,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(45, 35, 30, 0.42)',
+    backgroundColor: 'rgba(45, 38, 32, 0.45)',
   },
   card: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 380,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 22,
-    borderWidth: 1,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 2,
     borderColor: '#F0E8E0',
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.14,
+    shadowOpacity: 0.12,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 10,
   },
-  iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
   },
   eyebrow: {
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 13,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-    fontWeight: '500',
-    marginBottom: 6,
+    fontWeight: '400',
   },
   title: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 26,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'Georgia',
@@ -149,9 +155,15 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 10,
+    lineHeight: 32,
   },
-  description: {
+  closeButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subtitle: {
     fontSize: 15,
     lineHeight: 22,
     color: '#9B8E7F',
@@ -161,34 +173,56 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
     fontWeight: '300',
-    marginBottom: 12,
+    marginBottom: 20,
   },
-  versionMeta: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: '#B5A89A',
+  versionBlock: {
+    alignItems: 'center',
     marginBottom: 18,
+    gap: 4,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E8E0',
+  },
+  versionValue: {
+    fontSize: 32,
+    fontWeight: '600',
+    color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'System',
-      android: 'sans-serif',
+      android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
+    lineHeight: 36,
+  },
+  versionHint: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    textAlign: 'center',
   },
   primaryButton: {
     backgroundColor: '#8B6F5F',
     borderRadius: 16,
-    paddingVertical: 16,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 52,
-    marginBottom: 10,
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -196,18 +230,19 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
   },
-  secondaryButton: {
+  laterButton: {
+    marginTop: 14,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
   },
-  secondaryButtonText: {
-    color: '#9B8E7F',
-    fontSize: 15,
-    fontWeight: '500',
+  laterButtonText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#B5A89A',
     fontFamily: Platform.select({
       ios: 'System',
-      android: 'sans-serif',
+      android: 'sans-serif-light',
       default: 'sans-serif',
     }),
   },
