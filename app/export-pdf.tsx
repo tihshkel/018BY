@@ -6,7 +6,7 @@ import { requiresPrintSubscription } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
-import { getKidsFirstLastPages, getPregnancyFirstLastPagesForExport, getFamilyOrHolidayFirstLastPages } from '@/utils/albumFirstLastPages';
+import { getExportCoverPages, isSameExportImageUri } from '@/utils/albumFirstLastPages';
 import {
   ensureAlbumPagesCachedForExport,
   getAlbumImageUris,
@@ -745,58 +745,45 @@ export default function ExportPdfScreen() {
             setGenerationProgress({ current: done, total: Math.max(total, images.length) });
           }
         );
-        if (cachedPages.length >= images.length) {
-          images = cachedPages.slice(0, images.length);
-        } else if (cachedPages.length > 0) {
-          for (let i = 0; i < Math.min(cachedPages.length, images.length); i++) {
-            images[i] = cachedPages[i];
-          }
-        }
-        if (cachedPages.length < images.length) {
+        if (cachedPages.length !== images.length) {
           throw new Error(
-            `Не удалось загрузить страницы альбома (${cachedPages.length} из ${images.length}). Проверьте интернет и попробуйте снова.`
+            `Не удалось загрузить все страницы альбома (${cachedPages.length} из ${images.length}). Проверьте интернет и попробуйте снова.`
           );
         }
+        images = cachedPages;
       }
 
       // Для двухшагового экспорта: первый шаг = первая+последняя (или развертка), второй шаг = внутрянка
       // ДЛЯ ТВЕРДОЙ: первая/последняя не добавляем (шаг 1 = развертка из export)
       // ДЛЯ МЯГКОЙ/ЭЛЕКТРОННОЙ: первая/последняя в отдельный PDF (шаг 1), внутрянка отдельно (шаг 2)
       const coverIdForFirstLast = projectCoverType || albumId;
-      let firstLastImages: string[] = [];
-      
+      let exportFirstPageUri: string | null = null;
+      let exportClosingPageUri: string | null = null;
+
       if (formatToUse.type === 'hard') {
         console.log(`[PDF Export] Для твердой обложки: внутрянка только, развертка скачивается отдельно`);
-      } else if (projectCategory === 'kids' || projectCategory === 'pregnancy') {
+      } else {
         try {
-          const coverFormat = formatToUse.type === 'soft' || formatToUse.type === 'electronic' ? 'soft' : 'hard';
-          if (projectCategory === 'kids') {
-            const { firstPage, lastPage } = await getKidsFirstLastPages(coverIdForFirstLast, coverFormat);
-            if (firstPage) firstLastImages.push(firstPage);
-            if (lastPage) firstLastImages.push(lastPage);
-            console.log(`[PDF Export] Загружена первая/последняя для kids: ${firstLastImages.length} стр.`);
-          } else {
-            const { firstPage, lastPages } = await getPregnancyFirstLastPagesForExport(coverIdForFirstLast, coverFormat);
-            if (firstPage) firstLastImages.push(firstPage);
-            if (lastPages.length > 0) firstLastImages.push(...lastPages);
-            console.log(`[PDF Export] Загружена первая/последняя для pregnancy: ${firstLastImages.length} стр.`);
+          const { firstPage, closingPage } = await getExportCoverPages(
+            coverIdForFirstLast,
+            projectCategory,
+            formatToUse.type
+          );
+          exportFirstPageUri = firstPage;
+          if (closingPage && !isSameExportImageUri(closingPage, firstPage)) {
+            const lastInteriorUri = images.length > 0 ? images[images.length - 1] : null;
+            if (!isSameExportImageUri(closingPage, lastInteriorUri)) {
+              exportClosingPageUri = closingPage;
+            } else {
+              console.log('[PDF Export] Финальная страница совпадает с последней внутренней — не дублируем');
+            }
           }
+          console.log(
+            `[PDF Export] Обложка экспорта (${projectCategory ?? 'default'}): первая=${!!exportFirstPageUri}, финальная=${!!exportClosingPageUri}`
+          );
         } catch (error) {
-          console.warn(`[PDF Export] Ошибка загрузки первой/последней:`, error);
+          console.warn(`[PDF Export] Ошибка загрузки страниц обложки:`, error);
         }
-      } else if (projectCategory === 'family' || projectCategory === 'holidays' || projectCategory === 'holiday') {
-        try {
-          const { firstPage, lastPages } = await getFamilyOrHolidayFirstLastPages(coverIdForFirstLast, projectCategory);
-          if (firstPage) firstLastImages.push(firstPage);
-          if (lastPages.length > 0) firstLastImages.push(...lastPages);
-          console.log(`[PDF Export] Загружена первая/последняя для ${projectCategory}: ${firstLastImages.length} стр.`);
-        } catch (error) {
-          console.warn(`[PDF Export] Ошибка загрузки первой/последней для ${projectCategory}:`, error);
-        }
-      } else if (images.length >= 2) {
-        // Для diary и др.: первая и последняя страница из внутрянки
-        firstLastImages = [images[0], images[images.length - 1]];
-        console.log(`[PDF Export] Первая/последняя из внутрянки: 2 стр.`);
       }
 
       // Определяем размеры страницы (electronic = soft = A5)
@@ -1444,6 +1431,44 @@ export default function ExportPdfScreen() {
       console.log(`[PDF Export] Предзагрузка шрифтов...`);
       const fontsMap = await preloadFontsForPdf(pdfDoc);
       console.log(`[PDF Export] ✓ Загружено ${fontsMap.size} шрифтов`);
+
+      const loadBytesWithRetry = async (
+        uri: string,
+        label: string,
+        timeoutMs = isLargeDoc ? 60000 : 30000
+      ): Promise<Uint8Array> => {
+        const candidates = uri.startsWith('/') ? [`file://${uri}`, uri] : [uri];
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          for (const candidate of candidates) {
+            try {
+              const bytes = await withTimeout({
+                label: `${label} (${attempt}/3)`,
+                timeoutMs,
+                task: () => loadImageAsBytes(candidate),
+              });
+              if (bytes && bytes.length > 0) {
+                return bytes;
+              }
+            } catch {
+              // пробуем следующий URI / повтор
+            }
+          }
+          await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+        }
+        throw new Error(
+          `Не удалось подготовить ${label}. Проверьте интернет и попробуйте экспорт ещё раз.`
+        );
+      };
+
+      setGenerationStatus('Загрузка всех страниц…');
+      setGenerationProgress({ current: 0, total: images.length });
+      const prefetchedPageBytes: Uint8Array[] = [];
+      for (let i = 0; i < images.length; i += 1) {
+        const uri = optimizedPageUris[i] || images[i];
+        prefetchedPageBytes.push(await loadBytesWithRetry(uri, `страницу ${i + 1}`));
+        setGenerationProgress({ current: i + 1, total: images.length });
+      }
+      console.log(`[PDF Export] ✓ Все ${images.length} страниц подготовлены`);
       
       // Загружаем аннотации обложки
       let coverAnnotations: Annotation[] = [];
@@ -1585,11 +1610,11 @@ export default function ExportPdfScreen() {
 
       // Для soft/electronic: встраиваем первую страницу обложки ДО внутренних страниц
       const isSoftOrElectronic = formatToUse.type === 'soft' || formatToUse.type === 'electronic';
-      if (isSoftOrElectronic && firstLastImages.length > 0) {
+      if (isSoftOrElectronic && exportFirstPageUri) {
         try {
           setGenerationStatus('Добавление обложки…');
           setGenerationProgress({ current: 0, total: 0 });
-          const firstCoverUri = firstLastImages[0];
+          const firstCoverUri = exportFirstPageUri;
           const optFirstCover = await optimizeImageForExport(firstCoverUri, 'cover', isLargeDoc).catch(() => firstCoverUri);
           const firstCoverBytes = await loadImageAsBytes(optFirstCover);
           if (firstCoverBytes) {
@@ -1657,46 +1682,49 @@ export default function ExportPdfScreen() {
           const hasImageAnnotations = pageAnnotations.some(
             (ann) => ann.type === 'image' && ann.imageUri
           );
+          const usePageRenderer = pageAnnotations.length > 0;
           const pageRendererTimeoutMs = hasImageAnnotations
             ? isLargeDoc
-              ? 22000
-              : 10000
+              ? 45000
+              : 25000
             : isLargeDoc
-              ? 15000
-              : 5000;
+              ? 30000
+              : 15000;
 
-          // PageRenderer — единый путь для текста и фото (как в редакторе)
+          // PageRenderer — только для страниц с аннотациями (фото/текст как в редакторе)
           let pageSnapshotUri: string | null = null;
-          try {
-            pageSnapshotUri = await withTimeout({
-              label: `PageRenderer capture ${pageNumber}`,
-              timeoutMs: pageRendererTimeoutMs,
-              task: async () =>
-                new Promise<string | null>((resolve, reject) => {
-                  pageSnapshotPromiseRef.current = { resolve, reject };
-                  setRenderingPage({
-                    imageUri,
-                    annotations: pageAnnotations,
-                    pageNumber,
-                    viewport: pagesViewport,
-                    lineGuideId: albumId
-                      ? resolveLineGuideId(albumId, projectCategory)
-                      : undefined,
-                  });
-                  setTimeout(() => {
-                    if (pageSnapshotPromiseRef.current) {
-                      pageSnapshotPromiseRef.current.resolve(null);
-                      pageSnapshotPromiseRef.current = null;
-                    }
-                    setRenderingPage(null);
-                    setPageRendererReady(false);
-                  }, pageRendererTimeoutMs - 500);
-                }),
-            });
-          } catch {
-            pageSnapshotUri = null;
-            setRenderingPage(null);
-            setPageRendererReady(false);
+          if (usePageRenderer) {
+            try {
+              pageSnapshotUri = await withTimeout({
+                label: `PageRenderer capture ${pageNumber}`,
+                timeoutMs: pageRendererTimeoutMs,
+                task: async () =>
+                  new Promise<string | null>((resolve, reject) => {
+                    pageSnapshotPromiseRef.current = { resolve, reject };
+                    setRenderingPage({
+                      imageUri,
+                      annotations: pageAnnotations,
+                      pageNumber,
+                      viewport: pagesViewport,
+                      lineGuideId: albumId
+                        ? resolveLineGuideId(albumId, projectCategory)
+                        : undefined,
+                    });
+                    setTimeout(() => {
+                      if (pageSnapshotPromiseRef.current) {
+                        pageSnapshotPromiseRef.current.resolve(null);
+                        pageSnapshotPromiseRef.current = null;
+                      }
+                      setRenderingPage(null);
+                      setPageRendererReady(false);
+                    }, pageRendererTimeoutMs - 500);
+                  }),
+              });
+            } catch {
+              pageSnapshotUri = null;
+              setRenderingPage(null);
+              setPageRendererReady(false);
+            }
           }
 
           if (pageSnapshotUri) {
@@ -1770,32 +1798,31 @@ export default function ExportPdfScreen() {
             }
           }
           
-          // Прямой путь — фон страницы + аннотации через pdf-lib (страницы с фото или fallback)
+          // Прямой путь — фон страницы + аннотации через pdf-lib (fallback и страницы без снапшота)
+          const pageImageBytes = prefetchedPageBytes[pageIndex];
+          const isJpg = pageImageBytes[0] === 0xFF && pageImageBytes[1] === 0xD8;
           let embeddedImage;
-          try {
-            const pageImageBytes = await loadOptimizedPageBytes(optimizedPageUri || imageUri);
-            if (!pageImageBytes) {
-              console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось загрузить изображение`);
-              skippedCount++;
-              interiorSkippedCount++;
-              setGenerationProgress({ current: interiorProcessedCount, total: images.length });
-              continue;
+          for (let embedAttempt = 1; embedAttempt <= 2; embedAttempt += 1) {
+            try {
+              embeddedImage = await withTimeout({
+                label: `embed page ${pageNumber} (${embedAttempt}/2)`,
+                timeoutMs: isLargeDoc ? 90000 : 30000,
+                task: async () =>
+                  isJpg
+                    ? pdfDoc.embedJpg(pageImageBytes)
+                    : pdfDoc.embedPng(pageImageBytes),
+              });
+              break;
+            } catch {
+              if (embedAttempt < 2) {
+                await new Promise((resolve) => setTimeout(resolve, 400));
+              }
             }
-            const isJpg = pageImageBytes[0] === 0xFF && pageImageBytes[1] === 0xD8;
-            embeddedImage = await withTimeout({
-              label: `embed page ${pageNumber}`,
-              timeoutMs: isLargeDoc ? 90000 : 30000,
-              task: async () =>
-                isJpg
-                  ? pdfDoc.embedJpg(pageImageBytes)
-                  : pdfDoc.embedPng(pageImageBytes),
-            });
-          } catch (embedError) {
-            console.warn(`[PDF Export] Пропуск страницы ${pageNumber}: не удалось встроить изображение`, embedError);
-            skippedCount++;
-            interiorSkippedCount++;
-            setGenerationProgress({ current: interiorProcessedCount, total: images.length });
-            continue;
+          }
+          if (!embeddedImage) {
+            throw new Error(
+              `Не удалось собрать страницу ${pageNumber}. Попробуйте экспорт ещё раз.`
+            );
           }
 
           const page = pdfDoc.addPage([pageWidth, pageHeight]);
@@ -1922,21 +1949,20 @@ export default function ExportPdfScreen() {
           
         } catch (pageError) {
           console.error(`[PDF Export] Ошибка при обработке страницы ${pageNumber}:`, pageError);
-          skippedCount++;
-          interiorSkippedCount++;
-          setGenerationProgress({ current: interiorProcessedCount, total: images.length });
+          throw pageError instanceof Error
+            ? pageError
+            : new Error(`Не удалось собрать страницу ${pageNumber}. Попробуйте экспорт ещё раз.`);
         }
       }
       
-      // Для soft/electronic: добавляем последнюю страницу обложки ПОСЛЕ внутренних страниц
-      if (isSoftOrElectronic && firstLastImages.length > 1) {
+      // Для soft/electronic: одна финальная страница ПОСЛЕ внутренних (своя для каждого альбома)
+      if (isSoftOrElectronic && exportClosingPageUri) {
         try {
           setGenerationStatus('Добавление последней страницы…');
-          for (let li = 1; li < firstLastImages.length; li++) {
-            const lastUri = firstLastImages[li];
-            const optLastUri = await optimizeImageForExport(lastUri, 'cover', isLargeDoc).catch(() => lastUri);
-            const lastBytes = await loadImageAsBytes(optLastUri);
-            if (!lastBytes) continue;
+          const lastUri = exportClosingPageUri;
+          const optLastUri = await optimizeImageForExport(lastUri, 'cover', isLargeDoc).catch(() => lastUri);
+          const lastBytes = await loadImageAsBytes(optLastUri);
+          if (lastBytes) {
             const isJpg = lastBytes[0] === 0xFF && lastBytes[1] === 0xD8;
             const embeddedLast = isJpg ? await pdfDoc.embedJpg(lastBytes) : await pdfDoc.embedPng(lastBytes);
             const dims = embeddedLast.scale(1);
@@ -1949,8 +1975,8 @@ export default function ExportPdfScreen() {
             const ly = (pageHeight - h) / 2;
             lastPage.drawImage(embeddedLast, { x: lx, y: ly, width: w, height: h });
             processedCount++;
+            console.log('[PDF Export] ✓ Последняя страница обложки добавлена');
           }
-          console.log(`[PDF Export] ✓ Последняя страница обложки добавлена`);
         } catch (lastErr) {
           console.warn('[PDF Export] Ошибка добавления последней страницы обложки:', lastErr);
         }
@@ -1962,13 +1988,6 @@ export default function ExportPdfScreen() {
         throw new Error('Не удалось обработать ни одного изображения');
       }
       
-      if (interiorSkippedCount > 0) {
-        Alert.alert(
-          'Предупреждение',
-          `В PDF попало ${interiorProcessedCount} из ${totalImages} страниц. ${interiorSkippedCount} не удалось собрать — попробуйте экспорт ещё раз. Если страницы с фото, дождитесь окончания подготовки.`
-        );
-      }
-
       const savePhaseStart = Date.now();
       console.log(`[PDF Export] Сохранение PDF файла (сериализация + запись)...`);
       setGenerationStatus('Сохранение PDF…');

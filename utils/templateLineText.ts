@@ -177,10 +177,21 @@ export function getTemplateLineTypography(
     inputKind === 'block' &&
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple');
 
+  const lineTextLineHeight = isDiaryBlock
+    ? fittedSize
+    : inputKind === 'block'
+      ? fittedSize * 1.05
+      : fittedSize;
+  const ascenderPadding = Math.ceil(fittedSize * 0.22);
+  const lineInputHeight =
+    inputKind === 'block'
+      ? lineHeight
+      : Math.min(lineHeight, lineTextLineHeight + ascenderPadding);
+
   return {
     fontSize: fittedSize,
-    lineHeight: isDiaryBlock ? fittedSize : inputKind === 'block' ? fittedSize * 1.05 : fittedSize,
-    inputHeight: inputKind === 'block' ? lineHeight : fittedSize,
+    lineHeight: lineTextLineHeight,
+    inputHeight: lineInputHeight,
   };
 }
 
@@ -403,10 +414,18 @@ function consumeOneLineForSlot(
   fontSize: number,
   lineGuideId?: string
 ): { line: string; rest: string } {
-  const trimmed = text.replace(/^\s+/, '');
-  if (!trimmed) return { line: '', rest: '' };
+  const withoutLeading = text.replace(/^\s+/, '');
+  const trailingMatch = withoutLeading.match(/(\s+)$/);
+  const trailingSpaces = trailingMatch?.[1] ?? '';
+  const core = trailingSpaces
+    ? withoutLeading.slice(0, withoutLeading.length - trailingSpaces.length)
+    : withoutLeading;
 
-  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (!core) {
+    return { line: trailingSpaces, rest: '' };
+  }
+
+  const words = core.split(/\s+/).filter(Boolean);
   let built = '';
   let wordCount = 0;
 
@@ -419,19 +438,19 @@ function consumeOneLineForSlot(
     }
 
     if (built) {
-      return { line: built, rest: words.slice(wordCount).join(' ') };
+      return { line: built + trailingSpaces, rest: words.slice(wordCount).join(' ') };
     }
 
     if (textFitsInSlot(word, slot, fontSize, lineGuideId)) {
-      return { line: word, rest: words.slice(1).join(' ') };
+      return { line: word + trailingSpaces, rest: words.slice(1).join(' ') };
     }
 
     const { line, rest: wordRest } = splitWordToFit(word, slot, fontSize, lineGuideId);
     const tail = [wordRest, ...words.slice(1)].filter(Boolean).join(' ');
-    return { line, rest: tail };
+    return { line: line + trailingSpaces, rest: tail };
   }
 
-  return { line: built, rest: '' };
+  return { line: built + trailingSpaces, rest: '' };
 }
 
 /** Текст после первой строки группы (хвост для merge при редактировании). */

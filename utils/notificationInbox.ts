@@ -57,6 +57,15 @@ export async function clearNotificationInbox(): Promise<void> {
   await AsyncStorage.removeItem(INBOX_STORAGE_KEY);
 }
 
+/** expo-notifications отдаёт `date` в секундах (timeIntervalSince1970), не в миллисекундах. */
+function notificationDateToMs(rawDate: number): number {
+  if (!Number.isFinite(rawDate) || rawDate <= 0) {
+    return Date.now();
+  }
+  // Unix timestamp в секундах ~1e9, в миллисекундах ~1e12+
+  return rawDate < 1e12 ? rawDate * 1000 : rawDate;
+}
+
 function inferSource(notification: Notification): 'local' | 'remote' {
   const trigger = notification.request.trigger;
   if (trigger && typeof trigger === 'object' && 'type' in trigger) {
@@ -69,11 +78,11 @@ function inferSource(notification: Notification): 'local' | 'remote' {
 export function notificationToInboxItem(notification: Notification): NotificationInboxItem {
   const content = notification.request.content;
   const deliveryMs =
-    typeof notification.date === 'number' && Number.isFinite(notification.date)
-      ? notification.date
+    typeof notification.date === 'number'
+      ? notificationDateToMs(notification.date)
       : Date.now();
   const baseId = notification.request.identifier || 'notification';
-  const id = `${baseId}_${deliveryMs}`;
+  const id = baseId;
 
   return {
     id,

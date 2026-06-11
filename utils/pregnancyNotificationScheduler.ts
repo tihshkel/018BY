@@ -15,7 +15,11 @@ import {
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getRemindersStorageKey, pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
-import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
+import {
+    SchedulableTriggerInputTypes,
+    type DailyTriggerInput,
+    type DateTriggerInput,
+} from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
@@ -84,6 +88,45 @@ export function getTrimester(week: number): number {
 /**
  * Запланировать одно уведомление
  */
+const PREGNANCY_DAILY_REMINDER_HOUR = 9;
+const PREGNANCY_DAILY_REMINDER_MINUTE = 0;
+
+async function scheduleDailyNotification(
+    title: string,
+    body: string,
+    hour: number,
+    minute: number,
+    identifier: string
+): Promise<string | null> {
+    const Notifications = getNotifications();
+    if (!Notifications) return null;
+
+    try {
+        const trigger: DailyTriggerInput = {
+            type: SchedulableTriggerInputTypes.DAILY,
+            hour,
+            minute,
+        };
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
+            content: {
+                title,
+                body,
+                sound: true,
+                data: OPEN_NOTIFICATIONS_INBOX_DATA,
+            },
+            trigger,
+            identifier,
+        });
+
+        console.log(`[PregnancyNotifications] Scheduled daily: ${title} at ${hour}:${String(minute).padStart(2, '0')}`);
+        return notificationId;
+    } catch (error) {
+        console.error(`[PregnancyNotifications] Failed to schedule daily: ${title}`, error);
+        return null;
+    }
+}
+
 async function scheduleNotification(
     title: string,
     body: string,
@@ -226,7 +269,7 @@ export async function loadPregnancyInfo(): Promise<{
 export async function schedulePregnancyNotifications(
     dueDate: Date,
     projectId: string,
-    options?: { skipCloudSync?: boolean; maxNotifications?: number }
+    options?: { skipCloudSync?: boolean; maxNotifications?: number; includeWelcome?: boolean }
 ): Promise<void> {
     // Всегда сохраняем ПДР в AsyncStorage и облако, даже без уведомлений (Expo Go, отказ в разрешениях)
     await savePregnancyInfo(dueDate, projectId);
@@ -293,23 +336,8 @@ export async function schedulePregnancyNotifications(
 
         console.log(`[PregnancyNotifications] Current week: ${currentWeek}, Due date: ${dueDate.toLocaleDateString()}`);
 
-        const storedInfo = await readStoredPregnancyInfo();
-        let welcomeAlreadyScheduled =
-            storedInfo?.projectId === projectId && storedInfo.welcomeNotificationScheduled === true;
-
-        // Старые установки без флага: приветствие уже уходило при каждом открытии приложения
-        if (
-            !welcomeAlreadyScheduled &&
-            storedInfo?.projectId === projectId &&
-            storedInfo.createdAt &&
-            Date.now() - new Date(storedInfo.createdAt).getTime() > 60_000
-        ) {
-            await savePregnancyInfo(dueDate, projectId, { welcomeNotificationScheduled: true });
-            welcomeAlreadyScheduled = true;
-        }
-
-        // 1. Приветственное уведомление — только один раз при создании альбома
-        if (!welcomeAlreadyScheduled) {
+        // 1. Приветственное уведомление — только при создании альбома, не при фоновом refresh
+        if (options?.includeWelcome) {
             const welcomeDate = new Date(now.getTime() + 5000);
             const welcomeId = await trySchedule(
                 WELCOME_NOTIFICATION.title,
@@ -324,7 +352,23 @@ export async function schedulePregnancyNotifications(
             }
         }
 
-        // 2. Еженедельные уведомления
+        // 2. Ежедневное напоминание (один слот, повторяется каждый день)
+        const trimester = getTrimester(currentWeek);
+        const dailyMessages =
+            MORNING_MESSAGES.find((entry) => entry.trimester === trimester)?.messages ?? [];
+        const dailyBody =
+            dailyMessages[0] ??
+            'Откройте дневник беременности и отметьте, как прошёл вчерашний день.';
+        await scheduleDailyNotification(
+            'Доброе утро! 🌸',
+            dailyBody,
+            PREGNANCY_DAILY_REMINDER_HOUR,
+            PREGNANCY_DAILY_REMINDER_MINUTE,
+            'pregnancy_daily_morning'
+        );
+        scheduledCount += 1;
+
+        // 3. Еженедельные уведомления
         for (let week = currentWeek; week <= Math.min(currentWeek + maxWeeksAhead, 42); week++) {
             const notification = WEEKLY_NOTIFICATIONS.find(n => n.week === week);
             if (notification) {
@@ -340,7 +384,7 @@ export async function schedulePregnancyNotifications(
             }
         }
 
-        // 3. Триместровые уведомления
+        // 4. Триместровые уведомления
         for (const trimester of TRIMESTER_NOTIFICATIONS) {
             if (trimester.weekStart >= currentWeek && trimester.weekStart <= currentWeek + maxWeeksAhead) {
                 const trimesterDate = getWeekStartDate(dueDate, trimester.weekStart);
@@ -356,7 +400,7 @@ export async function schedulePregnancyNotifications(
             }
         }
 
-        // 4. Уведомления о ПДР
+        // 5. Уведомления о ПДР
         const dueDateMs = dueDate.getTime();
 
         // За 14 дней
@@ -395,7 +439,7 @@ export async function schedulePregnancyNotifications(
             );
         }
 
-        // 5. Уведомления о подготовке (сумка в роддом на 34 неделе)
+        // 6. Уведомления о подготовке (сумка в роддом на 34 неделе)
         if (currentWeek <= 34 && 34 <= currentWeek + maxWeeksAhead) {
             const bagDate = getWeekStartDate(dueDate, 34);
             bagDate.setHours(10, 0, 0, 0);
@@ -409,7 +453,7 @@ export async function schedulePregnancyNotifications(
             }
         }
 
-        // 6. Выбор имени (случайный день между 20-28 неделей)
+        // 7. Выбор имени (случайный день между 20-28 неделей)
         if (currentWeek >= 20 && currentWeek <= 28) {
             const nameDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // через 3 дня
             nameDate.setHours(9, 30, 0, 0);
@@ -419,26 +463,6 @@ export async function schedulePregnancyNotifications(
                 nameDate,
                 'pregnancy_choose_name'
             );
-        }
-
-        // 7. Утренние напоминания (случайные, раз в 2-3 дня)
-        const trimester = getTrimester(currentWeek);
-        const morningMessages = MORNING_MESSAGES.find(m => m.trimester === trimester)?.messages || [];
-
-        for (let i = 0; i < 5; i++) {
-            const dayOffset = 2 + i * 2 + Math.floor(Math.random() * 2); // каждые 2-3 дня
-            const morningDate = new Date(now.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-            morningDate.setHours(8, 30 + Math.floor(Math.random() * 30), 0, 0); // 8:30-9:00
-
-            const randomMessage = morningMessages[Math.floor(Math.random() * morningMessages.length)];
-            if (randomMessage) {
-                await trySchedule(
-                    'Доброе утро! 🌸',
-                    randomMessage,
-                    morningDate,
-                    `pregnancy_morning_${i}`
-                );
-            }
         }
 
         // 8. Напоминания-помощники (случайные)

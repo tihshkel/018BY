@@ -9,7 +9,11 @@ import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
+import {
+    SchedulableTriggerInputTypes,
+    type DailyTriggerInput,
+    type DateTriggerInput,
+} from 'expo-notifications';
 import { KIDS_NOTIFICATIONS } from './kidsNotificationsData';
 
 // Проверяем, находимся ли мы в Expo Go
@@ -38,6 +42,45 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
         return null;
     }
 };
+
+const KIDS_DAILY_REMINDER_HOUR = 9;
+const KIDS_DAILY_REMINDER_MINUTE = 30;
+
+async function scheduleDailyNotification(
+    title: string,
+    body: string,
+    hour: number,
+    minute: number,
+    identifier: string
+): Promise<string | null> {
+    const Notifications = getNotifications();
+    if (!Notifications) return null;
+
+    try {
+        const trigger: DailyTriggerInput = {
+            type: SchedulableTriggerInputTypes.DAILY,
+            hour,
+            minute,
+        };
+
+        const notificationId = await Notifications.scheduleNotificationAsync({
+            content: {
+                title,
+                body,
+                sound: true,
+                data: OPEN_NOTIFICATIONS_INBOX_DATA,
+            },
+            trigger,
+            identifier,
+        });
+
+        console.log(`[KidsNotifications] Scheduled daily: ${title} at ${hour}:${String(minute).padStart(2, '0')}`);
+        return notificationId;
+    } catch (error) {
+        console.error(`[KidsNotifications] Failed to schedule daily: ${title}`, error);
+        return null;
+    }
+}
 
 /**
  * Запланировать одно уведомление
@@ -277,7 +320,16 @@ export async function scheduleKidsNotifications(
 
         const now = new Date();
         const maxNotifications = options?.maxNotifications ?? 56;
-        const candidates = buildKidsNotificationCandidates(birthDate, now).slice(0, maxNotifications);
+
+        await scheduleDailyNotification(
+            'Доброе утро! 🌼',
+            'Загляните в альбом малыша — сохраните маленький момент сегодняшнего дня.',
+            KIDS_DAILY_REMINDER_HOUR,
+            KIDS_DAILY_REMINDER_MINUTE,
+            'kids_daily_morning'
+        );
+
+        const candidates = buildKidsNotificationCandidates(birthDate, now).slice(0, maxNotifications - 1);
 
         console.log(
             `[KidsNotifications] Scheduling ${candidates.length}/${maxNotifications} nearest notifications for Birth Date: ${birthDate.toLocaleDateString()}`

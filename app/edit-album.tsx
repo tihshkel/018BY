@@ -1,6 +1,7 @@
 import { getAlbumTemplateById } from '@/albums';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AnnotationTextAlign, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import { TemplateLineKeyboardToolbar } from '@/components/template-line-keyboard-toolbar';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -121,6 +122,11 @@ export default function EditAlbumScreen() {
   const [isAddingText, setIsAddingText] = useState(false);
   const [editingTextAnnotationId, setEditingTextAnnotationId] = useState<string | null>(null);
   const [hasTextSelection, setHasTextSelection] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [templateLineNavState, setTemplateLineNavState] = useState({
+    canGoBack: false,
+    canGoNext: false,
+  });
   const [currentTextAnnotation, setCurrentTextAnnotation] = useState<Annotation | null>(null);
   const [lastTextStyle, setLastTextStyle] = useState<{
     color: string;
@@ -1939,6 +1945,64 @@ export default function EditAlbumScreen() {
     typeof currentTextAnnotation?.templateLineStart === 'number' &&
     (currentTextAnnotation.templateLineCount ?? 1) === 1;
 
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      const height = event?.endCoordinates?.height ?? 0;
+      setKeyboardHeight(typeof height === 'number' ? height : 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const refreshTemplateLineNavigationState = React.useCallback(() => {
+    const state = annotationsRef.current?.getTemplateLineNavigationState?.() ?? {
+      canGoBack: false,
+      canGoNext: false,
+    };
+    setTemplateLineNavState((prev) =>
+      prev.canGoBack === state.canGoBack && prev.canGoNext === state.canGoNext ? prev : state
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!isAddingText || !isEditingTemplateLine || hasTextSelection) {
+      setTemplateLineNavState({ canGoBack: false, canGoNext: false });
+      return;
+    }
+    refreshTemplateLineNavigationState();
+  }, [
+    annotations,
+    editingTextAnnotationId,
+    hasTextSelection,
+    isAddingText,
+    isEditingTemplateLine,
+    refreshTemplateLineNavigationState,
+  ]);
+
+  const handleTemplateLineNavPrevious = () => {
+    annotationsRef.current?.navigateTemplateLinePrevious?.();
+    requestAnimationFrame(refreshTemplateLineNavigationState);
+  };
+
+  const handleTemplateLineNavNext = () => {
+    annotationsRef.current?.navigateTemplateLineNext?.();
+    requestAnimationFrame(refreshTemplateLineNavigationState);
+  };
+
+  const showTemplateLineKeyboardToolbar =
+    Platform.OS === 'android' &&
+    isAddingText &&
+    isEditingTemplateLine &&
+    keyboardHeight > 0 &&
+    !hasTextSelection;
+
   const handleFontButtonPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     annotationsRef.current?.openFontPicker?.();
@@ -2546,6 +2610,16 @@ export default function EditAlbumScreen() {
             )}
           </ScrollView>
         </View>
+
+        {showTemplateLineKeyboardToolbar ? (
+          <TemplateLineKeyboardToolbar
+            style={[styles.templateLineKeyboardToolbar, { bottom: keyboardHeight }]}
+            canGoBack={templateLineNavState.canGoBack}
+            canGoNext={templateLineNavState.canGoNext}
+            onPrevious={handleTemplateLineNavPrevious}
+            onNext={handleTemplateLineNavNext}
+          />
+        ) : null}
       </Animated.View>
 
       {/* Модальное окно выбора страницы для дублирования */}
@@ -2872,6 +2946,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F5F0EB',
     gap: 20,
+  },
+  templateLineKeyboardToolbar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 2000,
   },
   textAlignControlsPanel: {
     flexDirection: 'row',

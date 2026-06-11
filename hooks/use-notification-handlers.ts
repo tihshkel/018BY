@@ -61,16 +61,6 @@ export function useNotificationHandlers() {
       void handleNotificationResponse(response);
     });
 
-    void Notifications.getPresentedNotificationsAsync()
-      .then(async (presented) => {
-        for (const notification of presented) {
-          await recordNotificationToInbox(notification);
-        }
-      })
-      .catch((error) => {
-        console.warn('[Notifications] Failed to sync presented notifications:', error);
-      });
-
     void Notifications.getLastNotificationResponseAsync().then((response) => {
       if (response) {
         void handleNotificationResponse(response);

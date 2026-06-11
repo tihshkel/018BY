@@ -375,14 +375,15 @@ export default function ImageViewer({
   };
 
   const loadTextStyleForNewAnnotation = async (pageForAnnotation: number) => {
-    let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+    type SavedTextStyle = { color?: string; fontSize?: number; fontFamily?: string };
+    let savedStyle: SavedTextStyle | null = null;
     let savedFont: string | null = null;
     try {
       const [raw, fontRaw] = await Promise.all([
         AsyncStorage.getItem('@last_text_style'),
         AsyncStorage.getItem('@last_text_font_family'),
       ]);
-      if (raw) savedStyle = JSON.parse(raw) as typeof savedStyle;
+      if (raw) savedStyle = JSON.parse(raw) as SavedTextStyle;
       if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
     } catch {
       // ignore

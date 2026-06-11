@@ -3,7 +3,12 @@ import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-fie
 import { usesTemplateLineTextEditing } from '@/constants/album-text-margins';
 import { TemplateLineEditor } from '@/components/template-line-editor';
 import {
+  TEMPLATE_LINE_INPUT_ACCESSORY_ID,
+  TemplateLineKeyboardToolbar,
+} from '@/components/template-line-keyboard-toolbar';
+import {
   distributeTextAcrossSlots,
+  findAnnotationForContinuationGroup,
   findAnnotationForSlot,
   getLineSlotsForPage,
   hasLineGuides,
@@ -11,6 +16,12 @@ import {
 } from '@/utils/textLineSlots';
 import { createId } from '@/utils/id';
 import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import {
+  findNextEmptyFieldTarget,
+  findPreviousFieldTarget,
+  getFieldNavigationState,
+  getPageFieldTargets,
+} from '@/utils/templateLineNavigation';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -111,6 +122,9 @@ export interface PdfAnnotationsRef {
   setTextAlign: (align: AnnotationTextAlign) => void;
   /** Снять фокус с поля ввода перед системным диалогом (иначе Alert на iOS не реагирует) */
   blurEditingInput: () => void;
+  navigateTemplateLinePrevious: () => void;
+  navigateTemplateLineNext: () => void;
+  getTemplateLineNavigationState: () => { canGoBack: boolean; canGoNext: boolean };
 }
 
 interface PdfAnnotationsProps {
@@ -316,18 +330,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     Keyboard.dismiss();
   };
 
-  const saveTemplateLineEditing = () => {
-    if (!editingAnnotation) return;
+  const persistTemplateLineEditing = (): boolean => {
+    if (!editingAnnotation) return false;
     const annotation = annotations.find((ann) => ann.id === editingAnnotation);
     if (!annotation || annotation.type !== 'text' || !isTemplateLineAnnotation(annotation)) {
-      return;
+      return false;
     }
 
     const pageNumber = getPageNumber(annotation);
     if (!pageNumber || typeof annotation.templateLineStart !== 'number') {
       onAnnotationUpdate(editingAnnotation, { content: editingText });
-      dismissTextEditing();
-      return;
+      return true;
     }
 
     const slots = getSlotsForPage(pageNumber);
@@ -392,7 +405,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
 
     lastSelectedFontIdRef.current = null;
-    dismissTextEditing();
+    return true;
+  };
+
+  const saveTemplateLineEditing = () => {
+    if (persistTemplateLineEditing()) {
+      dismissTextEditing();
+    }
   };
   
   // Загружаем все шрифты через expo-font
@@ -410,6 +429,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
   const textInputRef = useRef<TextInput | null>(null);
   const templateLineInputRef = useRef<TextInput | null>(null);
+  const isTemplateLineNavigatingRef = useRef(false);
+  const editingTextRef = useRef('');
+  const TEMPLATE_LINE_NAV_BLUR_GUARD_MS = 120;
   const textSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const hasTextSelectionRef = useRef(false);
   const [selectionOverride, setSelectionOverride] = useState<{ start: number; end: number } | null>(null);
@@ -449,6 +471,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const editingAnnotationRef = useRef<string | null>(editingAnnotation);
   isEditingRef.current = isEditing;
   editingAnnotationRef.current = editingAnnotation;
+  editingTextRef.current = editingText;
+
+  const annotationsListRef = useRef(annotations);
+  annotationsListRef.current = annotations;
 
   // Анимации для плавного появления окна редактирования
   const editingScaleAnim = useRef(new Animated.Value(0)).current;
@@ -1459,6 +1485,216 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     return { isValid, lines, issues };
   };
 
+  const markTemplateLineNavigating = () => {
+    isTemplateLineNavigatingRef.current = true;
+    setTimeout(() => {
+      isTemplateLineNavigatingRef.current = false;
+    }, TEMPLATE_LINE_NAV_BLUR_GUARD_MS);
+  };
+
+  const refocusTemplateLineInput = () => {
+    requestAnimationFrame(() => {
+      templateLineInputRef.current?.focus();
+    });
+  };
+
+  const getActivePageNumber = (): number | null => {
+    const editingId = editingAnnotationRef.current;
+    if (editingId) {
+      const editing = annotationsListRef.current.find((ann) => ann.id === editingId);
+      if (editing) {
+        const pageNumber = getPageNumber(editing);
+        if (pageNumber != null) return pageNumber;
+      }
+    }
+
+    const firstWithPage = annotationsListRef.current.find(
+      (ann) => getPageNumber(ann) != null
+    );
+    return firstWithPage ? getPageNumber(firstWithPage) : null;
+  };
+
+  const getLiveFieldOverride = (
+    pageNumber: number,
+    startSlotIndex: number
+  ): { startSlotIndex: number; isEmpty: boolean } | undefined => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return undefined;
+
+    const editing = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!editing || !isTemplateLineAnnotation(editing)) return undefined;
+    if (getPageNumber(editing) !== pageNumber) return undefined;
+    if (typeof editing.templateLineStart !== 'number') return undefined;
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex: editingGroupStart } = getContinuationGroupSlots(
+      slots,
+      editing.templateLineStart
+    );
+    if (editingGroupStart !== startSlotIndex) return undefined;
+
+    return {
+      startSlotIndex,
+      isEmpty: editingTextRef.current.trim() === '',
+    };
+  };
+
+  const getTemplateLineNavigationTargets = (pageNumber: number, startSlotIndex: number) => {
+    const slots = getSlotsForPage(pageNumber);
+    return getPageFieldTargets(
+      slots,
+      annotationsListRef.current,
+      pageNumber,
+      getLiveFieldOverride(pageNumber, startSlotIndex)
+    );
+  };
+
+  const beginTemplateLineFieldAtSlot = (startSlotIndex: number) => {
+    const pageNumber = getActivePageNumber();
+    if (pageNumber == null) return;
+
+    const slots = getSlotsForPage(pageNumber);
+    const startSlot = slots[startSlotIndex];
+    if (!startSlot) return;
+
+    const { startSlotIndex: groupStart } = getContinuationGroupSlots(slots, startSlot.index);
+    const groupStartSlot = slots[groupStart] ?? startSlot;
+
+    const existing = findAnnotationForContinuationGroup(
+      annotationsListRef.current,
+      pageNumber,
+      slots,
+      groupStart
+    );
+
+    if (existing) {
+      markTemplateLineNavigating();
+      openTextEditing(existing);
+      refocusTemplateLineInput();
+      return;
+    }
+
+    const styleSource = editingAnnotationRef.current
+      ? annotationsListRef.current.find((ann) => ann.id === editingAnnotationRef.current)
+      : null;
+    const maxZIndex =
+      annotationsListRef.current.length > 0
+        ? Math.max(...annotationsListRef.current.map((ann) => ann.zIndex), 0)
+        : 0;
+    const layout = layoutAnnotationFromSlot(groupStartSlot);
+    const effectiveFontSize = getEffectiveTemplateFontSize(
+      lineGuideId,
+      groupStartSlot,
+      styleSource?.fontSize || 16
+    );
+    const newId = createId('ann');
+    const newAnnotation: Annotation = {
+      id: newId,
+      type: 'text',
+      ...layout,
+      content: '',
+      color: styleSource?.color ?? '#000000',
+      fontSize: effectiveFontSize,
+      fontFamily: styleSource?.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageNumber,
+    };
+
+    onAnnotationAdd(newAnnotation);
+
+    const tryOpen = (attemptsLeft: number) => {
+      const annotation = annotationsListRef.current.find((ann) => ann.id === newId);
+      if (annotation?.type === 'text') {
+        markTemplateLineNavigating();
+        openTextEditing(annotation);
+        refocusTemplateLineInput();
+        return;
+      }
+      if (attemptsLeft > 0) {
+        requestAnimationFrame(() => tryOpen(attemptsLeft - 1));
+      }
+    };
+    tryOpen(8);
+  };
+
+  const navigateTemplateLinePrevious = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return;
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) return;
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') return;
+
+    persistTemplateLineEditing();
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const previousTarget = findPreviousFieldTarget(targets, startSlotIndex);
+    if (!previousTarget) return;
+
+    beginTemplateLineFieldAtSlot(previousTarget.startSlotIndex);
+  };
+
+  const navigateTemplateLineNext = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return;
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) return;
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') return;
+
+    persistTemplateLineEditing();
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const nextTarget = findNextEmptyFieldTarget(targets, startSlotIndex);
+
+    if (nextTarget) {
+      beginTemplateLineFieldAtSlot(nextTarget.startSlotIndex);
+      return;
+    }
+
+    dismissTextEditing();
+  };
+
+  const getTemplateLineNavigationState = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const state = getFieldNavigationState(
+      slots,
+      annotationsListRef.current,
+      pageNumber,
+      startSlotIndex,
+      getLiveFieldOverride(pageNumber, startSlotIndex)
+    );
+
+    return {
+      canGoBack: state.canGoBack,
+      canGoNext: state.canGoNext,
+    };
+  };
+
   const handleCloseEditing = () => {
     if (editingAnnotation) {
       const current = annotations.find(ann => ann.id === editingAnnotation) || null;
@@ -1520,6 +1756,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
   };
 
+  const handleTemplateLineEditorDismiss = () => {
+    if (isTemplateLineNavigatingRef.current) {
+      isTemplateLineNavigatingRef.current = false;
+      return;
+    }
+    handleCloseEditing();
+  };
+
   // Публичная функция для закрытия редактирования извне
   React.useImperativeHandle(ref, () => ({
     closeEditing: handleCloseEditing,
@@ -1539,9 +1783,19 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       }
     },
     startEditing: (annotationId: string) => {
-      const annotation = annotations.find(ann => ann.id === annotationId);
-      if (!annotation || annotation.type !== 'text') return;
-      openTextEditing(annotation);
+      const tryOpen = (attemptsLeft: number) => {
+        const annotation = annotationsListRef.current.find(
+          (ann) => ann.id === annotationId
+        );
+        if (annotation?.type === 'text') {
+          openTextEditing(annotation);
+          return;
+        }
+        if (attemptsLeft > 0) {
+          requestAnimationFrame(() => tryOpen(attemptsLeft - 1));
+        }
+      };
+      tryOpen(8);
     },
     clearSelection: () => {
       setSelectedAnnotation(null);
@@ -1583,6 +1837,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       notifyTextSelection(false);
       Keyboard.dismiss();
     },
+    navigateTemplateLinePrevious,
+    navigateTemplateLineNext,
+    getTemplateLineNavigationState,
   }), [annotations, editingAnnotation, editingText, onAnnotationUpdate, onEditingStateChange]);
 
   const handleColorSelect = (color: string) => {
@@ -2083,10 +2340,21 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               lineGuideId={lineGuideId}
               textAlign={getTextAlign(annotation)}
               onChangeText={handleTextChange}
-              onSubmit={handleCloseEditing}
+              onSubmit={handleTemplateLineEditorDismiss}
               onSelectionChange={handleSelectionChange}
               selection={selectionOverride ?? undefined}
               inputRef={templateLineInputRef}
+              inputAccessoryViewID={TEMPLATE_LINE_INPUT_ACCESSORY_ID}
+              keyboardToolbar={
+                Platform.OS === 'ios' ? (
+                  <TemplateLineKeyboardToolbar
+                    canGoBack={getTemplateLineNavigationState().canGoBack}
+                    canGoNext={getTemplateLineNavigationState().canGoNext}
+                    onPrevious={navigateTemplateLinePrevious}
+                    onNext={navigateTemplateLineNext}
+                  />
+                ) : undefined
+              }
             />
           );
         }
@@ -2141,6 +2409,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
+              const rowTopInset = Math.max(0, rowTypography.inputHeight - rowTypography.lineHeight);
               return (
                 <Text
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2150,7 +2419,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     {
                       position: 'absolute',
                       left: row.lineSlot.x,
-                      top: rowTop,
+                      top: rowTop - rowTopInset,
                       width: row.lineSlot.width,
                       color: currentColor,
                       fontSize: rowTypography.fontSize,

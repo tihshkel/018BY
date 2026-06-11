@@ -25,6 +25,8 @@ export type AlbumNotificationRefreshOptions = {
 const LAST_ALBUM_NOTIFICATION_REFRESH_KEY = '@album_notifications_last_refresh_at';
 const MIN_REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
+let refreshInFlight: Promise<void> | null = null;
+
 function getNotificationBudgets(hasPregnancy: boolean, hasKids: boolean): {
   pregnancy: number;
   kids: number;
@@ -46,46 +48,57 @@ function getNotificationBudgets(hasPregnancy: boolean, hasKids: boolean): {
 export async function refreshAllAlbumNotifications(
   options?: AlbumNotificationRefreshOptions
 ): Promise<void> {
-  if (!options?.force) {
-    const lastRaw = await AsyncStorage.getItem(LAST_ALBUM_NOTIFICATION_REFRESH_KEY);
-    const lastRefreshAt = lastRaw ? Number(lastRaw) : 0;
-    if (lastRefreshAt > 0 && Date.now() - lastRefreshAt < MIN_REFRESH_INTERVAL_MS) {
-      console.log('[AlbumNotifications] Skipping refresh — last run was recent');
+  if (refreshInFlight) {
+    return refreshInFlight;
+  }
+
+  refreshInFlight = (async () => {
+    if (!options?.force) {
+      const lastRaw = await AsyncStorage.getItem(LAST_ALBUM_NOTIFICATION_REFRESH_KEY);
+      const lastRefreshAt = lastRaw ? Number(lastRaw) : 0;
+      if (lastRefreshAt > 0 && Date.now() - lastRefreshAt < MIN_REFRESH_INTERVAL_MS) {
+        console.log('[AlbumNotifications] Skipping refresh — last run was recent');
+        return;
+      }
+    }
+
+    const pregnancyInfo = await loadPregnancyInfo();
+    const kidsInfo = await loadKidsInfo();
+
+    if (!pregnancyInfo && !kidsInfo) {
       return;
     }
-  }
 
-  const pregnancyInfo = await loadPregnancyInfo();
-  const kidsInfo = await loadKidsInfo();
+    const budgets = getNotificationBudgets(Boolean(pregnancyInfo), Boolean(kidsInfo));
 
-  if (!pregnancyInfo && !kidsInfo) {
-    return;
-  }
+    if (pregnancyInfo) {
+      await schedulePregnancyNotifications(pregnancyInfo.dueDate, pregnancyInfo.projectId, {
+        skipCloudSync: true,
+        maxNotifications: budgets.pregnancy,
+        includeWelcome: options?.force === true,
+      });
+    }
 
-  const budgets = getNotificationBudgets(Boolean(pregnancyInfo), Boolean(kidsInfo));
+    if (kidsInfo) {
+      await scheduleKidsNotifications(kidsInfo.birthDate, kidsInfo.projectId, {
+        skipCloudSync: true,
+        maxNotifications: budgets.kids,
+      });
+    }
 
-  if (pregnancyInfo) {
-    await schedulePregnancyNotifications(pregnancyInfo.dueDate, pregnancyInfo.projectId, {
-      skipCloudSync: true,
-      maxNotifications: budgets.pregnancy,
-    });
-  }
+    await AsyncStorage.setItem(
+      LAST_ALBUM_NOTIFICATION_REFRESH_KEY,
+      String(Date.now())
+    );
 
-  if (kidsInfo) {
-    await scheduleKidsNotifications(kidsInfo.birthDate, kidsInfo.projectId, {
-      skipCloudSync: true,
-      maxNotifications: budgets.kids,
-    });
-  }
+    if (!options?.skipCloudSync) {
+      await pushCoreOnlyToCloud();
+    }
+  })().finally(() => {
+    refreshInFlight = null;
+  });
 
-  await AsyncStorage.setItem(
-    LAST_ALBUM_NOTIFICATION_REFRESH_KEY,
-    String(Date.now())
-  );
-
-  if (!options?.skipCloudSync) {
-    await pushCoreOnlyToCloud();
-  }
+  return refreshInFlight;
 }
 
 /** Сохраняет дату нового альбома и перепланирует уведомления для всех типов. */

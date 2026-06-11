@@ -102,6 +102,21 @@ async function downloadRemotePageToCache(folderPath: string, fileName: string): 
   }
 }
 
+async function downloadRemotePageToCacheWithRetry(
+  folderPath: string,
+  fileName: string,
+  maxAttempts = 3
+): Promise<string | null> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const uri = await downloadRemotePageToCache(folderPath, fileName);
+    if (uri) return uri;
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+    }
+  }
+  return null;
+}
+
 async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Promise<void> {
   const maxParallel = 4;
   let idx = 1;
@@ -175,9 +190,20 @@ export async function ensureAlbumPagesCachedForExport(
   const uris: string[] = [];
   for (let page = 1; page <= spec.pageCount; page += 1) {
     const fileName = pageFileName(page);
-    const uri = await downloadRemotePageToCache(spec.folderPath, fileName);
-    if (uri) uris.push(uri);
+    const uri = await downloadRemotePageToCacheWithRetry(spec.folderPath, fileName);
+    if (!uri) {
+      throw new Error(
+        `Не удалось загрузить страницу ${page} из ${spec.pageCount}. Проверьте интернет и попробуйте снова.`
+      );
+    }
+    uris.push(uri);
     onProgress?.(page, spec.pageCount);
+  }
+
+  if (uris.length !== spec.pageCount) {
+    throw new Error(
+      `Загружено только ${uris.length} из ${spec.pageCount} страниц. Проверьте интернет и попробуйте снова.`
+    );
   }
 
   return uris
