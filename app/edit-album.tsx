@@ -1,6 +1,10 @@
 import { getAlbumTemplateById } from '@/albums';
+import type { EditorTool } from '@/constants/album-text-margins';
+import { usesDualTextTools } from '@/constants/album-text-margins';
 import ImageViewer from '@/components/image-viewer';
 import { Annotation, AnnotationTextAlign, AVAILABLE_FONTS, PdfAnnotationsRef } from '@/components/pdf-annotations';
+import { FloatingTextEditingToolbar } from '@/components/floating-text-editing-toolbar';
+import { TextFormattingToolbar } from '@/components/text-formatting-toolbar';
 import { TemplateLineKeyboardToolbar } from '@/components/template-line-keyboard-toolbar';
 import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { ensureSyncReady, getSupabaseNotConfiguredAlertMessageOnce, isSupabaseNotConfiguredError, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
@@ -10,6 +14,7 @@ import {
   removeRemindersAndScheduledNotificationsForProject,
 } from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
+import { getAlbumPageLabel } from '@/utils/albumPageLabels';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
   getAlbumImages,
@@ -30,7 +35,6 @@ import { maybeMigrateProjectViewport } from '@/utils/migrateAnnotationViewport';
 import { DIARY_BLOCK_PAGE_SIZE, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { getEditorPageDisplayScale, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import { useFonts } from 'expo-font';
@@ -114,7 +118,7 @@ export default function EditAlbumScreen() {
   const [isExporting, setIsExporting] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentTool, setCurrentTool] = useState<'text' | 'image' | 'drawing' | null>(null);
+  const [currentTool, setCurrentTool] = useState<EditorTool>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [coverAnnotations, setCoverAnnotations] = useState<Annotation[]>([]);
   const [pagesViewport, setPagesViewport] = useState<{ width: number; height: number } | null>(null);
@@ -1132,6 +1136,10 @@ export default function EditAlbumScreen() {
   const activeCoverType =
     effectiveCoverType ?? (typeof coverType === 'string' ? coverType : undefined);
   const usesSingleBlankPage = isBlankInteriorAlbum(albumId, activeCelebration);
+  const showDualTextTools = usesDualTextTools(
+    resolveLineGuideId(albumId, activeCelebration),
+    activeCelebration
+  );
 
   const getCelebrationTitle = (celebrationId: string) => {
     const celebrationMap: { [key: string]: string } = {
@@ -1854,7 +1862,7 @@ export default function EditAlbumScreen() {
     setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
   };
 
-  const handleToolSelect = (tool: 'text' | 'image' | 'drawing' | null) => {
+  const handleToolSelect = (tool: EditorTool) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (tool === 'image') {
       annotationsRef.current?.blurEditingInput?.();
@@ -1864,7 +1872,7 @@ export default function EditAlbumScreen() {
     setIsEditing(true);
   };
 
-  const handleToolToggle = (tool: 'text' | 'image' | 'drawing') => {
+  const handleToolToggle = (tool: Exclude<EditorTool, null>) => {
     // Если инструмент уже выбран — выключаем его (выход из режима добавления)
     if (currentTool === tool) {
       handleToolReset();
@@ -1946,14 +1954,11 @@ export default function EditAlbumScreen() {
     (currentTextAnnotation.templateLineCount ?? 1) === 1;
 
   useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, (event) => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (event) => {
       const height = event?.endCoordinates?.height ?? 0;
       setKeyboardHeight(typeof height === 'number' ? height : 0);
     });
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardHeight(0));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardHeight(0));
 
     return () => {
       showSub.remove();
@@ -1997,11 +2002,28 @@ export default function EditAlbumScreen() {
   };
 
   const showTemplateLineKeyboardToolbar =
-    Platform.OS === 'android' &&
     isAddingText &&
     isEditingTemplateLine &&
     keyboardHeight > 0 &&
     !hasTextSelection;
+
+  const showFloatingTextKeyboardToolbar =
+    isAddingText &&
+    !isEditingTemplateLine &&
+    keyboardHeight > 0 &&
+    !hasTextSelection;
+
+  const handleFloatingTextNewLine = () => {
+    annotationsRef.current?.insertLineBreak?.();
+  };
+
+  const handleFloatingTextDone = () => {
+    annotationsRef.current?.closeEditing?.();
+  };
+
+  const handleFloatingTextDelete = () => {
+    annotationsRef.current?.deleteEditingAnnotation?.();
+  };
 
   const handleFontButtonPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -2010,6 +2032,10 @@ export default function EditAlbumScreen() {
 
   const handleTextSelectionChange = (hasSelection: boolean) => {
     setHasTextSelection(hasSelection);
+  };
+
+  const handleFormattingToolbarPressIn = () => {
+    annotationsRef.current?.markToolbarInteraction?.();
   };
 
   const handleTextAlignPress = (align: AnnotationTextAlign) => {
@@ -2347,101 +2373,20 @@ export default function EditAlbumScreen() {
           </View>
         )}
 
-        {/* Панель выравнивания — как в Word, при выделении текста */}
-        {!isLoading && images.length > 0 && isAddingText && currentTextAnnotation && hasTextSelection && (
-          <View style={styles.textAlignControlsPanel}>
-            <TouchableOpacity
-              style={[
-                styles.textAlignControlButton,
-                (currentTextAnnotation.textAlign ?? 'left') === 'left' && styles.textAlignControlButtonActive,
-              ]}
-              onPress={() => handleTextAlignPress('left')}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Выровнять по левому краю"
-            >
-              <MaterialIcons name="format-align-left" size={22} color="#8B6F5F" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.textAlignControlButton,
-                currentTextAnnotation.textAlign === 'center' && styles.textAlignControlButtonActive,
-              ]}
-              onPress={() => handleTextAlignPress('center')}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Выровнять по центру"
-            >
-              <MaterialIcons name="format-align-center" size={22} color="#8B6F5F" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.textAlignControlButton,
-                currentTextAnnotation.textAlign === 'right' && styles.textAlignControlButtonActive,
-              ]}
-              onPress={() => handleTextAlignPress('right')}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Выровнять по правому краю"
-            >
-              <MaterialIcons name="format-align-right" size={22} color="#8B6F5F" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Панель редактирования текста - показывается только когда добавляется текст */}
-        {!isLoading && images.length > 0 && isAddingText && currentTextAnnotation && !hasTextSelection && (
-          <View style={styles.textEditControlsPanel}>
-            {/* Кнопка цвета */}
-            <TouchableOpacity
-              style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
-              onPress={handleColorButtonPress}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Изменить цвет текста"
-            >
-              <View style={[styles.textColorPreview, { backgroundColor: currentTextAnnotation.color || '#000000' }]} />
-              <Text style={styles.textEditControlButtonText}>Цвет</Text>
-            </TouchableOpacity>
-            
-            {/* Размер фиксирован для строк макета (templateLine) */}
-            {!isEditingTemplateLine ? (
-            <TouchableOpacity
-              style={[styles.textEditControlButton, styles.textEditControlButtonFixed]}
-              onPress={handleFontSizeButtonPress}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Изменить размер шрифта"
-            >
-              <Ionicons name="text-outline" size={18} color="#8B6F5F" />
-              <Text style={styles.textEditControlButtonText}>{currentTextAnnotation.fontSize || 16}px</Text>
-            </TouchableOpacity>
-            ) : null}
-            
-            {/* Кнопка шрифта */}
-            <TouchableOpacity
-              style={[styles.textEditControlButton, styles.textEditControlButtonFlex]}
-              onPress={handleFontButtonPress}
-              activeOpacity={0.7}
-              accessibilityRole="button"
-              accessibilityLabel="Изменить шрифт"
-            >
-              <Ionicons name="brush-outline" size={18} color="#8B6F5F" />
-              {/* Если название длинное — оно скроллится внутри, не сдвигая "Цвет" и "Размер" */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.fontNameScroll}
-                contentContainerStyle={styles.fontNameScrollContent}
-                keyboardShouldPersistTaps="always"
-              >
-                <Text style={styles.textEditControlButtonText} numberOfLines={1}>
-                  {getFontDisplayName(currentTextAnnotation.fontFamily)}
-                </Text>
-              </ScrollView>
-            </TouchableOpacity>
-          </View>
-        )}
+        {!isLoading && images.length > 0 && isAddingText && currentTextAnnotation ? (
+          <TextFormattingToolbar
+            color={currentTextAnnotation.color || '#000000'}
+            fontSize={currentTextAnnotation.fontSize || 16}
+            fontFamilyLabel={getFontDisplayName(currentTextAnnotation.fontFamily)}
+            textAlign={currentTextAnnotation.textAlign ?? 'left'}
+            showFontSize={!isEditingTemplateLine}
+            onColorPress={handleColorButtonPress}
+            onFontSizePress={handleFontSizeButtonPress}
+            onFontPress={handleFontButtonPress}
+            onTextAlignPress={handleTextAlignPress}
+            onToolbarPressIn={handleFormattingToolbarPressIn}
+          />
+        ) : null}
 
         {/* Image Viewer или Cover Viewer */}
         <View style={styles.pdfContainer}>
@@ -2554,6 +2499,36 @@ export default function EditAlbumScreen() {
                   </Text>
                 </TouchableOpacity>
 
+                {showDualTextTools ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.toolButton,
+                      currentTool === 'floatingText' && styles.toolButtonActive,
+                    ]}
+                    onPress={() => handleToolToggle('floatingText')}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Добавить плавающий текст"
+                  >
+                    <View style={styles.toolIconContainer}>
+                      <Ionicons
+                        name="move-outline"
+                        size={22}
+                        color={currentTool === 'floatingText' ? '#FFFFFF' : '#8B6F5F'}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.toolButtonText,
+                        currentTool === 'floatingText' && styles.toolButtonTextActive,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      Плавающий текст
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+
                 <TouchableOpacity
                   style={[
                     styles.toolButton,
@@ -2620,6 +2595,15 @@ export default function EditAlbumScreen() {
             onNext={handleTemplateLineNavNext}
           />
         ) : null}
+
+        {showFloatingTextKeyboardToolbar ? (
+          <FloatingTextEditingToolbar
+            style={[styles.templateLineKeyboardToolbar, { bottom: keyboardHeight }]}
+            onNewLine={handleFloatingTextNewLine}
+            onDone={handleFloatingTextDone}
+            onDelete={handleFloatingTextDelete}
+          />
+        ) : null}
       </Animated.View>
 
       {/* Модальное окно выбора страницы для дублирования */}
@@ -2682,8 +2666,8 @@ export default function EditAlbumScreen() {
                           contentFit="cover"
                         />
                       </View>
-                      <Text style={styles.pageSelectItemNumber}>
-                        Страница {index + 1}
+                      <Text style={styles.pageSelectItemNumber} numberOfLines={2}>
+                        {getAlbumPageLabel(albumId, index, activeCelebration)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -2751,8 +2735,8 @@ export default function EditAlbumScreen() {
                           contentFit={usesSingleBlankPage ? 'contain' : 'cover'}
                         />
                       </View>
-                      <Text style={styles.pageSelectItemNumber}>
-                        {usesSingleBlankPage ? 'Белый лист' : `Страница ${index + 1}`}
+                      <Text style={styles.pageSelectItemNumber} numberOfLines={2}>
+                        {getAlbumPageLabel(albumId, index, activeCelebration)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -2934,100 +2918,11 @@ const styles = StyleSheet.create({
       default: 'sans-serif',
     }),
   },
-  textEditControlsPanel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    // Важно: фиксируем начало строки слева, чтобы "Цвет" не сдвигался
-    // при длинном названии шрифта.
-    justifyContent: 'flex-start',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F0EB',
-    gap: 20,
-  },
   templateLineKeyboardToolbar: {
     position: 'absolute',
     left: 0,
     right: 0,
     zIndex: 2000,
-  },
-  textAlignControlsPanel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F0EB',
-    gap: 16,
-  },
-  textAlignControlButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FAF8F5',
-    width: 52,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  textAlignControlButtonActive: {
-    backgroundColor: '#F0E6DC',
-    borderColor: '#C9A89A',
-  },
-  textEditControlButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF8F5',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 8,
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 1,
-    minWidth: 80,
-  },
-  textEditControlButtonFixed: {
-    flexShrink: 0,
-    minWidth: 96,
-  },
-  textEditControlButtonFlex: {
-    flex: 1,
-    minWidth: 0,
-  },
-  fontNameScroll: {
-    flex: 1,
-    minWidth: 0,
-  },
-  fontNameScrollContent: {
-    flexGrow: 1,
-    alignItems: 'center',
-    paddingRight: 8,
-  },
-  textColorPreview: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E8D5C7',
-  },
-  textEditControlButtonText: {
-    fontSize: 14,
-    color: '#8B6F5F',
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
   },
   textEditControls: {
     flexDirection: 'row',
@@ -3310,7 +3205,8 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   pageSelectItemNumber: {
-    fontSize: 14,
+    fontSize: 13,
+    lineHeight: 17,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3319,5 +3215,6 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '500',
     textAlign: 'center',
+    minHeight: 34,
   },
 });

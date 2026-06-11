@@ -1,3 +1,4 @@
+import type { EditorTool } from '@/constants/album-text-margins';
 import {
   usesFreeFormTextEditing,
   usesTemplateLineTextEditing,
@@ -55,6 +56,7 @@ import {
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
+const FLOATING_TEXT_DEFAULT_WIDTH = 272;
 const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
 const TEXT_EDITING_MIN_HEIGHT = 50;
 const TEXT_EDITING_ACTIONS_HEIGHT = 36;
@@ -103,7 +105,7 @@ interface ImageViewerProps {
   onAnnotationUpdate?: (id: string, annotation: Partial<Annotation>) => void;
   onAnnotationDelete?: (id: string) => void;
   isEditing?: boolean;
-  currentTool?: 'text' | 'image' | 'drawing' | null;
+  currentTool?: EditorTool;
   onPageDuplicate?: (pageIndex: number) => void;
   onPageDelete?: (pageIndex: number) => void;
   onToolReset?: () => void; // Callback для сброса инструмента
@@ -417,6 +419,42 @@ export default function ImageViewer({
     });
   };
 
+  const addFreeFormTextAnnotation = async (
+    pageForAnnotation: number,
+    x: number,
+    y: number
+  ) => {
+    if (!onAnnotationAdd) return;
+
+    const maxZIndex =
+      annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
+    const viewportWidth = editorViewportWidth;
+    const viewportHeight = containerHeight;
+    const proposedX = x - FLOATING_TEXT_DEFAULT_WIDTH / 2;
+    const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
+    const nextX = clamp(proposedX, 0, viewportWidth - FLOATING_TEXT_DEFAULT_WIDTH);
+    const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+    const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+
+    const newAnnotation: Annotation = {
+      id: createId('ann'),
+      type: 'text',
+      x: nextX,
+      y: nextY,
+      width: FLOATING_TEXT_DEFAULT_WIDTH,
+      height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+      content: '',
+      color: style.color,
+      fontSize: style.fontSize,
+      fontFamily: style.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageForAnnotation,
+    };
+    onAnnotationAdd(newAnnotation);
+    startAnnotationEditing(newAnnotation.id);
+    onToolReset?.();
+  };
+
   const handleLineSlotTap = async (
     pageForAnnotation: number,
     slotIndex?: number,
@@ -523,6 +561,11 @@ export default function ImageViewer({
 
     if (!isEditing || !currentTool) return;
 
+    if (currentTool === 'floatingText' && onAnnotationAdd) {
+      void addFreeFormTextAnnotation(pageForAnnotation, x, y);
+      return;
+    }
+
     if (currentTool === 'text' && onAnnotationAdd) {
       if (usesTemplateLineTextEditing(lineGuideId)) {
         const slotParams = buildSlotParams(pageForAnnotation);
@@ -548,27 +591,7 @@ export default function ImageViewer({
       const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
       if (usesFreeFormTextEditing(lineGuideId)) {
-        const applyFreeFormStyle = async () => {
-          const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
-          const newAnnotation: Annotation = {
-            id: createId('ann'),
-            type: 'text',
-            x: nextX,
-            y: nextY,
-            width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-            height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-            content: 'Новый текст',
-            color: style.color,
-            fontSize: style.fontSize,
-            fontFamily: style.fontFamily,
-            zIndex: maxZIndex + 1,
-            page: pageForAnnotation,
-          };
-          onAnnotationAdd(newAnnotation);
-          startAnnotationEditing(newAnnotation.id);
-          if (onToolReset) onToolReset();
-        };
-        void applyFreeFormStyle();
+        void addFreeFormTextAnnotation(pageForAnnotation, x, y);
         return;
       }
 
@@ -602,7 +625,7 @@ export default function ImageViewer({
                 y: snappedNextY,
                 width: TEXT_ANNOTATION_DEFAULT_WIDTH,
                 height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-                content: 'Новый текст',
+                content: '',
               }),
           color: style.color,
           fontSize: style.fontSize,
@@ -872,9 +895,8 @@ export default function ImageViewer({
                           !isTextEditing &&
                           !selectedAnnotationId &&
                           hasLineGuides(lineGuideId) &&
-                          (!currentTool ||
-                            (currentTool === 'text' &&
-                              usesTemplateLineTextEditing(lineGuideId)));
+                          currentTool === 'text' &&
+                          usesTemplateLineTextEditing(lineGuideId);
 
                         return (
                           <>

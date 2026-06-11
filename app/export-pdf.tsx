@@ -1,5 +1,4 @@
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
-import { PremiumCrownBadge } from '@/components/premium-crown-badge';
 import { Annotation } from '@/components/pdf-annotations';
 import { SubscriptionPaywallModal } from '@/components/subscription-paywall-modal';
 import { requiresPrintSubscription } from '@/constants/subscription';
@@ -430,7 +429,7 @@ export default function ExportPdfScreen() {
   const [paywallVisible, setPaywallVisible] = useState(false);
   const pendingFormatRef = useRef<FormatOption | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { isSubscribed, isIapEnabled } = useExportSubscription();
+  const { isSubscribed, isIapEnabled, priceLabel } = useExportSubscription();
 
   const isFormatLocked = useCallback(
     (format: FormatOption) =>
@@ -2661,7 +2660,10 @@ export default function ExportPdfScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
           </TouchableOpacity>
-          <Text style={styles.title}>Получить книгу</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Получить книгу</Text>
+            <Text style={styles.subtitle}>Выберите формат печати</Text>
+          </View>
         </View>
 
         <ScrollView
@@ -2672,75 +2674,138 @@ export default function ExportPdfScreen() {
         >
           {!showPreview ? (
             <>
-              {/* Выбор формата */}
-              <Text style={styles.sectionTitle}>Выберите формат печати</Text>
-              
               {formatOptions.map((format) => {
                 const showPremium = requiresPrintSubscription(format.type);
                 const locked = isFormatLocked(format);
+                const isSelected = selectedFormat?.id === format.id;
+                const formatIconName =
+                  format.type === 'hard'
+                    ? 'book'
+                    : format.type === 'electronic'
+                      ? 'tablet-portrait-outline'
+                      : 'book-outline';
+
+                const isPremiumLocked = showPremium && locked;
+
                 return (
-                <TouchableOpacity
-                  key={format.id}
-                  style={[
-                    styles.formatCard,
-                    selectedFormat?.id === format.id && styles.formatCardSelected,
-                  ]}
-                  onPress={() => handleFormatPress(format)}
-                  activeOpacity={0.85}
-                >
-                  {showPremium ? (
-                    <PremiumCrownBadge style={styles.formatCrownBadge} size={18} />
-                  ) : null}
-                  <View style={styles.formatHeader}>
+                  <TouchableOpacity
+                    key={format.id}
+                    style={[styles.formatCard, isSelected && styles.formatCardSelected]}
+                    onPress={() => handleFormatPress(format)}
+                    activeOpacity={0.85}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityLabel={
+                      isPremiumLocked
+                        ? `${format.name}. Платный формат${priceLabel ? `, ${priceLabel}` : ''}`
+                        : format.name
+                    }
+                  >
                     <View
                       style={[
-                        styles.formatIcon,
-                        selectedFormat?.id === format.id && styles.formatIconSelected,
+                        styles.formatCardBody,
+                        isSelected && styles.formatCardBodySelected,
+                        isPremiumLocked && !isSelected && styles.formatCardBodyLocked,
                       ]}
                     >
-                      <Ionicons
-                        name={format.type === 'hard' ? 'book' : format.type === 'electronic' ? 'phone-portrait-outline' : 'book-outline'}
-                        size={32}
-                        color={selectedFormat?.id === format.id ? '#FFFFFF' : '#C9A89A'}
-                      />
-                    </View>
-                    <View style={styles.formatInfo}>
-                      <Text
+                      <View
                         style={[
-                          styles.formatName,
-                          selectedFormat?.id === format.id && styles.formatNameSelected,
+                          styles.formatIconWrap,
+                          isSelected && styles.formatIconWrapSelected,
+                          isPremiumLocked && !isSelected && styles.formatIconWrapLocked,
                         ]}
                       >
-                        {format.name}
-                      </Text>
-                      <Text style={styles.formatDescription}>{format.description}</Text>
-                      {locked ? (
-                        <Text style={styles.subscriptionHint}>Требуется покупка</Text>
+                        <Ionicons
+                          name={formatIconName}
+                          size={24}
+                          color={isSelected ? '#FFFFFF' : '#8B6F5F'}
+                        />
+                      </View>
+
+                      <View style={styles.formatTextBlock}>
+                        <View style={styles.formatTitleRow}>
+                          <Text
+                            style={[
+                              styles.formatName,
+                              isSelected && styles.formatNameSelected,
+                            ]}
+                            numberOfLines={2}
+                          >
+                            {format.name}
+                          </Text>
+                          {isPremiumLocked ? (
+                            <View
+                              style={[
+                                styles.formatPremiumBadge,
+                                isSelected && styles.formatPremiumBadgeSelected,
+                              ]}
+                            >
+                              <Ionicons
+                                name="star"
+                                size={11}
+                                color={isSelected ? '#FFFFFF' : '#9A7B0A'}
+                              />
+                              <Text
+                                style={[
+                                  styles.formatPremiumBadgeText,
+                                  isSelected && styles.formatPremiumBadgeTextSelected,
+                                ]}
+                              >
+                                Премиум
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <Text
+                          style={[
+                            styles.formatDescription,
+                            isSelected && styles.formatDescriptionSelected,
+                          ]}
+                        >
+                          {format.description}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.formatMeta,
+                            isSelected && styles.formatMetaSelected,
+                          ]}
+                        >
+                          {format.size} · Поля {format.margins} · {format.orientation}
+                        </Text>
+                        {isPremiumLocked ? (
+                          <View
+                            style={[
+                              styles.formatPurchaseChip,
+                              isSelected && styles.formatPurchaseChipSelected,
+                            ]}
+                          >
+                            <Ionicons
+                              name="lock-closed"
+                              size={14}
+                              color={isSelected ? '#FFFFFF' : '#9A7B0A'}
+                            />
+                            <Text
+                              style={[
+                                styles.formatPurchaseChipText,
+                                isSelected && styles.formatPurchaseChipTextSelected,
+                              ]}
+                            >
+                              {priceLabel
+                                ? `Купить доступ · ${priceLabel}`
+                                : 'Купить доступ'}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+
+                      {isSelected ? (
+                        <Ionicons name="checkmark-circle" size={26} color="#FFFFFF" />
+                      ) : isPremiumLocked ? (
+                        <Ionicons name="chevron-forward" size={22} color="#9A7B0A" />
                       ) : null}
                     </View>
-                    {selectedFormat?.id === format.id && (
-                      <View style={styles.checkIcon}>
-                        <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.formatSpecs}>
-                    <View style={styles.specItem}>
-                      <Ionicons name="square-outline" size={16} color="#9B8E7F" />
-                      <Text style={styles.specText}>{format.size}</Text>
-                    </View>
-                    <View style={styles.specItem}>
-                      <Ionicons name="resize-outline" size={16} color="#9B8E7F" />
-                      <Text style={styles.specText}>Поля: {format.margins}</Text>
-                    </View>
-                    <View style={styles.specItem}>
-                      <Ionicons name="phone-portrait-outline" size={16} color="#9B8E7F" />
-                      <Text style={styles.specText}>{format.orientation}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
+                  </TouchableOpacity>
+                );
               })}
 
               {/* Кнопка создания PDF */}
@@ -2989,11 +3054,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingTop: 24,
+    paddingBottom: 28,
   },
   backButton: {
-    marginRight: 12,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  headerText: {
+    flex: 1,
   },
   title: {
     fontSize: 28,
@@ -3005,7 +3077,18 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    flex: 1,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    lineHeight: 22,
   },
   scrollView: {
     flex: 1,
@@ -3014,69 +3097,99 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 32,
   },
-  sectionTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
+  formatCard: {
+    marginBottom: 14,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  formatCardSelected: {
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  formatCardBody: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    padding: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    borderRadius: 20,
+  },
+  formatCardBodySelected: {
+    backgroundColor: '#8B6F5F',
+    borderColor: '#8B6F5F',
+  },
+  formatCardBodyLocked: {
+    borderColor: 'rgba(212, 175, 55, 0.55)',
+    backgroundColor: '#FFFDF8',
+  },
+  formatIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: '#FAF8F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formatIconWrapSelected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+  },
+  formatIconWrapLocked: {
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+  },
+  formatTextBlock: {
+    flex: 1,
+    gap: 3,
+    minWidth: 0,
+  },
+  formatTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  formatPremiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(212, 175, 55, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.45)',
+  },
+  formatPremiumBadgeSelected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
+  },
+  formatPremiumBadgeText: {
+    fontSize: 11,
+    lineHeight: 14,
+    color: '#9A7B0A',
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
-    fontWeight: '500',
-    marginBottom: 20,
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
-  formatCard: {
-    position: 'relative',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 26,
-    marginBottom: 18,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  formatCardSelected: {
-    borderColor: '#C9A89A',
-    backgroundColor: '#FAF8F5',
-  },
-  formatCrownBadge: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    zIndex: 1,
-  },
-  subscriptionHint: {
-    marginTop: 6,
-    fontSize: 13,
-    color: '#D4AF37',
-    fontWeight: '500',
-  },
-  formatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  formatIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  formatIconSelected: {
-    backgroundColor: '#C9A89A',
-  },
-  formatInfo: {
-    flex: 1,
+  formatPremiumBadgeTextSelected: {
+    color: '#FFFFFF',
   },
   formatName: {
-    fontSize: 18,
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 17,
+    lineHeight: 22,
     color: '#8B6F5F',
     fontFamily: Platform.select({
       ios: 'Georgia',
@@ -3085,13 +3198,13 @@ const styles = StyleSheet.create({
     }),
     fontStyle: 'italic',
     fontWeight: '400',
-    marginBottom: 4,
   },
   formatNameSelected: {
-    color: '#8B6F5F',
+    color: '#FFFFFF',
   },
   formatDescription: {
     fontSize: 14,
+    lineHeight: 19,
     color: '#9B8E7F',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3100,47 +3213,70 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
   },
-  checkIcon: {
-    marginLeft: 8,
+  formatDescriptionSelected: {
+    color: 'rgba(255, 255, 255, 0.92)',
   },
-  formatSpecs: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-  },
-  specItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  specText: {
-    fontSize: 13,
-    color: '#9B8E7F',
+  formatMeta: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#B5A89A',
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-    fontWeight: '300',
+    fontWeight: '400',
+  },
+  formatMetaSelected: {
+    color: 'rgba(255, 255, 255, 0.78)',
+  },
+  formatPurchaseChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: 'rgba(212, 175, 55, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+  },
+  formatPurchaseChipSelected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
+  formatPurchaseChipText: {
+    fontSize: 13,
+    lineHeight: 17,
+    color: '#7A6510',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    fontWeight: '600',
+  },
+  formatPurchaseChipTextSelected: {
+    color: '#FFFFFF',
   },
   createButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: '#8B6F5F',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 36,
-    borderRadius: 18,
-    marginTop: 12,
-    gap: 14,
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    marginTop: 16,
+    gap: 12,
     shadowColor: '#8B6F5F',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 14,
-    elevation: 5,
+    shadowRadius: 12,
+    elevation: 6,
   },
   createButtonDisabled: {
     opacity: 0.5,
@@ -3359,7 +3495,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   downloadStepNumberCompleted: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: '#8B6F5F',
   },
   downloadStepNumberText: {
     fontSize: 18,
@@ -3400,7 +3536,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C9A89A',
+    backgroundColor: '#8B6F5F',
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,

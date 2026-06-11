@@ -1,6 +1,5 @@
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -17,6 +16,12 @@ type SubscriptionPaywallModalProps = {
   onClose: () => void;
   onSubscribed?: () => void;
 };
+
+const BENEFITS = [
+  'PDF для печати в твёрдой обложке',
+  'PDF для печати в мягкой обложке',
+  'Электронная версия остаётся бесплатной',
+] as const;
 
 export function SubscriptionPaywallModal({
   visible,
@@ -53,40 +58,50 @@ export function SubscriptionPaywallModal({
   };
 
   const isBusy = busy !== null || isLoading;
-  const priceText = priceLabel ?? 'разовая покупка';
+  const priceText = priceLabel ?? '—';
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            contentFit="contain"
-          />
-          <Text style={styles.title}>Экспорт для печати</Text>
-          <Text style={styles.subtitle}>
-            Разовая покупка открывает экспорт PDF для твёрдой и мягкой обложки — готово для
-            типографии. Платите один раз, без ежемесячных списаний.
-          </Text>
-
-          <View style={styles.benefits}>
-            <BenefitRow text="PDF для печати в твёрдой обложке" />
-            <BenefitRow text="PDF для печати в мягкой обложке" />
-            <BenefitRow text="Электронная версия остаётся бесплатной" />
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Закрыть" />
+        <View style={styles.card}>
+          <View style={styles.headerRow}>
+            <View style={styles.headerText}>
+              <Text style={styles.eyebrow}>Разовая покупка</Text>
+              <Text style={styles.title}>Экспорт для печати</Text>
+            </View>
+            <Pressable
+              style={styles.closeButton}
+              onPress={onClose}
+              disabled={isBusy}
+              accessibilityRole="button"
+              accessibilityLabel="Закрыть"
+            >
+              <Ionicons name="close" size={22} color="#8B6F5F" />
+            </Pressable>
           </View>
 
-          <Text style={styles.price}>{priceText} · один раз</Text>
+          <Text style={styles.subtitle}>
+            PDF для типографии — твёрдая и мягкая обложка. Без подписки и ежемесячных списаний.
+          </Text>
+
+          <View style={styles.benefitsList}>
+            {BENEFITS.map((text) => (
+              <BenefitRow key={text} text={text} />
+            ))}
+          </View>
+
+          <View style={styles.priceBlock}>
+            <Text style={styles.priceValue}>{priceText}</Text>
+            <Text style={styles.priceHint}>один раз · навсегда на этом Apple ID</Text>
+          </View>
 
           <Pressable
             style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
             onPress={handlePurchase}
             disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Купить доступ"
           >
             {busy === 'purchase' ? (
               <ActivityIndicator color="#FFFFFF" />
@@ -96,29 +111,36 @@ export function SubscriptionPaywallModal({
           </Pressable>
 
           <Pressable
-            style={styles.secondaryButton}
+            style={[styles.restoreButton, isBusy && styles.buttonDisabled]}
             onPress={handleRestore}
             disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Восстановить покупки"
           >
             {busy === 'restore' ? (
               <ActivityIndicator color="#8B6F5F" />
             ) : (
-              <Text style={styles.secondaryButtonText}>Восстановить покупки</Text>
+              <Text style={styles.restoreButtonText}>Восстановить покупки</Text>
             )}
           </Pressable>
 
-          <Pressable style={styles.tertiaryButton} onPress={onClose} disabled={isBusy}>
-            <Text style={styles.tertiaryButtonText}>Позже</Text>
+          <Pressable
+            style={styles.laterButton}
+            onPress={onClose}
+            disabled={isBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Позже"
+          >
+            <Text style={styles.laterButtonText}>Позже</Text>
           </Pressable>
 
           {Platform.OS === 'ios' ? (
             <Text style={styles.legal}>
-              Разовая оплата через Apple ID. Доступ сохраняется на этом Apple ID; при смене
-              устройства используйте «Восстановить покупки».
+              Оплата через Apple ID. При смене устройства нажмите «Восстановить покупки».
             </Text>
           ) : null}
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
@@ -135,102 +157,199 @@ function BenefitRow({ text }: { text: string }) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(45, 38, 32, 0.45)',
   },
   card: {
     width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  logo: {
-    width: 88,
-    height: 88,
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    marginBottom: 16,
+    padding: 24,
+    borderWidth: 2,
+    borderColor: '#F0E8E0',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
+  eyebrow: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+    fontWeight: '400',
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 26,
     color: '#8B6F5F',
-    textAlign: 'center',
-    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: 'Georgia',
+      android: 'serif',
+      default: 'serif',
+    }),
+    fontStyle: 'italic',
+    fontWeight: '400',
+    lineHeight: 32,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
     color: '#9B8E7F',
-    textAlign: 'center',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
     marginBottom: 20,
   },
-  benefits: {
-    alignSelf: 'stretch',
-    gap: 10,
-    marginBottom: 20,
+  benefitsList: {
+    gap: 12,
+    marginBottom: 22,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E8E0',
   },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 10,
   },
   benefitText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15,
+    lineHeight: 21,
     color: '#5B4D3F',
-    lineHeight: 20,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
+    fontWeight: '400',
   },
-  price: {
-    fontSize: 18,
+  priceBlock: {
+    alignItems: 'center',
+    marginBottom: 18,
+    gap: 4,
+  },
+  priceValue: {
+    fontSize: 32,
     fontWeight: '600',
     color: '#8B6F5F',
-    marginBottom: 16,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
+    lineHeight: 36,
+  },
+  priceHint: {
+    fontSize: 13,
+    color: '#9B8E7F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
+    textAlign: 'center',
   },
   primaryButton: {
-    alignSelf: 'stretch',
-    backgroundColor: '#C9A89A',
+    backgroundColor: '#8B6F5F',
     borderRadius: 16,
-    paddingVertical: 16,
+    minHeight: 52,
     alignItems: 'center',
-    marginBottom: 10,
+    justifyContent: 'center',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 4,
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
   buttonDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
-  secondaryButton: {
-    alignSelf: 'stretch',
-    paddingVertical: 12,
+  restoreButton: {
+    marginTop: 14,
+    minHeight: 44,
     alignItems: 'center',
-    marginBottom: 4,
+    justifyContent: 'center',
   },
-  secondaryButtonText: {
-    color: '#8B6F5F',
+  restoreButtonText: {
     fontSize: 15,
     fontWeight: '500',
+    color: '#8B6F5F',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
-  tertiaryButton: {
-    paddingVertical: 8,
+  laterButton: {
+    marginTop: 6,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tertiaryButtonText: {
-    color: '#9B8E7F',
-    fontSize: 15,
+  laterButtonText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#B5A89A',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
   },
   legal: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 11,
     lineHeight: 16,
-    color: '#B5A89A',
+    color: '#C4B8AC',
     textAlign: 'center',
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
+    fontWeight: '300',
   },
 });

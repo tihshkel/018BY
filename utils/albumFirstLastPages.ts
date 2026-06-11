@@ -9,7 +9,7 @@ import { githubRawFileUrl } from './githubRawAssets';
 
 const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
 
-/** Стандартизированные last_page.png для A5 беременности (albums/pregnant/A5/DB*/last_page.png). */
+/** Стандартизированные last_page.png для A5 беременности (albums/pregnant/A5/DBn/last_page.png). */
 const PREGNANCY_A5_LAST_PAGE_MODULES: Record<string, any> = {
   DB1: (() => {
     try { return require('@/albums/pregnant/A5/DB1/last_page.png'); } catch { return null; }

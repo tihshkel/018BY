@@ -1,11 +1,8 @@
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
+import type { EditorTool } from '@/constants/album-text-margins';
 import { usesTemplateLineTextEditing } from '@/constants/album-text-margins';
 import { TemplateLineEditor } from '@/components/template-line-editor';
-import {
-  TEMPLATE_LINE_INPUT_ACCESSORY_ID,
-  TemplateLineKeyboardToolbar,
-} from '@/components/template-line-keyboard-toolbar';
 import {
   distributeTextAcrossSlots,
   findAnnotationForContinuationGroup,
@@ -62,6 +59,7 @@ const APP_COLORS = [
 
 // Размеры шрифта
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
+const FLOATING_TEXT_MIN_CARD_WIDTH = 260;
 
 // Доступные шрифты из папки assets/fonts
 export interface FontOption {
@@ -122,9 +120,13 @@ export interface PdfAnnotationsRef {
   setTextAlign: (align: AnnotationTextAlign) => void;
   /** Снять фокус с поля ввода перед системным диалогом (иначе Alert на iOS не реагирует) */
   blurEditingInput: () => void;
+  /** Предотвращает закрытие редактирования при blur от тапа по панели форматирования */
+  markToolbarInteraction: () => void;
   navigateTemplateLinePrevious: () => void;
   navigateTemplateLineNext: () => void;
   getTemplateLineNavigationState: () => { canGoBack: boolean; canGoNext: boolean };
+  insertLineBreak: () => void;
+  deleteEditingAnnotation: () => void;
 }
 
 interface PdfAnnotationsProps {
@@ -133,7 +135,7 @@ interface PdfAnnotationsProps {
   onAnnotationUpdate: (id: string, annotation: Partial<Annotation>) => void;
   onAnnotationDelete: (id: string) => void;
   isEditing: boolean;
-  currentTool: 'text' | 'image' | 'drawing' | null;
+  currentTool: EditorTool;
   onEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void;
   zoomLevel?: number; // Уровень масштабирования
   // Для привязки текста к линиям + корректной геометрии
@@ -430,8 +432,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const textInputRef = useRef<TextInput | null>(null);
   const templateLineInputRef = useRef<TextInput | null>(null);
   const isTemplateLineNavigatingRef = useRef(false);
+  const isToolbarInteractionRef = useRef(false);
   const editingTextRef = useRef('');
   const TEMPLATE_LINE_NAV_BLUR_GUARD_MS = 120;
+  const TOOLBAR_INTERACTION_BLUR_GUARD_MS = 200;
   const textSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const hasTextSelectionRef = useRef(false);
   const [selectionOverride, setSelectionOverride] = useState<{ start: number; end: number } | null>(null);
@@ -706,7 +710,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       return;
     }
 
-    if (isTemplateLineAlbum || isTemplateLineAnnotation(currentAnnotation)) {
+    if (isTemplateLineAnnotation(currentAnnotation)) {
       dragButtonResponderRef.current = null;
       return;
     }
@@ -735,8 +739,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         // 1. Сохраняем текст с учетом всех параметров
         const shouldSnap =
           currentAnnotation.type === 'text' &&
-          !!lineGuideId &&
-          isTemplateLineAlbum &&
+          isTemplateLineAnnotation(currentAnnotation) &&
           typeof viewportHeight === 'number' &&
           viewportHeight > 0 &&
           typeof currentAnnotation.page === 'number';
@@ -847,7 +850,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       return null;
     }
 
-    if (annotation.type === 'text' && isTemplateLineAlbum) {
+    if (annotation.type === 'text' && isTemplateLineAnnotation(annotation)) {
       return null;
     }
 
@@ -1492,6 +1495,26 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }, TEMPLATE_LINE_NAV_BLUR_GUARD_MS);
   };
 
+  const markToolbarInteraction = () => {
+    isToolbarInteractionRef.current = true;
+    setTimeout(() => {
+      isToolbarInteractionRef.current = false;
+    }, TOOLBAR_INTERACTION_BLUR_GUARD_MS);
+  };
+
+  const refocusEditingInput = () => {
+    requestAnimationFrame(() => {
+      const editingId = editingAnnotationRef.current;
+      if (!editingId) return;
+      const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+      if (current && isTemplateLineAnnotation(current)) {
+        templateLineInputRef.current?.focus();
+      } else {
+        textInputRef.current?.focus();
+      }
+    });
+  };
+
   const refocusTemplateLineInput = () => {
     requestAnimationFrame(() => {
       templateLineInputRef.current?.focus();
@@ -1695,6 +1718,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     };
   };
 
+  const handleDeleteEditingAnnotation = () => {
+    if (!editingAnnotation) return;
+    const annotationId = editingAnnotation;
+    onAnnotationDelete(annotationId);
+    setEditingAnnotation(null);
+    setEditingText('');
+    setSelectedAnnotation(null);
+    Keyboard.dismiss();
+    onEditingStateChange?.(false, null);
+  };
+
   const handleCloseEditing = () => {
     if (editingAnnotation) {
       const current = annotations.find(ann => ann.id === editingAnnotation) || null;
@@ -1705,8 +1739,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const shouldSnap =
         !!current &&
         current.type === 'text' &&
-        !!lineGuideId &&
-        isTemplateLineAlbum &&
+        isTemplateLineAnnotation(current) &&
         typeof viewportHeight === 'number' &&
         viewportHeight > 0 &&
         typeof current.page === 'number';
@@ -1761,6 +1794,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       isTemplateLineNavigatingRef.current = false;
       return;
     }
+    if (isToolbarInteractionRef.current) {
+      isToolbarInteractionRef.current = false;
+      refocusEditingInput();
+      return;
+    }
     handleCloseEditing();
   };
 
@@ -1810,6 +1848,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setShowFontPicker(false);
       Keyboard.dismiss();
     },
+    markToolbarInteraction,
     setTextAlign: (align: AnnotationTextAlign) => {
       if (!editingAnnotation) return;
 
@@ -1835,11 +1874,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const { end } = textSelectionRef.current;
       collapseTextSelection(end);
       notifyTextSelection(false);
-      Keyboard.dismiss();
+      refocusEditingInput();
     },
     navigateTemplateLinePrevious,
     navigateTemplateLineNext,
     getTemplateLineNavigationState,
+    insertLineBreak: handleInsertLineBreak,
+    deleteEditingAnnotation: handleDeleteEditingAnnotation,
   }), [annotations, editingAnnotation, editingText, onAnnotationUpdate, onEditingStateChange]);
 
   const handleColorSelect = (color: string) => {
@@ -2305,6 +2346,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         textFieldCoordinate?.width ??
         annotation.width ??
         360;
+      const floatingTextEditingWidth =
+        isEditingText && !isTemplateLineAnnotation(annotation)
+          ? Math.max(slotLayoutWidth, FLOATING_TEXT_MIN_CARD_WIDTH)
+          : slotLayoutWidth;
 
       if (shouldHideTemplateGroupSibling(annotation, pageNumberForSlots, templateSlots)) {
         return null;
@@ -2344,17 +2389,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               onSelectionChange={handleSelectionChange}
               selection={selectionOverride ?? undefined}
               inputRef={templateLineInputRef}
-              inputAccessoryViewID={TEMPLATE_LINE_INPUT_ACCESSORY_ID}
-              keyboardToolbar={
-                Platform.OS === 'ios' ? (
-                  <TemplateLineKeyboardToolbar
-                    canGoBack={getTemplateLineNavigationState().canGoBack}
-                    canGoNext={getTemplateLineNavigationState().canGoNext}
-                    onPrevious={navigateTemplateLinePrevious}
-                    onNext={navigateTemplateLineNext}
-                  />
-                ) : undefined
-              }
             />
           );
         }
@@ -2521,105 +2555,70 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   }
                 }}
               >
-                <View pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
-                  <TextInput
-                    ref={textInputRef}
+                <>
+                  <View
                     style={[
-                      styles.textAnnotation,
-                      styles.textInput,
-                      {
-                        color: currentColor,
-                        fontSize: alignedFontSize,
-                        fontFamily: currentFontFamily,
-                        // Единый базовый стиль для всех PDF
-                        lineHeight: alignedFontSize * 1.2, // Небольшие отступы между строками
-                        includeFontPadding: false, // Единый размер курсора
-                        textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
-                        textAlign: getTextAlign(annotation),
-                        // Используем ширину из текстового поля, если оно определено, иначе из аннотации
-                        width: slotLayoutWidth,
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                        paddingLeft: 0, // Убираем левый отступ, чтобы текст начинался с начала строки
-                        paddingRight: 0, // Убираем правый отступ
-                        paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса
-                        // Применяем X координату из текстового поля для правильного начала
-                        marginLeft: textFieldCoordinate ? 0 : 0, // Убеждаемся, что нет дополнительных отступов
-                      },
+                      styles.floatingTextCard,
+                      isDraggingWhileEditing && styles.floatingTextCardDragging,
                     ]}
-                    value={editingText}
-                    onChangeText={handleTextChange}
-                    onContentSizeChange={handleTextContentSizeChange}
-                    onSelectionChange={handleSelectionChange}
-                    {...(selectionOverride ? { selection: selectionOverride } : {})}
-                    onSubmitEditing={handleTextSubmit}
-                    onBlur={handleTextSubmit}
-                    autoFocus={!isDraggingWhileEditing}
-                    multiline
-                    placeholder="Введите текст..."
-                    placeholderTextColor={currentColor + '80'}
-                    editable={!isDraggingWhileEditing}
-                    selectTextOnFocus={false}
-                    textBreakStrategy="simple"
-                    {...(Platform.OS === 'android' && {
-                      textAlignVertical: 'top',
-                    })}
-                  />
-                </View>
-                {/* Кнопки: Перетащить (оранжевая), Перенос строки, Принять и Удалить за полем ввода */}
-                <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
-                  {!isTemplateLineAlbum ? (
+                    pointerEvents={isDraggingWhileEditing ? 'auto' : 'box-none'}
+                  >
                     <View
-                      style={[styles.actionButton, styles.dragButton]}
+                      style={[
+                        styles.floatingTextHeader,
+                        isDraggingWhileEditing && styles.floatingTextHeaderDragging,
+                      ]}
                       {...(dragButtonResponderRef.current?.panHandlers || {})}
+                      pointerEvents={isDraggingWhileEditing ? 'none' : 'auto'}
+                      accessibilityRole="button"
+                      accessibilityLabel="Перетащите, чтобы переместить текст"
+                      accessibilityHint="Удерживайте полоску сверху и перетащите блок"
                     >
-                      <Ionicons name="move" size={18} color="#FFFFFF" />
+                      <View
+                        style={[
+                          styles.floatingTextGripBar,
+                          isDraggingWhileEditing && styles.floatingTextGripBarDragging,
+                        ]}
+                      />
                     </View>
-                  ) : null}
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.lineBreakButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={handleInsertLineBreak}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                    accessibilityLabel="Перенос строки"
-                    accessibilityHint="Вставляет перенос строки в текущую позицию"
-                  >
-                    <Ionicons name="return-down-forward" size={18} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.acceptButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={handleCloseEditing}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                  >
-                    <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.removeButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={() => {
-                      onAnnotationDelete(annotation.id);
-                      setEditingAnnotation(null);
-                      setEditingText('');
-                      Keyboard.dismiss();
-                    }}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                  >
-                    <Ionicons name="trash" size={18} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
+                    <View pointerEvents={isDraggingWhileEditing ? 'none' : 'auto'}>
+                      <TextInput
+                        ref={textInputRef}
+                        style={[
+                          styles.textAnnotation,
+                          styles.floatingTextInput,
+                          {
+                            color: currentColor,
+                            fontSize: alignedFontSize,
+                            fontFamily: currentFontFamily,
+                            lineHeight: alignedFontSize * 1.2,
+                            includeFontPadding: false,
+                            textAlignVertical: 'top',
+                            textAlign: getTextAlign(annotation),
+                            width: floatingTextEditingWidth,
+                          },
+                        ]}
+                        value={editingText}
+                        onChangeText={handleTextChange}
+                        onContentSizeChange={handleTextContentSizeChange}
+                        onSelectionChange={handleSelectionChange}
+                        {...(selectionOverride ? { selection: selectionOverride } : {})}
+                        onSubmitEditing={handleTextSubmit}
+                        onBlur={handleTextSubmit}
+                        autoFocus={!isDraggingWhileEditing}
+                        multiline
+                        placeholder="Введите текст..."
+                        placeholderTextColor="#A89888"
+                        editable={!isDraggingWhileEditing}
+                        selectTextOnFocus={false}
+                        textBreakStrategy="simple"
+                        {...(Platform.OS === 'android' && {
+                          textAlignVertical: 'top',
+                        })}
+                      />
+                    </View>
+                  </View>
+                </>
               </Animated.View>
             </>
           ) : (
@@ -3202,48 +3201,67 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C9A89A',
     borderRadius: 8,
-    paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса текста
-    paddingVertical: 8, // Небольшие вертикальные отступы
+    paddingHorizontal: 0,
+    paddingVertical: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     minHeight: 50,
-    textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
-    textAlign: 'left', // Выравнивание по левому краю для правильного начала каждой строки
-    includeFontPadding: false, // Единый размер курсора для всех
+    textAlignVertical: 'top',
+    textAlign: 'left',
+    includeFontPadding: false,
   },
   textEditingContainer: {
     flex: 1,
-    minWidth: 200,
+    minWidth: FLOATING_TEXT_MIN_CARD_WIDTH,
   },
-  textActionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+  floatingTextCard: {
+    minWidth: FLOATING_TEXT_MIN_CARD_WIDTH,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    shadowColor: '#8B6F5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  floatingTextCardDragging: {
+    opacity: 0.92,
+    borderColor: '#C9A89A',
+  },
+  floatingTextHeader: {
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#FAF8F5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E6DC',
   },
-  dragButton: {
-    backgroundColor: '#FF8C42',
+  floatingTextHeaderDragging: {
+    backgroundColor: '#F5EDE6',
   },
-  lineBreakButton: {
-    backgroundColor: '#8B6F5F',
+  floatingTextGripBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D4C4B8',
   },
-  acceptButton: {
-    backgroundColor: '#4ECDC4',
+  floatingTextGripBarDragging: {
+    width: 48,
+    backgroundColor: '#C9A89A',
   },
-  removeButton: {
-    backgroundColor: '#FF4444',
+  floatingTextInput: {
+    borderWidth: 0,
+    borderRadius: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    minHeight: 64,
+    textAlignVertical: 'top',
+    textAlign: 'left',
+    includeFontPadding: false,
   },
   buttonDisabled: {
     opacity: 0.3,

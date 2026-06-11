@@ -9,7 +9,7 @@ import {
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { InputAccessoryView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type TextAlign = 'left' | 'center' | 'right';
 
@@ -29,8 +29,6 @@ type TemplateLineEditorProps = {
   selection?: { start: number; end: number };
   inputRef?: React.RefObject<TextInput | null>;
   autoFocus?: boolean;
-  inputAccessoryViewID?: string;
-  keyboardToolbar?: React.ReactNode;
 };
 
 /**
@@ -53,8 +51,6 @@ export function TemplateLineEditor({
   selection,
   inputRef: externalInputRef,
   autoFocus = true,
-  inputAccessoryViewID,
-  keyboardToolbar,
 }: TemplateLineEditorProps) {
   const localInputRef = useRef<TextInput>(null);
   const inputRef = externalInputRef ?? localInputRef;
@@ -115,11 +111,6 @@ export function TemplateLineEditor({
 
   return (
     <>
-      {Platform.OS === 'ios' && inputAccessoryViewID && keyboardToolbar ? (
-        <InputAccessoryView nativeID={inputAccessoryViewID}>
-          {keyboardToolbar}
-        </InputAccessoryView>
-      ) : null}
       {slotsToRender.map((lineSlot) => {
         const textTop = getTemplateLineTextTop(lineSlot, fontSize, lineGuideId);
         const lineTypography = getTemplateLineTypography(
@@ -178,9 +169,6 @@ export function TemplateLineEditor({
                 underlineColorAndroid="transparent"
                 selectTextOnFocus={false}
                 caretHidden={false}
-                {...(Platform.OS === 'ios' && inputAccessoryViewID
-                  ? { inputAccessoryViewID }
-                  : {})}
                 {...(Platform.OS === 'ios' ? { paddingTop: 0, paddingBottom: 0 } : {})}
                 {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
               />

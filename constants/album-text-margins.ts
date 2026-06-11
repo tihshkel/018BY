@@ -36,6 +36,16 @@ export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   return BLANK_LINE_GUIDE_IDS.has(lineGuideId);
 }
 
+export type EditorTool = 'text' | 'floatingText' | 'image' | 'drawing' | null;
+
+/** Два инструмента текста: поля макета + плавающий (беременность, дети, ДР, дневники). */
+export function usesDualTextTools(
+  lineGuideId?: string,
+  category?: string | null
+): boolean {
+  return usesTemplateLineTextEditing(lineGuideId, category);
+}
+
 /** Ввод по строкам макета (беременность, дети, ДР, дневники). */
 export function usesTemplateLineTextEditing(
   lineGuideId?: string,
