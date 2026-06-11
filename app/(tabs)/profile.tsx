@@ -1,3 +1,4 @@
+import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -227,21 +228,17 @@ export default function ProfileScreen() {
   };
 
   const handleRateApp = async () => {
-    const iosStoreId = '6761551531';
-    const iosHttps = `https://apps.apple.com/app/id${iosStoreId}`;
-    const iosItms = `itms-apps://apps.apple.com/app/id${iosStoreId}`;
+    const iosHttps = getIosAppStoreUrl(false);
+    const iosItms = getIosAppStoreUrl(true);
 
     try {
       if (Platform.OS === 'ios') {
-        // itms-apps открывает App Store напрямую; https — запасной вариант
         const canOpenItms = await Linking.canOpenURL(iosItms);
         await Linking.openURL(canOpenItms ? iosItms : iosHttps);
         return;
       }
       if (Platform.OS === 'android') {
-        await Linking.openURL(
-          'https://play.google.com/store/apps/details?id=com.tihshkel.app018by'
-        );
+        await Linking.openURL(getAndroidPlayStoreUrl());
       }
     } catch {
       if (Platform.OS === 'ios') {

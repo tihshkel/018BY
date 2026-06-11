@@ -206,9 +206,9 @@ async function drawImageAnnotationsOnPdfPage(params: {
   pdfImageWidth: number;
   pdfImageHeight: number;
 }): Promise<void> {
-  const imageAnnotations = pageAnnotations
-    .filter((ann) => ann.type === 'image' && ann.imageUri)
-    .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+  const imageAnnotations = params.pageAnnotations
+    .filter((ann: Annotation) => ann.type === 'image' && ann.imageUri)
+    .sort((a: Annotation, b: Annotation) => (a.zIndex || 0) - (b.zIndex || 0));
 
   if (imageAnnotations.length === 0) return;
 

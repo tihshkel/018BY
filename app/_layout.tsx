@@ -7,6 +7,7 @@ import 'expo-asset';
 import 'react-native-reanimated';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
+import { AppUpdateBootstrap } from '@/components/app-update-bootstrap';
 import { MediaLibraryPermissionProvider } from '@/components/media-library-permission-provider';
 import { ExportSubscriptionProvider } from '@/contexts/export-subscription-context';
 import { NotificationTabProvider } from '@/contexts/notification-tab-context';
@@ -77,6 +78,7 @@ export default function RootLayout() {
       <ExportSubscriptionProvider>
         <NotificationTabProvider>
           <NotificationHandlersBootstrap />
+          <AppUpdateBootstrap />
           <MediaLibraryPermissionProvider>
             <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Stack 
