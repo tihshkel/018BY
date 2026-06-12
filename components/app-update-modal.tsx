@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import type { AppUpdatePrompt } from '@/hooks/use-app-updates';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -54,7 +55,7 @@ export function AppUpdateModal({
               accessibilityRole="button"
               accessibilityLabel="Закрыть"
             >
-              <Ionicons name="close" size={22} color="#8B6F5F" />
+              <Ionicons name="close" size={22} color={colors.textPrimary} />
             </Pressable>
           </View>
 
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -147,14 +148,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 32,
   },
   closeButton: {
@@ -166,7 +162,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -181,12 +177,12 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   versionValue: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -196,7 +192,7 @@ const styles = StyleSheet.create({
   },
   versionHint: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -206,12 +202,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,

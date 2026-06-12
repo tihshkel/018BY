@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { ProjectCard } from '@/components/project-card';
 import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
@@ -15,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
@@ -177,10 +178,10 @@ export default function HomeScreen() {
   };
 
   const handleProjectPress = (project: UserProject) => {
-    // Если это готовый альбом с PDF, переходим к edit-album
+    // Если это готовый альбом с PDF, переходим к album-pages
     // Иначе переходим к обычному edit-project
     if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      router.push(`/edit-album?id=${project.id}`);
+      router.push(`/album-pages?id=${project.id}` as Href);
     } else {
       router.push(`/edit-project?id=${project.id}`);
     }
@@ -202,10 +203,10 @@ export default function HomeScreen() {
   const handleEditProject = () => {
     if (selectedProjectForAction) {
       setShowActionModal(false);
-      // Если это готовый альбом с PDF, переходим к edit-album
+      // Если это готовый альбом с PDF, переходим к album-pages
       // Иначе переходим к обычному edit-project
       if (selectedProjectForAction.isReadyMadeAlbum || selectedProjectForAction.hasPdfTemplate) {
-        router.push(`/edit-album?id=${selectedProjectForAction.id}`);
+        router.push(`/album-pages?id=${selectedProjectForAction.id}` as Href);
       } else {
         router.push(`/edit-project?id=${selectedProjectForAction.id}`);
       }
@@ -334,7 +335,7 @@ export default function HomeScreen() {
           {/* Основной проект или список проектов */}
           {projects.length === 0 ? (
             <View style={[styles.emptyState, sectionWrap]}>
-              <Ionicons name="book-outline" size={64} color="#D4C4B5" />
+              <Ionicons name="book-outline" size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateTitle}>У вас пока нет альбомов</Text>
               <Text style={styles.emptyStateText}>
                 Создайте первый альбом, чтобы начать сохранять воспоминания
@@ -377,7 +378,7 @@ export default function HomeScreen() {
                         recyclingKey={selectedProject.id}
                       />
                     ) : (
-                      <Ionicons name="book" size={48} color="#C9A89A" />
+                      <Ionicons name="book" size={48} color={colors.primary} />
                     )
                   )}
                 </View>
@@ -428,7 +429,7 @@ export default function HomeScreen() {
                   <Text style={styles.allStoriesLinkCount}>
                     {formatProjectsCountLabel(projects.length)}
                   </Text>
-                  <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.primary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -451,7 +452,7 @@ export default function HomeScreen() {
                     Создавайте альбомы и дневники для важных моментов жизни
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -470,7 +471,7 @@ export default function HomeScreen() {
                 <Text style={styles.catalogButtonTitle}>Помощник заполнения с напоминаниями</Text>
                 <Text style={styles.catalogButtonText}>Настроить уведомления для бумажных альбомов</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+              <Ionicons name="chevron-forward" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -488,7 +489,7 @@ export default function HomeScreen() {
                 <Text style={styles.catalogButtonTitle}>Каталог товаров</Text>
                 <Text style={styles.catalogButtonText}>Купить бумажную версию альбомов</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+              <Ionicons name="chevron-forward" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -580,7 +581,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -597,14 +598,9 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 36,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     letterSpacing: 0.3,
     lineHeight: 44,
   },
@@ -620,7 +616,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -633,7 +629,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 17,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -646,7 +642,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   newProjectButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -654,7 +650,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 16,
     gap: 10,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -673,7 +669,7 @@ const styles = StyleSheet.create({
   },
   buyPaperVersionText: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -690,18 +686,18 @@ const styles = StyleSheet.create({
     padding: 36,
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   projectImagePlaceholder: {
     width: 120,
     height: 160,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -714,20 +710,15 @@ const styles = StyleSheet.create({
   },
   projectTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
   projectCategory: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -741,20 +732,20 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     justifyContent: 'space-around',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   statItem: {
     alignItems: 'center',
   },
   statValue: {
     fontSize: 24,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -765,7 +756,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -775,7 +766,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#F0E8E0',
+    backgroundColor: colors.border,
   },
   projectsScroll: {
     gap: 16,
@@ -792,13 +783,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     gap: 8,
   },
   allStoriesLinkText: {
     flex: 1,
     fontSize: 17,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -808,7 +799,7 @@ const styles = StyleSheet.create({
   },
   allStoriesLinkCount: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -820,13 +811,13 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     marginRight: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   projectCardGrid: {
     flex: 1,
@@ -845,15 +836,15 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 200,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -865,19 +856,14 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   cardCategory: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -889,11 +875,11 @@ const styles = StyleSheet.create({
   cardStats: {
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   cardStatText: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -912,8 +898,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.primary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
@@ -924,7 +910,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -936,7 +922,7 @@ const styles = StyleSheet.create({
   },
   createMoreTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -946,7 +932,7 @@ const styles = StyleSheet.create({
   },
   createMoreText: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -967,8 +953,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.primary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -981,8 +967,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -992,7 +978,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -1003,7 +989,7 @@ const styles = StyleSheet.create({
   },
   catalogButtonTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1014,7 +1000,7 @@ const styles = StyleSheet.create({
   },
   catalogButtonText: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1036,7 +1022,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 320,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -1044,20 +1030,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1079,14 +1060,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
   },
   editButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   deleteButton: {
     backgroundColor: '#E74C3C',
@@ -1106,11 +1087,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontSize: 16,
     fontWeight: '400',
     fontFamily: Platform.select({

@@ -84,6 +84,10 @@ const PROJECT_KEY_SUBPREFIXES = [
   'cover_viewport_',
   'last_text_style_',
   'sections_',
+  'page_instances_',
+  'page_values_',
+  'schema_version_',
+  'form_migration_',
 ];
 
 /**

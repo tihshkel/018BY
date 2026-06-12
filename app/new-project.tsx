@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState } from 'react';
 import {
   View,
@@ -191,9 +192,11 @@ export default function NewProjectScreen() {
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Что хотите сохранить?</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Что хотите сохранить?</Text>
+          </View>
         </View>
 
         <ScrollView
@@ -222,7 +225,7 @@ export default function NewProjectScreen() {
                   <Ionicons
                     name={category.icon as any}
                     size={28}
-                    color={selectedCategory === category.id ? '#FFFFFF' : '#C9A89A'}
+                    color={selectedCategory === category.id ? '#FFFFFF' : colors.primary}
                   />
                 </View>
                 <Text
@@ -249,7 +252,7 @@ export default function NewProjectScreen() {
                   activeOpacity={0.85}
                 >
                   <View style={styles.productImage}>
-                    <Ionicons name="book" size={40} color="#C9A89A" />
+                    <Ionicons name="book" size={40} color={colors.primary} />
                   </View>
                   <View style={styles.productContent}>
                     <Text style={styles.productName}>{product.name}</Text>
@@ -257,13 +260,13 @@ export default function NewProjectScreen() {
                     {(product.hasReminders && (selectedCategory === 'pregnancy' || selectedCategory === 'kids')) && (
                       <View style={styles.productFeatures}>
                         <View style={styles.feature}>
-                          <Ionicons name="notifications-outline" size={16} color="#9B8E7F" />
+                          <Ionicons name="notifications-outline" size={16} color={colors.textSecondary} />
                           <Text style={styles.featureText}>Напоминания</Text>
                         </View>
                       </View>
                     )}
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -316,7 +319,7 @@ export default function NewProjectScreen() {
                   maximumDate={new Date(2030, 11, 31)}
                   minimumDate={new Date(1900, 0, 1)}
                   themeVariant="light"
-                  textColor="#8B6F5F"
+                  textColor={colors.textPrimary}
                 />
                 </View>
               ) : (
@@ -385,7 +388,7 @@ export default function NewProjectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -400,17 +403,15 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
   },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
@@ -430,27 +431,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   categoryCardSelected: {
-    borderColor: '#C9A89A',
-    backgroundColor: '#FAF8F5',
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
   },
   categoryIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   categoryIconSelected: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   categoryName: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -460,14 +461,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryNameSelected: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   productsContainer: {
     paddingHorizontal: 24,
   },
   productsTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -492,7 +493,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: 80,
     height: 100,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -503,19 +504,14 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
   },
   productDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -537,7 +533,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -561,20 +557,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -597,7 +588,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -617,7 +608,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   confirmButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -635,12 +626,12 @@ const styles = StyleSheet.create({
   datePreview: {
     alignItems: 'center',
     paddingVertical: 20,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     marginBottom: 24,
     borderWidth: 1,
     borderColor: '#E8D5C7',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -651,7 +642,7 @@ const styles = StyleSheet.create({
   },
   datePreviewText: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -662,7 +653,7 @@ const styles = StyleSheet.create({
   },
   datePreviewHint: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -697,7 +688,7 @@ const styles = StyleSheet.create({
   datePickerHeaderTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -709,7 +700,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   datePickerCancelText: {
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontSize: 16,
     fontFamily: Platform.select({
       ios: 'System',
@@ -722,7 +713,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   datePickerDoneText: {
-    color: '#C9A89A',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
     fontFamily: Platform.select({

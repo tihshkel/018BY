@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -139,7 +140,7 @@ export default function PdfSkeletonLoader() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     width: '100%',
     height: '100%',
     justifyContent: 'center',
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

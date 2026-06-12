@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -28,7 +29,7 @@ function NotificationRow({ item }: { item: NotificationInboxItem }) {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconWrap}>
-          <Ionicons name="notifications-outline" size={20} color="#C9A89A" />
+          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
         </View>
         <Text style={styles.cardTime}>{formatReceivedAt(item.receivedAt)}</Text>
       </View>
@@ -69,7 +70,7 @@ export default function NotificationsScreen() {
         ]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="notifications-off-outline" size={48} color="#D4C4B5" />
+            <Ionicons name="notifications-off-outline" size={48} color={colors.tabInactive} />
             <Text style={styles.emptyTitle}>Уведомлений пока нет</Text>
             <Text style={styles.emptyText}>
               Когда вы получите напоминание, оно появится здесь
@@ -85,7 +86,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: 24,
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   listContent: {
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -137,23 +138,23 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTime: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B5D4F',
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   cardBody: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     lineHeight: 20,
   },
   emptyState: {
@@ -164,13 +165,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     textAlign: 'center',
   },
   emptyText: {
     marginTop: 8,
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },

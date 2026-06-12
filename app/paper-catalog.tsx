@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -53,7 +54,7 @@ export default function PaperCatalogScreen() {
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.title}>КАТАЛОГ ТОВАРОВ</Text>
         </View>
@@ -80,11 +81,11 @@ export default function PaperCatalogScreen() {
                   <Ionicons
                     name={category.icon as any}
                     size={28}
-                    color="#C9A89A"
+                    color={colors.primary}
                   />
                 </View>
                 <Text style={styles.categoryName}>{category.name}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
               </TouchableOpacity>
             ))}
           </View>
@@ -97,7 +98,7 @@ export default function PaperCatalogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -118,14 +119,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -136,7 +132,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -167,8 +163,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -182,7 +178,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 18,

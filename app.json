@@ -15,7 +15,7 @@
       "android",
       "web"
     ],
-    "primaryColor": "#C9A89A",
+    "primaryColor": "#F194A2",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tihshkel.x018BY",
@@ -82,7 +82,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/notification-icon.png",
-          "color": "#C9A89A",
+          "color": "#F194A2",
           "sounds": [],
           "mode": "production"
         }

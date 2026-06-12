@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export default function LoginScreen() {
@@ -99,7 +100,7 @@ export default function LoginScreen() {
                   value={email}
                   onChangeText={(t) => setEmail(normalizeEmail(t))}
                   placeholder="Email"
-                  placeholderTextColor="#B9A99A"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="email-address"
@@ -118,7 +119,7 @@ export default function LoginScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Пароль"
-                  placeholderTextColor="#B9A99A"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   secureTextEntry={!showPassword}
@@ -136,7 +137,7 @@ export default function LoginScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={22}
-                    color="#9B8E7F"
+                    color={colors.textSecondary}
                   />
                 </Pressable>
               </View>
@@ -184,19 +185,15 @@ const shellBase = {
   width: '100%' as const,
   maxWidth: AUTH_CONTENT_MAX_WIDTH,
   alignSelf: 'center' as const,
-  backgroundColor: '#FFFFFF',
-  borderRadius: 14,
+  backgroundColor: colors.background,
+  borderRadius: radii.sm,
   borderWidth: 1,
-  borderColor: '#E8E0D8',
-  shadowColor: '#8B6F5F',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.08,
-  shadowRadius: 12,
-  elevation: 3,
+  borderColor: colors.border,
+  ...createShadow('sm'),
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF8F5' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   inner: {
     flex: 1,
@@ -210,17 +207,13 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 42,
     lineHeight: 48,
-    color: '#8B6F5F',
-    fontStyle: 'italic',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     letterSpacing: 0.3,
     marginTop: 0,
     marginBottom: 28,
     textAlign: 'center',
-    textShadowColor: 'rgba(139, 111, 95, 0.12)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   fieldsColumn: {
     width: '100%',
@@ -239,7 +232,7 @@ const styles = StyleSheet.create({
   },
   inputInShell: {
     fontSize: 17,
-    color: '#5C4F44',
+    color: colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     paddingHorizontal: 0,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -268,7 +261,7 @@ const styles = StyleSheet.create({
   error: {
     marginTop: 14,
     fontSize: 14,
-    color: '#C45C52',
+    color: colors.error,
     lineHeight: 20,
     textAlign: 'center',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -281,16 +274,12 @@ const styles = StyleSheet.create({
   },
   primary: {
     marginTop: 22,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: radii.sm,
     alignItems: 'center',
     width: '100%',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 4,
+    ...createShadow('sm'),
   },
   primaryDisabled: { opacity: 0.75 },
   primaryLabel: {
@@ -309,13 +298,13 @@ const styles = StyleSheet.create({
   },
   footerMuted: {
     fontSize: 15,
-    color: '#7D6F62',
+    color: colors.textSecondary,
     opacity: 0.85,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
   },
   footerLink: {
     fontSize: 15,
-    color: '#8B6F5F',
+    color: colors.primary,
     fontWeight: '600',
     textDecorationLine: 'underline',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Platform, View, Text, StyleSheet, TouchableOpacity, Alert, Linking, ScrollView, Dimensions } from 'react-native';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import * as Sharing from 'expo-sharing';
@@ -200,7 +201,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
           html, body {
             margin: 0;
             padding: 0;
-            background-color: #FAF8F5;
+            background-color: colors.background;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
@@ -379,7 +380,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
               width: 100%;
               height: 100%;
               overflow: hidden;
-              background-color: #FAF8F5;
+              background-color: colors.background;
             }
             .pdf-wrapper {
               width: 100%;
@@ -522,7 +523,7 @@ export default function NativePdfViewer(props: NativePdfViewerProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   toolbar: {
     flexDirection: 'row',
@@ -554,31 +555,31 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   pdf: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   fallbackContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   fallbackTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginTop: 16,
     marginBottom: 12,
     textAlign: 'center',
   },
   fallbackText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 16,
@@ -587,7 +588,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#B8A89A',
     textAlign: 'center',
-    fontStyle: 'italic',
+    
   },
   openButton: {
     flexDirection: 'row',
@@ -619,14 +620,14 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginTop: 16,
     marginBottom: 12,
     textAlign: 'center',
   },
   infoText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -655,7 +656,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   secondaryButton: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.textPrimary,
   },
   editButton: {
     backgroundColor: '#52C4A0',

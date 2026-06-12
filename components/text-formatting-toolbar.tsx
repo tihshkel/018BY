@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import type { AnnotationTextAlign } from '@/components/pdf-annotations';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -78,7 +79,7 @@ export function TextFormattingToolbar({
             accessibilityLabel="Изменить размер шрифта"
           >
             <View style={styles.toolIconContainer}>
-              <Ionicons name="text-outline" size={20} color="#8B6F5F" />
+              <Ionicons name="text-outline" size={20} color={colors.textPrimary} />
             </View>
             <Text style={styles.toolButtonText}>{fontSize}px</Text>
           </TouchableOpacity>
@@ -93,7 +94,7 @@ export function TextFormattingToolbar({
           accessibilityLabel="Изменить шрифт"
         >
           <View style={styles.toolIconContainer}>
-            <Ionicons name="brush-outline" size={20} color="#8B6F5F" />
+            <Ionicons name="brush-outline" size={20} color={colors.textPrimary} />
           </View>
           <Text style={styles.toolButtonText} numberOfLines={1}>
             {fontFamilyLabel}
@@ -117,7 +118,7 @@ export function TextFormattingToolbar({
                 <MaterialIcons
                   name={option.icon}
                   size={20}
-                  color={isActive ? '#FFFFFF' : '#8B6F5F'}
+                  color={isActive ? '#FFFFFF' : colors.textPrimary}
                 />
               </TouchableOpacity>
             );
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
   panel: {
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
     paddingVertical: 12,
   },
   scrollContent: {
@@ -148,13 +149,13 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     gap: 8,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     minHeight: 48,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   },
   toolButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     flexShrink: 1,
     fontFamily: Platform.select({
@@ -202,16 +203,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
-    backgroundColor: '#FAF8F5',
-    shadowColor: '#8B6F5F',
+    backgroundColor: colors.background,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
   },
   alignButtonActive: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
     shadowOpacity: 0.16,
     shadowRadius: 6,
     elevation: 3,

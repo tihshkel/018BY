@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import type { EditorTool } from '@/constants/album-text-margins';
 import {
   usesFreeFormTextEditing,
@@ -768,7 +769,7 @@ export default function ImageViewer({
   if (images.length === 0) {
     return (
       <View style={styles.errorContainer}>
-        <Ionicons name="image-outline" size={64} color="#D4C4B5" />
+        <Ionicons name="image-outline" size={64} color={colors.tabInactive} />
         <Text style={styles.errorText}>Изображения не найдены</Text>
       </View>
     );
@@ -1030,7 +1031,7 @@ export default function ImageViewer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -1041,7 +1042,7 @@ const styles = StyleSheet.create({
   pageContainer: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingVertical: 0,
     marginBottom: 0,
     borderBottomWidth: 0,
@@ -1096,7 +1097,7 @@ const styles = StyleSheet.create({
     borderColor: '#C9B8A8',
     borderRadius: 3,
     overflow: 'hidden',
-    shadowColor: '#6B5D4F',
+    shadowColor: colors.textSecondary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1127,7 +1128,7 @@ const styles = StyleSheet.create({
       android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -1139,11 +1140,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     marginTop: 16,
     fontFamily: Platform.select({
       ios: 'System',
@@ -1164,7 +1165,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 320,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -1172,20 +1173,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1207,14 +1203,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
   },
   duplicateButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   deleteButton: {
     backgroundColor: '#E74C3C',
@@ -1234,7 +1230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelButtonText: {
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontSize: 16,
     fontWeight: '500',
     fontFamily: Platform.select({

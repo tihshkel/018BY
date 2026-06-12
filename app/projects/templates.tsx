@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
@@ -571,7 +572,7 @@ export default function ProjectTemplatesScreen() {
                 recyclingKey={row.id}
               />
             ) : (
-              <Ionicons name="book" size={isTile ? 40 : 48} color="#C9A89A" />
+              <Ionicons name="book" size={isTile ? 40 : 48} color={colors.primary} />
             )}
           </View>
           <View
@@ -598,7 +599,7 @@ export default function ProjectTemplatesScreen() {
             )}
           </View>
           {!isTile && (
-            <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+            <Ionicons name="chevron-forward" size={22} color={colors.primary} />
           )}
         </TouchableOpacity>
       );
@@ -611,7 +612,7 @@ export default function ProjectTemplatesScreen() {
       if (items.length === 0) {
         return (
           <View style={styles.emptyStateInline}>
-            <Ionicons name="document-outline" size={40} color="#D4C4B5" />
+            <Ionicons name="document-outline" size={40} color={colors.tabInactive} />
             <Text style={styles.emptyStateInlineText}>{emptyMessage}</Text>
           </View>
         );
@@ -661,7 +662,7 @@ export default function ProjectTemplatesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyState}>
-          <Ionicons name='alert-circle-outline' size={48} color='#C9A89A' />
+          <Ionicons name='alert-circle-outline' size={48} color={colors.primary} />
           <Text style={styles.emptyStateTitle}>Не удалось определить категорию</Text>
           <Text style={styles.emptyStateText}>
             Вернитесь к списку и выберите тему альбома ещё раз.
@@ -688,7 +689,7 @@ export default function ProjectTemplatesScreen() {
             style={styles.headerBackButton}
             accessibilityRole='button'
           >
-            <Ionicons name='chevron-back' size={24} color='#8B6F5F' />
+            <Ionicons name='chevron-back' size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{categoryTitle}</Text>
         </View>
@@ -764,7 +765,7 @@ export default function ProjectTemplatesScreen() {
                                   <Ionicons
                                     name="notifications-outline"
                                     size={16}
-                                    color="#9B8E7F"
+                                    color={colors.textSecondary}
                                   />
                                   <Text style={styles.featureText}>
                                     Напоминания
@@ -801,7 +802,7 @@ export default function ProjectTemplatesScreen() {
                 <View style={styles.coverDateModalHeader}>
                   <Text style={styles.coverDateModalTitle}>{categoryInfo.title}</Text>
                   <TouchableOpacity onPress={handleCoverDateCancel}>
-                    <Ionicons name="close" size={24} color="#8B6F5F" />
+                    <Ionicons name="close" size={24} color={colors.textPrimary} />
                   </TouchableOpacity>
                 </View>
 
@@ -815,7 +816,7 @@ export default function ProjectTemplatesScreen() {
                     onPress={() => setShowCoverDatePicker(true)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
+                    <Ionicons name="calendar-outline" size={24} color={colors.primary} />
                     <View style={styles.coverDateButtonTextContainer}>
                       <Text style={styles.coverDateButtonLabel}>{categoryInfo.title}</Text>
                       <Text style={styles.coverDateButtonText}>
@@ -826,7 +827,7 @@ export default function ProjectTemplatesScreen() {
                         })}
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                    <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
                   </TouchableOpacity>
 
                   {showCoverDatePicker && (
@@ -860,7 +861,7 @@ export default function ProjectTemplatesScreen() {
                       }}
                       locale="ru-RU"
                       themeVariant="light"
-                      textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                      textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
                     />
                   )}
 
@@ -977,7 +978,7 @@ const DateSelectionModal: React.FC<DateSelectionModalProps> = ({
             }}
             style={styles.datePicker}
             themeVariant='light'
-            textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+            textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
           />
         </View>
 
@@ -1009,7 +1010,7 @@ const DateSelectionModal: React.FC<DateSelectionModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -1025,14 +1026,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -1043,7 +1039,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1059,8 +1055,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
@@ -1078,7 +1074,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: 80,
     height: 100,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1104,14 +1100,9 @@ const styles = StyleSheet.create({
   },
   productNameTile: {
     fontSize: 15,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'left',
     lineHeight: 20,
     marginBottom: 4,
@@ -1119,7 +1110,7 @@ const styles = StyleSheet.create({
   },
   productDescriptionTile: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1132,19 +1123,14 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flexShrink: 1,
   },
   productDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1166,7 +1152,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1195,19 +1181,14 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1220,7 +1201,7 @@ const styles = StyleSheet.create({
   datePickerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#E8D5C7',
@@ -1239,7 +1220,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1259,11 +1240,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   confirmButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -1288,7 +1269,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 22,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1299,7 +1280,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1312,7 +1293,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -1333,12 +1314,12 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 32,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
     gap: 12,
   },
   emptyStateInlineText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({
@@ -1369,21 +1350,16 @@ const styles = StyleSheet.create({
   },
   coverDateModalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   coverDateModalBody: {
     marginBottom: 24,
   },
   coverDateModalDescription: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1396,7 +1372,7 @@ const styles = StyleSheet.create({
   coverDateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
@@ -1409,7 +1385,7 @@ const styles = StyleSheet.create({
   },
   coverDateButtonLabel: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1420,7 +1396,7 @@ const styles = StyleSheet.create({
   },
   coverDateButtonText: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1436,7 +1412,7 @@ const styles = StyleSheet.create({
   iosCoverDatePickerButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 12,
   },
   iosCoverDatePickerButtonText: {
@@ -1455,13 +1431,13 @@ const styles = StyleSheet.create({
   },
   coverDateCancelButton: {
     flex: 1,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: colors.border,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
   },
   coverDateCancelButtonText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '500',
     fontFamily: Platform.select({
@@ -1472,11 +1448,11 @@ const styles = StyleSheet.create({
   },
   coverDateConfirmButton: {
     flex: 1,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

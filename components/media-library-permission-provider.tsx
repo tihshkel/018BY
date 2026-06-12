@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -181,7 +182,7 @@ export function MediaLibraryPermissionProvider({ children }: { children: React.R
         <Animated.View style={[styles.overlay, overlayStyle]}>
           <Animated.View style={[styles.card, cardStyle]}>
             <View style={styles.iconCircle}>
-              <Ionicons name={content.icon} size={30} color="#C9A89A" />
+              <Ionicons name={content.icon} size={30} color={colors.primary} />
             </View>
             <Text style={styles.title}>{content.title}</Text>
             <Text style={styles.text}>{content.text}</Text>
@@ -234,8 +235,8 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 22,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.18,
     shadowRadius: 24,
@@ -246,29 +247,24 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
   },
   title: {
     fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 10,
   },
   text: {
     fontSize: 14.5,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -292,8 +288,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   buttonPrimary: {
-    backgroundColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
+    backgroundColor: colors.primary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -302,7 +298,7 @@ const styles = StyleSheet.create({
   buttonSecondary: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   buttonPrimaryText: {
     color: '#FFFFFF',
@@ -315,7 +311,7 @@ const styles = StyleSheet.create({
     }),
   },
   buttonSecondaryText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontSize: 15,
     fontWeight: '600',
     fontFamily: Platform.select({

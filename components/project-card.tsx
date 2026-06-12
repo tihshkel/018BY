@@ -1,3 +1,4 @@
+import { colors, createShadow, radii } from '@/constants/design-tokens';
 import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
 import { getProjectCategoryLabel, type UserProject } from '@/utils/userProjects';
 import { Ionicons } from '@expo/vector-icons';
@@ -58,7 +59,7 @@ export function ProjectCard({
             placeholderContentFit="contain"
           />
         ) : (
-          <Ionicons name="book" size={40} color="#C9A89A" />
+          <Ionicons name="book" size={40} color={colors.primary} />
         )}
       </View>
       <Text
@@ -86,17 +87,13 @@ export function ProjectCard({
 
 const styles = StyleSheet.create({
   projectCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    backgroundColor: colors.background,
+    borderRadius: radii.lg,
     padding: 24,
     marginRight: 16,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
+    ...createShadow('md'),
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   projectCardGrid: {
     marginRight: 0,
@@ -111,19 +108,15 @@ const styles = StyleSheet.create({
   cardImage: {
     width: '100%',
     height: 200,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
+    backgroundColor: colors.primarySurface,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: colors.border,
+    ...createShadow('sm'),
   },
   cardImageGrid: {
     height: 128,
@@ -135,14 +128,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
     }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    fontWeight: '700',
     marginBottom: 4,
   },
   cardTitleGrid: {
@@ -152,7 +144,7 @@ const styles = StyleSheet.create({
   },
   cardCategory: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -173,11 +165,11 @@ const styles = StyleSheet.create({
   cardStats: {
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   cardStatText: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',

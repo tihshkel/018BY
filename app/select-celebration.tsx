@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory } from '@/albums';
 import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
@@ -5,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Dimensions,
@@ -41,8 +42,8 @@ const celebrations: Celebration[] = [
     title: 'Беременность',
     description: 'Дневник ожидания малыша',
     icon: 'heart-outline',
-    color: '#FF6B9D',
-    gradient: ['#FF6B9D', '#FF8E9B'],
+    color: colors.primary,
+    gradient: [colors.primary, colors.primaryLight],
     image: require('@/assets/images/albums/DB1_0.png'),
   },
   {
@@ -188,7 +189,7 @@ export default function SelectCelebrationScreen() {
           await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
-          router.push(`/edit-album?id=${projectId}`);
+          router.push(`/album-pages?id=${projectId}` as Href);
         } else {
           // Если нет PDF, переходим к выбору обложки
           router.push({
@@ -212,7 +213,7 @@ export default function SelectCelebrationScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
+        colors={[colors.border, colors.background, colors.border]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -311,7 +312,7 @@ export default function SelectCelebrationScreen() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={selectedCelebrationData?.gradient || ['#C9A89A', '#8B6F5F']}
+                colors={selectedCelebrationData?.gradient || [colors.primary, colors.textPrimary]}
                 style={styles.continueButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -344,20 +345,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -378,7 +374,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -403,7 +399,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   cardImage: {
     width: '100%',
@@ -415,14 +411,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   cardTitleSelected: {
@@ -430,7 +421,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -457,7 +448,7 @@ const styles = StyleSheet.create({
   continueButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 12,

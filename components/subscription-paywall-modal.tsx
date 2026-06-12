@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
@@ -77,7 +78,7 @@ export function SubscriptionPaywallModal({
               accessibilityRole="button"
               accessibilityLabel="Закрыть"
             >
-              <Ionicons name="close" size={22} color="#8B6F5F" />
+              <Ionicons name="close" size={22} color={colors.textPrimary} />
             </Pressable>
           </View>
 
@@ -118,7 +119,7 @@ export function SubscriptionPaywallModal({
             accessibilityLabel="Восстановить покупки"
           >
             {busy === 'restore' ? (
-              <ActivityIndicator color="#8B6F5F" />
+              <ActivityIndicator color={colors.textPrimary} />
             ) : (
               <Text style={styles.restoreButtonText}>Восстановить покупки</Text>
             )}
@@ -148,7 +149,7 @@ export function SubscriptionPaywallModal({
 function BenefitRow({ text }: { text: string }) {
   return (
     <View style={styles.benefitRow}>
-      <Ionicons name="checkmark-circle" size={18} color="#C9A89A" />
+      <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
       <Text style={styles.benefitText}>{text}</Text>
     </View>
   );
@@ -173,8 +174,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -203,14 +204,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 32,
   },
   closeButton: {
@@ -222,7 +218,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -236,7 +232,7 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   benefitRow: {
     flexDirection: 'row',
@@ -263,7 +259,7 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -273,7 +269,7 @@ const styles = StyleSheet.create({
   },
   priceHint: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -283,12 +279,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryButton: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -316,7 +312,7 @@ const styles = StyleSheet.create({
   restoreButtonText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

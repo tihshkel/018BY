@@ -1,0 +1,28 @@
+{
+  "kids_48": {
+    "5": {
+      "pageType": "photo",
+      "canDuplicate": true,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [0]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [0, 1]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 
 interface WebPdfViewerProps {
@@ -43,7 +44,7 @@ export default function WebPdfViewer({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="document-text" size={32} color="#8B6F5F" />
+        <Ionicons name="document-text" size={32} color={colors.textPrimary} />
         <Text style={styles.title}>PDF Просмотр</Text>
       </View>
       
@@ -88,17 +89,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderBottomWidth: 2,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginLeft: 12,
-    fontFamily: 'Georgia',
-    fontStyle: 'italic',
+    fontFamily: sansFont('bold'),
+    
   },
   content: {
     flex: 1,
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   pdfContainer: {
     flex: 1,
@@ -130,12 +131,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     marginTop: 16,
   },
   infoText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     textAlign: 'center',
     fontWeight: '500',
   },

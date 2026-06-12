@@ -2,6 +2,7 @@ import {
   applyRecoverySessionFromUrl,
   updatePasswordAfterRecovery,
 } from '@/utils/auth-session';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
@@ -30,8 +31,8 @@ const shellBase = {
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
   borderWidth: 1,
-  borderColor: '#E8E0D8',
-  shadowColor: '#8B6F5F',
+  borderColor: colors.border,
+  shadowColor: colors.textPrimary,
   shadowOffset: { width: 0, height: 3 },
   shadowOpacity: 0.08,
   shadowRadius: 12,
@@ -155,7 +156,7 @@ export default function ResetPasswordScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.loadingWrap}>
-          <ActivityIndicator size="large" color="#C9A89A" />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Проверяем ссылку…</Text>
         </View>
       </SafeAreaView>
@@ -173,10 +174,10 @@ export default function ResetPasswordScreen() {
               style={styles.backBtn}
               accessibilityLabel="Ко входу"
             >
-              <Ionicons name="chevron-back" size={28} color="#8B6F5F" />
+              <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
             </Pressable>
           </View>
-          <Ionicons name="mail-unread-outline" size={48} color="#C9A89A" style={{ marginBottom: 16 }} />
+          <Ionicons name="mail-unread-outline" size={48} color={colors.primary} style={{ marginBottom: 16 }} />
           <Text style={styles.blockedTitle}>Новый пароль</Text>
           <Text style={styles.blockedBody}>{blockedMessage}</Text>
           <TouchableOpacity
@@ -206,7 +207,7 @@ export default function ResetPasswordScreen() {
                 style={styles.backBtn}
                 accessibilityLabel="Ко входу"
               >
-                <Ionicons name="chevron-back" size={28} color="#8B6F5F" />
+                <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
               </Pressable>
             </View>
 
@@ -220,7 +221,7 @@ export default function ResetPasswordScreen() {
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Новый пароль"
-                  placeholderTextColor="#B9A99A"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   secureTextEntry={!showPassword}
@@ -238,7 +239,7 @@ export default function ResetPasswordScreen() {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={22}
-                    color="#9B8E7F"
+                    color={colors.textSecondary}
                   />
                 </Pressable>
               </View>
@@ -249,7 +250,7 @@ export default function ResetPasswordScreen() {
                   value={passwordConfirm}
                   onChangeText={setPasswordConfirm}
                   placeholder="Повторите пароль"
-                  placeholderTextColor="#B9A99A"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   secureTextEntry={!showPasswordConfirm}
@@ -267,7 +268,7 @@ export default function ResetPasswordScreen() {
                   <Ionicons
                     name={showPasswordConfirm ? 'eye-off-outline' : 'eye-outline'}
                     size={22}
-                    color="#9B8E7F"
+                    color={colors.textSecondary}
                   />
                 </Pressable>
               </View>
@@ -299,7 +300,7 @@ export default function ResetPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF8F5' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   loadingWrap: {
     flex: 1,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#7D6F62',
+    color: colors.textSecondary,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
   },
   inner: {
@@ -336,10 +337,10 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 36,
     lineHeight: 42,
-    color: '#8B6F5F',
-    fontStyle: 'italic',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontWeight: '400',
+    color: colors.textPrimary,
+    
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     letterSpacing: 0.3,
     marginBottom: 14,
     textAlign: 'center',
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 15,
     lineHeight: 22,
-    color: '#7D6F62',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
   },
   inputInShell: {
     fontSize: 17,
-    color: '#5C4F44',
+    color: colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     paddingHorizontal: 0,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
   error: {
     marginTop: 14,
     fontSize: 14,
-    color: '#C45C52',
+    color: colors.error,
     lineHeight: 20,
     textAlign: 'center',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -409,12 +410,12 @@ const styles = StyleSheet.create({
   },
   primary: {
     marginTop: 22,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     width: '100%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -430,16 +431,16 @@ const styles = StyleSheet.create({
   },
   blockedTitle: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontStyle: 'italic',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    
     marginBottom: 12,
     textAlign: 'center',
   },
   blockedBody: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#5C4F44',
+    color: colors.textPrimary,
     textAlign: 'center',
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     marginBottom: 28,
@@ -450,12 +451,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     backgroundColor: '#FFFFFF',
   },
   secondaryLabel: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),
   },

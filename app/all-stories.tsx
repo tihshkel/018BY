@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { ProjectCard } from '@/components/project-card';
 import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import {
@@ -17,7 +18,7 @@ const ALL_STORIES_GRID_COLUMNS = 2;
 const ALL_STORIES_GRID_GAP = 12;
 const PHONE_HORIZONTAL_PAD = 20;
 import * as Haptics from 'expo-haptics';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
@@ -69,7 +70,7 @@ export default function AllStoriesScreen() {
 
   const openProject = (project: UserProject) => {
     if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      router.push(`/edit-album?id=${project.id}`);
+      router.push(`/album-pages?id=${project.id}` as Href);
     } else {
       router.push(`/edit-project?id=${project.id}`);
     }
@@ -156,7 +157,7 @@ export default function AllStoriesScreen() {
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={28} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.title}>Все истории</Text>
           <Text style={styles.subtitle}>
@@ -168,7 +169,7 @@ export default function AllStoriesScreen() {
 
         {projects.length === 0 ? (
           <View style={[styles.empty, sectionWrap]}>
-            <Ionicons name="book-outline" size={56} color="#D4C4B5" />
+            <Ionicons name="book-outline" size={56} color={colors.tabInactive} />
             <Text style={styles.emptyText}>Создайте альбом в разделе «Мои истории»</Text>
             <TouchableOpacity
               style={styles.emptyButton}
@@ -275,7 +276,7 @@ export default function AllStoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -291,18 +292,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
   },
   gridList: {
     flex: 1,
@@ -329,12 +326,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   emptyButton: {
     marginTop: 8,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
@@ -360,14 +357,14 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -384,10 +381,10 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   editButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   deleteButton: {
-    backgroundColor: '#C45C5C',
+    backgroundColor: colors.error,
   },
   actionButtonText: {
     color: '#FFFFFF',
@@ -400,6 +397,6 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
   },
 });

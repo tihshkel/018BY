@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { Annotation } from '@/components/pdf-annotations';
 import { SubscriptionPaywallModal } from '@/components/subscription-paywall-modal';
@@ -13,6 +14,7 @@ import {
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
+import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
@@ -662,11 +664,8 @@ export default function ExportPdfScreen() {
             }
           }
 
-          // Загружаем аннотации
-          const annotationsData = await AsyncStorage.getItem(`@project_annotations_${projectId}`);
-          if (annotationsData) {
-            annotations = JSON.parse(annotationsData);
-          }
+          // Загружаем аннотации (синхронизируем из form-based page values)
+          annotations = await ensureProjectAnnotationsSynced(projectId);
         }
       }
 
@@ -2621,7 +2620,7 @@ export default function ExportPdfScreen() {
           <View style={styles.exportOverlay} pointerEvents="auto">
             <View style={styles.exportOverlayCard}>
               <Animated.View style={loadingAnimatedStyle}>
-                <Ionicons name="refresh" size={28} color="#C9A89A" />
+                <Ionicons name="refresh" size={28} color={colors.primary} />
               </Animated.View>
               <Text style={styles.exportOverlayTitle}>Создание PDF…</Text>
               <Text style={styles.exportOverlaySubtitle}>
@@ -2658,7 +2657,7 @@ export default function ExportPdfScreen() {
             accessibilityRole="button"
             accessibilityLabel="На главный экран"
           >
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.title}>Получить книгу</Text>
@@ -2718,7 +2717,7 @@ export default function ExportPdfScreen() {
                         <Ionicons
                           name={formatIconName}
                           size={24}
-                          color={isSelected ? '#FFFFFF' : '#8B6F5F'}
+                          color={isSelected ? '#FFFFFF' : colors.textPrimary}
                         />
                       </View>
 
@@ -2743,7 +2742,7 @@ export default function ExportPdfScreen() {
                               <Ionicons
                                 name="star"
                                 size={11}
-                                color={isSelected ? '#FFFFFF' : '#9A7B0A'}
+                                color={isSelected ? colors.white : colors.primaryPressed}
                               />
                               <Text
                                 style={[
@@ -2782,7 +2781,7 @@ export default function ExportPdfScreen() {
                             <Ionicons
                               name="lock-closed"
                               size={14}
-                              color={isSelected ? '#FFFFFF' : '#9A7B0A'}
+                              color={isSelected ? colors.white : colors.primaryPressed}
                             />
                             <Text
                               style={[
@@ -2799,9 +2798,9 @@ export default function ExportPdfScreen() {
                       </View>
 
                       {isSelected ? (
-                        <Ionicons name="checkmark-circle" size={26} color="#FFFFFF" />
+                        <Ionicons name="checkmark-circle" size={26} color={colors.white} />
                       ) : isPremiumLocked ? (
-                        <Ionicons name="chevron-forward" size={22} color="#9A7B0A" />
+                        <Ionicons name="chevron-forward" size={22} color={colors.primaryPressed} />
                       ) : null}
                     </View>
                   </TouchableOpacity>
@@ -2859,7 +2858,7 @@ export default function ExportPdfScreen() {
               {/* Превью готового PDF */}
               <View style={styles.previewContainer}>
                 <View style={styles.previewIcon}>
-                  <Ionicons name="document-text" size={64} color="#C9A89A" />
+                  <Ionicons name="document-text" size={64} color={colors.primary} />
                 </View>
                 <Text style={styles.previewTitle}>PDF готов!</Text>
                 <Text style={styles.previewSubtitle}>
@@ -2980,7 +2979,7 @@ export default function ExportPdfScreen() {
                         {interiorDownloaded ? (
                           <Ionicons name="checkmark" size={20} color="#FFFFFF" />
                         ) : (
-                          <Ionicons name="book" size={20} color="#8B6F5F" />
+                          <Ionicons name="book" size={20} color={colors.textPrimary} />
                         )}
                       </View>
                       <View style={styles.downloadStepInfo}>
@@ -3020,7 +3019,7 @@ export default function ExportPdfScreen() {
 
               {/* Подсказка */}
               <View style={styles.hintContainer}>
-                <Ionicons name="information-circle-outline" size={20} color="#9B8E7F" />
+                <Ionicons name="information-circle-outline" size={20} color={colors.textSecondary} />
                 <Text style={styles.hintText}>
                   Этот файл готов к печати в любом салоне. Просто передайте его оператору
                 </Text>
@@ -3045,7 +3044,7 @@ export default function ExportPdfScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -3069,19 +3068,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3101,13 +3095,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
   },
   formatCardSelected: {
+    shadowColor: colors.primary,
     shadowOpacity: 0.18,
     shadowRadius: 16,
     elevation: 6,
@@ -3117,24 +3112,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     padding: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     borderRadius: 20,
   },
   formatCardBodySelected: {
-    backgroundColor: '#8B6F5F',
-    borderColor: '#8B6F5F',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   formatCardBodyLocked: {
-    borderColor: 'rgba(212, 175, 55, 0.55)',
-    backgroundColor: '#FFFDF8',
+    borderColor: 'rgba(241, 148, 162, 0.45)',
+    backgroundColor: colors.primarySurface,
   },
   formatIconWrap: {
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -3142,7 +3137,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   formatIconWrapLocked: {
-    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    backgroundColor: 'rgba(241, 148, 162, 0.14)',
   },
   formatTextBlock: {
     flex: 1,
@@ -3162,9 +3157,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(212, 175, 55, 0.18)',
+    backgroundColor: 'rgba(241, 148, 162, 0.16)',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.45)',
+    borderColor: 'rgba(241, 148, 162, 0.4)',
   },
   formatPremiumBadgeSelected: {
     backgroundColor: 'rgba(255, 255, 255, 0.18)',
@@ -3173,7 +3168,7 @@ const styles = StyleSheet.create({
   formatPremiumBadgeText: {
     fontSize: 11,
     lineHeight: 14,
-    color: '#9A7B0A',
+    color: colors.primaryPressed,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -3190,14 +3185,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 17,
     lineHeight: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   formatNameSelected: {
     color: '#FFFFFF',
@@ -3205,7 +3195,7 @@ const styles = StyleSheet.create({
   formatDescription: {
     fontSize: 14,
     lineHeight: 19,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3220,7 +3210,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: 12,
     lineHeight: 16,
-    color: '#B5A89A',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -3240,9 +3230,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 10,
-    backgroundColor: 'rgba(212, 175, 55, 0.14)',
+    backgroundColor: 'rgba(241, 148, 162, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderColor: 'rgba(241, 148, 162, 0.35)',
   },
   formatPurchaseChipSelected: {
     backgroundColor: 'rgba(255, 255, 255, 0.16)',
@@ -3251,7 +3241,7 @@ const styles = StyleSheet.create({
   formatPurchaseChipText: {
     fontSize: 13,
     lineHeight: 17,
-    color: '#7A6510',
+    color: colors.primaryPressed,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -3263,7 +3253,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   createButton: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -3272,7 +3262,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginTop: 16,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -3312,7 +3302,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 9999,
     elevation: 50,
-    backgroundColor: 'rgba(250, 248, 245, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -3320,15 +3310,15 @@ const styles = StyleSheet.create({
   exportOverlayCard: {
     width: '100%',
     maxWidth: 320,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#E8D5C7',
+    borderColor: colors.border,
     paddingVertical: 18,
     paddingHorizontal: 20,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 18,
@@ -3337,12 +3327,12 @@ const styles = StyleSheet.create({
   exportOverlayTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   exportOverlaySubtitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#9B8E7F',
+    color: colors.textSecondary,
   },
   createButtonText: {
     color: '#FFFFFF',
@@ -3363,19 +3353,14 @@ const styles = StyleSheet.create({
   },
   previewTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
   },
   previewSubtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3401,7 +3386,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -3409,7 +3394,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -3425,12 +3410,12 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   hintText: {
     flex: 1,
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3445,19 +3430,14 @@ const styles = StyleSheet.create({
   },
   downloadStepsTitle: {
     fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
   },
   downloadStepsSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3473,8 +3453,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -3489,17 +3469,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0E8E0',
+    backgroundColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   downloadStepNumberCompleted: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
   },
   downloadStepNumberText: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -3512,7 +3492,7 @@ const styles = StyleSheet.create({
   },
   downloadStepTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -3523,7 +3503,7 @@ const styles = StyleSheet.create({
   },
   downloadStepDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -3536,19 +3516,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 20,
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 3,
   },
   downloadStepButtonDisabled: {
-    backgroundColor: '#D4C4B5',
+    backgroundColor: colors.tabInactive,
     opacity: 0.6,
   },
   downloadStepButtonText: {

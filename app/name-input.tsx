@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
@@ -181,7 +182,7 @@ export default function NameInputScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
+        colors={[colors.border, colors.background, colors.border]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -270,7 +271,7 @@ export default function NameInputScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
+    backgroundColor: colors.border, // Фон на случай, если градиент не покрывает весь экран
   },
   content: {
     flex: 1,
@@ -290,20 +291,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -322,18 +318,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 60,
     borderWidth: 2,
-    borderColor: '#D4C4B5',
+    borderColor: colors.tabInactive,
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     fontSize: 19,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -350,9 +346,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   continueButtonActive: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     opacity: 1,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -389,14 +385,9 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 40,
     paddingTop: Platform.OS === 'ios' ? 8 : 4,
     ...(Platform.OS === 'android' && {
@@ -407,7 +398,7 @@ const styles = StyleSheet.create({
   },
   greetingName: {
     fontSize: 40,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

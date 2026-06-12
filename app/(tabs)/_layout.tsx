@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomTabButton } from '@/components/custom-tab-button';
+import { colors } from '@/constants/design-tokens';
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
 
 export default function TabLayout() {
@@ -22,9 +23,9 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: CustomTabButton,
-        contentStyle: { backgroundColor: '#FAF8F5' },
+        contentStyle: { backgroundColor: colors.background },
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.background,
           borderTopWidth: 0,
           height: Platform.OS === 'ios' ? 90 : 72,
           paddingBottom: Platform.OS === 'ios' ? 32 : 12,
@@ -37,8 +38,8 @@ export default function TabLayout() {
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
         },
-        tabBarActiveTintColor: '#C9A89A',
-        tabBarInactiveTintColor: '#D4C4B5',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: Platform.select({

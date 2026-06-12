@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState } from 'react';
 import {
   View,
@@ -95,7 +96,7 @@ export default function PdfEditorTools({
             <Ionicons 
               name={isEditing ? "checkmark-circle" : "create-outline"} 
               size={22} 
-              color={isEditing ? "#FFFFFF" : "#C9A89A"} 
+              color={isEditing ? "#FFFFFF" : colors.primary} 
             />
           </View>
           <Text style={[styles.toolText, isEditing && styles.toolTextActive]}>
@@ -116,7 +117,7 @@ export default function PdfEditorTools({
                 <Ionicons 
                   name="text-outline" 
                   size={22} 
-                  color={currentTool === 'text' ? "#C9A89A" : "#8B6F5F"} 
+                  color={currentTool === 'text' ? colors.primary : colors.textPrimary} 
                 />
               </View>
               <Text style={[styles.toolText, currentTool === 'text' && styles.toolTextSelected]}>
@@ -135,7 +136,7 @@ export default function PdfEditorTools({
                 <Ionicons 
                   name="image-outline" 
                   size={22} 
-                  color={currentTool === 'image' ? "#C9A89A" : "#8B6F5F"} 
+                  color={currentTool === 'image' ? colors.primary : colors.textPrimary} 
                 />
               </View>
               <Text style={[styles.toolText, currentTool === 'image' && styles.toolTextSelected]}>
@@ -154,7 +155,7 @@ export default function PdfEditorTools({
                 <Ionicons 
                   name="brush-outline" 
                   size={22} 
-                  color={currentTool === 'drawing' ? "#C9A89A" : "#8B6F5F"} 
+                  color={currentTool === 'drawing' ? colors.primary : colors.textPrimary} 
                 />
               </View>
               <Text style={[styles.toolText, currentTool === 'drawing' && styles.toolTextSelected]}>
@@ -177,7 +178,7 @@ export default function PdfEditorTools({
           >
             <View style={[styles.colorPreview, { backgroundColor: selectedColor }]} />
             <Text style={styles.settingText}>Цвет</Text>
-            <Ionicons name="chevron-forward" size={16} color="#9B8E7F" />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -187,9 +188,9 @@ export default function PdfEditorTools({
             accessibilityRole="button"
             accessibilityLabel="Выбрать размер шрифта"
           >
-            <Ionicons name="text" size={18} color="#8B6F5F" />
+            <Ionicons name="text" size={18} color={colors.textPrimary} />
             <Text style={styles.settingText}>{selectedFontSize}px</Text>
-            <Ionicons name="chevron-forward" size={16} color="#9B8E7F" />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       )}
@@ -215,7 +216,7 @@ export default function PdfEditorTools({
             accessibilityRole="button"
             accessibilityLabel="Экспортировать PDF"
           >
-            <Ionicons name="download-outline" size={20} color="#C9A89A" />
+            <Ionicons name="download-outline" size={20} color={colors.primary} />
             <Text style={styles.actionTextSecondary}>Экспорт</Text>
           </TouchableOpacity>
         </View>
@@ -297,10 +298,10 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F5F0EB',
+    borderTopColor: colors.border,
     paddingVertical: 20,
     paddingHorizontal: 20,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -320,27 +321,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     minHeight: 52,
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 2,
   },
   toolButtonActive: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   toolButtonSelected: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderWidth: 2,
   },
   toolIconWrapper: {
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
   },
   toolText: {
     fontSize: 13,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   toolTextSelected: {
-    color: '#C9A89A',
+    color: colors.primary,
     fontWeight: '600',
   },
   settingsRow: {
@@ -379,12 +380,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     gap: 10,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
@@ -396,7 +397,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#E8D5C7',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
   settingText: {
     flex: 1,
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -426,10 +427,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
   actionButtonSecondary: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
   },
   actionText: {
     fontSize: 15,
@@ -451,7 +452,7 @@ const styles = StyleSheet.create({
     }),
   },
   actionTextSecondary: {
-    color: '#C9A89A',
+    color: colors.primary,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -468,8 +469,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 340,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -477,16 +478,11 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    fontWeight: '600',
-    color: '#8B6F5F',
+    fontWeight: '700',
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: 24,
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
+    fontFamily: sansFont('bold'),
   },
   colorGrid: {
     flexDirection: 'row',
@@ -501,14 +497,14 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     borderWidth: 3,
     borderColor: 'transparent',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 2,
   },
   colorOptionSelected: {
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderWidth: 4,
     shadowOpacity: 0.25,
     shadowRadius: 8,
@@ -523,22 +519,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 14,
     marginBottom: 8,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
   },
   fontSizeOptionSelected: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderWidth: 2,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   fontSizeText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     textAlign: 'center',
     fontFamily: Platform.select({
@@ -548,12 +544,12 @@ const styles = StyleSheet.create({
     }),
   },
   modalButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,

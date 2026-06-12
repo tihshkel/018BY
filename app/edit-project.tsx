@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { ensureSyncReady, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
@@ -336,7 +337,7 @@ export default function EditProjectScreen() {
                     <Ionicons
                       name={section.expanded ? 'chevron-down' : 'chevron-forward'}
                       size={16}
-                      color="#8B6F5F"
+                      color={colors.textPrimary}
                     />
                   </TouchableOpacity>
                   <Text
@@ -355,7 +356,7 @@ export default function EditProjectScreen() {
                     <Ionicons
                       name={section.visible ? 'eye' : 'eye-off'}
                       size={18}
-                      color={section.visible ? '#9B8E7F' : '#D4C4B5'}
+                      color={section.visible ? colors.textSecondary : colors.tabInactive}
                     />
                   </TouchableOpacity>
                 </TouchableOpacity>
@@ -386,7 +387,7 @@ export default function EditProjectScreen() {
             onPress={handleAddPage}
             activeOpacity={0.7}
           >
-            <Ionicons name="add-circle" size={24} color="#C9A89A" />
+            <Ionicons name="add-circle" size={24} color={colors.primary} />
             <Text style={styles.addPageText}>Добавить страницу</Text>
           </TouchableOpacity>
         </View>
@@ -488,7 +489,7 @@ export default function EditProjectScreen() {
             {/* Пустая страница */}
             {selectedPage && selectedPage.blocks.length === 0 && (
               <View style={styles.emptyPage}>
-                <Ionicons name="image-outline" size={48} color="#D4C4B5" />
+                <Ionicons name="image-outline" size={48} color={colors.tabInactive} />
                 <Text style={styles.emptyPageText}>
                   Нажмите на кнопки ниже, чтобы добавить контент
                 </Text>
@@ -503,7 +504,7 @@ export default function EditProjectScreen() {
                 </Text>
                 {tutorialArrow && (
                   <Animated.View style={[styles.tutorialArrow, arrowAnimatedStyle]}>
-                    <Ionicons name="arrow-down" size={32} color="#C9A89A" />
+                    <Ionicons name="arrow-down" size={32} color={colors.primary} />
                   </Animated.View>
                 )}
               </View>
@@ -519,7 +520,7 @@ export default function EditProjectScreen() {
           onPress={handleAddPhoto}
           activeOpacity={0.7}
         >
-          <Ionicons name="image-outline" size={24} color="#C9A89A" />
+          <Ionicons name="image-outline" size={24} color={colors.primary} />
           <Text style={styles.actionButtonText}>Фото</Text>
         </TouchableOpacity>
 
@@ -528,7 +529,7 @@ export default function EditProjectScreen() {
           onPress={handleAddText}
           activeOpacity={0.7}
         >
-          <Ionicons name="text-outline" size={24} color="#C9A89A" />
+          <Ionicons name="text-outline" size={24} color={colors.primary} />
           <Text style={styles.actionButtonText}>Текст</Text>
         </TouchableOpacity>
 
@@ -537,7 +538,7 @@ export default function EditProjectScreen() {
           onPress={handleSave}
           activeOpacity={0.7}
         >
-          <Ionicons name="save-outline" size={24} color="#C9A89A" />
+          <Ionicons name="save-outline" size={24} color={colors.primary} />
           <Text style={styles.actionButtonText}>Сохранить</Text>
         </TouchableOpacity>
 
@@ -546,7 +547,7 @@ export default function EditProjectScreen() {
           onPress={handleExport}
           activeOpacity={0.7}
         >
-          <Ionicons name="download-outline" size={24} color="#C9A89A" />
+          <Ionicons name="download-outline" size={24} color={colors.primary} />
           <Text style={styles.actionButtonText}>Экспорт</Text>
         </TouchableOpacity>
 
@@ -555,7 +556,7 @@ export default function EditProjectScreen() {
           onPress={handleReminders}
           activeOpacity={0.7}
         >
-          <Ionicons name="notifications-outline" size={24} color="#C9A89A" />
+          <Ionicons name="notifications-outline" size={24} color={colors.primary} />
           <Text style={styles.actionButtonText}>Напоминания</Text>
         </TouchableOpacity>
       </View>
@@ -566,7 +567,7 @@ export default function EditProjectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   layout: {
     flex: 1,
@@ -576,8 +577,8 @@ const styles = StyleSheet.create({
     width: SIDEBAR_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRightWidth: 1,
-    borderRightColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderRightColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     flex: 1,
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -610,7 +611,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   sectionTitleActive: {
-    color: '#C9A89A',
+    color: colors.primary,
     fontWeight: '600',
   },
   sectionTitleHidden: {
@@ -631,11 +632,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   pageItemActive: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   pageNumber: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -648,12 +649,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
     gap: 8,
   },
   addPageText: {
     fontSize: 14,
-    color: '#C9A89A',
+    color: colors.primary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -694,7 +695,7 @@ const styles = StyleSheet.create({
   },
   textBlock: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -704,10 +705,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     minHeight: 100,
     padding: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   deleteTextButton: {
     position: 'absolute',
@@ -724,7 +725,7 @@ const styles = StyleSheet.create({
   },
   emptyPageText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -742,18 +743,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF9F5',
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.18,
     shadowRadius: 20,
     elevation: 6,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   tutorialText: {
     fontSize: 15,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -770,11 +771,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
     paddingVertical: 14,
     paddingHorizontal: 16,
     justifyContent: 'space-around',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
@@ -790,7 +791,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 11,
-    color: '#C9A89A',
+    color: colors.primary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',

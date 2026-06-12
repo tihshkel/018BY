@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState } from 'react';
 import {
   View,
@@ -76,7 +77,7 @@ export default function SimplePdfScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color="#8B6F5F" />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.title}>PDF Просмотр</Text>
       </View>
@@ -107,15 +108,15 @@ export default function SimplePdfScreen() {
             </Text>
             <View style={styles.pdfStats}>
               <View style={styles.statItem}>
-                <Ionicons name="document-outline" size={16} color="#8B6F5F" />
+                <Ionicons name="document-outline" size={16} color={colors.textPrimary} />
                 <Text style={styles.statText}>60 страниц</Text>
               </View>
               <View style={styles.statItem}>
-                <Ionicons name="images-outline" size={16} color="#8B6F5F" />
+                <Ionicons name="images-outline" size={16} color={colors.textPrimary} />
                 <Text style={styles.statText}>Фото места</Text>
               </View>
               <View style={styles.statItem}>
-                <Ionicons name="create-outline" size={16} color="#8B6F5F" />
+                <Ionicons name="create-outline" size={16} color={colors.textPrimary} />
                 <Text style={styles.statText}>Редактируемый</Text>
               </View>
             </View>
@@ -145,7 +146,7 @@ export default function SimplePdfScreen() {
             onPress={handleViewPdfInfo}
             activeOpacity={0.8}
           >
-            <Ionicons name="information-circle-outline" size={24} color="#8B6F5F" />
+            <Ionicons name="information-circle-outline" size={24} color={colors.textPrimary} />
             <Text style={[styles.actionButtonText, styles.secondaryButtonText]}>
               Информация
             </Text>
@@ -182,7 +183,7 @@ export default function SimplePdfScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   backButton: {
     width: 40,
@@ -204,14 +205,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   content: {
@@ -225,7 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     marginBottom: 24,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -258,20 +254,15 @@ const styles = StyleSheet.create({
   },
   pdfTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
   pdfDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
     lineHeight: 20,
@@ -288,7 +279,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   actionsContainer: {
@@ -303,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -315,7 +306,7 @@ const styles = StyleSheet.create({
   secondaryButton: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   actionButtonText: {
     color: '#FFFFFF',
@@ -328,13 +319,13 @@ const styles = StyleSheet.create({
     }),
   },
   secondaryButtonText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   featuresContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -342,14 +333,9 @@ const styles = StyleSheet.create({
   },
   featuresTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 16,
   },
   featuresList: {
@@ -362,7 +348,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     flex: 1,
     lineHeight: 20,
   },

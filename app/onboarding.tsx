@@ -20,6 +20,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { colors, sansFont } from '@/constants/design-tokens';
 import { useResponsiveLayout, type ResponsiveLayout } from '@/utils/responsive';
 
 const ONBOARDING_KEY = '@has_seen_onboarding';
@@ -123,18 +124,10 @@ function createStyles(layout: ResponsiveLayout) {
       color: '#8B6F5F',
       textAlign: isTablet ? 'center' : 'left',
       marginBottom: 8,
-      fontStyle: 'italic',
-      fontFamily: Platform.select({
-        ios: 'Georgia',
-        android: 'serif',
-        default: 'serif',
-      }),
-      fontWeight: '400',
+      fontFamily: sansFont('bold'),
+      fontWeight: '700',
       letterSpacing: 0.5,
       lineHeight: titleLineHeight,
-      textShadowColor: 'rgba(139, 111, 95, 0.1)',
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
     },
     subtitle: {
       fontSize: subtitleSize,
@@ -175,14 +168,14 @@ function createStyles(layout: ResponsiveLayout) {
       borderRadius: 1,
     },
     button: {
-      backgroundColor: '#C9A89A',
+      backgroundColor: colors.primary,
       paddingVertical: 16,
       paddingHorizontal: 48,
       borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
-      shadowColor: '#8B6F5F',
+      shadowColor: colors.primaryPressed,
       shadowOffset: {
         width: 0,
         height: 4,

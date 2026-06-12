@@ -35,7 +35,10 @@
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
     "extract:missing-last-pages": ".venv/bin/python3 ./scripts/extract-missing-last-pages.py",
-    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js"
+    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
+    "generate:page-schemas": "node ./scripts/generate-page-schemas.js",
+    "extract:album-page-content": "node ./scripts/extract-album-page-content.js",
+    "generate:album-schemas": "npm run extract:album-page-content && npm run generate:page-schemas"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

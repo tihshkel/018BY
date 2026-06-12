@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
@@ -51,7 +52,7 @@ export function TemplateLineKeyboardToolbar({
         accessibilityLabel="Предыдущее поле"
         accessibilityState={{ disabled: !canGoBack }}
       >
-        <Ionicons name="chevron-back" size={18} color={canGoBack ? '#8B6F5F' : '#C9B8AB'} />
+        <Ionicons name="chevron-back" size={18} color={canGoBack ? colors.textPrimary : '#C9B8AB'} />
         <Text style={[styles.buttonText, !canGoBack && styles.buttonTextDisabled]}>Назад</Text>
       </TouchableOpacity>
 
@@ -65,7 +66,7 @@ export function TemplateLineKeyboardToolbar({
         accessibilityState={{ disabled: !canGoNext }}
       >
         <Text style={[styles.buttonText, !canGoNext && styles.buttonTextDisabled]}>Дальше</Text>
-        <Ionicons name="chevron-forward" size={18} color={canGoNext ? '#8B6F5F' : '#C9B8AB'} />
+        <Ionicons name="chevron-forward" size={18} color={canGoNext ? colors.textPrimary : '#C9B8AB'} />
       </TouchableOpacity>
     </View>
   );
@@ -78,12 +79,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: '#E8D5C7',
     ...Platform.select({
       ios: {
-        shadowColor: '#8B6F5F',
+        shadowColor: colors.textPrimary,
         shadowOffset: { width: 0, height: -1 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -109,12 +110,12 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.55,
-    backgroundColor: '#F5F0EB',
+    backgroundColor: colors.border,
   },
   buttonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   buttonTextDisabled: {
     color: '#C9B8AB',

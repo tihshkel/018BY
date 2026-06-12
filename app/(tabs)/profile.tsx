@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
@@ -322,7 +323,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person-outline" size={40} color="#C9A89A" />
+                  <Ionicons name="person-outline" size={40} color={colors.primary} />
                 </View>
               )}
               <View style={styles.avatarEditBadge}>
@@ -354,14 +355,14 @@ export default function ProfileScreen() {
                     <Ionicons
                       name={item.icon as any}
                       size={24}
-                      color={isLogout ? '#C45C5C' : '#C9A89A'}
+                      color={isLogout ? colors.error : colors.primary}
                     />
                   </View>
                   <Text style={[styles.menuText, isLogout && styles.menuTextLogout]}>
                     {item.title}
                   </Text>
                   {!isLogout && (
-                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                    <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
                   )}
                 </TouchableOpacity>
               );
@@ -376,7 +377,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -395,13 +396,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginTop: 24,
     borderRadius: 24,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   avatarContainer: {
     position: 'relative',
@@ -416,11 +417,11 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   avatarEditBadge: {
     position: 'absolute',
@@ -429,22 +430,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#FAF8F5',
+    borderColor: colors.background,
   },
   userName: {
     fontSize: 26,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
     textAlign: 'center',
   },
@@ -460,8 +456,8 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -471,7 +467,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -479,7 +475,7 @@ const styles = StyleSheet.create({
   menuText: {
     flex: 1,
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -496,6 +492,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF5F5',
   },
   menuTextLogout: {
-    color: '#C45C5C',
+    color: colors.error,
   },
 });

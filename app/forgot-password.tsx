@@ -3,6 +3,7 @@ import {
   normalizeEmail,
   requestPasswordResetEmail,
 } from '@/utils/auth-session';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -30,8 +31,8 @@ const shellBase = {
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
   borderWidth: 1,
-  borderColor: '#E8E0D8',
-  shadowColor: '#8B6F5F',
+  borderColor: colors.border,
+  shadowColor: colors.textPrimary,
   shadowOffset: { width: 0, height: 3 },
   shadowOpacity: 0.08,
   shadowRadius: 12,
@@ -100,7 +101,7 @@ export default function ForgotPasswordScreen() {
                 style={styles.backBtn}
                 accessibilityLabel="Назад"
               >
-                <Ionicons name="chevron-back" size={28} color="#8B6F5F" />
+                <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
               </Pressable>
             </View>
 
@@ -122,7 +123,7 @@ export default function ForgotPasswordScreen() {
                   value={email}
                   onChangeText={(t) => setEmail(normalizeEmail(t))}
                   placeholder="Email"
-                  placeholderTextColor="#B9A99A"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="email-address"
@@ -176,7 +177,7 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF8F5' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   inner: {
     flex: 1,
@@ -201,10 +202,10 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 36,
     lineHeight: 42,
-    color: '#8B6F5F',
-    fontStyle: 'italic',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontWeight: '400',
+    color: colors.textPrimary,
+    
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     letterSpacing: 0.3,
     marginBottom: 14,
     textAlign: 'center',
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 15,
     lineHeight: 22,
-    color: '#7D6F62',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 11,
     lineHeight: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     marginBottom: 12,
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
   },
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   },
   inputInShell: {
     fontSize: 17,
-    color: '#5C4F44',
+    color: colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     paddingHorizontal: 0,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
   error: {
     marginTop: 14,
     fontSize: 14,
-    color: '#C45C52',
+    color: colors.error,
     lineHeight: 20,
     textAlign: 'center',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -282,12 +283,12 @@ const styles = StyleSheet.create({
   },
   primary: {
     marginTop: 22,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     width: '100%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: 15,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     textDecorationLine: 'underline',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),

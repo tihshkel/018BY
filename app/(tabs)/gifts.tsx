@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -1218,7 +1219,7 @@ export default function GiftsScreen() {
 
         <View style={styles.searchContainer}>
           <View style={styles.searchWrapper}>
-            <Ionicons name="search-outline" size={18} color="#9B8E7F" />
+            <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
             <TextInput
               style={styles.searchInput}
               placeholder="Поиск по названию или артикулу"
@@ -1240,7 +1241,7 @@ export default function GiftsScreen() {
             <Ionicons 
               name="filter-outline" 
               size={20} 
-              color={(selectedCategory !== null || selectedCoverType !== 'all') ? '#C9A89A' : '#9B8E7F'} 
+              color={(selectedCategory !== null || selectedCoverType !== 'all') ? colors.primary : colors.textSecondary} 
             />
             {(selectedCategory !== null || selectedCoverType !== 'all') && (
               <View style={styles.filterActiveIndicator} />
@@ -1289,7 +1290,7 @@ export default function GiftsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Ionicons name="gift-outline" size={64} color="#D4C4B5" />
+              <Ionicons name="gift-outline" size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateText}>
                 Подходящие подарки не найдены. Попробуйте изменить запрос.
               </Text>
@@ -1313,7 +1314,7 @@ export default function GiftsScreen() {
                 onPress={() => setShowFilterModal(false)}
                 style={styles.modalCloseButton}
               >
-                <Ionicons name="close" size={24} color="#8B6F5F" />
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -1341,7 +1342,7 @@ export default function GiftsScreen() {
                         {category}
                       </Text>
                       {selectedCategory === category && (
-                        <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                        <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                       )}
                     </TouchableOpacity>
                   ))}
@@ -1369,7 +1370,7 @@ export default function GiftsScreen() {
                       Все
                     </Text>
                     {selectedCoverType === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1389,7 +1390,7 @@ export default function GiftsScreen() {
                       Твердая обложка
                     </Text>
                     {selectedCoverType === 'hard' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -1409,7 +1410,7 @@ export default function GiftsScreen() {
                       Мягкая обложка
                     </Text>
                     {selectedCoverType === 'soft' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1477,7 +1478,7 @@ export default function GiftsScreen() {
                     {region.label}
                   </Text>
                   {selectedRegion === region.value && (
-                    <Ionicons name="checkmark-circle" size={24} color="#C9A89A" />
+                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -1492,7 +1493,7 @@ export default function GiftsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -1505,18 +1506,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   titleCount: {
     fontSize: 20,
-    color: '#C9A89A',
+    color: colors.primary,
     fontStyle: 'normal',
   },
   searchContainer: {
@@ -1532,7 +1528,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
@@ -1543,7 +1539,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -1555,7 +1551,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   searchInput: {
     flex: 1,
@@ -1583,15 +1579,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   categoryFilterButtonActive: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   categoryFilterButtonPressed: {
     opacity: 0.8,
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1612,7 +1608,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -1626,18 +1622,13 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   modalCloseButton: {
     width: 32,
@@ -1655,7 +1646,7 @@ const styles = StyleSheet.create({
   },
   filterSectionTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1671,19 +1662,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   filterOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
   },
   filterOptionText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1702,20 +1693,20 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   resetButton: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   resetButtonText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1725,11 +1716,11 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 1,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -1758,9 +1749,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -1770,7 +1761,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coverWrapper: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1789,20 +1780,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 26,
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1818,7 +1804,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     borderRadius: 16,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
   },
   buyButtonPressed: {
@@ -1842,7 +1828,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({
@@ -1864,7 +1850,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 400,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
@@ -1875,19 +1861,14 @@ const styles = StyleSheet.create({
   },
   regionModalTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
   },
   regionModalDescription: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1904,19 +1885,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   regionOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
   },
   regionOptionText: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

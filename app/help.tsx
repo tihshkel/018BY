@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -66,7 +67,7 @@ export default function HelpScreen() {
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.title}>Помощь</Text>
         </View>
@@ -79,7 +80,7 @@ export default function HelpScreen() {
           {helpItems.map((item) => (
             <View key={item.id} style={styles.helpItem}>
               <View style={styles.questionContainer}>
-                <Ionicons name="help-circle" size={24} color="#C9A89A" />
+                <Ionicons name="help-circle" size={24} color={colors.primary} />
                 <Text style={styles.question}>{item.question}</Text>
               </View>
               <Text style={styles.answer}>{item.answer}</Text>
@@ -94,7 +95,7 @@ export default function HelpScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -111,14 +112,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -134,8 +130,8 @@ const styles = StyleSheet.create({
     padding: 22,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -150,7 +146,7 @@ const styles = StyleSheet.create({
   question: {
     flex: 1,
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -160,7 +156,7 @@ const styles = StyleSheet.create({
   },
   answer: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',

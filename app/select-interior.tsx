@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -10,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -139,9 +140,9 @@ export default function SelectInteriorScreen() {
       }
       
       router.push({
-        pathname: '/edit-album',
+        pathname: '/album-pages',
         params,
-      });
+      } as unknown as Href);
     }
   };
 
@@ -160,10 +161,11 @@ export default function SelectInteriorScreen() {
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View style={styles.headerText}>
+
             <Text style={styles.title}>Выберите внутреннюю часть</Text>
             <Text style={styles.subtitle}>
               Выберите вариант оформления страниц
@@ -263,7 +265,7 @@ export default function SelectInteriorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -287,19 +289,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -319,7 +316,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -336,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   cardGradientSelected: {
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
   },
   cardContent: {
     flexDirection: 'row',
@@ -348,7 +345,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     position: 'relative',
   },
   previewImage: {
@@ -370,14 +367,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   cardTitleSelected: {
@@ -385,7 +377,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -404,7 +396,7 @@ const styles = StyleSheet.create({
   continueButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 12,
@@ -417,7 +409,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 32,
     gap: 12,
-    backgroundColor: '#8B6F5F',
+    backgroundColor: colors.primary,
   },
   continueButtonText: {
     color: '#FFFFFF',

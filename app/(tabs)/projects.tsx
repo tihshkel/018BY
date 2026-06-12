@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useCallback, useEffect } from 'react';
 import {
   View,
@@ -70,7 +71,7 @@ export default function ProjectsScreen() {
             <Ionicons
               name={category.icon as keyof typeof Ionicons.glyphMap}
               size={28}
-              color="#C9A89A"
+              color={colors.primary}
             />
           </View>
           <Text
@@ -80,7 +81,7 @@ export default function ProjectsScreen() {
             {category.name}
           </Text>
           {!isGrid && (
-            <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           )}
         </TouchableOpacity>
       );
@@ -144,7 +145,7 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -155,14 +156,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   titleTablet: {
     fontSize: 36,
@@ -187,8 +183,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -206,7 +202,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 18,

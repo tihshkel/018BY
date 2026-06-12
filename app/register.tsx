@@ -5,6 +5,7 @@
   ReferralSource,
   signUpWithEmailPassword,
 } from '@/utils/auth-session';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -28,6 +29,12 @@ import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive'
 
 const REFERRAL_OPTIONS: ReferralSource[] = ['physical_album', 'instagram', 'organic'];
 
+const REFERRAL_OPTION_ICONS: Record<ReferralSource, keyof typeof Ionicons.glyphMap> = {
+  physical_album: 'book-outline',
+  instagram: 'logo-instagram',
+  organic: 'search-outline',
+};
+
 const shellBase = {
   width: '100%' as const,
   maxWidth: AUTH_CONTENT_MAX_WIDTH,
@@ -35,8 +42,8 @@ const shellBase = {
   backgroundColor: '#FFFFFF',
   borderRadius: 14,
   borderWidth: 1,
-  borderColor: '#E8E0D8',
-  shadowColor: '#8B6F5F',
+  borderColor: colors.border,
+  shadowColor: colors.textPrimary,
   shadowOffset: { width: 0, height: 3 },
   shadowOpacity: 0.08,
   shadowRadius: 12,
@@ -53,7 +60,6 @@ export default function RegisterScreen() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-  const [isReferralOpen, setIsReferralOpen] = useState(false);
 
   const opacity = useSharedValue(0);
   const emailRef = useRef<TextInput | null>(null);
@@ -75,9 +81,8 @@ export default function RegisterScreen() {
   const emailCheck: 'empty' | 'invalid' | 'ok' =
     emailTrimmed.length === 0 ? 'empty' : isValidEmail(emailTrimmed) ? 'ok' : 'invalid';
 
-  const dismissKeyboardAndDropdown = () => {
+  const dismissKeyboard = () => {
     Keyboard.dismiss();
-    setIsReferralOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -95,7 +100,6 @@ export default function RegisterScreen() {
       return;
     }
     setErrorText(null);
-    setIsReferralOpen(false);
     setIsSubmitting(true);
     try {
       const res = await signUpWithEmailPassword({ email, password, referralSource });
@@ -132,7 +136,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <TouchableWithoutFeedback onPress={dismissKeyboardAndDropdown} accessible={false}>
+      <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
           <Animated.View style={[styles.wrap, { paddingHorizontal: horizontalPadding }, fadeStyle]}>
             <ScrollView
@@ -140,7 +144,6 @@ export default function RegisterScreen() {
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
               showsVerticalScrollIndicator={false}
-              onScrollBeginDrag={() => setIsReferralOpen(false)}
             >
               <Text style={styles.heroTitle}>Регистрация</Text>
               <Text style={styles.hint}>Почта и пароль — без лишнего.</Text>
@@ -161,7 +164,7 @@ export default function RegisterScreen() {
                       setErrorText(null);
                     }}
                     placeholder="Email"
-                    placeholderTextColor="#B9A99A"
+                    placeholderTextColor={colors.placeholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                     keyboardType="email-address"
@@ -188,7 +191,7 @@ export default function RegisterScreen() {
                       setErrorText(null);
                     }}
                     placeholder="Пароль"
-                    placeholderTextColor="#B9A99A"
+                    placeholderTextColor={colors.placeholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                     secureTextEntry={!showPassword}
@@ -208,7 +211,7 @@ export default function RegisterScreen() {
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color="#9B8E7F"
+                      color={colors.textSecondary}
                     />
                   </Pressable>
                 </View>
@@ -229,7 +232,7 @@ export default function RegisterScreen() {
                       setErrorText(null);
                     }}
                     placeholder="Повторите пароль"
-                    placeholderTextColor="#B9A99A"
+                    placeholderTextColor={colors.placeholder}
                     autoCapitalize="none"
                     autoCorrect={false}
                     secureTextEntry={!showPasswordConfirm}
@@ -251,7 +254,7 @@ export default function RegisterScreen() {
                     <Ionicons
                       name={showPasswordConfirm ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color="#9B8E7F"
+                      color={colors.textSecondary}
                     />
                   </Pressable>
                 </View>
@@ -263,42 +266,57 @@ export default function RegisterScreen() {
 
                 <Text style={styles.fieldLabel}>Откуда вы о нас узнали</Text>
 
-                <View style={styles.dropdownBlock}>
-                  <Pressable
-                    style={[styles.dropdownHeader, isReferralOpen && styles.dropdownHeaderOpen]}
-                    onPress={() => setIsReferralOpen((v) => !v)}
-                  >
-                    <Text style={styles.dropdownTriggerText}>{getReferralSourceLabel(referralSource)}</Text>
-                    <Ionicons name={isReferralOpen ? 'chevron-up' : 'chevron-down'} size={20} color="#9B8E7F" />
-                  </Pressable>
-                  {isReferralOpen ? (
-                    <View style={styles.dropdownBody}>
-                      {REFERRAL_OPTIONS.map((opt, index) => {
-                        const selected = opt === referralSource;
-                        const showDivider = index < REFERRAL_OPTIONS.length - 1;
-                        return (
-                          <TouchableOpacity
-                            key={opt}
-                            style={[
-                              styles.dropdownRow,
-                              showDivider && styles.dropdownRowDivider,
-                              selected && styles.dropdownRowSelected,
-                            ]}
-                            activeOpacity={0.85}
-                            onPress={() => {
-                              setReferralSource(opt);
-                              setIsReferralOpen(false);
-                            }}
-                          >
-                            <Text style={[styles.dropdownRowText, selected && styles.dropdownRowTextSelected]}>
-                              {getReferralSourceLabel(opt)}
-                            </Text>
-                            {selected ? <Ionicons name="checkmark-circle" size={20} color="#C9A89A" /> : null}
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  ) : null}
+                <View
+                  style={styles.referralGroup}
+                  accessibilityRole="radiogroup"
+                  accessibilityLabel="Откуда вы о нас узнали"
+                >
+                  {REFERRAL_OPTIONS.map((option) => {
+                    const selected = option === referralSource;
+                    return (
+                      <Pressable
+                        key={option}
+                        onPress={() => setReferralSource(option)}
+                        style={({ pressed }) => [
+                          styles.referralOption,
+                          selected && styles.referralOptionSelected,
+                          pressed && !selected && styles.referralOptionPressed,
+                        ]}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected }}
+                        accessibilityLabel={getReferralSourceLabel(option)}
+                      >
+                        <View
+                          style={[
+                            styles.referralOptionIcon,
+                            selected && styles.referralOptionIconSelected,
+                          ]}
+                        >
+                          <Ionicons
+                            name={REFERRAL_OPTION_ICONS[option]}
+                            size={20}
+                            color={selected ? colors.primary : colors.textSecondary}
+                          />
+                        </View>
+                        <Text
+                          style={[
+                            styles.referralOptionText,
+                            selected && styles.referralOptionTextSelected,
+                          ]}
+                        >
+                          {getReferralSourceLabel(option)}
+                        </Text>
+                        <View
+                          style={[
+                            styles.referralRadio,
+                            selected && styles.referralRadioSelected,
+                          ]}
+                        >
+                          {selected ? <View style={styles.referralRadioDot} /> : null}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </View>
 
@@ -337,7 +355,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF8F5' },
+  safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   wrap: { flex: 1 },
   scrollContent: {
@@ -352,10 +370,10 @@ const styles = StyleSheet.create({
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 38,
     lineHeight: 44,
-    color: '#8B6F5F',
-    fontStyle: 'italic',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontWeight: '400',
+    color: colors.textPrimary,
+    
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     letterSpacing: 0.3,
     marginTop: 0,
     marginBottom: 8,
@@ -368,7 +386,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
     fontSize: 15,
-    color: '#6B5D4F',
+    color: colors.textSecondary,
     lineHeight: 22,
     opacity: 0.82,
     marginBottom: 24,
@@ -382,9 +400,9 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 13,
-    color: '#9B8B7C',
+    color: colors.textSecondary,
     marginTop: 6,
-    marginBottom: 0,
+    marginBottom: 2,
     marginLeft: 4,
     letterSpacing: 0.2,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -423,7 +441,7 @@ const styles = StyleSheet.create({
   },
   inputInShell: {
     fontSize: 17,
-    color: '#5C4F44',
+    color: colors.textPrimary,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     paddingHorizontal: 0,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -436,60 +454,74 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 4,
   },
-  dropdownBlock: {
-    ...shellBase,
-    marginTop: 6,
-    overflow: 'hidden',
-    padding: 0,
+  referralGroup: {
+    gap: 10,
+    marginTop: 4,
   },
-  dropdownHeader: {
+  referralOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
-  },
-  dropdownHeaderOpen: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(139, 111, 95, 0.18)',
-  },
-  dropdownBody: {
-    backgroundColor: '#FFFFFF',
-  },
-  dropdownTriggerText: {
-    flex: 1,
-    fontSize: 17,
-    color: '#5C4F44',
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
-  },
-  dropdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 14,
     paddingVertical: 14,
-    paddingHorizontal: 16,
+    borderRadius: radii.sm,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    ...createShadow('sm'),
   },
-  dropdownRowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(139, 111, 95, 0.12)',
+  referralOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySurface,
   },
-  dropdownRowSelected: {
-    backgroundColor: '#FAF8F5',
+  referralOptionPressed: {
+    backgroundColor: colors.background,
   },
-  dropdownRowText: {
+  referralOptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+  referralOptionIconSelected: {
+    backgroundColor: 'rgba(241, 148, 162, 0.16)',
+  },
+  referralOptionText: {
     flex: 1,
-    fontSize: 16,
-    color: '#5C4F44',
+    fontSize: 15,
+    lineHeight: 20,
+    color: colors.textPrimary,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
   },
-  dropdownRowTextSelected: {
-    color: '#8B6F5F',
+  referralOptionTextSelected: {
+    fontFamily: sansFont('semibold'),
     fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  referralRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  referralRadioSelected: {
+    borderColor: colors.primary,
+  },
+  referralRadioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary,
   },
   error: {
     marginTop: 14,
     fontSize: 14,
-    color: '#C45C52',
+    color: colors.error,
     lineHeight: 20,
     textAlign: 'center',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
@@ -501,13 +533,13 @@ const styles = StyleSheet.create({
   },
   primary: {
     marginTop: 26,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
     width: '100%',
     maxWidth: AUTH_CONTENT_MAX_WIDTH,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -530,13 +562,13 @@ const styles = StyleSheet.create({
   },
   footerMuted: {
     fontSize: 15,
-    color: '#7D6F62',
+    color: colors.textSecondary,
     opacity: 0.85,
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
   },
   footerLink: {
     fontSize: 15,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     textDecorationLine: 'underline',
     fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),

@@ -1,5 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+
+import { colors } from '@/constants/design-tokens';
 import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
@@ -83,7 +85,7 @@ const styles = StyleSheet.create({
     top: 0,
     width: 40,
     height: 3,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 3,
   },
 });

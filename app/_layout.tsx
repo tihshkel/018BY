@@ -107,6 +107,12 @@ export default function RootLayout() {
               <Stack.Screen name="select-album" />
               <Stack.Screen name="edit-project" />
               <Stack.Screen name="edit-album" />
+              <Stack.Screen name="album-pages" />
+              <Stack.Screen name="album-page-preview" />
+              <Stack.Screen name="album-page-form" />
+              <Stack.Screen name="album-page-photos" />
+              <Stack.Screen name="album-add-page" />
+              <Stack.Screen name="album-template-library" />
               <Stack.Screen name="export-pdf" />
               <Stack.Screen name="help" />
               <Stack.Screen name="reminders-list" />

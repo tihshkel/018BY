@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
@@ -554,23 +555,23 @@ export default function PdfViewer({ pdfPath, albumName, onPageChange, onError }:
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   pdfContainer: {
     flex: 1,
     position: 'relative',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   pdfSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontWeight: '500',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   pdfWrapper: {
     flex: 1,
@@ -579,13 +580,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   pdf: {
     flex: 1,
@@ -622,7 +623,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   pdfInfoBox: {
-    backgroundColor: '#F5F0EB',
+    backgroundColor: colors.border,
     padding: 16,
     borderRadius: 12,
     marginTop: 16,
@@ -661,11 +662,11 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   errorText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 24,
@@ -680,12 +681,12 @@ const styles = StyleSheet.create({
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: 20,
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -712,17 +713,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderBottomWidth: 2,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   webPdfTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginLeft: 12,
-    fontFamily: 'Georgia',
-    fontStyle: 'italic',
+    fontFamily: sansFont('bold'),
+    
   },
   webPdfContent: {
     flex: 1,
@@ -739,7 +740,7 @@ const styles = StyleSheet.create({
   webPdfPageTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginBottom: 20,
   },
   webPdfPlaceholder: {
@@ -750,14 +751,14 @@ const styles = StyleSheet.create({
   webPdfPlaceholderText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginTop: 16,
     marginBottom: 12,
     textAlign: 'center',
   },
   webPdfDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -768,12 +769,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     marginTop: 16,
   },
   webPdfInfoText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -798,7 +799,7 @@ const styles = StyleSheet.create({
   progressText: {
     marginTop: 8,
     fontSize: 12,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   openButton: {

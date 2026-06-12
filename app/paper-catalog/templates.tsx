@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
@@ -187,7 +188,7 @@ export default function PaperCatalogTemplatesScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyState}>
-          <Ionicons name='alert-circle-outline' size={48} color='#C9A89A' />
+          <Ionicons name='alert-circle-outline' size={48} color={colors.primary} />
           <Text style={styles.emptyStateText}>Не удалось определить категорию</Text>
           <Text style={styles.emptyStateText}>
             Вернитесь к списку и выберите категорию ещё раз.
@@ -214,7 +215,7 @@ export default function PaperCatalogTemplatesScreen() {
             style={styles.headerBackButton}
             accessibilityRole='button'
           >
-            <Ionicons name='chevron-back' size={24} color='#8B6F5F' />
+            <Ionicons name='chevron-back' size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {selectedCategory !== categoryName || selectedCoverType !== 'all'
@@ -231,8 +232,8 @@ export default function PaperCatalogTemplatesScreen() {
               size={24}
               color={
                 selectedCategory !== categoryName || selectedCoverType !== 'all'
-                  ? '#C9A89A'
-                  : '#8B6F5F'
+                  ? colors.primary
+                  : colors.textPrimary
               }
             />
             {(selectedCategory !== categoryName || selectedCoverType !== 'all') && (
@@ -248,7 +249,7 @@ export default function PaperCatalogTemplatesScreen() {
         >
           {categoryItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name='gift-outline' size={64} color='#D4C4B5' />
+              <Ionicons name='gift-outline' size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateText}>
                 Пока нет товаров для этой категории. Попробуйте выбрать
                 другую категорию.
@@ -300,7 +301,7 @@ export default function PaperCatalogTemplatesScreen() {
                 onPress={() => setShowFilterModal(false)}
                 style={styles.modalCloseButton}
               >
-                <Ionicons name="close" size={24} color="#8B6F5F" />
+                <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
@@ -328,7 +329,7 @@ export default function PaperCatalogTemplatesScreen() {
                         {category}
                       </Text>
                       {selectedCategory === category && (
-                        <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                        <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                       )}
                     </TouchableOpacity>
                   ))}
@@ -356,7 +357,7 @@ export default function PaperCatalogTemplatesScreen() {
                       Все
                     </Text>
                     {selectedCoverType === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -376,7 +377,7 @@ export default function PaperCatalogTemplatesScreen() {
                       Твердая обложка
                     </Text>
                     {selectedCoverType === 'hard' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -396,7 +397,7 @@ export default function PaperCatalogTemplatesScreen() {
                       Мягкая обложка
                     </Text>
                     {selectedCoverType === 'soft' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -433,7 +434,7 @@ export default function PaperCatalogTemplatesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -454,14 +455,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -475,7 +471,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -489,9 +485,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -499,7 +495,7 @@ const styles = StyleSheet.create({
   },
   coverWrapper: {
     height: 280,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -518,14 +514,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 24,
   },
   buyButton: {
@@ -534,7 +525,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     borderRadius: 16,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
   },
   buyButtonText: {
@@ -556,7 +547,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({
@@ -568,7 +559,7 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 24,
@@ -599,7 +590,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   modalOverlay: {
     flex: 1,
@@ -611,7 +602,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -625,18 +616,13 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   modalCloseButton: {
     width: 32,
@@ -654,7 +640,7 @@ const styles = StyleSheet.create({
   },
   filterSectionTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -670,19 +656,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   filterOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
   },
   filterOptionText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -701,20 +687,20 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   resetButton: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   resetButtonText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -724,11 +710,11 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 1,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

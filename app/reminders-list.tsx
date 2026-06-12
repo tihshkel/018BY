@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import { projectCategories } from '@/constants/projectTemplates';
 import { getAccountSyncId } from '@/utils/account-identity';
@@ -550,7 +551,7 @@ export default function RemindersListScreen() {
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.title}>Напоминания</Text>
         </View>
@@ -588,12 +589,12 @@ export default function RemindersListScreen() {
               <Text style={styles.catalogButtonTitle}>Купить бумажную версию</Text>
               <Text style={styles.catalogButtonText}>Каталог</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           </TouchableOpacity>
 
           {reminders.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="notifications-off-outline" size={64} color="#D4C4B5" />
+              <Ionicons name="notifications-off-outline" size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateTitle}>Нет напоминаний</Text>
               <Text style={styles.emptyStateText}>
                 Создайте напоминание, выбрав тему из приложения и указав дату
@@ -610,7 +611,7 @@ export default function RemindersListScreen() {
                         <Ionicons
                           name={category?.icon as any || 'notifications-outline'}
                           size={24}
-                          color={reminder.enabled ? '#C9A89A' : '#D4C4B5'}
+                          color={reminder.enabled ? colors.primary : colors.tabInactive}
                         />
                       </View>
                       <View style={styles.reminderInfo}>
@@ -648,8 +649,8 @@ export default function RemindersListScreen() {
                     <Switch
                       value={reminder.enabled}
                       onValueChange={() => handleToggleReminder(reminder.id)}
-                      trackColor={{ false: '#F0E8E0', true: '#E8DAD0' }}
-                      thumbColor={reminder.enabled ? '#C9A89A' : '#D4C4B5'}
+                      trackColor={{ false: colors.border, true: '#E8DAD0' }}
+                      thumbColor={reminder.enabled ? colors.primary : colors.tabInactive}
                     />
                     <TouchableOpacity
                       style={styles.deleteButton}
@@ -684,7 +685,7 @@ export default function RemindersListScreen() {
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>Новое напоминание</Text>
                     <TouchableOpacity onPress={closeAddModal} activeOpacity={0.7}>
-                      <Ionicons name="close" size={24} color="#8B6F5F" />
+                      <Ionicons name="close" size={24} color={colors.textPrimary} />
                     </TouchableOpacity>
                   </View>
 
@@ -712,7 +713,7 @@ export default function RemindersListScreen() {
                         name={category.icon as any}
                         size={24}
                         color={
-                          selectedCategory === category.id ? '#FFFFFF' : '#C9A89A'
+                          selectedCategory === category.id ? '#FFFFFF' : colors.primary
                         }
                       />
                       <Text
@@ -786,7 +787,7 @@ export default function RemindersListScreen() {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="calendar-outline" size={20} color="#C9A89A" />
+                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                   <Text style={styles.dateButtonText}>
                     {selectedDate.toLocaleDateString('ru-RU', {
                       day: 'numeric',
@@ -796,7 +797,7 @@ export default function RemindersListScreen() {
                       minute: '2-digit',
                     })}
                   </Text>
-                  <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
                 </TouchableOpacity>
               </View>
 
@@ -838,7 +839,7 @@ export default function RemindersListScreen() {
                 }}
                 locale="ru-RU"
                 themeVariant="light"
-                textColor="#8B6F5F"
+                textColor={colors.textPrimary}
               />
             ) : null}
             {showDatePicker && Platform.OS === 'android' && androidPickerStep === 'date' ? (
@@ -916,7 +917,7 @@ export default function RemindersListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -933,14 +934,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -952,12 +948,12 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     padding: 18,
     marginBottom: 24,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -990,8 +986,8 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 24,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -1001,7 +997,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -1012,7 +1008,7 @@ const styles = StyleSheet.create({
   },
   catalogButtonTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1023,7 +1019,7 @@ const styles = StyleSheet.create({
   },
   catalogButtonText: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1037,8 +1033,8 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -1056,11 +1052,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   reminderInfo: {
     flex: 1,
@@ -1068,7 +1064,7 @@ const styles = StyleSheet.create({
   },
   reminderCategoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -1078,7 +1074,7 @@ const styles = StyleSheet.create({
   },
   reminderCategoryText: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1088,7 +1084,7 @@ const styles = StyleSheet.create({
   },
   reminderTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1101,7 +1097,7 @@ const styles = StyleSheet.create({
   },
   reminderDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1112,7 +1108,7 @@ const styles = StyleSheet.create({
   },
   reminderDate: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1128,7 +1124,7 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   deleteButton: {
     padding: 8,
@@ -1141,7 +1137,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1153,7 +1149,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1199,21 +1195,16 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   modalSection: {
     marginBottom: 24,
   },
   modalSectionTitle: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1236,16 +1227,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     minWidth: '45%',
   },
   categoryOptionSelected: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   categoryOptionText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1258,14 +1249,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   inputWrapper: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   input: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1281,17 +1272,17 @@ const styles = StyleSheet.create({
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     gap: 12,
   },
   dateButtonText: {
     flex: 1,
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1309,12 +1300,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     alignItems: 'center',
   },
   cancelModalButtonText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1324,18 +1315,18 @@ const styles = StyleSheet.create({
   },
   saveModalButton: {
     flex: 1,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
   },
   saveModalButtonDisabled: {
-    backgroundColor: '#D4C4B5',
+    backgroundColor: colors.tabInactive,
     opacity: 0.6,
   },
   saveModalButtonText: {
@@ -1351,7 +1342,7 @@ const styles = StyleSheet.create({
   iosDatePickerButtons: {
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
     marginTop: 12,
   },
   iosDatePickerButton: {
@@ -1360,7 +1351,7 @@ const styles = StyleSheet.create({
   },
   iosDatePickerButtonText: {
     fontSize: 16,
-    color: '#C9A89A',
+    color: colors.primary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

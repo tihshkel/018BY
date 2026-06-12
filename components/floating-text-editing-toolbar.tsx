@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
@@ -56,7 +57,7 @@ export function FloatingTextEditingToolbar({
         accessibilityRole="button"
         accessibilityLabel="Новая строка"
       >
-        <Ionicons name="return-down-back" size={18} color="#8B6F5F" />
+        <Ionicons name="return-down-back" size={18} color={colors.textPrimary} />
         <Text style={styles.secondaryButtonText}>Новая строка</Text>
       </TouchableOpacity>
 
@@ -95,12 +96,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: '#E8D5C7',
     ...Platform.select({
       ios: {
-        shadowColor: '#8B6F5F',
+        shadowColor: colors.textPrimary,
         shadowOffset: { width: 0, height: -1 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   primaryButton: {
     flexDirection: 'row',
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 20,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     minWidth: 108,
     justifyContent: 'center',
   },

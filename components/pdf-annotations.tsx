@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
 import type { EditorTool } from '@/constants/album-text-margins';
@@ -49,13 +50,13 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // Цвета из темы приложения
 const APP_COLORS = [
   '#000000', // Черный
-  '#8B6F5F', // Основной коричневый
-  '#C9A89A', // Светло-коричневый
-  '#9B8E7F', // Серо-коричневый
-  '#6B5D4F', // Темно-коричневый
+  colors.textPrimary, // Основной коричневый
+  colors.primary, // Светло-коричневый
+  colors.textSecondary, // Серо-коричневый
+  colors.textSecondary, // Темно-коричневый
   '#5B4D3F', // Очень темный коричневый
-  '#D4C4B5', // Светло-бежевый
-  '#F0E8E0', // Светлый бежевый
+  colors.tabInactive, // Светло-бежевый
+  colors.border, // Светлый бежевый
   '#FFFFFF', // Белый
 ];
 
@@ -2856,7 +2857,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     { maxWidth: Math.max(80, imageWidth - 10) } // Ограничиваем ширину размером изображения
                   ]}
                 >
-                  <Ionicons name="move-outline" size={iconSize} color="#8B6F5F" />
+                  <Ionicons name="move-outline" size={iconSize} color={colors.textPrimary} />
                   <Text 
                     style={[styles.dragHint, { fontSize }]}
                     numberOfLines={1}
@@ -3179,7 +3180,7 @@ const styles = StyleSheet.create({
     right: -4,
     bottom: -4,
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderRadius: 4,
     borderStyle: 'dashed',
     pointerEvents: 'none',
@@ -3195,7 +3196,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -3244,7 +3245,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: 0,
     paddingVertical: 8,
@@ -3265,7 +3266,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
@@ -3273,14 +3274,14 @@ const styles = StyleSheet.create({
   },
   floatingTextCardDragging: {
     opacity: 0.92,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
   },
   floatingTextHeader: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
     borderBottomColor: '#F0E6DC',
   },
@@ -3295,7 +3296,7 @@ const styles = StyleSheet.create({
   },
   floatingTextGripBarDragging: {
     width: 48,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   floatingTextInput: {
     borderWidth: 0,
@@ -3318,10 +3319,10 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -3335,14 +3336,14 @@ const styles = StyleSheet.create({
   toolbarButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -3350,7 +3351,7 @@ const styles = StyleSheet.create({
   },
   toolbarButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3367,13 +3368,13 @@ const styles = StyleSheet.create({
   controlButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     padding: 10,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     gap: 6,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -3381,7 +3382,7 @@ const styles = StyleSheet.create({
   },
   controlButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3410,14 +3411,14 @@ const styles = StyleSheet.create({
     left: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     gap: 4,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -3425,14 +3426,9 @@ const styles = StyleSheet.create({
     maxWidth: '100%', // Ограничиваем ширину для обрезки текста
   },
   dragHint: {
-    color: '#8B6F5F',
-    fontWeight: '400',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontFamily: sansFont('bold'),
     // fontSize будет задаваться динамически
   },
   imageContainer: {
@@ -3445,7 +3441,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
   },
   imageControls: {
     position: 'absolute',
@@ -3455,8 +3451,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 6,
     borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.primary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -3511,7 +3507,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     maxHeight: '80%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -3519,14 +3515,9 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -3541,7 +3532,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -3549,7 +3540,7 @@ const styles = StyleSheet.create({
   },
   colorOptionSelected: {
     borderWidth: 4,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 4,
@@ -3564,22 +3555,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     marginBottom: 8,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
   },
   fontSizeOptionSelected: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderWidth: 2,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   fontSizeText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '500',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3588,7 +3579,7 @@ const styles = StyleSheet.create({
     }),
   },
   fontSizeTextSelected: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
   },
   fontList: {
@@ -3600,27 +3591,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     marginBottom: 8,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
   },
   fontOptionSelected: {
     backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderWidth: 2,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   fontOptionText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '400',
   },
   fontOptionTextSelected: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
   },
   zIndexActions: {
@@ -3635,17 +3626,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 16,
     gap: 12,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
   },
   forwardButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   backwardButton: {
-    backgroundColor: '#9B8E7F',
+    backgroundColor: colors.textSecondary,
   },
   zIndexButtonText: {
     color: '#FFFFFF',
@@ -3660,13 +3651,13 @@ const styles = StyleSheet.create({
   modalCancelButton: {
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E8D5C7',
   },
   modalCancelButtonText: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '600',
     fontFamily: Platform.select({

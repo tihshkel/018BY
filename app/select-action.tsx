@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
@@ -9,7 +10,7 @@ import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React from 'react';
 import {
   Linking,
@@ -145,9 +146,9 @@ export default function SelectActionScreen() {
       }
       
       router.push({
-        pathname: '/edit-album',
+        pathname: '/album-pages',
         params,
-      });
+      } as unknown as Href);
     }
   };
 
@@ -231,10 +232,11 @@ export default function SelectActionScreen() {
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View style={styles.headerText}>
+
             <Text style={styles.title}>Что вы хотите сделать?</Text>
             <Text style={styles.subtitle}>
               Выберите дальнейшее действие
@@ -281,7 +283,7 @@ export default function SelectActionScreen() {
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="create-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="create-outline" size={28} color={colors.textPrimary} />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
@@ -290,7 +292,7 @@ export default function SelectActionScreen() {
                     Создайте свой уникальный альбом
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
 
               {/* Переход к бумажной версии */}
@@ -301,7 +303,7 @@ export default function SelectActionScreen() {
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="open-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="open-outline" size={28} color={colors.textPrimary} />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
@@ -310,7 +312,7 @@ export default function SelectActionScreen() {
                     Открыть на Wildberries
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -323,7 +325,7 @@ export default function SelectActionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -347,19 +349,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -380,8 +377,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -396,7 +393,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 18,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   coverImage: {
     width: '100%',
@@ -419,7 +416,7 @@ const styles = StyleSheet.create({
   },
   coverDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -438,8 +435,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -455,7 +452,7 @@ const styles = StyleSheet.create({
   actionImageSolid: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -488,7 +485,7 @@ const styles = StyleSheet.create({
   },
   actionDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -499,7 +496,7 @@ const styles = StyleSheet.create({
   },
   actionDescriptionSolid: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',

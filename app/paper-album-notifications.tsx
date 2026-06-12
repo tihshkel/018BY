@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { scheduleSyncToCloud } from '@/utils/account-sync';
 import { setupAlbumNotificationsForCelebration } from '@/utils/albumNotificationCoordinator';
 import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
@@ -246,7 +247,7 @@ export default function PaperAlbumNotificationsScreen() {
         {/* Заголовок */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.title}>Бумажный альбом</Text>
           <View style={styles.backButton} />
@@ -286,7 +287,7 @@ export default function PaperAlbumNotificationsScreen() {
                   <Ionicons
                     name={type.icon as any}
                     size={28}
-                    color={selectedType === type.id ? '#FFFFFF' : '#C9A89A'}
+                    color={selectedType === type.id ? '#FFFFFF' : colors.primary}
                   />
                 </View>
                 <View style={styles.typeContent}>
@@ -301,7 +302,7 @@ export default function PaperAlbumNotificationsScreen() {
                   <Text style={styles.typeDescription}>{type.description}</Text>
                 </View>
                 {selectedType === type.id && (
-                  <Ionicons name="checkmark-circle" size={24} color="#C9A89A" />
+                  <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -316,7 +317,7 @@ export default function PaperAlbumNotificationsScreen() {
                 onPress={() => setShowDatePicker(true)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
+                <Ionicons name="calendar-outline" size={24} color={colors.primary} />
                 <View style={styles.dateButtonContent}>
                   <Text style={styles.dateButtonText}>
                     {selectedDate.toLocaleDateString('ru-RU', {
@@ -326,7 +327,7 @@ export default function PaperAlbumNotificationsScreen() {
                     })}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
               </TouchableOpacity>
             </View>
           )}
@@ -358,7 +359,7 @@ export default function PaperAlbumNotificationsScreen() {
                   onPress={handleDateConfirm}
                   style={styles.datePickerCloseButton}
                 >
-                  <Ionicons name="close" size={24} color="#8B6F5F" />
+                  <Ionicons name="close" size={24} color={colors.textPrimary} />
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -375,7 +376,7 @@ export default function PaperAlbumNotificationsScreen() {
                 onChange={handleDateChange}
                 style={styles.datePicker}
                 themeVariant="light"
-                textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
+                textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
               />
               {Platform.OS === 'ios' && (
                 <TouchableOpacity
@@ -397,7 +398,7 @@ export default function PaperAlbumNotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -418,14 +419,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'center',
   },
   scrollView: {
@@ -436,7 +432,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 17,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -452,7 +448,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -469,16 +465,16 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
   typeCardSelected: {
-    borderColor: '#C9A89A',
-    backgroundColor: '#FAF8F5',
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
@@ -487,23 +483,23 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   typeIconWrapperSelected: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   typeContent: {
     flex: 1,
   },
   typeName: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -513,11 +509,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   typeNameSelected: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   typeDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -533,8 +529,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -546,7 +542,7 @@ const styles = StyleSheet.create({
   },
   dateButtonText: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -555,12 +551,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 18,
     paddingHorizontal: 24,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -595,7 +591,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 20,
     paddingHorizontal: 20,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 16,
@@ -610,7 +606,7 @@ const styles = StyleSheet.create({
   },
   datePickerTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -628,7 +624,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   datePickerConfirmButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
