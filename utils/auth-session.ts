@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { getSupabase } from '@/lib/supabase';
 import { setAccountSyncId } from '@/utils/account-identity';
 import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
@@ -7,7 +8,11 @@ import { ACCOUNT_SYNC_ID_KEY } from '@/utils/account-identity';
 
 export type ReferralSource = 'physical_album' | 'instagram' | 'organic';
 
+export type OAuthProvider = 'google' | 'apple';
+
 const DEFAULT_USER_NAME = 'Пользователь';
+
+WebBrowser.maybeCompleteAuthSession();
 
 async function clearLocalDataForAccountSwitch(prevSyncId: string | null): Promise<void> {
   try {
@@ -194,6 +199,87 @@ export async function signInWithEmailPassword(params: {
   return { success: true };
 }
 
+/** Redirect URL для OAuth (добавьте в Supabase → Authentication → URL configuration). */
+export function getOAuthRedirectUrl(): string {
+  return Linking.createURL('/');
+}
+
+async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const { query, hash } = splitUrlQueryAndHash(url);
+  const qParams = new URLSearchParams(query);
+  const hParams = new URLSearchParams(hash);
+
+  const code = qParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  const access_token = hParams.get('access_token') ?? qParams.get('access_token');
+  const refresh_token = hParams.get('refresh_token') ?? qParams.get('refresh_token');
+  if (access_token && refresh_token) {
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  const oauthError =
+    qParams.get('error_description') ??
+    hParams.get('error_description') ??
+    qParams.get('error') ??
+    hParams.get('error');
+  if (oauthError) {
+    return { success: false, error: oauthError };
+  }
+
+  return { success: false, error: 'OAUTH_CALLBACK_FAILED' };
+}
+
+export async function signInWithOAuthProvider(
+  provider: OAuthProvider
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const redirectTo = getOAuthRedirectUrl();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    return { success: false, error: error.message || 'OAUTH_START_FAILED' };
+  }
+  if (!data?.url) {
+    return { success: false, error: 'OAUTH_URL_MISSING' };
+  }
+
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  if (result.type === 'cancel' || result.type === 'dismiss') {
+    return { success: false, error: 'OAUTH_CANCELLED' };
+  }
+  if (result.type !== 'success' || !result.url) {
+    return { success: false, error: 'OAUTH_FAILED' };
+  }
+
+  return completeOAuthFromRedirectUrl(result.url);
+}
+
 /** @deprecated Используйте signInWithEmailPassword; поле username = email. */
 export async function signInWithUsernamePassword(params: {
   username: string;
@@ -247,6 +333,11 @@ export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: 
     await AsyncStorage.setItem('@user_name', rawName);
   } else {
     await AsyncStorage.removeItem('@user_name');
+  }
+
+  const avatarFromProfile = account?.avatarUrl?.trim();
+  if (avatarFromProfile) {
+    await AsyncStorage.setItem('@user_avatar', avatarFromProfile);
   }
 
   return { success: true };

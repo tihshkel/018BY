@@ -5,6 +5,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { applyKids48TzManifest } = require('./kids-48-tz-builders');
+const { PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const ALBUM_IDS = [
   'pregnancy_60',
@@ -173,6 +175,12 @@ function loadPageContent(projectRoot) {
     console.warn('Missing album-page-content.json — run npm run extract:album-page-content');
     return {};
   }
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function loadKidsTzManifest(projectRoot) {
+  const file = path.join(projectRoot, 'constants', 'kids-48-tz-manifest.json');
+  if (!fs.existsSync(file)) return {};
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
@@ -356,26 +364,7 @@ function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override
   if (!photoBlocks && (pageType === 'structured' || pageType === 'photo')) {
     photoBlocks = buildPhotoBlocks(slots);
     if (pageType === 'photo' && !photoBlocks) {
-      photoBlocks = [
-        {
-          blockId: 'main_photo',
-          label: 'Фото для страницы',
-          variants: [
-            {
-              variantId: 'one_large',
-              label: 'Одно большое фото',
-              slots: 1,
-              slotIndices: [0],
-            },
-            {
-              variantId: 'two_photos',
-              label: 'Два фото',
-              slots: 2,
-              slotIndices: [0, 1],
-            },
-          ],
-        },
-      ];
+      photoBlocks = [PREGNANCY_PHOTO_BLOCK];
     }
   }
 
@@ -406,6 +395,7 @@ function generateSchemas(projectRoot) {
   const auditReports = loadAuditReports(projectRoot);
   const overrides = loadOverrides(projectRoot);
   const pageContent = loadPageContent(projectRoot);
+  const kidsTzManifest = loadKidsTzManifest(projectRoot);
   const result = {};
 
   for (const lineGuideId of ALBUM_IDS) {
@@ -422,9 +412,21 @@ function generateSchemas(projectRoot) {
       const auditPageType = auditPages[pageKey]?.pageType;
       const pageOverride = albumOverrides[pageKey];
       const content = albumContent[pageKey];
-      pages.push(
-        buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, pageOverride, content)
-      );
+      let schema = buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, pageOverride, content);
+
+      if (lineGuideId === 'kids_48' && kidsTzManifest[pageKey]) {
+        const tzApplied = applyKids48TzManifest(
+          pageNumber,
+          slots,
+          kidsTzManifest[pageKey],
+          lineGuideId
+        );
+        if (tzApplied) {
+          schema = mergeOverride(schema, tzApplied);
+        }
+      }
+
+      pages.push(schema);
     }
 
     result[lineGuideId] = pages;

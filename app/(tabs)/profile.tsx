@@ -1,15 +1,20 @@
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
+import { AvatarPickerSheet } from '@/components/avatar-picker-sheet';
+import { HomeActionRow } from '@/components/home/home-action-row';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
+import { AppCard, AppHeader, AppScreen, AppText } from '@/components/ui';
+import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
+import { resolveAvatarImageSource } from '@/constants/default-avatars';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
-import { getAccountSyncId } from '@/utils/account-identity';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { signOutFromAccount } from '@/utils/auth-session';
-import { saveAccountToSupabase } from '@/utils/supabase-account';
-import { uploadImageToStorage } from '@/utils/supabase-storage';
+import {
+  ensureDefaultAvatar,
+  saveGalleryUserAvatar,
+  savePresetUserAvatar,
+} from '@/utils/user-avatar';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics from 'expo-haptics';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,33 +22,83 @@ import * as Linking from 'expo-linking';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface MenuItem {
   id: string;
   title: string;
-  icon: string;
+  subtitle?: string;
+  icon: keyof typeof Ionicons.glyphMap;
   route?: string;
   action?: () => void;
+  destructive?: boolean;
+  showChevron?: boolean;
 }
 
+const APP_MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'projects',
+    title: 'Мои проекты',
+    subtitle: 'Все альбомы и черновики',
+    icon: 'book-outline',
+    route: '/(tabs)/projects',
+  },
+  {
+    id: 'gifts',
+    title: 'Каталог',
+    subtitle: 'Бумажные альбомы на Wildberries',
+    icon: 'gift-outline',
+    route: '/gifts',
+  },
+  {
+    id: 'export-history',
+    title: 'История экспорта',
+    subtitle: 'PDF для печати',
+    icon: 'document-text-outline',
+    route: '/export-history',
+  },
+  {
+    id: 'reminders',
+    title: 'Напоминания',
+    subtitle: 'События и важные даты',
+    icon: 'notifications-outline',
+    route: '/reminders-list',
+  },
+];
+
+const SUPPORT_MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'help',
+    title: 'Помощь',
+    subtitle: 'FAQ и поддержка',
+    icon: 'help-circle-outline',
+    route: '/help',
+  },
+  {
+    id: 'rate',
+    title: 'Оценить приложение',
+    subtitle: 'Оставить отзыв в магазине',
+    icon: 'star-outline',
+    action: undefined,
+  },
+];
 
 export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
+  const [isSavingAvatar, setIsSavingAvatar] = useState(false);
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
   const {
@@ -54,16 +109,13 @@ export default function ProfileScreen() {
   } = useExportSubscription();
 
   useEffect(() => {
-    // Запускаем анимацию сразу, не дожидаясь загрузки данных
     opacity.value = withTiming(1, { duration: 400 });
     loadUserData();
     isInitialMount.current = false;
   }, []);
 
-  // Обновляем данные при возврате на вкладку профиля
   useFocusEffect(
     useCallback(() => {
-      // Загружаем данные только если это не первое монтирование
       if (!isInitialMount.current) {
         loadUserData();
       }
@@ -75,30 +127,52 @@ export default function ProfileScreen() {
 
   const loadUserData = async () => {
     try {
-      // Используем multiGet для оптимизации - один запрос вместо четырех
+      const avatar = await ensureDefaultAvatar();
       const results = await AsyncStorage.multiGet(['@user_name', '@user_avatar']);
       const dataMap = new Map(results);
       const name = dataMap.get('@user_name');
-      const avatar = dataMap.get('@user_avatar');
+      const storedAvatar = dataMap.get('@user_avatar') ?? avatar;
       if (name) setUserName(name);
-      if (avatar) setAvatarUri(avatar);
+      if (storedAvatar) setAvatarUri(storedAvatar);
     } catch (error) {
       console.error('Error loading user data:', error);
     }
   };
 
-  const handleAvatarPress = async () => {
-    // Проверяем текущий статус разрешения
+  const handleAvatarPress = () => {
+    setIsAvatarPickerVisible(true);
+  };
+
+  const handleSelectPresetAvatar = async (presetId: string) => {
+    if (isSavingAvatar) return;
+
+    setIsSavingAvatar(true);
+    try {
+      const stored = await savePresetUserAvatar(presetId);
+      setAvatarUri(stored);
+      setIsAvatarPickerVisible(false);
+      if (Platform.OS === 'ios') {
+        Haptics.selectionAsync();
+      }
+    } catch (error) {
+      console.error('Error saving preset avatar:', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить аватар');
+    } finally {
+      setIsSavingAvatar(false);
+    }
+  };
+
+  const handlePickAvatarFromGallery = async () => {
+    if (isSavingAvatar) return;
+
     const { status: existingStatus } = await ImagePicker.getMediaLibraryPermissionsAsync();
-    
     let finalStatus = existingStatus;
-    
-    // Если разрешение не предоставлено, запрашиваем его
+
     if (existingStatus !== 'granted') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       finalStatus = status;
     }
-    
+
     if (finalStatus !== 'granted') {
       Alert.alert(
         'Доступ к галерее',
@@ -127,58 +201,52 @@ export default function ProfileScreen() {
       quality: 0.8,
     });
 
-    if (!result.canceled) {
-      const sourceUri = result.assets[0].uri;
-      setAvatarUri(sourceUri);
-      try {
-        const code = await getAccountSyncId();
-        const name = userName || (await AsyncStorage.getItem('@user_name')) || '';
+    if (result.canceled) {
+      return;
+    }
 
-        let fileUri: string;
-        try {
-          const ext = sourceUri.toLowerCase().includes('.png') ? 'png' : 'jpg';
-          const persistentPath = `${FileSystem.documentDirectory}user_avatar.${ext}`;
-          await FileSystem.copyAsync({ from: sourceUri, to: persistentPath });
-          fileUri = persistentPath.startsWith('file://') ? persistentPath : `file://${persistentPath}`;
-        } catch {
-          fileUri = sourceUri.startsWith('file://') || sourceUri.startsWith('/') ? sourceUri : `file://${sourceUri}`;
-        }
+    setIsSavingAvatar(true);
+    try {
+      const stored = await saveGalleryUserAvatar(result.assets[0].uri);
+      setAvatarUri(stored);
+      setIsAvatarPickerVisible(false);
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (error) {
+      console.error('Error saving avatar:', error);
+      Alert.alert(
+        'Ошибка',
+        error instanceof Error ? error.message : 'Не удалось сохранить фото профиля'
+      );
+    } finally {
+      setIsSavingAvatar(false);
+    }
+  };
 
-        if (code) {
-          let avatarUrl = await uploadImageToStorage(code, 'avatar', fileUri, 0);
-          if (!avatarUrl && fileUri !== sourceUri) {
-            avatarUrl = await uploadImageToStorage(code, 'avatar', sourceUri, 0);
-          }
-          if (avatarUrl) {
-            await AsyncStorage.setItem('@user_avatar', avatarUrl);
-            setAvatarUri(avatarUrl);
-            const res = await saveAccountToSupabase(code, name, avatarUrl);
-            if (!res.success) {
-              Alert.alert('Ошибка', res.error ?? 'Не удалось сохранить аватар в облаке');
-            } else {
-              scheduleSyncToCloud();
-            }
-          } else {
-            await AsyncStorage.setItem('@user_avatar', fileUri);
-            await pushAccountDataToCloud();
-            scheduleSyncToCloud();
-          }
-        } else {
-          await AsyncStorage.setItem('@user_avatar', fileUri);
-          await pushAccountDataToCloud();
-          scheduleSyncToCloud();
-        }
-      } catch (error) {
-        console.error('Error saving avatar:', error);
-        await AsyncStorage.setItem('@user_avatar', sourceUri);
-      await pushAccountDataToCloud();
+  const handleRateApp = async () => {
+    const iosHttps = getIosAppStoreUrl(false);
+    const iosItms = getIosAppStoreUrl(true);
+
+    try {
+      if (Platform.OS === 'ios') {
+        const canOpenItms = await Linking.canOpenURL(iosItms);
+        await Linking.openURL(canOpenItms ? iosItms : iosHttps);
+        return;
+      }
+      if (Platform.OS === 'android') {
+        await Linking.openURL(getAndroidPlayStoreUrl());
+      }
+    } catch {
+      if (Platform.OS === 'ios') {
+        Linking.openURL(iosHttps).catch(() => {});
       }
     }
   };
 
   const handleMenuPress = (item: MenuItem) => {
     if (item.route) {
-      router.push(item.route as any);
+      router.push(item.route as never);
     } else if (item.action) {
       item.action();
     }
@@ -228,148 +296,123 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleRateApp = async () => {
-    const iosHttps = getIosAppStoreUrl(false);
-    const iosItms = getIosAppStoreUrl(true);
-
-    try {
-      if (Platform.OS === 'ios') {
-        const canOpenItms = await Linking.canOpenURL(iosItms);
-        await Linking.openURL(canOpenItms ? iosItms : iosHttps);
-        return;
-      }
-      if (Platform.OS === 'android') {
-        await Linking.openURL(getAndroidPlayStoreUrl());
-      }
-    } catch {
-      if (Platform.OS === 'ios') {
-        Linking.openURL(iosHttps).catch(() => {});
-      }
-    }
-  };
-
-  const menuItems: MenuItem[] = [
-    {
-      id: 'projects',
-      title: 'Мои проекты',
-      icon: 'book-outline',
-      route: '/(tabs)/projects',
-    },
-    {
-      id: 'gifts',
-      title: 'Каталог',
-      icon: 'gift-outline',
-      route: '/gifts',
-    },
-    {
-      id: 'export-history',
-      title: 'История экспорта',
-      icon: 'document-text-outline',
-      route: '/export-history',
-    },
-    {
-      id: 'reminders',
-      title: 'Напоминания',
-      icon: 'notifications-outline',
-      route: '/reminders-list',
-    },
-    {
-      id: 'help',
-      title: 'Помощь',
-      icon: 'help-circle-outline',
-      route: '/help',
-    },
-    {
-      id: 'rate',
-      title: 'Оценить приложение',
-      icon: 'star-outline',
-      action: handleRateApp,
-    },
-    {
-      id: 'logout',
-      title: 'Выйти из аккаунта',
-      icon: 'log-out-outline',
-      action: handleLogout,
-    },
-  ];
+  const supportItems: MenuItem[] = SUPPORT_MENU_ITEMS.map((item) =>
+    item.id === 'rate' ? { ...item, action: handleRateApp } : item
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
+  const avatarSource = resolveAvatarImageSource(avatarUri);
+  const subscriptionHint = isSubscribed
+    ? 'PDF для печати доступен навсегда'
+    : 'Разблокируйте экспорт для печати';
+
+  const renderMenuCard = (items: MenuItem[]) => (
+    <AppCard style={styles.menuCard}>
+      {items.map((item, index) => (
+        <HomeActionRow
+          key={item.id}
+          icon={item.icon}
+          title={item.title}
+          subtitle={item.subtitle}
+          onPress={() => handleMenuPress(item)}
+          destructive={item.destructive}
+          showChevron={item.showChevron ?? true}
+          showDivider={index < items.length - 1}
+        />
+      ))}
+    </AppCard>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.content, animatedStyle]}>
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
+        <AppHeader title="Профиль" showBack={false} />
+
+        <AppScreen
+          scroll
+          edges={[]}
+          style={styles.screen}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Профиль */}
-          <View style={styles.profileSection}>
-            <TouchableOpacity
-              style={styles.avatarContainer}
+          <AppCard style={styles.profileCard}>
+            <Pressable
               onPress={handleAvatarPress}
-              activeOpacity={0.8}
+              style={({ pressed }) => [styles.avatarButton, pressed && styles.avatarPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Изменить фото профиля"
             >
-              {avatarUri ? (
-                <ExpoImage 
-                  source={{ uri: avatarUri }} 
+              {avatarSource ? (
+                <ExpoImage
+                  source={avatarSource}
                   style={styles.avatar}
                   priority="high"
                   cachePolicy="disk"
                   transition={0}
                   fadeDuration={0}
+                  contentFit="cover"
                 />
               ) : (
                 <View style={styles.avatarPlaceholder}>
-                  <Ionicons name="person-outline" size={40} color={colors.primary} />
+                  <Ionicons name="person-outline" size={36} color={colors.primary} />
                 </View>
               )}
               <View style={styles.avatarEditBadge}>
-                <Ionicons name="camera" size={16} color="#FFFFFF" />
+                <Ionicons name="camera" size={14} color={colors.white} />
               </View>
-            </TouchableOpacity>
+            </Pressable>
 
-            <Text style={styles.userName}>{userName || 'Пользователь'}</Text>
+            <AppText variant="display" style={styles.userName}>
+              {userName || 'Пользователь'}
+            </AppText>
 
             <ProfileSubscriptionStatusBadge
               isPremium={isSubscribed}
               isLoading={isIapEnabled && isSubscriptionLoading}
               onPress={handleOpenExportSubscription}
             />
+
+            <AppText variant="bodySm" style={styles.subscriptionHint}>
+              {subscriptionHint}
+            </AppText>
+          </AppCard>
+
+          <View style={styles.section}>
+            <HomeSectionHeader title="Приложение" />
+            {renderMenuCard(APP_MENU_ITEMS)}
           </View>
 
-          {/* Меню */}
-          <View style={styles.menuSection}>
-            {menuItems.map((item) => {
-              const isLogout = item.id === 'logout';
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[styles.menuItem, isLogout && styles.menuItemLogout]}
-                  onPress={() => handleMenuPress(item)}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.menuIcon, isLogout && styles.menuIconLogout]}>
-                    <Ionicons
-                      name={item.icon as any}
-                      size={24}
-                      color={isLogout ? colors.error : colors.primary}
-                    />
-                  </View>
-                  <Text style={[styles.menuText, isLogout && styles.menuTextLogout]}>
-                    {item.title}
-                  </Text>
-                  {!isLogout && (
-                    <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.section}>
+            <HomeSectionHeader title="Поддержка" />
+            {renderMenuCard(supportItems)}
           </View>
-        </ScrollView>
+
+          <View style={styles.section}>
+            <HomeSectionHeader title="Аккаунт" />
+            <AppCard style={styles.menuCard}>
+              <HomeActionRow
+                icon="log-out-outline"
+                title="Выйти из аккаунта"
+                onPress={handleLogout}
+                destructive
+                showChevron={false}
+                showDivider={false}
+              />
+            </AppCard>
+          </View>
+        </AppScreen>
       </Animated.View>
+
+      <AvatarPickerSheet
+        visible={isAvatarPickerVisible}
+        currentAvatar={avatarUri}
+        onClose={() => setIsAvatarPickerVisible(false)}
+        onSelectPreset={handleSelectPresetAvatar}
+        onPickFromGallery={handlePickAvatarFromGallery}
+        isSaving={isSavingAvatar}
+      />
     </SafeAreaView>
   );
 }
@@ -377,121 +420,71 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: surfaces.muted,
   },
   content: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  screen: {
+    backgroundColor: surfaces.muted,
   },
   scrollContent: {
+    paddingHorizontal: spacing.md,
     paddingBottom: 112,
+    gap: spacing.lg,
   },
-  profileSection: {
+  profileCard: {
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 24,
-    marginTop: 24,
-    borderRadius: 24,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.white,
   },
-  avatarContainer: {
+  avatarButton: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: spacing.sm,
+  },
+  avatarPressed: {
+    opacity: 0.9,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
   },
   avatarPlaceholder: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: colors.background,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.border,
   },
   avatarEditBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   userName: {
-    fontSize: 26,
-    color: colors.textPrimary,
-    fontFamily: sansFont('bold'),
-    fontWeight: '700',
-    marginBottom: 4,
     textAlign: 'center',
+    marginBottom: spacing.xs,
   },
-  menuSection: {
-    paddingHorizontal: 24,
-    marginTop: 24,
+  subscriptionHint: {
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+  section: {
+    gap: spacing.sm,
   },
-  menuIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  menuText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.textPrimary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '500',
-  },
-  menuItemLogout: {
-    marginBottom: 0,
-    borderColor: '#F5E0E0',
-    backgroundColor: '#FFFBFB',
-  },
-  menuIconLogout: {
-    backgroundColor: '#FFF5F5',
-  },
-  menuTextLogout: {
-    color: colors.error,
+  menuCard: {
+    backgroundColor: colors.white,
   },
 });

@@ -25,6 +25,7 @@ interface PageRendererProps {
   captureScale?: number;
   captureFormat?: CaptureFormat;
   captureQuality?: number;
+  backgroundColor?: string;
 }
 
 /**
@@ -44,6 +45,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     captureScale = 1.35,
     captureFormat = 'jpg',
     captureQuality = 0.92,
+    backgroundColor = 'transparent',
   }, ref) => {
   const viewRef = useRef<View>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -130,6 +132,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         {
           width,
           height,
+          backgroundColor,
         },
       ]}
       collapsable={false}

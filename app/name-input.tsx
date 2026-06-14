@@ -1,7 +1,9 @@
+import { AppButton, AppInput } from '@/components/ui';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
+import { ensureDefaultAvatar } from '@/utils/user-avatar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -136,6 +138,7 @@ export default function NameInputScreen() {
 
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@has_seen_onboarding', 'true');
+      await ensureDefaultAvatar();
 
       setIsSubmitting(false);
       setShowGreeting(true);
@@ -207,42 +210,25 @@ export default function NameInputScreen() {
               </Animated.View>
 
               <Animated.View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
+                <AppInput
                   value={name}
                   onChangeText={setName}
                   placeholder="Введите ваше имя"
-                  placeholderTextColor="#B8A89A"
                   autoFocus
                   autoCapitalize="words"
                   autoCorrect={false}
                   onSubmitEditing={handleContinue}
+                  returnKeyType="done"
                 />
               </Animated.View>
 
               <Animated.View>
-                <TouchableOpacity
-                  style={[
-                    styles.continueButton,
-                    (name.trim().length > 0 || isSubmitting) && styles.continueButtonActive,
-                  ]}
+                <AppButton
+                  title="Продолжить"
                   onPress={handleContinue}
-                  activeOpacity={0.7}
+                  loading={isSubmitting}
                   disabled={name.trim().length === 0 || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text
-                      style={[
-                        styles.continueButtonText,
-                        name.trim().length > 0 && styles.continueButtonTextActive,
-                      ]}
-                    >
-                      Продолжить
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                />
               </Animated.View>
             </View>
           </TouchableWithoutFeedback>

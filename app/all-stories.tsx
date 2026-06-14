@@ -1,5 +1,6 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { ProjectCard } from '@/components/project-card';
+import { ProjectActionSheet } from '@/components/modals/project-action-sheet';
 import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import {
   formatProjectsCountLabel,
@@ -18,18 +19,19 @@ const ALL_STORIES_GRID_COLUMNS = 2;
 const ALL_STORIES_GRID_GAP = 12;
 const PHONE_HORIZONTAL_PAD = 20;
 import * as Haptics from 'expo-haptics';
-import { router, useFocusEffect, type Href } from 'expo-router';
+import { resolveAlbumEntryPath } from '@/utils/albumIntro';
+import { buildAlbumIntroHref, buildAlbumPagesHref } from '@/utils/albumNavigation';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Modal,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AllStoriesScreen() {
@@ -68,9 +70,14 @@ export default function AllStoriesScreen() {
     }, [refreshProjects])
   );
 
-  const openProject = (project: UserProject) => {
+  const openProject = async (project: UserProject) => {
     if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      router.push(`/album-pages?id=${project.id}` as Href);
+      const entry = await resolveAlbumEntryPath(project.id);
+      router.push(
+        entry === 'album-intro'
+          ? buildAlbumIntroHref({ id: project.id })
+          : buildAlbumPagesHref({ id: project.id })
+      );
     } else {
       router.push(`/edit-project?id=${project.id}`);
     }
@@ -201,74 +208,16 @@ export default function AllStoriesScreen() {
         )}
       </View>
 
-      {showActionModal ? (
-      <Modal
-        visible
-        transparent
-        animationType="fade"
+      <ProjectActionSheet
+        visible={showActionModal}
+        projectTitle={selectedProject?.title ?? 'Проект'}
+        step={actionModalStep}
         onRequestClose={handleActionModalRequestClose}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {actionModalStep === 'menu' ? (
-              <>
-                <Text style={styles.modalTitle}>{selectedProject?.title}</Text>
-                <Text style={styles.modalSubtitle}>Выберите действие</Text>
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.editButton]}
-                    onPress={handleEdit}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Редактировать</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={handleDelete}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Удалить</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={closeActionModal}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <Text style={styles.modalTitle}>Удалить проект?</Text>
-                <Text style={styles.modalSubtitle}>
-                  {`Проект «${selectedProject?.title ?? ''}» будет удалён без возможности восстановления.`}
-                </Text>
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={handleDeleteConfirm}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Удалить</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={handleDeleteConfirmCancel}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
-      ) : null}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onDeleteConfirm={handleDeleteConfirm}
+        onDeleteConfirmCancel={handleDeleteConfirmCancel}
+      />
     </SafeAreaView>
   );
 }
@@ -340,63 +289,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 28,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: colors.textPrimary,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  actionButtons: {
-    gap: 12,
-    marginBottom: 16,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 14,
-    borderRadius: 14,
-  },
-  editButton: {
-    backgroundColor: colors.primary,
-  },
-  deleteButton: {
-    backgroundColor: colors.error,
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: colors.textSecondary,
   },
 });

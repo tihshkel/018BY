@@ -4,7 +4,8 @@ import { setupAlbumNotificationsForCelebration } from '@/utils/albumNotification
 import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { AppDateField } from '@/components/ui/app-date-field';
+import { AppDatePickerSheet } from '@/components/ui/app-date-picker-sheet';
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { SchedulableTriggerInputTypes, type TimeIntervalTriggerInput } from 'expo-notifications';
@@ -347,49 +348,15 @@ export default function PaperAlbumNotificationsScreen() {
           )}
         </ScrollView>
 
-        {/* Date Picker Modal */}
-        {showDatePicker && (
-          <View style={styles.datePickerOverlay}>
-            <View style={[styles.datePickerContainer, { paddingBottom: bottomInset }]}>
-              <View style={styles.datePickerHeader}>
-                <Text style={styles.datePickerTitle}>
-                  {selectedTypeInfo?.dateLabel}
-                </Text>
-                <TouchableOpacity
-                  onPress={handleDateConfirm}
-                  style={styles.datePickerCloseButton}
-                >
-                  <Ionicons name="close" size={24} color={colors.textPrimary} />
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={selectedDate}
-                mode="date"
-                display={Platform.select({
-                  ios: 'spinner',
-                  android: 'calendar',
-                  default: 'default',
-                })}
-                locale="ru-RU"
-                maximumDate={new Date(2030, 11, 31)}
-                minimumDate={new Date(1900, 0, 1)}
-                onChange={handleDateChange}
-                style={styles.datePicker}
-                themeVariant="light"
-                textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
-              />
-              {Platform.OS === 'ios' && (
-                <TouchableOpacity
-                  style={styles.datePickerConfirmButton}
-                  onPress={handleDateConfirm}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.datePickerConfirmButtonText}>Готово</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        )}
+        <AppDatePickerSheet
+          visible={showDatePicker}
+          value={selectedDate}
+          onChange={setSelectedDate}
+          onClose={handleDateConfirm}
+          title={selectedTypeInfo?.dateLabel ?? 'Выберите дату'}
+          minimumDate={new Date(1900, 0, 1)}
+          maximumDate={new Date(2030, 11, 31)}
+        />
       </Animated.View>
     </SafeAreaView>
   );

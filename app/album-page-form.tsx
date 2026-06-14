@@ -1,21 +1,25 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 
-import { PageFormFields } from '@/components/album/page-form-fields';
+import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
-import { colors, spacing } from '@/constants/design-tokens';
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
+import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
+import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import { useAlbumProject } from '@/hooks/use-album-project';
+import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
 export default function AlbumPageFormScreen() {
-  const { id, instanceId, celebration, coverType, interiorType } = useLocalSearchParams<{
-    id?: string;
-    instanceId?: string;
-    celebration?: string;
-    coverType?: string;
-    interiorType?: string;
-  }>();
+  const { id, instanceId, celebration, coverType, interiorType } =
+    useLocalSearchParams<{
+      id?: string;
+      instanceId?: string;
+      celebration?: string;
+      coverType?: string;
+      interiorType?: string;
+    }>();
 
   const project = useAlbumProject({
     projectId: id,
@@ -23,40 +27,59 @@ export default function AlbumPageFormScreen() {
     coverType,
     interiorType,
   });
+  const { shellStyle } = useAlbumFormLayout();
+
+  const albumFlowParams: AlbumFlowParams = {
+    id,
+    celebration,
+    coverType,
+    interiorType,
+  };
 
   const instance = useMemo(
     () => project.instances.find((i) => i.instanceId === instanceId),
-    [project.instances, instanceId]
+    [project.instances, instanceId],
   );
   const schema = instance ? project.getSchemaForInstance(instance) : undefined;
 
-  const storedValues = instanceId
-    ? project.pageValuesMap[instanceId] ?? createEmptyPageValues()
+  const pageValues = instanceId
+    ? (project.pageValuesMap[instanceId] ?? createEmptyPageValues())
     : createEmptyPageValues();
 
-  const [draftFields, setDraftFields] = useState<Record<string, string>>(storedValues.fields);
-
-  const persistFields = useCallback(
-    (fields: Record<string, string>) => {
-      if (!instanceId) return;
-      project.updatePageValues(instanceId, (prev) => ({
-        ...prev,
-        fields,
-      }));
-    },
-    [instanceId, project]
-  );
+  const photoEditor = useAlbumPagePhotoEditor({
+    instanceId,
+    schema,
+    pageValues,
+    project,
+  });
 
   const handleFieldChange = useCallback(
     (fieldId: string, value: string) => {
-      setDraftFields((prev) => {
-        const nextFields = { ...prev, [fieldId]: value };
-        persistFields(nextFields);
-        return nextFields;
-      });
+      if (!instanceId) return;
+      project.updatePageValues(instanceId, (prev) => ({
+        ...prev,
+        fields: { ...prev.fields, [fieldId]: value },
+      }));
     },
-    [persistFields]
+    [instanceId, project],
   );
+
+  const handleSave = async () => {
+    if (!instanceId) return;
+    const current = project.pageValuesMap[instanceId] ?? pageValues;
+    await project.savePageValuesNow(instanceId, current);
+    router.push({
+      pathname: '/album-page-preview',
+      params: {
+        id,
+        instanceId,
+        celebration,
+        coverType,
+        interiorType,
+        mode: 'final',
+      },
+    } as unknown as Href);
+  };
 
   if (project.isLoading || !instance || !schema) {
     return (
@@ -67,54 +90,65 @@ export default function AlbumPageFormScreen() {
   }
 
   const fields = schema.fields ?? [];
-
-  const handleNext = async () => {
-    if (!instanceId) return;
-    await project.savePageValuesNow(instanceId, {
-      ...storedValues,
-      fields: draftFields,
-    });
-
-    if (schema.photoBlocks?.length) {
-      router.push({
-        pathname: '/album-page-photos',
-        params: { id, instanceId, celebration, coverType, interiorType },
-      } as unknown as Href);
-      return;
-    }
-
-    router.push({
-      pathname: '/album-page-preview',
-      params: { id, instanceId, celebration, coverType, interiorType, mode: 'final' },
-    } as unknown as Href);
-  };
+  const hasPhotoBlocks = (schema.photoBlocks?.length ?? 0) > 0;
 
   return (
-    <AppScreen scroll contentContainerStyle={styles.container}>
-      <AppHeader title="Заполните страницу" />
+    <AppScreen
+      scroll
+      keyboardAware
+      style={styles.screen}
+      contentContainerStyle={[styles.container, shellStyle]}
+    >
+      <AppHeader
+        title="Заполните страницу"
+        onBack={() => navigateToAlbumPages(albumFlowParams)}
+      />
 
       <AppText variant="titleSm" style={styles.pageTitle}>
         {project.getInstanceTitle(instance)}
       </AppText>
 
-      <PageFormFields fields={fields} values={draftFields} onChange={handleFieldChange} />
+      <AlbumPageFillForm
+        schema={schema}
+        pageValues={pageValues}
+        lineGuideId={project.lineGuideId}
+        onFieldChange={handleFieldChange}
+        onCaptionChange={(text) =>
+          photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+        }
+        onPhotoCaptionChange={(slotIndex, text) =>
+          photoEditor.updatePageValues((prev) => {
+            const next = [...(prev.photoCaptions ?? [])];
+            next[slotIndex] = text;
+            return { ...prev, photoCaptions: next };
+          })
+        }
+        onSelectVariant={photoEditor.handleSelectVariant}
+        onAddPhoto={photoEditor.handlePickPhoto}
+        onReplacePhoto={photoEditor.handlePickPhoto}
+        onRemovePhoto={photoEditor.handleRemovePhoto}
+        showCaption={photoEditor.showCaption}
+        showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+      />
 
-      {fields.length === 0 ? (
+      {fields.length === 0 && !hasPhotoBlocks ? (
         <AppText variant="bodySm" style={styles.emptyHint}>
-          На этой странице нет текстовых полей. Перейдите к добавлению фото.
+          На этой странице нет полей для заполнения.
         </AppText>
       ) : null}
 
-      <AppButton title="Далее" onPress={handleNext} />
+      <AppButton title="Сохранить" onPress={handleSave} />
     </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    backgroundColor: surfaces.muted,
+  },
   container: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.xl,
     gap: spacing.md,
+    paddingBottom: spacing.xl,
   },
   centered: {
     alignItems: 'center',

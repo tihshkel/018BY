@@ -1,5 +1,7 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { PdfIcon } from '@/components/icons/pdf-icon';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
+import PdfSkeletonLoader from '@/components/pdf-skeleton-loader';
 import { Annotation } from '@/components/pdf-annotations';
 import { SubscriptionPaywallModal } from '@/components/subscription-paywall-modal';
 import { requiresPrintSubscription } from '@/constants/subscription';
@@ -9,16 +11,28 @@ import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-syn
 import { getExportCoverPages, isSameExportImageUri } from '@/utils/albumFirstLastPages';
 import {
   ensureAlbumPagesCachedForExport,
+  ensurePageUrisCachedForExport,
+  ensureSinglePageUriCachedForExport,
   getAlbumImageUris,
-  resolveInteriorAlbumId,
+  getBlankInteriorPageUri,
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
 import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import {
+  getExportFormatOptions,
+  type ExportFormatType,
+} from '@/utils/exportFormatOptions';
+import {
+  filterProjectDataForExport,
+  getExportSelectionStorageKey,
+} from '@/utils/exportPageSelection';
+import { loadPageInstances } from '@/utils/pageStorage';
+import {
   getContentRect,
   mapViewportAnnotationToPdf,
 } from '@/utils/imageContentRect';
+import { computeObjectFitCover } from '@/utils/imageCoverDraw';
 import {
   getCachedPageSourceSize,
   resolvePageSourceSize,
@@ -46,7 +60,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { PDFDocument, cmyk, rgb, type Color, type PDFPage, type PDFFont } from 'pdf-lib';
+import { PDFDocument, cmyk, rgb, clip, endPath, popGraphicsState, pushGraphicsState, rectangle, type Color, type PDFPage, type PDFFont } from 'pdf-lib';
 
 function hexToColor(hex: string, useCmyk: boolean) {
   const r = parseInt(hex.substring(1, 3), 16) / 255;
@@ -73,8 +87,6 @@ import {
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
-    withRepeat,
-    withSequence,
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -249,12 +261,38 @@ async function drawImageAnnotationsOnPdfPage(params: {
         pdfImageHeight: params.pdfImageHeight,
       });
 
-      params.page.drawImage(embeddedAnnImage as Awaited<ReturnType<PDFDocument['embedJpg']>>, {
-        x: mapped.x,
-        y: mapped.y,
-        width: mapped.width,
-        height: mapped.height,
-      });
+      const embedded = embeddedAnnImage as Awaited<ReturnType<PDFDocument['embedJpg']>>;
+
+      if (ann.imageContentFit === 'cover') {
+        const cover = computeObjectFitCover(
+          embedded.width,
+          embedded.height,
+          mapped.x,
+          mapped.y,
+          mapped.width,
+          mapped.height,
+        );
+        params.page.pushOperators(
+          pushGraphicsState(),
+          rectangle(cover.clipX, cover.clipY, cover.clipWidth, cover.clipHeight),
+          clip(),
+          endPath(),
+        );
+        params.page.drawImage(embedded, {
+          x: cover.drawX,
+          y: cover.drawY,
+          width: cover.drawWidth,
+          height: cover.drawHeight,
+        });
+        params.page.pushOperators(popGraphicsState());
+      } else {
+        params.page.drawImage(embedded, {
+          x: mapped.x,
+          y: mapped.y,
+          width: mapped.width,
+          height: mapped.height,
+        });
+      }
     } catch {
       // ignore single annotation failures
     }
@@ -312,7 +350,7 @@ async function savePdfToAndroidDirectory(params: {
 interface FormatOption {
   id: string;
   name: string;
-  type: 'electronic' | 'hard' | 'soft';
+  type: ExportFormatType;
   margins: string;
   size: string;
   orientation: string;
@@ -320,36 +358,7 @@ interface FormatOption {
 }
 
 function getFormatOptions(category: string | null): FormatOption[] {
-  const isKids = category === 'kids';
-  return [
-    {
-      id: 'electronic',
-      name: 'Электронная версия',
-      type: 'electronic',
-      margins: '10 мм',
-      size: isKids ? '210 × 210 мм' : 'A5 (148 × 210 мм)',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
-      description: 'Для просмотра на устройстве',
-    },
-    {
-      id: 'hard',
-      name: 'Для печати в твёрдой обложке',
-      type: 'hard',
-      margins: '15 мм',
-      size: isKids ? '210 × 210 мм' : '180 × 240 мм',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
-      description: 'Идеально для подарка и долгого хранения',
-    },
-    {
-      id: 'soft',
-      name: 'Для печати в мягкой обложке',
-      type: 'soft',
-      margins: '10 мм',
-      size: isKids ? '210 × 210 мм' : 'A5 (148 × 210 мм)',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
-      description: 'Компактный и удобный формат',
-    },
-  ];
+  return getExportFormatOptions(category);
 }
 
 type ExportPart = 'full' | 'interior' | 'first-last' | 'cover';
@@ -413,12 +422,25 @@ function buildExportPdfFileName(params: {
   return `${parts.join('_')}.pdf`;
 }
 
+function resolveExportPdfFileName(
+  params: Parameters<typeof buildExportPdfFileName>[0],
+  override?: string | null
+): string {
+  const trimmed = override?.trim();
+  if (trimmed) {
+    return trimmed.toLowerCase().endsWith('.pdf') ? trimmed : `${trimmed}.pdf`;
+  }
+  return buildExportPdfFileName(params);
+}
+
 export default function ExportPdfScreen() {
   const params = useLocalSearchParams();
   const projectId = params.id as string;
   const formatParam = params.format as string | undefined;
   const coverTypeParam = params.coverType as string | undefined;
   const celebrationParam = params.celebration as string | undefined;
+  const exportMode = params.mode as string | undefined;
+  const electronicFileName = params.fileName as string | undefined;
   
   const [projectCat, setProjectCat] = useState<string | null>(null);
   const [projectTitleForExport, setProjectTitleForExport] = useState<string | null>(null);
@@ -473,13 +495,24 @@ export default function ExportPdfScreen() {
 
   // При изменении категории (или при первом рендере) обновляем selectedFormat
   React.useEffect(() => {
+    if (exportMode === 'electronic') {
+      const electronic = formatOptions.find((f) => f.type === 'electronic');
+      if (electronic) {
+        setSelectedFormat(electronic);
+      }
+      return;
+    }
     if (formatParam) {
       const found = formatOptions.find(f => f.id === formatParam) || null;
       setSelectedFormat(found);
     }
-  }, [formatOptions, formatParam]);
+  }, [formatOptions, formatParam, exportMode]);
+
+  const electronicExportStartedRef = useRef(false);
+  const createPdfRef = useRef<(format?: FormatOption) => Promise<void>>(async () => {});
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUri, setPdfUri] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [generationProgress, setGenerationProgress] = useState({ current: 0, total: 0 });
   const [generationStatus, setGenerationStatus] = useState<string | null>(null);
@@ -492,7 +525,6 @@ export default function ExportPdfScreen() {
   const [isDownloadingInterior, setIsDownloadingInterior] = useState(false);
   const [firstLastPdfUri, setFirstLastPdfUri] = useState<string | null>(null);
   const opacity = useSharedValue(0);
-  const loadingRotation = useSharedValue(0);
   
   // Для рендера страниц в фото (PageRenderer)
   const [renderingPage, setRenderingPage] = useState<{
@@ -537,19 +569,6 @@ export default function ExportPdfScreen() {
   const warn = (..._args: any[]) => {};
   const errorLog = (..._args: any[]) => {};
 
-  useEffect(() => {
-    if (isGenerating) {
-      loadingRotation.value = withRepeat(
-        withSequence(
-          withTiming(360, { duration: 1000 }),
-          withTiming(0, { duration: 0 })
-        ),
-        -1,
-        false
-      );
-    }
-  }, [isGenerating]);
-  
   // Обработчик готовности PageRenderer
   useEffect(() => {
     if (pageRendererReady && pageRendererRef.current && pageSnapshotPromiseRef.current) {
@@ -582,10 +601,6 @@ export default function ExportPdfScreen() {
     opacity: opacity.value,
   }));
 
-  const loadingAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${loadingRotation.value}deg` }],
-  }));
-
   const handleCreatePdfWithFormat = async (format?: FormatOption) => {
     const formatToUse = format || selectedFormat;
     if (!formatToUse) return;
@@ -600,6 +615,7 @@ export default function ExportPdfScreen() {
     }
 
     setIsGenerating(true);
+    setExportError(null);
     setShowPreview(false);
     setDownloadStep(null);
     setFirstLastPdfUri(null);
@@ -666,6 +682,30 @@ export default function ExportPdfScreen() {
 
           // Загружаем аннотации (синхронизируем из form-based page values)
           annotations = await ensureProjectAnnotationsSynced(projectId);
+
+          const blankPageUri = await getBlankInteriorPageUri();
+          const selectionRaw = await AsyncStorage.getItem(
+            getExportSelectionStorageKey(projectId)
+          );
+          if (selectionRaw) {
+            const includedIds = JSON.parse(selectionRaw) as string[];
+            const instances = await loadPageInstances(
+              (k) => AsyncStorage.getItem(k),
+              projectId
+            );
+            const filtered = filterProjectDataForExport({
+              instances,
+              images,
+              annotations,
+              includedInstanceIds: includedIds,
+              blankPageUri,
+            });
+            images = filtered.images;
+            annotations = filtered.annotations;
+            console.log(
+              `[PDF Export] Selection filter: ${images.length} pages after export review`
+            );
+          }
         }
       }
 
@@ -696,6 +736,11 @@ export default function ExportPdfScreen() {
       }
 
       // Если проект не найден или нет projectId, используем значения по умолчанию
+      if (!albumId && projectId) {
+        albumId = projectId;
+        console.warn(`[PDF Export] albumId не найден, используем projectId=${projectId}`);
+      }
+
       if (!albumId) {
         console.error(`[PDF Export] Критическая ошибка: albumId не определен! projectId=${projectId}`);
         throw new Error('Не удалось определить альбом проекта. Пожалуйста, попробуйте пересоздать проект.');
@@ -725,30 +770,40 @@ export default function ExportPdfScreen() {
           console.error(`[PDF Export] Ошибка при загрузке изображений альбома:`, error);
         }
       }
+
+      if (images.length === 0 && albumId) {
+        try {
+          images = await ensureAlbumPagesCachedForExport(
+            albumId,
+            projectCategory,
+            (done, total) => {
+              setGenerationProgress({ current: done, total });
+            }
+          );
+        } catch (error) {
+          console.warn('[PDF Export] ensureAlbumPagesCachedForExport не удался:', error);
+        }
+      }
+
+      if (images.length === 0) {
+        const blankPageUri = await getBlankInteriorPageUri();
+        if (blankPageUri) {
+          images = [blankPageUri];
+          console.warn('[PDF Export] Используем пустой лист как запасную страницу экспорта');
+        }
+      }
       
       if (images.length === 0) {
         throw new Error('Изображения не найдены');
       }
 
-      const interiorAlbumId = albumId ? resolveInteriorAlbumId(albumId, projectCategory) : null;
-
-      // Редактор хранит https:// ссылки для быстрого просмотра — перед экспортом кэшируем все страницы локально
-      if (interiorAlbumId && images.length > 0) {
+      // Редактор хранит https:// ссылки — перед экспортом кэшируем только выбранные страницы
+      if (images.length > 0) {
         setGenerationStatus('Загрузка страниц на устройство…');
         setGenerationProgress({ current: 0, total: images.length });
-        const cachedPages = await ensureAlbumPagesCachedForExport(
-          interiorAlbumId,
-          projectCategory,
-          (done, total) => {
-            setGenerationProgress({ current: done, total: Math.max(total, images.length) });
-          }
-        );
-        if (cachedPages.length !== images.length) {
-          throw new Error(
-            `Не удалось загрузить все страницы альбома (${cachedPages.length} из ${images.length}). Проверьте интернет и попробуйте снова.`
-          );
-        }
-        images = cachedPages;
+        images = await ensurePageUrisCachedForExport(images, (done, total) => {
+          setGenerationProgress({ current: done, total });
+        });
       }
 
       // Для двухшагового экспорта: первый шаг = первая+последняя (или развертка), второй шаг = внутрянка
@@ -1434,7 +1489,7 @@ export default function ExportPdfScreen() {
         uri: string,
         label: string,
         timeoutMs = isLargeDoc ? 60000 : 30000
-      ): Promise<Uint8Array> => {
+      ): Promise<Uint8Array | null> => {
         const candidates = uri.startsWith('/') ? [`file://${uri}`, uri] : [uri];
         for (let attempt = 1; attempt <= 3; attempt += 1) {
           for (const candidate of candidates) {
@@ -1453,17 +1508,104 @@ export default function ExportPdfScreen() {
           }
           await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
         }
-        throw new Error(
-          `Не удалось подготовить ${label}. Проверьте интернет и попробуйте экспорт ещё раз.`
+        console.warn(`[PDF Export] Не удалось подготовить ${label}, будет использована заглушка`);
+        return null;
+      };
+
+      let blankPageBytesCache: Uint8Array | null = null;
+      const loadBlankPageBytes = async (): Promise<Uint8Array | null> => {
+        if (blankPageBytesCache) return blankPageBytesCache;
+        const blankUri = await getBlankInteriorPageUri();
+        if (!blankUri) return null;
+        blankPageBytesCache = await loadImageAsBytes(blankUri);
+        return blankPageBytesCache;
+      };
+
+      const addBlankPdfPage = async (): Promise<boolean> => {
+        const blankBytes = await loadBlankPageBytes();
+        if (!blankBytes || blankBytes.length === 0) return false;
+
+        const isJpg = blankBytes[0] === 0xff && blankBytes[1] === 0xd8;
+        let embeddedBlank;
+        try {
+          embeddedBlank = isJpg
+            ? await pdfDoc.embedJpg(blankBytes)
+            : await pdfDoc.embedPng(blankBytes);
+        } catch {
+          return false;
+        }
+
+        const page = pdfDoc.addPage([pageWidth, pageHeight]);
+        const dims = embeddedBlank.scale(1);
+        const ar = dims.width / dims.height;
+        const pageAr = pageWidth / pageHeight;
+        let w = pageWidth;
+        let h = pageHeight;
+        if (ar > pageAr) {
+          h = pageWidth / ar;
+        } else {
+          w = pageHeight * ar;
+        }
+        page.drawImage(embeddedBlank, {
+          x: (pageWidth - w) / 2,
+          y: (pageHeight - h) / 2,
+          width: w,
+          height: h,
+        });
+        return true;
+      };
+
+      const resolvePageImageBytes = async (pageIndex: number): Promise<Uint8Array | null> => {
+        const optimizedUri = optimizedPageUris[pageIndex];
+        const originalUri = images[pageIndex];
+        const uriCandidates = [optimizedUri, originalUri].filter(
+          (uri, idx, arr): uri is string => Boolean(uri) && arr.indexOf(uri) === idx
         );
+
+        for (const candidate of uriCandidates) {
+          const bytes = await loadBytesWithRetry(candidate, `страницу ${pageIndex + 1}`);
+          if (bytes && bytes.length > 0) {
+            return bytes;
+          }
+        }
+
+        for (const candidate of uriCandidates) {
+          if (!candidate.startsWith('http')) continue;
+          const cachedUri = await ensureSinglePageUriCachedForExport(candidate);
+          if (!cachedUri) continue;
+          const bytes = await loadBytesWithRetry(
+            cachedUri,
+            `страницу ${pageIndex + 1} (повторное кеширование)`
+          );
+          if (bytes && bytes.length > 0) {
+            return bytes;
+          }
+        }
+
+        const reoptimized = originalUri
+          ? await loadOptimizedPageBytes(originalUri)
+          : null;
+        if (reoptimized) {
+          const bytes = await loadBytesWithRetry(
+            reoptimized,
+            `страницу ${pageIndex + 1} (повторная оптимизация)`
+          );
+          if (bytes && bytes.length > 0) {
+            return bytes;
+          }
+        }
+
+        console.warn(
+          `[PDF Export] Не удалось загрузить изображение страницы ${pageIndex + 1}, будет использована заглушка`
+        );
+        return null;
       };
 
       setGenerationStatus('Загрузка всех страниц…');
       setGenerationProgress({ current: 0, total: images.length });
-      const prefetchedPageBytes: Uint8Array[] = [];
+      const prefetchedPageBytes: (Uint8Array | null)[] = [];
       for (let i = 0; i < images.length; i += 1) {
-        const uri = optimizedPageUris[i] || images[i];
-        prefetchedPageBytes.push(await loadBytesWithRetry(uri, `страницу ${i + 1}`));
+        prefetchedPageBytes.push(await resolvePageImageBytes(i));
         setGenerationProgress({ current: i + 1, total: images.length });
       }
       console.log(`[PDF Export] ✓ Все ${images.length} страниц подготовлены`);
@@ -1680,7 +1822,9 @@ export default function ExportPdfScreen() {
           const hasImageAnnotations = pageAnnotations.some(
             (ann) => ann.type === 'image' && ann.imageUri
           );
-          const usePageRenderer = pageAnnotations.length > 0;
+          // PageRenderer нужен только когда на странице есть фото-наклейки поверх шаблона.
+          // Для текста используем прямой путь: фон + drawTextAnnotationOnPdfPage (надёжнее).
+          const usePageRenderer = hasImageAnnotations;
           const pageRendererTimeoutMs = hasImageAnnotations
             ? isLargeDoc
               ? 45000
@@ -1700,7 +1844,7 @@ export default function ExportPdfScreen() {
                   new Promise<string | null>((resolve, reject) => {
                     pageSnapshotPromiseRef.current = { resolve, reject };
                     setRenderingPage({
-                      imageUri,
+                      imageUri: optimizedPageUri,
                       annotations: pageAnnotations,
                       pageNumber,
                       viewport: pagesViewport,
@@ -1797,7 +1941,26 @@ export default function ExportPdfScreen() {
           }
           
           // Прямой путь — фон страницы + аннотации через pdf-lib (fallback и страницы без снапшота)
-          const pageImageBytes = prefetchedPageBytes[pageIndex];
+          let pageImageBytes = prefetchedPageBytes[pageIndex];
+          if (!pageImageBytes) {
+            pageImageBytes = await resolvePageImageBytes(pageIndex);
+          }
+          if (!pageImageBytes) {
+            pageImageBytes = await loadBlankPageBytes();
+          }
+          if (!pageImageBytes) {
+            const addedBlank = await addBlankPdfPage();
+            if (addedBlank) {
+              processedCount++;
+              interiorProcessedCount++;
+              skippedCount++;
+              setGenerationProgress({ current: interiorProcessedCount, total: images.length });
+            } else {
+              skippedCount++;
+            }
+            continue;
+          }
+
           const isJpg = pageImageBytes[0] === 0xFF && pageImageBytes[1] === 0xD8;
           let embeddedImage;
           for (let embedAttempt = 1; embedAttempt <= 2; embedAttempt += 1) {
@@ -1807,8 +1970,8 @@ export default function ExportPdfScreen() {
                 timeoutMs: isLargeDoc ? 90000 : 30000,
                 task: async () =>
                   isJpg
-                    ? pdfDoc.embedJpg(pageImageBytes)
-                    : pdfDoc.embedPng(pageImageBytes),
+                    ? pdfDoc.embedJpg(pageImageBytes!)
+                    : pdfDoc.embedPng(pageImageBytes!),
               });
               break;
             } catch {
@@ -1818,9 +1981,16 @@ export default function ExportPdfScreen() {
             }
           }
           if (!embeddedImage) {
-            throw new Error(
-              `Не удалось собрать страницу ${pageNumber}. Попробуйте экспорт ещё раз.`
-            );
+            const addedBlank = await addBlankPdfPage();
+            if (addedBlank) {
+              processedCount++;
+              interiorProcessedCount++;
+              skippedCount++;
+              setGenerationProgress({ current: interiorProcessedCount, total: images.length });
+            } else {
+              skippedCount++;
+            }
+            continue;
           }
 
           const page = pdfDoc.addPage([pageWidth, pageHeight]);
@@ -1947,9 +2117,15 @@ export default function ExportPdfScreen() {
           
         } catch (pageError) {
           console.error(`[PDF Export] Ошибка при обработке страницы ${pageNumber}:`, pageError);
-          throw pageError instanceof Error
-            ? pageError
-            : new Error(`Не удалось собрать страницу ${pageNumber}. Попробуйте экспорт ещё раз.`);
+          const addedBlank = await addBlankPdfPage();
+          if (addedBlank) {
+            processedCount++;
+            interiorProcessedCount++;
+            skippedCount++;
+            setGenerationProgress({ current: interiorProcessedCount, total: images.length });
+          } else {
+            skippedCount++;
+          }
         }
       }
       
@@ -1982,6 +2158,14 @@ export default function ExportPdfScreen() {
 
       console.log(`[PDF Export] Обработка завершена: ${processedCount} страниц обработано, ${skippedCount} пропущено`);
       
+      if (processedCount === 0) {
+        const addedBlank = await addBlankPdfPage();
+        if (addedBlank) {
+          processedCount = 1;
+          console.warn('[PDF Export] Экспорт продолжен с одной запасной страницей');
+        }
+      }
+
       if (processedCount === 0) {
         throw new Error('Не удалось обработать ни одного изображения');
       }
@@ -2035,13 +2219,16 @@ export default function ExportPdfScreen() {
         return btoa(chunks.join(''));
       };
 
-      const fileName = buildExportPdfFileName({
-        projectName: projectTitleForExport,
-        projectId,
-        category: projectCategory,
-        formatType: formatToUse.type,
-        part: 'full',
-      });
+      const fileName = resolveExportPdfFileName(
+        {
+          projectName: projectTitleForExport,
+          projectId,
+          category: projectCategory,
+          formatType: formatToUse.type,
+          part: 'full',
+        },
+        exportMode === 'electronic' ? electronicFileName : undefined
+      );
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
       // Узкое место: сериализация 50+ страниц. Отдаём управление, чтобы UI успел показать статус.
@@ -2162,14 +2349,28 @@ export default function ExportPdfScreen() {
         setFirstLastDownloaded(true);
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Неизвестная ошибка';
       console.error('Error generating PDF:', error);
-      Alert.alert('Ошибка', 'Не удалось создать PDF файл. ' + (error as Error).message);
+      setExportError(message);
+      if (exportMode === 'electronic') {
+        electronicExportStartedRef.current = false;
+      }
+      Alert.alert('Ошибка', 'Не удалось создать PDF файл. ' + message);
     } finally {
       setIsGenerating(false);
       setGenerationStatus(null);
       setGenerationProgress({ current: 0, total: 0 });
     }
   };
+
+  createPdfRef.current = handleCreatePdfWithFormat;
+
+  React.useEffect(() => {
+    if (exportMode !== 'electronic' || electronicExportStartedRef.current) return;
+    if (selectedFormat?.type !== 'electronic' || isGenerating) return;
+    electronicExportStartedRef.current = true;
+    void createPdfRef.current(selectedFormat);
+  }, [exportMode, selectedFormat, isGenerating]);
 
   const handleDownloadCoverPdf = async () => {
     try {
@@ -2283,6 +2484,7 @@ export default function ExportPdfScreen() {
             dialogTitle: 'Сохранить обложку',
             UTI: 'com.adobe.pdf',
           });
+          setCoverDownloaded(true);
           setDownloadStep(2);
         } else {
           const fileUri = `${FileSystem.documentDirectory}${exportFileName}`;
@@ -2303,6 +2505,7 @@ export default function ExportPdfScreen() {
         link.download = exportFileName;
         link.click();
         Alert.alert('Успешно', `Обложка скачана: ${exportFileName}`);
+        setCoverDownloaded(true);
         setDownloadStep(2);
       }
     } catch (error) {
@@ -2399,6 +2602,7 @@ export default function ExportPdfScreen() {
           });
           Alert.alert('Успешно', `Внутренняя часть сохранена: ${fileName}`);
         }
+        setInteriorDownloaded(true);
       } else {
         const base64 = await FileSystem.readAsStringAsync(pdfUri, {
           encoding: FileSystem.EncodingType.Base64,
@@ -2408,6 +2612,7 @@ export default function ExportPdfScreen() {
         link.download = fileName;
         link.click();
         Alert.alert('Успешно', `Внутренняя часть скачана: ${fileName}`);
+        setInteriorDownloaded(true);
       }
     } catch (error) {
       console.error('Error downloading interior PDF:', error);
@@ -2618,15 +2823,23 @@ export default function ExportPdfScreen() {
         {/* Оверлей генерации — как на "старом" экране (центральная плашка) */}
         {isGenerating ? (
           <View style={styles.exportOverlay} pointerEvents="auto">
-            <View style={styles.exportOverlayCard}>
-              <Animated.View style={loadingAnimatedStyle}>
-                <Ionicons name="refresh" size={28} color={colors.primary} />
-              </Animated.View>
-              <Text style={styles.exportOverlayTitle}>Создание PDF…</Text>
-              <Text style={styles.exportOverlaySubtitle}>
-                {formatExportProgressLabel(generationStatus, generationProgress)}
-              </Text>
+            <View style={styles.exportSkeletonFrame}>
+              <PdfSkeletonLoader />
             </View>
+            <Text style={styles.exportOverlayTitle}>Создание PDF…</Text>
+            <Text style={styles.exportOverlaySubtitle}>
+              {formatExportProgressLabel(generationStatus, generationProgress)}
+            </Text>
+            {generationProgress.total > 0 ? (
+              <View style={styles.exportProgressTrack}>
+                <View
+                  style={[
+                    styles.exportProgressFill,
+                    { width: `${exportProgressPercent(generationProgress)}%` },
+                  ]}
+                />
+              </View>
+            ) : null}
           </View>
         ) : null}
 
@@ -2660,8 +2873,14 @@ export default function ExportPdfScreen() {
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerText}>
-            <Text style={styles.title}>Получить книгу</Text>
-            <Text style={styles.subtitle}>Выберите формат печати</Text>
+            <Text style={styles.title}>
+              {exportMode === 'electronic' ? 'Электронная версия' : 'Получить книгу'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {exportMode === 'electronic'
+                ? 'PDF для просмотра и отправки близким'
+                : 'Выберите формат печати'}
+            </Text>
           </View>
         </View>
 
@@ -2673,7 +2892,8 @@ export default function ExportPdfScreen() {
         >
           {!showPreview ? (
             <>
-              {formatOptions.map((format) => {
+              {exportMode !== 'electronic'
+                ? formatOptions.map((format) => {
                 const showPremium = requiresPrintSubscription(format.type);
                 const locked = isFormatLocked(format);
                 const isSelected = selectedFormat?.id === format.id;
@@ -2805,9 +3025,33 @@ export default function ExportPdfScreen() {
                     </View>
                   </TouchableOpacity>
                 );
-              })}
+              })
+                : null}
+
+              {exportMode === 'electronic' && !showPreview && !isGenerating && exportError ? (
+                <View style={styles.exportErrorCard}>
+                  <Ionicons name="cloud-offline-outline" size={44} color={colors.primary} />
+                  <Text style={styles.exportErrorTitle}>Не удалось создать PDF</Text>
+                  <Text style={styles.exportErrorText}>{exportError}</Text>
+                  <TouchableOpacity
+                    style={styles.createButton}
+                    onPress={() => {
+                      setExportError(null);
+                      if (selectedFormat) {
+                        electronicExportStartedRef.current = true;
+                        void handleCreatePdfWithFormat(selectedFormat);
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="refresh-outline" size={22} color="#FFFFFF" />
+                    <Text style={styles.createButtonText}>Повторить</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
 
               {/* Кнопка создания PDF */}
+              {exportMode !== 'electronic' ? (
               <TouchableOpacity
                 style={[
                   styles.createButton,
@@ -2824,41 +3068,17 @@ export default function ExportPdfScreen() {
                 disabled={!selectedFormat || isGenerating}
                 activeOpacity={0.7}
               >
-                {isGenerating ? (
-                  <View style={styles.loadingContainer}>
-                    <Animated.View style={loadingAnimatedStyle}>
-                      <Ionicons name="refresh" size={24} color="#FFFFFF" />
-                    </Animated.View>
-                    <View style={styles.progressContainer}>
-                      <Text style={styles.createButtonText}>
-                        {formatExportProgressLabel(generationStatus, generationProgress)}
-                      </Text>
-                      {generationProgress.total > 0 && (
-                        <View style={styles.progressBar}>
-                          <View 
-                            style={[
-                              styles.progressBarFill, 
-                              { width: `${exportProgressPercent(generationProgress)}%` }
-                            ]} 
-                          />
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                ) : (
-                  <>
-                    <Ionicons name="document-text-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.createButtonText}>Создать PDF</Text>
-                  </>
-                )}
+                <Ionicons name="document-text-outline" size={24} color="#FFFFFF" />
+                <Text style={styles.createButtonText}>Создать PDF</Text>
               </TouchableOpacity>
+              ) : null}
             </>
           ) : (
             <>
               {/* Превью готового PDF */}
               <View style={styles.previewContainer}>
                 <View style={styles.previewIcon}>
-                  <Ionicons name="document-text" size={64} color={colors.primary} />
+                  <PdfIcon size={120} />
                 </View>
                 <Text style={styles.previewTitle}>PDF готов!</Text>
                 <Text style={styles.previewSubtitle}>
@@ -3252,6 +3472,56 @@ const styles = StyleSheet.create({
   formatPurchaseChipTextSelected: {
     color: '#FFFFFF',
   },
+  exportOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    elevation: 50,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  exportSkeletonFrame: {
+    width: '100%',
+    maxWidth: 320,
+    height: 420,
+    marginBottom: 20,
+    borderRadius: radii.sm,
+    overflow: 'hidden',
+    ...createShadow('md'),
+  },
+  exportOverlayTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    fontFamily: sansFont('semibold'),
+    marginBottom: 6,
+  },
+  exportOverlaySubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 12,
+  },
+  exportProgressTrack: {
+    width: '100%',
+    maxWidth: 280,
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginTop: 16,
+  },
+  exportProgressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
   createButton: {
     backgroundColor: colors.primary,
     flexDirection: 'row',
@@ -3271,69 +3541,6 @@ const styles = StyleSheet.create({
   createButtonDisabled: {
     opacity: 0.5,
   },
-  loadingContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 12,
-    width: '100%',
-  },
-  progressContainer: {
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-  },
-  progressBar: {
-    width: '100%',
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  exportOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-    elevation: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.88)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  exportOverlayCard: {
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: colors.white,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    gap: 8,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 10,
-  },
-  exportOverlayTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  exportOverlaySubtitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
   createButtonText: {
     color: '#FFFFFF',
     fontSize: 17,
@@ -3343,6 +3550,27 @@ const styles = StyleSheet.create({
       android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
+  },
+  exportErrorCard: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  exportErrorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    fontFamily: sansFont('semibold'),
+  },
+  exportErrorText: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   previewContainer: {
     alignItems: 'center',

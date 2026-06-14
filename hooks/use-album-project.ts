@@ -24,7 +24,11 @@ import {
 import { migrateProjectToPageValues } from '@/utils/migrateToPageValues';
 import {
   buildAnnotationsForProject,
+  duplicatePageAtIndex,
   insertPageAtIndex,
+  movePageAtIndex,
+  removePageAtIndex,
+  renamePageInstance,
 } from '@/utils/albumPageOperations';
 import {
   loadPageInstances,
@@ -37,6 +41,11 @@ import { syncPageValuesToAnnotationsStorage } from '@/utils/pageValuesAdapter';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
+  flushAlbumProjectPersist,
+  scheduleAlbumProjectPersist,
+} from '@/utils/albumProjectPersist';
+import {
+  getAlbumProjectSnapshot,
   patchAlbumProjectSnapshot,
   publishAlbumProjectSnapshot,
   subscribeAlbumProjectSnapshot,
@@ -85,7 +94,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   const [pageValuesMap, setPageValuesMap] = useState<Record<string, PageValues>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const metaRef = useRef(meta);
+  metaRef.current = meta;
 
   const lineGuideId = useMemo(
     () => resolveLineGuideId(meta?.interiorType ?? meta?.albumId, meta?.category ?? celebration),
@@ -157,12 +167,26 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       nextValues: Record<string, PageValues>
     ) => {
       if (!effectiveProjectId) return;
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => {
-        persistAll(effectiveProjectId, nextImages, nextInstances, nextValues, meta);
-      }, 400);
+      scheduleAlbumProjectPersist(
+        effectiveProjectId,
+        {
+          images: nextImages,
+          instances: nextInstances,
+          pageValuesMap: nextValues,
+          meta: metaRef.current,
+        },
+        async (payload) => {
+          await persistAll(
+            effectiveProjectId,
+            payload.images,
+            payload.instances,
+            payload.pageValuesMap,
+            payload.meta
+          );
+        }
+      );
     },
-    [effectiveProjectId, meta, persistAll]
+    [effectiveProjectId, persistAll]
   );
 
   const publishSnapshot = useCallback(
@@ -184,23 +208,40 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   const reloadProjectData = useCallback(async () => {
     if (!effectiveProjectId) return;
 
+    await flushAlbumProjectPersist(effectiveProjectId);
+
+    const memorySnapshot = getAlbumProjectSnapshot(effectiveProjectId);
+
     const [loadedInstances, loadedValues, savedImagesRaw] = await Promise.all([
       loadPageInstances((k) => AsyncStorage.getItem(k), effectiveProjectId),
       loadPageValuesMap((k) => AsyncStorage.getItem(k), effectiveProjectId),
       AsyncStorage.getItem(`@project_images_${effectiveProjectId}`),
     ]);
 
-    const nextImages = savedImagesRaw ? (JSON.parse(savedImagesRaw) as string[]) : [];
+    const diskImages = savedImagesRaw ? (JSON.parse(savedImagesRaw) as string[]) : [];
+    const mergedValues = memorySnapshot?.pageValuesMap
+      ? { ...loadedValues, ...memorySnapshot.pageValuesMap }
+      : loadedValues;
+    const mergedInstances =
+      memorySnapshot?.instances?.length && memorySnapshot.instances.length >= loadedInstances.length
+        ? memorySnapshot.instances
+        : loadedInstances;
+    const mergedImages =
+      memorySnapshot?.images?.length && memorySnapshot.images.length >= diskImages.length
+        ? memorySnapshot.images
+        : diskImages.length > 0
+          ? diskImages
+          : images;
 
-    setInstances(loadedInstances);
-    setPageValuesMap(loadedValues);
-    if (nextImages.length > 0) {
-      setImages(nextImages);
+    setInstances(mergedInstances);
+    setPageValuesMap(mergedValues);
+    if (mergedImages.length > 0) {
+      setImages(mergedImages);
     }
     publishAlbumProjectSnapshot(effectiveProjectId, {
-      pageValuesMap: loadedValues,
-      instances: loadedInstances,
-      images: nextImages.length > 0 ? nextImages : images,
+      pageValuesMap: mergedValues,
+      instances: mergedInstances,
+      images: mergedImages,
     });
   }, [effectiveProjectId, images]);
 
@@ -212,6 +253,15 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       setInstances(snapshot.instances);
       setImages(snapshot.images);
     });
+  }, [effectiveProjectId]);
+
+  useEffect(() => {
+    const pid = effectiveProjectId;
+    return () => {
+      if (pid) {
+        void flushAlbumProjectPersist(pid);
+      }
+    };
   }, [effectiveProjectId]);
 
   const updatePageValues = useCallback(
@@ -242,11 +292,12 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       setPageValuesMap(merged);
       publishSnapshot(merged, instances, images);
       if (effectiveProjectId) {
-        await persistAll(effectiveProjectId, images, instances, merged, meta);
+        await flushAlbumProjectPersist(effectiveProjectId);
+        await persistAll(effectiveProjectId, images, instances, merged, metaRef.current);
       }
       return refreshed;
     },
-    [instances, images, lineGuideId, pageValuesMap, effectiveProjectId, meta, persistAll, publishSnapshot]
+    [instances, images, lineGuideId, pageValuesMap, effectiveProjectId, persistAll, publishSnapshot]
   );
 
   const addPage = useCallback(
@@ -304,6 +355,146 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       loadImagesForAlbum,
       persistAll,
     ]
+  );
+
+  const removePage = useCallback(
+    async (instanceId: string) => {
+      const pageIndex = instances.findIndex((item) => item.instanceId === instanceId);
+      if (pageIndex < 0 || !effectiveProjectId) return false;
+
+      const instance = instances[pageIndex];
+      if (!instance.addedByUser) return false;
+
+      const result = removePageAtIndex({
+        instances,
+        pageValuesMap,
+        images,
+        pageIndex,
+      });
+      if (!result) return false;
+
+      setImages(result.images);
+      setInstances(result.instances);
+      setPageValuesMap(result.pageValuesMap);
+      publishAlbumProjectSnapshot(effectiveProjectId, {
+        pageValuesMap: result.pageValuesMap,
+        instances: result.instances,
+        images: result.images,
+      });
+      await persistAll(
+        effectiveProjectId,
+        result.images,
+        result.instances,
+        result.pageValuesMap,
+        meta
+      );
+      return true;
+    },
+    [instances, pageValuesMap, images, effectiveProjectId, meta, persistAll]
+  );
+
+  const duplicatePage = useCallback(
+    async (instanceId: string) => {
+      const pageIndex = instances.findIndex((item) => item.instanceId === instanceId);
+      if (pageIndex < 0 || !effectiveProjectId) return null;
+
+      const result = duplicatePageAtIndex({
+        instances,
+        pageValuesMap,
+        images,
+        pageIndex,
+        lineGuideId,
+      });
+      if (!result) return null;
+
+      setImages(result.images);
+      setInstances(result.instances);
+      setPageValuesMap(result.pageValuesMap);
+      publishAlbumProjectSnapshot(effectiveProjectId, {
+        pageValuesMap: result.pageValuesMap,
+        instances: result.instances,
+        images: result.images,
+      });
+      await persistAll(
+        effectiveProjectId,
+        result.images,
+        result.instances,
+        result.pageValuesMap,
+        meta
+      );
+      return result.instances[pageIndex + 1]?.instanceId ?? null;
+    },
+    [instances, pageValuesMap, images, effectiveProjectId, meta, lineGuideId, persistAll]
+  );
+
+  const renamePage = useCallback(
+    async (instanceId: string, title: string) => {
+      if (!effectiveProjectId) return false;
+      const nextInstances = renamePageInstance({ instances, instanceId, titleOverride: title });
+      if (!nextInstances) return false;
+      setInstances(nextInstances);
+      publishAlbumProjectSnapshot(effectiveProjectId, {
+        pageValuesMap,
+        instances: nextInstances,
+        images,
+      });
+      await persistAll(effectiveProjectId, images, nextInstances, pageValuesMap, meta);
+      return true;
+    },
+    [instances, pageValuesMap, images, effectiveProjectId, meta, persistAll]
+  );
+
+  const movePage = useCallback(
+    async (instanceId: string, toIndex: number) => {
+      const fromIndex = instances.findIndex((item) => item.instanceId === instanceId);
+      if (fromIndex < 0 || !effectiveProjectId) return false;
+
+      const result = movePageAtIndex({
+        instances,
+        pageValuesMap,
+        images,
+        fromIndex,
+        toIndex,
+      });
+      if (!result) return false;
+
+      setImages(result.images);
+      setInstances(result.instances);
+      publishAlbumProjectSnapshot(effectiveProjectId, {
+        pageValuesMap: result.pageValuesMap,
+        instances: result.instances,
+        images: result.images,
+      });
+      await persistAll(
+        effectiveProjectId,
+        result.images,
+        result.instances,
+        result.pageValuesMap,
+        meta
+      );
+      return true;
+    },
+    [instances, pageValuesMap, images, effectiveProjectId, meta, persistAll]
+  );
+
+  const setPageExcluded = useCallback(
+    (instanceId: string, excluded: boolean) => {
+      updatePageValues(instanceId, (prev) => ({
+        ...prev,
+        excludedFromExport: excluded,
+      }));
+    },
+    [updatePageValues]
+  );
+
+  const markDraftSaved = useCallback(
+    (instanceId: string) => {
+      updatePageValues(instanceId, (prev) => ({
+        ...prev,
+        draftSavedAt: new Date().toISOString(),
+      }));
+    },
+    [updatePageValues]
   );
 
   const getPageAnnotations = useCallback(
@@ -369,12 +560,27 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, loadedValues);
           }
 
-          setInstances(loadedInstances);
-          setPageValuesMap(loadedValues);
+          const memorySnapshot = getAlbumProjectSnapshot(projectId);
+          const mergedValues = memorySnapshot?.pageValuesMap
+            ? { ...loadedValues, ...memorySnapshot.pageValuesMap }
+            : loadedValues;
+          const mergedInstances =
+            memorySnapshot?.instances?.length &&
+            memorySnapshot.instances.length >= loadedInstances.length
+              ? memorySnapshot.instances
+              : loadedInstances;
+          const mergedImages =
+            memorySnapshot?.images?.length && memorySnapshot.images.length >= imageUris.length
+              ? memorySnapshot.images
+              : imageUris;
+
+          setInstances(mergedInstances);
+          setPageValuesMap(mergedValues);
+          setImages(mergedImages);
           publishAlbumProjectSnapshot(projectId, {
-            pageValuesMap: loadedValues,
-            instances: loadedInstances,
-            images: imageUris,
+            pageValuesMap: mergedValues,
+            instances: mergedInstances,
+            images: mergedImages,
           });
           setIsLoading(false);
           return;
@@ -443,7 +649,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         setMeta(projectData);
         setEffectiveProjectId(newProjectId);
         router.replace({
-          pathname: '/album-pages',
+          pathname: '/album-intro',
           params: {
             id: newProjectId,
             celebration,
@@ -477,6 +683,12 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     updatePageValues,
     savePageValuesNow,
     addPage,
+    removePage,
+    duplicatePage,
+    renamePage,
+    movePage,
+    setPageExcluded,
+    markDraftSaved,
     getPageAnnotations,
     getInstanceTitle: (instance: PageInstance) => getInstanceTitle(instance, lineGuideId),
     getSchemaForInstance: (instance: PageInstance) => getSchemaForInstance(instance, lineGuideId),

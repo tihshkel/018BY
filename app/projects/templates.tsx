@@ -13,14 +13,13 @@ import {
 import { getRemindersStorageKey } from '@/utils/account-sync';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
+import { getAccountSyncId } from '@/utils/account-identity';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import {
-  FORM_MODAL_MAX_WIDTH,
   getGridColumnCount,
   getGridColumnWrapperStyle,
   getGridListStyle,
-  getTabletBottomModalStyles,
   getTabletContentShell,
   getTabletSectionWrap,
   PICKER_CONTENT_MAX_WIDTH,
@@ -28,7 +27,10 @@ import {
 } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { AlbumDateSheet, getAlbumCategoryDateBounds } from '@/components/album/album-date-sheet';
+import { AppInlineDatePicker } from '@/components/ui/app-date-picker-sheet';
+import { AppBottomSheet } from '@/components/ui/app-bottom-sheet';
+import { AppButton } from '@/components/ui/app-button';
 import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -36,7 +38,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     FlatList,
-    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -153,13 +154,11 @@ type CoverPickerRow = {
 
 export default function ProjectTemplatesScreen() {
   const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
-  const modalLayout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
   const contentShellStyle = getTabletContentShell(layout);
   const sectionWrap = getTabletSectionWrap(layout, {
     phonePadding: 24,
     tabletPadding: 0,
   });
-  const tabletModal = getTabletBottomModalStyles(modalLayout);
   const coverColumnCount = getGridColumnCount(layout);
   const gridListStyle = getGridListStyle(layout);
   const gridColumnWrapper = getGridColumnWrapperStyle(16);
@@ -180,7 +179,6 @@ export default function ProjectTemplatesScreen() {
   const [selectedAlbumForDate, setSelectedAlbumForDate] = useState<AlbumTemplate | null>(null);
   const [showCoverDateModal, setShowCoverDateModal] = useState(false);
   const [coverDate, setCoverDate] = useState(new Date());
-  const [showCoverDatePicker, setShowCoverDatePicker] = useState(false);
   const [isSavingCoverDate, setIsSavingCoverDate] = useState(false);
 
   const opacity = useSharedValue(0);
@@ -779,132 +777,19 @@ export default function ProjectTemplatesScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Date modal for pregnancy/kids covers */}
-      {showCoverDateModal && categoryId && (categoryId === 'pregnancy' || categoryId === 'kids') && (() => {
-        const categoryInfo = getCategoryInfo(categoryId);
-        const isPastDateAllowed = categoryId === 'kids';
-
-        return (
-          <Modal
-            visible={showCoverDateModal}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={handleCoverDateCancel}
-          >
-            <View style={[styles.coverDateModalOverlay, tabletModal.overlay]}>
-              <View
-                style={[
-                  styles.coverDateModalContent,
-                  tabletModal.content,
-                  { paddingBottom: bottomInset + 20 },
-                ]}
-              >
-                <View style={styles.coverDateModalHeader}>
-                  <Text style={styles.coverDateModalTitle}>{categoryInfo.title}</Text>
-                  <TouchableOpacity onPress={handleCoverDateCancel}>
-                    <Ionicons name="close" size={24} color={colors.textPrimary} />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.coverDateModalBody}>
-                  <Text style={styles.coverDateModalDescription}>
-                    {categoryInfo.description}
-                  </Text>
-
-                  <TouchableOpacity
-                    style={styles.coverDateButton}
-                    onPress={() => setShowCoverDatePicker(true)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="calendar-outline" size={24} color={colors.primary} />
-                    <View style={styles.coverDateButtonTextContainer}>
-                      <Text style={styles.coverDateButtonLabel}>{categoryInfo.title}</Text>
-                      <Text style={styles.coverDateButtonText}>
-                        {coverDate.toLocaleDateString('ru-RU', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
-                  </TouchableOpacity>
-
-                  {showCoverDatePicker && (
-                    <DateTimePicker
-                      value={coverDate}
-                      mode="date"
-                      display={Platform.select({
-                        ios: 'spinner',
-                        android: 'default',
-                        default: 'default',
-                      })}
-                      minimumDate={
-                        isPastDateAllowed
-                          ? (() => {
-                              const d = new Date();
-                              d.setFullYear(d.getFullYear() - 100);
-                              return d;
-                            })()
-                          : new Date()
-                      }
-                      maximumDate={
-                        isPastDateAllowed ? new Date() : new Date(new Date().setFullYear(new Date().getFullYear() + 2))
-                      }
-                      onChange={(event, date) => {
-                        if (Platform.OS === 'android') {
-                          setShowCoverDatePicker(false);
-                        }
-                        if (date && event.type !== 'dismissed') {
-                          setCoverDate(date);
-                        }
-                      }}
-                      locale="ru-RU"
-                      themeVariant="light"
-                      textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
-                    />
-                  )}
-
-                  {Platform.OS === 'ios' && showCoverDatePicker && (
-                    <View style={styles.iosCoverDatePickerButtons}>
-                      <TouchableOpacity
-                        style={styles.iosCoverDatePickerButton}
-                        onPress={() => setShowCoverDatePicker(false)}
-                      >
-                        <Text style={styles.iosCoverDatePickerButtonText}>Готово</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.coverDateModalButtons}>
-                  <TouchableOpacity
-                    style={styles.coverDateCancelButton}
-                    onPress={handleCoverDateCancel}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.coverDateCancelButtonText}>Отмена</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.coverDateConfirmButton,
-                      isSavingCoverDate && { opacity: 0.6 },
-                    ]}
-                    onPress={handleCoverDateConfirm}
-                    activeOpacity={0.85}
-                    disabled={isSavingCoverDate}
-                  >
-                    <Text style={styles.coverDateConfirmButtonText}>
-                      {isSavingCoverDate ? 'Сохраняем…' : 'Сохранить'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        );
-      })()}
+      {showCoverDateModal && categoryId && (categoryId === 'pregnancy' || categoryId === 'kids') && (
+        <AlbumDateSheet
+          visible={showCoverDateModal}
+          title={getCategoryInfo(categoryId).title}
+          description={getCategoryInfo(categoryId).description}
+          value={coverDate}
+          onChange={setCoverDate}
+          onClose={handleCoverDateCancel}
+          onConfirm={handleCoverDateConfirm}
+          isSaving={isSavingCoverDate}
+          {...getAlbumCategoryDateBounds(categoryId === 'kids')}
+        />
+      )}
 
       {/* Дата */}
       <DateSelectionModal
@@ -938,74 +823,28 @@ const DateSelectionModal: React.FC<DateSelectionModalProps> = ({
   onSelectDate,
   selectedDate,
   prompt,
-}) => {
-  if (!visible) {
-    return null;
-  }
-
-  return (
-    <TouchableOpacity
-      style={styles.modalOverlay}
-      activeOpacity={1}
-      onPress={onClose}
-    >
-      <TouchableOpacity
-        style={styles.modalContent}
-        activeOpacity={1}
-        onPress={event => event.stopPropagation()}
-      >
-        <Text style={styles.modalTitle}>{prompt}</Text>
-        <Text style={styles.modalSubtitle}>
-          Эта дата поможет строить напоминания и рекомендации
-        </Text>
-
-        <View style={styles.datePickerContainer}>
-          <DateTimePicker
-            value={selectedDate}
-            mode='date'
-            display={Platform.select({
-              ios: 'spinner',
-              android: 'calendar',
-              default: 'default',
-            })}
-            locale='ru-RU'
-            maximumDate={new Date(2030, 11, 31)}
-            minimumDate={new Date(1900, 0, 1)}
-            onChange={(_event, date) => {
-              if (date) {
-                onSelectDate(date);
-              }
-            }}
-            style={styles.datePicker}
-            themeVariant='light'
-            textColor={Platform.OS === 'ios' ? colors.textPrimary : undefined}
-          />
-        </View>
-
-        <View style={styles.modalButtons}>
-          <TouchableOpacity
-            style={styles.skipButton}
-            onPress={onSkip}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.skipButtonText}>Пропустить</Text>
-            <Text style={styles.skipButtonHint}>
-              Без даты напоминания работать не будут
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.confirmButton}
-            onPress={onConfirm}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.confirmButtonText}>Подтвердить</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-};
+}) => (
+  <AppBottomSheet
+    visible={visible}
+    onClose={onClose}
+    title={prompt}
+    subtitle="Эта дата поможет строить напоминания и рекомендации"
+    scroll={false}
+    footer={
+      <View style={styles.modalButtonsRow}>
+        <AppButton title="Пропустить" variant="outline" onPress={onSkip} fullWidth={false} style={styles.modalBtnHalf} />
+        <AppButton title="Подтвердить" onPress={onConfirm} fullWidth={false} style={styles.modalBtnHalf} />
+      </View>
+    }
+  >
+    <AppInlineDatePicker
+      value={selectedDate}
+      onChange={onSelectDate}
+      minimumDate={new Date(1900, 0, 1)}
+      maximumDate={new Date(2030, 11, 31)}
+    />
+  </AppBottomSheet>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -1214,6 +1053,13 @@ const styles = StyleSheet.create({
   modalButtons: {
     gap: 12,
   },
+  modalButtonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtnHalf: {
+    flex: 1,
+  },
   skipButton: {
     alignItems: 'center',
     gap: 4,
@@ -1325,146 +1171,6 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-  },
-  // Cover date modal styles for pregnancy/kids
-  coverDateModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  coverDateModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 24,
-    paddingHorizontal: 24,
-    maxHeight: '80%',
-  },
-  coverDateModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  coverDateModalTitle: {
-    fontSize: 20,
-    color: colors.textPrimary,
-    fontFamily: sansFont('bold'),
-    fontWeight: '700',
-  },
-  coverDateModalBody: {
-    marginBottom: 24,
-  },
-  coverDateModalDescription: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  coverDateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E8D5C7',
-  },
-  coverDateButtonTextContainer: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  coverDateButtonLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    marginBottom: 4,
-  },
-  coverDateButtonText: {
-    fontSize: 18,
-    color: colors.textPrimary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '500',
-  },
-  iosCoverDatePickerButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-  },
-  iosCoverDatePickerButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-  },
-  iosCoverDatePickerButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  coverDateModalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  coverDateCancelButton: {
-    flex: 1,
-    backgroundColor: colors.border,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  coverDateCancelButtonText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '500',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  coverDateConfirmButton: {
-    flex: 1,
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  coverDateConfirmButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
   },

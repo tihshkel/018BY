@@ -1,4 +1,5 @@
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
+import { FULL_PHOTO_BLOCK } from '@/constants/photo-block-presets';
 import { getAlbumPageSchemas } from '@/constants/generated/album-page-schemas';
 import { getPageTemplateById } from '@/constants/page-template-library';
 import { createId } from '@/utils/id';
@@ -63,6 +64,26 @@ export function getSchemaForInstance(
     const templateId = libMatch?.[1];
     const template = templateId ? getPageTemplateById(templateId) : undefined;
     if (template) {
+      const photoBlocks =
+        template.photoSlots > 0 && (template.pageType === 'photo' || template.pageType === 'free')
+          ? template.pageType === 'photo'
+            ? [FULL_PHOTO_BLOCK]
+            : [
+                {
+                  blockId: 'main_photo',
+                  label: 'Фото для страницы',
+                  variants: [
+                    {
+                      variantId: 'default',
+                      label: 'Фото',
+                      slots: template.photoSlots,
+                      slotIndices: Array.from({ length: template.photoSlots }, (_, i) => i),
+                    },
+                  ],
+                },
+              ]
+          : undefined;
+
       return {
         pageId: instance.schemaPageId,
         title: instance.titleOverride ?? template.title,
@@ -74,20 +95,7 @@ export function getSchemaForInstance(
         canDuplicate: true,
         canAddAfter: true,
         templateLibraryId: template.id,
-        photoBlocks: [
-          {
-            blockId: 'main_photo',
-            label: 'Фото для страницы',
-            variants: [
-              {
-                variantId: 'default',
-                label: 'Фото',
-                slots: template.photoSlots || 1,
-                slotIndices: Array.from({ length: template.photoSlots || 1 }, (_, i) => i),
-              },
-            ],
-          },
-        ],
+        photoBlocks,
         fields: template.hasTextBlock
           ? [
               {

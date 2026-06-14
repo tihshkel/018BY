@@ -4,6 +4,7 @@ import {
   usesFreeFormTextEditing,
   usesTemplateLineTextEditing,
 } from '@/constants/album-text-margins';
+import { AppActionSheet } from '@/components/ui';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
 import {
@@ -44,7 +45,6 @@ import {
     Animated,
     FlatList,
     Keyboard,
-    Modal,
     Platform,
     Pressable,
     ScrollView,
@@ -967,63 +967,32 @@ export default function ImageViewer({
         }}
       />
 
-      {/* Модальное окно с опциями страницы */}
-      <Modal
+      <AppActionSheet
         visible={showPageMenu}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {
+        onClose={() => {
           setShowPageMenu(false);
           setSelectedPageIndex(null);
         }}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => {
-            setShowPageMenu(false);
-            setSelectedPageIndex(null);
-          }}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Действия со страницей</Text>
-            <Text style={styles.modalSubtitle}>
-              Страница {selectedPageIndex !== null ? selectedPageIndex + 1 : ''}
-            </Text>
-            
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalActionButton, styles.duplicateButton]}
-                onPress={handleDuplicatePage}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="copy-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.modalActionButtonText}>Дублировать</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalActionButton, styles.deleteButton]}
-                onPress={handleDeletePage}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.modalActionButtonText}>Удалить</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => {
-                setShowPageMenu(false);
-                setSelectedPageIndex(null);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        title="Действия со страницей"
+        subtitle={
+          selectedPageIndex !== null ? `Страница ${selectedPageIndex + 1}` : undefined
+        }
+        actions={[
+          {
+            id: 'duplicate',
+            title: 'Дублировать',
+            icon: 'copy-outline',
+            onPress: handleDuplicatePage,
+          },
+          {
+            id: 'delete',
+            title: 'Удалить',
+            icon: 'trash-outline',
+            destructive: true,
+            onPress: handleDeletePage,
+          },
+        ]}
+      />
     </View>
   );
 }
@@ -1149,93 +1118,6 @@ const styles = StyleSheet.create({
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: colors.textPrimary,
-    fontFamily: sansFont('bold'),
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  modalActions: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  modalActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  duplicateButton: {
-    backgroundColor: colors.primary,
-  },
-  deleteButton: {
-    backgroundColor: '#E74C3C',
-  },
-  modalActionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  modalCancelButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  modalCancelButtonText: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '500',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
   },

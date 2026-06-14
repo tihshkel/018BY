@@ -13,7 +13,7 @@ import {
 import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { AppDateField } from '@/components/ui/app-date-field';
 import Constants from 'expo-constants';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -144,9 +144,6 @@ export default function RemindersListScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  /** Android: нет mode="datetime" у нативного пикера — только date + time по очереди (иначе dismiss падает). */
-  const [androidPickerStep, setAndroidPickerStep] = useState<'date' | 'time'>('date');
   const [customTitle, setCustomTitle] = useState('');
   const [customDescription, setCustomDescription] = useState('');
   const opacity = useSharedValue(0);
@@ -180,8 +177,6 @@ export default function RemindersListScreen() {
         runOnJS(setSelectedCategory)(null);
         runOnJS(setCustomTitle)('');
         runOnJS(setCustomDescription)('');
-        runOnJS(setShowDatePicker)(false);
-        runOnJS(setAndroidPickerStep)('date');
       }
     });
   }, []);
@@ -778,27 +773,13 @@ export default function RemindersListScreen() {
 
               {/* Выбор даты и времени */}
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Дата и время</Text>
-                <TouchableOpacity
-                  style={styles.dateButton}
-                  onPress={() => {
-                    setAndroidPickerStep('date');
-                    setShowDatePicker(true);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                  <Text style={styles.dateButtonText}>
-                    {selectedDate.toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
-                </TouchableOpacity>
+                <AppDateField
+                  label="Дата и время"
+                  value={selectedDate}
+                  onChange={setSelectedDate}
+                  mode="datetime"
+                  minimumDate={new Date()}
+                />
               </View>
 
               {/* Кнопки */}
@@ -824,87 +805,6 @@ export default function RemindersListScreen() {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-
-            {/* Датапикер: iOS — datetime; Android — только date|time (datetime ломает dismiss в библиотеке) */}
-            {showDatePicker && Platform.OS === 'ios' ? (
-              <DateTimePicker
-                value={selectedDate}
-                mode="datetime"
-                display="spinner"
-                minimumDate={new Date()}
-                onChange={(event, date) => {
-                  if (date && event.type !== 'dismissed') {
-                    setSelectedDate(date);
-                  }
-                }}
-                locale="ru-RU"
-                themeVariant="light"
-                textColor={colors.textPrimary}
-              />
-            ) : null}
-            {showDatePicker && Platform.OS === 'android' && androidPickerStep === 'date' ? (
-              <DateTimePicker
-                key="android-date"
-                value={selectedDate}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                onChange={(event, date) => {
-                  if (event.type === 'dismissed') {
-                    setShowDatePicker(false);
-                    setAndroidPickerStep('date');
-                    return;
-                  }
-                  if (date) {
-                    setSelectedDate((prev) => {
-                      const d = new Date(date);
-                      d.setHours(prev.getHours(), prev.getMinutes(), prev.getSeconds(), prev.getMilliseconds());
-                      return d;
-                    });
-                    setAndroidPickerStep('time');
-                  }
-                }}
-                locale="ru-RU"
-                themeVariant="light"
-              />
-            ) : null}
-            {showDatePicker && Platform.OS === 'android' && androidPickerStep === 'time' ? (
-              <DateTimePicker
-                key="android-time"
-                value={selectedDate}
-                mode="time"
-                display="default"
-                onChange={(event, date) => {
-                  if (event.type === 'dismissed') {
-                    setShowDatePicker(false);
-                    setAndroidPickerStep('date');
-                    return;
-                  }
-                  if (date) {
-                    setSelectedDate((prev) => {
-                      const d = new Date(prev);
-                      d.setHours(date.getHours(), date.getMinutes(), 0, 0);
-                      return d;
-                    });
-                  }
-                  setShowDatePicker(false);
-                  setAndroidPickerStep('date');
-                }}
-                locale="ru-RU"
-                themeVariant="light"
-              />
-            ) : null}
-
-            {Platform.OS === 'ios' && showDatePicker && (
-              <View style={styles.iosDatePickerButtons}>
-                <TouchableOpacity
-                  style={styles.iosDatePickerButton}
-                  onPress={() => setShowDatePicker(false)}
-                >
-                  <Text style={styles.iosDatePickerButtonText}>Готово</Text>
-                </TouchableOpacity>
-              </View>
-            )}
               </Animated.View>
             </KeyboardAvoidingView>
           </Animated.View>

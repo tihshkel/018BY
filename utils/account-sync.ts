@@ -252,7 +252,9 @@ export async function ensureSyncReady(): Promise<void> {
       await AsyncStorage.setItem('@user_name', userName);
     }
     const { saveAccountToSupabase, isSupabaseConfigured } = await import('./supabase-account');
+    const { ensureDefaultAvatar } = await import('./user-avatar');
     if (isSupabaseConfigured()) {
+      await ensureDefaultAvatar();
       await saveAccountToSupabase(syncId, userName.trim(), null);
     }
   } catch (e) {

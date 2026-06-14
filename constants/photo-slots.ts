@@ -1,0 +1,157 @@
+/**
+ * Normalized photo placement regions (0–1 relative to page PNG).
+ * y is the vertical center of the slot, matching line-slots convention.
+ */
+
+import {
+  buildPageLayoutsFromTemplates,
+  type SafeZone,
+} from '@/constants/photo-layout-templates';
+
+export type NormalizedPhotoSlot = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  aspectRatio?: [number, number];
+};
+
+export type PhotoVariantLayout = {
+  variantId: string;
+  slots: NormalizedPhotoSlot[];
+};
+
+export type PhotoPageLayouts = {
+  variants: PhotoVariantLayout[];
+};
+
+/** Calibrated safe zone for pregnancy «Для фото» — below top decor, above bottom margin */
+const PREGNANCY_PHOTO_SAFE: SafeZone = {
+  x: 0.11,
+  y: 0.26,
+  width: 0.78,
+  height: 0.5,
+};
+
+const EVENT_PHOTO_SAFE: SafeZone = {
+  x: 0.08,
+  y: 0.2,
+  width: 0.84,
+  height: 0.6,
+};
+
+const BLANK_PAGE_SAFE: SafeZone = {
+  x: 0.1,
+  y: 0.15,
+  width: 0.8,
+  height: 0.7,
+};
+
+const KIDS_P1_SAFE: SafeZone = { x: 0.19, y: 0.17, width: 0.62, height: 0.14 };
+const KIDS_P3_SAFE: SafeZone = { x: 0.15, y: 0.27, width: 0.7, height: 0.22 };
+const KIDS_P4_SAFE: SafeZone = { x: 0.12, y: 0.08, width: 0.76, height: 0.28 };
+const KIDS_P21_SAFE: SafeZone = { x: 0.1, y: 0.2, width: 0.8, height: 0.3 };
+
+const FULL_PHOTO_TEMPLATES = [
+  'one_large',
+  'two_photos',
+  'three_hero',
+  'four_grid',
+] as const;
+
+const EVENT_PHOTO_TEMPLATES = [
+  'one_horizontal',
+  'two_horizontal',
+  'two_vertical',
+  'three_hero',
+  'four_vertical',
+] as const;
+
+const STRUCTURED_TWO_TEMPLATES = ['one_horizontal', 'two_vertical'] as const;
+
+const GODPARENTS_VARIANTS: PhotoVariantLayout[] = [
+  {
+    variantId: 'one_horizontal_common',
+    slots: [{ x: 0.16, y: 0.35, width: 0.68, height: 0.3, aspectRatio: [4, 3] }],
+  },
+  {
+    variantId: 'two_vertical_separate',
+    slots: [
+      { x: 0.1, y: 0.35, width: 0.38, height: 0.3, aspectRatio: [3, 4] },
+      { x: 0.52, y: 0.35, width: 0.38, height: 0.3, aspectRatio: [3, 4] },
+    ],
+  },
+];
+
+function layoutsFromTemplates(safeZone: SafeZone, templateIds: readonly string[]): PhotoPageLayouts {
+  return buildPageLayoutsFromTemplates(safeZone, [...templateIds]) as PhotoPageLayouts;
+}
+
+function pregnancyPhotoLayouts(): PhotoPageLayouts {
+  return layoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES);
+}
+
+function eventPhotoLayouts(): PhotoPageLayouts {
+  return layoutsFromTemplates(EVENT_PHOTO_SAFE, EVENT_PHOTO_TEMPLATES);
+}
+
+function blankPageLayouts(): PhotoPageLayouts {
+  return layoutsFromTemplates(BLANK_PAGE_SAFE, FULL_PHOTO_TEMPLATES);
+}
+
+/** Fallback for photo/event pages without explicit profile */
+export const DEFAULT_PHOTO_PAGE_LAYOUTS: PhotoPageLayouts = blankPageLayouts();
+
+function eventPages(pages: number[]): Record<string, PhotoPageLayouts> {
+  const layout = eventPhotoLayouts();
+  return Object.fromEntries(pages.map((p) => [String(p), layout]));
+}
+
+function blankAlbumPages(count: number): Record<string, PhotoPageLayouts> {
+  const layout = blankPageLayouts();
+  return Object.fromEntries(
+    Array.from({ length: count }, (_, i) => [String(i + 1), layout]),
+  );
+}
+
+export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
+  pregnancy_60: {
+    '56': pregnancyPhotoLayouts(),
+    '57': pregnancyPhotoLayouts(),
+    '58': pregnancyPhotoLayouts(),
+    '59': pregnancyPhotoLayouts(),
+  },
+  pregnancy_a5: {
+    '48': pregnancyPhotoLayouts(),
+  },
+  kids_48: {
+    '1': layoutsFromTemplates(KIDS_P1_SAFE, STRUCTURED_TWO_TEMPLATES),
+    '3': layoutsFromTemplates(KIDS_P3_SAFE, STRUCTURED_TWO_TEMPLATES),
+    '4': layoutsFromTemplates(KIDS_P4_SAFE, STRUCTURED_TWO_TEMPLATES),
+    '5': pregnancyPhotoLayouts(),
+    '21': { variants: GODPARENTS_VARIANTS },
+    ...eventPages([6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 20]),
+  },
+  family_blank: blankAlbumPages(20),
+  holidays_blank: blankAlbumPages(20),
+};
+
+export function getPhotoPageLayouts(
+  lineGuideId: string,
+  page: number,
+): PhotoPageLayouts {
+  return PHOTO_SLOTS[lineGuideId]?.[String(page)] ?? DEFAULT_PHOTO_PAGE_LAYOUTS;
+}
+export function getPhotoSlotAspectRatio(
+  lineGuideId: string,
+  page: number,
+  variantId: string,
+  slotIndex: number,
+): [number, number] | undefined {
+  const resolvedVariantId = variantId === 'two_stacked' ? 'two_photos' : variantId;
+  const pageLayouts = getPhotoPageLayouts(lineGuideId, page);
+  const slot =
+    pageLayouts.variants.find((v) => v.variantId === resolvedVariantId)?.slots[slotIndex] ??
+    pageLayouts.variants.find((v) => v.variantId === variantId)?.slots[slotIndex];
+  return slot?.aspectRatio;
+}

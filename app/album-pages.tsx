@@ -1,35 +1,71 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  type Href,
+} from "expo-router";
+import React, { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { PageListItem } from '@/components/album/page-list-item';
-import { AppHeader, AppScreen, AppText } from '@/components/ui';
-import { colors, createShadow, radii, sansFont, spacing } from '@/constants/design-tokens';
-import { useAlbumProject } from '@/hooks/use-album-project';
-import type { PageStatus } from '@/types/album-page-schema';
-import { computePageStatus } from '@/utils/pageStatus';
-
-type FilterTab = 'all' | 'filled' | 'draft';
+import { AlbumSectionAccordion } from "@/components/album/album-section-accordion";
+import { AppButton, AppHeader, AppScreen, AppText } from "@/components/ui";
+import { getAlbumSections } from "@/constants/album-sections";
+import {
+  colors,
+  createShadow,
+  radii,
+  sansFont,
+  spacing,
+} from "@/constants/design-tokens";
+import { useAlbumProject } from "@/hooks/use-album-project";
+import { useAlbumPageListLayout } from "@/hooks/use-album-editor-layout";
+import type { PageInstance } from "@/types/album-page-schema";
+import {
+  buildExportReviewHref,
+  navigateToHomeFromAlbum,
+  type AlbumFlowParams,
+} from "@/utils/albumNavigation";
+import {
+  computeAlbumProgress,
+  computeSectionProgressList,
+  findNextPageToContinue,
+} from "@/utils/albumProgress";
+import {
+  canShowPageActions,
+  openAlbumPage,
+} from "@/utils/albumPageNavigation";
+import { computePageStatus } from "@/utils/pageStatus";
+import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 
 export default function AlbumPagesScreen() {
-  const { id, celebration, coverType, interiorType, eventDate } = useLocalSearchParams<{
-    id?: string;
-    celebration?: string;
-    coverType?: string;
-    interiorType?: string;
-    eventDate?: string;
-  }>();
+  const { id, celebration, coverType, interiorType, eventDate } =
+    useLocalSearchParams<{
+      id?: string;
+      celebration?: string;
+      coverType?: string;
+      interiorType?: string;
+      eventDate?: string;
+    }>();
 
-  const [filter, setFilter] = useState<FilterTab>('all');
   const insets = useSafeAreaInsets();
+  const albumFlowParams: AlbumFlowParams = {
+    id,
+    celebration,
+    coverType,
+    interiorType,
+    eventDate,
+  };
 
   const project = useAlbumProject({
     projectId: id,
@@ -38,63 +74,113 @@ export default function AlbumPagesScreen() {
     interiorType,
     eventDate,
   });
+  const { shellStyle } = useAlbumPageListLayout();
 
   useFocusEffect(
     useCallback(() => {
       if (project.projectId && !project.isLoading) {
         void project.reloadProjectData();
       }
-    }, [project.projectId, project.isLoading, project.reloadProjectData])
+    }, [project.projectId, project.isLoading, project.reloadProjectData]),
   );
 
-  const filteredInstances = useMemo(() => {
-    return project.instances.filter((instance) => {
-      const schema = project.getSchemaForInstance(instance);
-      const values = project.pageValuesMap[instance.instanceId];
-      const status: PageStatus = schema
-        ? computePageStatus(schema, values)
-        : values?.status ?? 'empty';
+  const sections = useMemo(
+    () => getAlbumSections(project.lineGuideId),
+    [project.lineGuideId],
+  );
 
-      if (filter === 'all') return true;
-      if (filter === 'filled') return status === 'filled';
-      if (filter === 'draft') return status === 'draft';
-      return true;
-    });
-  }, [project.instances, project.pageValuesMap, filter, project]);
+  const albumProgress = useMemo(
+    () =>
+      computeAlbumProgress(
+        project.instances,
+        project.pageValuesMap,
+        project.getSchemaForInstance,
+      ),
+    [project.instances, project.pageValuesMap, project],
+  );
 
-  const emptyState = useMemo(() => {
-    if (filteredInstances.length > 0) return null;
+  const sectionProgressList = useMemo(
+    () =>
+      computeSectionProgressList(
+        project.lineGuideId,
+        project.instances,
+        project.pageValuesMap,
+        project.getSchemaForInstance,
+      ),
+    [project.lineGuideId, project.instances, project.pageValuesMap, project],
+  );
 
-    switch (filter) {
-      case 'filled':
-        return {
-          title: 'Пока нет заполненных страниц',
-          subtitle: 'Когда все поля будут заполнены, страница появится в этом списке',
-        };
-      case 'draft':
-        return {
-          title: 'Черновиков пока нет',
-          subtitle: 'Начните заполнять страницу — прогресс сохранится автоматически',
-        };
-      default:
-        return {
-          title: 'Страниц пока нет',
-          subtitle: 'Добавьте первую страницу кнопкой внизу экрана',
-        };
+  const coverSource = useMemo(
+    () =>
+      getProjectCoverImageSource({
+        coverType: project.meta?.coverType ?? coverType,
+        albumId: project.meta?.albumId ?? project.meta?.interiorType,
+        category: project.meta?.category ?? celebration,
+      }),
+    [project.meta, coverType, celebration],
+  );
+
+  const instancesBySection = useMemo(() => {
+    const map = new Map<string, PageInstance[]>();
+    for (const section of sections) {
+      const list = project.instances.filter(
+        (i) =>
+          i.sourcePageNumber >= section.pageRange[0] &&
+          i.sourcePageNumber <= section.pageRange[1],
+      );
+      map.set(section.sectionId, list);
     }
-  }, [filteredInstances.length, filter]);
+    return map;
+  }, [sections, project.instances]);
 
-  const openPage = (instanceId: string) => {
-    router.push({
-      pathname: '/album-page-preview',
-      params: {
-        id: project.projectId,
-        instanceId,
-        celebration,
-        coverType,
-        interiorType,
+  const handleOpenPage = (instanceId: string) => {
+    const instance = project.instances.find((i) => i.instanceId === instanceId);
+    if (!instance) return;
+    const schema = project.getSchemaForInstance(instance);
+    const values = project.pageValuesMap[instanceId];
+    openAlbumPage({
+      instanceId,
+      projectId: project.projectId,
+      schema,
+      values,
+      celebration,
+      coverType,
+      interiorType,
+    });
+  };
+
+  const handleContinue = () => {
+    const next = findNextPageToContinue(
+      project.instances,
+      project.pageValuesMap,
+      project.getSchemaForInstance,
+    );
+    if (next) {
+      handleOpenPage(next.instanceId);
+      return;
+    }
+    Alert.alert(
+      "Отлично!",
+      "Все редактируемые страницы заполнены или уже в работе.",
+    );
+  };
+
+  const handleDeleteCopy = (instanceId: string, title: string) => {
+    Alert.alert("Удалить копию?", `«${title}» будет удалена из альбома.`, [
+      { text: "Отмена", style: "cancel" },
+      {
+        text: "Удалить",
+        style: "destructive",
+        onPress: () => void project.removePage(instanceId),
       },
-    } as unknown as Href);
+    ]);
+  };
+
+  const handleMove = (instanceId: string, direction: -1 | 1) => {
+    const index = project.instances.findIndex((i) => i.instanceId === instanceId);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= project.instances.length) return;
+    void project.movePage(instanceId, target);
   };
 
   if (project.isLoading) {
@@ -105,121 +191,144 @@ export default function AlbumPagesScreen() {
     );
   }
 
-  return (
-    <AppScreen edges={['top']} style={styles.screen}>
-      <AppHeader
-        showBack
-        right={
-          project.projectId ? (
-            <Pressable
-              style={({ pressed }) => [styles.getBookButton, pressed && styles.getBookButtonPressed]}
-              onPress={() =>
-                router.push({
-                  pathname: '/export-pdf',
-                  params: { id: project.projectId },
-                })
-              }
-              hitSlop={4}
-            >
-              <Ionicons name="book-outline" size={16} color={colors.white} />
-              <AppText variant="caption" style={styles.getBookButtonText}>
-                Получить книгу
-              </AppText>
-            </Pressable>
-          ) : null
-        }
-      />
+  const progressBarWidth = `${albumProgress.percent}%`;
 
-      <View style={styles.tabs}>
-        {(
-          [
-            ['all', 'Все страницы'],
-            ['filled', 'Заполненные'],
-            ['draft', 'Черновики'],
-          ] as const
-        ).map(([key, label]) => (
-          <Pressable
-            key={key}
-            onPress={() => setFilter(key)}
-            style={[styles.tab, filter === key && styles.tabActive]}
-          >
-            <AppText
-              variant="caption"
-              style={[styles.tabText, filter === key && styles.tabTextActive]}
-            >
-              {label}
-            </AppText>
-          </Pressable>
-        ))}
-      </View>
+  return (
+    <AppScreen edges={["top"]} style={styles.screen}>
+      <AppHeader showBack onBack={() => navigateToHomeFromAlbum()} />
 
       <ScrollView
-        style={styles.listScroll}
+        style={styles.scroll}
         contentContainerStyle={[
-          styles.listContent,
-          emptyState && styles.listContentEmpty,
-          { paddingBottom: spacing.lg + insets.bottom + 72 },
+          styles.scrollContent,
+          shellStyle,
+          { paddingBottom: spacing.lg + insets.bottom + 160 },
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {emptyState ? (
-          <View style={styles.emptyState}>
-            <Ionicons
-              name={
-                filter === 'filled'
-                  ? 'checkmark-circle-outline'
-                  : filter === 'draft'
-                    ? 'create-outline'
-                    : 'document-text-outline'
-              }
-              size={40}
-              color={colors.border}
-            />
-            <AppText variant="bodySm" style={styles.emptyStateTitle}>
-              {emptyState.title}
+        <View style={styles.hero}>
+          {coverSource ? (
+            <Image source={coverSource} style={styles.heroCover} contentFit="cover" />
+          ) : (
+            <View style={styles.heroCoverPlaceholder}>
+              <Ionicons name="book-outline" size={32} color={colors.tabInactive} />
+            </View>
+          )}
+          <View style={styles.heroText}>
+            <AppText variant="titleSm" style={styles.heroTitle}>
+              {project.meta?.title ?? "Мой фотоальбом"}
             </AppText>
-            <AppText variant="caption" style={styles.emptyStateSubtitle}>
-              {emptyState.subtitle}
+            <AppText variant="caption" style={styles.heroSubtitle}>
+              Сохраняем важные моменты первого года жизни
             </AppText>
           </View>
-        ) : (
-          filteredInstances.map((instance) => {
+        </View>
+
+        <View style={styles.progressBlock}>
+          <View style={styles.progressHeader}>
+            <AppText variant="bodySm" style={styles.progressLabel}>
+              Заполнено {albumProgress.filledCount} из {albumProgress.totalCount} страниц
+            </AppText>
+            <AppText variant="caption" style={styles.progressPercent}>
+              {albumProgress.percent}%
+            </AppText>
+          </View>
+          <View style={styles.progressTrack}>
+            <View
+              style={[styles.progressFill, { width: progressBarWidth as `${number}%` }]}
+            />
+          </View>
+        </View>
+
+        <AppText variant="body" style={styles.sectionHeading}>
+          Содержание альбома
+        </AppText>
+
+        {sections.map((section, index) => {
+          const sectionInstances = instancesBySection.get(section.sectionId) ?? [];
+          const progress = sectionProgressList.find((p) => p.sectionId === section.sectionId);
+          if (!progress) return null;
+
+          const rows = sectionInstances.map((instance) => {
             const schema = project.getSchemaForInstance(instance);
             const values = project.pageValuesMap[instance.instanceId];
-            const status = schema ? computePageStatus(schema, values) : 'empty';
-            return (
-              <PageListItem
-                key={instance.instanceId}
-                title={project.getInstanceTitle(instance)}
-                status={status}
-                thumbnailUri={project.images[instance.imageIndex]}
-                onPress={() => openPage(instance.instanceId)}
-              />
-            );
-          })
-        )}
+            const status = schema
+              ? computePageStatus(schema, values)
+              : "empty";
+            return {
+              instance,
+              title: project.getInstanceTitle(instance),
+              status,
+              thumbnailUri: project.images[instance.imageIndex],
+              canShowMenu: canShowPageActions(schema, instance),
+              canDuplicate: schema?.canDuplicate ?? false,
+              canDeleteCopy: instance.addedByUser,
+            };
+          });
+
+          return (
+            <AlbumSectionAccordion
+              key={section.sectionId}
+              sectionProgress={progress}
+              pages={rows}
+              defaultExpanded={index === 0}
+              onOpenPage={handleOpenPage}
+              onDuplicate={(instanceId) => void project.duplicatePage(instanceId)}
+              onDeleteCopy={handleDeleteCopy}
+              onRename={(instanceId, title) => void project.renamePage(instanceId, title)}
+              onMoveUp={(instanceId) => handleMove(instanceId, -1)}
+              onMoveDown={(instanceId) => handleMove(instanceId, 1)}
+              onToggleExcluded={(instanceId, excluded) =>
+                project.setPageExcluded(instanceId, excluded)
+              }
+            />
+          );
+        })}
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
-        <Pressable
-          style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
-          onPress={() =>
-            router.push({
-              pathname: '/album-add-page',
-              params: {
-                id: project.projectId,
-                celebration,
-                coverType,
-                interiorType,
-              },
-            } as unknown as Href)
-          }
-        >
-          <Ionicons name="add" size={24} color={colors.white} />
-          <AppText variant="button" style={styles.addButtonText}>
-            Добавить страницу
-          </AppText>
-        </Pressable>
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: Math.max(insets.bottom, spacing.sm) },
+        ]}
+      >
+        <View style={[styles.footerInner, shellStyle]}>
+          <AppButton title="Продолжить заполнение" onPress={handleContinue} />
+          <Pressable
+            style={({ pressed }) => [
+              styles.secondaryBtn,
+              pressed && styles.secondaryBtnPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/album-add-page",
+                params: {
+                  id: project.projectId,
+                  celebration,
+                  coverType,
+                  interiorType,
+                },
+              } as unknown as Href)
+            }
+          >
+            <Ionicons name="add" size={20} color={colors.primary} />
+            <AppText variant="button" style={styles.secondaryBtnText}>
+              Добавить страницу
+            </AppText>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.exportBtn,
+              pressed && styles.exportBtnPressed,
+            ]}
+            onPress={() => router.push(buildExportReviewHref(albumFlowParams))}
+          >
+            <Ionicons name="download-outline" size={18} color={colors.textPrimary} />
+            <AppText variant="caption" style={styles.exportBtnText}>
+              Скачать альбом
+            </AppText>
+          </Pressable>
+        </View>
       </View>
     </AppScreen>
   );
@@ -230,106 +339,120 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  getBookButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.primary,
-    borderRadius: radii.lg,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    ...createShadow('sm'),
+  scroll: {
+    flex: 1,
   },
-  getBookButtonPressed: {
-    backgroundColor: colors.primaryPressed,
+  scrollContent: {
+    paddingTop: spacing.sm,
   },
-  getBookButtonText: {
-    color: colors.white,
-    fontFamily: sansFont('semibold'),
-    fontWeight: '600',
-    fontSize: 13,
-    lineHeight: 16,
-  },
-  tabs: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
+  hero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
     marginBottom: spacing.md,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
+  heroCover: {
+    width: 72,
+    height: 72,
+    borderRadius: radii.sm,
   },
-  tabActive: {
+  heroCoverPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: radii.sm,
     backgroundColor: colors.primarySurface,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  tabText: {
-    color: colors.textSecondary,
-    fontFamily: sansFont('regular'),
-    fontSize: 14,
-  },
-  tabTextActive: {
-    color: colors.primary,
-    fontFamily: sansFont('semibold'),
-    fontWeight: '600',
-  },
-  listScroll: {
+  heroText: {
     flex: 1,
+    gap: 4,
   },
-  listContent: {
-    paddingHorizontal: spacing.md,
+  heroTitle: {
+    fontFamily: sansFont("bold"),
   },
-  listContentEmpty: {
-    flexGrow: 1,
-    justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
-    gap: spacing.xs,
-  },
-  emptyStateTitle: {
+  heroSubtitle: {
     color: colors.textSecondary,
-    textAlign: 'center',
-    fontFamily: sansFont('medium'),
-    fontWeight: '500',
   },
-  emptyStateSubtitle: {
-    color: colors.placeholder,
-    textAlign: 'center',
-    maxWidth: 280,
+  progressBlock: {
+    marginBottom: spacing.lg,
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+  progressLabel: {
+    color: colors.textPrimary,
+    fontFamily: sansFont("medium"),
+  },
+  progressPercent: {
+    color: colors.primary,
+    fontFamily: sansFont("semibold"),
+    fontWeight: "600",
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primarySurface,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: colors.primary,
+    borderRadius: 3,
+  },
+  sectionHeading: {
+    fontFamily: sansFont("semibold"),
+    fontWeight: "600",
+    marginBottom: spacing.sm,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  footerInner: {
+    width: "100%",
+    gap: spacing.sm,
+  },
+  secondaryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.primary,
+    borderWidth: 1,
+    borderColor: colors.primary,
     borderRadius: radii.lg,
-    paddingVertical: 16,
-    minHeight: 56,
-    ...createShadow('sm'),
+    paddingVertical: 14,
+    minHeight: 52,
   },
-  addButtonPressed: {
-    backgroundColor: colors.primaryPressed,
+  secondaryBtnPressed: {
+    backgroundColor: colors.primarySurface,
   },
-  addButtonText: {
-    color: colors.white,
+  secondaryBtnText: {
+    color: colors.primary,
+  },
+  exportBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+  },
+  exportBtnPressed: {
+    opacity: 0.8,
+  },
+  exportBtnText: {
+    color: colors.textPrimary,
+    fontFamily: sansFont("medium"),
   },
 });

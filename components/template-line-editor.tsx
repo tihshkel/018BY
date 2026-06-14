@@ -2,6 +2,7 @@ import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinContinuationGroup,
   getActiveEditSlotIndex,
+  getTemplateLineAscenderPadding,
   getTemplateLineTextTop,
   getTemplateLineTypography,
   getWishSlotInputKind,
@@ -21,6 +22,7 @@ type TemplateLineEditorProps = {
   color: string;
   fontSize: number;
   fontFamily: string | undefined;
+  fontId?: string;
   lineGuideId?: string;
   textAlign?: TextAlign;
   onChangeText: (text: string) => void;
@@ -42,6 +44,7 @@ export function TemplateLineEditor({
   value,
   color,
   fontFamily,
+  fontId,
   fontSize,
   lineGuideId,
   textAlign = 'left',
@@ -67,16 +70,17 @@ export function TemplateLineEditor({
       slots: allSlots,
       fontSize,
       lineGuideId,
+      fontId,
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {
       map.set(
         segment.slotIndex,
-        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId)
+        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId, fontId)
       );
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
-  }, [allSlots, fontSize, lineGuideId, startSlotIndex, value]);
+  }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
 
   const activeInputSlotIndex = useMemo(
     () => getActiveEditSlotIndex(segments, startSlotIndex),
@@ -96,10 +100,11 @@ export function TemplateLineEditor({
           slots: allSlots,
           fontSize,
           lineGuideId,
+          fontId,
         })
       );
     },
-    [activeInputSlotIndex, allSlots, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [activeInputSlotIndex, allSlots, fontId, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
   );
 
   useEffect(() => {
@@ -121,7 +126,11 @@ export function TemplateLineEditor({
         );
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const isInputSlot = lineSlot.index === activeInputSlotIndex;
-        const inputTopInset = Math.max(0, lineTypography.inputHeight - lineTypography.lineHeight);
+        const ascenderPadding = getTemplateLineAscenderPadding(
+          lineTypography.fontSize,
+          getWishSlotInputKind(lineSlot, lineGuideId)
+        );
+        const inputTopInset = ascenderPadding;
 
         return (
           <View
@@ -132,7 +141,7 @@ export function TemplateLineEditor({
                 left: lineSlot.x,
                 top: textTop - inputTopInset,
                 width: lineSlot.width,
-                height: lineTypography.inputHeight,
+                height: lineTypography.inputHeight + inputTopInset,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}

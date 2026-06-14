@@ -8,7 +8,6 @@ import {
   FlatList,
   ImageSourcePropType,
   Linking,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -28,6 +27,8 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { RegionPickerSheet } from '@/components/catalog/region-picker-sheet';
+import { AppFilterSheet } from '@/components/ui';
 import { PDF_CATALOG_GIFT_ITEMS } from '@/constants/pdf-catalog-gift-items';
 import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
@@ -1299,193 +1300,48 @@ export default function GiftsScreen() {
         />
       </Animated.View>
 
-      {/* Модальное окно расширенного поиска */}
-      <Modal
+      <AppFilterSheet
         visible={showFilterModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Расширенный поиск</Text>
-              <TouchableOpacity
-                onPress={() => setShowFilterModal(false)}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color={colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowFilterModal(false)}
+        title="Расширенный поиск"
+        sections={[
+          {
+            id: 'category',
+            title: 'Раздел',
+            options: CATEGORY_FILTERS.map((category) => ({
+              value: category,
+              label: category,
+            })),
+            value: selectedCategory ?? 'Все',
+            onChange: (value) =>
+              setSelectedCategory(value === 'Все' ? null : (value as CategoryFilter)),
+          },
+          {
+            id: 'cover',
+            title: 'Тип обложки',
+            options: [
+              { value: 'all', label: 'Все' },
+              { value: 'hard', label: 'Твердая обложка' },
+              { value: 'soft', label: 'Мягкая обложка' },
+            ],
+            value: selectedCoverType,
+            onChange: (value) => setSelectedCoverType(value as CoverType),
+          },
+        ]}
+        onReset={() => {
+          setSelectedCategory(null);
+          setSelectedCoverType('all');
+        }}
+        onApply={() => setShowFilterModal(false)}
+      />
 
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              {/* Фильтр по разделу */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Раздел</Text>
-                <View style={styles.filterOptions}>
-                  {CATEGORY_FILTERS.map((category) => (
-                    <TouchableOpacity
-                      key={category}
-                      style={[
-                        styles.filterOption,
-                        selectedCategory === category && styles.filterOptionSelected,
-                      ]}
-                      onPress={() => setSelectedCategory(category === 'Все' ? null : category)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.filterOptionText,
-                          selectedCategory === category && styles.filterOptionTextSelected,
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                      {selectedCategory === category && (
-                        <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Фильтр по типу обложки */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Тип обложки</Text>
-                <View style={styles.filterOptions}>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'all' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('all')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'all' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Все
-                    </Text>
-                    {selectedCoverType === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'hard' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('hard')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'hard' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Твердая обложка
-                    </Text>
-                    {selectedCoverType === 'hard' && (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'soft' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('soft')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'soft' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Мягкая обложка
-                    </Text>
-                    {selectedCoverType === 'soft' && (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </ScrollView>
-
-            {/* Кнопки действий */}
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={() => {
-                  setSelectedCategory(null);
-                  setSelectedCoverType('all');
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.resetButtonText}>Сбросить</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.applyButtonText}>Применить</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Модальное окно выбора региона */}
-      <Modal
+      <RegionPickerSheet
         visible={showRegionModal && !isLoadingRegion}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {}}
-      >
-        <View style={styles.regionModalOverlay}>
-          <View style={styles.regionModalContent}>
-            <View style={styles.regionModalHeader}>
-              <Text style={styles.regionModalTitle}>Выберите регион</Text>
-            </View>
-
-            <Text style={styles.regionModalDescription}>
-              Выберите ваш регион для отображения актуальных цен
-            </Text>
-
-            <View style={styles.regionOptions}>
-              {REGIONS.map((region) => (
-                <TouchableOpacity
-                  key={region.value}
-                  style={[
-                    styles.regionOption,
-                    selectedRegion === region.value && styles.regionOptionSelected,
-                  ]}
-                  onPress={() => handleRegionSelect(region.value)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.regionOptionText,
-                      selectedRegion === region.value && styles.regionOptionTextSelected,
-                    ]}
-                  >
-                    {region.label}
-                  </Text>
-                  {selectedRegion === region.value && (
-                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => {}}
+        options={REGIONS}
+        selectedValue={selectedRegion}
+        onSelect={handleRegionSelect}
+      />
     </SafeAreaView>
   );
 }
@@ -1836,77 +1692,5 @@ const styles = StyleSheet.create({
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-  },
-  regionModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  regionModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  regionModalHeader: {
-    marginBottom: 16,
-  },
-  regionModalTitle: {
-    fontSize: 24,
-    color: colors.textPrimary,
-    fontFamily: sansFont('bold'),
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  regionModalDescription: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  regionOptions: {
-    gap: 12,
-  },
-  regionOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  regionOptionSelected: {
-    backgroundColor: colors.background,
-    borderColor: colors.primary,
-  },
-  regionOptionText: {
-    fontSize: 18,
-    color: colors.textPrimary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    flex: 1,
-  },
-  regionOptionTextSelected: {
-    fontWeight: '600',
   },
 });

@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomTabButton } from '@/components/custom-tab-button';
-import { colors } from '@/constants/design-tokens';
+import { colors, createShadow } from '@/constants/design-tokens';
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
 
 export default function TabLayout() {
@@ -31,10 +31,7 @@ export default function TabLayout() {
           paddingBottom: Platform.OS === 'ios' ? 32 : 12,
           paddingTop: 12,
           elevation: 0,
-          shadowColor: 'transparent',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0,
-          shadowRadius: 0,
+          ...createShadow('sm'),
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
         },

@@ -87,9 +87,7 @@ export function duplicatePageAtIndex(params: {
   if (!source || !sourceUri) return null;
 
   const schema = getSchemaForInstance(source, lineGuideId);
-  const titleOverride = schema?.canDuplicate
-    ? `${schema.title} ${instances.filter((i) => i.schemaPageId === source.schemaPageId).length + 1}`
-    : undefined;
+  if (!schema?.canDuplicate) return null;
 
   const copiedValues = pageValuesMap[source.instanceId];
   const result = insertPageAtIndex({
@@ -100,18 +98,91 @@ export function duplicatePageAtIndex(params: {
     newImageUri: sourceUri,
     schemaPageId: source.schemaPageId,
     sourcePageNumber: source.sourcePageNumber,
-    titleOverride,
+    titleOverride: source.titleOverride,
     lineGuideId,
   });
 
-  if (copiedValues && schema?.canDuplicate) {
+  if (copiedValues) {
     result.pageValuesMap[result.instances[pageIndex + 1].instanceId] = {
-      ...copiedValues,
+      ...JSON.parse(JSON.stringify(copiedValues)),
       updatedAt: new Date().toISOString(),
     };
   }
 
   return result;
+}
+
+export function movePageAtIndex(params: {
+  instances: PageInstance[];
+  pageValuesMap: Record<string, PageValues>;
+  images: string[];
+  fromIndex: number;
+  toIndex: number;
+}): {
+  instances: PageInstance[];
+  pageValuesMap: Record<string, PageValues>;
+  images: string[];
+} | null {
+  const { instances, pageValuesMap, images, fromIndex, toIndex } = params;
+  if (fromIndex < 0 || fromIndex >= instances.length) return null;
+  if (toIndex < 0 || toIndex >= instances.length) return null;
+  if (fromIndex === toIndex) return null;
+
+  const newInstances = [...instances];
+  const newImages = [...images];
+  const [movedInstance] = newInstances.splice(fromIndex, 1);
+  const [movedImage] = newImages.splice(fromIndex, 1);
+  newInstances.splice(toIndex, 0, movedInstance);
+  newImages.splice(toIndex, 0, movedImage);
+
+  return {
+    instances: reindexPageInstances(newInstances, newImages),
+    pageValuesMap,
+    images: newImages,
+  };
+}
+
+export function renamePageInstance(params: {
+  instances: PageInstance[];
+  instanceId: string;
+  titleOverride: string;
+}): PageInstance[] | null {
+  const { instances, instanceId, titleOverride } = params;
+  const index = instances.findIndex((i) => i.instanceId === instanceId);
+  if (index < 0) return null;
+
+  const next = [...instances];
+  next[index] = { ...next[index], titleOverride: titleOverride.trim() || undefined };
+  return next;
+}
+
+export function removePageAtIndex(params: {
+  instances: PageInstance[];
+  pageValuesMap: Record<string, PageValues>;
+  images: string[];
+  pageIndex: number;
+}): {
+  instances: PageInstance[];
+  pageValuesMap: Record<string, PageValues>;
+  images: string[];
+} | null {
+  const { instances, pageValuesMap, images, pageIndex } = params;
+  if (pageIndex < 0 || pageIndex >= instances.length) return null;
+  if (instances.length <= 1) return null;
+
+  const removed = instances[pageIndex];
+  const newImages = images.filter((_, index) => index !== pageIndex);
+  const newInstances = instances.filter((_, index) => index !== pageIndex);
+  const reindexed = reindexPageInstances(newInstances, newImages);
+
+  const newValuesMap = { ...pageValuesMap };
+  delete newValuesMap[removed.instanceId];
+
+  return {
+    instances: reindexed,
+    pageValuesMap: newValuesMap,
+    images: newImages,
+  };
 }
 
 export function buildAnnotationsForProject(params: {

@@ -1,15 +1,29 @@
 import * as ImagePicker from 'expo-image-picker';
 
-import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
+import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 
-export async function pickPhotoFromLibrary(): Promise<string | null> {
-  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (!permission.granted) return null;
+type PickPhotoFromLibraryOptions = {
+  ensurePermission?: () => Promise<boolean>;
+  aspect?: [number, number];
+};
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: getImagePickerImagesMediaTypes(),
+export async function pickPhotoFromLibrary(
+  options: PickPhotoFromLibraryOptions = {},
+): Promise<string | null> {
+  const { ensurePermission, aspect } = options;
+
+  if (ensurePermission) {
+    const granted = await ensurePermission();
+    if (!granted) return null;
+  } else {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return null;
+  }
+
+  const result = await launchPhotoLibrary({
     allowsEditing: true,
     quality: 0.9,
+    ...(aspect ? { aspect } : {}),
   });
 
   if (result.canceled || !result.assets[0]?.uri) return null;

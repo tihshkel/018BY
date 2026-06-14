@@ -3543,12 +3543,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "pregnancy_60_p57",
@@ -3579,12 +3601,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "pregnancy_60_p58",
@@ -3615,12 +3659,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "pregnancy_60_p59",
@@ -3651,12 +3717,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "pregnancy_60_p60",
@@ -6655,12 +6743,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     }
   ],
   "kids_48": [
@@ -6674,55 +6784,82 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 1,
       "fields": [
         {
-          "fieldId": "kids_48_p1_g1",
-          "label": "Этот альбом принадлежит",
+          "fieldId": "kids_48_p1_child_name",
+          "label": "Имя ребенка / ФИО",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p1_g2",
-          "label": "ДАТА РОЖДЕНИЯ",
+          "fieldId": "kids_48_p1_birth_date",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p1_g3",
-          "label": "ВРЕМЯ",
+          "fieldId": "kids_48_p1_birth_time",
+          "label": "Время рождения",
           "type": "time",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p1_g4",
-          "label": "ВЕС",
-          "type": "number",
+          "fieldId": "kids_48_p1_weight",
+          "label": "Вес",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p1_g5",
-          "label": "РОСТ",
-          "type": "number",
+          "fieldId": "kids_48_p1_height",
+          "label": "Рост",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p2",
-      "title": "Любимые",
-      "pageType": "structured",
+      "title": "Любимые мама и папа",
+      "pageType": "non_editable",
       "order": 2,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 2,
       "fields": [
@@ -6736,7 +6873,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": true
     },
     {
       "pageId": "kids_48_p3",
@@ -6748,88 +6887,62 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 3,
       "fields": [
         {
-          "fieldId": "kids_48_p3_g1",
-          "label": "ПЕРВЫЕ ПИНОЧКИ ПДР",
+          "fieldId": "kids_48_p3_due_date",
+          "label": "ПДР",
           "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p3_g2",
-          "label": "ПЕРВЫЕ ПИНОЧКИ",
+          "fieldId": "kids_48_p3_first_kicks",
+          "label": "Первые пиночки",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 1
-        }
-      ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "kids_48_p4",
-      "title": "Mon мама и папа",
-      "pageType": "structured",
-      "order": 4,
-      "editable": true,
-      "lineGuideId": "kids_48",
-      "sourcePageNumber": 4,
-      "fields": [
-        {
-          "fieldId": "kids_48_p4_g1",
-          "label": "Поле 1",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p4_g2",
-          "label": "Поле 2",
-          "type": "text",
+          "fieldId": "kids_48_p3_mother_guess",
+          "label": "Мама думала",
+          "type": "radio",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 1
-        }
-      ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "kids_48_p5",
-      "title": "Cementos gepelo",
-      "pageType": "photo",
-      "order": 5,
-      "editable": true,
-      "lineGuideId": "kids_48",
-      "sourcePageNumber": 5,
-      "fields": [
+          "templateLineCount": 1,
+          "options": [
+            "Мальчик",
+            "Девочка"
+          ]
+        },
         {
-          "fieldId": "kids_48_p5_g1",
-          "label": "Поле 1",
-          "type": "text",
+          "fieldId": "kids_48_p3_father_guess",
+          "label": "Папа думал",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineStart": 1,
+          "templateLineCount": 1,
+          "options": [
+            "Мальчик",
+            "Девочка"
+          ]
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "blockId": "ultrasound_photo",
+          "label": "Фото УЗИ",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -6839,466 +6952,858 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "kids_48_p4",
+      "title": "Мои мама и папа",
+      "pageType": "structured",
+      "order": 4,
+      "editable": true,
+      "lineGuideId": "kids_48",
+      "sourcePageNumber": 4,
+      "fields": [
+        {
+          "fieldId": "kids_48_p4_mother_name",
+          "label": "Имя мамы",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p4_father_name",
+          "label": "Имя папы",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "parents_photo",
+          "label": "Фото мамы и папы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "kids_48_p5",
+      "title": "Семейное дерево",
+      "pageType": "family_tree",
+      "order": 5,
+      "editable": true,
+      "lineGuideId": "kids_48",
+      "sourcePageNumber": 5,
+      "fields": [
+        {
+          "fieldId": "kids_48_p5_child_name",
+          "label": "Имя ребенка",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_great_grandmother",
+          "label": "Прабабушка (линия мамы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_great_grandfather",
+          "label": "Прадедушка (линия мамы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_grandmother",
+          "label": "Бабушка (линия мамы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_grandfather",
+          "label": "Дедушка (линия мамы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_great_grandmother",
+          "label": "Прабабушка (линия папы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_great_grandfather",
+          "label": "Прадедушка (линия папы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_grandmother",
+          "label": "Бабушка (линия папы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_grandfather",
+          "label": "Дедушка (линия папы)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "child_photo",
+          "label": "Фото ребенка",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p6",
-      "title": "Страница 6",
-      "pageType": "non_editable",
+      "title": "Мое первое фото",
+      "pageType": "event_photo",
       "order": 6,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 6,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p7",
-      "title": "Страница 7",
-      "pageType": "non_editable",
+      "title": "Выписка из роддома",
+      "pageType": "event_photo",
       "order": 7,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 7,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p8",
       "title": "Первый день дома",
-      "pageType": "structured",
+      "pageType": "event_photo",
       "order": 8,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 8,
       "fields": [
         {
-          "fieldId": "kids_48_p8_g1",
-          "label": "Первый день дома",
-          "type": "text",
+          "fieldId": "kids_48_p8_event_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
-        },
-        {
-          "fieldId": "kids_48_p8_g2",
-          "label": "ДАТА",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 1,
-          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p9",
-      "title": "Первое купанне",
-      "pageType": "structured",
+      "title": "Первое купание",
+      "pageType": "event_photo",
       "order": 9,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 9,
       "fields": [
         {
-          "fieldId": "kids_48_p9_g1",
-          "label": "ДАТА-",
+          "fieldId": "kids_48_p9_event_date",
+          "label": "Дата",
           "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p10",
-      "title": "Мон зубки",
-      "pageType": "structured",
+      "title": "Мои зубки",
+      "pageType": "teeth",
       "order": 10,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 10,
       "fields": [
         {
-          "fieldId": "kids_48_p10_g1",
-          "label": "Поле 1",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_01_left_outer_molar_8",
+          "label": "upper 01 left outer molar 8",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g2",
-          "label": "Поле 2",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_02_left_molar_5",
+          "label": "upper 02 left molar 5",
+          "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g3",
-          "label": "ВЕРХНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_03_left_canine_7",
+          "label": "upper 03 left canine 7",
+          "type": "date",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g4",
-          "label": "ВЕРХНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_04_left_lateral_3",
+          "label": "upper 04 left lateral 3",
+          "type": "date",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g5",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_05_left_central_2",
+          "label": "upper 05 left central 2",
+          "type": "date",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g6",
-          "label": "ВЕРХНЯЯ ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_06_right_central_2",
+          "label": "upper 06 right central 2",
+          "type": "date",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g7",
-          "label": "ВЕРХНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_07_right_lateral_3",
+          "label": "upper 07 right lateral 3",
+          "type": "date",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g8",
-          "label": "ВЕРХНЯЯ ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_08_right_canine_7",
+          "label": "upper 08 right canine 7",
+          "type": "date",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g9",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_09_right_molar_5",
+          "label": "upper 09 right molar 5",
+          "type": "date",
           "required": false,
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g10",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_upper_10_right_outer_molar_8",
+          "label": "upper 10 right outer molar 8",
+          "type": "date",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g11",
-          "label": "НИЖНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_01_left_outer_molar_8",
+          "label": "lower 01 left outer molar 8",
+          "type": "date",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g12",
-          "label": "ЧЕЛЮСТЬ НИЖНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_02_left_molar_6",
+          "label": "lower 02 left molar 6",
+          "type": "date",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g13",
-          "label": "НИЖНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_03_left_canine_7",
+          "label": "lower 03 left canine 7",
+          "type": "date",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g14",
-          "label": "ЧЕЛЮСТЬ НИЖНЯЯ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_04_left_lateral_4",
+          "label": "lower 04 left lateral 4",
+          "type": "date",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g15",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_05_left_central_1",
+          "label": "lower 05 left central 1",
+          "type": "date",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g16",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_06_right_central_1",
+          "label": "lower 06 right central 1",
+          "type": "date",
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g17",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_07_right_lateral_4",
+          "label": "lower 07 right lateral 4",
+          "type": "date",
           "required": false,
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g18",
-          "label": "ЧЕЛЮСТЬ",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_08_right_canine_7",
+          "label": "lower 08 right canine 7",
+          "type": "date",
           "required": false,
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g19",
-          "label": "Поле 19",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_09_right_molar_6",
+          "label": "lower 09 right molar 6",
+          "type": "date",
           "required": false,
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g20",
-          "label": "Поле 20",
-          "type": "text",
+          "fieldId": "kids_48_p10_lower_10_right_outer_molar_8",
+          "label": "lower 10 right outer molar 8",
+          "type": "date",
           "required": false,
           "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g21",
-          "label": "ПЕРВАЯ ЧИСТКА ЗУБОВ В ГОДИК БЫЛО ЗУБОВ",
-          "type": "text",
+          "fieldId": "kids_48_p10_first_brushing",
+          "label": "Первая чистка зубов",
+          "type": "date",
           "required": false,
-          "templateLineStart": 20,
+          "templateLineStart": 21,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p10_g22",
-          "label": "В ГОДИК БЫЛО",
-          "type": "text",
+          "fieldId": "kids_48_p10_teeth_count",
+          "label": "В годик было зубов",
+          "type": "number",
           "required": false,
           "templateLineStart": 22,
           "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p11",
       "title": "Мой рост и вес до года",
-      "pageType": "structured",
+      "pageType": "growth_weight",
       "order": 11,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 11,
       "fields": [
         {
-          "fieldId": "kids_48_p11_g1",
-          "label": "РОСТ (CM) 1",
+          "fieldId": "kids_48_p11_month_01_height",
+          "label": "1 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g2",
-          "label": "ВЕС (КГ) 1",
+          "fieldId": "kids_48_p11_month_01_weight",
+          "label": "1 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g3",
-          "label": "РОСТ (CM) 2",
+          "fieldId": "kids_48_p11_month_02_height",
+          "label": "2 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g4",
-          "label": "ВЕС (КГ) 2",
+          "fieldId": "kids_48_p11_month_02_weight",
+          "label": "2 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g5",
-          "label": "РОСТ (CM) 3",
+          "fieldId": "kids_48_p11_month_03_height",
+          "label": "3 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g6",
-          "label": "ВЕС (КГ) 3",
+          "fieldId": "kids_48_p11_month_03_weight",
+          "label": "3 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g7",
-          "label": "РОСТ (CM) 4",
+          "fieldId": "kids_48_p11_month_04_height",
+          "label": "4 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g8",
-          "label": "ВЕС (КГ) 4",
+          "fieldId": "kids_48_p11_month_04_weight",
+          "label": "4 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g9",
-          "label": "РОСТ (CM) 5",
+          "fieldId": "kids_48_p11_month_05_height",
+          "label": "5 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g10",
-          "label": "ВЕС (КГ) 5",
+          "fieldId": "kids_48_p11_month_05_weight",
+          "label": "5 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g11",
-          "label": "РОСТ (CM) 6",
+          "fieldId": "kids_48_p11_month_06_height",
+          "label": "6 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g12",
-          "label": "ВЕС (КГ) 6",
+          "fieldId": "kids_48_p11_month_06_weight",
+          "label": "6 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g13",
-          "label": "РОСТ (CM) 7",
+          "fieldId": "kids_48_p11_month_07_height",
+          "label": "7 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g14",
-          "label": "ВЕС (КГ) 7",
+          "fieldId": "kids_48_p11_month_07_weight",
+          "label": "7 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g15",
-          "label": "РОСТ (CM) 8",
+          "fieldId": "kids_48_p11_month_08_height",
+          "label": "8 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g16",
-          "label": "ВЕС (КГ) 8",
+          "fieldId": "kids_48_p11_month_08_weight",
+          "label": "8 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g17",
-          "label": "РОСТ (CM) 9",
+          "fieldId": "kids_48_p11_month_09_height",
+          "label": "9 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g18",
-          "label": "ВЕС (КГ) 9",
+          "fieldId": "kids_48_p11_month_09_weight",
+          "label": "9 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g19",
-          "label": "РОСТ (CM) 10",
+          "fieldId": "kids_48_p11_month_10_height",
+          "label": "10 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g20",
-          "label": "ВЕС (КГ) 10",
+          "fieldId": "kids_48_p11_month_10_weight",
+          "label": "10 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g21",
-          "label": "РОСТ (CM) 11",
+          "fieldId": "kids_48_p11_month_11_height",
+          "label": "11 мес. — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 20,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g22",
-          "label": "ВЕС (КГ) 11",
+          "fieldId": "kids_48_p11_month_11_weight",
+          "label": "11 мес. — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 21,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g23",
-          "label": "РОСТ (CM) 12",
+          "fieldId": "kids_48_p11_month_12_height",
+          "label": "1 год — рост (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 22,
           "templateLineCount": 1
         },
         {
-          "fieldId": "kids_48_p11_g24",
-          "label": "ВЕС (КГ) 12",
+          "fieldId": "kids_48_p11_month_12_weight",
+          "label": "1 год — вес (кг)",
           "type": "number",
           "required": false,
           "templateLineStart": 23,
@@ -7306,11 +7811,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p12",
-      "title": "У Mon следы",
+      "title": "Мои следы",
       "pageType": "structured",
       "order": 12,
       "editable": true,
@@ -7318,20 +7825,47 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 12,
       "fields": [
         {
-          "fieldId": "kids_48_p12_g1",
-          "label": "ДАТА",
+          "fieldId": "kids_48_p12_event_date",
+          "label": "Дата",
           "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p13",
-      "title": "Mon gacmuserns",
+      "title": "Мои достижения",
       "pageType": "structured",
       "order": 13,
       "editable": true,
@@ -7403,13 +7937,40 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p14",
-      "title": "Mas первая прогулка",
-      "pageType": "structured",
+      "title": "Моя первая прогулка",
+      "pageType": "event_photo",
       "order": 14,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7424,13 +7985,70 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p15",
-      "title": "Мо первая игрушка",
-      "pageType": "structured",
+      "title": "Моя первая игрушка",
+      "pageType": "event_photo",
       "order": 15,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7445,13 +8063,70 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p16",
-      "title": "Мон сновидення",
-      "pageType": "structured",
+      "title": "Мои сновидения",
+      "pageType": "event_photo",
       "order": 16,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7466,13 +8141,70 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p17",
       "title": "Моя первая улыбка",
-      "pageType": "structured",
+      "pageType": "event_photo",
       "order": 17,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7487,13 +8219,70 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p18",
       "title": "Я сижу",
-      "pageType": "structured",
+      "pageType": "event_photo",
       "order": 18,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7516,13 +8305,70 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p19",
       "title": "Я стою",
-      "pageType": "structured",
+      "pageType": "event_photo",
       "order": 19,
       "editable": true,
       "lineGuideId": "kids_48",
@@ -7545,457 +8391,2216 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p20",
-      "title": "Таинство крещення",
-      "pageType": "structured",
+      "title": "Таинство крещения",
+      "pageType": "baptism_page",
       "order": 20,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 20,
       "fields": [
         {
-          "fieldId": "kids_48_p20_g1",
-          "label": "ДАТА-",
+          "fieldId": "kids_48_p20_event_date",
+          "label": "Дата крещения",
           "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p21",
-      "title": "Страница 21",
-      "pageType": "non_editable",
+      "title": "Мои крестные",
+      "pageType": "godparents_page",
       "order": 21,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 21,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [
+        {
+          "fieldId": "kids_48_p21_godmother_name",
+          "label": "Имя крестной",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p21_godfather_name",
+          "label": "Имя крестного",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "godparents_photo",
+          "label": "Фото крестных",
+          "variants": [
+            {
+              "variantId": "one_horizontal_common",
+              "label": "Одно общее фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical_separate",
+              "label": "Два отдельных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p22",
-      "title": "Мне 1 месту",
-      "pageType": "structured",
+      "title": "Мне 1 месяц",
+      "pageType": "month_page",
       "order": 22,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 22,
       "fields": [
         {
-          "fieldId": "kids_48_p22_g1",
-          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "fieldId": "kids_48_p22_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p22_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p23",
       "title": "Мне 2 месяца",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 23,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 23,
       "fields": [
         {
-          "fieldId": "kids_48_p23_g1",
-          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "fieldId": "kids_48_p23_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p23_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p24",
       "title": "Мне 3 месяца",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 24,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 24,
       "fields": [
         {
-          "fieldId": "kids_48_p24_g1",
-          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "fieldId": "kids_48_p24_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p24_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p25",
       "title": "Мне 4 месяца",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 25,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 25,
       "fields": [
         {
-          "fieldId": "kids_48_p25_g1",
-          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "fieldId": "kids_48_p25_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p25_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p26",
       "title": "Мне 5 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 26,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 26,
       "fields": [
         {
-          "fieldId": "kids_48_p26_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p26_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p26_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p27",
       "title": "Мне 6 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 27,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 27,
       "fields": [
         {
-          "fieldId": "kids_48_p27_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p27_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p27_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p28",
       "title": "Мне 7 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 28,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 28,
       "fields": [
         {
-          "fieldId": "kids_48_p28_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p28_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p28_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p29",
       "title": "Мне 8 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 29,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 29,
       "fields": [
         {
-          "fieldId": "kids_48_p29_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p29_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p29_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p30",
       "title": "Мне 9 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 30,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 30,
       "fields": [
         {
-          "fieldId": "kids_48_p30_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p30_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p30_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p31",
       "title": "Мне 10 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 31,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 31,
       "fields": [
         {
-          "fieldId": "kids_48_p31_g1",
-          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "fieldId": "kids_48_p31_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p31_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p32",
       "title": "Мне 11 месяцев",
-      "pageType": "structured",
+      "pageType": "month_page",
       "order": 32,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 32,
       "fields": [
         {
-          "fieldId": "kids_48_p32_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p32_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p32_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p33",
-      "title": "Мне / годик!",
-      "pageType": "structured",
+      "title": "Мне 1 годик",
+      "pageType": "month_page",
       "order": 33,
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 33,
       "fields": [
         {
-          "fieldId": "kids_48_p33_g1",
-          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "fieldId": "kids_48_p33_i_love",
+          "label": "Я люблю",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p33_i_can",
+          "label": "Я умею",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p34",
-      "title": "Страница 34",
-      "pageType": "non_editable",
+      "title": "Мой первый Новый год",
+      "pageType": "event_photo",
       "order": 34,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 34,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p35",
-      "title": "Страница 35",
-      "pageType": "non_editable",
+      "title": "Свободная страница для Нового года",
+      "pageType": "free_photo_caption",
       "order": 35,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 35,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [
+        {
+          "fieldId": "kids_48_p35_caption",
+          "label": "Подпись под фото",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p36",
-      "title": "Страница 36",
-      "pageType": "non_editable",
+      "title": "Моя первая зима",
+      "pageType": "event_photo",
       "order": 36,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 36,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p37",
-      "title": "Страница 37",
-      "pageType": "non_editable",
+      "title": "Моя первая весна",
+      "pageType": "event_photo",
       "order": 37,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 37,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p38",
-      "title": "Страница 38",
-      "pageType": "non_editable",
+      "title": "Мое первое лето",
+      "pageType": "event_photo",
       "order": 38,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 38,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p39",
-      "title": "Страница 39",
-      "pageType": "non_editable",
+      "title": "Моя первая осень",
+      "pageType": "event_photo",
       "order": 39,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 39,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p40",
-      "title": "Страница 40",
-      "pageType": "non_editable",
+      "title": "Мое первое путешествие",
+      "pageType": "event_photo",
       "order": 40,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 40,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p41",
-      "title": "Страница 41",
-      "pageType": "non_editable",
+      "title": "Свободная страница для путешествия",
+      "pageType": "free_photo_caption",
       "order": 41,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 41,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [
+        {
+          "fieldId": "kids_48_p41_caption",
+          "label": "Подпись под фото",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p42",
-      "title": "Страница 42",
-      "pageType": "non_editable",
+      "title": "Памятные моменты",
+      "pageType": "caption_photo_page",
       "order": 42,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 42,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p43",
-      "title": "Страница 43",
-      "pageType": "non_editable",
+      "title": "Свободная страница для памятных моментов",
+      "pageType": "caption_photo_page",
       "order": 43,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 43,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p44",
-      "title": "Страница 44",
-      "pageType": "non_editable",
+      "title": "Свободная страница для памятных моментов",
+      "pageType": "caption_photo_page",
       "order": 44,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 44,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p45",
-      "title": "Страница 45",
-      "pageType": "non_editable",
+      "title": "Свободная страница для памятных моментов",
+      "pageType": "caption_photo_page",
       "order": 45,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 45,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p46",
-      "title": "Страница 46",
-      "pageType": "non_editable",
+      "title": "Свободная страница для памятных моментов",
+      "pageType": "caption_photo_page",
       "order": 46,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 46,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p47",
-      "title": "Страница 47",
-      "pageType": "non_editable",
+      "title": "Свободная страница для памятных моментов",
+      "pageType": "caption_photo_page",
       "order": 47,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 47,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true,
+      "requiredInExport": false
     },
     {
       "pageId": "kids_48_p48",
-      "title": "Страница 48",
+      "title": "Моя история только начинается",
       "pageType": "non_editable",
       "order": 48,
       "editable": false,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 48,
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": false,
+      "requiredInExport": false
     }
   ],
   "holidays_birthday_60": [
@@ -8759,6 +11364,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
@@ -8832,6 +11458,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
@@ -8867,6 +11514,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -9556,6 +12224,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
@@ -9717,6 +12406,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
@@ -9752,6 +12462,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -9870,6 +12601,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10095,6 +12847,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
                 0,
                 1
               ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
             }
           ]
         }
@@ -10151,6 +12924,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10261,6 +13055,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11553,6 +14368,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]

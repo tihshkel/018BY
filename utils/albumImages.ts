@@ -168,7 +168,87 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
  * Конвертирует require() модули в URI через Asset API
  */
 /**
- * Перед экспортом PDF: все страницы должны быть локальными file:// (не https из редактора).
+ * Перед экспортом PDF: выбранные страницы должны быть локальными file:// (не https из редактора).
+ * Кэширует только переданный список URI (учитывает фильтр страниц на export-review).
+ */
+export async function ensurePageUrisCachedForExport(
+  uris: string[],
+  onProgress?: (done: number, total: number) => void
+): Promise<string[]> {
+  if (uris.length === 0) return [];
+
+  await ensureRemoteAlbumCacheDir();
+  const cached: string[] = [];
+
+  for (let i = 0; i < uris.length; i += 1) {
+    const sourceUri = uris[i];
+    let localUri = await ensureSinglePageUriCachedForExport(sourceUri);
+    if (!localUri && sourceUri.startsWith('http')) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      localUri = await ensureSinglePageUriCachedForExport(sourceUri);
+    }
+    if (!localUri) {
+      console.warn(
+        `[albumImages] Страница ${i + 1}/${uris.length} не закеширована локально, экспорт попробует загрузить по URL`
+      );
+      cached.push(sourceUri);
+    } else {
+      cached.push(localUri);
+    }
+    onProgress?.(i + 1, uris.length);
+  }
+
+  return cached.filter((uri): uri is string => Boolean(uri));
+}
+
+function parseRemoteAlbumPageUri(uri: string): { folderPath: string; fileName: string } | null {
+  if (!uri.startsWith('http')) return null;
+
+  const decoded = decodeURIComponent(uri);
+  const fileNameMatch = decoded.match(/(page_\d+\.png)$/i);
+  if (!fileNameMatch) return null;
+
+  const fileName = fileNameMatch[1];
+  const assetsIdx = decoded.indexOf('assets/pdfs/');
+  if (assetsIdx === -1) return null;
+
+  const folderPath = decoded.slice(assetsIdx, decoded.lastIndexOf('/'));
+  return { folderPath, fileName };
+}
+
+export async function ensureSinglePageUriCachedForExport(uri: string): Promise<string | null> {
+  if (!uri) return null;
+
+  const normalized = normalizeFileUri(uri);
+  if (normalized.startsWith('file://') || normalized.startsWith('/')) {
+    const info = await getInfoAsync(normalized);
+    return info.exists ? normalized : null;
+  }
+
+  if (uri.startsWith('http')) {
+    const parsed = parseRemoteAlbumPageUri(uri);
+    if (parsed) {
+      return downloadRemotePageToCacheWithRetry(parsed.folderPath, parsed.fileName);
+    }
+
+    try {
+      const ext = uri.toLowerCase().includes('.png') ? 'png' : 'jpg';
+      const dest = `${REMOTE_ALBUM_CACHE_DIR}export_${stablePathKey(uri)}.${ext}`;
+      const info = await getInfoAsync(dest);
+      if (info.exists) return normalizeFileUri(dest);
+      const res = await downloadAsync(uri, dest);
+      return normalizeFileUri(res.uri);
+    } catch (error) {
+      console.warn('[albumImages] Не удалось скачать URI для экспорта', uri, error);
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Перед экспортом PDF: все страницы альбома должны быть локальными file:// (не https из редактора).
  * Скачивает недостающие страницы в кэш и возвращает URI в порядке страниц.
  */
 export async function ensureAlbumPagesCachedForExport(

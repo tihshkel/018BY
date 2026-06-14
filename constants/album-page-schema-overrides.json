@@ -19,10 +19,31 @@
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [0, 1]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [0, 1, 2]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [0, 1, 2, 3]
             }
           ]
         }
       ]
     }
+  },
+  "pregnancy_60": {
+    "56": { "captionEnabled": true },
+    "57": { "captionEnabled": true },
+    "58": { "captionEnabled": true },
+    "59": { "captionEnabled": true }
+  },
+  "pregnancy_a5": {
+    "48": { "captionEnabled": true }
   }
 }

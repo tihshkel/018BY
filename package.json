@@ -6,6 +6,8 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "verify-project-save": "node ./scripts/verify-project-save.js",
+    "verify:photo-flows": "node ./scripts/verify-photo-flows.js",
+    "visualize:photo-slots": "node ./scripts/visualize-photo-slots.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

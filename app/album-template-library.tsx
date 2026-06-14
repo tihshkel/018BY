@@ -6,6 +6,7 @@ import { AppHeader, AppScreen, AppText } from '@/components/ui';
 import { PAGE_TEMPLATE_LIBRARY } from '@/constants/page-template-library';
 import { colors, createShadow, radii, spacing } from '@/constants/design-tokens';
 import { useAlbumProject } from '@/hooks/use-album-project';
+import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
 
 export default function AlbumTemplateLibraryScreen() {
   const { id, celebration, coverType, interiorType, afterIndex } = useLocalSearchParams<{
@@ -24,6 +25,13 @@ export default function AlbumTemplateLibraryScreen() {
   });
 
   const insertAfter = afterIndex ? Number(afterIndex) : project.instances.length - 1;
+
+  const albumFlowParams: AlbumFlowParams = {
+    id,
+    celebration,
+    coverType,
+    interiorType,
+  };
 
   const handleSelect = async (templateId: string, title: string) => {
     const sourcePageIndex = 0;
@@ -49,7 +57,10 @@ export default function AlbumTemplateLibraryScreen() {
 
   return (
     <AppScreen scroll contentContainerStyle={styles.container}>
-      <AppHeader title="Выберите шаблон" />
+      <AppHeader
+        title="Выберите шаблон"
+        onBack={() => navigateToAlbumPages(albumFlowParams)}
+      />
 
       <AppText variant="caption" style={styles.sectionLabel}>
         Фото-страницы и структурированные

@@ -1,4 +1,5 @@
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { AppHeader, AppScreen, AppText } from '@/components/ui';
+import { colors, createShadow, radii, sansFont, spacing } from '@/constants/design-tokens';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -211,14 +212,9 @@ export default function ExportHistoryScreen() {
   }));
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <AppScreen edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.title}>История экспорта</Text>
-        </View>
+        <AppHeader title="История экспорта" showBack />
 
         <ScrollView
           style={styles.scrollView}
@@ -260,7 +256,7 @@ export default function ExportHistoryScreen() {
           )}
         </ScrollView>
       </Animated.View>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 

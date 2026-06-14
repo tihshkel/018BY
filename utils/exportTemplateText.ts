@@ -11,6 +11,8 @@ import {
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
   getTemplateLineTextTop,
+  truncateTextToSlotWidth,
+  type TextWidthMeasure,
 } from '@/utils/templateLineText';
 import { getLineSlotsForPage } from '@/utils/textLineSlots';
 
@@ -93,6 +95,11 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   const { scaleX, scaleY } = getViewportToPdfScale(editorContentRect, actualImageWidth, actualImageHeight);
   const scaledFontSize = effectiveFontSize * scaleY;
   const textAlign = ann.textAlign ?? 'left';
+  const fontId = ann.fontFamily;
+
+  const measureTextWidth: TextWidthMeasure | undefined = font
+    ? (text) => font.widthOfTextAtSize(text, scaledFontSize) / scaleX
+    : undefined;
 
   const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
   const { segments } = distributeTextWithinContinuationGroup({
@@ -101,6 +108,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     slots,
     fontSize: effectiveFontSize,
     lineGuideId,
+    fontId,
+    measureTextWidth,
   });
 
   for (const segment of segments) {
@@ -108,6 +117,16 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
     const slot = slots[segment.slotIndex];
     if (!slot) break;
+
+    const content = truncateTextToSlotWidth(
+      segment.content,
+      slot,
+      effectiveFontSize,
+      lineGuideId,
+      fontId,
+      measureTextWidth
+    );
+    if (!content) continue;
 
     const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
     const relX = slot.x - editorContentRect.offsetX;
@@ -122,7 +141,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
     let drawX = scaledX;
     if (font && textAlign !== 'left') {
-      const textWidth = font.widthOfTextAtSize(segment.content, scaledFontSize);
+      const textWidth = font.widthOfTextAtSize(content, scaledFontSize);
       const slotWidth = slot.width * scaleX;
       if (textAlign === 'center') {
         drawX = scaledX + (slotWidth - textWidth) / 2;
@@ -131,7 +150,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
       }
     }
 
-    page.drawText(segment.content, {
+    page.drawText(content, {
       x: drawX,
       y: scaledY,
       size: scaledFontSize,

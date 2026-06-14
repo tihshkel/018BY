@@ -5,6 +5,13 @@ import type { EditorTool } from '@/constants/album-text-margins';
 import { usesTemplateLineTextEditing } from '@/constants/album-text-margins';
 import { TemplateLineEditor } from '@/components/template-line-editor';
 import {
+  EditorColorPickerSheet,
+  EditorFontPickerSheet,
+  EditorFontSizePickerSheet,
+  EditorZIndexSheet,
+  EDITOR_PICKER_COLORS,
+} from '@/components/editor/editor-style-picker-sheet';
+import {
   distributeTextAcrossSlots,
   findAnnotationForContinuationGroup,
   findAnnotationForSlot,
@@ -13,7 +20,16 @@ import {
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
 import { createId } from '@/utils/id';
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import {
+  AVAILABLE_FONTS,
+  getAlbumFontFamilyName,
+  normalizeAlbumFontId,
+  type FontOption,
+} from '@/constants/album-fonts';
+
+export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
+
+import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import {
   findNextEmptyFieldTarget,
   findPreviousFieldTarget,
@@ -33,10 +49,8 @@ import {
     Dimensions,
     Easing,
     Keyboard,
-    Modal,
     PanResponder,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -47,47 +61,7 @@ import {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Цвета из темы приложения
-const APP_COLORS = [
-  '#000000', // Черный
-  colors.textPrimary, // Основной коричневый
-  colors.primary, // Светло-коричневый
-  colors.textSecondary, // Серо-коричневый
-  colors.textSecondary, // Темно-коричневый
-  '#5B4D3F', // Очень темный коричневый
-  colors.tabInactive, // Светло-бежевый
-  colors.border, // Светлый бежевый
-  '#FFFFFF', // Белый
-];
-
-// Размеры шрифта
-const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
 const FLOATING_TEXT_MIN_CARD_WIDTH = 260;
-
-// Доступные шрифты из папки assets/fonts
-export interface FontOption {
-  id: string;
-  name: string;
-  file: any; // require() модуль
-  displayName: string;
-}
-
-export const AVAILABLE_FONTS: FontOption[] = [
-  { id: 'default', name: 'System', file: null, displayName: 'Системный' },
-  { id: 'AmaticSC-Regular', name: 'AmaticSC-Regular', file: require('@/assets/fonts/AmaticSC-Regular.ttf'), displayName: 'Amatic SC' },
-  { id: 'AmaticSC-Bold', name: 'AmaticSC-Bold', file: require('@/assets/fonts/AmaticSC-Bold.ttf'), displayName: 'Amatic SC Bold' },
-  { id: 'inspiration', name: 'inspiration', file: require('@/assets/fonts/inspiration.ttf'), displayName: 'Inspiration' },
-  { id: 'Nefelibata-Brush', name: 'Nefelibata-Brush', file: require('@/assets/fonts/Nefelibata-Brush.otf'), displayName: 'Nefelibata Brush' },
-  { id: 'Nefelibata-BrushCanvas', name: 'Nefelibata-BrushCanvas', file: require('@/assets/fonts/Nefelibata-BrushCanvas.otf'), displayName: 'Nefelibata Brush Canvas' },
-  { id: 'Nefelibata-Extras', name: 'Nefelibata-Extras', file: require('@/assets/fonts/Nefelibata-Extras.otf'), displayName: 'Nefelibata Extras' },
-  { id: 'Nefelibata-PenSans', name: 'Nefelibata-PenSans', file: require('@/assets/fonts/Nefelibata-PenSans.otf'), displayName: 'Nefelibata Pen Sans' },
-  { id: 'Nefelibata-Sans', name: 'Nefelibata-Sans', file: require('@/assets/fonts/Nefelibata-Sans.otf'), displayName: 'Nefelibata Sans' },
-  { id: 'Nefelibata-SansCanvas', name: 'Nefelibata-SansCanvas', file: require('@/assets/fonts/Nefelibata-SansCanvas.otf'), displayName: 'Nefelibata Sans Canvas' },
-  { id: 'Nefelibata-SansCd', name: 'Nefelibata-SansCd', file: require('@/assets/fonts/Nefelibata-SansCd.otf'), displayName: 'Nefelibata Sans Cd' },
-  { id: 'Nefelibata-SansCdCanvas', name: 'Nefelibata-SansCdCanvas', file: require('@/assets/fonts/Nefelibata-SansCdCanvas.otf'), displayName: 'Nefelibata Sans Cd Canvas' },
-  { id: 'Nefelibata-Script', name: 'Nefelibata-Script', file: require('@/assets/fonts/Nefelibata-Script.otf'), displayName: 'Nefelibata Script' },
-  { id: 'SvyaznoyRF', name: 'SvyaznoyRF', file: require('@/assets/fonts/SvyaznoyRF.ttf'), displayName: 'Svyaznoy RF' },
-];
 
 export interface Annotation {
   id: string;
@@ -109,6 +83,8 @@ export interface Annotation {
   templateLineCount?: number;
   /** Горизонтальное выравнивание текста в блоке */
   textAlign?: 'left' | 'center' | 'right';
+  /** Режим вписывания фото: cover для album auto-placement, fill для legacy редактора */
+  imageContentFit?: 'cover' | 'fill';
 }
 
 export type AnnotationTextAlign = 'left' | 'center' | 'right';
@@ -370,12 +346,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       startSlot,
       annotation.fontSize || 16
     );
+    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
     const { segments, truncated } = distributeTextWithinContinuationGroup({
       text: editingText,
       startSlotIndex,
       slots,
       fontSize: effectiveFontSize,
       lineGuideId,
+      fontId: normalizedFontId,
     });
 
     if (truncated) {
@@ -1964,15 +1942,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   const handleFontSelect = (fontId: string) => {
     if (editingAnnotation) {
-      lastSelectedFontIdRef.current = fontId;
-      onAnnotationUpdate(editingAnnotation, { fontFamily: fontId });
-      AsyncStorage.setItem('@last_text_font_family', fontId).catch(() => {});
+      const normalizedFontId = normalizeAlbumFontId(fontId);
+      lastSelectedFontIdRef.current = normalizedFontId;
+      onAnnotationUpdate(editingAnnotation, { fontFamily: normalizedFontId });
+      AsyncStorage.setItem('@last_text_font_family', normalizedFontId).catch(() => {});
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
       if (currentAnnotation && currentAnnotation.type === 'text') {
         const newStyle = {
           color: currentAnnotation.color,
           fontSize: currentAnnotation.fontSize,
-          fontFamily: fontId,
+          fontFamily: normalizedFontId,
         };
         AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
           console.error('Error saving last text style:', error);
@@ -2303,13 +2282,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   // Получаем имя шрифта для React Native из ID шрифта
   const getFontFamilyName = (fontId?: string): string | undefined => {
-    if (!fontId || fontId === 'default') return undefined;
-    const font = AVAILABLE_FONTS.find(f => f.id === fontId);
-    if (!font) return undefined;
-    // В React Native с expo-font шрифты доступны по имени, указанному в useFonts
-    // Используем font.name, которое соответствует ключу в useFonts
-    // Если шрифты еще не загружены, все равно возвращаем имя - React Native попытается использовать его
-    return font.name;
+    return getAlbumFontFamilyName(fontId);
   };
 
   const renderAnnotation = (annotation: Annotation) => {
@@ -2318,7 +2291,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const panResponder = createPanResponder(annotation);
     const currentColor = annotation.color || '#000000';
     const currentFontSize = annotation.fontSize || 16;
-    const currentFontFamily = getFontFamilyName(annotation.fontFamily);
+    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
+    const currentFontFamily = getFontFamilyName(normalizedFontId);
 
     if (annotation.type === 'text') {
       const basePos = getDisplayPosition(annotation);
@@ -2429,6 +2403,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               color={currentColor}
               fontSize={effectiveFontSize}
               fontFamily={currentFontFamily}
+              fontId={normalizedFontId}
               lineGuideId={lineGuideId}
               textAlign={getTextAlign(annotation)}
               onChangeText={handleTextChange}
@@ -2450,6 +2425,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           slots: templateSlots,
           fontSize: effectiveFontSize,
           lineGuideId,
+          fontId: normalizedFontId,
         });
         const linesToRender =
           groupSlots.length > 1
@@ -2490,32 +2466,47 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
+              const ascenderPadding = getTemplateLineAscenderPadding(
+                rowTypography.fontSize,
+                getWishSlotInputKind(row.lineSlot, lineGuideId)
+              );
               return (
-                <Text
+                <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
-                  style={[
-                    styles.textAnnotation,
-                    styles.templateLineText,
-                    {
-                      position: 'absolute',
-                      left: row.lineSlot.x,
-                      top: rowTop,
-                      width: row.lineSlot.width,
-                      color: currentColor,
-                      fontSize: rowTypography.fontSize,
-                      fontFamily: currentFontFamily,
-                      lineHeight: rowTypography.lineHeight,
-                      includeFontPadding: false,
-                      textAlign: getTextAlign(annotation),
-                      zIndex: annotation.zIndex,
-                    },
-                  ]}
+                  style={{
+                    position: 'absolute',
+                    left: row.lineSlot.x,
+                    top: rowTop - ascenderPadding,
+                    width: row.lineSlot.width,
+                    height: rowTypography.lineHeight + ascenderPadding,
+                    overflow: 'visible',
+                    zIndex: annotation.zIndex,
+                  }}
                   pointerEvents="none"
-                  numberOfLines={1}
-                  ellipsizeMode="clip"
                 >
-                  {row.content}
-                </Text>
+                  <Text
+                    style={[
+                      styles.textAnnotation,
+                      styles.templateLineText,
+                      {
+                        position: 'absolute',
+                        top: ascenderPadding,
+                        left: 0,
+                        width: row.lineSlot.width,
+                        color: currentColor,
+                        fontSize: rowTypography.fontSize,
+                        fontFamily: currentFontFamily,
+                        lineHeight: rowTypography.lineHeight,
+                        includeFontPadding: false,
+                        textAlign: getTextAlign(annotation),
+                      },
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="clip"
+                  >
+                    {row.content}
+                  </Text>
+                </View>
               );
             })}
           </>
@@ -2811,7 +2802,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             <Image
               source={{ uri: annotation.imageUri }}
               style={styles.imageAnnotation}
-              contentFit="fill"
+              contentFit={annotation.imageContentFit ?? 'fill'}
               priority="high"
               cachePolicy="disk"
               transition={0}
@@ -2932,200 +2923,39 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       </View>
 
 
-      {/* Модальное окно выбора цвета */}
-      <Modal
+      <EditorColorPickerSheet
         visible={showColorPicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowColorPicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowColorPicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите цвет</Text>
-            <View style={styles.colorGrid}>
-              {APP_COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    {
-                      backgroundColor: color,
-                      borderColor: color === '#FFFFFF' ? '#E8D5C7' : 'transparent',
-                      borderWidth: color === '#FFFFFF' ? 2 : 0,
-                    },
-                    currentEditingAnnotation?.color === color &&
-                      styles.colorOptionSelected,
-                  ]}
-                  onPress={() => handleColorSelect(color)}
-                  activeOpacity={0.7}
-                />
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowColorPicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowColorPicker(false)}
+        colors={EDITOR_PICKER_COLORS}
+        selectedColor={currentEditingAnnotation?.color}
+        onSelectColor={handleColorSelect}
+      />
 
-      {/* Модальное окно выбора размера шрифта */}
-      <Modal
+      <EditorFontSizePickerSheet
         visible={showFontSizePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontSizePicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontSizePicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите размер</Text>
-            <ScrollView style={styles.fontSizeList} showsVerticalScrollIndicator={false}>
-              {FONT_SIZES.map((size) => (
-                <TouchableOpacity
-                  key={size}
-                  style={[
-                    styles.fontSizeOption,
-                    currentEditingAnnotation?.fontSize === size &&
-                      styles.fontSizeOptionSelected,
-                  ]}
-                  onPress={() => handleFontSizeSelect(size)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.fontSizeText,
-                      { fontSize: size },
-                      currentEditingAnnotation?.fontSize === size &&
-                        styles.fontSizeTextSelected,
-                    ]}
-                  >
-                    {size}px - Пример текста
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowFontSizePicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowFontSizePicker(false)}
+        selectedSize={currentEditingAnnotation?.fontSize}
+        onSelectSize={handleFontSizeSelect}
+        showSampleText
+      />
 
-      {/* Модальное окно выбора шрифта */}
-      <Modal
+      <EditorFontPickerSheet
         visible={showFontPicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontPicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontPicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите шрифт</Text>
-            <ScrollView style={styles.fontList} showsVerticalScrollIndicator={false}>
-              {AVAILABLE_FONTS.map((font) => (
-                <TouchableOpacity
-                  key={font.id}
-                  style={[
-                    styles.fontOption,
-                    (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
-                      styles.fontOptionSelected,
-                  ]}
-                  onPress={() => handleFontSelect(font.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.fontOptionText,
-                      {
-                        fontFamily: font.id === 'default' 
-                          ? Platform.select({
-                              ios: 'System',
-                              android: 'sans-serif',
-                              default: 'sans-serif',
-                            })
-                          : font.name,
-                      },
-                      (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
-                        styles.fontOptionTextSelected,
-                    ]}
-                  >
-                    {font.displayName}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowFontPicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowFontPicker(false)}
+        fonts={AVAILABLE_FONTS}
+        selectedFontId={currentEditingAnnotation?.fontFamily || 'default'}
+        onSelectFont={handleFontSelect}
+      />
 
-      {/* Модальное окно изменения z-index */}
-      <Modal
+      <EditorZIndexSheet
         visible={showZIndexMenu}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowZIndexMenu(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowZIndexMenu(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Порядок отображения</Text>
-            <View style={styles.zIndexActions}>
-              <TouchableOpacity
-                style={[styles.zIndexButton, styles.forwardButton]}
-                onPress={() => handleZIndexChange('forward')}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="arrow-up-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.zIndexButtonText}>На передний план</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.zIndexButton, styles.backwardButton]}
-                onPress={() => handleZIndexChange('backward')}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="arrow-down-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.zIndexButtonText}>На задний план</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowZIndexMenu(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => {
+          setShowZIndexMenu(false);
+          setZIndexAnnotationId(null);
+        }}
+        onMoveForward={() => handleZIndexChange('forward')}
+        onMoveBackward={() => handleZIndexChange('backward')}
+      />
     </>
   );
 });
@@ -3435,6 +3265,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     pointerEvents: 'auto',
+    overflow: 'hidden',
+    borderRadius: 12,
   },
   imageAnnotation: {
     width: '100%',
@@ -3492,178 +3324,5 @@ const styles = StyleSheet.create({
   resizeHandleBR: {
     bottom: -8,
     right: -8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    maxHeight: '80%',
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: colors.textPrimary,
-    fontFamily: sansFont('bold'),
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 24,
-  },
-  colorOption: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  colorOptionSelected: {
-    borderWidth: 4,
-    borderColor: colors.primary,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-    transform: [{ scale: 1.1 }],
-  },
-  fontSizeList: {
-    maxHeight: 300,
-    marginBottom: 24,
-  },
-  fontSizeOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: colors.background,
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  fontSizeOptionSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: colors.primary,
-    borderWidth: 2,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fontSizeText: {
-    color: colors.textPrimary,
-    fontWeight: '500',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  fontSizeTextSelected: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  fontList: {
-    maxHeight: 400,
-    marginBottom: 24,
-  },
-  fontOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: colors.background,
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  fontOptionSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: colors.primary,
-    borderWidth: 2,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fontOptionText: {
-    color: colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  fontOptionTextSelected: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-  },
-  zIndexActions: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  zIndexButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  forwardButton: {
-    backgroundColor: colors.primary,
-  },
-  backwardButton: {
-    backgroundColor: colors.textSecondary,
-  },
-  zIndexButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  modalCancelButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E8D5C7',
-  },
-  modalCancelButtonText: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
   },
 });

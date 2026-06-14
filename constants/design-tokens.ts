@@ -15,9 +15,33 @@ export const colors = {
   placeholder: '#B0B0B0',
   error: '#C62828',
   statusFilled: '#4CAF50',
-  statusDraft: '#8A9AAD',
+  statusContinue: '#F5A623',
+  statusDraft: '#9C7BD8',
   statusDraftCircle: '#E8C4A8',
   statusEmpty: '#B0B0B0',
+  statusLocked: '#9E9E9E',
+  statusExcluded: '#C62828',
+  overlay: 'rgba(61, 61, 61, 0.45)',
+  focusRing: '#F194A2',
+  chipSelectedBg: '#FDF0F2',
+} as const;
+
+export const surfaces = {
+  muted: '#FAFAFA',
+  elevated: '#FFFFFF',
+  sheet: '#FFFFFF',
+} as const;
+
+export const motion = {
+  fast: 150,
+  normal: 250,
+  slow: 400,
+  spring: {
+    damping: 18,
+    stiffness: 180,
+    mass: 0.8,
+  },
+  pressScale: 0.97,
 } as const;
 
 export const spacing = {
@@ -118,7 +142,7 @@ export const typography = {
   },
 } as const;
 
-export function createShadow(level: 'sm' | 'md'): ViewStyle {
+export function createShadow(level: 'sm' | 'md' | 'lg'): ViewStyle {
   if (level === 'sm') {
     return {
       shadowColor: '#000000',
@@ -128,11 +152,20 @@ export function createShadow(level: 'sm' | 'md'): ViewStyle {
       elevation: 2,
     };
   }
+  if (level === 'md') {
+    return {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      elevation: 4,
+    };
+  }
   return {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowRadius: 24,
+    elevation: 8,
   };
 }

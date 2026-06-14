@@ -3,13 +3,17 @@ import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { createId } from '@/utils/id';
+import { getContentRect } from '@/utils/imageContentRect';
 import {
-  distributeTextAcrossSlots,
   getLineSlotsForPage,
   layoutAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
+import {
+  distributeTextWithinFieldLines,
+} from '@/utils/templateLineText';
 import { computePageStatus } from '@/utils/pageStatus';
+import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 
@@ -63,8 +67,15 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     sourceHeight
   );
   const slots = getLineSlotsForPage(slotParams);
+  const editorContentRect = getContentRect(
+    viewportWidth,
+    viewportHeight,
+    sourceWidth ?? viewportWidth,
+    sourceHeight ?? viewportHeight,
+  );
   const profile = getTemplateTypographyProfile(lineGuideId);
   const fontSize = profile.fixedLineFontSize ?? 16;
+  const textFontFamily = values.textFontFamily ?? 'default';
   const annotations: Annotation[] = [];
   let zIndex = 1;
 
@@ -75,25 +86,27 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     const startSlot = slots[field.templateLineStart];
     if (!startSlot) continue;
 
-    const distributed = distributeTextAcrossSlots({
+    const distributed = distributeTextWithinFieldLines({
       text,
       startSlotIndex: field.templateLineStart,
+      lineCount: field.templateLineCount,
       slots,
       fontSize,
+      lineGuideId,
     });
 
-    const lines = distributed.content.split('\n');
-    for (let i = 0; i < lines.length; i += 1) {
-      const slot = slots[field.templateLineStart + i];
-      if (!slot || !lines[i]) continue;
+    for (const segment of distributed.segments) {
+      if (!segment.content) continue;
+      const slot = slots[segment.slotIndex];
+      if (!slot) continue;
       const layout = layoutAnnotationFromSlot(slot);
       annotations.push({
         id: createId('ann'),
         type: 'text',
         page: pageNumber,
-        content: lines[i],
+        content: segment.content,
         fontSize,
-        fontFamily: 'default',
+        fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
         ...layout,
@@ -113,19 +126,49 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       const uri = blockValues.slots[i];
       if (!uri) continue;
 
+      const photoRect = getPhotoSlotViewportRect({
+        lineGuideId,
+        page: schema.sourcePageNumber,
+        variantId: variant.variantId,
+        slotIndex: i,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth,
+        sourceHeight,
+        contentRect: editorContentRect,
+      });
+
+      if (photoRect) {
+        annotations.push({
+          id: createId('ann'),
+          type: 'image',
+          page: pageNumber,
+          x: photoRect.x,
+          y: photoRect.y,
+          width: photoRect.width,
+          height: photoRect.height,
+          imageUri: uri,
+          imageContentFit: 'cover',
+          zIndex: zIndex++,
+        });
+        continue;
+      }
+
       const slotIndex = variant.slotIndices[i] ?? i;
       const slot = slots[slotIndex];
       if (!slot) continue;
 
+      const layout = layoutAnnotationFromSlot(slot);
       annotations.push({
         id: createId('ann'),
         type: 'image',
         page: pageNumber,
-        x: slot.x,
-        y: slot.y,
-        width: slot.width,
-        height: slot.lineHeight,
+        x: layout.x,
+        y: layout.y,
+        width: layout.width,
+        height: layout.height,
         imageUri: uri,
+        imageContentFit: 'cover',
         zIndex: zIndex++,
       });
     }
@@ -141,9 +184,32 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         page: pageNumber,
         content: values.caption.trim(),
         fontSize,
-        fontFamily: 'default',
+        fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
+        ...layout,
+      });
+    }
+  }
+
+  if (schema.pageType === 'caption_photo_page' && values.photoCaptions?.length) {
+    const labelSlots = slots.filter((s) => s.hasLabel);
+    for (let i = 0; i < values.photoCaptions.length; i += 1) {
+      const text = values.photoCaptions[i]?.trim();
+      if (!text) continue;
+      const slot = labelSlots[i];
+      if (!slot) continue;
+      const layout = layoutAnnotationFromSlot(slot);
+      annotations.push({
+        id: createId('ann'),
+        type: 'text',
+        page: pageNumber,
+        content: text,
+        fontSize,
+        fontFamily: textFontFamily,
+        color: '#3D3D3D',
+        zIndex: zIndex++,
+        templateLineStart: slot.index,
         ...layout,
       });
     }

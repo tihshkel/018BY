@@ -8,9 +8,11 @@ import { getPageStatusLabel } from '@/utils/pageStatus';
 
 const STATUS_TEXT_COLORS: Record<PageStatus, string> = {
   empty: colors.statusEmpty,
+  continue: colors.statusContinue,
   draft: colors.statusDraft,
   filled: colors.statusFilled,
-  locked: colors.statusEmpty,
+  locked: colors.statusLocked,
+  excluded: colors.statusExcluded,
 };
 
 type PageStatusBadgeProps = {

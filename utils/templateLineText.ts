@@ -1,8 +1,14 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
+import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import type { TextLineSlot } from '@/utils/textLineSlots';
 
 /** Пробел уже буквы — иначе перенос срабатывает раньше визуального края строки. */
 const SPACE_WIDTH_FACTOR = 0.35;
+
+function getEffectiveCharWidthRatio(lineGuideId?: string, fontId?: string): number {
+  const profile = getTemplateTypographyProfile(lineGuideId);
+  return profile.charWidthRatio * getAlbumFontCharWidthMultiplier(fontId);
+}
 
 function getEffectiveLineWidth(slot: TextLineSlot, lineGuideId?: string): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
@@ -26,17 +32,37 @@ export function estimateTextWidth(
   return width;
 }
 
+export type TextWidthMeasure = (text: string, fittedFontSize: number) => number;
+
+function measureTextLineWidth(
+  text: string,
+  fittedFontSize: number,
+  lineGuideId: string | undefined,
+  fontId: string | undefined,
+  measureTextWidth?: TextWidthMeasure
+): number {
+  if (measureTextWidth) {
+    return measureTextWidth(text, fittedFontSize);
+  }
+  return estimateTextWidth(
+    text,
+    fittedFontSize,
+    getEffectiveCharWidthRatio(lineGuideId, fontId)
+  );
+}
+
 export function textFitsInSlot(
   text: string,
   slot: TextLineSlot,
   fontSize: number,
-  lineGuideId?: string
+  lineGuideId?: string,
+  fontId?: string,
+  measureTextWidth?: TextWidthMeasure
 ): boolean {
   if (!text) return true;
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
-  const profile = getTemplateTypographyProfile(lineGuideId);
   return (
-    estimateTextWidth(text, fitted, profile.charWidthRatio) <=
+    measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth) <=
     getEffectiveLineWidth(slot, lineGuideId)
   );
 }
@@ -45,18 +71,20 @@ function splitWordToFit(
   word: string,
   slot: TextLineSlot,
   fontSize: number,
-  lineGuideId?: string
+  lineGuideId?: string,
+  fontId?: string,
+  measureTextWidth?: TextWidthMeasure
 ): { line: string; rest: string } {
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
-  const profile = getTemplateTypographyProfile(lineGuideId);
+  const charWidthRatio = getEffectiveCharWidthRatio(lineGuideId, fontId);
 
   let line = '';
   for (const ch of word) {
     const candidate = line + ch;
-    if (
-      estimateTextWidth(candidate, fitted, profile.charWidthRatio) <=
-      getEffectiveLineWidth(slot, lineGuideId)
-    ) {
+    const width = measureTextWidth
+      ? measureTextWidth(candidate, fitted)
+      : estimateTextWidth(candidate, fitted, charWidthRatio);
+    if (width <= getEffectiveLineWidth(slot, lineGuideId)) {
       line = candidate;
       continue;
     }
@@ -75,9 +103,11 @@ export function truncateTextToSlotWidth(
   text: string,
   slot: TextLineSlot,
   fontSize: number,
-  lineGuideId?: string
+  lineGuideId?: string,
+  fontId?: string,
+  measureTextWidth?: TextWidthMeasure
 ): string {
-  if (!text || textFitsInSlot(text, slot, fontSize, lineGuideId)) {
+  if (!text || textFitsInSlot(text, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
     return text;
   }
 
@@ -88,7 +118,7 @@ export function truncateTextToSlotWidth(
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2);
     const candidate = text.slice(0, mid);
-    if (textFitsInSlot(candidate, slot, fontSize, lineGuideId)) {
+    if (textFitsInSlot(candidate, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
       best = mid;
       lo = mid + 1;
     } else {
@@ -149,8 +179,15 @@ export function fitFontSizeToSlot(
     return profile.fixedLineFontSize;
   }
 
-  const maxFromSlot = Math.max(8, lineHeight * 0.82);
+  const maxFromSlot = Math.max(8, lineHeight * 0.76);
   return Math.min(fontSize, maxFromSlot, 16);
+}
+
+export function getTemplateLineAscenderPadding(
+  fontSize: number,
+  inputKind: 'line' | 'block' = 'line'
+): number {
+  return Math.ceil(fontSize * (inputKind === 'block' ? 0.34 : 0.28));
 }
 
 export function getEffectiveTemplateFontSize(
@@ -178,14 +215,14 @@ export function getTemplateLineTypography(
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple');
 
   const lineTextLineHeight = isDiaryBlock
-    ? fittedSize
+    ? fittedSize * 1.08
     : inputKind === 'block'
-      ? fittedSize * 1.05
-      : fittedSize;
-  const ascenderPadding = Math.ceil(fittedSize * 0.22);
+      ? fittedSize * 1.08
+      : fittedSize * 1.06;
+  const ascenderPadding = getTemplateLineAscenderPadding(fittedSize, inputKind);
   const lineInputHeight =
     inputKind === 'block'
-      ? lineHeight
+      ? Math.max(lineHeight, lineTextLineHeight + ascenderPadding)
       : Math.min(lineHeight, lineTextLineHeight + ascenderPadding);
 
   return {
@@ -250,13 +287,13 @@ function resolveTemplateTextVerticalRatios(
     // Крупные белые блоки (обложка стр. 1, заголовки)
     if (normHeight >= 0.055) {
       if (normY >= 0.55 && normY <= 0.82) {
-        return { centerRatio: 0.46, fontOffsetRatio: 0.88 };
+        return { centerRatio: 0.5, fontOffsetRatio: 0.8 };
       }
-      return { centerRatio: 0.5, fontOffsetRatio: 0.85 };
+      return { centerRatio: 0.52, fontOffsetRatio: 0.78 };
     }
     // Нижняя строка коротких полей (место рождения и аналоги на стр. 2+)
     if (normY >= 0.85 && normHeight < 0.055) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.86 };
+      return { centerRatio: 0.5, fontOffsetRatio: 0.8 };
     }
   }
 
@@ -374,7 +411,7 @@ export function getTemplateLineTextTop(
       slot.normY <= 0.62;
 
     if (isPurpleCoverField || isBrownCoverField) {
-      return lineY - fittedSize * 1.06;
+      return lineY - fittedSize * 0.98;
     }
     if (isBrownWishSlot(slot, lineGuideId)) {
       const lineFitted = fitFontSizeToSlot(
@@ -383,7 +420,7 @@ export function getTemplateLineTextTop(
         'line',
         lineGuideId
       );
-      return lineY - lineFitted * 1.05;
+      return lineY - lineFitted * 0.98;
     }
     if (isBrownCareerAnswerSlot(slot, lineGuideId)) {
       const lineFitted = fitFontSizeToSlot(
@@ -392,9 +429,9 @@ export function getTemplateLineTextTop(
         'line',
         lineGuideId
       );
-      return lineY - lineFitted * 1.05;
+      return lineY - lineFitted * 0.98;
     }
-    const fontOffsetRatio = inputKind === 'block' ? 1.04 : 1.05;
+    const fontOffsetRatio = inputKind === 'block' ? 0.96 : 0.98;
     return lineY - fittedSize * fontOffsetRatio;
   }
 
@@ -412,7 +449,9 @@ function consumeOneLineForSlot(
   text: string,
   slot: TextLineSlot,
   fontSize: number,
-  lineGuideId?: string
+  lineGuideId?: string,
+  fontId?: string,
+  measureTextWidth?: TextWidthMeasure
 ): { line: string; rest: string } {
   const withoutLeading = text.replace(/^\s+/, '');
   const trailingMatch = withoutLeading.match(/(\s+)$/);
@@ -431,7 +470,7 @@ function consumeOneLineForSlot(
 
   for (const word of words) {
     const testLine = built ? `${built} ${word}` : word;
-    if (textFitsInSlot(testLine, slot, fontSize, lineGuideId)) {
+    if (textFitsInSlot(testLine, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
       built = testLine;
       wordCount += 1;
       continue;
@@ -441,11 +480,18 @@ function consumeOneLineForSlot(
       return { line: built + trailingSpaces, rest: words.slice(wordCount).join(' ') };
     }
 
-    if (textFitsInSlot(word, slot, fontSize, lineGuideId)) {
+    if (textFitsInSlot(word, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
       return { line: word + trailingSpaces, rest: words.slice(1).join(' ') };
     }
 
-    const { line, rest: wordRest } = splitWordToFit(word, slot, fontSize, lineGuideId);
+    const { line, rest: wordRest } = splitWordToFit(
+      word,
+      slot,
+      fontSize,
+      lineGuideId,
+      fontId,
+      measureTextWidth
+    );
     const tail = [wordRest, ...words.slice(1)].filter(Boolean).join(' ');
     return { line: line + trailingSpaces, rest: tail };
   }
@@ -460,15 +506,16 @@ export function getTailAfterFirstLine(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
-  const { text, startSlotIndex, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, slots, fontSize, lineGuideId, fontId } = params;
   const trimmed = text.replace(/^\s+/, '');
   if (!trimmed) return '';
 
   const startSlot = slots[startSlotIndex];
   if (!startSlot) return '';
 
-  return consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId).rest;
+  return consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId).rest;
 }
 
 /**
@@ -481,15 +528,16 @@ export function getFirstLineInputValue(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
-  const { text, startSlotIndex, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, slots, fontSize, lineGuideId, fontId } = params;
   const trimmed = text.replace(/^\s+/, '');
   if (!trimmed) return '';
 
   const startSlot = slots[startSlotIndex];
   if (!startSlot) return trimmed;
 
-  const { rest } = consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId);
+  const { rest } = consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId);
   if (!rest) return trimmed;
 
   return trimmed.slice(0, trimmed.length - rest.length);
@@ -514,14 +562,16 @@ export function mergeFirstLineEdit(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
-  const { newFirstLine, previousText, startSlotIndex, slots, fontSize, lineGuideId } = params;
+  const { newFirstLine, previousText, startSlotIndex, slots, fontSize, lineGuideId, fontId } = params;
   const { segments } = distributeTextWithinContinuationGroup({
     text: previousText,
     startSlotIndex,
     slots,
     fontSize,
     lineGuideId,
+    fontId,
   });
 
   if (!segments.length) return newFirstLine;
@@ -561,6 +611,7 @@ export function mergeActiveLineEdit(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
   const {
     newLineText,
@@ -570,6 +621,7 @@ export function mergeActiveLineEdit(params: {
     slots,
     fontSize,
     lineGuideId,
+    fontId,
   } = params;
 
   const { segments } = distributeTextWithinContinuationGroup({
@@ -578,6 +630,7 @@ export function mergeActiveLineEdit(params: {
     slots,
     fontSize,
     lineGuideId,
+    fontId,
   });
 
   const updated = segments.map((segment) =>
@@ -595,11 +648,13 @@ export function distributeTextWithinContinuationGroup(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
+  measureTextWidth?: TextWidthMeasure;
 }): {
   segments: { slotIndex: number; content: string }[];
   truncated: boolean;
 } {
-  const { text, startSlotIndex, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, slots, fontSize, lineGuideId, fontId, measureTextWidth } = params;
   const startSlot = slots[startSlotIndex];
   if (!startSlot) {
     return { segments: [{ slotIndex: startSlotIndex, content: text }], truncated: false };
@@ -623,7 +678,14 @@ export function distributeTextWithinContinuationGroup(params: {
       segments.push({ slotIndex: slot.index, content: '' });
       continue;
     }
-    const { line, rest } = consumeOneLineForSlot(remaining, slot, fontSize, lineGuideId);
+    const { line, rest } = consumeOneLineForSlot(
+      remaining,
+      slot,
+      fontSize,
+      lineGuideId,
+      fontId,
+      measureTextWidth
+    );
     const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
     segments.push({ slotIndex: slot.index, content });
     remaining = rest;
@@ -640,8 +702,9 @@ export function clampTextToContinuationGroup(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
-  const { text, startSlotIndex, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, slots, fontSize, lineGuideId, fontId } = params;
   if (!text) return text;
 
   const { truncated } = distributeTextWithinContinuationGroup({
@@ -650,6 +713,7 @@ export function clampTextToContinuationGroup(params: {
     slots,
     fontSize,
     lineGuideId,
+    fontId,
   });
 
   if (!truncated) return text;
@@ -667,7 +731,95 @@ export function clampTextToContinuationGroup(params: {
       slots,
       fontSize,
       lineGuideId,
+      fontId,
     });
+    if (stillTruncated) {
+      hi = mid - 1;
+    } else {
+      best = mid;
+      lo = mid + 1;
+    }
+  }
+
+  return text.slice(0, best);
+}
+
+/** Распределяет текст по фиксированному числу строк поля (templateLineCount). */
+export function distributeTextWithinFieldLines(params: {
+  text: string;
+  startSlotIndex: number;
+  lineCount: number;
+  slots: TextLineSlot[];
+  fontSize: number;
+  lineGuideId?: string;
+}): {
+  segments: { slotIndex: number; content: string }[];
+  truncated: boolean;
+} {
+  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId } = params;
+  const fieldSlots = slots.slice(startSlotIndex, startSlotIndex + lineCount);
+
+  if (fieldSlots.length === 0) {
+    return { segments: [], truncated: text.length > 0 };
+  }
+
+  const segments: { slotIndex: number; content: string }[] = [];
+  let remaining = text;
+  const headIndex = fieldSlots[0]?.index ?? startSlotIndex;
+
+  for (const slot of fieldSlots) {
+    if (!remaining) {
+      segments.push({ slotIndex: slot.index, content: '' });
+      continue;
+    }
+
+    const { line, rest } = consumeOneLineForSlot(remaining, slot, fontSize, lineGuideId);
+    const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
+    segments.push({ slotIndex: slot.index, content });
+    remaining = rest;
+  }
+
+  return { segments, truncated: remaining.length > 0 };
+}
+
+export function clampTextToFieldLines(params: {
+  text: string;
+  startSlotIndex: number;
+  lineCount: number;
+  slots: TextLineSlot[];
+  fontSize: number;
+  lineGuideId?: string;
+}): string {
+  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId } = params;
+  if (!text) return text;
+
+  const { truncated } = distributeTextWithinFieldLines({
+    text,
+    startSlotIndex,
+    lineCount,
+    slots,
+    fontSize,
+    lineGuideId,
+  });
+
+  if (!truncated) return text;
+
+  let lo = 0;
+  let hi = text.length;
+  let best = 0;
+
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const candidate = text.slice(0, mid);
+    const { truncated: stillTruncated } = distributeTextWithinFieldLines({
+      text: candidate,
+      startSlotIndex,
+      lineCount,
+      slots,
+      fontSize,
+      lineGuideId,
+    });
+
     if (stillTruncated) {
       hi = mid - 1;
     } else {

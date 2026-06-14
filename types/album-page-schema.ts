@@ -1,6 +1,27 @@
-export type PageType = 'structured' | 'non_editable' | 'photo' | 'free';
-export type PageStatus = 'empty' | 'draft' | 'filled' | 'locked';
-export type FieldType = 'text' | 'date' | 'time' | 'number';
+export type PageType =
+  | 'structured'
+  | 'non_editable'
+  | 'photo'
+  | 'free'
+  | 'event_photo'
+  | 'month_page'
+  | 'family_tree'
+  | 'teeth'
+  | 'growth_weight'
+  | 'free_photo_caption'
+  | 'caption_photo_page'
+  | 'baptism_page'
+  | 'godparents_page';
+
+export type PageStatus =
+  | 'empty'
+  | 'continue'
+  | 'draft'
+  | 'filled'
+  | 'locked'
+  | 'excluded';
+
+export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
 
 export interface AlbumPageField {
   fieldId: string;
@@ -10,6 +31,7 @@ export interface AlbumPageField {
   placeholder?: string;
   templateLineStart: number;
   templateLineCount: number;
+  options?: string[];
 }
 
 export interface PhotoBlockVariant {
@@ -38,6 +60,16 @@ export interface AlbumPageSchema {
   canDuplicate: boolean;
   canAddAfter: boolean;
   templateLibraryId?: string;
+  captionEnabled?: boolean;
+  /** Always included in electronic export even when empty (e.g. kids p2). */
+  requiredInExport?: boolean;
+}
+
+export interface AlbumSectionDefinition {
+  sectionId: string;
+  title: string;
+  pageRange: [number, number];
+  order: number;
 }
 
 export interface PageTemplateLibraryItem {
@@ -70,8 +102,15 @@ export interface PageValues {
     }
   >;
   caption?: string;
+  /** Per-photo captions for caption_photo_page */
+  photoCaptions?: (string | null)[];
+  /** ID шрифта из AVAILABLE_FONTS для всего текста страницы */
+  textFontFamily?: string;
   status: PageStatus;
   updatedAt: string;
+  excludedFromExport?: boolean;
+  /** Set when user taps «Редактировать позже» — distinguishes Черновик from Продолжить */
+  draftSavedAt?: string;
 }
 
-export const PAGE_SCHEMA_VERSION = '1.0.0';
+export const PAGE_SCHEMA_VERSION = '2.0.0';

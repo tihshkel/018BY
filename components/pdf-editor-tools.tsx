@@ -1,12 +1,16 @@
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { colors, createShadow, radii } from '@/constants/design-tokens';
+import {
+  EditorColorPickerSheet,
+  EditorFontSizePickerSheet,
+  EDITOR_FONT_SIZES,
+  EDITOR_TOOL_COLORS,
+} from '@/components/editor/editor-style-picker-sheet';
 import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Modal,
-  ScrollView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,12 +29,7 @@ interface PdfEditorToolsProps {
   onExport: () => void;
 }
 
-const colorOptions = [
-  '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
-  '#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000'
-];
-
-const fontSizeOptions = [12, 14, 16, 18, 20, 24, 28, 32];
+const fontSizeOptions = EDITOR_FONT_SIZES.filter((size) => size <= 32);
 
 export default function PdfEditorTools({
   onToolSelect,
@@ -222,74 +221,21 @@ export default function PdfEditorTools({
         </View>
       )}
 
-      {/* Модальное окно выбора цвета */}
-      <Modal
+      <EditorColorPickerSheet
         visible={showColorPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowColorPicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Выберите цвет</Text>
-            <View style={styles.colorGrid}>
-              {colorOptions.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.colorOptionSelected,
-                  ]}
-                  onPress={() => handleColorSelect(color)}
-                />
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setShowColorPicker(false)}
-            >
-              <Text style={styles.modalButtonText}>Закрыть</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowColorPicker(false)}
+        colors={EDITOR_TOOL_COLORS}
+        selectedColor={selectedColor}
+        onSelectColor={handleColorSelect}
+      />
 
-      {/* Модальное окно выбора размера шрифта */}
-      <Modal
+      <EditorFontSizePickerSheet
         visible={showFontSizePicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowFontSizePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Выберите размер шрифта</Text>
-            <ScrollView style={styles.fontSizeList}>
-              {fontSizeOptions.map((size) => (
-                <TouchableOpacity
-                  key={size}
-                  style={[
-                    styles.fontSizeOption,
-                    selectedFontSize === size && styles.fontSizeOptionSelected,
-                  ]}
-                  onPress={() => handleFontSizeSelect(size)}
-                >
-                  <Text style={[styles.fontSizeText, { fontSize: size }]}>
-                    {size}px
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setShowFontSizePicker(false)}
-            >
-              <Text style={styles.modalButtonText}>Закрыть</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowFontSizePicker(false)}
+        sizes={fontSizeOptions}
+        selectedSize={selectedFontSize}
+        onSelectSize={handleFontSizeSelect}
+      />
     </View>
   );
 }
@@ -454,115 +400,5 @@ const styles = StyleSheet.create({
   actionTextSecondary: {
     color: colors.primary,
     fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(139, 111, 95, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 28,
-    width: '100%',
-    maxWidth: 340,
-    borderWidth: 1,
-    borderColor: colors.border,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: 24,
-    fontFamily: sansFont('bold'),
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 28,
-  },
-  colorOption: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  colorOptionSelected: {
-    borderColor: colors.primary,
-    borderWidth: 4,
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  fontSizeList: {
-    maxHeight: 240,
-    marginBottom: 28,
-  },
-  fontSizeOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    marginBottom: 8,
-    backgroundColor: colors.background,
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  fontSizeOptionSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: colors.primary,
-    borderWidth: 2,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fontSizeText: {
-    color: colors.textPrimary,
-    fontWeight: '600',
-    textAlign: 'center',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  modalButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  modalButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
   },
 });

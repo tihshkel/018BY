@@ -1,4 +1,4 @@
-import { Platform, useWindowDimensions } from 'react-native';
+import { Platform, useWindowDimensions } from "react-native";
 
 /** Minimum width (dp) to treat as tablet layout on Android and in landscape phones. */
 export const TABLET_BREAKPOINT = 768;
@@ -34,7 +34,7 @@ export interface GridColumnOptions {
 
 export function getGridColumnCount(
   layout: ResponsiveLayout,
-  options: GridColumnOptions = {}
+  options: GridColumnOptions = {},
 ): number {
   const {
     wideBreakpoint = WIDE_TABLET_BREAKPOINT,
@@ -50,7 +50,7 @@ export function getGridColumnCount(
 export function getGridItemWidth(
   layout: ResponsiveLayout,
   columnCount: number,
-  gap = 16
+  gap = 16,
 ): number {
   if (columnCount <= 1) {
     return layout.isTablet ? layout.contentMaxWidth : layout.width * 0.75;
@@ -58,19 +58,21 @@ export function getGridItemWidth(
   return (layout.contentMaxWidth - (columnCount - 1) * gap) / columnCount;
 }
 
-export function getTabletContentShell(layout: ResponsiveLayout): {
-  width: '100%';
-  maxWidth: number;
-  alignSelf: 'center';
-  paddingHorizontal: number;
-} | undefined {
+export function getTabletContentShell(layout: ResponsiveLayout):
+  | {
+      width: "100%";
+      maxWidth: number;
+      alignSelf: "center";
+      paddingHorizontal: number;
+    }
+  | undefined {
   if (!layout.isTablet) {
     return undefined;
   }
   return {
-    width: '100%',
+    width: "100%",
     maxWidth: layout.contentMaxWidth + layout.horizontalPadding * 2,
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingHorizontal: layout.horizontalPadding,
   };
 }
@@ -83,23 +85,25 @@ export interface TabletSectionWrapOptions {
 
 export function getTabletSectionWrap(
   layout: ResponsiveLayout,
-  options: TabletSectionWrapOptions | number = {}
+  options: TabletSectionWrapOptions | number = {},
 ): {
   paddingHorizontal: number;
-  alignSelf?: 'center';
-  width?: '100%';
+  alignSelf?: "center";
+  width?: "100%";
   maxWidth?: number;
 } {
   const opts: TabletSectionWrapOptions =
-    typeof options === 'number' ? { phonePadding: options, tabletPadding: 0 } : options;
+    typeof options === "number"
+      ? { phonePadding: options, tabletPadding: 0 }
+      : options;
   const phonePadding = opts.phonePadding ?? 24;
   const tabletPadding = opts.tabletPadding ?? layout.horizontalPadding;
 
   return {
     paddingHorizontal: layout.isTablet ? tabletPadding : phonePadding,
     ...(layout.isTablet && {
-      alignSelf: 'center' as const,
-      width: '100%' as const,
+      alignSelf: "center" as const,
+      width: "100%" as const,
       maxWidth: layout.contentMaxWidth,
     }),
   };
@@ -108,11 +112,11 @@ export function getTabletSectionWrap(
 /** FlatList grid inside a scroll parent — full content width, no overflow. */
 export function getGridListStyle(layout: ResponsiveLayout): {
   width: number;
-  alignSelf: 'center';
+  alignSelf: "center";
 } {
   return {
     width: layout.contentMaxWidth,
-    alignSelf: 'center',
+    alignSelf: "center",
   };
 }
 
@@ -124,31 +128,35 @@ export function getGridColumnWrapperStyle(gap = 16): {
 }
 
 export function getTabletBottomModalStyles(layout: ResponsiveLayout): {
-  overlay: { justifyContent: 'flex-end' | 'center'; alignItems?: 'center'; paddingHorizontal?: number };
+  overlay: {
+    justifyContent: "flex-end" | "center";
+    alignItems?: "center";
+    paddingHorizontal?: number;
+  };
   content: {
-    width?: '100%';
+    width?: "100%";
     maxWidth?: number;
     borderRadius?: number;
-    maxHeight?: '85%';
+    maxHeight?: "85%";
   };
 } {
   if (!layout.isTablet) {
     return {
-      overlay: { justifyContent: 'flex-end' },
+      overlay: { justifyContent: "flex-end" },
       content: {},
     };
   }
   return {
     overlay: {
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       paddingHorizontal: layout.horizontalPadding,
     },
     content: {
-      width: '100%',
+      width: "100%",
       maxWidth: layout.contentMaxWidth,
       borderRadius: 24,
-      maxHeight: '85%',
+      maxHeight: "85%",
     },
   };
 }
@@ -170,7 +178,7 @@ export interface ResponsiveLayout {
 }
 
 export function isTabletLayout(width: number): boolean {
-  if (Platform.OS === 'ios' && Platform.isPad) {
+  if (Platform.OS === "ios" && Platform.isPad) {
     return true;
   }
   return width >= TABLET_BREAKPOINT;
@@ -187,19 +195,25 @@ export function getEditorPageViewportWidth(windowWidth: number): number {
 export function getEditorPageDisplayScale(
   windowWidth: number,
   windowHeight: number,
-  coordinateViewportWidth: number = EDITOR_PAGE_VIEWPORT_WIDTH
+  coordinateViewportWidth: number = EDITOR_PAGE_VIEWPORT_WIDTH,
+  chromeHeight = 280,
 ): number {
   if (!isTabletLayout(windowWidth)) return 1;
 
-  const chromeHeight = 280;
   const horizontalInset = 48;
-  const availableHeight = Math.max(windowHeight - chromeHeight, coordinateViewportWidth);
-  const availableWidth = Math.max(windowWidth - horizontalInset, coordinateViewportWidth);
+  const availableHeight = Math.max(
+    windowHeight - chromeHeight,
+    coordinateViewportWidth,
+  );
+  const availableWidth = Math.max(
+    windowWidth - horizontalInset,
+    coordinateViewportWidth,
+  );
 
   const targetSize = Math.min(
     availableWidth * 0.72,
     availableHeight * 0.78,
-    coordinateViewportWidth * EDITOR_PAGE_DISPLAY_MAX_SCALE
+    coordinateViewportWidth * EDITOR_PAGE_DISPLAY_MAX_SCALE,
   );
 
   const scale = targetSize / coordinateViewportWidth;
@@ -207,7 +221,7 @@ export function getEditorPageDisplayScale(
 }
 
 export function useResponsiveLayout(
-  maxContentWidth: number = ONBOARDING_CONTENT_MAX_WIDTH
+  maxContentWidth: number = ONBOARDING_CONTENT_MAX_WIDTH,
 ): ResponsiveLayout {
   const { width, height, fontScale } = useWindowDimensions();
   const isTablet = isTabletLayout(width);
@@ -215,8 +229,14 @@ export function useResponsiveLayout(
   const isCompactHeight = height < 700;
   const horizontalPadding = isTablet ? (isLandscape ? 64 : 48) : 32;
 
-  const phoneWidthScale = Math.min(Math.max(width / GUIDELINE_WIDTH, 0.85), 1.12);
-  const phoneHeightScale = Math.min(Math.max(height / GUIDELINE_HEIGHT, 0.9), 1.1);
+  const phoneWidthScale = Math.min(
+    Math.max(width / GUIDELINE_WIDTH, 0.85),
+    1.12,
+  );
+  const phoneHeightScale = Math.min(
+    Math.max(height / GUIDELINE_HEIGHT, 0.9),
+    1.1,
+  );
 
   const scale = (size: number): number =>
     isTablet ? size : Math.round(size * phoneWidthScale);
