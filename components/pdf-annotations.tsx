@@ -81,6 +81,8 @@ export interface Annotation {
   templateLineStart?: number;
   /** Сколько строк шаблона занимает блок */
   templateLineCount?: number;
+  /** Номер страницы в LINE_SLOTS / LINE_GUIDES (не индекс в PDF после фильтра) */
+  sourcePageNumber?: number;
   /** Горизонтальное выравнивание текста в блоке */
   textAlign?: 'left' | 'center' | 'right';
   /** Режим вписывания фото: cover для album auto-placement, fill для legacy редактора */

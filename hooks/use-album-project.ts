@@ -37,7 +37,7 @@ import {
   savePageValuesMap,
 } from '@/utils/pageStorage';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
-import { syncPageValuesToAnnotationsStorage } from '@/utils/pageValuesAdapter';
+import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
@@ -50,7 +50,7 @@ import {
   publishAlbumProjectSnapshot,
   subscribeAlbumProjectSnapshot,
 } from '@/utils/albumProjectStateSync';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud, addProjectToSyncedList } from '@/utils/account-sync';
 import { getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 
 export type AlbumProjectMeta = {
@@ -132,12 +132,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), pid, nextValues);
         await AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(nextImages));
 
-        const annotations = syncPageValuesToAnnotationsStorage(
-          nextInstances,
-          nextValues,
-          lineGuideId
-        );
-        await AsyncStorage.setItem(`@project_annotations_${pid}`, JSON.stringify(annotations));
+        await ensureProjectAnnotationsSynced(pid);
 
         if (nextMeta) {
           const updated = { ...nextMeta, pagesCount: nextImages.length };
@@ -152,6 +147,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             }
           }
         }
+        await addProjectToSyncedList(pid);
         scheduleSyncToCloud();
       } finally {
         setIsSaving(false);

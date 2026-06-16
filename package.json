@@ -7,6 +7,7 @@
     "reset-project": "node ./scripts/reset-project.js",
     "verify-project-save": "node ./scripts/verify-project-save.js",
     "verify:photo-flows": "node ./scripts/verify-photo-flows.js",
+    "verify:sync-audit": "node ./scripts/verify-sync-audit.js",
     "visualize:photo-slots": "node ./scripts/visualize-photo-slots.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -40,7 +41,8 @@
     "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
     "generate:page-schemas": "node ./scripts/generate-page-schemas.js",
     "extract:album-page-content": "node ./scripts/extract-album-page-content.js",
-    "generate:album-schemas": "npm run extract:album-page-content && npm run generate:page-schemas"
+    "generate:album-schemas": "npm run extract:album-page-content && npm run generate:page-schemas",
+    "generate:pregnancy-preview-variants": ".venv/bin/python3 ./scripts/generate-pregnancy-preview-variants.py"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -109,6 +109,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
+        templateLineStart: segment.slotIndex,
+        templateLineCount: 1,
+        sourcePageNumber: schema.sourcePageNumber,
         ...layout,
       });
     }
@@ -149,6 +152,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           height: photoRect.height,
           imageUri: uri,
           imageContentFit: 'cover',
+          sourcePageNumber: schema.sourcePageNumber,
           zIndex: zIndex++,
         });
         continue;
@@ -169,6 +173,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         height: layout.height,
         imageUri: uri,
         imageContentFit: 'cover',
+        sourcePageNumber: schema.sourcePageNumber,
         zIndex: zIndex++,
       });
     }
@@ -187,6 +192,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
+        templateLineStart: captionSlot.index,
+        templateLineCount: 1,
+        sourcePageNumber: schema.sourcePageNumber,
         ...layout,
       });
     }
@@ -210,6 +218,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         color: '#3D3D3D',
         zIndex: zIndex++,
         templateLineStart: slot.index,
+        templateLineCount: 1,
+        sourcePageNumber: schema.sourcePageNumber,
         ...layout,
       });
     }
@@ -277,8 +287,18 @@ export function buildProjectAnnotationsFromPageValues(params: {
   lineGuideId: string;
   viewportWidth?: number;
   viewportHeight?: number;
+  imageUris?: string[];
+  sourceSizesByImageIndex?: Map<number, { width: number; height: number }>;
 }): Annotation[] {
-  const { instances, pageValuesMap, lineGuideId, viewportWidth, viewportHeight } = params;
+  const {
+    instances,
+    pageValuesMap,
+    lineGuideId,
+    viewportWidth,
+    viewportHeight,
+    imageUris,
+    sourceSizesByImageIndex,
+  } = params;
   const all: Annotation[] = [];
 
   for (const instance of instances) {
@@ -287,6 +307,7 @@ export function buildProjectAnnotationsFromPageValues(params: {
     if (!schema || !values) continue;
 
     const pageNumber = instance.imageIndex + 1;
+    const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
     all.push(
       ...pageValuesToAnnotations({
         lineGuideId,
@@ -295,6 +316,8 @@ export function buildProjectAnnotationsFromPageValues(params: {
         values,
         viewportWidth,
         viewportHeight,
+        sourceWidth: sourceSize?.width,
+        sourceHeight: sourceSize?.height,
       })
     );
   }
@@ -307,7 +330,9 @@ export function syncPageValuesToAnnotationsStorage(
   pageValuesMap: Record<string, PageValues>,
   lineGuideId: string,
   viewportWidth?: number,
-  viewportHeight?: number
+  viewportHeight?: number,
+  imageUris?: string[],
+  sourceSizesByImageIndex?: Map<number, { width: number; height: number }>
 ): Annotation[] {
   return buildProjectAnnotationsFromPageValues({
     instances,
@@ -315,5 +340,7 @@ export function syncPageValuesToAnnotationsStorage(
     lineGuideId,
     viewportWidth,
     viewportHeight,
+    imageUris,
+    sourceSizesByImageIndex,
   });
 }

@@ -23,6 +23,7 @@ import {
   navigateToAlbumPages,
   type AlbumFlowParams,
 } from "@/utils/albumNavigation";
+import { resolveVariantPreviewBackgroundUri } from "@/utils/albumImages";
 import { isPhotoOnlySchema } from "@/utils/albumPageNavigation";
 import { computePageStatus } from "@/utils/pageStatus";
 
@@ -68,7 +69,20 @@ export default function AlbumPagePreviewScreen() {
   const schema = instance ? project.getSchemaForInstance(instance) : undefined;
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
-  const imageUri = instance ? project.images[instance.imageIndex] : undefined;
+  const baseImageUri = instance ? project.images[instance.imageIndex] : undefined;
+  const selectedVariantId = useMemo(() => {
+    if (!values?.photoBlocks) return null;
+    for (const block of Object.values(values.photoBlocks)) {
+      if (block?.variantId) return block.variantId;
+    }
+    return null;
+  }, [values?.photoBlocks]);
+  const imageUri =
+    resolveVariantPreviewBackgroundUri({
+      lineGuideId: schema?.lineGuideId ?? project.lineGuideId,
+      sourcePageNumber: instance?.sourcePageNumber ?? schema?.sourcePageNumber,
+      variantId: selectedVariantId,
+    }) ?? baseImageUri;
   const selectedFontId = values?.textFontFamily ?? "default";
   const hasTextFields = (schema?.fields?.length ?? 0) > 0;
 

@@ -12,6 +12,7 @@ import { getExportCoverPages, isSameExportImageUri } from '@/utils/albumFirstLas
 import {
   ensureAlbumPagesCachedForExport,
   ensurePageUrisCachedForExport,
+  ensureRemoteAlbumPageCachedByIndex,
   ensureSinglePageUriCachedForExport,
   getAlbumImageUris,
   getBlankInteriorPageUri,
@@ -130,7 +131,8 @@ function drawTextAnnotationOnPdfPage(params: {
       page,
       ann,
       lineGuideId,
-      pageNumber,
+      pageNumber:
+        typeof ann.sourcePageNumber === 'number' ? ann.sourcePageNumber : pageNumber,
       pagesViewport,
       sourceWidth,
       sourceHeight,
@@ -634,6 +636,7 @@ export default function ExportPdfScreen() {
       let coverPdf: any = null;
       let savedImages: string | null = null;
       let projectCoverType: string | null = null; // ID выбранной обложки (например, 'dfa_5', 'pregnancy_60')
+      let projectInteriorType: string | null = null;
 
       // Если есть projectId, пытаемся загрузить данные проекта
       if (projectId) {
@@ -641,6 +644,7 @@ export default function ExportPdfScreen() {
         if (projectData) {
           const project = JSON.parse(projectData);
           albumId = project.albumId || projectId;
+          projectInteriorType = project.interiorType ?? project.albumId ?? null;
           projectCategory = project.category || null;
           projectCoverType = project.coverType || null; // Сохраняем ID выбранной обложки
           console.log(`[PDF Export] Загружен проект: albumId=${albumId}, coverType=${projectCoverType}, category=${projectCategory}`);
@@ -748,6 +752,8 @@ export default function ExportPdfScreen() {
       
       console.log(`[PDF Export] Используем альбом: albumId=${albumId}, projectCategory=${projectCategory}, imagesCount=${images.length}`);
 
+      const lineGuideAlbumId = projectInteriorType ?? albumId;
+
       // Если PDF развертка обложки еще не получена, пытаемся получить по projectCoverType
       const coverIdForCover = projectCoverType || albumId;
       if ((projectCategory === 'pregnancy' || projectCategory === 'kids') && !coverPdf && coverIdForCover) {
@@ -804,6 +810,45 @@ export default function ExportPdfScreen() {
         images = await ensurePageUrisCachedForExport(images, (done, total) => {
           setGenerationProgress({ current: done, total });
         });
+      }
+
+      const hasRemotePageUris = images.some((uri) => uri?.startsWith('http'));
+      if (hasRemotePageUris && lineGuideAlbumId) {
+        try {
+          setGenerationStatus('Догрузка шаблонов страниц…');
+          const cachedAll = await ensureAlbumPagesCachedForExport(
+            lineGuideAlbumId,
+            projectCategory,
+            (done, total) => {
+              setGenerationProgress({ current: done, total });
+            }
+          );
+          if (cachedAll.length > 0) {
+            images = await Promise.all(
+              images.map(async (uri, index) => {
+                if (uri.startsWith('file://')) {
+                  try {
+                    const info = await FileSystem.getInfoAsync(uri);
+                    if (info.exists) return uri;
+                  } catch {
+                    /* try fallback */
+                  }
+                }
+                return (
+                  cachedAll[index] ??
+                  (await ensureRemoteAlbumPageCachedByIndex(
+                    lineGuideAlbumId,
+                    projectCategory,
+                    index + 1
+                  )) ??
+                  uri
+                );
+              })
+            );
+          }
+        } catch (cacheError) {
+          console.warn('[PDF Export] Не удалось догрузить все страницы альбома:', cacheError);
+        }
       }
 
       // Для двухшагового экспорта: первый шаг = первая+последняя (или развертка), второй шаг = внутрянка
@@ -1595,6 +1640,23 @@ export default function ExportPdfScreen() {
           }
         }
 
+        if (lineGuideAlbumId) {
+          const fallbackUri = await ensureRemoteAlbumPageCachedByIndex(
+            lineGuideAlbumId,
+            projectCategory,
+            pageIndex + 1
+          );
+          if (fallbackUri) {
+            const bytes = await loadBytesWithRetry(
+              fallbackUri,
+              `страницу ${pageIndex + 1} (шаблон альбома)`
+            );
+            if (bytes && bytes.length > 0) {
+              return bytes;
+            }
+          }
+        }
+
         console.warn(
           `[PDF Export] Не удалось загрузить изображение страницы ${pageIndex + 1}, будет использована заглушка`
         );
@@ -1848,8 +1910,8 @@ export default function ExportPdfScreen() {
                       annotations: pageAnnotations,
                       pageNumber,
                       viewport: pagesViewport,
-                      lineGuideId: albumId
-                        ? resolveLineGuideId(albumId, projectCategory)
+                      lineGuideId: lineGuideAlbumId
+                        ? resolveLineGuideId(lineGuideAlbumId, projectCategory)
                         : undefined,
                     });
                     setTimeout(() => {
@@ -2071,8 +2133,8 @@ export default function ExportPdfScreen() {
                 const isPrint = formatToUse.type === 'hard' || formatToUse.type === 'soft';
                 const fontId = ann.fontFamily || 'default';
                 const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
-                const lineGuideId = albumId
-                  ? resolveLineGuideId(albumId, projectCategory)
+                const lineGuideId = lineGuideAlbumId
+                  ? resolveLineGuideId(lineGuideAlbumId, projectCategory)
                   : null;
 
                 drawTextAnnotationOnPdfPage({

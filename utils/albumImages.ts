@@ -5,7 +5,7 @@ import {
   getInfoAsync,
   makeDirectoryAsync,
 } from 'expo-file-system/legacy';
-import { GITHUB_RAW_MAIN_BASE } from '@/utils/githubRawAssets';
+import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 
 /**
  * Маппинг изображений страниц альбомов
@@ -22,6 +22,10 @@ const REMOTE_ALBUM_CACHE_DIR = `${cacheDirectory}remote_album_pages/`;
 
 const pregnancy60Preview = require('@/assets/app-bundled/pregnancy_60_preview.png');
 const pregnancyA5Preview = require('@/assets/app-bundled/pregnancy_a5_preview.png');
+const pregnancy60PreviewVariantsManifest = require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/preview_variants/pregnancy_60_variants_manifest.json') as Record<
+  string,
+  Record<string, string>
+>;
 
 function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
   switch (albumId) {
@@ -45,6 +49,45 @@ function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
 
 function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
+}
+
+function normalizePreviewVariantId(variantId?: string | null): string | null {
+  if (!variantId) return null;
+  if (variantId === 'one_horizontal' || variantId === 'one_horizontal_common') {
+    return 'one_large';
+  }
+  if (
+    variantId === 'two_horizontal' ||
+    variantId === 'two_vertical' ||
+    variantId === 'two_vertical_separate'
+  ) {
+    return 'two_photos';
+  }
+  if (variantId === 'four_vertical') {
+    return 'four_grid';
+  }
+  return variantId;
+}
+
+export function resolveVariantPreviewBackgroundUri(params: {
+  lineGuideId?: string | null;
+  sourcePageNumber?: number | null;
+  variantId?: string | null;
+}): string | null {
+  const { lineGuideId, sourcePageNumber, variantId } = params;
+  if (lineGuideId !== 'pregnancy_60') return null;
+  if (!sourcePageNumber || sourcePageNumber < 1) return null;
+  const normalizedVariantId = normalizePreviewVariantId(variantId);
+  if (!normalizedVariantId) return null;
+  const pageEntry = pregnancy60PreviewVariantsManifest[String(sourcePageNumber)];
+  if (!pageEntry) return null;
+  const relativePath = pageEntry[normalizedVariantId];
+  if (!relativePath) return null;
+
+  if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+    return relativePath;
+  }
+  return githubRawFileUrl(relativePath);
 }
 
 function toHex(n: number): string {
@@ -245,6 +288,19 @@ export async function ensureSinglePageUriCachedForExport(uri: string): Promise<s
   }
 
   return null;
+}
+
+/** Скачивает одну страницу альбома по номеру (1-based) — запасной путь при экспорте PDF. */
+export async function ensureRemoteAlbumPageCachedByIndex(
+  albumId: string,
+  category: string | null | undefined,
+  pageNumber: number
+): Promise<string | null> {
+  if (pageNumber < 1) return null;
+  const interiorId = resolveInteriorAlbumId(albumId, category);
+  const spec = getRemoteAlbumSpec(interiorId);
+  if (!spec || pageNumber > spec.pageCount) return null;
+  return downloadRemotePageToCacheWithRetry(spec.folderPath, pageFileName(pageNumber));
 }
 
 /**

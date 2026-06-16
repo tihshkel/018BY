@@ -24,6 +24,18 @@ const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
 /** Id проектов, которые сейчас пушатся — при pull не перезаписываем их локальные данные. */
 const pendingPushProjectIdsRef: { current: Set<string> } = { current: new Set() };
 
+/** Проекты, которые нужно синхронизировать в облако (явное сохранение или правки альбома). */
+export async function getProjectsSyncedToCloud(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(PROJECTS_SYNCED_TO_CLOUD_KEY);
+  if (!raw) return [];
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.filter(Boolean).map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Добавить проект в список «сохранённых в облако» — только такие проекты попадают в БД при синхронизации. */
 export async function addProjectToSyncedList(projectId: string): Promise<void> {
   if (!projectId) return;
@@ -298,6 +310,24 @@ async function markSyncError(error: string): Promise<void> {
   }
 }
 
+function getProjectStorageKeys(projectId: string): string[] {
+  return [
+    `@project_${projectId}`,
+    `@project_images_${projectId}`,
+    `@project_annotations_${projectId}`,
+    `@project_cover_annotations_${projectId}`,
+    `@project_sections_${projectId}`,
+    `@project_page_instances_${projectId}`,
+    `@project_page_values_${projectId}`,
+    `@project_schema_version_${projectId}`,
+    `@project_form_migration_${projectId}`,
+    `@project_pdf_${projectId}`,
+    `@project_viewport_${projectId}`,
+    `@project_cover_viewport_${projectId}`,
+    `@project_last_text_style_${projectId}`,
+  ];
+}
+
 async function persistUploadedProjectUrls(
   before: Record<string, string>,
   after: Record<string, string>
@@ -306,6 +336,7 @@ async function persistUploadedProjectUrls(
     '@project_images_',
     '@project_annotations_',
     '@project_cover_annotations_',
+    '@project_page_values_',
     '@project_pdf_',
   ];
 
@@ -327,6 +358,8 @@ async function persistUploadedProjectUrls(
  *   В `@user_projects` в облаке ДОБАВЛЯЕМ эти проекты (мерж), а не заменяем весь список.
  * - Если `projectIdsToSync` пусто — пушим ТОЛЬКО core (имя, напоминания, настройки).
  *   Проекты НЕ трогаем. Список `@user_projects` в облаке НЕ перезаписываем.
+ *
+ * `pushAccountDataToCloud` без forceInclude подставляет id из `@projects_synced_to_cloud`.
  */
 type PushAccountDataOnceOptions = {
   /** Не мержить с облаком — иначе удалённые напоминания снова попадут в user_sync. */
@@ -351,6 +384,13 @@ async function pushAccountDataToCloudOnce(
     console.log('[AccountSync] pushOnce: syncingProjects=', syncingProjects, 'ids=', [...projectIds]);
   }
 
+  if (syncingProjects) {
+    const { flushAlbumProjectPersist } = await import('./albumProjectPersist');
+    for (const pid of projectIds) {
+      await flushAlbumProjectPersist(pid);
+    }
+  }
+
   // --- Экспортируем все данные из AsyncStorage ---
   let data = await exportAccountData({ allowPrefixes: SYNC_DATA_PREFIXES });
   
@@ -367,15 +407,8 @@ async function pushAccountDataToCloudOnce(
 
   // --- Если пушим проекты, гарантируем что их ключи в data ---
   if (syncingProjects) {
-    const projectKeyTemplates = [
-      (pid: string) => `@project_${pid}`,
-      (pid: string) => `@project_images_${pid}`,
-      (pid: string) => `@project_annotations_${pid}`,
-      (pid: string) => `@project_cover_annotations_${pid}`,
-      (pid: string) => `@project_sections_${pid}`,
-    ];
     for (const pid of projectIds) {
-      const keysToLoad = projectKeyTemplates.map((t) => t(pid));
+      const keysToLoad = getProjectStorageKeys(pid);
       const pairs = await AsyncStorage.multiGet(keysToLoad);
       for (const [k, v] of pairs) {
         if (k && typeof v === 'string') data[k] = v;
@@ -839,14 +872,16 @@ export async function pushAccountDataToCloud(
   options?: PushToCloudOptions
 ): Promise<PushToCloudResult> {
   const forceInclude = options?.forceIncludeProjectIds?.filter(Boolean) ?? [];
-  if (forceInclude.length > 0) {
-    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.add(id));
+  const projectIdsToSync =
+    forceInclude.length > 0 ? forceInclude : await getProjectsSyncedToCloud();
+  if (projectIdsToSync.length > 0) {
+    projectIdsToSync.forEach((id) => pendingPushProjectIdsRef.current.add(id));
   }
   let lastError: string | undefined;
   try {
     for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
       try {
-        const result = await pushAccountDataToCloudOnce(forceInclude, {
+        const result = await pushAccountDataToCloudOnce(projectIdsToSync, {
           remindersAuthoritativeLocal: options?.remindersAuthoritativeLocal,
         });
         if (result.ok) {
@@ -866,6 +901,6 @@ export async function pushAccountDataToCloud(
     await markSyncError(finalError);
     return { ok: false, error: finalError };
   } finally {
-    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.delete(id));
+    projectIdsToSync.forEach((id) => pendingPushProjectIdsRef.current.delete(id));
   }
 }
