@@ -45,6 +45,7 @@ import {
   canShowPageActions,
   openAlbumPage,
 } from "@/utils/albumPageNavigation";
+import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { computePageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 
@@ -259,7 +260,7 @@ export default function AlbumPagesScreen() {
               instance,
               title: project.getInstanceTitle(instance),
               status,
-              thumbnailUri: project.images[instance.imageIndex],
+              thumbnailUri: resolveInstancePageImageUri(project.images, instance),
               canShowMenu: canShowPageActions(schema, instance),
               canDuplicate: schema?.canDuplicate ?? false,
               canDeleteCopy: instance.addedByUser,
@@ -317,6 +318,7 @@ export default function AlbumPagesScreen() {
             </AppText>
           </Pressable>
           <Pressable
+            testID="album-export-button"
             style={({ pressed }) => [
               styles.exportBtn,
               pressed && styles.exportBtnPressed,

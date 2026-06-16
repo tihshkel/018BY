@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import 'expo-asset';
 import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import { AppUpdateBootstrap } from '@/components/app-update-bootstrap';
@@ -74,6 +75,7 @@ export default function RootLayout() {
   }, []);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider initialMetrics={initialWindowMetrics ?? undefined}>
       <ExportSubscriptionProvider>
         <NotificationTabProvider>
@@ -125,5 +127,6 @@ export default function RootLayout() {
         </NotificationTabProvider>
       </ExportSubscriptionProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

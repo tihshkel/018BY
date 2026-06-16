@@ -85,7 +85,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p2_g3",
-          "label": "Цвет глаз Цвет волос",
+          "label": "Цвет волос",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -93,15 +93,15 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p2_g4",
-          "label": "Вес Рост Группа крови",
-          "type": "number",
+          "label": "Группа крови",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p2_g5",
-          "label": "Вес Рост",
+          "label": "Рост",
           "type": "number",
           "required": false,
           "templateLineStart": 4,
@@ -205,7 +205,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p2_g18",
-          "label": "Вес будет (гр) Рост будет (см)",
+          "label": "Рост будет (см)",
           "type": "number",
           "required": false,
           "templateLineStart": 18,
@@ -221,7 +221,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p2_g20",
-          "label": "Цвет волос будет Цвет глаз будет",
+          "label": "Цвет глаз будет",
           "type": "text",
           "required": false,
           "templateLineStart": 20,
@@ -274,7 +274,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_g4",
-          "label": "Цвет глаз Цвет волос",
+          "label": "Цвет волос",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -7035,7 +7035,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прабабушка (линия мамы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
@@ -7043,7 +7043,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прадедушка (линия мамы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -7051,7 +7051,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Бабушка (линия мамы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -7059,7 +7059,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дедушка (линия мамы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -7067,7 +7067,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прабабушка (линия папы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -7075,7 +7075,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прадедушка (линия папы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -7083,7 +7083,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Бабушка (линия папы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -7091,30 +7091,36 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дедушка (линия папы)",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 8,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "child_photo",
-          "label": "Фото ребенка",
+          "blockId": "family_tree_photos",
+          "label": "Фото родственников",
+          "layoutKind": "circle_tree",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
+              "variantId": "tree",
+              "label": "Семейное дерево",
+              "slots": 15,
               "slotIndices": [
                 0,
-                1
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14
               ]
             }
           ]
@@ -7601,6 +7607,22 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 22,
           "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                21
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -10607,7 +10629,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "holidays_birthday_60_p1",
       "title": "Приглашение",
-      "pageType": "structured",
+      "pageType": "photo",
       "order": 1,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
@@ -10622,458 +10644,1591 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p2",
       "title": "Привет, мир!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 2,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 2,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p3",
       "title": "Пожелания",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 3,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 3,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p4",
       "title": "Чувства и эмоции мамы",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 4,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 4,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p5",
       "title": "Чувства и эмоции папы",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 5,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 5,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p6",
       "title": "Мне 1 годик!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 6,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 6,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p7",
       "title": "Страница 7",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 7,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 7,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p8",
       "title": "Мне 2 года!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 8,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 8,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p9",
       "title": "Страница 9",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 9,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 9,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p10",
       "title": "Мне 3 года!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 10,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 10,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p11",
       "title": "Страница 11",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 11,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 11,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p12",
       "title": "Мне 4 года!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 12,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 12,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p13",
       "title": "Страница 13",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 13,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 13,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p14",
       "title": "Мне 5 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 14,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 14,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p15",
       "title": "Страница 15",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 15,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 15,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p16",
       "title": "Мне 6 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 16,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 16,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p17",
       "title": "Страница 17",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 17,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 17,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p18",
       "title": "Мне 7 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 18,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 18,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p19",
       "title": "Страница 19",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 19,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 19,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p20",
       "title": "Мне 8 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 20,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 20,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p21",
       "title": "Страница 21",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 21,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 21,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p22",
       "title": "Мне 9 rem!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 22,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 22,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p23",
       "title": "Страница 23",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 23,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 23,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p24",
       "title": "Мне 10 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 24,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 24,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p25",
       "title": "Страница 25",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 25,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 25,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p26",
       "title": "Мне 11 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 26,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 26,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p27",
       "title": "Страница 27",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 27,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 27,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p28",
       "title": "Мне 12 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 28,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 28,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p29",
       "title": "Страница 29",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 29,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 29,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p30",
       "title": "Мне 13 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 30,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 30,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p31",
       "title": "Страница 31",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 31,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 31,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p32",
       "title": "Mre 14 sem!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 32,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 32,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p33",
       "title": "Страница 33",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 33,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 33,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p34",
       "title": "Мне 15 sem!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 34,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 34,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p35",
       "title": "Страница 35",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 35,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 35,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p36",
       "title": "Мне 16 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 36,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 36,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p37",
       "title": "Страница 37",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 37,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 37,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p38",
       "title": "Мне 17 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 38,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 38,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p39",
       "title": "Страница 39",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 39,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 39,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p40",
       "title": "Мне 18 лет!",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 40,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 40,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p41",
       "title": "Страница 41",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 41,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 41,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "holidays_birthday_60_p42",
       "title": "Мои путешествия",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 42,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 42,
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -11308,7 +12463,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
   "diary_interior_brown": [
     {
       "pageId": "diary_interior_brown_p1",
-      "title": "Личный дневник",
+      "title": "Этот дневник принадлежит",
       "pageType": "structured",
       "order": 1,
       "editable": true,
@@ -11316,19 +12471,11 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 1,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p1_g1",
-          "label": "Этот дневник принадлежит:",
+          "fieldId": "diary_interior_brown_p1_owner_name",
+          "label": "Этот дневник принадлежит",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p1_g2",
-          "label": "Поле 2",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ],
@@ -11337,12 +12484,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "diary_interior_brown_p2",
-      "title": "Для фото",
-      "pageType": "photo",
+      "title": "Привет! Давай знакомиться!",
+      "pageType": "non_editable",
       "order": 2,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 2,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11389,12 +12537,12 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
+      "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p3",
-      "title": "Правила этого дневника:",
+      "title": "Правила этого дневника",
       "pageType": "structured",
       "order": 3,
       "editable": true,
@@ -11427,11 +12575,12 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p4",
-      "title": "Для фото",
+      "title": "Твое фото",
       "pageType": "photo",
       "order": 4,
       "editable": true,
@@ -11483,33 +12632,41 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
+      "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p5",
-      "title": "Для фото",
-      "pageType": "photo",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
       "order": 5,
       "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 5,
       "photoBlocks": [
         {
-          "blockId": "main_photo",
+          "blockId": "free_photo_notes",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -11517,18 +12674,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
-              "slotIndices": [
-                0,
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11541,7 +12688,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p6",
@@ -11649,12 +12797,38 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                13
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                13,
+                14
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p7",
-      "title": "Твои родител",
+      "title": "Твои родители. Анкета для мамы",
       "pageType": "structured",
       "order": 7,
       "editable": true,
@@ -11758,12 +12932,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p8",
-      "title": "Твои родител",
+      "title": "Твои родители. Анкета для папы",
       "pageType": "structured",
       "order": 8,
       "editable": true,
@@ -11867,34 +13078,162 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p9",
-      "title": "Бабушка",
-      "pageType": "non_editable",
+      "title": "Фотографии твоей семьи",
+      "pageType": "photo",
       "order": 9,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 9,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p10",
-      "title": "Дедушка",
-      "pageType": "non_editable",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
       "order": 10,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 10,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p11",
-      "title": "Твои бабушка и дедушка",
+      "title": "Твои бабушка и дедушка. Анкета для бабушки",
       "pageType": "structured",
       "order": 11,
       "editable": true,
@@ -11998,12 +13337,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p12",
-      "title": "Твои бабушка и дедушка",
+      "title": "Твои бабушка и дедушка. Анкета для дедушки",
       "pageType": "structured",
       "order": 12,
       "editable": true,
@@ -12107,12 +13483,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p13",
-      "title": "ХОББИ",
+      "title": "Хобби",
       "pageType": "structured",
       "order": 13,
       "editable": true,
@@ -12192,33 +13605,22 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_brown_p14",
-      "title": "Для фото",
-      "pageType": "photo",
-      "order": 14,
-      "editable": true,
-      "lineGuideId": "diary_interior_brown",
-      "sourcePageNumber": 14,
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -12226,18 +13628,64 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
               "slotIndices": [
                 0,
                 1,
-                2
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "diary_interior_brown_p14",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 14,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 14,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
               ]
             },
             {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12250,18 +13698,56 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p15",
       "title": "Мечты",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 15,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 15,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p16",
@@ -12273,20 +13759,88 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 16,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p16_g1",
-          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p16_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p16_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p16_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p16_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p17",
-      "title": "Твои питомцы:",
+      "title": "Твои питомцы",
       "pageType": "structured",
       "order": 17,
       "editable": true,
@@ -12374,12 +13928,38 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                11
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                11,
+                12
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p18",
-      "title": "Для фото",
+      "title": "Фотографии твоих питомцев",
       "pageType": "photo",
       "order": 18,
       "editable": true,
@@ -12436,28 +14016,36 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "diary_interior_brown_p19",
-      "title": "Для фото",
-      "pageType": "photo",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
       "order": 19,
       "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 19,
       "photoBlocks": [
         {
-          "blockId": "main_photo",
+          "blockId": "free_photo_notes",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -12465,18 +14053,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
-              "slotIndices": [
-                0,
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12489,7 +14067,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p20",
@@ -12501,15 +14080,83 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 20,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p20_g1",
-          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p20_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p20_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p20_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p20_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -12570,33 +14217,78 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_brown_p22",
-      "title": "Для фото",
-      "pageType": "photo",
-      "order": 22,
-      "editable": true,
-      "lineGuideId": "diary_interior_brown",
-      "sourcePageNumber": 22,
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "diary_interior_brown_p22",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 22,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 22,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -12604,18 +14296,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
-              "slotIndices": [
-                0,
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12628,7 +14310,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p23",
@@ -12640,15 +14323,83 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 23,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p23_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p23_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p23_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p23_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p23_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -12750,7 +14501,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p25",
@@ -12762,15 +14514,83 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 25,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p25_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p25_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p25_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p25_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p25_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -12815,33 +14635,22 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_brown_p27",
-      "title": "Для фото",
-      "pageType": "photo",
-      "order": 27,
-      "editable": true,
-      "lineGuideId": "diary_interior_brown",
-      "sourcePageNumber": 27,
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -12849,18 +14658,64 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
               "slotIndices": [
                 0,
                 1,
-                2
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "diary_interior_brown_p27",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 27,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 27,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
               ]
             },
             {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12873,7 +14728,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p28",
@@ -12885,25 +14741,94 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 28,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p28_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p28_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p28_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p28_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p28_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p29",
-      "title": "Для фото",
-      "pageType": "photo",
+      "title": "Самое заветное желание",
+      "pageType": "non_editable",
       "order": 29,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 29,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12950,33 +14875,52 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
+      "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p30",
-      "title": "Конверт приклей сюда",
-      "pageType": "structured",
+      "title": "Место для конверта",
+      "pageType": "non_editable",
       "order": 30,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 30,
-      "fields": [
+      "fields": [],
+      "photoBlocks": [
         {
-          "fieldId": "diary_interior_brown_p30_g3",
-          "label": "Конверт приклей сюда",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p30_g4",
-          "label": "Поле 2",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -13024,33 +14968,22 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_brown_p32",
-      "title": "Для фото",
-      "pageType": "photo",
-      "order": 32,
-      "editable": true,
-      "lineGuideId": "diary_interior_brown",
-      "sourcePageNumber": 32,
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_photos",
-              "label": "Два фото",
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -13058,18 +14991,64 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
               "slotIndices": [
                 0,
                 1,
-                2
+                5,
+                6
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": true,
+      "requiredInExport": false
+    },
+    {
+      "pageId": "diary_interior_brown_p32",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 32,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 32,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
               ]
             },
             {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -13082,7 +15061,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "captionEnabled": true
     },
     {
       "pageId": "diary_interior_brown_p33",
@@ -13094,42 +15074,184 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 33,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p33_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p33_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p33_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p33_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p33_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_brown_p34",
-      "title": "РАСПИСАНИЕ НЕДЕЛИ",
-      "pageType": "non_editable",
+      "title": "Расписание недели по дням",
+      "pageType": "structured",
       "order": 34,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 34,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p35",
-      "title": "Cpega",
-      "pageType": "non_editable",
+      "title": "Расписание недели по дням",
+      "pageType": "structured",
       "order": 35,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_brown",
       "sourcePageNumber": 35,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p36",
-      "title": "Пятница",
+      "title": "Расписание недели по дням",
       "pageType": "structured",
       "order": 36,
       "editable": true,
@@ -13145,12 +15267,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p37",
-      "title": "Воскресенье",
+      "title": "Расписание недели по дням + поле для текста",
       "pageType": "structured",
       "order": 37,
       "editable": true,
@@ -13190,12 +15349,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                6,
+                7
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_brown_p38",
-      "title": "Ega",
+      "title": "Еда",
       "pageType": "structured",
       "order": 38,
       "editable": true,
@@ -13203,36 +15399,88 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 38,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p38_g3",
-          "label": "Ты считаешь себя сладкоежкой: Ты уже пробовала готовить? Если да, то поделись рецептом!",
+          "fieldId": "diary_interior_brown_p38_favoriteFood",
+          "label": "Перечисли самую вкусную для тебя еду",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p38_favoriteSweet",
+          "label": "Что ты любишь из сладенького?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p38_sweetTooth",
+          "label": "Ты считаешь себя сладкоежкой",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p38_g4",
-          "label": "Ты считаешь себя сладкоежкой: Ты уже пробовала готовить? Если да, то поделись рецептом!",
+          "fieldId": "diary_interior_brown_p38_recipeStory",
+          "label": "Ты уже пробовала готовить? Если да, то поделись рецептом",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_brown_p38_g5",
-          "label": "Ты любишь кушать в Кафе?Если да, то что ты чаше",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p38_g6",
-          "label": "Что ты чаще всего будешь готовить, когда вырастешь? всего заказываешь?",
+          "fieldId": "diary_interior_brown_p38_favoriteCafeOrder",
+          "label": "Ты любишь кушать в кафе? Если да, то что ты чаще всего заказываешь?",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 1
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p38_futureCookingPlans",
+          "label": "Что ты чаще всего будешь готовить, когда вырастешь?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                6,
+                7
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -13248,119 +15496,171 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 39,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p39_g1",
-          "label": "Знак зодиака: помер телефона: Дата рождения:",
-          "type": "date",
+          "fieldId": "diary_interior_brown_p39_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g2",
-          "label": "Знак зодиака: Любимый цвет: помер телефона:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p39_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g3",
-          "label": "Питомец (если есть): Любимый цвет: помер телефона:",
+          "fieldId": "diary_interior_brown_p39_zodiac",
+          "label": "Знак зодиака",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g4",
-          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
+          "fieldId": "diary_interior_brown_p39_phone",
+          "label": "Номер телефона",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимый цветок:",
+          "fieldId": "diary_interior_brown_p39_favoriteColor",
+          "label": "Любимый цвет",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g6",
-          "label": "Любимое животное:- Любимый цвет: Любимый цветок:",
+          "fieldId": "diary_interior_brown_p39_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g7",
-          "label": "Любимое животное:- ХОББИ: Любимый цветок:",
+          "fieldId": "diary_interior_brown_p39_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g10",
-          "label": "Любимая еда: Любимый музыкант: ЛюБиМЫЙ филЬм:",
+          "fieldId": "diary_interior_brown_p39_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p39_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p39_favoriteFood",
+          "label": "Любимая еда",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g11",
-          "label": "Любимый музыкант: Любимая книга: ЛюБиМЫЙ филЬм:",
+          "fieldId": "diary_interior_brown_p39_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g12",
-          "label": "Любимый музыкант: Лучшая подруга:. Любимая книга:",
+          "fieldId": "diary_interior_brown_p39_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g13",
-          "label": "Лучший друг:- Лучшая подруга:. Любимая книга:",
+          "fieldId": "diary_interior_brown_p39_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g14",
-          "label": "Лучший друг:- Пожелания хозяйке анкеты:_ Лучшая подруга:",
+          "fieldId": "diary_interior_brown_p39_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g15",
-          "label": "Лучший друг:- Пожелания хозяйке анкеты:_",
+          "fieldId": "diary_interior_brown_p39_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_g16",
-          "label": "Пожелания хозяйке анкеты:_",
+          "fieldId": "diary_interior_brown_p39_wishes",
+          "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
           "templateLineStart": 15,
-          "templateLineCount": 1
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                7,
+                8,
+                16,
+                17
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -13373,126 +15673,2115 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 40,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p40_g1",
-          "label": "ЗнаК зодиака: помер телефона: Дата рождения:",
-          "type": "date",
+          "fieldId": "diary_interior_brown_p40_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g2",
-          "label": "ЗнаК зодиака: Любимый цвет:_ помер телефона:",
-          "type": "text",
+          "fieldId": "diary_interior_brown_p40_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g3",
-          "label": "Питомец (если есть): Любимый цвет:_ помер телефона:",
+          "fieldId": "diary_interior_brown_p40_zodiac",
+          "label": "Знак зодиака",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g4",
-          "label": "Питомец (если есть): Любимый цвет:_ Любимый цвет:",
+          "fieldId": "diary_interior_brown_p40_phone",
+          "label": "Номер телефона",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g5",
-          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
+          "fieldId": "diary_interior_brown_p40_favoriteColor",
+          "label": "Любимый цвет",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g6",
-          "label": "Любимое животное:_ Любимый цветок: Любимый цвет:",
+          "fieldId": "diary_interior_brown_p40_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g7",
-          "label": "Любимое животное:_",
+          "fieldId": "diary_interior_brown_p40_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g8",
-          "label": "ХОББИ:",
+          "fieldId": "diary_interior_brown_p40_favoriteAnimal",
+          "label": "Любимое животное",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g9",
-          "label": "Любимая еда:",
+          "fieldId": "diary_interior_brown_p40_hobby",
+          "label": "Хобби",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g10",
-          "label": "Любимый фильм:",
+          "fieldId": "diary_interior_brown_p40_favoriteFood",
+          "label": "Любимая еда",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g11",
-          "label": "Любимый музыкант:",
+          "fieldId": "diary_interior_brown_p40_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g12",
-          "label": "Любимая книга:",
+          "fieldId": "diary_interior_brown_p40_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g13",
-          "label": "Лучшая подруга:",
+          "fieldId": "diary_interior_brown_p40_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g14",
-          "label": "Лучший друг:-",
+          "fieldId": "diary_interior_brown_p40_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_g15",
-          "label": "Пожелания хозяйке анкеты:",
+          "fieldId": "diary_interior_brown_p40_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p40_wishes",
+          "label": "Пожелания хозяйке анкеты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                15
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                15,
+                16
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p41",
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "order": 41,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 41,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p41_name",
+          "label": "Имя",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_phone",
+          "label": "Номер телефона",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_pet",
+          "label": "Питомец (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteFlower",
+          "label": "Любимый цветок",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteMovie",
+          "label": "Любимый фильм",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteMusician",
+          "label": "Любимый музыкант",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_favoriteBook",
+          "label": "Любимая книга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_bestGirlfriend",
+          "label": "Лучшая подруга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_bestFriend",
+          "label": "Лучший друг",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_wishes",
+          "label": "Пожелания хозяйке анкеты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                7,
+                8,
+                15,
+                16
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p42",
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "order": 42,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 42,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p42_name",
+          "label": "Имя",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_phone",
+          "label": "Номер телефона",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_pet",
+          "label": "Питомец (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteFlower",
+          "label": "Любимый цветок",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteMovie",
+          "label": "Любимый фильм",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteMusician",
+          "label": "Любимый музыкант",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_favoriteBook",
+          "label": "Любимая книга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_bestGirlfriend",
+          "label": "Лучшая подруга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_bestFriend",
+          "label": "Лучший друг",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_wishes",
+          "label": "Пожелания хозяйке анкеты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                8,
+                9,
+                16,
+                17
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p43",
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "order": 43,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 43,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p43_name",
+          "label": "Имя",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_phone",
+          "label": "Номер телефона",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_pet",
+          "label": "Питомец (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteFlower",
+          "label": "Любимый цветок",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteMovie",
+          "label": "Любимый фильм",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteMusician",
+          "label": "Любимый музыкант",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_favoriteBook",
+          "label": "Любимая книга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_bestGirlfriend",
+          "label": "Лучшая подруга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_bestFriend",
+          "label": "Лучший друг",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_wishes",
+          "label": "Пожелания хозяйке анкеты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                7,
+                8,
+                15,
+                16
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p44",
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "order": 44,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 44,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p44_name",
+          "label": "Имя",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_birthDate",
+          "label": "Дата рождения",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_phone",
+          "label": "Номер телефона",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_pet",
+          "label": "Питомец (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteFlower",
+          "label": "Любимый цветок",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteMovie",
+          "label": "Любимый фильм",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteMusician",
+          "label": "Любимый музыкант",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_favoriteBook",
+          "label": "Любимая книга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_bestGirlfriend",
+          "label": "Лучшая подруга",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_bestFriend",
+          "label": "Лучший друг",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_wishes",
+          "label": "Пожелания хозяйке анкеты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                8,
+                9,
+                16,
+                17
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p45",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 45,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 45,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p45_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p45_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p45_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p45_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p46",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 46,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 46,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p46_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p46_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p46_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p46_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p47",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 47,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 47,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p47_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p47_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p47_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p47_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p48",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 48,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 48,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p48_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p48_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p48_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p48_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p49",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 49,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 49,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p49_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p49_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p49_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p49_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p50",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 50,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 50,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p50_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p50_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p50_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p50_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p51",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 51,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 51,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p51_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p51_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p51_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p51_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p52",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 52,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 52,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p52_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p52_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p52_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p52_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p53",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 53,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 53,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p53_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p53_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p53_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p53_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p54",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 54,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 54,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p54_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p54_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p54_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p54_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p55",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 55,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 55,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p55_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p55_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p55_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p55_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p56",
+      "title": "Твой день",
+      "pageType": "structured",
+      "order": 56,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 56,
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p56_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p56_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p56_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p56_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                1,
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_brown_p57",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 57,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 57,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true
+    },
+    {
+      "pageId": "diary_interior_brown_p58",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 58,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 58,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true
+    },
+    {
+      "pageId": "diary_interior_brown_p59",
+      "title": "Свободная страница для фото и записей",
+      "pageType": "caption_photo_page",
+      "order": 59,
+      "editable": true,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 59,
+      "photoBlocks": [
+        {
+          "blockId": "free_photo_notes",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "single_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "single_vertical",
+              "label": "1 вертикальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 вертикальных фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "captionEnabled": true
+    },
+    {
+      "pageId": "diary_interior_brown_p60",
+      "title": "История продолжается",
+      "pageType": "non_editable",
+      "order": 60,
+      "editable": false,
+      "lineGuideId": "diary_interior_brown",
+      "sourcePageNumber": 60,
+      "fields": [],
       "canDuplicate": false,
       "canAddAfter": true
     }
@@ -13500,41 +17789,53 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
   "diary_interior_purple": [
     {
       "pageId": "diary_interior_purple_p1",
-      "title": "Личный дневник",
-      "pageType": "non_editable",
+      "title": "Этот дневник принадлежит",
+      "pageType": "structured",
       "order": 1,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 1,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p1_owner_name",
+          "label": "Этот дневник принадлежит",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p2",
-      "title": "Для фото",
+      "title": "Привет! Давай знакомиться!",
       "pageType": "non_editable",
       "order": 2,
       "editable": false,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 2,
+      "fields": [],
       "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p3",
-      "title": "Для фото",
+      "title": "Правила этого дневника",
       "pageType": "non_editable",
       "order": 3,
       "editable": false,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 3,
+      "fields": [],
       "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p4",
-      "title": "ТВОЕ ФОТО",
-      "pageType": "structured",
+      "title": "Твое фото",
+      "pageType": "photo",
       "order": 4,
       "editable": true,
       "lineGuideId": "diary_interior_purple",
@@ -13674,12 +17975,38 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p6",
-      "title": "Теперь познакомь меня с твоими родителями!",
+      "title": "Анкета для мамы",
       "pageType": "structured",
       "order": 6,
       "editable": true,
@@ -13783,12 +18110,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p7",
-      "title": "Теперь познакомь меня с твоими родителями!",
+      "title": "Анкета для папы",
       "pageType": "structured",
       "order": 7,
       "editable": true,
@@ -13892,12 +18256,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                12
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                12,
+                13
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                12,
+                13,
+                14,
+                15
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p8",
-      "title": "ХобБи",
+      "title": "Хобби",
       "pageType": "structured",
       "order": 8,
       "editable": true,
@@ -14001,23 +18402,138 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p9",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 9,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 9,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p9_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p9_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p9_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p9_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p10",
-      "title": "Твои питомцы:",
+      "title": "Твои питомцы",
       "pageType": "structured",
       "order": 10,
       "editable": true,
@@ -14065,18 +18581,133 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                5
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                5,
+                6
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                5,
+                6,
+                7,
+                8
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p11",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 11,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 11,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p11_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p11_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p11_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p11_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -14121,23 +18752,138 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                4,
+                5
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p13",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 13,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 13,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p13_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p13_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p13_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p13_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p14",
-      "title": "* вое настроение",
+      "title": "Твое настроение",
       "pageType": "structured",
       "order": 14,
       "editable": true,
@@ -14169,18 +18915,133 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                3
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                3,
+                4
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                3,
+                4,
+                5,
+                6
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p15",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 15,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 15,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p15_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p15_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p15_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p15_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -14217,23 +19078,138 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p17",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 17,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 17,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p17_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p17_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p17_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p17_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p18",
-      "title": "Первая любовЬ",
+      "title": "Первая любовь",
       "pageType": "structured",
       "order": 18,
       "editable": true,
@@ -14297,57 +19273,156 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                9,
+                10
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p19",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 19,
-      "editable": false,
-      "lineGuideId": "diary_interior_purple",
-      "sourcePageNumber": 19,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_purple_p20",
-      "title": "Для фото",
-      "pageType": "non_editable",
-      "order": 20,
-      "editable": false,
-      "lineGuideId": "diary_interior_purple",
-      "sourcePageNumber": 20,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "diary_interior_purple_p21",
-      "title": "Для фото",
-      "pageType": "photo",
-      "order": 21,
       "editable": true,
       "lineGuideId": "diary_interior_purple",
-      "sourcePageNumber": 21,
+      "sourcePageNumber": 19,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p21_g1",
-          "label": "Поле 1",
-          "type": "text",
+          "fieldId": "diary_interior_purple_p19_date",
+          "label": "Дата",
+          "type": "date",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p21_g2",
-          "label": "Конверт приклей сюда",
+          "fieldId": "diary_interior_purple_p19_day_story",
+          "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p19_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p19_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_purple_p20",
+      "title": "Самое заветное желание",
+      "pageType": "non_editable",
+      "order": 20,
+      "editable": false,
+      "lineGuideId": "diary_interior_purple",
+      "sourcePageNumber": 20,
+      "fields": [],
+      "canDuplicate": false,
+      "canAddAfter": true
+    },
+    {
+      "pageId": "diary_interior_purple_p21",
+      "title": "Место для конверта",
+      "pageType": "non_editable",
+      "order": 21,
+      "editable": false,
+      "lineGuideId": "diary_interior_purple",
+      "sourcePageNumber": 21,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -14394,7 +19469,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
+      "canDuplicate": false,
       "canAddAfter": true
     },
     {
@@ -14431,45 +19506,234 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                4,
+                5
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p23",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 23,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 23,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p23_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p23_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p23_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p23_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p24",
-      "title": "Расписание твоей недели",
-      "pageType": "non_editable",
+      "title": "Расписание недели: понедельник и вторник",
+      "pageType": "structured",
       "order": 24,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 24,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p25",
-      "title": "Среда",
-      "pageType": "non_editable",
+      "title": "Расписание недели: среда и четверг",
+      "pageType": "structured",
       "order": 25,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 25,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p26",
-      "title": "Пятница",
+      "title": "Расписание недели: пятница и суббота",
       "pageType": "structured",
       "order": 26,
       "editable": true,
@@ -14485,12 +19749,49 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p27",
-      "title": "Воскресенье",
+      "title": "Расписание: воскресенье",
       "pageType": "structured",
       "order": 27,
       "editable": true,
@@ -14538,8 +19839,45 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                7,
+                8
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "requiredInExport": false
     },
     {
       "pageId": "diary_interior_purple_p28",
@@ -14551,167 +19889,160 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 28,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p28_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p28_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "fieldId": "diary_interior_purple_p28_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p28_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p28_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p28_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "fieldId": "diary_interior_purple_p28_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p28_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p28_favoriteAnimal",
+          "label": "Любимое животное",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g11",
-          "label": "ХоБби:-",
+          "fieldId": "diary_interior_purple_p28_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p28_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p28_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g12",
-          "label": "Любимая еда:-",
+          "fieldId": "diary_interior_purple_p28_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g13",
-          "label": "Любимый фильм:",
+          "fieldId": "diary_interior_purple_p28_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g14",
-          "label": "Любимый музыкант:-",
+          "fieldId": "diary_interior_purple_p28_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g15",
-          "label": "Любимая книга:",
+          "fieldId": "diary_interior_purple_p28_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_g16",
-          "label": "Лучшая подруга -",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g17",
-          "label": "Лучший другі-",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g18",
+          "fieldId": "diary_interior_purple_p28_wishes",
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g19",
-          "label": "Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g20",
-          "label": "@Instagram:_",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 19,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g21",
-          "label": "* Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 20,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p28_g22",
-          "label": "& Tik-toki",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 21,
-          "templateLineCount": 1
+          "templateLineStart": 15,
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -14724,151 +20055,160 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 29,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p29_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p29_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "fieldId": "diary_interior_purple_p29_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p29_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p29_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p29_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p29_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p29_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g10",
-          "label": "Любимый музыкант:- Любимая еда: Любимый фильм:-",
+          "fieldId": "diary_interior_purple_p29_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p29_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p29_favoriteFood",
+          "label": "Любимая еда",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g11",
-          "label": "Любимый музыкант:- Любимый фильм:- Любимая книга:",
+          "fieldId": "diary_interior_purple_p29_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g12",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "fieldId": "diary_interior_purple_p29_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g13",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "fieldId": "diary_interior_purple_p29_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g14",
-          "label": "Лучшая подруга - Лучший другі-",
+          "fieldId": "diary_interior_purple_p29_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g15",
-          "label": "Пожелания хозяйке анкеты - Лучший другі-",
+          "fieldId": "diary_interior_purple_p29_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_g16",
-          "label": "Пожелания хозяйке анкеты -",
+          "fieldId": "diary_interior_purple_p29_wishes",
+          "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
           "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p29_g17",
-          "label": "Пожелания хозяйке анкеты - Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p29_g18",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p29_g19",
-          "label": "@Instagram:_ & Tik-toki * Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p29_g20",
-          "label": "& Tik-toki * Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 19,
-          "templateLineCount": 1
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -14881,159 +20221,160 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 30,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p30_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p30_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "fieldId": "diary_interior_purple_p30_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p30_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p30_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p30_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p30_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p30_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g10",
-          "label": "ХоБби:-",
+          "fieldId": "diary_interior_purple_p30_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p30_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p30_favoriteFood",
+          "label": "Любимая еда",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g11",
-          "label": "Любимая еда:",
+          "fieldId": "diary_interior_purple_p30_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g12",
-          "label": "Любимый фильм:-",
+          "fieldId": "diary_interior_purple_p30_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g13",
-          "label": "Любимый музыкант:-",
+          "fieldId": "diary_interior_purple_p30_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g14",
-          "label": "Любимая книга:",
+          "fieldId": "diary_interior_purple_p30_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g15",
-          "label": "Лучшая подруга -",
+          "fieldId": "diary_interior_purple_p30_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_g16",
-          "label": "Лучший другі-",
+          "fieldId": "diary_interior_purple_p30_wishes",
+          "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
           "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p30_g17",
-          "label": "Пожелания хозяйке анкеты -",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p30_g18",
-          "label": "Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p30_g19",
-          "label": "@Instagram:_",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p30_g20",
-          "label": "* Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 19,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p30_g21",
-          "label": "& Tik-toki",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 20,
-          "templateLineCount": 1
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -15046,143 +20387,160 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 31,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p31_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p31_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "fieldId": "diary_interior_purple_p31_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p31_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p31_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p31_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "fieldId": "diary_interior_purple_p31_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p31_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p31_favoriteAnimal",
+          "label": "Любимое животное",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g11",
-          "label": "Любимый музыкант:- Любимая еда:- Любимый фильм:",
+          "fieldId": "diary_interior_purple_p31_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p31_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p31_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g12",
-          "label": "Любимый музыкант:- Любимый фильм: Любимая книга:",
+          "fieldId": "diary_interior_purple_p31_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g13",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "fieldId": "diary_interior_purple_p31_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g14",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "fieldId": "diary_interior_purple_p31_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g15",
-          "label": "Лучшая подруга - Лучший другі-",
+          "fieldId": "diary_interior_purple_p31_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_g16",
-          "label": "Пожелания хозяйке анкеты Лучший другі-",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p31_g17",
+          "fieldId": "diary_interior_purple_p31_wishes",
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p31_g18",
-          "label": "Пожелания хозяйке анкеты Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p31_g19",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
+          "templateLineStart": 15,
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -15195,143 +20553,160 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 32,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p32_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p32_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "fieldId": "diary_interior_purple_p32_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p32_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p32_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p32_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "fieldId": "diary_interior_purple_p32_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p32_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "fieldId": "diary_interior_purple_p32_favoriteAnimal",
+          "label": "Любимое животное",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g11",
-          "label": "Любимый музыкант:- Любимая еда:- Любимый фильм:",
+          "fieldId": "diary_interior_purple_p32_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p32_favoriteFood",
+          "label": "Любимая еда",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p32_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g12",
-          "label": "Любимый музыкант:- Любимый фильм: Любимая книга:",
+          "fieldId": "diary_interior_purple_p32_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g13",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "fieldId": "diary_interior_purple_p32_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g14",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "fieldId": "diary_interior_purple_p32_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g15",
-          "label": "Лучшая подруга - Лучший другі-",
+          "fieldId": "diary_interior_purple_p32_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_g16",
-          "label": "Пожелания хозяйке анкеты Лучший другі-",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p32_g17",
+          "fieldId": "diary_interior_purple_p32_wishes",
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p32_g18",
-          "label": "Пожелания хозяйке анкеты Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p32_g19",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
+          "templateLineStart": 15,
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -15344,227 +20719,705 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 33,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p33_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
-          "type": "date",
+          "fieldId": "diary_interior_purple_p33_name",
+          "label": "Имя",
+          "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "fieldId": "diary_interior_purple_p33_birthDate",
+          "label": "Дата рождения",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p33_zodiac",
+          "label": "Знак зодиака",
+          "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p33_phone",
+          "label": "Номер телефона",
+          "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "fieldId": "diary_interior_purple_p33_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p33_pet",
+          "label": "Питомец (если есть)",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "fieldId": "diary_interior_purple_p33_favoriteFlower",
+          "label": "Любимый цветок",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g10",
-          "label": "Любимый музыкант:- Любимая еда: Любимый фильм:-",
+          "fieldId": "diary_interior_purple_p33_favoriteAnimal",
+          "label": "Любимое животное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p33_hobby",
+          "label": "Хобби",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p33_favoriteFood",
+          "label": "Любимая еда",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g11",
-          "label": "Любимый музыкант:- Любимый фильм:- Любимая книга:",
+          "fieldId": "diary_interior_purple_p33_favoriteMovie",
+          "label": "Любимый фильм",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g12",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "fieldId": "diary_interior_purple_p33_favoriteMusician",
+          "label": "Любимый музыкант",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g13",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "fieldId": "diary_interior_purple_p33_favoriteBook",
+          "label": "Любимая книга",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g14",
-          "label": "Лучшая подруга - Лучший другі-",
+          "fieldId": "diary_interior_purple_p33_bestGirlfriend",
+          "label": "Лучшая подруга",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g15",
-          "label": "Пожелания хозяйке анкеты - Лучший другі-",
+          "fieldId": "diary_interior_purple_p33_bestFriend",
+          "label": "Лучший друг",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_g16",
-          "label": "Пожелания хозяйке анкеты -",
+          "fieldId": "diary_interior_purple_p33_wishes",
+          "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
           "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p33_g17",
-          "label": "Пожелания хозяйке анкеты - Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p33_g18",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p33_g19",
-          "label": "@Instagram:_ & Tik-toki * Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p33_g20",
-          "label": "& Tik-toki * Вконтакте:",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 19,
-          "templateLineCount": 1
+          "templateLineCount": 3
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                7
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                7,
+                8
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p34",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 34,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 34,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p34_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p34_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p34_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p34_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p35",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 35,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 35,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p35_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p35_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p35_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p35_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p36",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 36,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 36,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p36_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p36_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p36_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p36_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p37",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 37,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 37,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p37_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p37_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p37_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p37_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p38",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 38,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 38,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p38_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p38_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p38_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p38_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p39",
       "title": "Твой день",
-      "pageType": "non_editable",
+      "pageType": "structured",
       "order": 39,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 39,
-      "canDuplicate": false,
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p39_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p39_day_story",
+          "label": "Как прошёл сегодняшний день",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p39_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😢",
+            "😕",
+            "😐",
+            "🙂",
+            "😄",
+            "🥰"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p39_things_that_made_smile",
+          "label": "Вещи, которые заставили сегодня улыбаться",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 4
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
       "pageId": "diary_interior_purple_p40",
-      "title": "Пожелания",
+      "title": "История продолжается",
       "pageType": "non_editable",
       "order": 40,
       "editable": false,
       "lineGuideId": "diary_interior_purple",
       "sourcePageNumber": 40,
+      "fields": [],
       "canDuplicate": false,
       "canAddAfter": true
     }

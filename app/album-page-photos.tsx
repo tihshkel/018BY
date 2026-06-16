@@ -2,7 +2,7 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
+import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
 import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
@@ -97,7 +97,7 @@ export default function AlbumPagePhotosScreen() {
         </AppText>
       </View>
 
-      <AlbumPageFillForm
+      <AlbumPageUnifiedEditor
         schema={schema}
         pageValues={pageValues}
         lineGuideId={project.lineGuideId}
@@ -113,15 +113,17 @@ export default function AlbumPagePhotosScreen() {
           })
         }
         onSelectVariant={photoEditor.handleSelectVariant}
-        onAddPhoto={photoEditor.handlePickPhoto}
-        onReplacePhoto={photoEditor.handlePickPhoto}
+        onPickPhoto={photoEditor.handlePickPhoto}
+        onSlotTransformChange={photoEditor.handleSlotTransformChange}
+        onGroupTransformChange={photoEditor.handleGroupTransformChange}
         onRemovePhoto={photoEditor.handleRemovePhoto}
+        onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
         showCaption={photoEditor.showCaption}
         showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
       />
 
       <View style={styles.footer}>
-        <AppButton title="Сохранить" onPress={handleSave} />
+        <AppButton testID="unified-editor-save" title="Просмотр страницы" onPress={handleSave} />
       </View>
     </AppScreen>
   );

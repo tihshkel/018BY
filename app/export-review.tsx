@@ -197,6 +197,7 @@ export default function ExportReviewScreen() {
                 return (
                   <AppCard
                     key={option.id}
+                    testID={`export-format-${option.type}`}
                     selected={selected}
                     onPress={() => setSelectedFormat(option.type)}
                     style={styles.formatCard}
@@ -255,7 +256,7 @@ export default function ExportReviewScreen() {
               <View style={styles.summaryStats}>
                 <SummaryLine label="Заполнено полностью" value={selection.filledCount} />
                 <SummaryLine label="Заполнено частично" value={selection.partialCount} />
-                <SummaryLine label="Обязательные страницы" value={selection.requiredCount} />
+                <SummaryLine label="Статичные страницы" value={selection.requiredCount} />
                 <SummaryLine label="Исключено пользователем" value={selection.excludedCount} />
               </View>
               <View style={styles.summaryNote}>
@@ -302,7 +303,9 @@ export default function ExportReviewScreen() {
                     <AppText variant="caption" style={styles.rowMeta}>
                       {row.included
                         ? row.reason === 'required_static'
-                          ? 'обязательная страница'
+                          ? row.status === 'locked'
+                            ? 'без редактирования'
+                            : 'обязательная страница'
                           : row.reason === 'partial'
                             ? 'частично заполнена'
                             : 'заполнена'
@@ -345,6 +348,7 @@ export default function ExportReviewScreen() {
               </AppText>
             ) : null}
             <AppButton
+              testID="export-start"
               title={getExportReviewDownloadLabel(selectedFormat)}
               onPress={() => void handleDownload()}
             />

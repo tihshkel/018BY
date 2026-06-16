@@ -20,6 +20,7 @@ export {
   type AppPickerSheetProps,
 } from '@/components/ui/app-picker-sheet';
 export { AppScreen, useAppScreenScrollToField } from '@/components/ui/app-screen';
+export { AppSegmentedControl, type SegmentedControlOption } from '@/components/ui/app-segmented-control';
 export { AppText } from '@/components/ui/app-text';
 export { InfoBanner } from '@/components/ui/info-banner';
 export { SocialAuthButtons, type SocialAuthButtonsProps } from '@/components/ui/social-auth-buttons';

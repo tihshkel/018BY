@@ -550,6 +550,7 @@ export default function ProjectTemplatesScreen() {
         (row.priorityIndex ?? 0) < 5 ? ('high' as const) : ('normal' as const);
       return (
         <TouchableOpacity
+          testID={`cover-${row.id}`}
           style={[
             styles.productCard,
             isTile && styles.productCardTile,

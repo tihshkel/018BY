@@ -211,6 +211,7 @@ export default function NameInputScreen() {
 
               <Animated.View style={styles.inputContainer}>
                 <AppInput
+                  testID="name-input-field"
                   value={name}
                   onChangeText={setName}
                   placeholder="Введите ваше имя"
@@ -224,6 +225,7 @@ export default function NameInputScreen() {
 
               <Animated.View>
                 <AppButton
+                  testID="name-input-submit"
                   title="Продолжить"
                   onPress={handleContinue}
                   loading={isSubmitting}

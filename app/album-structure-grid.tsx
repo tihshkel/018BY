@@ -19,6 +19,7 @@ import {
   navigateToHomeFromAlbum,
   type AlbumFlowParams,
 } from '@/utils/albumNavigation';
+import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 import { useResponsiveLayout, getTabletContentShell } from '@/utils/responsive';
 
 const GRID_COLUMNS = 3;
@@ -131,7 +132,7 @@ export default function AlbumStructureGridScreen() {
         <View style={styles.grid}>
           {sectionInstances.map((instance) => {
             const title = project.getInstanceTitle(instance);
-            const thumb = project.images[instance.imageIndex];
+            const thumb = resolveInstancePageImageUri(project.images, instance);
             return (
               <Pressable
                 key={instance.instanceId}

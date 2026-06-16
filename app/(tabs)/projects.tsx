@@ -61,6 +61,7 @@ export default function ProjectsScreen() {
       const isGrid = variant === 'grid';
       return (
         <TouchableOpacity
+          testID={`project-category-${category.id}`}
           style={[styles.categoryCard, isGrid && styles.categoryCardGrid]}
           onPress={() => handleCategorySelect(category.id)}
           activeOpacity={0.7}

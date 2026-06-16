@@ -1,0 +1,20 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- tapOn:
+    id: tab-projects
+- tapOn:
+    id: project-category-kids
+- tapOn:
+    id: cover-dfa_7
+- tapOn:
+    id: cover-date-confirm
+- tapOn:
+    id: select-action-edit
+- extendedWaitUntil:
+    visible:
+      text: 'Скачать альбом'
+    timeout: 30000
+- assertVisible:
+    id: album-export-button

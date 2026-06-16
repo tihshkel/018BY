@@ -4,6 +4,7 @@ import { getAlbumPageSchemas } from '@/constants/generated/album-page-schemas';
 import { getPageTemplateById } from '@/constants/page-template-library';
 import { createId } from '@/utils/id';
 import { createEmptyPageValues } from '@/utils/pageStorage';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
 export function buildInitialPageInstances(
   lineGuideId: string,
@@ -84,7 +85,7 @@ export function getSchemaForInstance(
               ]
           : undefined;
 
-      return {
+      return enrichSchemaWithPhotoBlocks({
         pageId: instance.schemaPageId,
         title: instance.titleOverride ?? template.title,
         pageType: template.pageType,
@@ -108,15 +109,16 @@ export function getSchemaForInstance(
               },
             ]
           : undefined,
-      };
+      });
     }
   }
 
   const schemas = getAlbumPageSchemas(lineGuideId);
-  return (
+  const schema =
     schemas.find((s) => s.pageId === instance.schemaPageId) ??
-    schemas.find((s) => s.sourcePageNumber === instance.sourcePageNumber)
-  );
+    schemas.find((s) => s.sourcePageNumber === instance.sourcePageNumber);
+
+  return schema ? enrichSchemaWithPhotoBlocks(schema) : undefined;
 }
 
 export function getInstanceTitle(

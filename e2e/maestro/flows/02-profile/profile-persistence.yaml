@@ -1,0 +1,16 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- tapOn:
+    id: profile-avatar-button
+- tapOn:
+    id: avatar-preset-group-4
+- stopApp
+- launchApp
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- assertVisible:
+    id: profile-user-name

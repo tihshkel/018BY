@@ -277,6 +277,7 @@ export default function SelectActionScreen() {
             <View style={styles.actionsContainer}>
               {/* Кнопка редактирования */}
               <TouchableOpacity
+                testID="select-action-edit"
                 style={styles.actionCard}
                 onPress={handleEdit}
                 activeOpacity={0.85}

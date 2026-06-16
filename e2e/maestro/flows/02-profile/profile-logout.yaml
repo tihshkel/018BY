@@ -1,0 +1,14 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- tapOn:
+    id: profile-logout
+- assertVisible:
+    text: 'Выйти из аккаунта'
+- tapOn:
+    text: 'Войти'
+- assertVisible:
+    text: 'Вход'

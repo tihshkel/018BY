@@ -1,6 +1,7 @@
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
+import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 
 export type ExportPageRow = {
   instanceId: string;
@@ -27,6 +28,35 @@ function hasUserContent(schema: AlbumPageSchema, values?: PageValues | null): bo
   return status === 'filled' || status === 'continue' || status === 'draft';
 }
 
+/** Декоративные / статичные страницы шаблона — всегда входят в экспорт. */
+export function isStaticExportPage(schema: AlbumPageSchema): boolean {
+  return (
+    schema.requiredInExport === true ||
+    schema.pageType === 'non_editable' ||
+    schema.editable === false
+  );
+}
+
+/** Добавляет статичные страницы к сохранённому выбору (актуально для старых selection в storage). */
+export function mergeStaticPagesIntoExportSelection(params: {
+  instances: PageInstance[];
+  includedInstanceIds: string[];
+  getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
+}): string[] {
+  const included = new Set(params.includedInstanceIds);
+
+  for (const instance of params.instances) {
+    const schema = params.getSchema(instance);
+    if (schema && isStaticExportPage(schema)) {
+      included.add(instance.instanceId);
+    }
+  }
+
+  return params.instances
+    .filter((instance) => included.has(instance.instanceId))
+    .map((instance) => instance.instanceId);
+}
+
 export function buildExportSelection(params: {
   instances: PageInstance[];
   pageValuesMap: Record<string, PageValues>;
@@ -51,19 +81,7 @@ export function buildExportSelection(params: {
     const status = computePageStatus(schema, values);
     const title = getTitle(instance);
 
-    if (status === 'excluded') {
-      excludedCount += 1;
-      rows.push({
-        instanceId: instance.instanceId,
-        title,
-        status,
-        included: false,
-        reason: 'excluded',
-      });
-      continue;
-    }
-
-    if (schema.requiredInExport) {
+    if (isStaticExportPage(schema)) {
       requiredCount += 1;
       includedInstanceIds.push(instance.instanceId);
       rows.push({
@@ -72,6 +90,18 @@ export function buildExportSelection(params: {
         status,
         included: true,
         reason: 'required_static',
+      });
+      continue;
+    }
+
+    if (status === 'excluded') {
+      excludedCount += 1;
+      rows.push({
+        instanceId: instance.instanceId,
+        title,
+        status,
+        included: false,
+        reason: 'excluded',
       });
       continue;
     }
@@ -157,11 +187,11 @@ export function filterProjectDataForExport(params: {
   const filteredAnnotations: Annotation[] = [];
 
   for (const instance of filteredInstances) {
-    const imageUri = images[instance.imageIndex] ?? blankPageUri ?? null;
+    const imageUri = resolveInstancePageImageUri(images, instance) ?? blankPageUri ?? null;
     if (!imageUri) continue;
 
     filteredImages.push(imageUri);
-    const sourcePageNumber = instance.imageIndex + 1;
+    const sourcePageNumber = instance.sourcePageNumber;
     const targetPageNumber = filteredImages.length;
     const pageAnnotations = annotations.filter(
       (a) => Number(a.page) === sourcePageNumber

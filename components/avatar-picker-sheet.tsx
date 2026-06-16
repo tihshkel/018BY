@@ -46,6 +46,7 @@ export function AvatarPickerSheet({
       scroll={false}
       footer={
         <AppButton
+          testID="avatar-gallery-pick"
           title="Загрузить из галереи"
           onPress={onPickFromGallery}
           disabled={isSaving}
@@ -60,6 +61,7 @@ export function AvatarPickerSheet({
           return (
             <Pressable
               key={avatar.id}
+              testID={`avatar-preset-${avatar.id}`}
               style={styles.avatarWrap}
               onPress={() => onSelectPreset(avatar.id)}
               disabled={isSaving}

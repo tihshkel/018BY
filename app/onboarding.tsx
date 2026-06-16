@@ -388,6 +388,9 @@ export default function OnboardingScreen() {
             style={styles.button}
             onPress={handleNext}
             activeOpacity={0.7}
+            testID={currentIndex < onboardingData.length - 1 ? 'onboarding-next' : 'onboarding-start'}
+            accessibilityRole="button"
+            accessibilityLabel={currentSlide.buttonText}
           >
             <Text style={styles.buttonText}>{currentSlide.buttonText}</Text>
           </TouchableOpacity>

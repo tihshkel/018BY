@@ -8,16 +8,17 @@ export interface AppCardProps {
   onPress?: () => void;
   selected?: boolean;
   style?: StyleProp<ViewStyle>;
+  testID?: string;
 }
 
-export function AppCard({ children, onPress, selected = false, style }: AppCardProps) {
+export function AppCard({ children, onPress, selected = false, style, testID }: AppCardProps) {
   const content = (
     <View style={[styles.card, selected && styles.selected, style]}>{children}</View>
   );
 
   if (onPress) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
+      <Pressable testID={testID} onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
         {content}
       </Pressable>
     );

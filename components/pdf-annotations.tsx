@@ -87,6 +87,10 @@ export interface Annotation {
   textAlign?: 'left' | 'center' | 'right';
   /** Режим вписывания фото: cover для album auto-placement, fill для legacy редактора */
   imageContentFit?: 'cover' | 'fill';
+  /** Круглый клип для семейного дерева / gender-fill */
+  clipShape?: 'circle';
+  /** Заливка круга без фото (gender-fill или пустой слот дерева) */
+  fillColor?: string;
 }
 
 export type AnnotationTextAlign = 'left' | 'center' | 'right';
@@ -2774,6 +2778,35 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     if (annotation.type === 'image') {
       const basePos = getDisplayPosition(annotation);
+      const isCircle = annotation.clipShape === 'circle';
+      const circleRadius = isCircle
+        ? Math.min(annotation.width, annotation.height) / 2
+        : 0;
+      const circleClipStyle = isCircle
+        ? { borderRadius: circleRadius, overflow: 'hidden' as const }
+        : undefined;
+
+      if (!annotation.imageUri && annotation.fillColor) {
+        return (
+          <View
+            key={annotation.id}
+            style={[
+              styles.annotation,
+              {
+                left: basePos.x,
+                top: basePos.y,
+                width: annotation.width,
+                height: annotation.height,
+                zIndex: annotation.zIndex,
+                backgroundColor: annotation.fillColor,
+                borderRadius: circleRadius,
+              },
+            ]}
+            pointerEvents="none"
+          />
+        );
+      }
+
       const resizeResponderTL = createImageResizeResponder({ annotationId: annotation.id, corner: 'tl' });
       const resizeResponderTR = createImageResizeResponder({ annotationId: annotation.id, corner: 'tr' });
       const resizeResponderBL = createImageResizeResponder({ annotationId: annotation.id, corner: 'bl' });
@@ -2798,25 +2831,41 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           {/* Основной PanResponder для перетаскивания - всегда в режиме редактирования для выбора при тапе */}
           <View
             {...(isEditing && panResponder ? panResponder.panHandlers : {})}
-            style={styles.imageContainer}
+            style={[styles.imageContainer, circleClipStyle]}
             pointerEvents={isEditing ? 'auto' : 'box-none'}
           >
-            <Image
-              source={{ uri: annotation.imageUri }}
-              style={styles.imageAnnotation}
-              contentFit={annotation.imageContentFit ?? 'fill'}
-              priority="high"
-              cachePolicy="disk"
-              transition={0}
-              fadeDuration={0}
-              recyclingKey={annotation.id}
-              contentPosition="center"
-              onLoad={() => {
-                if (annotation.imageUri) {
-                  onImageAnnotationLoad?.(annotation.imageUri);
-                }
-              }}
-            />
+            {annotation.fillColor ? (
+              <View
+                style={[
+                  styles.imageAnnotation,
+                  circleClipStyle,
+                  { backgroundColor: annotation.fillColor },
+                ]}
+              />
+            ) : null}
+            {annotation.imageUri ? (
+              <Image
+                source={{ uri: annotation.imageUri }}
+                style={[
+                  styles.imageAnnotation,
+                  circleClipStyle,
+                  isCircle && styles.circleImageAnnotation,
+                  annotation.fillColor && styles.imageOnFill,
+                ]}
+                contentFit={annotation.imageContentFit ?? 'fill'}
+                priority="high"
+                cachePolicy="disk"
+                transition={0}
+                fadeDuration={0}
+                recyclingKey={annotation.id}
+                contentPosition="center"
+                onLoad={() => {
+                  if (annotation.imageUri) {
+                    onImageAnnotationLoad?.(annotation.imageUri);
+                  }
+                }}
+              />
+            ) : null}
           </View>
           {/* Ручки отображаются только если изображение выбрано, режим редактирования активен, 
               и НЕ редактируется текст (чтобы ручки не появлялись при редактировании текста) */}
@@ -3276,6 +3325,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: colors.primary,
+  },
+  imageOnFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    borderWidth: 0,
+  },
+  circleImageAnnotation: {
+    borderWidth: 0,
+    borderRadius: 9999,
   },
   imageControls: {
     position: 'absolute',

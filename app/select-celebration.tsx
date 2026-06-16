@@ -237,6 +237,7 @@ export default function SelectCelebrationScreen() {
           {celebrations.map((celebration) => (
             <TouchableOpacity
               key={celebration.id}
+              testID={`celebration-${celebration.id}`}
               style={[
                 styles.celebrationCard,
                 selectedCelebration === celebration.id && styles.celebrationCardSelected,

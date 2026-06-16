@@ -107,7 +107,7 @@ export default function ExportSubscriptionScreen() {
         : 'Не куплено';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']} testID="export-subscription-screen">
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>

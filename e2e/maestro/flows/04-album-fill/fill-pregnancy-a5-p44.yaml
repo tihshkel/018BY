@@ -1,0 +1,22 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_BIRTH_FIELD: Тест E2E
+---
+- runFlow:
+    file: ../03-album-create/create-pregnancy-a5.yaml
+- tapOn:
+    id: page-card-44
+- extendedWaitUntil:
+    visible:
+      id: form-save
+    timeout: 15000
+- tapOn:
+    text: 'Введите'
+    optional: true
+- inputText: ${E2E_BIRTH_FIELD}
+- tapOn:
+    id: form-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000

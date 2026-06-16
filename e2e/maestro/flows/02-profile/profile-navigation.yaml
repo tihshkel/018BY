@@ -1,0 +1,31 @@
+appId: com.tihonshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- tapOn:
+    id: profile-menu-projects
+- assertVisible:
+    text: 'Проекты'
+- back
+- tapOn:
+    id: profile-menu-gifts
+- assertVisible:
+    text: 'Каталог'
+- back
+- tapOn:
+    id: profile-menu-export-history
+- assertVisible:
+    text: 'История экспорта'
+- back
+- tapOn:
+    id: profile-menu-reminders
+- assertVisible:
+    text: 'Напоминания'
+- back
+- tapOn:
+    id: profile-menu-help
+- assertVisible:
+    text: 'Помощь'
+- back

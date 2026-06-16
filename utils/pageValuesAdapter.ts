@@ -3,6 +3,7 @@ import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { createId } from '@/utils/id';
+import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
   getLineSlotsForPage,
@@ -13,7 +14,15 @@ import {
   distributeTextWithinFieldLines,
 } from '@/utils/templateLineText';
 import { computePageStatus } from '@/utils/pageStatus';
+import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
+import { applyPhotoSlotTransform, photoSlotTransformKey } from '@/utils/photoSlotTransform';
+import {
+  getBranchFillColor,
+  mapGenderFillToViewport,
+} from '@/utils/circleSlotColors';
+import { getGenderFillTargets } from '@/utils/pdfCircleSlots';
+import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 
@@ -80,6 +89,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   let zIndex = 1;
 
   for (const field of schema.fields ?? []) {
+    if (field.type === 'radio') continue;
+
     const text = values.fields[field.fieldId]?.trim();
     if (!text) continue;
 
@@ -103,7 +114,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       annotations.push({
         id: createId('ann'),
         type: 'text',
-        page: pageNumber,
+        page: schema.sourcePageNumber,
         content: segment.content,
         fontSize,
         fontFamily: textFontFamily,
@@ -117,6 +128,33 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
+  const genderTargets = getGenderFillTargets(lineGuideId, schema.sourcePageNumber);
+  for (const target of genderTargets) {
+    const selected = values.fields[target.fieldId]?.trim();
+    if (selected !== target.option) continue;
+
+    const rect = mapGenderFillToViewport(
+      target.cx,
+      target.cy,
+      target.diameter,
+      editorContentRect,
+    );
+
+    annotations.push({
+      id: createId('ann'),
+      type: 'image',
+      page: schema.sourcePageNumber,
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+      fillColor: target.fillColor,
+      clipShape: 'circle',
+      sourcePageNumber: schema.sourcePageNumber,
+      zIndex: zIndex++,
+    });
+  }
+
   for (const block of schema.photoBlocks ?? []) {
     const blockValues = values.photoBlocks[block.blockId];
     if (!blockValues) continue;
@@ -125,9 +163,89 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       block.variants.find((v) => v.variantId === blockValues.variantId) ?? block.variants[0];
     if (!variant) continue;
 
+    const isCircleTree = block.layoutKind === 'circle_tree';
+
+    const blockLayout = isCircleTree
+      ? null
+      : computePhotoBlockLayout({
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      variantId: variant.variantId,
+      slotUris: blockValues.slots,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      contentRect: editorContentRect,
+    });
+
+    if (blockLayout) {
+      const useGroupTransform = variant.slots > 1 ? values.photoGroupTransform : undefined;
+      const resolvedSlots = resolvePhotoBlockSlotRects(blockLayout, useGroupTransform);
+
+      for (const slot of resolvedSlots) {
+        const transformKey = photoSlotTransformKey(block.blockId, slot.slotIndex);
+        const slotTransform = values.photoSlotTransforms?.[transformKey];
+        let rect = slot.rect;
+        if (slotTransform) {
+          rect = applyPhotoSlotTransform(rect, slotTransform);
+        }
+
+        const normalizedSlot = getNormalizedPhotoSlot(
+          lineGuideId,
+          schema.sourcePageNumber,
+          variant.variantId,
+          slot.slotIndex,
+        );
+        const clipShape = isCircleTree || normalizedSlot?.shape === 'circle' ? 'circle' : undefined;
+
+        if (!slot.uri && clipShape) {
+          annotations.push({
+            id: createId('ann'),
+            type: 'image',
+            page: schema.sourcePageNumber,
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            fillColor: getBranchFillColor(normalizedSlot?.branch),
+            clipShape: 'circle',
+            sourcePageNumber: schema.sourcePageNumber,
+            zIndex: zIndex++,
+          });
+          continue;
+        }
+
+        if (!slot.uri) continue;
+
+        annotations.push({
+          id: createId('ann'),
+          type: 'image',
+          page: schema.sourcePageNumber,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          imageUri: slot.uri,
+          imageContentFit: 'cover',
+          clipShape,
+          sourcePageNumber: schema.sourcePageNumber,
+          zIndex: zIndex++,
+        });
+      }
+
+      continue;
+    }
+
     for (let i = 0; i < variant.slots; i += 1) {
       const uri = blockValues.slots[i];
-      if (!uri) continue;
+      const normalizedSlot = getNormalizedPhotoSlot(
+        lineGuideId,
+        schema.sourcePageNumber,
+        variant.variantId,
+        i,
+      );
+      const clipShape = isCircleTree || normalizedSlot?.shape === 'circle' ? 'circle' : undefined;
 
       const photoRect = getPhotoSlotViewportRect({
         lineGuideId,
@@ -142,21 +260,55 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       });
 
       if (photoRect) {
+        const transformKey = photoSlotTransformKey(block.blockId, i);
+        const slotTransform = values.photoSlotTransforms?.[transformKey];
+        const groupTransform =
+          variant.slots > 1 ? values.photoGroupTransform : undefined;
+        let rect = photoRect;
+        if (groupTransform) {
+          rect = applyPhotoSlotTransform(rect, groupTransform);
+        }
+        if (slotTransform) {
+          rect = applyPhotoSlotTransform(rect, slotTransform);
+        }
+
+        if (!uri && clipShape) {
+          annotations.push({
+            id: createId('ann'),
+            type: 'image',
+            page: schema.sourcePageNumber,
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            fillColor: getBranchFillColor(normalizedSlot?.branch),
+            clipShape: 'circle',
+            sourcePageNumber: schema.sourcePageNumber,
+            zIndex: zIndex++,
+          });
+          continue;
+        }
+
+        if (!uri) continue;
+
         annotations.push({
           id: createId('ann'),
           type: 'image',
-          page: pageNumber,
-          x: photoRect.x,
-          y: photoRect.y,
-          width: photoRect.width,
-          height: photoRect.height,
+          page: schema.sourcePageNumber,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
           imageUri: uri,
           imageContentFit: 'cover',
+          clipShape,
           sourcePageNumber: schema.sourcePageNumber,
           zIndex: zIndex++,
         });
         continue;
       }
+
+      if (!uri) continue;
 
       const slotIndex = variant.slotIndices[i] ?? i;
       const slot = slots[slotIndex];
@@ -166,7 +318,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       annotations.push({
         id: createId('ann'),
         type: 'image',
-        page: pageNumber,
+        page: schema.sourcePageNumber,
         x: layout.x,
         y: layout.y,
         width: layout.width,
@@ -186,7 +338,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       annotations.push({
         id: createId('ann'),
         type: 'text',
-        page: pageNumber,
+        page: schema.sourcePageNumber,
         content: values.caption.trim(),
         fontSize,
         fontFamily: textFontFamily,
@@ -211,7 +363,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       annotations.push({
         id: createId('ann'),
         type: 'text',
-        page: pageNumber,
+        page: schema.sourcePageNumber,
         content: text,
         fontSize,
         fontFamily: textFontFamily,
@@ -302,11 +454,11 @@ export function buildProjectAnnotationsFromPageValues(params: {
   const all: Annotation[] = [];
 
   for (const instance of instances) {
-    const schema = getAlbumPageSchemaByPageId(instance.schemaPageId);
+    const schema = getSchemaForInstance(instance, lineGuideId);
     const values = pageValuesMap[instance.instanceId];
     if (!schema || !values) continue;
 
-    const pageNumber = instance.imageIndex + 1;
+    const pageNumber = schema.sourcePageNumber;
     const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
     all.push(
       ...pageValuesToAnnotations({

@@ -21,7 +21,11 @@ export type PageStatus =
   | 'locked'
   | 'excluded';
 
-export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
+export type PhotoBlockLayoutKind = 'collage' | 'circle_tree';
+
+export type PhotoSlotBranch = 'child' | 'mother' | 'father';
+
+export type PhotoSlotShape = 'rect' | 'circle';
 
 export interface AlbumPageField {
   fieldId: string;
@@ -44,6 +48,7 @@ export interface PhotoBlockVariant {
 export interface PhotoBlockSchema {
   blockId: string;
   label: string;
+  layoutKind?: PhotoBlockLayoutKind;
   variants: PhotoBlockVariant[];
 }
 
@@ -104,6 +109,10 @@ export interface PageValues {
   caption?: string;
   /** Per-photo captions for caption_photo_page */
   photoCaptions?: (string | null)[];
+  /** Per-slot pinch/pan transform (key: blockId_slotIndex) */
+  photoSlotTransforms?: Record<string, PhotoSlotTransform>;
+  /** Shared transform for multi-photo layouts */
+  photoGroupTransform?: PhotoSlotTransform;
   /** ID шрифта из AVAILABLE_FONTS для всего текста страницы */
   textFontFamily?: string;
   status: PageStatus;
@@ -112,5 +121,11 @@ export interface PageValues {
   /** Set when user taps «Редактировать позже» — distinguishes Черновик from Продолжить */
   draftSavedAt?: string;
 }
+
+export type PhotoSlotTransform = {
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+};
 
 export const PAGE_SCHEMA_VERSION = '2.0.0';

@@ -1,0 +1,22 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../04-album-fill/fill-kids-page1.yaml
+- tapOn:
+    id: album-export-button
+- tapOn:
+    id: export-format-hard
+    optional: true
+- tapOn:
+    id: export-format-soft
+    optional: true
+- tapOn:
+    id: export-start
+- extendedWaitUntil:
+    visible:
+      id: export-subscription-screen
+    timeout: 20000
+    optional: true
+- assertVisible:
+    text: 'Экспорт для печати'
+    optional: true

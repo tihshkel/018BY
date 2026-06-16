@@ -17,9 +17,9 @@ export default function EditAlbumRedirectScreen() {
   }>();
 
   useEffect(() => {
-    router.replace({
+              router.replace({
       pathname: '/album-pages',
-      params: {
+                params: {
         id: params.id,
         celebration: params.celebration,
         coverType: params.coverType,
@@ -32,7 +32,7 @@ export default function EditAlbumRedirectScreen() {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color={colors.primary} />
-    </View>
+            </View>
   );
 }
 

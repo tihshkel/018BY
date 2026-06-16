@@ -38,6 +38,27 @@ export async function savePresetUserAvatar(presetId: string): Promise<string> {
   return value;
 }
 
+export async function saveUserName(trimmedName: string): Promise<void> {
+  const name = trimmedName.trim();
+  if (!name) {
+    throw new Error('Имя не может быть пустым');
+  }
+
+  await AsyncStorage.setItem(USER_NAME_KEY, name);
+  scheduleSyncToCloud();
+
+  const code = await getAccountSyncId();
+  if (!code) {
+    return;
+  }
+
+  const avatar = await getStoredUserAvatar();
+  const res = await saveAccountToSupabase(code, name, avatar);
+  if (!res.success) {
+    throw new Error(res.error ?? 'Не удалось сохранить имя в облаке');
+  }
+}
+
 export async function saveGalleryUserAvatar(sourceUri: string): Promise<string> {
   const code = await getAccountSyncId();
   const name = (await AsyncStorage.getItem(USER_NAME_KEY))?.trim() || 'Пользователь';

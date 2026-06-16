@@ -342,7 +342,7 @@ export default function HomeScreen() {
             delayLongPress={800}
           >
             <AppText variant="stepLabel">ГЛАВНАЯ</AppText>
-            <AppText variant="display" style={styles.greeting}>
+            <AppText variant="display" style={styles.greeting} testID="home-greeting">
               {displayName ? `Привет, ${displayName}` : 'Привет!'}
             </AppText>
             {projects.length > 0 ? (
@@ -368,7 +368,12 @@ export default function HomeScreen() {
                 <AppText variant="bodySm" style={styles.emptyText}>
                   Создайте первый альбом, чтобы начать сохранять воспоминания
                 </AppText>
-                <AppButton title="Мои истории" onPress={handleMyStories} style={styles.emptyButton} />
+                <AppButton
+                  testID="home-go-projects"
+                  title="Мои истории"
+                  onPress={handleMyStories}
+                  style={styles.emptyButton}
+                />
               </View>
             </View>
           ) : projects.length === 1 && selectedProject ? (

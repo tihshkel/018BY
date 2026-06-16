@@ -182,6 +182,7 @@ export default function SelectInteriorScreen() {
           {interiorOptions.map((interior) => (
             <TouchableOpacity
               key={interior.id}
+              testID={`interior-${interior.id}`}
               style={[
                 styles.interiorCard,
                 selectedInterior === interior.id && styles.interiorCardSelected,
@@ -244,6 +245,7 @@ export default function SelectInteriorScreen() {
         {selectedInterior && (
           <View style={styles.continueContainer}>
             <TouchableOpacity
+              testID="interior-continue"
               style={styles.continueButton}
               onPress={handleContinue}
               activeOpacity={0.8}

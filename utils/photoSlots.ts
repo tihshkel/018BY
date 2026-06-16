@@ -1,8 +1,8 @@
 import {
-  DEFAULT_PHOTO_PAGE_LAYOUTS,
-  PHOTO_SLOTS,
   type NormalizedPhotoSlot,
+  type PhotoPageLayouts,
 } from '@/constants/photo-slots';
+import { resolvePhotoPageLayouts } from '@/utils/resolvePhotoPageLayouts';
 import {
   getContentRect,
   mapSourceNormToViewport,
@@ -31,16 +31,23 @@ function resolveContentRect(params: GetPhotoSlotParams): ContentRect {
   );
 }
 
+function resolveLayoutVariantId(variantId: string): string {
+  if (variantId === 'two_stacked') return 'two_photos';
+  if (variantId === 'two_vertical') return 'two_horizontal';
+  if (variantId === 'four_vertical') return 'four_grid';
+  if (variantId === 'one_horizontal_common') return 'one_horizontal';
+  return variantId;
+}
+
 export function getNormalizedPhotoSlot(
   lineGuideId: string,
   page: number,
   variantId: string,
   slotIndex: number,
 ): NormalizedPhotoSlot | null {
-  const pageLayouts =
-    PHOTO_SLOTS[lineGuideId]?.[String(page)] ?? DEFAULT_PHOTO_PAGE_LAYOUTS;
+  const pageLayouts = resolvePhotoPageLayouts(lineGuideId, page);
 
-  const resolvedVariantId = variantId === 'two_stacked' ? 'two_photos' : variantId;
+  const resolvedVariantId = resolveLayoutVariantId(variantId);
   const variant =
     pageLayouts.variants.find((v) => v.variantId === resolvedVariantId) ??
     pageLayouts.variants.find((v) => v.variantId === variantId);

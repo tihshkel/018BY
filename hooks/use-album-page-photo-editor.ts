@@ -1,10 +1,15 @@
 import { useCallback } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import type { useAlbumProject } from '@/hooks/use-album-project';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
+import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import {
+  DEFAULT_PHOTO_SLOT_TRANSFORM,
+  photoSlotTransformKey,
+} from '@/utils/photoSlotTransform';
 
 type AlbumProject = ReturnType<typeof useAlbumProject>;
 
@@ -112,18 +117,83 @@ export function useAlbumPagePhotoEditor({
     (blockId: string, newVariantId: string) => {
       const block = blocks.find((item) => item.blockId === blockId);
       const variant = block?.variants.find((item) => item.variantId === newVariantId);
+      if (!variant) return;
+
+      const prevBlock = photoBlocks[blockId];
+      if (prevBlock?.variantId === newVariantId) return;
+
+      const migrated = migratePhotoBlockOnVariantChange({
+        blockId,
+        prevSlots: prevBlock?.slots ?? [],
+        newSlotCount: variant.slots,
+        prevCaptions: pageValues.photoCaptions,
+        prevSlotTransforms: pageValues.photoSlotTransforms,
+      });
+
       updateBlock(blockId, () => ({
         variantId: newVariantId,
-        slots: Array(variant?.slots ?? 1).fill(null),
+        slots: migrated.slots,
       }));
-      if (showPerPhotoCaptions) {
-        updatePageValues((prev) => ({
-          ...prev,
-          photoCaptions: Array(variant?.slots ?? 1).fill(null),
-        }));
-      }
+
+      updatePageValues((prev) => ({
+        ...prev,
+        photoCaptions: showPerPhotoCaptions ? migrated.photoCaptions : prev.photoCaptions,
+        photoSlotTransforms: migrated.photoSlotTransforms,
+        photoGroupTransform: { scale: 1, offsetX: 0, offsetY: 0 },
+      }));
     },
-    [blocks, showPerPhotoCaptions, updateBlock, updatePageValues],
+    [
+      blocks,
+      pageValues.photoCaptions,
+      pageValues.photoSlotTransforms,
+      photoBlocks,
+      showPerPhotoCaptions,
+      updateBlock,
+      updatePageValues,
+    ],
+  );
+
+  const handleInitPhotoBlock = useCallback(
+    (blockId: string, variantId: string, slotCount: number) => {
+      if (photoBlocks[blockId]?.variantId) return;
+      updateBlock(blockId, () => ({
+        variantId,
+        slots: Array(slotCount).fill(null),
+      }));
+    },
+    [photoBlocks, updateBlock],
+  );
+
+  const handleSlotTransformChange = useCallback(
+    (blockId: string, slotIndex: number, transform: PhotoSlotTransform) => {
+      const key = photoSlotTransformKey(blockId, slotIndex);
+      updatePageValues((prev) => ({
+        ...prev,
+        photoSlotTransforms: {
+          ...prev.photoSlotTransforms,
+          [key]: transform,
+        },
+      }));
+    },
+    [updatePageValues],
+  );
+
+  const handleGroupTransformChange = useCallback(
+    (transform: PhotoSlotTransform) => {
+      updatePageValues((prev) => ({
+        ...prev,
+        photoGroupTransform: transform,
+      }));
+    },
+    [updatePageValues],
+  );
+
+  const getSlotTransform = useCallback(
+    (blockId: string, slotIndex: number): PhotoSlotTransform => {
+      const key = photoSlotTransformKey(blockId, slotIndex);
+      return pageValues.photoSlotTransforms?.[key] ?? DEFAULT_PHOTO_SLOT_TRANSFORM;
+    },
+    [pageValues.photoSlotTransforms],
   );
 
   return {
@@ -135,5 +205,9 @@ export function useAlbumPagePhotoEditor({
     handlePickPhoto,
     handleRemovePhoto,
     handleSelectVariant,
+    handleInitPhotoBlock,
+    handleSlotTransformChange,
+    handleGroupTransformChange,
+    getSlotTransform,
   };
 }

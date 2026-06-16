@@ -1,0 +1,22 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_NEW_NAME: Мария E2E
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- tapOn:
+    id: profile-edit-name
+- tapOn:
+    id: profile-name-input
+- eraseText
+- inputText: ${E2E_NEW_NAME}
+- tapOn:
+    id: profile-name-save
+- assertVisible:
+    text: ${E2E_NEW_NAME}
+- tapOn:
+    id: tab-home
+- assertVisible:
+    text: 'Привет, Мария E2E'

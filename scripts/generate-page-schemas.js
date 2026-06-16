@@ -6,6 +6,9 @@
 const fs = require('fs');
 const path = require('path');
 const { applyKids48TzManifest } = require('./kids-48-tz-builders');
+const { applyDiary60TzManifest } = require('./diary-60-tz-builders');
+const { applyGirlsDiaryA5TzManifest } = require('./girls-diary-a5-tz-builders');
+const { applyPregnancy60PageFields } = require('./pregnancy-60-tz-builders');
 const { PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const ALBUM_IDS = [
@@ -24,7 +27,7 @@ const PAGE_COUNTS = {
   pregnancy_a5: 48,
   kids_48: 48,
   holidays_birthday_60: 60,
-  diary_interior_brown: 40,
+  diary_interior_brown: 60,
   diary_interior_purple: 40,
   family_blank: 20,
   holidays_blank: 20,
@@ -184,6 +187,18 @@ function loadKidsTzManifest(projectRoot) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
+function loadDiary60TzManifest(projectRoot) {
+  const file = path.join(projectRoot, 'scripts', 'diary-60-tz-manifest.json');
+  if (!fs.existsSync(file)) return {};
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function loadGirlsDiaryA5TzManifest(projectRoot) {
+  const file = path.join(projectRoot, 'scripts', 'girls-diary-a5-tz-manifest.json');
+  if (!fs.existsSync(file)) return {};
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
 function buildFieldsFromContent(lineGuideId, pageNumber, contentFields) {
   return contentFields.map((field, index) => ({
     fieldId: field.fieldId ?? `${lineGuideId}_p${pageNumber}_g${index + 1}`,
@@ -244,7 +259,7 @@ function buildFieldsFromSlots(lineGuideId, pageNumber, slots) {
 function findPhotoBlockSlots(slots) {
   return slots
     .map((slot, index) => ({ slot, index }))
-    .filter(({ slot }) => slot.inputKind === 'block' && slot.height >= 0.08);
+    .filter(({ slot }) => slot.inputKind === 'block');
 }
 
 function buildPhotoBlocks(slots, blockId = 'main_photo') {
@@ -396,6 +411,8 @@ function generateSchemas(projectRoot) {
   const overrides = loadOverrides(projectRoot);
   const pageContent = loadPageContent(projectRoot);
   const kidsTzManifest = loadKidsTzManifest(projectRoot);
+  const diary60TzManifest = loadDiary60TzManifest(projectRoot);
+  const girlsDiaryA5TzManifest = loadGirlsDiaryA5TzManifest(projectRoot);
   const result = {};
 
   for (const lineGuideId of ALBUM_IDS) {
@@ -423,6 +440,37 @@ function generateSchemas(projectRoot) {
         );
         if (tzApplied) {
           schema = mergeOverride(schema, tzApplied);
+        }
+      }
+
+      if (lineGuideId === 'diary_interior_brown' && diary60TzManifest[pageKey]) {
+        const tzApplied = applyDiary60TzManifest(
+          pageNumber,
+          slots,
+          diary60TzManifest[pageKey],
+          lineGuideId
+        );
+        if (tzApplied) {
+          schema = mergeOverride(schema, tzApplied);
+        }
+      }
+
+      if (lineGuideId === 'diary_interior_purple' && girlsDiaryA5TzManifest[pageKey]) {
+        const tzApplied = applyGirlsDiaryA5TzManifest(
+          pageNumber,
+          slots,
+          girlsDiaryA5TzManifest[pageKey],
+          lineGuideId
+        );
+        if (tzApplied) {
+          schema = mergeOverride(schema, tzApplied);
+        }
+      }
+
+      if (lineGuideId === 'pregnancy_60') {
+        const pregnancyFields = applyPregnancy60PageFields(pageNumber, lineGuideId);
+        if (pregnancyFields) {
+          schema = mergeOverride(schema, pregnancyFields);
         }
       }
 

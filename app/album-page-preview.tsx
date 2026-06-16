@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 
+import { AlbumPreviewPhotoBlockEditor } from "@/components/album/album-preview-photo-block-editor";
 import { NonEditableBanner } from "@/components/album/non-editable-banner";
 import { PageFontPicker } from "@/components/album/page-font-picker";
 import PageRenderer, { type PageRendererRef } from "@/components/page-renderer";
@@ -17,14 +18,21 @@ import {
   spacing,
 } from "@/constants/design-tokens";
 import { useAlbumPagePreviewLayout } from "@/hooks/use-album-editor-layout";
+import { usePageAnnotationsForLayout } from "@/hooks/use-page-annotations-for-layout";
+import { useAlbumPagePhotoEditor } from "@/hooks/use-album-page-photo-editor";
 import { useAlbumProject } from "@/hooks/use-album-project";
 import {
   buildAlbumPagesHref,
   navigateToAlbumPages,
   type AlbumFlowParams,
 } from "@/utils/albumNavigation";
-import { resolveVariantPreviewBackgroundUri } from "@/utils/albumImages";
-import { isPhotoOnlySchema } from "@/utils/albumPageNavigation";
+import {
+  getDefaultVariantIdForPage,
+} from "@/utils/variantPreview";
+import { usesUnifiedPhotoEditor } from "@/utils/albumPageNavigation";
+import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
+import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
+import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
 
 export default function AlbumPagePreviewScreen() {
@@ -42,6 +50,10 @@ export default function AlbumPagePreviewScreen() {
   const rendererRef = useRef<PageRendererRef>(null);
   const [ready, setReady] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState(1.414);
+  const [sourceImageSize, setSourceImageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const previewLayout = useAlbumPagePreviewLayout(imageAspectRatio);
 
@@ -69,7 +81,10 @@ export default function AlbumPagePreviewScreen() {
   const schema = instance ? project.getSchemaForInstance(instance) : undefined;
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
-  const baseImageUri = instance ? project.images[instance.imageIndex] : undefined;
+  const baseImageUri = instance
+    ? resolveInstancePageImageUri(project.images, instance)
+    : undefined;
+  const primaryPhotoBlock = schema?.photoBlocks?.[0];
   const selectedVariantId = useMemo(() => {
     if (!values?.photoBlocks) return null;
     for (const block of Object.values(values.photoBlocks)) {
@@ -77,19 +92,102 @@ export default function AlbumPagePreviewScreen() {
     }
     return null;
   }, [values?.photoBlocks]);
-  const imageUri =
-    resolveVariantPreviewBackgroundUri({
-      lineGuideId: schema?.lineGuideId ?? project.lineGuideId,
-      sourcePageNumber: instance?.sourcePageNumber ?? schema?.sourcePageNumber,
-      variantId: selectedVariantId,
-    }) ?? baseImageUri;
+  const effectiveVariantId = useMemo(() => {
+    if (selectedVariantId) return selectedVariantId;
+    if (!schema || !instance) return null;
+    return getDefaultVariantIdForPage(
+      schema.lineGuideId ?? project.lineGuideId,
+      instance.sourcePageNumber ?? schema.sourcePageNumber,
+      primaryPhotoBlock,
+    );
+  }, [
+    instance,
+    primaryPhotoBlock,
+    project.lineGuideId,
+    schema,
+    selectedVariantId,
+  ]);
+  const hasContent =
+    status === "filled" ||
+    status === "draft" ||
+    status === "continue";
+  const preferDesignLayout = !isFinalPreview && !hasContent;
+  const resolvedImageUri = useMemo(
+    () =>
+      resolvePagePreviewBackgroundUri({
+        lineGuideId: schema?.lineGuideId ?? project.lineGuideId,
+        sourcePageNumber: instance?.sourcePageNumber ?? schema?.sourcePageNumber,
+        baseImageUri,
+        variantId: effectiveVariantId,
+        preferDesignLayout,
+      }),
+    [
+      baseImageUri,
+      effectiveVariantId,
+      instance?.sourcePageNumber,
+      preferDesignLayout,
+      project.lineGuideId,
+      schema?.lineGuideId,
+      schema?.sourcePageNumber,
+    ],
+  );
+  const [displayImageUri, setDisplayImageUri] = useState<string | undefined>(
+    resolvedImageUri ?? undefined,
+  );
+
+  useEffect(() => {
+    setDisplayImageUri(resolvedImageUri ?? undefined);
+    setReady(false);
+  }, [resolvedImageUri]);
+
+  const imageUri = displayImageUri ?? resolvedImageUri;
   const selectedFontId = values?.textFontFamily ?? "default";
   const hasTextFields = (schema?.fields?.length ?? 0) > 0;
+  const isLocked =
+    schema?.pageType === "non_editable" || status === "locked";
 
-  const annotations = useMemo(() => {
-    if (!instanceId) return [];
-    return project.getPageAnnotations(instanceId);
-  }, [instanceId, project, values, project.pageValuesMap]);
+  const photoEditor = useAlbumPagePhotoEditor({
+    instanceId,
+    schema,
+    pageValues: values ?? createEmptyPageValues(),
+    project,
+  });
+
+  const primaryBlockValues = primaryPhotoBlock
+    ? photoEditor.photoBlocks[primaryPhotoBlock.blockId]
+    : undefined;
+  const primaryVariantId =
+    primaryBlockValues?.variantId ??
+    effectiveVariantId ??
+    primaryPhotoBlock?.variants[0]?.variantId ??
+    "default";
+  const primarySlotUris = primaryBlockValues?.slots ?? [];
+  const primarySlotCount =
+    primaryPhotoBlock?.variants.find((item) => item.variantId === primaryVariantId)?.slots ??
+    (primarySlotUris.some(Boolean) ? primarySlotUris.filter(Boolean).length : 1);
+  const hasFilledPhotos = primarySlotUris.some(Boolean);
+  const showPhotoBlockEditor =
+    isFinalPreview &&
+    !isLocked &&
+    primaryPhotoBlock != null &&
+    hasFilledPhotos &&
+    primarySlotCount > 1;
+
+  const annotations = usePageAnnotationsForLayout({
+    instance,
+    schema,
+    values,
+    lineGuideId: project.lineGuideId,
+    viewportWidth: previewLayout.coordinateWidth,
+    viewportHeight: previewLayout.coordinateHeight,
+    sourceWidth: sourceImageSize?.width,
+    sourceHeight: sourceImageSize?.height,
+  });
+
+  const displayAnnotations = useMemo(() => {
+    if (!showPhotoBlockEditor) return annotations;
+    return annotations.filter((item) => item.type !== "image");
+  }, [annotations, showPhotoBlockEditor]);
 
   useEffect(() => {
     setReady(false);
@@ -98,6 +196,7 @@ export default function AlbumPagePreviewScreen() {
   useEffect(() => {
     if (!imageUri) {
       setImageAspectRatio(1.414);
+      setSourceImageSize(null);
       return;
     }
 
@@ -107,9 +206,13 @@ export default function AlbumPagePreviewScreen() {
       (width, height) => {
         if (cancelled || width <= 0 || height <= 0) return;
         setImageAspectRatio(height / width);
+        setSourceImageSize({ width, height });
       },
       () => {
-        if (!cancelled) setImageAspectRatio(1.414);
+        if (!cancelled) {
+          setImageAspectRatio(1.414);
+          setSourceImageSize(null);
+        }
       },
     );
 
@@ -126,24 +229,17 @@ export default function AlbumPagePreviewScreen() {
     );
   }
 
-  const isLocked = schema.pageType === "non_editable" || status === "locked";
   const isExcluded = status === "excluded";
-  const hasContent =
-    status === "filled" ||
-    status === "draft" ||
-    status === "continue";
   const pageLabel = `Страница ${instance.order} из ${project.instances.length}`;
 
   const handleFill = () => {
-    if (isPhotoOnlySchema(schema)) {
-      router.push({
-        pathname: "/album-page-photos",
-        params: { id, instanceId, celebration, coverType, interiorType },
-      } as unknown as Href);
-      return;
-    }
+    const pathname = usesUnifiedPhotoEditor(schema)
+      ? (schema?.fields?.length ?? 0) > 0
+        ? "/album-page-form"
+        : "/album-page-photos"
+      : "/album-page-form";
     router.push({
-      pathname: "/album-page-form",
+      pathname,
       params: { id, instanceId, celebration, coverType, interiorType },
     } as unknown as Href);
   };
@@ -179,11 +275,15 @@ export default function AlbumPagePreviewScreen() {
 
   const previewBlock = (
     <View style={styles.previewSection}>
-      {!isFinalPreview ? (
-        <AppText variant="bodySm" style={styles.previewHint}>
-          Предпросмотр макета — так страница будет выглядеть в книге
-        </AppText>
-      ) : null}
+      <AppText variant="bodySm" style={styles.previewHint}>
+        {isFinalPreview
+          ? showPhotoBlockEditor
+            ? "Нажмите на блок фото — появится розовая рамка. Перетаскивайте блок или углы для изменения размера"
+            : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
+          : preferDesignLayout
+            ? "Пример макета из дизайн-PDF — здесь видно, где текст и фото"
+            : "Предпросмотр макета — так страница будет выглядеть в книге"}
+      </AppText>
 
       <View
         style={[
@@ -217,12 +317,33 @@ export default function AlbumPagePreviewScreen() {
               <PageRenderer
                 ref={rendererRef}
                 imageUri={imageUri}
-                annotations={annotations}
+                annotations={displayAnnotations}
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
                 lineGuideId={project.lineGuideId}
                 backgroundColor={colors.white}
                 onReady={() => setReady(true)}
+                onImageError={() => {
+                  if (baseImageUri && displayImageUri !== baseImageUri) {
+                    setDisplayImageUri(baseImageUri);
+                  }
+                }}
+              />
+            ) : null}
+            {showPhotoBlockEditor && instance ? (
+              <AlbumPreviewPhotoBlockEditor
+                lineGuideId={schema.lineGuideId ?? project.lineGuideId}
+                sourcePageNumber={
+                  instance.sourcePageNumber ?? schema.sourcePageNumber
+                }
+                variantId={primaryVariantId}
+                slotUris={primarySlotUris}
+                groupTransform={values?.photoGroupTransform}
+                coordinateWidth={previewLayout.coordinateWidth}
+                coordinateHeight={previewLayout.coordinateHeight}
+                sourceWidth={sourceImageSize?.width}
+                sourceHeight={sourceImageSize?.height}
+                onGroupTransformChange={photoEditor.handleGroupTransformChange}
               />
             ) : null}
             {!ready && imageUri ? (

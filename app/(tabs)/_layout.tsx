@@ -55,6 +55,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Главная',
+          tabBarButtonTestID: 'tab-home',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -68,6 +69,7 @@ export default function TabLayout() {
         name="projects"
         options={{
           title: 'Проекты',
+          tabBarButtonTestID: 'tab-projects',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'book' : 'book-outline'}
@@ -95,6 +97,7 @@ export default function TabLayout() {
         options={{
           href: isNotificationTabActive ? null : undefined,
           title: 'Профиль',
+          tabBarButtonTestID: 'tab-profile',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

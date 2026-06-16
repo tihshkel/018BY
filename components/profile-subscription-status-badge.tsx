@@ -45,6 +45,7 @@ export function ProfileSubscriptionStatusBadge({
         ]}
         onPress={onPress}
         activeOpacity={0.75}
+        testID="profile-subscription-badge-button"
         accessibilityRole="button"
         accessibilityLabel={isPremium ? 'Статус Премиум' : 'Статус Стандарт'}
       >

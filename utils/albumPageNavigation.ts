@@ -3,6 +3,16 @@ import type { Href } from 'expo-router';
 import { router } from 'expo-router';
 
 import { computePageStatus, shouldOpenFormDirectly } from '@/utils/pageStatus';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
+
+export function hasPhotoBlocks(schema: AlbumPageSchema | undefined): boolean {
+  if (!schema) return false;
+  return (enrichSchemaWithPhotoBlocks(schema).photoBlocks?.length ?? 0) > 0;
+}
+
+export function usesUnifiedPhotoEditor(schema: AlbumPageSchema | undefined): boolean {
+  return hasPhotoBlocks(schema);
+}
 
 export function isPhotoOnlySchema(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;

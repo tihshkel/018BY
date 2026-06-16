@@ -36,6 +36,7 @@ function PageCard({
 >) {
   return (
     <Pressable
+      testID={pageNumber != null ? `page-card-${pageNumber}` : undefined}
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >

@@ -1,0 +1,9 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../04-album-fill/fill-kids-page1.yaml
+- back
+- assertVisible:
+    id: page-card-1
+- assertVisible:
+    id: album-export-button

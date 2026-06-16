@@ -3,12 +3,14 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 
 import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
+import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
 import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
 import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
+import { usesUnifiedPhotoEditor } from '@/utils/albumPageNavigation';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
 export default function AlbumPageFormScreen() {
@@ -90,7 +92,7 @@ export default function AlbumPageFormScreen() {
   }
 
   const fields = schema.fields ?? [];
-  const hasPhotoBlocks = (schema.photoBlocks?.length ?? 0) > 0;
+  const unifiedEditor = usesUnifiedPhotoEditor(schema);
 
   return (
     <AppScreen
@@ -108,36 +110,71 @@ export default function AlbumPageFormScreen() {
         {project.getInstanceTitle(instance)}
       </AppText>
 
-      <AlbumPageFillForm
-        schema={schema}
-        pageValues={pageValues}
-        lineGuideId={project.lineGuideId}
-        onFieldChange={handleFieldChange}
-        onCaptionChange={(text) =>
-          photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
-        }
-        onPhotoCaptionChange={(slotIndex, text) =>
-          photoEditor.updatePageValues((prev) => {
-            const next = [...(prev.photoCaptions ?? [])];
-            next[slotIndex] = text;
-            return { ...prev, photoCaptions: next };
-          })
-        }
-        onSelectVariant={photoEditor.handleSelectVariant}
-        onAddPhoto={photoEditor.handlePickPhoto}
-        onReplacePhoto={photoEditor.handlePickPhoto}
-        onRemovePhoto={photoEditor.handleRemovePhoto}
-        showCaption={photoEditor.showCaption}
-        showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
-      />
+      <AppText variant="bodySm" style={styles.editHint}>
+        Заполните нужные поля и добавьте фото. Можно оставить часть пустой — результат увидите на следующем шаге.
+      </AppText>
 
-      {fields.length === 0 && !hasPhotoBlocks ? (
+      {unifiedEditor ? (
+        <AlbumPageUnifiedEditor
+          schema={schema}
+          pageValues={pageValues}
+          lineGuideId={project.lineGuideId}
+          onFieldChange={handleFieldChange}
+          onCaptionChange={(text) =>
+            photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+          }
+          onPhotoCaptionChange={(slotIndex, text) =>
+            photoEditor.updatePageValues((prev) => {
+              const next = [...(prev.photoCaptions ?? [])];
+              next[slotIndex] = text;
+              return { ...prev, photoCaptions: next };
+            })
+          }
+          onSelectVariant={photoEditor.handleSelectVariant}
+          onPickPhoto={photoEditor.handlePickPhoto}
+          onSlotTransformChange={photoEditor.handleSlotTransformChange}
+          onGroupTransformChange={photoEditor.handleGroupTransformChange}
+          onRemovePhoto={photoEditor.handleRemovePhoto}
+          onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
+          showCaption={photoEditor.showCaption}
+          showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+        />
+      ) : (
+        <AlbumPageFillForm
+          schema={schema}
+          pageValues={pageValues}
+          lineGuideId={project.lineGuideId}
+          onFieldChange={handleFieldChange}
+          onCaptionChange={(text) =>
+            photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+          }
+          onPhotoCaptionChange={(slotIndex, text) =>
+            photoEditor.updatePageValues((prev) => {
+              const next = [...(prev.photoCaptions ?? [])];
+              next[slotIndex] = text;
+              return { ...prev, photoCaptions: next };
+            })
+          }
+          onSelectVariant={photoEditor.handleSelectVariant}
+          onAddPhoto={photoEditor.handlePickPhoto}
+          onReplacePhoto={photoEditor.handlePickPhoto}
+          onRemovePhoto={photoEditor.handleRemovePhoto}
+          showCaption={photoEditor.showCaption}
+          showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+        />
+      )}
+
+      {fields.length === 0 && !unifiedEditor ? (
         <AppText variant="bodySm" style={styles.emptyHint}>
           На этой странице нет полей для заполнения.
         </AppText>
       ) : null}
 
-      <AppButton title="Сохранить" onPress={handleSave} />
+      <AppButton
+        testID={unifiedEditor ? 'unified-editor-save' : 'form-save'}
+        title="Просмотр страницы"
+        onPress={handleSave}
+      />
     </AppScreen>
   );
 }
@@ -156,6 +193,10 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     color: colors.textSecondary,
+  },
+  editHint: {
+    color: colors.textSecondary,
+    lineHeight: 20,
   },
   emptyHint: {
     color: colors.textSecondary,

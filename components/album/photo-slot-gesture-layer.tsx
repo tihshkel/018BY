@@ -1,0 +1,386 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import React, { useCallback, useEffect } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+
+import { AppText } from '@/components/ui';
+import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
+import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import {
+  clampPhotoOffset,
+  clampPhotoScale,
+  DEFAULT_PHOTO_SLOT_TRANSFORM,
+  normalizePhotoSlotTransform,
+} from '@/utils/photoSlotTransform';
+
+type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
+
+type PhotoSlotGestureLayerProps = {
+  uri: string | null;
+  slotLabel: string;
+  slotIndex: number;
+  transform: PhotoSlotTransform;
+  gesturesEnabled?: boolean;
+  /** @deprecated use chromeStyle="none" */
+  hideChrome?: boolean;
+  chromeStyle?: PhotoSlotChromeStyle;
+  onPressEmpty: () => void;
+  onReplacePhoto?: () => void;
+  onRemovePhoto?: () => void;
+  onTransformChange: (transform: PhotoSlotTransform) => void;
+};
+
+function resolveChromeStyle(
+  chromeStyle: PhotoSlotChromeStyle | undefined,
+  hideChrome: boolean | undefined,
+): PhotoSlotChromeStyle {
+  if (chromeStyle) return chromeStyle;
+  if (hideChrome) return 'none';
+  return 'toolbar';
+}
+
+function PhotoSlotFilled({
+  uri,
+  slotLabel,
+  slotIndex,
+  transform,
+  gesturesEnabled,
+  chromeStyle,
+  onReplacePhoto,
+  onRemovePhoto,
+  onTransformChange,
+}: Omit<PhotoSlotGestureLayerProps, 'onPressEmpty' | 'uri' | 'hideChrome'> & {
+  uri: string;
+  chromeStyle: PhotoSlotChromeStyle;
+}) {
+  const savedScale = useSharedValue(transform.scale || 1);
+  const savedOffsetX = useSharedValue(transform.offsetX || 0);
+  const savedOffsetY = useSharedValue(transform.offsetY || 0);
+  const scale = useSharedValue(transform.scale || 1);
+  const offsetX = useSharedValue(transform.offsetX || 0);
+  const offsetY = useSharedValue(transform.offsetY || 0);
+
+  useEffect(() => {
+    const next = normalizePhotoSlotTransform(transform);
+    savedScale.value = next.scale;
+    savedOffsetX.value = next.offsetX;
+    savedOffsetY.value = next.offsetY;
+    scale.value = next.scale;
+    offsetX.value = next.offsetX;
+    offsetY.value = next.offsetY;
+  }, [transform, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale]);
+
+  const commitTransform = useCallback(() => {
+    onTransformChange(
+      normalizePhotoSlotTransform({
+        scale: scale.value,
+        offsetX: offsetX.value,
+        offsetY: offsetY.value,
+      }),
+    );
+  }, [onTransformChange, offsetX, offsetY, scale]);
+
+  const panGesture = Gesture.Pan()
+    .enabled(gesturesEnabled !== false)
+    .onUpdate((event) => {
+      offsetX.value = clampPhotoOffset(
+        savedOffsetX.value + event.translationX / 120,
+      );
+      offsetY.value = clampPhotoOffset(
+        savedOffsetY.value + event.translationY / 120,
+      );
+    })
+    .onEnd(() => {
+      savedOffsetX.value = offsetX.value;
+      savedOffsetY.value = offsetY.value;
+      runOnJS(commitTransform)();
+    });
+
+  const pinchGesture = Gesture.Pinch()
+    .enabled(gesturesEnabled !== false)
+    .onUpdate((event) => {
+      scale.value = clampPhotoScale(savedScale.value * event.scale);
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      runOnJS(commitTransform)();
+    });
+
+  const composed = Gesture.Simultaneous(panGesture, pinchGesture);
+
+  const imageStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: scale.value },
+      { translateX: offsetX.value * 24 },
+      { translateY: offsetY.value * 24 },
+    ],
+  }));
+
+  const isOverlay = chromeStyle === 'overlay';
+  const canUseGestures = gesturesEnabled !== false;
+
+  const imageContent = (
+    <Animated.View style={styles.imageClip}>
+      <Animated.View style={[styles.imageInner, imageStyle]}>
+        <Image source={{ uri }} style={styles.image} contentFit="cover" />
+      </Animated.View>
+    </Animated.View>
+  );
+
+  return (
+    <View
+      testID={`photo-slot-${slotIndex}`}
+      style={[styles.filledWrap, isOverlay && styles.filledWrapOverlay]}
+    >
+      {canUseGestures ? (
+        <GestureDetector gesture={composed}>{imageContent}</GestureDetector>
+      ) : (
+        imageContent
+      )}
+
+      {isOverlay ? (
+        <View style={styles.overlayChrome} pointerEvents="box-none">
+          {onReplacePhoto || onRemovePhoto ? (
+            <View style={styles.overlayActions}>
+              {onReplacePhoto ? (
+                <Pressable
+                  onPress={onReplacePhoto}
+                  style={({ pressed }) => [
+                    styles.overlayBtn,
+                    pressed && styles.overlayBtnPressed,
+                  ]}
+                  accessibilityLabel="Заменить фото"
+                >
+                  <Ionicons name="swap-horizontal" size={16} color={colors.white} />
+                </Pressable>
+              ) : null}
+              {onRemovePhoto ? (
+                <Pressable
+                  onPress={onRemovePhoto}
+                  style={({ pressed }) => [
+                    styles.overlayBtn,
+                    pressed && styles.overlayBtnPressed,
+                  ]}
+                  accessibilityLabel="Удалить фото"
+                >
+                  <Ionicons name="trash-outline" size={16} color={colors.white} />
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      {chromeStyle === 'toolbar' ? (
+        <View style={styles.toolbar}>
+          <AppText variant="caption" style={styles.toolbarLabel} numberOfLines={1}>
+            {slotLabel}
+          </AppText>
+          <View style={styles.toolbarActions}>
+            {onReplacePhoto ? (
+              <Pressable
+                onPress={onReplacePhoto}
+                style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                accessibilityLabel="Заменить фото"
+              >
+                <Ionicons name="swap-horizontal-outline" size={16} color={colors.primary} />
+              </Pressable>
+            ) : null}
+            {onRemovePhoto ? (
+              <Pressable
+                onPress={onRemovePhoto}
+                style={({ pressed }) => [styles.iconBtn, pressed && styles.iconBtnPressed]}
+                accessibilityLabel="Удалить фото"
+              >
+                <Ionicons name="trash-outline" size={16} color={colors.error} />
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+
+      {chromeStyle === 'toolbar' && gesturesEnabled !== false ? (
+        <AppText variant="caption" style={styles.gestureHint}>
+          Щипок — масштаб, перетаскивание — позиция
+        </AppText>
+      ) : null}
+    </View>
+  );
+}
+
+export function PhotoSlotGestureLayer({
+  uri,
+  slotLabel,
+  slotIndex,
+  transform,
+  gesturesEnabled = true,
+  hideChrome = false,
+  chromeStyle,
+  onPressEmpty,
+  onReplacePhoto,
+  onRemovePhoto,
+  onTransformChange,
+}: PhotoSlotGestureLayerProps) {
+  const resolvedChromeStyle = resolveChromeStyle(chromeStyle, hideChrome);
+
+  if (!uri) {
+    return (
+      <Pressable
+        testID={`photo-slot-${slotIndex}`}
+        onPress={onPressEmpty}
+        style={({ pressed }) => [
+          styles.emptySlot,
+          resolvedChromeStyle === 'overlay' && styles.emptySlotOverlay,
+          pressed && styles.emptyPressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={`Добавить фото ${slotIndex + 1}`}
+      >
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="add" size={22} color={colors.primary} />
+        </View>
+        <AppText variant="caption" style={styles.emptyHint}>
+          {slotLabel}
+        </AppText>
+      </Pressable>
+    );
+  }
+
+  return (
+    <PhotoSlotFilled
+      uri={uri}
+      slotLabel={slotLabel}
+      slotIndex={slotIndex}
+      transform={transform}
+      gesturesEnabled={gesturesEnabled}
+      chromeStyle={resolvedChromeStyle}
+      onReplacePhoto={onReplacePhoto}
+      onRemovePhoto={onRemovePhoto}
+      onTransformChange={onTransformChange}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  filledWrap: {
+    flex: 1,
+    borderRadius: radii.sm,
+    overflow: 'hidden',
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filledWrapOverlay: {
+    borderWidth: 0,
+    backgroundColor: colors.primarySurface,
+  },
+  imageClip: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: colors.primarySurface,
+  },
+  imageInner: {
+    width: '100%',
+    height: '100%',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  overlayChrome: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    padding: 6,
+  },
+  overlayActions: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  overlayBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(61, 61, 61, 0.55)',
+  },
+  overlayBtnPressed: {
+    opacity: 0.85,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    backgroundColor: colors.white,
+    gap: spacing.xs,
+  },
+  toolbarLabel: {
+    color: colors.textSecondary,
+    flex: 1,
+  },
+  toolbarActions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  iconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+  },
+  iconBtnPressed: {
+    opacity: 0.8,
+  },
+  gestureHint: {
+    textAlign: 'center',
+    color: colors.placeholder,
+    paddingBottom: 6,
+    backgroundColor: colors.white,
+  },
+  emptySlot: {
+    flex: 1,
+    borderRadius: radii.sm,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.border,
+    backgroundColor: surfaces.muted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.sm,
+    minHeight: 72,
+  },
+  emptySlotOverlay: {
+    backgroundColor: colors.white,
+    borderColor: colors.primaryLight,
+  },
+  emptyPressed: {
+    backgroundColor: colors.primarySurface,
+    borderColor: colors.primary,
+  },
+  emptyIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+  },
+  emptyHint: {
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+});

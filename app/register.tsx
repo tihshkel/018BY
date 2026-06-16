@@ -161,6 +161,7 @@ export default function RegisterScreen() {
       <AppCard style={styles.formCard}>
         <AppInput
           ref={emailRef}
+          testID="register-email"
           label="Email"
           value={email}
           onChangeText={(value) => {
@@ -226,6 +227,7 @@ export default function RegisterScreen() {
       {errorText ? <AuthErrorBanner message={errorText} /> : null}
 
       <AppButton
+        testID="register-submit"
         title="Зарегистрироваться"
         onPress={handleSubmit}
         loading={isSubmitting}

@@ -1,6 +1,7 @@
 import { AvatarPickerSheet } from '@/components/avatar-picker-sheet';
 import { HomeActionRow } from '@/components/home/home-action-row';
 import { HomeSectionHeader } from '@/components/home/home-section-header';
+import { ProfileNameEditSheet } from '@/components/profile-name-edit-sheet';
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 import { AppCard, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
@@ -12,6 +13,7 @@ import {
   ensureDefaultAvatar,
   saveGalleryUserAvatar,
   savePresetUserAvatar,
+  saveUserName,
 } from '@/utils/user-avatar';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -98,7 +100,9 @@ export default function ProfileScreen() {
   const [userName, setUserName] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
+  const [isNameEditVisible, setIsNameEditVisible] = useState(false);
   const [isSavingAvatar, setIsSavingAvatar] = useState(false);
+  const [isSavingName, setIsSavingName] = useState(false);
   const opacity = useSharedValue(0);
   const isInitialMount = useRef(true);
   const {
@@ -141,6 +145,26 @@ export default function ProfileScreen() {
 
   const handleAvatarPress = () => {
     setIsAvatarPickerVisible(true);
+  };
+
+  const handleSaveName = async (nextName: string) => {
+    setIsSavingName(true);
+    try {
+      await saveUserName(nextName);
+      setUserName(nextName);
+      setIsNameEditVisible(false);
+      if (Platform.OS === 'ios') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (error) {
+      console.error('Error saving user name:', error);
+      Alert.alert(
+        'Ошибка',
+        error instanceof Error ? error.message : 'Не удалось сохранить имя'
+      );
+    } finally {
+      setIsSavingName(false);
+    }
   };
 
   const handleSelectPresetAvatar = async (presetId: string) => {
@@ -314,6 +338,7 @@ export default function ProfileScreen() {
       {items.map((item, index) => (
         <HomeActionRow
           key={item.id}
+          testID={`profile-menu-${item.id}`}
           icon={item.icon}
           title={item.title}
           subtitle={item.subtitle}
@@ -339,6 +364,7 @@ export default function ProfileScreen() {
         >
           <AppCard style={styles.profileCard}>
             <Pressable
+              testID="profile-avatar-button"
               onPress={handleAvatarPress}
               style={({ pressed }) => [styles.avatarButton, pressed && styles.avatarPressed]}
               accessibilityRole="button"
@@ -364,15 +390,30 @@ export default function ProfileScreen() {
               </View>
             </Pressable>
 
-            <AppText variant="display" style={styles.userName}>
+            <AppText variant="display" style={styles.userName} testID="profile-user-name">
               {userName || 'Пользователь'}
             </AppText>
 
-            <ProfileSubscriptionStatusBadge
-              isPremium={isSubscribed}
-              isLoading={isIapEnabled && isSubscriptionLoading}
-              onPress={handleOpenExportSubscription}
-            />
+            <Pressable
+              testID="profile-edit-name"
+              onPress={() => setIsNameEditVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Изменить имя"
+              style={({ pressed }) => [styles.editNameButton, pressed && styles.editNamePressed]}
+            >
+              <Ionicons name="pencil-outline" size={14} color={colors.primary} />
+              <AppText variant="bodySm" style={styles.editNameText}>
+                Изменить имя
+              </AppText>
+            </Pressable>
+
+            <View testID="profile-subscription-badge">
+              <ProfileSubscriptionStatusBadge
+                isPremium={isSubscribed}
+                isLoading={isIapEnabled && isSubscriptionLoading}
+                onPress={handleOpenExportSubscription}
+              />
+            </View>
 
             <AppText variant="bodySm" style={styles.subscriptionHint}>
               {subscriptionHint}
@@ -393,6 +434,7 @@ export default function ProfileScreen() {
             <HomeSectionHeader title="Аккаунт" />
             <AppCard style={styles.menuCard}>
               <HomeActionRow
+                testID="profile-logout"
                 icon="log-out-outline"
                 title="Выйти из аккаунта"
                 onPress={handleLogout}
@@ -404,6 +446,14 @@ export default function ProfileScreen() {
           </View>
         </AppScreen>
       </Animated.View>
+
+      <ProfileNameEditSheet
+        visible={isNameEditVisible}
+        initialName={userName || ''}
+        onClose={() => setIsNameEditVisible(false)}
+        onSave={handleSaveName}
+        isSaving={isSavingName}
+      />
 
       <AvatarPickerSheet
         visible={isAvatarPickerVisible}
@@ -475,6 +525,21 @@ const styles = StyleSheet.create({
   userName: {
     textAlign: 'center',
     marginBottom: spacing.xs,
+  },
+  editNameButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: spacing.sm,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  editNamePressed: {
+    opacity: 0.7,
+  },
+  editNameText: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   subscriptionHint: {
     textAlign: 'center',

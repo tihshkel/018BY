@@ -122,6 +122,7 @@ export default function LoginScreen() {
       <AppCard style={styles.formCard}>
         <AppInput
           ref={emailRef}
+          testID="login-email"
           label="Email"
           value={email}
           onChangeText={(value) => setEmail(normalizeEmail(value))}
@@ -137,6 +138,7 @@ export default function LoginScreen() {
 
         <AuthPasswordField
           ref={passwordRef}
+          testID="login-password"
           label="Пароль"
           value={password}
           onChangeText={setPassword}
@@ -159,6 +161,7 @@ export default function LoginScreen() {
       {errorText ? <AuthErrorBanner message={errorText} /> : null}
 
       <AppButton
+        testID="login-submit"
         title="Войти"
         onPress={handleSubmit}
         loading={isSubmitting}

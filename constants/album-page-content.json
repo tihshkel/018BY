@@ -59,21 +59,21 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g3",
-          "label": "Цвет глаз Цвет волос",
+          "label": "Цвет волос",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p2_g4",
-          "label": "Вес Рост Группа крови",
-          "type": "number",
+          "label": "Группа крови",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p2_g5",
-          "label": "Вес Рост",
+          "label": "Рост",
           "type": "number",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -164,7 +164,7 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g18",
-          "label": "Вес будет (гр) Рост будет (см)",
+          "label": "Рост будет (см)",
           "type": "number",
           "templateLineStart": 18,
           "templateLineCount": 1
@@ -178,7 +178,7 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g20",
-          "label": "Цвет волос будет Цвет глаз будет",
+          "label": "Цвет глаз будет",
           "type": "text",
           "templateLineStart": 20,
           "templateLineCount": 1
@@ -218,7 +218,7 @@
         },
         {
           "fieldId": "pregnancy_60_p3_g4",
-          "label": "Цвет глаз Цвет волос",
+          "label": "Цвет волос",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1

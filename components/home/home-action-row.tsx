@@ -14,6 +14,7 @@ type HomeActionRowProps = {
   destructive?: boolean;
   showChevron?: boolean;
   showDivider?: boolean;
+  testID?: string;
 };
 
 export function HomeActionRow({
@@ -25,6 +26,7 @@ export function HomeActionRow({
   destructive = false,
   showChevron = true,
   showDivider = true,
+  testID,
 }: HomeActionRowProps) {
   const iconColor = destructive
     ? colors.error
@@ -35,6 +37,7 @@ export function HomeActionRow({
   return (
     <>
       <Pressable
+        testID={testID}
         onPress={onPress}
         style={({ pressed }) => [
           styles.row,

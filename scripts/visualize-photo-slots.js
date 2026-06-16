@@ -182,6 +182,56 @@ async function main() {
       });
       console.log('Wrote', outPath);
     }
+
+    const previewDir = path.join(folderPath, 'preview_variants');
+    if (process.env.USE_PREVIEW_VARIANTS === '1' && fs.existsSync(previewDir)) {
+      const previewOut = path.join(albumOut, 'preview_variants');
+      fs.mkdirSync(previewOut, { recursive: true });
+      for (const file of fs.readdirSync(previewDir).filter((f) => f.endsWith('.png'))) {
+        const pageMatch = file.match(/page_(\d+)_/);
+        if (!pageMatch) continue;
+        const pageKey = String(Number(pageMatch[1]));
+        const filePath = path.join(previewDir, file);
+        const png = await new Promise((resolve, reject) => {
+          fs.createReadStream(filePath)
+            .pipe(new PNG())
+            .on('parsed', function parsed() {
+              resolve(this);
+            })
+            .on('error', reject);
+        });
+        const variants = parseVariantSlots(photoSlotsSource, spec.albumId, pageKey);
+        const variant = variants[0];
+        if (!variant?.slots?.length) continue;
+        for (const slot of variant.slots) {
+          const top = Math.round((slot.y - slot.height / 2) * png.height);
+          const left = Math.round(slot.x * png.width);
+          const w = Math.round(slot.width * png.width);
+          const h = Math.max(2, Math.round(slot.height * png.height));
+          for (let dy = 0; dy < h; dy += 1) {
+            for (let dx = 0; dx < w; dx += 1) {
+              const px = left + dx;
+              const py = top + dy;
+              if (px < 0 || py < 0 || px >= png.width || py >= png.height) continue;
+              const idx = (png.width * py + px) << 2;
+              png.data[idx] = 64;
+              png.data[idx + 1] = 200;
+              png.data[idx + 2] = 255;
+              png.data[idx + 3] = 160;
+            }
+          }
+        }
+        const outPath = path.join(previewOut, file.replace('.png', '_slots.png'));
+        await new Promise((resolve, reject) => {
+          png
+            .pack()
+            .pipe(fs.createWriteStream(outPath))
+            .on('finish', resolve)
+            .on('error', reject);
+        });
+        console.log('Wrote preview overlay', outPath);
+      }
+    }
   }
 }
 

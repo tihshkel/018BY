@@ -20,6 +20,7 @@ export interface AppButtonProps {
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
+  testID?: string;
 }
 
 export function AppButton({
@@ -30,11 +31,13 @@ export function AppButton({
   loading = false,
   style,
   fullWidth = true,
+  testID,
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
 
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       disabled={isDisabled}
       style={({ pressed }) => [

@@ -1,0 +1,32 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_USER_NAME: E2E Тест
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: 'Моменты ускользают'
+- tapOn:
+    id: onboarding-next
+- assertVisible:
+    text: 'Создавайте семейную реликвию'
+- tapOn:
+    id: onboarding-next
+- assertVisible:
+    text: 'Ваша история — ваша'
+- tapOn:
+    id: onboarding-start
+- assertVisible:
+    text: 'Вход'
+- openLink: 018by://name-input
+- tapOn:
+    id: name-input-field
+- inputText: ${E2E_USER_NAME}
+- tapOn:
+    id: name-input-submit
+- extendedWaitUntil:
+    visible:
+      id: home-greeting
+    timeout: 20000
+- assertVisible:
+    id: home-greeting

@@ -24,9 +24,11 @@ import {
   getExportFormatOptions,
   type ExportFormatType,
 } from '@/utils/exportFormatOptions';
+import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import {
   filterProjectDataForExport,
   getExportSelectionStorageKey,
+  mergeStaticPagesIntoExportSelection,
 } from '@/utils/exportPageSelection';
 import { loadPageInstances } from '@/utils/pageStorage';
 import {
@@ -692,11 +694,20 @@ export default function ExportPdfScreen() {
             getExportSelectionStorageKey(projectId)
           );
           if (selectionRaw) {
-            const includedIds = JSON.parse(selectionRaw) as string[];
+            const storedIds = JSON.parse(selectionRaw) as string[];
             const instances = await loadPageInstances(
               (k) => AsyncStorage.getItem(k),
               projectId
             );
+            const lineGuideId = resolveLineGuideId(
+              projectInteriorType ?? albumId ?? '',
+              projectCategory ?? undefined,
+            );
+            const includedIds = mergeStaticPagesIntoExportSelection({
+              instances,
+              includedInstanceIds: storedIds,
+              getSchema: (instance) => getSchemaForInstance(instance, lineGuideId),
+            });
             const filtered = filterProjectDataForExport({
               instances,
               images,
@@ -2927,6 +2938,7 @@ export default function ExportPdfScreen() {
 
         <View style={styles.header}>
           <TouchableOpacity
+            testID="export-done-home"
             onPress={() => router.replace('/(tabs)')}
             style={styles.backButton}
             accessibilityRole="button"

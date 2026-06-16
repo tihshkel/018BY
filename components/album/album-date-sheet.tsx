@@ -65,6 +65,7 @@ export function AlbumDateSheet({
             style={styles.footerBtn}
           />
           <AppButton
+            testID="cover-date-confirm"
             title={isSaving ? 'Сохраняем…' : 'Продолжить'}
             onPress={onConfirm}
             loading={isSaving}

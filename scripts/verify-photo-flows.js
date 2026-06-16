@@ -47,9 +47,10 @@ assert(templatesSource.includes('buildPageLayoutsFromTemplates'), 'photo-layout-
 const photoSlotsSource = readFile('constants/photo-slots.ts');
 assert(
   ['56', '57', '58', '59'].every((p) =>
-    photoSlotsSource.includes(`'${p}': pregnancyPhotoLayouts()`),
+    photoSlotsSource.includes(`'${p}':`) &&
+    photoSlotsSource.includes(`variantId: 'one_large'`),
   ),
-  'pregnancy_60: photo-slots 56–59',
+  'pregnancy_60: photo-slots 56–59 with calibrated variants',
 );
 assert(photoSlotsSource.includes('three_hero'), 'photo-slots: three_hero template');
 assert(photoSlotsSource.includes('four_grid'), 'photo-slots: four_grid template');
@@ -106,7 +107,21 @@ assert(
 const initSource = readFile('utils/albumProjectInit.ts');
 assert(initSource.includes('FULL_PHOTO_BLOCK'), 'albumProjectInit: FULL_PHOTO_BLOCK for library');
 
-// --- 9. visualize script ---
+// --- 9. PDF-detected photo slots (Место для фото) ---
+const pdfSlotsPath = path.join(projectRoot, 'constants/generated/pdf-photo-slots.json');
+assert(fs.existsSync(pdfSlotsPath), 'pdf-photo-slots.json exists');
+const pdfSlots = JSON.parse(fs.readFileSync(pdfSlotsPath, 'utf8'));
+assert(pdfSlots.pregnancy_60?.['1']?.variants?.[0]?.slots?.[0], 'pdf-photo-slots: pregnancy_60 page 1');
+assert(
+  pdfSlots.pregnancy_60['1'].variants[0].slots[0].height > 0.2,
+  'pdf-photo-slots: pregnancy page 1 slot height plausible',
+);
+assert(
+  readFile('utils/schemaPhotoBlocks.ts').includes('resolvePhotoPageLayoutsOrUndefined'),
+  'schemaPhotoBlocks uses PDF slot resolution',
+);
+
+// --- 10. visualize script ---
 assert(fs.existsSync(path.join(projectRoot, 'scripts/visualize-photo-slots.js')), 'visualize-photo-slots.js exists');
 
 console.log('\n---');

@@ -8,6 +8,20 @@ const {
   GODPARENTS_PHOTO_BLOCK,
 } = require('./photo-block-presets-data');
 
+const FAMILY_TREE_PHOTO_BLOCK = {
+  blockId: 'family_tree_photos',
+  label: 'Фото родственников',
+  layoutKind: 'circle_tree',
+  variants: [
+    {
+      variantId: 'tree',
+      label: 'Семейное дерево',
+      slots: 15,
+      slotIndices: Array.from({ length: 15 }, (_, index) => index),
+    },
+  ],
+};
+
 const TEETH_SLOT_IDS = [
   'upper_01_left_outer_molar_8',
   'upper_02_left_molar_5',
@@ -121,7 +135,7 @@ function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
     label,
     type: 'text',
     required: false,
-    templateLineStart: Math.min(index, Math.max(0, (slots?.length ?? 9) - 1)),
+    templateLineStart: index,
     templateLineCount: 1,
   }));
 }
@@ -215,7 +229,7 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       break;
     case 5:
       fields = buildFamilyTreeFields(lineGuideId, pageNumber, slots);
-      photoBlocks = [{ ...PARENTS_PHOTO_BLOCK, blockId: 'child_photo', label: 'Фото ребенка' }];
+      photoBlocks = [FAMILY_TREE_PHOTO_BLOCK];
       break;
     case 10:
       fields = buildTeethFields(lineGuideId, pageNumber, slots);

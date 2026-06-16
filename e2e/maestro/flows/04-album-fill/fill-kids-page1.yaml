@@ -1,0 +1,25 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_FIELD_TEXT: Тестовый текст E2E
+---
+- runFlow:
+    file: ../03-album-create/create-kids.yaml
+- tapOn:
+    id: page-card-1
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    text: 'Введите'
+    optional: true
+- inputText: ${E2E_FIELD_TEXT}
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- assertVisible:
+    id: album-export-button

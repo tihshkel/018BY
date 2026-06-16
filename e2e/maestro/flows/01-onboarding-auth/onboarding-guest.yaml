@@ -1,0 +1,24 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_USER_NAME: Аня
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-start
+- openLink: 018by://name-input
+- tapOn:
+    id: name-input-field
+- inputText: ${E2E_USER_NAME}
+- tapOn:
+    id: name-input-submit
+- extendedWaitUntil:
+    visible:
+      id: home-greeting
+    timeout: 20000
+- assertVisible:
+    text: 'Привет, Аня'
