@@ -59,21 +59,21 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g3",
-          "label": "Цвет волос",
+          "label": "Цвет глаз Цвет волос",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p2_g4",
-          "label": "Группа крови",
-          "type": "text",
+          "label": "Вес Рост Группа крови",
+          "type": "number",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p2_g5",
-          "label": "Рост",
+          "label": "Вес Рост",
           "type": "number",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -164,7 +164,7 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g18",
-          "label": "Рост будет (см)",
+          "label": "Вес будет (гр) Рост будет (см)",
           "type": "number",
           "templateLineStart": 18,
           "templateLineCount": 1
@@ -178,7 +178,7 @@
         },
         {
           "fieldId": "pregnancy_60_p2_g20",
-          "label": "Цвет глаз будет",
+          "label": "Цвет волос будет Цвет глаз будет",
           "type": "text",
           "templateLineStart": 20,
           "templateLineCount": 1
@@ -218,7 +218,7 @@
         },
         {
           "fieldId": "pregnancy_60_p3_g4",
-          "label": "Цвет волос",
+          "label": "Цвет глаз Цвет волос",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
@@ -5085,6 +5085,62 @@
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g2",
+          "label": "Поле 2",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g3",
+          "label": "Поле 3",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g4",
+          "label": "Поле 4",
+          "type": "text",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g5",
+          "label": "Поле 5",
+          "type": "text",
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g6",
+          "label": "Поле 6",
+          "type": "text",
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g7",
+          "label": "Поле 7",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g8",
+          "label": "Поле 8",
+          "type": "text",
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_g9",
+          "label": "Поле 9",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5902,6 +5958,25 @@
         }
       ]
     },
+    "2": {
+      "heading": "Привет! Давай знакомиться!",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p2_g1",
+          "label": "Я обещаю надежно хранить твои тайны! На моих страницах ты найдешь много полезных",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p2_g2",
+          "label": "Советов и интересных фактов. Тебя дкдут анкеты На моих страницах ты найдешь много полезных для друзей и подруг, а также странички для того,",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
+    },
     "3": {
       "heading": "Правила этого дневника:",
       "fields": [
@@ -5928,6 +6003,25 @@
         }
       ]
     },
+    "5": {
+      "heading": "Место",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p5_g1",
+          "label": "Для",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p5_g2",
+          "label": "Фото",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
+    },
     "6": {
       "heading": "Твоя анкета",
       "fields": [
@@ -5940,21 +6034,21 @@
         },
         {
           "fieldId": "diary_interior_brown_p6_g2",
-          "label": "Дата рождения: Твое имя:",
+          "label": "Дата рождения Твое иМЯ:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g3",
-          "label": "Дата рождения: Твой знак зодиака:",
+          "label": "Твой знак зодиака:. Дата рождения",
           "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g4",
-          "label": "Твой номер телефона: Твой знак зодиака:",
+          "label": "Твой знак зодиака:. Твой номер телефона:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
@@ -5982,124 +6076,131 @@
         },
         {
           "fieldId": "diary_interior_brown_p6_g8",
-          "label": "Твои люБимые цветы: _ Твои питомцы (если есть):",
+          "label": "Твои люБимые цветы: Твои питомцы (если есть):",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g9",
-          "label": "ЛюБимое животное: _ Твои люБимые цветы: _",
+          "label": "Твои люБимые цветы: Любимое животное:",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g10",
-          "label": "ЛюБимое животное: _ Лучшая подруга:",
+          "label": "Лучшая подруга:. Любимое животное:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g11",
-          "label": "Лучшая подруга: Лучший друг:",
+          "label": "Лучшая подруга:. лучший друг:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p6_g12",
-          "label": "Кем ты хочешь стать, когда вырастешь? Лучший друг:",
+          "label": "Лучший друг: Кем ты хочешь стать, когда вырастешь?",
           "type": "text",
           "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p6_g13",
+          "label": "Кем ты хочешь стать, когда вырастешь?",
+          "type": "text",
+          "templateLineStart": 12,
           "templateLineCount": 1
         }
       ]
     },
     "7": {
-      "heading": "Твои родител",
+      "heading": "Твои родители",
       "fields": [
         {
           "fieldId": "diary_interior_brown_p7_g1",
-          "label": "Номер телефона: Дата рождения: Имя:",
+          "label": "Дата рождения: Помер телефона: ИМЯ:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g2",
-          "label": "Номер телефона: Знак зодиака: Дата рождения:",
+          "label": "Дата рождения: Знак зодиака: Помер телефона:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g3",
-          "label": "Профессия: Номер телефона: Знак зодиака:",
+          "label": "Знак зодиака: Профессия: Помер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g4",
-          "label": "Профессия: Знак зодиака: Любимые цветы:",
+          "label": "Знак зодиака: Профессия: Любимые цветы;",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g5",
-          "label": "Профессия: ЛЮБимОе животное: Любимые цветы:",
+          "label": "Профессия: Любимые цветы; ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g6",
-          "label": "ЛЮБимОе животное: Любимые цветы: Любимый цвет:",
+          "label": "ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g7",
-          "label": "Любимое время года: ЛЮБимОе животное: Любимый цвет:",
-          "type": "time",
+          "label": "Любимый цвет;",
+          "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g8",
-          "label": "ХОББИ: Любимое время года: Любимый цвет:",
+          "label": "ЛюБимое время года:",
           "type": "time",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g9",
-          "label": "ХОББИ: Любимое время года: Любимый напиток:",
-          "type": "time",
+          "label": "ХОББИ:",
+          "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g10",
-          "label": "ХОББИ: ЛюБиМОе БЛЮдО.- Любимый напиток:",
+          "label": "Любимый напиток:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g11",
-          "label": "Пожелания хозяйке дневника: ЛюБиМОе БЛЮдО.- Любимый напиток:",
+          "label": "ЛЮБиМОе БЛЮдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p7_g12",
-          "label": "Пожелания хозяйке дневника: ЛюБиМОе БЛЮдО.-",
+          "label": "Пожелания хозяйке дневника:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
@@ -6107,177 +6208,196 @@
       ]
     },
     "8": {
-      "heading": "Твои родител",
+      "heading": "Bou родители",
       "fields": [
         {
           "fieldId": "diary_interior_brown_p8_g1",
-          "label": "Дата рождения: Номер телефона: ИМЯ:",
+          "label": "Дата рождения: Помер телефона: ИМя:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g2",
-          "label": "Дата рождения: Знак зодиака: Номер телефона:",
+          "label": "Дата рождения: Знак зодиака: Помер телефона:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g3",
-          "label": "Профессия: Знак зодиака: Номер телефона:",
+          "label": "Знак зодиака: Профессия: Помер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g4",
-          "label": "Профессия: Знак зодиака: Любимые цветы:",
+          "label": "Знак зодиака: Профессия: Любимые цветы;",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g5",
-          "label": "Профессия: ЛЮБимое животное: Любимые цветы:",
+          "label": "Профессия: Любимые цветы; ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g6",
-          "label": "ЛЮБимое животное: Любимый цвет: Любимые цветы:",
+          "label": "ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g7",
-          "label": "Любимое время года:. ЛЮБимое животное: Любимый цвет:",
-          "type": "time",
+          "label": "Любимый цвет;",
+          "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g8",
-          "label": "ХОББИ: Любимое время года:. Любимый цвет:",
+          "label": "ЛюБимое время года:",
           "type": "time",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g9",
-          "label": "ХОББИ: Любимое время года:. Любимый напиток:",
-          "type": "time",
+          "label": "ХОББИ:",
+          "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g10",
-          "label": "ХОББИ: ЛюБиМОе БЛЮдО:- Любимый напиток:",
+          "label": "Любимый напиток:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g11",
-          "label": "Пожелания хозяйке дневника: ЛюБиМОе БЛЮдО:- Любимый напиток:",
+          "label": "ЛЮБиМОе БЛЮдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p8_g12",
-          "label": "Пожелания хозяйке дневника: ЛюБиМОе БЛЮдО:-",
+          "label": "Пожелания хозяйке дневника:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         }
       ]
     },
+    "9": {
+      "heading": "Фотографии твоей семьи",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p9_g1",
+          "label": "Для",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p9_g2",
+          "label": "Фото",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
+    },
     "11": {
-      "heading": "Твои бабушка и дедушка",
+      "heading": "Tou бабушка и дедушка",
       "fields": [
         {
           "fieldId": "diary_interior_brown_p11_g1",
-          "label": "Номер телефона: ИМЯ:_ Дата рождения:",
+          "label": "Дата рождения: Помер телефона: ИМЯ:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g2",
-          "label": "Номер телефона: Дата рождения: Знак зодиака:",
+          "label": "Знак зодиака: Дата рождения: Помер телефона:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g3",
-          "label": "Номер телефона: Профессия: Знак зодиака:",
+          "label": "Знак зодиака: Профессия: Помер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g4",
-          "label": "Профессия: ЛЮБИМЫе цВетЫ: Знак зодиака:",
+          "label": "Знак зодиака: Профессия: Любимые цветы;",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g5",
-          "label": "Профессия: ЛЮБИМЫе цВетЫ: Любимое животное:",
+          "label": "Профессия: Любимые цветы; ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g6",
-          "label": "ЛЮБИМЫе цВетЫ: Любимый цвет: Любимое животное:",
+          "label": "ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g7",
-          "label": "ЛюБимое время года: Любимый цвет: Любимое животное:",
-          "type": "time",
+          "label": "Любимый цвет;",
+          "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g8",
-          "label": "ЛюБимое время года: Любимый цвет: ХОББИ:",
+          "label": "ЛюБимое время года:",
           "type": "time",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g9",
-          "label": "ЛюБимое время года: ХОББИ: Любимый напиток:",
-          "type": "time",
+          "label": "ХОББИ:",
+          "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g10",
-          "label": "ХОББИ: ЛЮБИМОе БЛЮдО:- Любимый напиток:",
+          "label": "Любимый напиток:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g11",
-          "label": "Пожелания хозяйке дневника: ЛЮБИМОе БЛЮдО:- Любимый напиток:",
+          "label": "ЛЮБиМОе БЛЮдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p11_g12",
-          "label": "Пожелания хозяйке дневника: ЛЮБИМОе БЛЮдО:-",
+          "label": "Пожелания хозяйке дневника:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
@@ -6285,88 +6405,88 @@
       ]
     },
     "12": {
-      "heading": "Твои бабушка и дедушка",
+      "heading": "Tou бабушка и дедушка",
       "fields": [
         {
           "fieldId": "diary_interior_brown_p12_g1",
-          "label": "ИМЯ:_ Помер телефона: Дата рождения:",
+          "label": "Дата рождения: Помер телефона: ИМЯ:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g2",
-          "label": "Помер телефона: Знак зодиака: Дата рождения:",
+          "label": "Знак зодиака: Дата рождения: Помер телефона:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g3",
-          "label": "Помер телефона: Профессия: Знак зодиака:",
+          "label": "Знак зодиака: Профессия: Помер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g4",
-          "label": "ЛЮБимЫе цВетЫ: Профессия: Знак зодиака:",
+          "label": "Знак зодиака: Профессия: Любимые цветы;",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g5",
-          "label": "ЛЮБимЫе цВетЫ: Профессия: Любимое животное:",
+          "label": "Профессия: Любимые цветы; ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g6",
-          "label": "ЛЮБимЫе цВетЫ: Любимое животное: Любимый цвет:",
+          "label": "ЛюБимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g7",
-          "label": "Любимое животное: Любимое время года: Любимый цвет:",
-          "type": "time",
+          "label": "Любимый цвет;",
+          "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g8",
-          "label": "ХОББИ: Любимое время года: Любимый цвет:",
+          "label": "ЛюБимое время года:",
           "type": "time",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g9",
-          "label": "ХОББИ: Любимое время года: Любимый напиток:",
-          "type": "time",
+          "label": "ХОББИ:",
+          "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g10",
-          "label": "ХОББИ: ЛЮБиМОе БЛЮдО:. Любимый напиток:",
+          "label": "Любимый напиток:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g11",
-          "label": "Пожелания хозяйке дневника: ЛЮБиМОе БЛЮдО:. Любимый напиток:",
+          "label": "ЛЮБиМОе БЛЮдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p12_g12",
-          "label": "Пожелания хозяйке дневника: ЛЮБиМОе БЛЮдО:",
+          "label": "Пожелания хозяйке дневника:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
@@ -6377,66 +6497,64 @@
       "heading": "ХОББИ",
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p13_g2",
-          "label": "Что ты больше всего любишь делать, когда остаешься одна?",
-          "type": "text",
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_brown_p13_g3",
-          "label": "Самый интересный сериал Любимый мультоильм",
-          "type": "text",
-          "templateLineStart": 3,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p13_g4",
-          "label": "Любимая игрушка Самый интересный сериал Любимый мультоильм",
-          "type": "text",
-          "templateLineStart": 4,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p13_g5",
-          "label": "Любимая игрушка Самый интересный сериал Любимая настольная игра_",
+          "label": "Любимый мультфильм Любимая игрушка Самый интересный сериал",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_g6",
-          "label": "Любимая игрушка Ты любишь петь? Любимая настольная игра_",
+          "fieldId": "diary_interior_brown_p13_g4",
+          "label": "Любимая игрушка Любимая настольная игра Самый интересный сериал",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_g7",
-          "label": "Самая интересная книга:. Ты любишь петь? Любимая настольная игра_",
+          "fieldId": "diary_interior_brown_p13_g5",
+          "label": "Любимая игрушка Любимая настольная игра Ты любишь петь?",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_g8",
-          "label": "Самая интересная книга:. Ты любишь петь? Любимый писатель(если есть)",
+          "fieldId": "diary_interior_brown_p13_g6",
+          "label": "Самая интересная книга: Любимая настольная игра Ты любишь петь?",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_g9",
-          "label": "Самая интересная книга:. Какая музыка тебе больше всего нравится Любимый писатель(если есть)",
+          "fieldId": "diary_interior_brown_p13_g7",
+          "label": "Самая интересная книга: Любимый писатель (если есть) Ты любишь петь?",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_g10",
-          "label": "Какая музыка тебе больше всего нравится Любимый писатель(если есть)",
+          "fieldId": "diary_interior_brown_p13_g8",
+          "label": "Какая музыка тебе больше всего нравится Самая интересная книга: Любимый писатель (если есть)",
           "type": "text",
           "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p13_g9",
+          "label": "Какая музыка тебе больше всего нравится Любимый писатель (если есть)",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "14": {
+      "heading": "Место",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p14_g1",
+          "label": "Поле 1",
+          "type": "text",
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ]
@@ -6453,6 +6571,13 @@
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p16_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
         }
       ]
     },
@@ -6461,72 +6586,98 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p17_g1",
-          "label": "Ты любишь животных? Какие животные тебе нравятся больше всего?",
+          "label": "Давай поговорим о самых милых созданиях на земле - животных",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g2",
-          "label": "Какие животные тебе нравятся больше всего?",
+          "label": "Ты любишь животных?",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g3",
-          "label": "У тебя есть питомцы?",
+          "label": "Какие животные тебе нравятся больше всего?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g4",
-          "label": "У тебя есть питомцы? Напиши их клички: _",
+          "label": "У тебя есть питомцы?",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g5",
-          "label": "Какая порода у твоих питомцев?",
+          "label": "Напиши их клички:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g6",
-          "label": "Расскажи историю, как они у вас появились:-",
+          "label": "Какая порода у твоих питомцев?",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g7",
-          "label": "Как ты ухаживаешь за своими питомцами?",
+          "label": "Расскажи историю, как они у вас появились:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g8",
-          "label": "Если питомца у тебя нет, поделись, кого бы тебе хотелось завести:",
-          "type": "number",
+          "label": "Лак ты ухаживаешь за своими питомцами?",
+          "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g9",
-          "label": "Животные - наши лучшие друзья",
-          "type": "text",
+          "label": "Если питомца у тебя нет, поделись, кого бы тебе хотелось завести:",
+          "type": "number",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p17_g10",
-          "label": "К ним нужно относиться бережно и уважительно!",
+          "label": "Животные - наши лучшие друзья",
           "type": "text",
           "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p17_g11",
+          "label": "К ним нужно относиться бережно и уважительно!",
+          "type": "text",
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "19": {
+      "heading": "МесТо",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p19_g1",
+          "label": "ДЛЯ",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p19_g2",
+          "label": "ДЛЯ",
+          "type": "text",
+          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ]
@@ -6540,6 +6691,13 @@
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p20_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
         }
       ]
     },
@@ -6548,44 +6706,34 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p21_g1",
-          "label": "Ты любишь путешествовать? _ Перечисли страны страны в которых ты успела побывать?",
+          "label": "Перечисли страны страны в которых ты успела побывать? Ты любишь путешествовать?.",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p21_g6",
-          "label": "Ты летала на самолете? Какой вид транспорта тебе понравился больше и почему? Ты путешествовала на поезде?",
+          "label": "Ты путешествовала на поезде?. Ты летала на самолете? Какой вид транспорта тебе понравился больше и почему?",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p21_g7",
-          "label": "Какой вид транспорта тебе понравился больше и почему? Ты путешествовала на поезде?",
+          "fieldId": "diary_interior_brown_p21_g12",
+          "label": "Куда бы ты хотела поехать в будущем?... С кем ты чаще всего ездишь отдыхать?",
           "type": "text",
-          "templateLineStart": 6,
+          "templateLineStart": 11,
           "templateLineCount": 1
-        },
+        }
+      ]
+    },
+    "22": {
+      "fields": [
         {
-          "fieldId": "diary_interior_brown_p21_g8",
-          "label": "Ты была на море? поделись своими впечатлениями",
+          "fieldId": "diary_interior_brown_p22_g1",
+          "label": "Поле 1",
           "type": "text",
-          "templateLineStart": 7,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p21_g9",
-          "label": "С кем ты чаще всего ездишь отдыхать? Куда бы ты хотела поехать в будущем?_",
-          "type": "text",
-          "templateLineStart": 8,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p21_g10",
-          "label": "С кем ты чаще всего ездишь отдыхать? Куда бы ты хотела поехать в будущем?_",
-          "type": "text",
-          "templateLineStart": 9,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ]
@@ -6595,9 +6743,16 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p23_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
           "type": "text",
           "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p23_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
           "templateLineCount": 1
         }
       ]
@@ -6607,14 +6762,14 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p24_g1",
-          "label": "Ты любишь комедии?_ Что или кто тебя смешит?",
+          "label": "Ты любишь комедии? _ Что или кто тебя смешит?_",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p24_g2",
-          "label": "Ты любишь комедии?_ Какая твоя любимая комедия?",
+          "label": "Ты любишь комедии? _ Какая твоя любимая комедия?",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
@@ -6649,14 +6804,14 @@
         },
         {
           "fieldId": "diary_interior_brown_p24_g7",
-          "label": "Поле 7",
+          "label": "СПИСОК ТОГО, ЧТО ПОДНИМАЕТ ТЕБЕ НАСТРОЕНИЕ:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p24_g8",
-          "label": "Поле 8",
+          "label": "СПИСОК ТОГО, ЧТО ПОДНИМАЕТ ТЕБЕ НАСТРОЕНИЕ:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
@@ -6681,6 +6836,20 @@
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_g12",
+          "label": "Поле 12",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_g13",
+          "label": "Поле 13",
+          "type": "text",
+          "templateLineStart": 12,
+          "templateLineCount": 1
         }
       ]
     },
@@ -6689,9 +6858,16 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p25_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
           "type": "text",
           "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p25_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
           "templateLineCount": 1
         }
       ]
@@ -6700,31 +6876,10 @@
       "heading": "Одежда и стиль",
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p26_g3",
-          "label": "Какие сочетания цветов в одежде тебе нравятся?",
-          "type": "text",
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_g4",
-          "label": "Твоя любимая одежда для дома:",
-          "type": "text",
-          "templateLineStart": 3,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_g9",
-          "label": "Любимая одежда для школы:",
-          "type": "text",
-          "templateLineStart": 8,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_g12",
+          "fieldId": "diary_interior_brown_p26_g15",
           "label": "Ты носишь украшения? Если да, то какие?",
           "type": "text",
-          "templateLineStart": 11,
+          "templateLineStart": 14,
           "templateLineCount": 1
         }
       ]
@@ -6734,9 +6889,35 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p28_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
           "type": "text",
           "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p28_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "29": {
+      "heading": "Самое заветное желание",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p29_g1",
+          "label": "Конверт заклеить стикером и приклеить ниже. листке бумаги и вложить его в конверт. Тебе нужно написать свое заветное желание на",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p29_g2",
+          "label": "Старайся как можно чаще мысленно повторять Конверт заклеить стикером и приклеить ниже. листке бумаги и вложить его в конверт",
+          "type": "text",
+          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ]
@@ -6745,17 +6926,31 @@
       "heading": "Конверт приклей сюда",
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p30_g3",
+          "fieldId": "diary_interior_brown_p30_g7",
           "label": "Конверт приклей сюда",
           "type": "text",
-          "templateLineStart": 2,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p30_g4",
-          "label": "Поле 2",
+          "fieldId": "diary_interior_brown_p30_g8",
+          "label": "Конверт приклей сюда",
           "type": "text",
-          "templateLineStart": 3,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p30_g9",
+          "label": "Поле 3",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p30_g10",
+          "label": "Поле 4",
+          "type": "text",
+          "templateLineStart": 9,
           "templateLineCount": 1
         }
       ]
@@ -6765,30 +6960,30 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p31_g3",
-          "label": "Любимый учитель: Любимый предмет в школе:",
+          "label": "Любимый предмет в школе: Любимый учитель:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p31_g4",
-          "label": "Сколько человек в твоем классе? Любимый учитель:",
+          "label": "Любимый учитель: сколько человек в твоем классе?",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_g9",
-          "label": "Чем чаще всего ты занимаешься на перемене?",
+          "fieldId": "diary_interior_brown_p31_g5",
+          "label": "Сколько человек в твоем классе?",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_g10",
+          "fieldId": "diary_interior_brown_p31_g12",
           "label": "Расскажи о самом интересном событии из твоей школьной жизни:",
           "type": "text",
-          "templateLineStart": 9,
+          "templateLineStart": 11,
           "templateLineCount": 1
         }
       ]
@@ -6798,9 +6993,16 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p33_g1",
-          "label": "КАК ПРОШЁЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
           "type": "text",
           "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p33_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
           "templateLineCount": 1
         }
       ]
@@ -6809,14 +7011,14 @@
       "heading": "РАСПИСАНИЕ НЕДЕЛИ"
     },
     "35": {
-      "heading": "Cpega"
+      "heading": "Среда"
     },
     "36": {
       "heading": "Пятница",
       "fields": [
         {
           "fieldId": "diary_interior_brown_p36_g6",
-          "label": "СуББота",
+          "label": "Суббота",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6875,7 +7077,7 @@
         },
         {
           "fieldId": "diary_interior_brown_p38_g5",
-          "label": "Ты любишь кушать в Кафе?Если да, то что ты чаше",
+          "label": "Ты любишь кушать в кафе?Если да, то что ты чаще",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -6894,21 +7096,21 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p39_g1",
-          "label": "Знак зодиака: помер телефона: Дата рождения:",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g2",
-          "label": "Знак зодиака: Любимый цвет: помер телефона:",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g3",
-          "label": "Питомец (если есть): Любимый цвет: помер телефона:",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
@@ -6922,70 +7124,70 @@
         },
         {
           "fieldId": "diary_interior_brown_p39_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимый цветок:",
+          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g6",
-          "label": "Любимое животное:- Любимый цвет: Любимый цветок:",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g7",
-          "label": "Любимое животное:- ХОББИ: Любимый цветок:",
+          "label": "ХОББИ: Любимое животное: Любимый цветок:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g10",
-          "label": "Любимая еда: Любимый музыкант: ЛюБиМЫЙ филЬм:",
+          "label": "Любимый музыкант: любимая еда:. Любимый фильм:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g11",
-          "label": "Любимый музыкант: Любимая книга: ЛюБиМЫЙ филЬм:",
+          "label": "Любимый музыкант: Любимый фильм:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g12",
-          "label": "Любимый музыкант: Лучшая подруга:. Любимая книга:",
+          "label": "Любимый музыкант: Любимая книга:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g13",
-          "label": "Лучший друг:- Лучшая подруга:. Любимая книга:",
+          "label": "Лучшая подруга: Любимая книга:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g14",
-          "label": "Лучший друг:- Пожелания хозяйке анкеты:_ Лучшая подруга:",
+          "label": "Лучший друг: Лучшая подруга:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g15",
-          "label": "Лучший друг:- Пожелания хозяйке анкеты:_",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p39_g16",
-          "label": "Пожелания хозяйке анкеты:_",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
@@ -6997,28 +7199,28 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p40_g1",
-          "label": "ЗнаК зодиака: помер телефона: Дата рождения:",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p40_g2",
-          "label": "ЗнаК зодиака: Любимый цвет:_ помер телефона:",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p40_g3",
-          "label": "Питомец (если есть): Любимый цвет:_ помер телефона:",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p40_g4",
-          "label": "Питомец (если есть): Любимый цвет:_ Любимый цвет:",
+          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
@@ -7032,14 +7234,14 @@
         },
         {
           "fieldId": "diary_interior_brown_p40_g6",
-          "label": "Любимое животное:_ Любимый цветок: Любимый цвет:",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p40_g7",
-          "label": "Любимое животное:_",
+          "label": "Любимое животное:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
@@ -7088,7 +7290,7 @@
         },
         {
           "fieldId": "diary_interior_brown_p40_g14",
-          "label": "Лучший друг:-",
+          "label": "Лучший друг:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
@@ -7101,11 +7303,691 @@
           "templateLineCount": 1
         }
       ]
+    },
+    "41": {
+      "heading": "Анкета для друзей",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p41_g1",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
+          "type": "date",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g2",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g3",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g4",
+          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g5",
+          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g6",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g7",
+          "label": "ХОББИ: Любимое животное: Любимый цветок:",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g10",
+          "label": "Любимый музыкант: любимая еда:. Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g11",
+          "label": "Любимый музыкант: Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g12",
+          "label": "Любимый музыкант: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g13",
+          "label": "Лучшая подруга: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g14",
+          "label": "Лучший друг: Лучшая подруга:",
+          "type": "text",
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p41_g15",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
+          "type": "text",
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "42": {
+      "heading": "Анкета для друзей",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p42_g1",
+          "label": "Знак зодиака: Дата рождения: ИМЯ:",
+          "type": "date",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g2",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
+          "type": "date",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g3",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g4",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g5",
+          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g6",
+          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g7",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g8",
+          "label": "ХОББИ: Любимое животное: Любимый цветок:",
+          "type": "text",
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g11",
+          "label": "Любимый музыкант: любимая еда:. Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g12",
+          "label": "Любимый музыкант: Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g13",
+          "label": "Любимый музыкант: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g14",
+          "label": "Лучшая подруга: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g15",
+          "label": "Лучший друг: Лучшая подруга:",
+          "type": "text",
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p42_g16",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
+          "type": "text",
+          "templateLineStart": 15,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "43": {
+      "heading": "Анкета для друзей",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p43_g1",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
+          "type": "date",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g2",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g3",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g4",
+          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g5",
+          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g6",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g7",
+          "label": "ХОББИ: Любимое животное: Любимый цветок:",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g10",
+          "label": "Любимый музыкант: любимая еда:. Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g11",
+          "label": "Любимый музыкант: Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g12",
+          "label": "Любимый музыкант: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g13",
+          "label": "Лучшая подруга: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g14",
+          "label": "Лучший друг: Лучшая подруга:",
+          "type": "text",
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p43_g15",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
+          "type": "text",
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "44": {
+      "heading": "Анкета для друзей",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p44_g1",
+          "label": "Знак зодиака: Дата рождения: ИМЯ:",
+          "type": "date",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g2",
+          "label": "Знак зодиака: Дата рождения: Номер телефона:",
+          "type": "date",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g3",
+          "label": "Знак зодиака: Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g4",
+          "label": "Питомец (если есть): Любимый цвет: Номер телефона:",
+          "type": "text",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g5",
+          "label": "Питомец (если есть): Любимый цвет: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g6",
+          "label": "Питомец (если есть): Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 5,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g7",
+          "label": "Любимое животное: Любимый цветок: Любимый цвет:",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g8",
+          "label": "ХОББИ: Любимое животное: Любимый цветок:",
+          "type": "text",
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g11",
+          "label": "Любимый музыкант: любимая еда:. Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g12",
+          "label": "Любимый музыкант: Любимый фильм:",
+          "type": "text",
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g13",
+          "label": "Любимый музыкант: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g14",
+          "label": "Лучшая подруга: Любимая книга:",
+          "type": "text",
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g15",
+          "label": "Лучший друг: Лучшая подруга:",
+          "type": "text",
+          "templateLineStart": 14,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p44_g16",
+          "label": "Лучший друг: Пожелания хозяйке анкеты:",
+          "type": "text",
+          "templateLineStart": 15,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "45": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p45_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p45_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "46": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p46_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p46_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "47": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p47_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p47_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "48": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p48_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p48_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "49": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p49_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p49_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "50": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p50_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p50_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "51": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p51_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p51_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "52": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p52_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p52_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "53": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p53_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p53_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "54": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p54_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p54_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "55": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p55_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p55_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "56": {
+      "heading": "Твой день",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p56_g1",
+          "label": "КАК ПРОШЕЛ СЕГОДНЯШНИЙ ДЕНЬ:",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p56_g9",
+          "label": "ВЕШИ, КОТОРЫЕ ЗАСТАВИЛИ СЕГОДНЯ УЛЫБАТЬСЯ:",
+          "type": "text",
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "60": {
+      "heading": "История продолжается!",
+      "fields": [
+        {
+          "fieldId": "diary_interior_brown_p60_g1",
+          "label": "Надеюсь, ведение этого дневника было для тебя Я счастлива, что мы подружились! удивительным приключением! Ведь так приятно",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p60_g2",
+          "label": "Надеюсь, ведение этого дневника было для тебя узнавать о себе что-то новое. удивительным приключением! Ведь так приятно",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
     }
   },
   "diary_interior_purple": {
-    "1": {
-      "heading": "Личный дневник"
+    "2": {
+      "heading": "Привет!",
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p2_g1",
+          "label": "Твоей жизни, переживаниями, тайнами и маленькими секретиками, рассказывать о своих друзьях и школе",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p2_g2",
+          "label": "На моих страницах ты найдешь много полезных Мне так интересно побольше узнать о тебе!",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
+    },
+    "3": {
+      "heading": "Правила этого дневника:",
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p3_g1",
+          "label": "И помни: я всегда рядом для того, чтобы поговорить с ТОБОЙ",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p3_g2",
+          "label": "ТОБОЙ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
     },
     "4": {
       "heading": "ТВОЕ ФОТО",
@@ -7119,14 +8001,14 @@
         },
         {
           "fieldId": "diary_interior_purple_p4_g2",
-          "label": "Хочу тебе признаться,",
+          "label": "Место для",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p4_g3",
-          "label": "Ты очень красивая!",
+          "label": "Поле 3",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
@@ -7138,56 +8020,56 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p5_g1",
-          "label": "Дата рождения: _ Твой знак зодиака: Твое имя:",
+          "label": "Дата рождения. Твой знак зодиака: Твое имя: ...",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g2",
-          "label": "Дата рождения: _ Твой знак зодиака: Т вой номер телефона: _",
+          "label": "Дата рождения. Твой знак зодиака: І вой номер телефона: ... . .",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g3",
-          "label": "Твой знак зодиака: Твой любимый цвет: _ Т вой номер телефона: _",
+          "label": "Твой знак зодиака: Твой любимый цвет:........ І вой номер телефона:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g4",
-          "label": "Какое время года самое приятное? Твой любимый цвет: _ Т вой номер телефона: _",
+          "label": "Твой любимый цвет:........ І вой номер телефона: Какое время года самое приятное?",
           "type": "time",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g5",
-          "label": "Какое время года самое приятное? Твой любимый цвет: _ Твои питомцы (если есть):",
+          "label": "Твой любимый цвет:........ Твои питомцы (если есть): Какое время года самое приятное?",
           "type": "time",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g6",
-          "label": "Какое время года самое приятное? Твои люБимые цВетЫ: Твои питомцы (если есть):",
+          "label": "Твои люБимые цВетЫ. Твои питомцы (если есть): Какое время года самое приятное?",
           "type": "time",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g7",
-          "label": "Твои люБимые цВетЫ: Любимое животное: Твои питомцы (если есть):",
+          "label": "Твои люБимые цВетЫ. Любимое животное: Твои питомцы (если есть):",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g8",
-          "label": "Лучшая подруга: Твои люБимые цВетЫ: Любимое животное:",
+          "label": "Твои люБимые цВетЫ. Лучшая подруга: Любимое животное:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
@@ -7201,21 +8083,21 @@
         },
         {
           "fieldId": "diary_interior_purple_p5_g10",
-          "label": "Лучший друг: Кем ты хочешь стать, когда вырастешь? Лучшая подруга:",
+          "label": "Лучший друг: Лучшая подруга: Кем ты хочешь стать, когда вырастешь? ....",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g11",
-          "label": "Лучший друг: Кем ты хочешь стать, когда вырастешь?",
+          "label": "Лучший друг: Кем ты хочешь стать, когда вырастешь? ....",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p5_g12",
-          "label": "Кем ты хочешь стать, когда вырастешь? Замечательно, кое-что я о тебе теперь знаю",
+          "label": "Замечательно, кое-что я о тебе теперь знаю. Кем ты хочешь стать, когда вырастешь? ....",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
@@ -7223,39 +8105,39 @@
       ]
     },
     "6": {
-      "heading": "Теперь познакомь меня с твоими родителями!",
+      "heading": "Анкета для мамы",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p6_g1",
-          "label": "Дата рождения: Номер телефона:- Имя:",
+          "label": "Дата рождения: Номер телефона:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g2",
-          "label": "Дата рождения: Номер телефона:- Знак зодиака:",
-          "type": "date",
+          "label": "Номер телефона: Знак зодиака:",
+          "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g3",
-          "label": "Номер телефона:- Профессия:. Знак зодиака:",
+          "label": "Профессия: Знак зодиака:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g4",
-          "label": "Любимые цветы:. Профессия:. Знак зодиака:",
+          "label": "Профессия: ЛюБиМые цВеТЫ: Знак зодиака:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g5",
-          "label": "Любимые цветы:",
+          "label": "ЛюБиМые цВеТЫ:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -7283,21 +8165,21 @@
         },
         {
           "fieldId": "diary_interior_purple_p6_g9",
-          "label": "Хобби:",
+          "label": "ХОББИ:",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g10",
-          "label": "Любимый напиток:",
+          "label": "Любимый напиток:.",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p6_g11",
-          "label": "Любимое Блюдо:",
+          "label": "ЛюБимое БЛюдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
@@ -7312,39 +8194,39 @@
       ]
     },
     "7": {
-      "heading": "Теперь познакомь меня с твоими родителями!",
+      "heading": "Анкета для папы",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p7_g1",
-          "label": "Дата рождения: Номер телефона:- Имя:",
+          "label": "Дата рождения: Номер телефона:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g2",
-          "label": "Дата рождения: Номер телефона:- Знак зодиака:",
-          "type": "date",
+          "label": "Номер телефона: Знак зодиака:",
+          "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g3",
-          "label": "Номер телефона:- Профессия: Знак зодиака:",
+          "label": "Профессия: Знак зодиака:",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g4",
-          "label": "Любимые цветы. Профессия: Знак зодиака:",
+          "label": "Профессия: ЛюБиМые цВеТЫ: Знак зодиака:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g5",
-          "label": "Любимые цветы",
+          "label": "ЛюБиМые цВеТЫ:",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -7358,7 +8240,7 @@
         },
         {
           "fieldId": "diary_interior_purple_p7_g7",
-          "label": "Любимая марка автомобиля:",
+          "label": "Любимый цвет:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
@@ -7372,21 +8254,21 @@
         },
         {
           "fieldId": "diary_interior_purple_p7_g9",
-          "label": "Хобби:",
+          "label": "ХОББИ:",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g10",
-          "label": "Любимый напиток:",
+          "label": "Любимый напиток:.",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p7_g11",
-          "label": "Любимое Блюдо:",
+          "label": "ЛюБимое БлюдО:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
@@ -7401,88 +8283,88 @@
       ]
     },
     "8": {
-      "heading": "ХобБи",
+      "heading": "ХоББи",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p8_g3",
-          "label": "Что ты больше всего любишь делать, когда остаешься одна?",
+          "label": "Какими видами спорта тебе нравится заниматься?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g6",
-          "label": "Самый интересный сериал:- Твой ЛЮБиМЫЙ фильм: - Любимый актер:",
+          "label": "Что ты больше всего любишь делать, когда остаешься одна? ТВой ЛЮБИМЫЙ ФиЛЬМі Самый интересный сериал:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g7",
-          "label": "Самый интересный сериал:- Любимый актер: Любимая актриса:-",
+          "label": "Любимый актер: ТВой ЛЮБИМЫЙ ФиЛЬМі Самый интересный сериал:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g8",
-          "label": "Любимый мультфильм:. Любимый актер: Любимая актриса:-",
+          "label": "Любимый актер: Любимая актриса. ТВой ЛЮБИМЫЙ ФиЛЬМі Самый интересный сериал:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g9",
-          "label": "Любимый мультфильм:. Самая интересная книга: - Любимая актриса:-",
+          "label": "Любимый актер: Любимая актриса. Любимый мультфильм:. Самый интересный сериал:",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g10",
-          "label": "Любимый мультфильм:. Самая интересная книга: - Любимый писатель (если есть):",
+          "label": "Любимая актриса. Любимый мультфильм:. Самая интересная книга:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g11",
-          "label": "Какой стиль музыки тебе нравится? Самая интересная книга: - Любимый писатель (если есть):",
+          "label": "Любимая актриса. Любимый мультфильм:. Самая интересная книга:. Любимый писатель (если есть):",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g12",
-          "label": "Какой стиль музыки тебе нравится? Любимая певица: Любимый писатель (если есть):",
+          "label": "Любимый мультфильм:. Самая интересная книга:. Любимый писатель (если есть): Какой стиль музыки тебе нравится?:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g13",
-          "label": "Какой стиль музыки тебе нравится? Любимый певеці - Любимая певица:",
+          "label": "Самая интересная книга:. Любимая певица! Любимый писатель (если есть): Какой стиль музыки тебе нравится?:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g14",
-          "label": "Любимый певеці - Лучшая музыкальная группа: Любимая певица:",
+          "label": "Любимая певица! Любимый писатель (если есть): Любимый певеці...................... Какой стиль музыки тебе нравится?:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g15",
-          "label": "Любимый певеці - Лучшая музыкальная группа:",
+          "label": "Лучшая музыкальная группа: Любимая певица! Любимый певеці...................... Какой стиль музыки тебе нравится?:",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p8_g16",
-          "label": "Ого! В тебе столько интересного! Лучшая музыкальная группа:",
+          "label": "Лучшая музыкальная группа: Любимая певица! Любимый певеці.....................",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
@@ -7493,39 +8375,39 @@
       "heading": "Твой день"
     },
     "10": {
-      "heading": "Твои питомцы:",
+      "heading": "1 вои питомцы:",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p10_g1",
-          "label": "Какие животные тебе нравятся больше всего? У тебя есть питомцы? Ты любишь животных?_",
+          "label": "Какие животные тебе нравятся Больше всего? У тебя есть питомцы? Ты любишь животных?..............",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p10_g2",
-          "label": "Какие животные тебе нравятся больше всего? У тебя есть питомцы? Напиши их клички:",
+          "label": "Напиши их клички: Какие животные тебе нравятся Больше всего? У тебя есть питомцы?",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p10_g3",
-          "label": "У тебя есть питомцы? Какая порода у твоих питомцев? Напиши их клички:",
+          "label": "Какая порода у твоих питомцев? Напиши их клички: У тебя есть питомцы?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p10_g4",
-          "label": "Расскажи историю, как они у вас появились. Какая порода у твоих питомцев? Напиши их клички:",
+          "label": "Расскажи историю, как они у вас появились: Какая порода у твоих питомцев? Напиши их клички:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p10_g5",
-          "label": "Расскажи историю, как они у вас появились. Какая порода у твоих питомцев?",
+          "label": "Расскажи историю, как они у вас появились: Какая порода у твоих питомцев?",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -7540,28 +8422,28 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p12_g3",
-          "label": "Какая социальная сеть твоя любимая? Почему?. Т вои любимые youtube-каналы:",
+          "label": "Твои любимые youtube-каналы: Какая социальная сеть твоя любимая? Почему?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p12_g4",
-          "label": "Твои люБимые Блогеры: — Т вои любимые youtube-каналы:",
+          "label": "Твои люБимые БлогерЫ; Твои любимые youtube-каналы:",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p12_g7",
-          "label": "Что ты фотографируешь чаще всего?- ТеБе нравится фотографировать?-",
+          "label": "ТеБе нравится фотографировать? Что ты фотографируешь чаще всего?",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p12_g12",
-          "label": "& Tik-toki",
+          "label": "& Tik-tok:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
@@ -7572,25 +8454,25 @@
       "heading": "Твой день"
     },
     "14": {
-      "heading": "* вое настроение",
+      "heading": "Твое настроение",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p14_g1",
-          "label": "Твоя любимая комедия. - Что или кто тебя смешит? - Ты любишь комедии? _",
+          "label": "Т воя любимая комедия. Что или кто тебя смешит? ....... Ты любишь комедии? ... ..",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p14_g2",
-          "label": "Ты смотришь смешные видео на youtube? Твоя любимая комедия. - Ты любишь комедии? _",
+          "label": "Т воя любимая комедия. Ты смотришь смешные видео на youtube? Ты любишь комедии? ... ..",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p14_g3",
-          "label": "Ты смотришь смешные видео на youtube? Твоя любимая комедия. -",
+          "label": "Какие смешные видео тебе нравятся? Т воя любимая комедия. Ты смотришь смешные видео на youtube?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
@@ -7605,21 +8487,21 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p16_g5",
-          "label": "Любимая одежда для прогулки с друзьями: Любимая одежда для школы: Ты носишь украшения? Если да, то какие?",
+          "label": "Любимая одежда для школь:...... Ты носишь украшения? Если да, то какие?",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p16_g6",
-          "label": "Любимая одежда для школы: Ты носишь украшения? Если да, то какие?",
+          "label": "Ты носишь украшения? Если да, то какие?",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p16_g7",
-          "label": "Твои модные мечты: (сюда ты можешь записать то, какую одежду",
+          "label": "Твои модные мечты: (сюда ты можешь записать то, какую одежду тебе бы хотелось купить или примерить на себя)",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
@@ -7630,25 +8512,25 @@
       "heading": "Твой день"
     },
     "18": {
-      "heading": "Первая любовЬ",
+      "heading": "Первая люБовЬ",
       "fields": [
         {
           "fieldId": "diary_interior_purple_p18_g3",
-          "label": "Веришь ли ты в любовь с первого взгляда? И вообще, что такое любовь?_",
+          "label": "И вообще, что такое любовь? Веришь ли ты в любовь с первого взгляда?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p18_g4",
-          "label": "Кого в классе ты считаешь симпатичным?_ И вообще, что такое любовь?_",
+          "label": "Кого в классе ты считаешь симпатичным? И вообще, что такое любовь?",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p18_g5",
-          "label": "Может, кто-то оказывает тебе знаки внимания? Какие?_",
+          "label": "Может, кто-то оказывает тебе знаки внимания? Какие?",
           "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
@@ -7684,20 +8566,21 @@
       ]
     },
     "19": {
-      "heading": "Твой день"
+      "heading": "Твой деНЬ"
     },
-    "21": {
+    "20": {
+      "heading": "Самое заветное желание",
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p21_g1",
-          "label": "Поле 1",
+          "fieldId": "diary_interior_purple_p20_g1",
+          "label": "Тебе нужно написать свое заветное желание на листке Бумаги и вложить его в конверт. Конверт заклеить",
           "type": "text",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p21_g2",
-          "label": "Конверт приклей сюда",
+          "fieldId": "diary_interior_purple_p20_g2",
+          "label": "Тебе нужно написать свое заветное желание на листке стикером и приклеить ниже. Старайся как можно чаще Бумаги и вложить его в конверт. Конверт заклеить",
           "type": "text",
           "templateLineStart": 1,
           "templateLineCount": 1
@@ -7709,21 +8592,21 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p22_g3",
-          "label": "ЛюБимый учителЬ- Любимый предмет в школе: -",
+          "label": "Любимый учитель. Сколько человек в твоем классе?",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p22_g4",
-          "label": "ЛюБимый учителЬ- Сколько человек в твоем классе?",
+          "label": "Сколько человек в твоем классе? Какие школьные мероприятия тебе нравятся? С кем из одноклассников дружишь?",
           "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p22_g9",
-          "label": "Расскажи о самом интересном событии из твоей школьной жизни:",
+          "label": "Расскажи о самом интересном Событии из тВоей школЬной Жизни:",
           "type": "text",
           "templateLineStart": 8,
           "templateLineCount": 1
@@ -7744,7 +8627,7 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p26_g6",
-          "label": "Суббота",
+          "label": "Поле 1",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -7756,7 +8639,7 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p27_g3",
-          "label": "Поле 1",
+          "label": ".....",
           "type": "text",
           "templateLineStart": 2,
           "templateLineCount": 1
@@ -7784,7 +8667,7 @@
         },
         {
           "fieldId": "diary_interior_purple_p27_g7",
-          "label": "Поле 5",
+          "label": "...",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
@@ -7796,84 +8679,84 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p28_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
+          "label": "Дата рождения: Имя:.",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "label": "Дата рождения: Знак зодиака: Имя:.",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Дата рождения: Знак зодиака: Номер телефона",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Любимый цвет! Знак зодиака: Номер телефона",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "label": "Любимый цвет! Номер телефона. Питомец (еслиесть):",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "label": "Любимый цвет! Питомец (еслиесть): Любимый цвет:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "label": "Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g11",
-          "label": "ХоБби:-",
+          "label": "ХоБби:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g12",
-          "label": "Любимая еда:-",
+          "label": "Любимая еда:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g13",
-          "label": "Любимый фильм:",
+          "label": "ЛюБимый фильмі",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g14",
-          "label": "Любимый музыкант:-",
+          "label": "Любимый музыкант:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
@@ -7887,49 +8770,49 @@
         },
         {
           "fieldId": "diary_interior_purple_p28_g16",
-          "label": "Лучшая подруга -",
+          "label": "Лучшая подруга",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g17",
-          "label": "Лучший другі-",
+          "label": "Лучший другі",
           "type": "text",
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g18",
-          "label": "Пожелания хозяйке анкеты",
+          "label": "Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g19",
-          "label": "Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях:",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g20",
-          "label": "@Instagram:_",
+          "label": "@Instagram:",
           "type": "text",
           "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g21",
-          "label": "* Вконтакте:",
+          "label": "Ж Вконтакте:",
           "type": "text",
           "templateLineStart": 20,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p28_g22",
-          "label": "& Tik-toki",
+          "label": "Tik-tok:",
           "type": "text",
           "templateLineStart": 21,
           "templateLineCount": 1
@@ -7941,126 +8824,126 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p29_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
+          "label": "Дата рождения: Имя:.",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "label": "Дата рождения: Знак зодиака: Имя:.",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "label": "Дата рождения: Знак зодиака: Номер телефона",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "label": "Любимый цвет! Знак зодиака: Номер телефона",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "label": "Любимый цвет! Номер телефона. Питомец (еслиесть): Любимый цвет:",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "label": "ХоБби:. Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g10",
-          "label": "Любимый музыкант:- Любимая еда: Любимый фильм:-",
+          "label": "ЛюБимый фильмі. Любимый музыкант: ХоБби:. Любимая еда:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g11",
-          "label": "Любимый музыкант:- Любимый фильм:- Любимая книга:",
+          "label": "ЛюБимый фильмі. Любимый музыкант: Любимая еда:. Любимая книга:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g12",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "label": "Лучшая подруга. ЛюБимый фильмі. Любимый музыкант: Любимая книга:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g13",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "label": "Лучшая подруга. Лучший другі. Любимый музыкант: Любимая книга:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g14",
-          "label": "Лучшая подруга - Лучший другі-",
+          "label": "Лучшая подруга. Лучший другі. Любимая книга:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g15",
-          "label": "Пожелания хозяйке анкеты - Лучший другі-",
+          "label": "Лучшая подруга. Лучший другі. Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g16",
-          "label": "Пожелания хозяйке анкеты -",
+          "label": "Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g17",
-          "label": "Пожелания хозяйке анкеты - Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g18",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
+          "label": "@Instagram: Ники в социальных сетях:",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g19",
-          "label": "@Instagram:_ & Tik-toki * Вконтакте:",
+          "label": "@Instagram: ж Вконтакте: Tik-tok:",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p29_g20",
-          "label": "& Tik-toki * Вконтакте:",
+          "label": "Ж Вконтакте: Tik-tok:",
           "type": "text",
           "templateLineStart": 19,
           "templateLineCount": 1
@@ -8072,56 +8955,56 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p30_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
+          "label": "Дата рождения: Имя:.",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "label": "Дата рождения: Знак зодиака: Имя:.",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "label": "Дата рождения: Знак зодиака: Номер телефона",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "label": "Любимый цвет! Знак зодиака: Номер телефона",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "label": "Любимый цвет! Номер телефона. Питомец (еслиесть): Любимый цвет:",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "label": "ХоБби:. Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g10",
-          "label": "ХоБби:-",
+          "label": "ХоБби:",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
@@ -8135,14 +9018,14 @@
         },
         {
           "fieldId": "diary_interior_purple_p30_g12",
-          "label": "Любимый фильм:-",
+          "label": "ЛюБимый фильмі",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g13",
-          "label": "Любимый музыкант:-",
+          "label": "Любимый музыкант:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
@@ -8156,49 +9039,49 @@
         },
         {
           "fieldId": "diary_interior_purple_p30_g15",
-          "label": "Лучшая подруга -",
+          "label": "Лучшая подруга",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g16",
-          "label": "Лучший другі-",
+          "label": "Лучший другі",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g17",
-          "label": "Пожелания хозяйке анкеты -",
+          "label": "Пожелания хозяйке анкеты:",
           "type": "text",
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g18",
-          "label": "Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях:",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g19",
-          "label": "@Instagram:_",
+          "label": "@Instagram:",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g20",
-          "label": "* Вконтакте:",
+          "label": "Ж Вконтакте:",
           "type": "text",
           "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p30_g21",
-          "label": "& Tik-toki",
+          "label": "Tik-tok:",
           "type": "text",
           "templateLineStart": 20,
           "templateLineCount": 1
@@ -8210,98 +9093,98 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p31_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
+          "label": "Дата рождения: ИМя:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "label": "Дата рождения: Знак зодиака........... ИМя:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Дата рождения: Номер телефонаї. Знак зодиака..........",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Номер телефонаї. Знак зодиака........... Любимый цвет:",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "label": "Номер телефонаї. Питомец (еслиесть): Любимый цвет:",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "label": "Питомец (еслиесть): Любимый цвет: Любимый цвет:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "label": "Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g11",
-          "label": "Любимый музыкант:- Любимая еда:- Любимый фильм:",
+          "label": "ХоББи:. Любимая е да: Любимый фильмі. Любимый музыкант",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g12",
-          "label": "Любимый музыкант:- Любимый фильм: Любимая книга:",
+          "label": "Любимая е да: Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g13",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "label": "Лучшая подруга:. Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g14",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "label": "Лучшая подруга:. Лучший другі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g15",
-          "label": "Лучшая подруга - Лучший другі-",
+          "label": "Лучшая подруга:. Лучший другі. Любимая книга:",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g16",
-          "label": "Пожелания хозяйке анкеты Лучший другі-",
+          "label": "Лучшая подруга:. Пожелания хозяйке анкеты. Лучший другі",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
@@ -8315,14 +9198,14 @@
         },
         {
           "fieldId": "diary_interior_purple_p31_g18",
-          "label": "Пожелания хозяйке анкеты Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: Пожелания хозяйке анкеты",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p31_g19",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: @Instagram:.",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
@@ -8334,98 +9217,98 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p32_g1",
-          "label": "Дата рождения: - Знак зодиака: - Имя:-",
+          "label": "Дата рождения: ИМя:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g2",
-          "label": "Дата рождения: - Знак зодиака: - Номер телефона: _",
+          "label": "Дата рождения: Знак зодиака........... ИМя:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g3",
-          "label": "Знак зодиака: - Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Дата рождения: Номер телефонаї. Знак зодиака..........",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g4",
-          "label": "Питомец (если есть):- Номер телефона: _ Любимое время года:-",
-          "type": "time",
+          "label": "Номер телефонаї. Знак зодиака........... Любимый цвет:",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g5",
-          "label": "Питомец (если есть):- Любимый цвет: - Любимое время года:-",
-          "type": "time",
+          "label": "Номер телефонаї. Питомец (еслиесть): Любимый цвет:",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g6",
-          "label": "Питомец (если есть):- Любимый цветок: - Любимый цвет: -",
+          "label": "Питомец (еслиесть): Любимый цвет: Любимый цвет:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g7",
-          "label": "Любимый цветок: - Любимый цвет: - Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g8",
-          "label": "ХоБби:- Любимый цветок: - Любимое животное:_",
+          "label": "Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g11",
-          "label": "Любимый музыкант:- Любимая еда:- Любимый фильм:",
+          "label": "ХоББи:. Любимая е да: Любимый фильмі. Любимый музыкант",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g12",
-          "label": "Любимый музыкант:- Любимый фильм: Любимая книга:",
+          "label": "Любимая е да: Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g13",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "label": "Лучшая подруга:. Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g14",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "label": "Лучшая подруга:. Лучший другі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g15",
-          "label": "Лучшая подруга - Лучший другі-",
+          "label": "Лучшая подруга:. Лучший другі. Любимая книга:",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g16",
-          "label": "Пожелания хозяйке анкеты Лучший другі-",
+          "label": "Лучшая подруга:. Пожелания хозяйке анкеты. Лучший другі",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
@@ -8439,14 +9322,14 @@
         },
         {
           "fieldId": "diary_interior_purple_p32_g18",
-          "label": "Пожелания хозяйке анкеты Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: Пожелания хозяйке анкеты",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p32_g19",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: @Instagram:.",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
@@ -8458,126 +9341,126 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p33_g1",
-          "label": "Дата рождения: Знак зодиака: Имя:",
+          "label": "Дата рождения: ИМя:",
           "type": "date",
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g2",
-          "label": "Дата рождения: Номер телефона: Знак зодиака:",
+          "label": "Дата рождения: Знак зодиака........... ИМя:",
           "type": "date",
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g3",
-          "label": "Номер телефона: Знак зодиака: Любимое время года: _",
-          "type": "time",
+          "label": "Дата рождения: Номер телефонаі. Знак зодиака..........",
+          "type": "date",
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g4",
-          "label": "Питомец (если есть): Номер телефона: Любимое время года: _",
-          "type": "time",
+          "label": "Номер телефонаі. Знак зодиака........... Любимый цвет:",
+          "type": "text",
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g5",
-          "label": "Питомец (если есть): Любимый цвет: Любимое время года: _",
-          "type": "time",
+          "label": "Номер телефонаі. Питомец (еслиесть): Любимый цвет:",
+          "type": "text",
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g6",
-          "label": "Любимый цветок: Любимый цвет: Любимое животное:_",
+          "label": "Питомец (еслиесть): Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g7",
-          "label": "ХоБби:- Любимый цветок: Любимое животное:_",
+          "label": "ХоББи:. Любимый цветок: Любимый цвет: Любимое животное:",
           "type": "text",
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g10",
-          "label": "Любимый музыкант:- Любимая еда: Любимый фильм:-",
+          "label": "ХоББи:. Любимая е да:. Любимый фильмі. Любимый музыкант",
           "type": "text",
           "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g11",
-          "label": "Любимый музыкант:- Любимый фильм:- Любимая книга:",
+          "label": "Любимая е да:. Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g12",
-          "label": "Любимый музыкант:- Лучшая подруга - Любимая книга:",
+          "label": "Лучшая подруга:. Любимый фильмі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g13",
-          "label": "Лучшая подруга - Лучший другі- Любимая книга:",
+          "label": "Лучшая подруга:. Лучший другі. Любимый музыкант. Любимая книга:",
           "type": "text",
           "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g14",
-          "label": "Лучшая подруга - Лучший другі-",
+          "label": "Лучшая подруга:. Лучший другі. Любимая книга:",
           "type": "text",
           "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g15",
-          "label": "Пожелания хозяйке анкеты - Лучший другі-",
+          "label": "Лучшая подруга:. Пожелания хозяйке анкеты. Лучший другі",
           "type": "text",
           "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g16",
-          "label": "Пожелания хозяйке анкеты -",
+          "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g17",
-          "label": "Пожелания хозяйке анкеты - Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: Пожелания хозяйке анкеты",
           "type": "text",
           "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g18",
-          "label": "@Instagram:_ Ники в социальных сетях: _",
+          "label": "Ники в социальных сетях: @Instagram:.",
           "type": "text",
           "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g19",
-          "label": "@Instagram:_ & Tik-toki * Вконтакте:",
+          "label": "@Instagram:.. • Вконтакте: Tik-tok:",
           "type": "text",
           "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p33_g20",
-          "label": "& Tik-toki * Вконтакте:",
+          "label": "• Вконтакте: Tik-tok:",
           "type": "text",
           "templateLineStart": 19,
           "templateLineCount": 1
@@ -8591,7 +9474,7 @@
       "heading": "Твой день"
     },
     "36": {
-      "heading": "Твой день"
+      "heading": "Твой денЬ"
     },
     "37": {
       "heading": "Твой день"
@@ -8601,6 +9484,25 @@
     },
     "39": {
       "heading": "Твой день"
+    },
+    "40": {
+      "heading": "История продолжается!",
+      "fields": [
+        {
+          "fieldId": "diary_interior_purple_p40_g1",
+          "label": "Мне было очень приятно с тобой познакомиться!",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p40_g2",
+          "label": "Мне было очень приятно с тобой познакомиться!",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
     }
   }
 }

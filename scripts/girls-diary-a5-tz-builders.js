@@ -8,9 +8,20 @@ const { applyDiary60TzManifest } = require('./diary-60-tz-builders');
 const A5_TEMPLATE_MAP = {
   DayDiaryTemplate: 'MyDayTemplate',
   FriendsQuestionnaireTemplate: 'FriendQuestionnaireTemplate',
-  StaticPageTemplate: 'StaticFinalTemplate',
+  StaticPageTemplate: 'StaticPageTemplate',
   DiaryOwnerTemplate: 'DiaryOwnerTemplate',
   PhotoPageWithTitleTemplate: 'PersonalPhotoTemplate',
+  UserQuestionnaireTemplate: 'UserQuestionnaireTemplate',
+  ParentQuestionnaireTemplate: 'ParentQuestionnaireTemplate',
+  HobbyQuestionnaireTemplate: 'HobbyQuestionnaireTemplate',
+  PetsQuestionnaireTemplate: 'PetsQuestionnaireTemplate',
+  SocialNetworksTemplate: 'SocialNetworksTemplate',
+  MoodQuestionnaireTemplate: 'MoodQuestionnaireTemplate',
+  StyleQuestionnaireTemplate: 'StyleQuestionnaireTemplate',
+  FirstLoveTemplate: 'FirstLoveTemplate',
+  SchoolLifeQuestionnaireTemplate: 'SchoolLifeQuestionnaireTemplate',
+  WeeklyScheduleTwoDaysTemplate: 'WeeklyScheduleTwoDaysTemplate',
+  WeeklyScheduleSundayTemplate: 'WeeklyScheduleSundayTemplate',
 };
 
 function applyGirlsDiaryA5TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
@@ -21,14 +32,6 @@ function applyGirlsDiaryA5TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
     template: A5_TEMPLATE_MAP[tzEntry.template] ?? tzEntry.template,
     hasPhoto: tzEntry.hasPhoto || tzEntry.template === 'PhotoPageWithTitleTemplate',
   };
-
-  if (mappedEntry.template === 'PersonalPhotoTemplate') {
-    return applyDiary60TzManifest(pageNumber, slots, {
-      ...mappedEntry,
-      pageType: 'photo',
-      hasPhoto: true,
-    }, lineGuideId);
-  }
 
   return applyDiary60TzManifest(pageNumber, slots, mappedEntry, lineGuideId);
 }

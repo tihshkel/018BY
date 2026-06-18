@@ -280,10 +280,11 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   return {
+    replaceFields: true,
     title: tzEntry.title,
     pageType,
     editable,
-    fields: fields?.length ? fields : undefined,
+    fields: fields ?? [],
     photoBlocks,
     canDuplicate: tzEntry.canDuplicate ?? false,
     captionEnabled: pageType === 'free_photo_caption' || pageType === 'caption_photo_page',

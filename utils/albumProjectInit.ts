@@ -1,9 +1,11 @@
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
-import { FULL_PHOTO_BLOCK } from '@/constants/photo-block-presets';
+import { getDefaultTemplateId } from '@/constants/page-template-library';
 import { getAlbumPageSchemas } from '@/constants/generated/album-page-schemas';
 import { getPageTemplateById } from '@/constants/page-template-library';
 import { createId } from '@/utils/id';
 import { createEmptyPageValues } from '@/utils/pageStorage';
+import { resolvePhotoPageTemplateId } from '@/utils/photoPageTemplateManifest';
+import { buildSchemaFromTemplate } from '@/utils/resolveTemplatePageLayout';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
 export function buildInitialPageInstances(
@@ -44,7 +46,7 @@ function buildFallbackSchema(lineGuideId: string, pageNumber: number): AlbumPage
     sourcePageNumber: pageNumber,
     canDuplicate: true,
     canAddAfter: true,
-    templateLibraryId: '1_photo_caption',
+    templateLibraryId: getDefaultTemplateId(),
   };
 }
 
@@ -62,54 +64,21 @@ export function getSchemaForInstance(
 ): AlbumPageSchema | undefined {
   if (instance.schemaPageId.includes('_lib_')) {
     const libMatch = instance.schemaPageId.match(/_lib_(.+)_\d+$/);
-    const templateId = libMatch?.[1];
-    const template = templateId ? getPageTemplateById(templateId) : undefined;
-    if (template) {
-      const photoBlocks =
-        template.photoSlots > 0 && (template.pageType === 'photo' || template.pageType === 'free')
-          ? template.pageType === 'photo'
-            ? [FULL_PHOTO_BLOCK]
-            : [
-                {
-                  blockId: 'main_photo',
-                  label: 'Фото для страницы',
-                  variants: [
-                    {
-                      variantId: 'default',
-                      label: 'Фото',
-                      slots: template.photoSlots,
-                      slotIndices: Array.from({ length: template.photoSlots }, (_, i) => i),
-                    },
-                  ],
-                },
-              ]
-          : undefined;
+    const rawTemplateId = libMatch?.[1];
+    const templateId = rawTemplateId ? resolvePhotoPageTemplateId(rawTemplateId) : getDefaultTemplateId();
+    const template = getPageTemplateById(templateId);
 
-      return enrichSchemaWithPhotoBlocks({
-        pageId: instance.schemaPageId,
-        title: instance.titleOverride ?? template.title,
-        pageType: template.pageType,
-        order: instance.order,
-        editable: true,
-        lineGuideId,
-        sourcePageNumber: instance.sourcePageNumber,
-        canDuplicate: true,
-        canAddAfter: true,
-        templateLibraryId: template.id,
-        photoBlocks,
-        fields: template.hasTextBlock
-          ? [
-              {
-                fieldId: `${instance.schemaPageId}_note`,
-                label: 'Заметка',
-                type: 'text',
-                required: false,
-                templateLineStart: 0,
-                templateLineCount: 1,
-              },
-            ]
-          : undefined,
-      });
+    if (template) {
+      return enrichSchemaWithPhotoBlocks(
+        buildSchemaFromTemplate({
+          templateId,
+          lineGuideId,
+          schemaPageId: instance.schemaPageId,
+          titleOverride: instance.titleOverride,
+          order: instance.order,
+          sourcePageNumber: instance.sourcePageNumber,
+        }),
+      );
     }
   }
 

@@ -134,8 +134,16 @@ function repeatPhotoLayout(
   return Object.fromEntries(pageNumbers.map((page) => [String(page), layout]));
 }
 
-const PREGNANCY_60_WEEKLY_PAGES = Array.from({ length: 50 }, (_, index) => index + 6);
-const PREGNANCY_A5_WEEKLY_PAGES = Array.from({ length: 42 }, (_, index) => index + 6);
+const PREGNANCY_60_WEEKLY_PAGES = [
+  ...Array.from({ length: 9 }, (_, index) => index + 9),
+  ...Array.from({ length: 14 }, (_, index) => index + 19),
+  ...Array.from({ length: 14 }, (_, index) => index + 34),
+];
+const PREGNANCY_A5_WEEKLY_PAGES = [
+  ...Array.from({ length: 9 }, (_, index) => index + 5),
+  ...Array.from({ length: 14 }, (_, index) => index + 15),
+  ...Array.from({ length: 14 }, (_, index) => index + 30),
+];
 
 export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
     pregnancy_60: {
@@ -1559,6 +1567,7 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   },
   family_blank: blankAlbumPages(20),
   holidays_blank: blankAlbumPages(20),
+  family_blank_21x21: blankAlbumPages(20),
 };
 
 export function getPhotoPageLayouts(

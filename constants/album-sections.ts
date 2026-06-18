@@ -77,6 +77,7 @@ export function getAlbumSections(lineGuideId: string): AlbumSectionDefinition[] 
     diary_interior_purple: 40,
     family_blank: 20,
     holidays_blank: 20,
+    family_blank_21x21: 20,
   };
 
   const total = pageCounts[lineGuideId] ?? 48;

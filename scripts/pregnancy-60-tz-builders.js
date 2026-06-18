@@ -1,73 +1,108 @@
 /**
- * Ручные поля для pregnancy_60 — страницы с OCR-ошибками в extract-album-page-content.
+ * Field builders for pregnancy_60 — labels from TZ docx via pregnancy-60-field-specs.js
  */
 
-function field(lineGuideId, pageNumber, groupIndex, label, templateLineStart, type, templateLineCount = 1) {
-  return {
-    fieldId: `${lineGuideId}_p${pageNumber}_g${groupIndex}`,
-    label,
-    type,
-    required: false,
-    templateLineStart,
-    templateLineCount,
-  };
+const {
+  WEEKLY_PAGE_FIELDS,
+  PAGE1_FIELDS,
+  ABOUT_ME_FIELDS,
+  FUTURE_DAD_FIELDS,
+  PAGE4_FIELDS,
+  PAGE6_FIELDS,
+  BIRTH_QUESTIONNAIRE_60,
+  ALREADY_MOM_FIELDS,
+  buildFieldsFromSpec,
+  buildNameChoiceFields,
+  buildShoppingListFields,
+  buildTodoListFields,
+  buildBirthStoryFields,
+  isPregnancy60WeeklyPage,
+  getPregnancy60WeekNumber,
+} = require('./pregnancy-60-field-specs');
+
+function tzOverride(partial) {
+  return { replaceFields: true, ...partial };
 }
 
-/** Стр. 2 «Обо мне» — 19 полей, слоты 0–21 без дублей OCR. */
-function buildAboutMeFields(lineGuideId, pageNumber) {
-  return [
-    field(lineGuideId, pageNumber, 1, 'Дата рождения', 0, 'date'),
-    field(lineGuideId, pageNumber, 2, 'Цвет глаз', 1, 'text'),
-    field(lineGuideId, pageNumber, 3, 'Цвет волос', 2, 'text'),
-    field(lineGuideId, pageNumber, 4, 'Группа крови', 3, 'text'),
-    field(lineGuideId, pageNumber, 5, 'Рост', 4, 'number'),
-    field(lineGuideId, pageNumber, 6, 'Вес', 5, 'number'),
-    field(lineGuideId, pageNumber, 7, 'Образование', 6, 'text'),
-    field(lineGuideId, pageNumber, 8, 'Место работы', 7, 'text'),
-    field(lineGuideId, pageNumber, 9, 'Должность', 8, 'text'),
-    field(lineGuideId, pageNumber, 10, 'Хобби', 9, 'text'),
-    field(lineGuideId, pageNumber, 11, 'Я люблю', 10, 'text'),
-    field(lineGuideId, pageNumber, 12, 'Я не люблю', 11, 'text'),
-    field(lineGuideId, pageNumber, 13, 'Когда я поняла, что хочу ребенка', 12, 'text', 2),
-    field(lineGuideId, pageNumber, 14, 'Я хотела бы иметь', 14, 'text'),
-    field(lineGuideId, pageNumber, 15, 'Это будет (пол)', 15, 'text'),
-    field(lineGuideId, pageNumber, 16, 'Он(а) родится (дата)', 16, 'date'),
-    field(lineGuideId, pageNumber, 17, 'Вес будет (гр)', 17, 'number'),
-    field(lineGuideId, pageNumber, 18, 'Рост будет (см)', 18, 'number'),
-    field(lineGuideId, pageNumber, 19, 'Цвет волос будет', 19, 'text'),
-    field(lineGuideId, pageNumber, 20, 'Цвет глаз будет', 20, 'text'),
-    field(lineGuideId, pageNumber, 21, 'Будет похож на', 21, 'text'),
-  ];
-}
+function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
+  if (isPregnancy60WeeklyPage(pageNumber)) {
+    const week = getPregnancy60WeekNumber(pageNumber);
+    return tzOverride({
+      title: `${week}-я неделя`,
+      pageType: 'structured',
+      fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, WEEKLY_PAGE_FIELDS),
+    });
+  }
 
-/** Стр. 3 «Будущий папа» — 10 полей. */
-function buildFutureDadFields(lineGuideId, pageNumber) {
-  return [
-    field(lineGuideId, pageNumber, 1, 'Имя', 0, 'text'),
-    field(lineGuideId, pageNumber, 2, 'Дата рождения', 1, 'date'),
-    field(lineGuideId, pageNumber, 3, 'Цвет глаз', 2, 'text'),
-    field(lineGuideId, pageNumber, 4, 'Цвет волос', 3, 'text'),
-    field(lineGuideId, pageNumber, 5, 'Образование', 4, 'text'),
-    field(lineGuideId, pageNumber, 6, 'Место работы', 5, 'text'),
-    field(lineGuideId, pageNumber, 7, 'Должность', 6, 'text'),
-    field(lineGuideId, pageNumber, 8, 'Хобби', 7, 'text'),
-    field(lineGuideId, pageNumber, 9, 'Когда понял, что хочет ребенка', 8, 'text', 2),
-    field(lineGuideId, pageNumber, 10, 'Хотел бы иметь', 10, 'text'),
-  ];
-}
-
-function applyPregnancy60PageFields(pageNumber, lineGuideId) {
   switch (pageNumber) {
+    case 1:
+      return tzOverride({
+        title: 'У нас будет малыш!',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE1_FIELDS),
+      });
     case 2:
-      return {
+      return tzOverride({
         title: 'Обо мне',
-        fields: buildAboutMeFields(lineGuideId, pageNumber),
-      };
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ABOUT_ME_FIELDS),
+      });
     case 3:
-      return {
+      return tzOverride({
         title: 'Будущий папа',
-        fields: buildFutureDadFields(lineGuideId, pageNumber),
-      };
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, FUTURE_DAD_FIELDS),
+      });
+    case 4:
+      return tzOverride({
+        title: 'Постановка на учёт',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE4_FIELDS),
+      });
+    case 6:
+      return tzOverride({
+        title: 'Первое УЗИ',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE6_FIELDS),
+      });
+    case 7:
+      return tzOverride({
+        title: 'Выбор имени',
+        fields: buildNameChoiceFields(lineGuideId, pageNumber, slots),
+      });
+    case 50:
+      return tzOverride({
+        title: 'Список покупок',
+        fields: buildShoppingListFields(lineGuideId, pageNumber, slots),
+      });
+    case 51:
+      return tzOverride({
+        title: 'Список дел',
+        fields: buildTodoListFields(lineGuideId, pageNumber, slots),
+      });
+    case 52:
+      return tzOverride({
+        title: 'Анкета родов',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, BIRTH_QUESTIONNAIRE_60),
+      });
+    case 53:
+      return tzOverride({
+        title: 'История родов',
+        fields: buildBirthStoryFields(lineGuideId, pageNumber, slots),
+      });
+    case 54:
+      return tzOverride({
+        title: 'Уже мама',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
+      });
+    case 5:
+    case 8:
+    case 18:
+    case 33:
+    case 48:
+    case 49:
+    case 55:
+    case 56:
+    case 57:
+    case 58:
+    case 59:
+    case 60:
+      return tzOverride({ fields: [] });
     default:
       return null;
   }
@@ -75,6 +110,5 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId) {
 
 module.exports = {
   applyPregnancy60PageFields,
-  buildAboutMeFields,
-  buildFutureDadFields,
+  tzOverride,
 };

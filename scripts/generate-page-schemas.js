@@ -9,6 +9,8 @@ const { applyKids48TzManifest } = require('./kids-48-tz-builders');
 const { applyDiary60TzManifest } = require('./diary-60-tz-builders');
 const { applyGirlsDiaryA5TzManifest } = require('./girls-diary-a5-tz-builders');
 const { applyPregnancy60PageFields } = require('./pregnancy-60-tz-builders');
+const { applyPregnancyA5PageFields } = require('./pregnancy-a5-tz-builders');
+const { applyHolidaysBirthday60PageFields } = require('./holidays-birthday-60-tz-builders');
 const { PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const ALBUM_IDS = [
@@ -20,6 +22,7 @@ const ALBUM_IDS = [
   'diary_interior_purple',
   'family_blank',
   'holidays_blank',
+  'family_blank_21x21',
 ];
 
 const PAGE_COUNTS = {
@@ -31,6 +34,7 @@ const PAGE_COUNTS = {
   diary_interior_purple: 40,
   family_blank: 20,
   holidays_blank: 20,
+  family_blank_21x21: 20,
 };
 
 const PREGNANCY_INTRO_LABELS = {
@@ -139,6 +143,7 @@ function getPageTitle(lineGuideId, pageNumber) {
     case 'diary_interior_purple':
       return getLabelFromMap(pageNumber, DIARY_PURPLE_LABELS);
     case 'family_blank':
+    case 'family_blank_21x21':
     case 'holidays_blank':
       return `Страница ${pageNumber}`;
     default:
@@ -306,7 +311,11 @@ function buildPhotoBlocks(slots, blockId = 'main_photo') {
 }
 
 function inferPageType(lineGuideId, pageNumber, slots, title, auditPageType) {
-  if (lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank') {
+  if (
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_blank'
+  ) {
     return 'free';
   }
 
@@ -343,11 +352,18 @@ function inferPageType(lineGuideId, pageNumber, slots, title, auditPageType) {
 
 function mergeOverride(base, override) {
   if (!override) return base;
+  const { replaceFields, replacePhotoBlocks, ...rest } = override;
+  const fields = replaceFields
+    ? (override.fields ?? [])
+    : (override.fields !== undefined ? override.fields : base.fields);
+  const photoBlocks = replacePhotoBlocks
+    ? override.photoBlocks
+    : (override.photoBlocks !== undefined ? override.photoBlocks : base.photoBlocks);
   return {
     ...base,
-    ...override,
-    fields: override.fields ?? base.fields,
-    photoBlocks: override.photoBlocks ?? base.photoBlocks,
+    ...rest,
+    fields,
+    photoBlocks,
   };
 }
 
@@ -399,7 +415,7 @@ function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override
       photoBlocks,
       canDuplicate,
       canAddAfter: true,
-      templateLibraryId: pageType === 'free' ? '1_photo_caption' : undefined,
+      templateLibraryId: pageType === 'free' ? 'SinglePhotoTemplate' : undefined,
     },
     override
   );
@@ -468,9 +484,23 @@ function generateSchemas(projectRoot) {
       }
 
       if (lineGuideId === 'pregnancy_60') {
-        const pregnancyFields = applyPregnancy60PageFields(pageNumber, lineGuideId);
+        const pregnancyFields = applyPregnancy60PageFields(pageNumber, lineGuideId, slots);
         if (pregnancyFields) {
           schema = mergeOverride(schema, pregnancyFields);
+        }
+      }
+
+      if (lineGuideId === 'pregnancy_a5') {
+        const pregnancyFields = applyPregnancyA5PageFields(pageNumber, lineGuideId, slots);
+        if (pregnancyFields) {
+          schema = mergeOverride(schema, pregnancyFields);
+        }
+      }
+
+      if (lineGuideId === 'holidays_birthday_60') {
+        const holidaysFields = applyHolidaysBirthday60PageFields(pageNumber);
+        if (holidaysFields) {
+          schema = mergeOverride(schema, holidaysFields);
         }
       }
 

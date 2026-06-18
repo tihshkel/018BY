@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import fitz
@@ -33,7 +34,42 @@ ALBUMS = [
         "page_regex": re.compile(r"Сва_(\d+)\.pdf$", re.IGNORECASE),
         "max_page": 48,
     },
+    {
+        "album_id": "diary_interior_brown",
+        "source_dir": ROOT / "in albums/ЛД 180х240",
+        "page_regex": re.compile(r"(\d+)\s*\.pdf$", re.IGNORECASE),
+        "max_page": 60,
+    },
+    {
+        "album_id": "diary_interior_purple",
+        "source_dir": ROOT / "in albums/ЛД А5",
+        "page_regex": re.compile(r"(\d+)\s*\.pdf$", re.IGNORECASE),
+        "max_page": 40,
+    },
+    {
+        "album_id": "pregnancy_a5",
+        "block_pdf": ROOT / "in albums/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf",
+        "max_page": 48,
+    },
+    {
+        "album_id": "holidays_birthday_60",
+        "block_pdf": ROOT / "in albums/Блок ДНЕЙ РОЖДЕНИЯ готов.pdf",
+        "max_page": 60,
+    },
 ]
+
+
+def normalize_path(path: Path) -> Path:
+    if path.exists():
+        return path
+    parent = path.parent
+    if not parent.exists():
+        return path
+    target_name = unicodedata.normalize("NFC", path.name)
+    for child in parent.iterdir():
+        if unicodedata.normalize("NFC", child.name) == target_name:
+            return child
+    return path
 
 
 def is_photo_stroke(color: tuple[float, ...] | None, stroke_w: float | None) -> bool:
@@ -82,8 +118,19 @@ def detect_photo_slot(page: fitz.Page) -> dict[str, float] | None:
     }
 
 
-def extract_album(config: dict) -> dict[str, dict]:
-    source_dir: Path = config["source_dir"]
+def slot_entry(slot: dict[str, float]) -> dict:
+    return {
+        "variants": [
+            {
+                "variantId": "one_horizontal",
+                "slots": [slot],
+            }
+        ]
+    }
+
+
+def extract_album_from_folder(config: dict) -> dict[str, dict]:
+    source_dir = normalize_path(config["source_dir"])
     pages: dict[str, dict] = {}
 
     if not source_dir.exists():
@@ -104,16 +151,35 @@ def extract_album(config: dict) -> dict[str, dict]:
         if not slot:
             continue
 
-        pages[str(page_no)] = {
-            "variants": [
-                {
-                    "variantId": "one_horizontal",
-                    "slots": [slot],
-                }
-            ]
-        }
+        pages[str(page_no)] = slot_entry(slot)
 
     return pages
+
+
+def extract_album_from_block_pdf(config: dict) -> dict[str, dict]:
+    block_pdf = normalize_path(config["block_pdf"])
+    pages: dict[str, dict] = {}
+
+    if not block_pdf.exists():
+        print(f"Skip {config['album_id']}: missing {block_pdf}", file=sys.stderr)
+        return pages
+
+    doc = fitz.open(block_pdf)
+    max_page = min(config["max_page"], doc.page_count)
+    for page_no in range(1, max_page + 1):
+        slot = detect_photo_slot(doc[page_no - 1])
+        if not slot:
+            continue
+        pages[str(page_no)] = slot_entry(slot)
+    doc.close()
+
+    return pages
+
+
+def extract_album(config: dict) -> dict[str, dict]:
+    if "block_pdf" in config:
+        return extract_album_from_block_pdf(config)
+    return extract_album_from_folder(config)
 
 
 def main() -> None:

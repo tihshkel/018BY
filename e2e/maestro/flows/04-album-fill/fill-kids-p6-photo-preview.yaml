@@ -1,0 +1,10 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: fill-kids-p6-variant.yaml
+- tapOn:
+    id: preview-photo-block-select
+- extendedWaitUntil:
+    visible:
+      id: preview-photo-block-selected
+    timeout: 10000

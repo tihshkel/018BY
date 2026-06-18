@@ -1,3 +1,5 @@
+export type PageFormat = '18x24' | '21x21';
+
 export type PageType =
   | 'structured'
   | 'non_editable'
@@ -11,7 +13,21 @@ export type PageType =
   | 'free_photo_caption'
   | 'caption_photo_page'
   | 'baptism_page'
-  | 'godparents_page';
+  | 'godparents_page'
+  | 'timeline_page'
+  | 'text_page'
+  | 'free_page';
+
+export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
+
+export type TemplateTextBlockType = 'caption' | 'title' | 'longText' | 'date';
+
+export type TemplateMinFilledRule = {
+  minPhotos?: number;
+  minTextFields?: number;
+  minTimelineEvents?: number;
+  minAnyContent?: boolean;
+};
 
 export type PageStatus =
   | 'empty'
@@ -81,10 +97,13 @@ export interface PageTemplateLibraryItem {
   id: string;
   title: string;
   description: string;
-  pageType: 'photo' | 'free';
-  photoSlots: number;
+  pageType: PageType;
+  pageFormat: PageFormat;
+  maxPhotos: number;
   hasCaption: boolean;
   hasTextBlock: boolean;
+  /** @deprecated use maxPhotos */
+  photoSlots: number;
 }
 
 export interface PageInstance {
@@ -120,7 +139,22 @@ export interface PageValues {
   excludedFromExport?: boolean;
   /** Set when user taps «Редактировать позже» — distinguishes Черновик from Продолжить */
   draftSavedAt?: string;
+  /** FreePageTemplate — произвольные элементы на canvas */
+  freeElements?: FreePageElement[];
 }
+
+export type FreePageElement = {
+  id: string;
+  type: 'image' | 'text';
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  rotation?: number;
+  zIndex?: number;
+  content?: string;
+  crop?: PhotoSlotTransform;
+};
 
 export type PhotoSlotTransform = {
   scale: number;

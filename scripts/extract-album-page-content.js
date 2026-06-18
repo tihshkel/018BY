@@ -20,6 +20,11 @@ const PDF_SOURCES = {
   diary_interior_purple: path.join('in albums', '09.06.26_Блок фиолетовый_180х240_print.pdf'),
 };
 
+const PER_PAGE_PDF_FOLDERS = {
+  diary_interior_brown: 'ЛД 180х240',
+  diary_interior_purple: 'ЛД А5',
+};
+
 const PNG_SOURCES = {
   pregnancy_60: path.join('assets', 'pdfs', 'Блок БЕРЕМЕННОСТЬ 60 стр'),
   pregnancy_a5: path.join('assets', 'pdfs', 'Блок БЕРЕМЕННОСТЬ A5 другой блок'),
@@ -40,7 +45,7 @@ const PAGE_COUNTS = {
   pregnancy_a5: 48,
   kids_48: 48,
   holidays_birthday_60: 60,
-  diary_interior_brown: 40,
+  diary_interior_brown: 60,
   diary_interior_purple: 40,
   family_blank: 20,
   holidays_blank: 20,
@@ -473,6 +478,72 @@ async function extractAlbumContent(projectRoot, lineGuideId, pdfRelativePath, pa
   return pages;
 }
 
+function normalizeFileName(name) {
+  return name.normalize('NFC');
+}
+
+function findPerPagePdfFolder(projectRoot, folderName) {
+  const inAlbums = path.join(projectRoot, 'in albums');
+  if (!fs.existsSync(inAlbums)) return null;
+  const target = normalizeFileName(folderName).toLowerCase();
+  for (const entry of fs.readdirSync(inAlbums)) {
+    if (normalizeFileName(entry).toLowerCase() === target) {
+      return path.join(inAlbums, entry);
+    }
+  }
+  return null;
+}
+
+function listPerPagePdfFiles(folderPath) {
+  const pageRe = /(\d+)\s*\.pdf$/i;
+  return fs
+    .readdirSync(folderPath)
+    .filter((fileName) => pageRe.test(normalizeFileName(fileName)))
+    .map((fileName) => {
+      const pageNumber = Number(normalizeFileName(fileName).match(pageRe)[1]);
+      return { pageNumber, filePath: path.join(folderPath, fileName) };
+    })
+    .sort((a, b) => a.pageNumber - b.pageNumber);
+}
+
+async function extractAlbumContentFromPerPagePdfs(
+  projectRoot,
+  lineGuideId,
+  folderPath,
+  pageCount,
+  lineSlots,
+) {
+  const albumSlots = lineSlots[lineGuideId] ?? {};
+  const pages = {};
+  const pdfFiles = listPerPagePdfFiles(folderPath);
+
+  for (const { pageNumber, filePath } of pdfFiles) {
+    if (pageNumber > pageCount) continue;
+    const pageKey = String(pageNumber);
+    const slots = albumSlots[pageKey] ?? [];
+    if (slots.length === 0) continue;
+
+    const doc = await loadPdfDocument(filePath);
+    const pdfPage = doc.numPages > 0 ? await doc.getPage(1) : null;
+    const { textItems, ocrMode } = await getTextItemsForPage(
+      projectRoot,
+      lineGuideId,
+      pageNumber,
+      pdfPage,
+    );
+
+    if (textItems.length === 0) continue;
+
+    const content = extractPageContent(textItems, slots, lineGuideId, pageNumber, { ocrMode });
+    if (content.heading || content.fields?.length) {
+      pages[pageKey] = content;
+    }
+  }
+
+  console.log(`[${lineGuideId}] extracted content for ${Object.keys(pages).length} pages (per-page PDF)`);
+  return pages;
+}
+
 async function main() {
   const projectRoot = path.join(__dirname, '..');
   const lineSlotsPath = path.join(projectRoot, 'constants', 'line-slots.json');
@@ -485,6 +556,22 @@ async function main() {
     if (only && !only.split(',').map((s) => s.trim()).includes(lineGuideId)) continue;
 
     const pageCount = PAGE_COUNTS[lineGuideId] ?? 0;
+    const perPageFolderName = PER_PAGE_PDF_FOLDERS[lineGuideId];
+    const perPageFolderPath = perPageFolderName
+      ? findPerPagePdfFolder(projectRoot, perPageFolderName)
+      : null;
+
+    if (perPageFolderPath && fs.existsSync(perPageFolderPath) && process.env.USE_LEGACY_DIARY_PDF !== '1') {
+      result[lineGuideId] = await extractAlbumContentFromPerPagePdfs(
+        projectRoot,
+        lineGuideId,
+        perPageFolderPath,
+        pageCount,
+        lineSlots,
+      );
+      continue;
+    }
+
     result[lineGuideId] = await extractAlbumContent(
       projectRoot,
       lineGuideId,

@@ -19,6 +19,7 @@ export type GetPhotoSlotParams = {
   sourceWidth?: number;
   sourceHeight?: number;
   contentRect?: ContentRect;
+  templateLibraryId?: string;
 };
 
 function resolveContentRect(params: GetPhotoSlotParams): ContentRect {
@@ -44,8 +45,9 @@ export function getNormalizedPhotoSlot(
   page: number,
   variantId: string,
   slotIndex: number,
+  templateLibraryId?: string,
 ): NormalizedPhotoSlot | null {
-  const pageLayouts = resolvePhotoPageLayouts(lineGuideId, page);
+  const pageLayouts = resolvePhotoPageLayouts(lineGuideId, page, templateLibraryId);
 
   const resolvedVariantId = resolveLayoutVariantId(variantId);
   const variant =
@@ -72,6 +74,7 @@ export function getPhotoSlotViewportRect(
     params.page,
     params.variantId,
     params.slotIndex,
+    params.templateLibraryId,
   );
   if (!normalized) return null;
 

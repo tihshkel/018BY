@@ -1,5 +1,10 @@
 import type { AlbumPageSchema, PhotoBlockSchema } from '@/types/album-page-schema';
 import { resolvePhotoPageLayoutsOrUndefined } from '@/utils/resolvePhotoPageLayouts';
+import {
+  getPageFormatForLineGuide,
+  getTemplateLayout,
+  isBlankTemplateLineGuide,
+} from '@/utils/photoPageTemplateManifest';
 
 const VARIANT_LABELS: Record<string, string> = {
   one_large: 'Одно большое фото',
@@ -24,15 +29,17 @@ function resolvePhotoBlockId(lineGuideId: string): string {
 function resolvePhotoPageLayouts(
   lineGuideId: string,
   pageNumber: number,
+  templateLibraryId?: string,
 ) {
-  return resolvePhotoPageLayoutsOrUndefined(lineGuideId, pageNumber);
+  return resolvePhotoPageLayoutsOrUndefined(lineGuideId, pageNumber, templateLibraryId);
 }
 
 export function buildPhotoBlocksFromPhotoSlots(
   lineGuideId: string,
   pageNumber: number,
+  templateLibraryId?: string,
 ): PhotoBlockSchema[] | undefined {
-  const layouts = resolvePhotoPageLayouts(lineGuideId, pageNumber);
+  const layouts = resolvePhotoPageLayouts(lineGuideId, pageNumber, templateLibraryId);
   if (!layouts?.variants?.length) return undefined;
 
   const variants = layouts.variants.map((variant) => ({
@@ -52,15 +59,61 @@ export function buildPhotoBlocksFromPhotoSlots(
 }
 
 export function enrichSchemaWithPhotoBlocks(schema: AlbumPageSchema): AlbumPageSchema {
-  if (schema.photoBlocks?.length) return schema;
+  if (schema.photoBlocks !== undefined) return schema;
+
+  if (!shouldEnrichWithPhotoBlocks(schema)) return schema;
 
   const photoBlocks = buildPhotoBlocksFromPhotoSlots(
     schema.lineGuideId,
     schema.sourcePageNumber,
+    schema.templateLibraryId,
   );
   if (!photoBlocks) return schema;
 
   return { ...schema, photoBlocks };
+}
+
+function isPregnancyWeeklyPhotoPage(lineGuideId: string, pageNumber: number): boolean {
+  if (lineGuideId === 'pregnancy_60') {
+    return (
+      (pageNumber >= 9 && pageNumber <= 17) ||
+      (pageNumber >= 19 && pageNumber <= 32) ||
+      (pageNumber >= 34 && pageNumber <= 47)
+    );
+  }
+  if (lineGuideId === 'pregnancy_a5') {
+    return (
+      (pageNumber >= 5 && pageNumber <= 13) ||
+      (pageNumber >= 15 && pageNumber <= 28) ||
+      (pageNumber >= 30 && pageNumber <= 43)
+    );
+  }
+  return false;
+}
+
+function shouldEnrichWithPhotoBlocks(schema: AlbumPageSchema): boolean {
+  if (schema.pageType === 'non_editable' || schema.editable === false) {
+    return false;
+  }
+
+  const photoPageTypes = new Set([
+    'photo',
+    'caption_photo_page',
+    'event_photo',
+    'free_photo_caption',
+    'timeline_page',
+    'free_page',
+  ]);
+  if (photoPageTypes.has(schema.pageType)) return true;
+
+  if (schema.pageType === 'structured' || schema.pageType === 'text_page') {
+    if (isPregnancyWeeklyPhotoPage(schema.lineGuideId, schema.sourcePageNumber)) {
+      return true;
+    }
+    return hasPhotoSlotLayouts(schema.lineGuideId, schema.sourcePageNumber);
+  }
+
+  return false;
 }
 
 export function hasPhotoSlotLayouts(

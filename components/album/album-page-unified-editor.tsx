@@ -3,6 +3,8 @@ import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { FamilyTreePhotoPicker } from '@/components/album/family-tree-photo-picker';
+import { FreePageEditor } from '@/components/album/free-page-editor';
+import { TimelinePageEditor } from '@/components/album/timeline-page-editor';
 import { AlbumVariantBar } from '@/components/album/album-variant-bar';
 import {
   FamilyTreeForm,
@@ -13,7 +15,7 @@ import {
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import type { AlbumPageSchema, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails } from '@/utils/variantPreview';
 
@@ -34,6 +36,8 @@ type AlbumPageUnifiedEditorProps = {
   onGroupTransformChange: (transform: PhotoSlotTransform) => void;
   onRemovePhoto: (blockId: string, slotIndex: number) => void;
   onInitPhotoBlock: (blockId: string, variantId: string, slotCount: number) => void;
+  onFreeElementsChange?: (elements: FreePageElement[]) => void;
+  ensureMediaLibraryPermission?: () => Promise<boolean>;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
 };
@@ -51,6 +55,8 @@ export function AlbumPageUnifiedEditor({
   onGroupTransformChange,
   onRemovePhoto,
   onInitPhotoBlock,
+  onFreeElementsChange,
+  ensureMediaLibraryPermission,
   showCaption,
   showPerPhotoCaptions,
 }: AlbumPageUnifiedEditorProps) {
@@ -106,6 +112,37 @@ export function AlbumPageUnifiedEditor({
   };
 
   const textForm = (() => {
+    if (resolvedSchema.pageType === 'timeline_page') {
+      return (
+        <TimelinePageEditor
+          schema={resolvedSchema}
+          pageValues={pageValues}
+          lineGuideId={lineGuideId}
+          onFieldChange={onFieldChange}
+          onPickPhoto={(slotIndex) => {
+            if (!primaryBlock) return;
+            onPickPhoto(primaryBlock.blockId, slotIndex);
+          }}
+          onRemovePhoto={(slotIndex) => {
+            if (!primaryBlock) return;
+            onRemovePhoto(primaryBlock.blockId, slotIndex);
+          }}
+        />
+      );
+    }
+
+    if (resolvedSchema.pageType === 'free_page' && onFreeElementsChange && ensureMediaLibraryPermission) {
+      return (
+        <FreePageEditor
+          schema={resolvedSchema}
+          elements={pageValues.freeElements ?? []}
+          lineGuideId={lineGuideId}
+          onChange={onFreeElementsChange}
+          ensureMediaLibraryPermission={ensureMediaLibraryPermission}
+        />
+      );
+    }
+
     switch (resolvedSchema.pageType) {
       case 'family_tree':
         return <FamilyTreeForm {...formProps} />;
@@ -134,7 +171,10 @@ export function AlbumPageUnifiedEditor({
     <View style={styles.container}>
       {textForm}
 
-      {primaryBlock && (isCircleTreeBlock || thumbnails.length > 1 || blocks.length > 0) ? (
+      {primaryBlock &&
+      resolvedSchema.pageType !== 'timeline_page' &&
+      resolvedSchema.pageType !== 'free_page' &&
+      (isCircleTreeBlock || thumbnails.length > 1 || blocks.length > 0) ? (
         <AppCard style={styles.photosCard}>
           {!isCircleTreeBlock && thumbnails.length > 1 ? (
             <AlbumVariantBar

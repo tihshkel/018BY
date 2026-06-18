@@ -11463,23 +11463,40 @@
   "diary_interior_brown": {
     "1": [
       {
-        "x": 0.16526,
-        "y": 0.53795,
-        "width": 0.6484,
-        "height": 0.04934,
+        "x": 0.17646,
+        "y": 0.52953,
+        "width": 0.66281,
+        "height": 0.05016,
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.16526,
-        "y": 0.59277,
-        "width": 0.6484,
-        "height": 0.04934,
+        "x": 0.17646,
+        "y": 0.58526,
+        "width": 0.66281,
+        "height": 0.05016,
         "hasLabel": false,
         "continuationGroup": 2
       }
     ],
-    "2": [],
+    "2": [
+      {
+        "x": 0.79415,
+        "y": 0.61392,
+        "width": 0.10143,
+        "height": 0.03678,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.59831,
+        "y": 0.65479,
+        "width": 0.21168,
+        "height": 0.03678,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "3": [
       {
         "x": 0.07918,
@@ -11507,7 +11524,24 @@
       }
     ],
     "4": [],
-    "5": [],
+    "5": [
+      {
+        "x": 0.42358,
+        "y": 0.65529,
+        "width": 0.15954,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.42358,
+        "y": 0.71029,
+        "width": 0.15954,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "6": [
       {
         "x": 0.47931,
@@ -11927,7 +11961,24 @@
         "inputKind": "block"
       }
     ],
-    "9": [],
+    "9": [
+      {
+        "x": 0.44481,
+        "y": 0.47023,
+        "width": 0.16018,
+        "height": 0.05612,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.48146,
+        "y": 0.53259,
+        "width": 0.1594,
+        "height": 0.05612,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "10": [],
     "11": [
       {
@@ -12855,7 +12906,24 @@
       }
     ],
     "18": [],
-    "19": [],
+    "19": [
+      {
+        "x": 0.43441,
+        "y": 0.6311,
+        "width": 0.15795,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.40789,
+        "y": 0.70627,
+        "width": 0.40292,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "20": [
       {
         "x": 0.32687,
@@ -13823,7 +13891,24 @@
         "inputKind": "block"
       }
     ],
-    "29": [],
+    "29": [
+      {
+        "x": 0.76514,
+        "y": 0.45645,
+        "width": 0.10869,
+        "height": 0.03404,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.64665,
+        "y": 0.49427,
+        "width": 0.08703,
+        "height": 0.03404,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "30": [
       {
         "x": 0.17011,
@@ -14036,7 +14121,26 @@
         "inputKind": "block"
       }
     ],
-    "32": [],
+    "32": [
+      {
+        "x": 0.22315,
+        "y": 0.46088,
+        "width": 0.46843,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.52575,
+        "y": 0.55989,
+        "width": 0.3386,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 2,
+        "inputKind": "block"
+      }
+    ],
     "33": [
       {
         "x": 0.32608,
@@ -17201,31 +17305,82 @@
     "57": [],
     "58": [],
     "59": [],
-    "60": []
+    "60": [
+      {
+        "x": 0.57437,
+        "y": 0.47042,
+        "width": 0.09083,
+        "height": 0.03356,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.78768,
+        "y": 0.50771,
+        "width": 0.11416,
+        "height": 0.03356,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ]
   },
   "diary_interior_purple": {
     "1": [
       {
-        "x": 0.4517,
-        "y": 0.56727,
-        "width": 0.36613,
+        "x": 0.4302,
+        "y": 0.58616,
+        "width": 0.36858,
         "height": 0.058,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "block"
       },
       {
-        "x": 0.22013,
-        "y": 0.65663,
-        "width": 0.55307,
+        "x": 0.24273,
+        "y": 0.66346,
+        "width": 0.51454,
         "height": 0.058,
         "hasLabel": false,
         "continuationGroup": 2,
         "inputKind": "block"
       }
     ],
-    "2": [],
-    "3": [],
+    "2": [
+      {
+        "x": 0.81451,
+        "y": 0.48481,
+        "width": 0.10307,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.58867,
+        "y": 0.55546,
+        "width": 0.14766,
+        "height": 0.058,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
+    "3": [
+      {
+        "x": 0.72964,
+        "y": 0.52599,
+        "width": 0.1924,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.72964,
+        "y": 0.58099,
+        "width": 0.1924,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "4": [
       {
         "x": 0.08339,
@@ -19046,20 +19201,37 @@
         "inputKind": "block"
       }
     ],
-    "20": [],
+    "20": [
+      {
+        "x": 0.73201,
+        "y": 0.49934,
+        "width": 0.16293,
+        "height": 0.0352,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.70892,
+        "y": 0.53845,
+        "width": 0.12691,
+        "height": 0.0352,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ],
     "21": [
       {
-        "x": 0.13446,
-        "y": 0.32027,
-        "width": 0.71385,
+        "x": 0.63791,
+        "y": 0.53557,
+        "width": 0.08029,
         "height": 0.058,
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.13446,
-        "y": 0.68932,
-        "width": 0.71385,
+        "x": 0.16426,
+        "y": 0.66181,
+        "width": 0.67528,
         "height": 0.058,
         "hasLabel": false,
         "continuationGroup": 2
@@ -21449,6 +21621,23 @@
         "inputKind": "block"
       }
     ],
-    "40": []
+    "40": [
+      {
+        "x": 0.62561,
+        "y": 0.56951,
+        "width": 0.10629,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.62561,
+        "y": 0.62451,
+        "width": 0.10629,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 2
+      }
+    ]
   }
 }

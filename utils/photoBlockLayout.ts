@@ -31,6 +31,7 @@ type ComputePhotoBlockLayoutParams = {
   sourceWidth?: number;
   sourceHeight?: number;
   contentRect?: ContentRect;
+  templateLibraryId?: string;
 };
 
 function unionRect(rects: ViewportRect[]): ViewportRect | null {
@@ -73,6 +74,7 @@ export function computePhotoBlockLayout(
       sourceWidth: params.sourceWidth,
       sourceHeight: params.sourceHeight,
       contentRect,
+      templateLibraryId: params.templateLibraryId,
     });
     if (!rect) return;
     slotRects.push({ slotIndex, uri, rect });

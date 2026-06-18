@@ -1,0 +1,10 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: fill-pregnancy-p56-variant.yaml
+- tapOn:
+    id: preview-photo-block-select
+- extendedWaitUntil:
+    visible:
+      id: preview-photo-block-selected
+    timeout: 10000

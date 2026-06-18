@@ -4,6 +4,27 @@
  */
 
 const { FULL_PHOTO_BLOCK } = require('./photo-block-presets-data');
+const {
+  USER_QUESTIONNAIRE_FIELDS,
+  PARENT_MOM_FIELDS,
+  PARENT_DAD_FIELDS,
+  HOBBY_FIELDS,
+  PETS_FIELDS,
+  SOCIAL_NETWORKS_FIELDS,
+  MOOD_FIELDS,
+  STYLE_FIELDS,
+  FIRST_LOVE_FIELDS,
+  SCHOOL_LIFE_FIELDS,
+  SUNDAY_SCHEDULE_FIELDS,
+  GRANDPARENT_FIELDS,
+  DREAMS_FIELDS,
+  TRAVEL_FIELDS,
+  DIARY_RULES_FIELDS,
+  WEEKLY_SCHEDULE_DAY_PAIRS,
+  BROWN_WEEKLY_SCHEDULE_PAGES,
+  buildWeeklyScheduleSpec,
+  buildBrownWeeklyScheduleWithNoteSpec,
+} = require('./girls-diary-a5-field-specs');
 
 const FREE_PHOTO_NOTES_BLOCK = {
   blockId: 'free_photo_notes',
@@ -141,10 +162,11 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
 
 function buildFreePhotoNotes(pageNumber, slots, lineGuideId, tzEntry) {
   return {
+    replaceFields: true,
     title: tzEntry.title,
     pageType: 'caption_photo_page',
     editable: true,
-    fields: undefined,
+    fields: [],
     photoBlocks: [FREE_PHOTO_NOTES_BLOCK],
     canDuplicate: true,
     captionEnabled: true,
@@ -173,22 +195,51 @@ function buildFoodQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
 
 function buildStaticPage(tzEntry) {
   return {
+    replaceFields: true,
     title: tzEntry.title,
     pageType: 'non_editable',
     editable: false,
     fields: [],
-    photoBlocks: undefined,
+    photoBlocks: [],
     canDuplicate: false,
   };
 }
 
+function buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec) {
+  return {
+    title: tzEntry.title,
+    pageType: 'structured',
+    editable: true,
+    fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec),
+    canDuplicate: tzEntry.canDuplicate ?? false,
+  };
+}
+
+function buildWeeklyScheduleTwoDays(pageNumber, slots, lineGuideId, tzEntry, dayPairs) {
+  const dayPair = dayPairs[pageNumber];
+  if (!dayPair) return null;
+  const spec = buildWeeklyScheduleSpec(dayPair[0], dayPair[1], slots);
+  return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec);
+}
+
+function buildWeeklyScheduleSunday(pageNumber, slots, lineGuideId, tzEntry) {
+  return buildStructuredFromSpec(
+    pageNumber,
+    slots,
+    lineGuideId,
+    tzEntry,
+    SUNDAY_SCHEDULE_FIELDS,
+  );
+}
+
 function buildPhotoPage(pageNumber, slots, lineGuideId, tzEntry) {
   return {
+    replaceFields: true,
     title: tzEntry.title,
     pageType: 'photo',
     editable: true,
-    fields: undefined,
-    photoBlocks: slots?.length ? undefined : [FULL_PHOTO_BLOCK],
+    fields: [],
+    photoBlocks: [FULL_PHOTO_BLOCK],
     canDuplicate: tzEntry.canDuplicate ?? false,
   };
 }
@@ -202,6 +253,12 @@ const STATIC_TEMPLATES = new Set([
 ]);
 
 function applyDiary60TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
+  const result = buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId);
+  if (!result) return null;
+  return { replaceFields: true, ...result };
+}
+
+function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   if (!tzEntry) return null;
 
   const template = tzEntry.template;
@@ -240,6 +297,119 @@ function applyDiary60TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       fields: buildDiaryOwnerFields(lineGuideId, pageNumber, slots),
       canDuplicate: false,
     };
+  }
+
+  if (template === 'PersonalPhotoTemplate' || template === 'FamilyPhotosTemplate' || template === 'PetPhotosTemplate') {
+    return buildPhotoPage(pageNumber, slots, lineGuideId, tzEntry);
+  }
+
+  if (template === 'GirlProfileTemplate') {
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      tzEntry,
+      USER_QUESTIONNAIRE_FIELDS,
+    );
+  }
+
+  if (template === 'ParentProfileTemplate_Mom') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PARENT_MOM_FIELDS);
+  }
+
+  if (template === 'ParentProfileTemplate_Dad') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PARENT_DAD_FIELDS);
+  }
+
+  if (
+    template === 'GrandparentProfileTemplate_Grandma' ||
+    template === 'GrandparentProfileTemplate_Grandpa'
+  ) {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, GRANDPARENT_FIELDS);
+  }
+
+  if (template === 'DiaryRulesTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, DIARY_RULES_FIELDS);
+  }
+
+  if (template === 'HobbyTemplate' || template === 'HobbyQuestionnaireTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, HOBBY_FIELDS);
+  }
+
+  if (template === 'PetsTemplate' || template === 'PetsQuestionnaireTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PETS_FIELDS);
+  }
+
+  if (template === 'SocialNetworksTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SOCIAL_NETWORKS_FIELDS);
+  }
+
+  if (template === 'MoodTemplate' || template === 'MoodQuestionnaireTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, MOOD_FIELDS);
+  }
+
+  if (template === 'StyleTemplate' || template === 'StyleQuestionnaireTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, STYLE_FIELDS);
+  }
+
+  if (template === 'FirstLoveTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, FIRST_LOVE_FIELDS);
+  }
+
+  if (template === 'SchoolLifeTemplate' || template === 'SchoolLifeQuestionnaireTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SCHOOL_LIFE_FIELDS);
+  }
+
+  if (template === 'DreamsTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, DREAMS_FIELDS);
+  }
+
+  if (template === 'TravelTemplate') {
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, TRAVEL_FIELDS);
+  }
+
+  if (template === 'UserQuestionnaireTemplate') {
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      tzEntry,
+      USER_QUESTIONNAIRE_FIELDS,
+    );
+  }
+
+  if (template === 'ParentQuestionnaireTemplate') {
+    const spec = pageNumber === 6 ? PARENT_MOM_FIELDS : PARENT_DAD_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec);
+  }
+
+  if (template === 'WeeklyScheduleTwoDaysTemplate') {
+    return buildWeeklyScheduleTwoDays(
+      pageNumber,
+      slots,
+      lineGuideId,
+      tzEntry,
+      WEEKLY_SCHEDULE_DAY_PAIRS,
+    );
+  }
+
+  if (template === 'WeeklyScheduleTemplate') {
+    return buildWeeklyScheduleTwoDays(
+      pageNumber,
+      slots,
+      lineGuideId,
+      tzEntry,
+      BROWN_WEEKLY_SCHEDULE_PAGES,
+    );
+  }
+
+  if (template === 'WeeklyScheduleSundayTemplate') {
+    return buildWeeklyScheduleSunday(pageNumber, slots, lineGuideId, tzEntry);
+  }
+
+  if (template === 'WeeklyScheduleWithNoteTemplate') {
+    const spec = buildBrownWeeklyScheduleWithNoteSpec(slots);
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec);
   }
 
   if (tzEntry.hasPhoto && (tzEntry.pageType === 'photo' || tzEntry.pageType === 'caption_photo_page')) {

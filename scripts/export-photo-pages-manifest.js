@@ -1,16 +1,14 @@
 #!/usr/bin/env node
 /**
- * Lists album pages that have photoBlocks in generated schemas.
+ * Lists album pages that have non-empty photoBlocks in generated schemas.
  * node scripts/export-photo-pages-manifest.js
  */
 const fs = require('fs');
 const path = require('path');
 
 const root = path.join(__dirname, '..');
-const raw = fs.readFileSync(
-  path.join(root, 'constants/generated/album-page-schemas.ts'),
-  'utf8'
-);
+const schemasPath = path.join(root, 'constants/generated/album-page-schemas.ts');
+const raw = fs.readFileSync(schemasPath, 'utf8');
 
 const ALBUM_ORDER = [
   'pregnancy_60',
@@ -21,31 +19,49 @@ const ALBUM_ORDER = [
   'diary_interior_purple',
   'family_blank',
   'holidays_blank',
+  'family_blank_21x21',
 ];
 
-function extractPhotoPages(albumId, nextAlbumId) {
-  const start = raw.indexOf(`"${albumId}": [`);
+function extractAlbumSchemas(albumId, nextAlbumId) {
+  const startMarker = `"${albumId}": [`;
+  const start = raw.indexOf(startMarker);
   if (start < 0) return [];
-  const end =
-    nextAlbumId && raw.indexOf(`"${nextAlbumId}":`, start) > start
-      ? raw.indexOf(`"${nextAlbumId}":`, start)
-      : raw.length;
-  const chunk = raw.slice(start, end);
-  const blocks = chunk.split(/\n    \{\n      "pageId": /).slice(1);
-  const pages = [];
-  for (const block of blocks) {
-    const src = block.match(/"sourcePageNumber": (\d+)/)?.[1];
-    if (!src || !block.includes('"photoBlocks"')) continue;
-    pages.push(Number(src));
+
+  const arrayStart = start + startMarker.length - 1;
+  let depth = 0;
+  let end = arrayStart;
+  for (let i = arrayStart; i < raw.length; i += 1) {
+    const char = raw[i];
+    if (char === '[') depth += 1;
+    if (char === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        end = i + 1;
+        break;
+      }
+    }
   }
-  return pages.sort((a, b) => a - b);
+
+  const jsonText = raw.slice(arrayStart, end);
+  try {
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.warn(`Failed to parse schemas for ${albumId}:`, error.message);
+    return [];
+  }
+}
+
+function hasNonEmptyPhotoBlocks(schema) {
+  return Array.isArray(schema.photoBlocks) && schema.photoBlocks.length > 0;
 }
 
 const result = {};
-for (let i = 0; i < ALBUM_ORDER.length; i += 1) {
-  const albumId = ALBUM_ORDER[i];
-  const next = ALBUM_ORDER[i + 1];
-  result[albumId] = extractPhotoPages(albumId, next);
+for (const albumId of ALBUM_ORDER) {
+  const schemas = extractAlbumSchemas(albumId);
+  result[albumId] = schemas
+    .filter(hasNonEmptyPhotoBlocks)
+    .map((schema) => schema.sourcePageNumber)
+    .sort((a, b) => a - b);
 }
 
 const outPath = path.join(root, 'constants/photo-pages-by-album.json');

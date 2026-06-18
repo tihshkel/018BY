@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
+import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
 import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
 import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
@@ -54,6 +55,7 @@ export default function AlbumPageFormScreen() {
     pageValues,
     project,
   });
+  const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
 
   const handleFieldChange = useCallback(
     (fieldId: string, value: string) => {
@@ -136,6 +138,10 @@ export default function AlbumPageFormScreen() {
           onGroupTransformChange={photoEditor.handleGroupTransformChange}
           onRemovePhoto={photoEditor.handleRemovePhoto}
           onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
+          onFreeElementsChange={(elements) =>
+            photoEditor.updatePageValues((prev) => ({ ...prev, freeElements: elements }))
+          }
+          ensureMediaLibraryPermission={ensureMediaLibraryPermission}
           showCaption={photoEditor.showCaption}
           showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
         />

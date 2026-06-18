@@ -689,7 +689,11 @@ export default function ExportPdfScreen() {
           // Загружаем аннотации (синхронизируем из form-based page values)
           annotations = await ensureProjectAnnotationsSynced(projectId);
 
-          const blankPageUri = await getBlankInteriorPageUri();
+          const lineGuideId = resolveLineGuideId(
+            projectInteriorType ?? albumId ?? '',
+            projectCategory ?? undefined,
+          );
+          const blankPageUri = await getBlankInteriorPageUri(lineGuideId);
           const selectionRaw = await AsyncStorage.getItem(
             getExportSelectionStorageKey(projectId)
           );
@@ -698,10 +702,6 @@ export default function ExportPdfScreen() {
             const instances = await loadPageInstances(
               (k) => AsyncStorage.getItem(k),
               projectId
-            );
-            const lineGuideId = resolveLineGuideId(
-              projectInteriorType ?? albumId ?? '',
-              projectCategory ?? undefined,
             );
             const includedIds = mergeStaticPagesIntoExportSelection({
               instances,
@@ -764,6 +764,10 @@ export default function ExportPdfScreen() {
       console.log(`[PDF Export] Используем альбом: albumId=${albumId}, projectCategory=${projectCategory}, imagesCount=${images.length}`);
 
       const lineGuideAlbumId = projectInteriorType ?? albumId;
+      const exportLineGuideId = resolveLineGuideId(
+        lineGuideAlbumId ?? '',
+        projectCategory ?? undefined,
+      );
 
       // Если PDF развертка обложки еще не получена, пытаемся получить по projectCoverType
       const coverIdForCover = projectCoverType || albumId;
@@ -803,7 +807,7 @@ export default function ExportPdfScreen() {
       }
 
       if (images.length === 0) {
-        const blankPageUri = await getBlankInteriorPageUri();
+        const blankPageUri = await getBlankInteriorPageUri(exportLineGuideId);
         if (blankPageUri) {
           images = [blankPageUri];
           console.warn('[PDF Export] Используем пустой лист как запасную страницу экспорта');
@@ -902,7 +906,7 @@ export default function ExportPdfScreen() {
         margin,
         contentWidth,
         contentHeight,
-      } = getExportPageDimensions(formatToUse.type, projectCategory);
+      } = getExportPageDimensions(formatToUse.type, projectCategory, exportLineGuideId);
 
       const withTimeout = async <T,>(params: {
         label: string;
@@ -1571,7 +1575,7 @@ export default function ExportPdfScreen() {
       let blankPageBytesCache: Uint8Array | null = null;
       const loadBlankPageBytes = async (): Promise<Uint8Array | null> => {
         if (blankPageBytesCache) return blankPageBytesCache;
-        const blankUri = await getBlankInteriorPageUri();
+        const blankUri = await getBlankInteriorPageUri(exportLineGuideId);
         if (!blankUri) return null;
         blankPageBytesCache = await loadImageAsBytes(blankUri);
         return blankPageBytesCache;

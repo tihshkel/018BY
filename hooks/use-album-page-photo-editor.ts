@@ -6,6 +6,7 @@ import type { useAlbumProject } from '@/hooks/use-album-project';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
@@ -27,11 +28,12 @@ export function useAlbumPagePhotoEditor({
   project,
 }: UseAlbumPagePhotoEditorParams) {
   const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
-  const blocks = schema?.photoBlocks ?? [];
+  const resolvedSchema = schema ? enrichSchemaWithPhotoBlocks(schema) : undefined;
+  const blocks = resolvedSchema?.photoBlocks ?? [];
   const photoBlocks = pageValues.photoBlocks;
 
-  const showCaption = schema?.captionEnabled === true;
-  const showPerPhotoCaptions = schema?.pageType === 'caption_photo_page';
+  const showCaption = resolvedSchema?.captionEnabled === true;
+  const showPerPhotoCaptions = resolvedSchema?.pageType === 'caption_photo_page';
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {
@@ -75,10 +77,10 @@ export function useAlbumPagePhotoEditor({
 
       const uri = await pickPhotoFromLibrary({
         ensurePermission: ensureMediaLibraryPermission,
-        aspect: schema
+        aspect: resolvedSchema
           ? getSlotAspectRatio({
-              lineGuideId: schema.lineGuideId,
-              page: schema.sourcePageNumber,
+              lineGuideId: resolvedSchema.lineGuideId,
+              page: resolvedSchema.sourcePageNumber,
               variantId,
               slotIndex,
             })

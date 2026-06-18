@@ -4,6 +4,7 @@ import {
   buildPageLayoutsFromTemplates,
   type SafeZone,
 } from '@/constants/photo-layout-templates';
+import { getTemplatePhotoLayouts } from '@/utils/resolveTemplatePageLayout';
 import { getPdfPhotoPageLayouts } from '@/utils/pdfPhotoSlots';
 import { getPdfCirclePhotoPageLayouts } from '@/utils/pdfCircleSlots';
 
@@ -61,7 +62,13 @@ function finalizeLayouts(
 export function resolvePhotoPageLayouts(
   lineGuideId: string,
   page: number,
+  templateLibraryId?: string,
 ): PhotoPageLayouts {
+  const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId);
+  if (templateLayouts?.variants?.length) {
+    return templateLayouts;
+  }
+
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
     return circle;
@@ -85,7 +92,13 @@ export function resolvePhotoPageLayouts(
 export function resolvePhotoPageLayoutsOrUndefined(
   lineGuideId: string,
   page: number,
+  templateLibraryId?: string,
 ): PhotoPageLayouts | undefined {
+  const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId);
+  if (templateLayouts?.variants?.length) {
+    return templateLayouts;
+  }
+
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
     return circle;

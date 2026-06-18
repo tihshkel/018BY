@@ -162,16 +162,12 @@ export default function AlbumPagePreviewScreen() {
     primaryPhotoBlock?.variants[0]?.variantId ??
     "default";
   const primarySlotUris = primaryBlockValues?.slots ?? [];
-  const primarySlotCount =
-    primaryPhotoBlock?.variants.find((item) => item.variantId === primaryVariantId)?.slots ??
-    (primarySlotUris.some(Boolean) ? primarySlotUris.filter(Boolean).length : 1);
   const hasFilledPhotos = primarySlotUris.some(Boolean);
   const showPhotoBlockEditor =
     isFinalPreview &&
     !isLocked &&
     primaryPhotoBlock != null &&
-    hasFilledPhotos &&
-    primarySlotCount > 1;
+    hasFilledPhotos;
 
   const annotations = usePageAnnotationsForLayout({
     instance,

@@ -108,7 +108,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       return diaryUris ?? [];
     }
     if (isBlankInteriorAlbum(albumId)) {
-      const blankUri = await getBlankInteriorPageUri();
+      const resolvedLineGuide = resolveLineGuideId(albumId, category);
+      const blankUri = await getBlankInteriorPageUri(resolvedLineGuide);
       const count = getAlbumPageCount(albumId);
       return Array(count).fill(blankUri);
     }

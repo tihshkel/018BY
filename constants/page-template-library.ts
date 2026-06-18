@@ -1,89 +1,47 @@
 import type { PageTemplateLibraryItem } from '@/types/album-page-schema';
+import {
+  getTemplateLayout,
+  getTemplateMeta,
+  PHOTO_PAGE_TEMPLATE_IDS,
+  resolvePhotoPageTemplateId,
+  type PhotoPageTemplateId,
+} from '@/utils/photoPageTemplateManifest';
 
-export const PAGE_TEMPLATE_LIBRARY: PageTemplateLibraryItem[] = [
-  {
-    id: '1_photo_caption',
-    title: '1 фото + подпись',
-    description: 'Одно большое фото с короткой подписью',
-    pageType: 'photo',
-    photoSlots: 1,
-    hasCaption: true,
-    hasTextBlock: false,
-  },
-  {
-    id: '2_photos',
-    title: '2 фото',
-    description: 'Два фото с подписями',
-    pageType: 'photo',
-    photoSlots: 2,
-    hasCaption: true,
-    hasTextBlock: false,
-  },
-  {
-    id: '4_photos',
-    title: '4 фото',
-    description: 'Коллаж из четырёх фото',
-    pageType: 'photo',
-    photoSlots: 4,
-    hasCaption: false,
-    hasTextBlock: false,
-  },
-  {
-    id: 'photo_note',
-    title: 'Фото + заметка',
-    description: 'Фото и текстовая заметка',
-    pageType: 'free',
-    photoSlots: 1,
-    hasCaption: false,
-    hasTextBlock: true,
-  },
-  {
-    id: 'note_only',
-    title: 'Заметка без фото',
-    description: 'Только текстовая заметка',
-    pageType: 'free',
-    photoSlots: 0,
-    hasCaption: false,
-    hasTextBlock: true,
-  },
-  {
-    id: 'memory',
-    title: 'Страница воспоминаний',
-    description: 'Фото и воспоминание',
-    pageType: 'free',
-    photoSlots: 1,
-    hasCaption: true,
-    hasTextBlock: true,
-  },
-  {
-    id: 'event',
-    title: 'Страница события',
-    description: 'Событие с фото и описанием',
-    pageType: 'free',
-    photoSlots: 2,
-    hasCaption: true,
-    hasTextBlock: true,
-  },
-  {
-    id: 'month',
-    title: 'Страница месяца',
-    description: 'Фото за месяц',
-    pageType: 'photo',
-    photoSlots: 4,
-    hasCaption: true,
-    hasTextBlock: false,
-  },
-  {
-    id: 'holiday',
-    title: 'Страница праздника',
-    description: 'Праздничные фото и заметка',
-    pageType: 'free',
-    photoSlots: 2,
-    hasCaption: true,
-    hasTextBlock: true,
-  },
-];
+function buildLibraryItem(id: PhotoPageTemplateId): PageTemplateLibraryItem {
+  const meta = getTemplateMeta(id)!;
+  const layout18 = getTemplateLayout(id, '18x24')!;
+  const hasCaption = Boolean(
+    layout18.perPhotoCaptions ||
+      layout18.textBlocks?.some((b) => b.type === 'caption') ||
+      layout18.events?.length,
+  );
+  const hasTextBlock = Boolean(
+    layout18.textBlocks?.some((b) => b.type === 'title' || b.type === 'longText') ||
+      layout18.pageType === 'text_page' ||
+      layout18.pageType === 'free_page',
+  );
+
+  return {
+    id,
+    title: meta.title,
+    description: meta.description,
+    pageType: layout18.pageType ?? 'photo',
+    pageFormat: '18x24',
+    maxPhotos: meta.maxPhotos,
+    photoSlots: meta.maxPhotos,
+    hasCaption,
+    hasTextBlock,
+  };
+}
+
+export const PAGE_TEMPLATE_LIBRARY: PageTemplateLibraryItem[] =
+  PHOTO_PAGE_TEMPLATE_IDS.map((id) => buildLibraryItem(id));
 
 export function getPageTemplateById(id: string): PageTemplateLibraryItem | undefined {
-  return PAGE_TEMPLATE_LIBRARY.find((item) => item.id === id);
+  const resolved = resolvePhotoPageTemplateId(id);
+  return PAGE_TEMPLATE_LIBRARY.find((item) => item.id === resolved);
+}
+
+export function getDefaultTemplateId(): string {
+  return 'SinglePhotoTemplate';
 }

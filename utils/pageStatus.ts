@@ -3,9 +3,79 @@ import type {
   PageStatus,
   PageValues,
 } from '@/types/album-page-schema';
+import {
+  getPageFormatForLineGuide,
+  getTemplateLayout,
+  isBlankTemplateLineGuide,
+} from '@/utils/photoPageTemplateManifest';
 
 function hasText(value: string | undefined | null): boolean {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function countAnyFilledPhotoSlots(values: PageValues, schema: AlbumPageSchema): number {
+  if (schema.pageType === 'free_page') {
+    return (values.freeElements ?? []).filter(
+      (el) => el.type === 'image' && hasText(el.content),
+    ).length;
+  }
+
+  let filled = 0;
+  for (const block of schema.photoBlocks ?? []) {
+    const blockValues = values.photoBlocks[block.blockId];
+    if (!blockValues) continue;
+    const variant =
+      block.variants.find((v) => v.variantId === blockValues.variantId) ?? block.variants[0];
+    if (!variant) continue;
+    for (let i = 0; i < variant.slots; i += 1) {
+      if (hasText(blockValues.slots[i] ?? null)) filled += 1;
+    }
+  }
+  return filled;
+}
+
+function countFilledTimelineEvents(values: PageValues, schema: AlbumPageSchema): number {
+  if (!schema.templateLibraryId) return 0;
+  const format = getPageFormatForLineGuide(schema.lineGuideId);
+  const layout = getTemplateLayout(schema.templateLibraryId, format);
+  if (!layout?.events?.length) return 0;
+
+  let count = 0;
+  for (let i = 0; i < layout.events.length; i += 1) {
+    const blockValues = values.photoBlocks.main_photo;
+    const hasPhoto = hasText(blockValues?.slots[i] ?? null);
+    const event = layout.events[i];
+    const dateField = schema.fields?.find((f) => f.fieldId.endsWith(`_${event.date.id}`));
+    const descField = schema.fields?.find((f) => f.fieldId.endsWith(`_${event.description.id}`));
+    const hasDate = dateField ? hasText(values.fields[dateField.fieldId]) : false;
+    const hasDesc = descField ? hasText(values.fields[descField.fieldId]) : false;
+    if (hasPhoto || hasDate || hasDesc) count += 1;
+  }
+  return count;
+}
+
+function meetsTemplateFilledRule(values: PageValues, schema: AlbumPageSchema): boolean {
+  if (!schema.templateLibraryId || !isBlankTemplateLineGuide(schema.lineGuideId)) {
+    return false;
+  }
+
+  const format = getPageFormatForLineGuide(schema.lineGuideId);
+  const layout = getTemplateLayout(schema.templateLibraryId, format);
+  const rule = layout?.minFilledRule;
+  if (!rule) return false;
+
+  const photoCount = countAnyFilledPhotoSlots(values, schema);
+  const textCount = (schema.fields ?? []).filter((f) => hasText(values.fields[f.fieldId])).length;
+  const freeCount = (values.freeElements ?? []).filter((el) => hasText(el.content)).length;
+
+  if (rule.minPhotos != null && photoCount >= rule.minPhotos) return true;
+  if (rule.minTextFields != null && textCount >= rule.minTextFields) return true;
+  if (rule.minTimelineEvents != null && countFilledTimelineEvents(values, schema) >= rule.minTimelineEvents) {
+    return true;
+  }
+  if (rule.minAnyContent && (photoCount > 0 || textCount > 0 || freeCount > 0)) return true;
+
+  return false;
 }
 
 function countFilledPhotoSlots(values: PageValues, schema: AlbumPageSchema): number {
@@ -32,10 +102,11 @@ function countFilledPhotoSlots(values: PageValues, schema: AlbumPageSchema): num
 function hasAnyUserContent(values: PageValues, schema: AlbumPageSchema): boolean {
   const fieldIds = schema.fields?.map((f) => f.fieldId) ?? [];
   const filledFields = fieldIds.filter((id) => hasText(values.fields[id])).length;
-  const photoFilled = countFilledPhotoSlots(values, schema);
+  const photoFilled = countAnyFilledPhotoSlots(values, schema);
   const hasCaption = hasText(values.caption);
   const hasPhotoCaptions = (values.photoCaptions ?? []).some((c) => hasText(c));
-  return filledFields > 0 || photoFilled > 0 || hasCaption || hasPhotoCaptions;
+  const hasFreeElements = (values.freeElements ?? []).some((el) => hasText(el.content));
+  return filledFields > 0 || photoFilled > 0 || hasCaption || hasPhotoCaptions || hasFreeElements;
 }
 
 export function computePageStatus(schema: AlbumPageSchema, values?: PageValues | null): PageStatus {
@@ -69,6 +140,10 @@ export function computePageStatus(schema: AlbumPageSchema, values?: PageValues |
   const hasAnyContent = hasAnyUserContent(values, schema);
 
   if (!hasAnyContent) return 'empty';
+
+  if (meetsTemplateFilledRule(values, schema)) {
+    return 'filled';
+  }
 
   const fieldsComplete = totalFields === 0 || filledFields === totalFields;
   const photosComplete = photoRequired === 0 || photoFilled === photoRequired;

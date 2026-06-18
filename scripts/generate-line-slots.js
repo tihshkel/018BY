@@ -436,7 +436,11 @@ function formatFloat(n) {
   return Number(n.toFixed(5));
 }
 
-const { extractAllSlotsFromPdf } = require('./pdf-line-extractor');
+const {
+  extractAllSlotsFromPdf,
+  extractSlotsForPdfPage,
+  loadPdfDocument,
+} = require('./pdf-line-extractor');
 
 /** Базовые PDF-параметры как у альбомов беременности (точные подписи, без геометрии). */
 const PREGNANCY_PDF_BASE = {
@@ -479,6 +483,40 @@ const PDF_SOURCES = {
   diary_interior_brown: path.join('in albums', '09.06.26_Блок коричневый _180х240_print.pdf'),
   diary_interior_purple: path.join('in albums', '09.06.26_Блок фиолетовый_180х240_print.pdf'),
 };
+
+/** Поштучные PDF-макеты (предпочтительный источник для дневников). */
+const PER_PAGE_PDF_FOLDERS = {
+  diary_interior_brown: 'ЛД 180х240',
+  diary_interior_purple: 'ЛД А5',
+};
+
+function normalizeFileName(name) {
+  return name.normalize('NFC');
+}
+
+function findPerPagePdfFolder(projectRoot, folderName) {
+  const inAlbums = path.join(projectRoot, 'in albums');
+  if (!fs.existsSync(inAlbums)) return null;
+  const target = normalizeFileName(folderName).toLowerCase();
+  for (const entry of fs.readdirSync(inAlbums)) {
+    if (normalizeFileName(entry).toLowerCase() === target) {
+      return path.join(inAlbums, entry);
+    }
+  }
+  return null;
+}
+
+function listPerPagePdfFiles(folderPath) {
+  const pageRe = /(\d+)\s*\.pdf$/i;
+  return fs
+    .readdirSync(folderPath)
+    .filter((fileName) => pageRe.test(normalizeFileName(fileName)))
+    .map((fileName) => {
+      const pageNumber = Number(normalizeFileName(fileName).match(pageRe)[1]);
+      return { pageNumber, filePath: path.join(folderPath, fileName) };
+    })
+    .sort((a, b) => a.pageNumber - b.pageNumber);
+}
 
 function matchesOnlyAlbum(albumId) {
   const only = process.env.ONLY_ALBUM;
@@ -908,6 +946,175 @@ async function generateForAlbumFromPdf(projectRoot, spec, overrides, pdfPath) {
   return { slots: slotsByPage, guides: guidesByPage };
 }
 
+async function generateForAlbumFromPerPagePdfs(projectRoot, spec, overrides, folderPath) {
+  const manualOverrides = loadOverrides(projectRoot, 'line-slots-manual-overrides.json');
+  const albumManualOverrides = manualOverrides[spec.albumId] ?? {};
+  const albumPngOverrides = overrides[spec.albumId] ?? {};
+  const pdfOptions = {
+    ...spec.options,
+    lineGuideId: spec.albumId,
+    minSpanRatio: spec.options.minUnderlineRunRatio ?? 0.08,
+    minSpanPt: spec.options.pdfMinSpanPt ?? 4,
+    maxSpanRatio: spec.options.pdfMaxSpanRatio ?? 0.92,
+    minNormY: spec.options.pdfMinNormY ?? 0.03,
+    maxNormY: spec.options.pdfMaxNormY ?? 0.96,
+    bottomCutPt: spec.options.pdfBottomCutPt ?? 55,
+    topCutPt: spec.options.pdfTopCutPt ?? 40,
+    textPadPt: spec.options.pdfTextPadPt ?? 3,
+    formStartNormY: spec.options.pdfFormStartNormY ?? 0.12,
+    formLineRefine: spec.options.formLineRefine ?? false,
+    inferLabelFromGeometry: spec.options.inferLabelFromGeometry ?? false,
+    extractFlatCurves: spec.options.extractFlatCurves ?? false,
+    formMinScore: spec.options.formMinScore ?? 0.25,
+    formYClusterEpsilon: spec.options.formYClusterEpsilon ?? 0.012,
+    mergeDashedRows: spec.options.mergeDashedRows ?? false,
+    minSegmentSpanPt: spec.options.minSegmentSpanPt ?? 1.5,
+    mergeGapPt: spec.options.mergeGapPt,
+    collapseNearbyRows: spec.options.collapseNearbyRows ?? false,
+    minRowGapNorm: spec.options.minRowGapNorm ?? 0.016,
+    diaryFormMode: spec.options.diaryFormMode ?? false,
+    diaryBrownFormMode: spec.options.diaryBrownFormMode ?? false,
+    diaryQuestionnairePageNumber: spec.options.diaryQuestionnairePageNumber,
+    diaryQuestionnairePageNumbers: spec.options.diaryQuestionnairePageNumbers,
+    brownParentQuestionnaireMinPage: spec.options.brownParentQuestionnaireMinPage,
+    brownParentQuestionnaireMaxPage: spec.options.brownParentQuestionnaireMaxPage,
+    brownWishRelaxedColumn: spec.options.brownWishRelaxedColumn,
+    brownWishPageNumber: spec.options.brownWishPageNumber,
+    brownWishMinJoinNormY: spec.options.brownWishMinJoinNormY,
+    brownWishFieldMinNormY: spec.options.brownWishFieldMinNormY,
+    brownWishFieldMaxNormY: spec.options.brownWishFieldMaxNormY,
+    brownWishMaxEndNormY: spec.options.brownWishMaxEndNormY,
+    brownWideBlockMinNormY: spec.options.brownWideBlockMinNormY,
+    brownWideBlockMaxNormY: spec.options.brownWideBlockMaxNormY,
+    brownWishContinuationLines: spec.options.brownWishContinuationLines,
+    brownWishTotalLines: spec.options.brownWishTotalLines,
+    brownCareerAnswerFirstNormY: spec.options.brownCareerAnswerFirstNormY,
+    brownPage6CareerQuestionNormY: spec.options.brownPage6CareerQuestionNormY,
+    brownCareerAnswerRowGap: spec.options.brownCareerAnswerRowGap,
+    brownCareerAnswerSecondNormY: spec.options.brownCareerAnswerSecondNormY,
+    brownCareerAnswerMinNormY: spec.options.brownCareerAnswerMinNormY,
+    brownPage6BestFriendMaleNormY: spec.options.brownPage6BestFriendMaleNormY,
+    brownPage6BestFriendMaleLeftNorm: spec.options.brownPage6BestFriendMaleLeftNorm,
+    brownCareerAnswerMinWidth: spec.options.brownCareerAnswerMinWidth,
+    brownQuestionnaireStartNormY: spec.options.brownQuestionnaireStartNormY,
+    brownQuestionnaireEndNormY: spec.options.brownQuestionnaireEndNormY,
+    brownInputMinSpanFallback: spec.options.brownInputMinSpanFallback,
+    brownInputMinRightShort: spec.options.brownInputMinRightShort,
+    brownInputMinGapRatio: spec.options.brownInputMinGapRatio,
+    brownRowMergeGapNorm: spec.options.brownRowMergeGapNorm,
+    brownCoverGapRatio: spec.options.brownCoverGapRatio,
+    brownSolidMinLeftRatio: spec.options.brownSolidMinLeftRatio,
+    brownShortFullMinLeftRatio: spec.options.brownShortFullMinLeftRatio,
+    brownDashClusterGapRatio: spec.options.brownDashClusterGapRatio,
+    singleRowGroups: spec.options.singleRowGroups ?? false,
+    brownSimpleMaxLines: spec.options.brownSimpleMaxLines,
+    brownFullWidthMaxLines: spec.options.brownFullWidthMaxLines,
+    columnGapRatio: spec.options.columnGapRatio,
+    slotMode: spec.options.slotMode,
+    maxBlocksPerPage: spec.options.maxBlocksPerPage,
+    blockPadPt: spec.options.blockPadPt,
+    whiteFillThreshold: spec.options.whiteFillThreshold,
+    allowCreamFill: spec.options.allowCreamFill,
+    hybridLineFallback: spec.options.hybridLineFallback,
+    lineFallbackOptions: spec.options.lineFallbackOptions,
+  };
+
+  const slotsByPage = {};
+  const guidesByPage = {};
+  const onlyPage = process.env.ONLY_PAGE;
+  const pdfFiles = listPerPagePdfFiles(folderPath);
+  const legacyPdfRel = PDF_SOURCES[spec.albumId];
+  const legacyPdfPath = legacyPdfRel ? path.join(projectRoot, legacyPdfRel) : null;
+  let legacyDoc = null;
+  if (legacyPdfPath && fs.existsSync(legacyPdfPath)) {
+    legacyDoc = await loadPdfDocument(legacyPdfPath);
+  }
+
+  console.log(
+    `[${spec.albumId}] using per-page PDF folder:`,
+    path.relative(projectRoot, folderPath),
+    `(${pdfFiles.length} files)`,
+  );
+
+  for (const { pageNumber, filePath } of pdfFiles) {
+    const pageKey = String(pageNumber);
+    if (onlyPage) {
+      const onlyIndex = Number(onlyPage.match(/^page_(\d+)\.png$/i)?.[1] ?? onlyPage);
+      if (pageNumber !== onlyIndex) continue;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(albumManualOverrides, pageKey)) {
+      const overrideSlots = albumManualOverrides[pageKey];
+      slotsByPage[pageKey] = overrideSlots;
+      guidesByPage[pageKey] = overrideSlots.map((s) => s.y);
+      console.log(`[${spec.albumId}] page ${pageKey}: manual ${overrideSlots.length} slots`);
+      continue;
+    }
+
+    const doc = await loadPdfDocument(filePath);
+    let pdfPageSlots = await extractSlotsForPdfPage(doc, 1, {
+      ...pdfOptions,
+      pageNumber,
+    });
+    let source = 'per-page-pdf';
+
+    const PNG_FALLBACK_THRESHOLD = 3;
+    if (pdfPageSlots.length < PNG_FALLBACK_THRESHOLD) {
+      const pngPath = path.join(
+        projectRoot,
+        'albums',
+        'diary',
+        'cover',
+        'in album',
+        spec.folder,
+        `page_${String(pageNumber).padStart(3, '0')}.png`,
+      );
+      if (fs.existsSync(pngPath)) {
+        const png = await readPng(pngPath);
+        const formStartNormY = spec.options.formStartNormY ?? 0;
+        const linesPx = refineDetectedLines(
+          png,
+          detectAllHorizontalLines(png, spec.options)
+            .filter((y) => !isDecorativeTopLine(png, y, spec.options))
+            .filter((y) => y / png.height >= formStartNormY),
+          spec.options,
+        );
+        const pngSlots = buildSlotsForPage(png, linesPx, spec.options, spec.margins);
+        if (pngSlots.length > pdfPageSlots.length) {
+          pdfPageSlots = pngSlots;
+          source = 'per-page-png-fallback';
+        }
+      }
+    }
+
+    const MIN_SLOTS_BEFORE_LEGACY = 3;
+    if (pdfPageSlots.length < MIN_SLOTS_BEFORE_LEGACY && legacyDoc) {
+      const legacySlots = await extractSlotsForPdfPage(legacyDoc, pageNumber, {
+        ...pdfOptions,
+        pageNumber,
+      });
+      if (legacySlots.length > pdfPageSlots.length) {
+        pdfPageSlots = legacySlots;
+        source = 'legacy-block-pdf-fallback';
+      }
+    }
+
+    const usePngFallback = spec.pdfOnly !== true;
+    const pngPageOverride = usePngFallback ? albumPngOverrides[pageKey] : undefined;
+    const slots = usePngFallback
+      ? pickPageSlots(pdfPageSlots, pngPageOverride, {
+          preferPngOverrides: spec.preferPngOverrides === true,
+        })
+      : pdfPageSlots;
+
+    slotsByPage[pageKey] = slots;
+    guidesByPage[pageKey] = slots.map((s) => s.y);
+    console.log(`[${spec.albumId}] page ${pageKey}: ${source} ${slots.length} slots`);
+  }
+
+  return { slots: slotsByPage, guides: guidesByPage };
+}
+
 async function generateForAlbumFromPng(projectRoot, spec, overrides) {
   const folderPath = path.join(projectRoot, 'assets', 'pdfs', spec.folder);
   if (!fs.existsSync(folderPath)) {
@@ -961,6 +1168,20 @@ async function generateForAlbumFromPng(projectRoot, spec, overrides) {
 
 async function generateForAlbum(projectRoot, spec, overrides) {
   if (!matchesOnlyAlbum(spec.albumId)) return null;
+
+  const perPageFolderName = PER_PAGE_PDF_FOLDERS[spec.albumId];
+  const perPageFolderPath = perPageFolderName
+    ? findPerPagePdfFolder(projectRoot, perPageFolderName)
+    : null;
+  const usePerPagePdf =
+    perPageFolderPath &&
+    fs.existsSync(perPageFolderPath) &&
+    process.env.USE_PNG_SLOTS !== '1' &&
+    process.env.USE_LEGACY_DIARY_PDF !== '1';
+
+  if (usePerPagePdf) {
+    return generateForAlbumFromPerPagePdfs(projectRoot, spec, overrides, perPageFolderPath);
+  }
 
   const pdfRel = PDF_SOURCES[spec.albumId];
   const pdfPath = pdfRel ? path.join(projectRoot, pdfRel) : null;

@@ -1693,5 +1693,258 @@
         }
       ]
     }
-  }
+  },
+  "diary_interior_brown": {
+    "4": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.2407,
+              "y": 0.4817,
+              "width": 0.5185,
+              "height": 0.5833,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "9": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1883,
+              "y": 0.5696,
+              "width": 0.6235,
+              "height": 0.7014,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "10": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "14": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "18": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1877,
+              "y": 0.6011,
+              "width": 0.6246,
+              "height": 0.7027,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "19": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "22": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "27": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "32": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "57": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "58": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "59": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.1667,
+              "y": 0.5,
+              "width": 0.6667,
+              "height": 0.75,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "diary_interior_purple": {
+    "4": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.2225,
+              "y": 0.4481,
+              "width": 0.5571,
+              "height": 0.4178,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "pregnancy_a5": {},
+  "holidays_birthday_60": {}
 }

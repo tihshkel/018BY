@@ -22,9 +22,40 @@ function readFile(relativePath) {
   return fs.readFileSync(path.join(projectRoot, relativePath), 'utf8');
 }
 
+function loadJson(relativePath) {
+  return JSON.parse(readFile(relativePath));
+}
+
 function getSchemaSnippet(schemasSource, pageId) {
   const re = new RegExp(`"pageId": "${pageId}"[\\s\\S]*?\\n    \\}`, 'm');
   return schemasSource.match(re)?.[0] ?? '';
+}
+
+function extractAlbumSchemas(raw, albumId) {
+  const startMarker = `"${albumId}": [`;
+  const start = raw.indexOf(startMarker);
+  if (start < 0) return [];
+
+  const arrayStart = start + startMarker.length - 1;
+  let depth = 0;
+  let end = arrayStart;
+  for (let i = arrayStart; i < raw.length; i += 1) {
+    const char = raw[i];
+    if (char === '[') depth += 1;
+    if (char === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+  }
+
+  try {
+    return JSON.parse(raw.slice(arrayStart, end));
+  } catch {
+    return [];
+  }
 }
 
 function getPhotoVariantAspect(variantId) {
@@ -37,6 +68,18 @@ function getPhotoVariantAspect(variantId) {
   return undefined;
 }
 
+const ALBUM_ORDER = [
+  'pregnancy_60',
+  'pregnancy_a5',
+  'kids_48',
+  'holidays_birthday_60',
+  'diary_interior_brown',
+  'diary_interior_purple',
+  'family_blank',
+  'holidays_blank',
+  'family_blank_21x21',
+];
+
 // --- 1. Layout templates ---
 const templatesSource = readFile('constants/photo-layout-templates.ts');
 assert(templatesSource.includes('three_hero'), 'photo-layout-templates: three_hero');
@@ -46,9 +89,9 @@ assert(templatesSource.includes('buildPageLayoutsFromTemplates'), 'photo-layout-
 // --- 2. Photo slot coverage ---
 const photoSlotsSource = readFile('constants/photo-slots.ts');
 assert(
-  ['56', '57', '58', '59'].every((p) =>
-    photoSlotsSource.includes(`'${p}':`) &&
-    photoSlotsSource.includes(`variantId: 'one_large'`),
+  ['56', '57', '58', '59'].every(
+    (p) =>
+      photoSlotsSource.includes(`'${p}':`) && photoSlotsSource.includes(`variantId: 'one_large'`),
   ),
   'pregnancy_60: photo-slots 56–59 with calibrated variants',
 );
@@ -72,13 +115,27 @@ const kidsP1 = getSchemaSnippet(schemasSource, 'kids_48_p1');
 assert(kidsP1.includes('"photoBlocks"'), 'schema kids p1: photoBlocks');
 assert(!kidsP1.includes('"three_hero"'), 'schema kids p1: no three_hero (small zone)');
 
+const diaryPurpleP4 = getSchemaSnippet(schemasSource, 'diary_interior_purple_p4');
+assert(diaryPurpleP4.includes('"pageType": "photo"'), 'schema diary purple p4: photo page');
+assert(diaryPurpleP4.includes('"photoBlocks"'), 'schema diary purple p4: photoBlocks');
+
+const diaryBrownP2 = getSchemaSnippet(schemasSource, 'diary_interior_brown_p2');
+assert(diaryBrownP2.includes('"photoBlocks": []'), 'schema diary brown p2: explicit empty photoBlocks');
+
 // --- 4. Cover rendering ---
 const adapterSource = readFile('utils/pageValuesAdapter.ts');
 assert(adapterSource.includes("imageContentFit: 'cover'"), 'pageValuesAdapter: imageContentFit cover');
+assert(
+  !adapterSource.includes('variant.slots > 1 ? values.photoGroupTransform'),
+  'pageValuesAdapter: group transform applies to single-slot blocks',
+);
 
 const annotationsSource = readFile('components/pdf-annotations.tsx');
 assert(annotationsSource.includes('imageContentFit'), 'pdf-annotations: imageContentFit prop');
-assert(annotationsSource.includes("annotation.imageContentFit ?? 'fill'"), 'pdf-annotations: cover/fill switch');
+assert(
+  annotationsSource.includes("annotation.imageContentFit ?? 'fill'"),
+  'pdf-annotations: cover/fill switch',
+);
 
 const exportSource = readFile('app/export-pdf.tsx');
 assert(exportSource.includes('computeObjectFitCover'), 'export-pdf: cover crop');
@@ -103,11 +160,12 @@ assert(
   'aspect 1:1 for four_grid',
 );
 
-// --- 8. albumProjectInit library pages ---
-const initSource = readFile('utils/albumProjectInit.ts');
-assert(initSource.includes('FULL_PHOTO_BLOCK'), 'albumProjectInit: FULL_PHOTO_BLOCK for library');
+// --- 8. Photo editor hook ---
+const photoEditorSource = readFile('hooks/use-album-page-photo-editor.ts');
+assert(photoEditorSource.includes('photoGroupTransform'), 'useAlbumPagePhotoEditor: group transform support');
+assert(photoEditorSource.includes('photoBlocks'), 'useAlbumPagePhotoEditor: photoBlocks state');
 
-// --- 9. PDF-detected photo slots (Место для фото) ---
+// --- 9. PDF-detected photo slots ---
 const pdfSlotsPath = path.join(projectRoot, 'constants/generated/pdf-photo-slots.json');
 assert(fs.existsSync(pdfSlotsPath), 'pdf-photo-slots.json exists');
 const pdfSlots = JSON.parse(fs.readFileSync(pdfSlotsPath, 'utf8'));
@@ -117,12 +175,77 @@ assert(
   'pdf-photo-slots: pregnancy page 1 slot height plausible',
 );
 assert(
+  Object.keys(pdfSlots.diary_interior_brown ?? {}).length >= 1,
+  'pdf-photo-slots: diary_interior_brown has entries',
+);
+assert(
+  Object.keys(pdfSlots.diary_interior_purple ?? {}).length >= 1,
+  'pdf-photo-slots: diary_interior_purple has entries',
+);
+
+assert(
   readFile('utils/schemaPhotoBlocks.ts').includes('resolvePhotoPageLayoutsOrUndefined'),
   'schemaPhotoBlocks uses PDF slot resolution',
 );
+assert(
+  readFile('utils/schemaPhotoBlocks.ts').includes('shouldEnrichWithPhotoBlocks'),
+  'schemaPhotoBlocks: enrichment denylist for text-only pages',
+);
 
-// --- 10. visualize script ---
-assert(fs.existsSync(path.join(projectRoot, 'scripts/visualize-photo-slots.js')), 'visualize-photo-slots.js exists');
+// --- 10. Preview group editor gate ---
+const previewSource = readFile('app/album-page-preview.tsx');
+assert(
+  previewSource.includes('AlbumPreviewPhotoBlockEditor'),
+  'album-page-preview: uses AlbumPreviewPhotoBlockEditor overlay',
+);
+assert(
+  !previewSource.includes('primarySlotCount > 1'),
+  'album-page-preview: group editor not gated by slot count',
+);
+assert(
+  readFile('components/album/album-preview-photo-block-editor.tsx').includes(
+    'preview-photo-block-select',
+  ),
+  'AlbumPreviewPhotoBlockEditor: testID for maestro',
+);
+
+// --- 11. photo-pages-by-album.json sync ---
+const photoPagesManifest = loadJson('constants/photo-pages-by-album.json');
+for (const albumId of ALBUM_ORDER) {
+  assert(Array.isArray(photoPagesManifest[albumId]), `photo-pages manifest: ${albumId} exists`);
+}
+
+assert(
+  (photoPagesManifest.holidays_birthday_60?.length ?? 0) > 0,
+  'photo-pages manifest: holidays_birthday_60 not empty',
+);
+assert(
+  !photoPagesManifest.diary_interior_brown?.includes(2),
+  'photo-pages manifest: diary brown excludes static p2',
+);
+assert(
+  !photoPagesManifest.diary_interior_brown?.includes(29),
+  'photo-pages manifest: diary brown excludes static p29',
+);
+
+for (const albumId of ALBUM_ORDER) {
+  const schemas = extractAlbumSchemas(schemasSource, albumId);
+  const expectedPages = schemas
+    .filter((schema) => Array.isArray(schema.photoBlocks) && schema.photoBlocks.length > 0)
+    .map((schema) => schema.sourcePageNumber)
+    .sort((a, b) => a - b);
+  const manifestPages = [...(photoPagesManifest[albumId] ?? [])].sort((a, b) => a - b);
+  assert(
+    JSON.stringify(manifestPages) === JSON.stringify(expectedPages),
+    `photo-pages manifest sync: ${albumId} (${manifestPages.length} pages)`,
+  );
+}
+
+// --- 12. visualize script ---
+assert(
+  fs.existsSync(path.join(projectRoot, 'scripts/visualize-photo-slots.js')),
+  'visualize-photo-slots.js exists',
+);
 
 console.log('\n---');
 if (failed > 0) {

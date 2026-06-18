@@ -5,6 +5,7 @@ import {
   getInfoAsync,
   makeDirectoryAsync,
 } from 'expo-file-system/legacy';
+import { usesSquareBlankInterior } from '@/constants/square-blank-interior';
 import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 
 /**
@@ -384,18 +385,25 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
 
 // Пустой лист 180×240 мм @ 300 dpi — тот же формат, что у печатных блоков и экспорта PDF.
 const blankWhitePage = require('@/assets/images/albums/blank_interior_page.png');
+const blankSquarePage = require('@/assets/images/albums/blank_interior_square_page.png');
 
 /** 180×240 мм @ 300 dpi (совпадает с albums/.../180х240_print и export 510×680 pt) */
 export const BLANK_INTERIOR_PAGE_WIDTH = 2126;
 export const BLANK_INTERIOR_PAGE_HEIGHT = 2835;
 
+/** 210×210 мм @ 300 dpi */
+export const BLANK_SQUARE_PAGE_WIDTH = 2480;
+export const BLANK_SQUARE_PAGE_HEIGHT = 2480;
+
 /** Меняем при замене blank_interior_page.png, чтобы сбросить кеш expo-image */
 export const BLANK_INTERIOR_CACHE_REVISION = 'white-v3-2126x2835';
 const HOLIDAY_BLANK_PAGE_COUNT = 20;
 const FAMILY_BLANK_PAGE_COUNT = 20;
+const FAMILY_BLANK_21_PAGE_COUNT = 20;
 
-function blankPageArray(count: number): typeof blankWhitePage[] {
-  return Array(count).fill(blankWhitePage);
+function blankPageArray(count: number, square = false): typeof blankWhitePage[] {
+  const page = square ? blankSquarePage : blankWhitePage;
+  return Array(count).fill(page);
 }
 
 /** ID обложки семейного альбома (SDFA1–7), не внутренняя часть */
@@ -409,13 +417,20 @@ export function isBlankInteriorAlbum(
   category?: string | null
 ): boolean {
   const interiorId = resolveInteriorAlbumId(albumId ?? '', category);
-  return interiorId === 'family_blank' || interiorId === 'holidays_blank';
+  return (
+    interiorId === 'family_blank' ||
+    interiorId === 'holidays_blank' ||
+    interiorId === 'family_blank_21x21'
+  );
 }
 
 /** Один URI белого листа — для выбора при добавлении страницы */
-export async function getBlankInteriorPageUri(): Promise<string | null> {
+export async function getBlankInteriorPageUri(
+  lineGuideId?: string | null,
+): Promise<string | null> {
   try {
-    const asset = Asset.fromModule(blankWhitePage);
+    const square = lineGuideId === 'family_blank_21x21';
+    const asset = Asset.fromModule(square ? blankSquarePage : blankWhitePage);
     await asset.downloadAsync();
     return asset.localUri || asset.uri || null;
   } catch {
@@ -430,7 +445,10 @@ export function resolveInteriorAlbumId(
   albumId: string | null | undefined,
   category?: string | null
 ): string {
-  if (category === 'family') return 'family_blank';
+  if (category === 'family') {
+    if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
+    return 'family_blank';
+  }
   if (category === 'kids') return 'kids_48';
 
   if (!albumId) {
@@ -438,6 +456,9 @@ export function resolveInteriorAlbumId(
     return '';
   }
 
+  if (albumId === 'family_blank_21x21' || usesSquareBlankInterior(albumId)) {
+    return 'family_blank_21x21';
+  }
   if (albumId === 'family_blank' || isFamilyCoverAlbumId(albumId)) return 'family_blank';
   if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
   if (albumId.startsWith('holiday_')) {
@@ -528,6 +549,8 @@ export function getAlbumImages(albumId: string): any[] {
       return [blankWhitePage];
     case 'family_blank':
       return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
+    case 'family_blank_21x21':
+      return blankPageArray(FAMILY_BLANK_21_PAGE_COUNT, true);
     default:
       return [];
   }
@@ -552,6 +575,8 @@ export function getAlbumPageCount(albumId: string): number {
       return 60;
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
+    case 'family_blank_21x21':
+      return FAMILY_BLANK_21_PAGE_COUNT;
     default:
       return 0;
   }

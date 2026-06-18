@@ -241,6 +241,7 @@ export function AlbumPreviewPhotoBlockEditor({
             },
           ]}
           onPress={() => setSelected(true)}
+          testID="preview-photo-block-select"
           accessibilityRole="button"
           accessibilityLabel="Выбрать блок фото"
         />
@@ -252,7 +253,11 @@ export function AlbumPreviewPhotoBlockEditor({
 
           {selected ? (
             <>
-              <View style={styles.selectionBorder} pointerEvents="none" />
+              <View
+                style={styles.selectionBorder}
+                pointerEvents="none"
+                testID="preview-photo-block-selected"
+              />
               {CORNERS.map((corner) => (
                 <GestureDetector key={corner} gesture={cornerGestures[corner]}>
                   <Animated.View

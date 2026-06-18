@@ -3,10 +3,14 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppHeader, AppScreen, AppText } from '@/components/ui';
-import { PAGE_TEMPLATE_LIBRARY } from '@/constants/page-template-library';
+import { TemplateWireframePreview } from '@/components/album/template-wireframe-preview';
 import { colors, createShadow, radii, spacing } from '@/constants/design-tokens';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
+import {
+  getPageFormatForLineGuide,
+  listTemplatesForFormat,
+} from '@/utils/photoPageTemplateManifest';
 
 export default function AlbumTemplateLibraryScreen() {
   const { id, celebration, coverType, interiorType, afterIndex } = useLocalSearchParams<{
@@ -25,6 +29,8 @@ export default function AlbumTemplateLibraryScreen() {
   });
 
   const insertAfter = afterIndex ? Number(afterIndex) : project.instances.length - 1;
+  const pageFormat = getPageFormatForLineGuide(project.lineGuideId);
+  const templates = listTemplatesForFormat(pageFormat);
 
   const albumFlowParams: AlbumFlowParams = {
     id,
@@ -63,23 +69,27 @@ export default function AlbumTemplateLibraryScreen() {
       />
 
       <AppText variant="caption" style={styles.sectionLabel}>
-        Фото-страницы и структурированные
+        Формат {pageFormat === '21x21' ? '21×21' : '18×24'} — {templates.length} шаблонов
       </AppText>
 
       <View style={styles.grid}>
-        {PAGE_TEMPLATE_LIBRARY.map((template) => (
+        {templates.map((template) => (
           <Pressable
             key={template.id}
             onPress={() => handleSelect(template.id, template.title)}
             style={({ pressed }) => [styles.card, pressed && styles.pressed]}
           >
             <View style={styles.preview}>
-              <AppText variant="caption" style={styles.previewText}>
-                {template.photoSlots > 0 ? `${template.photoSlots} фото` : 'Текст'}
+              <TemplateWireframePreview templateId={template.id} format={pageFormat} />
+              <AppText variant="caption" style={styles.previewBadge}>
+                {template.maxPhotos > 0 ? `${template.maxPhotos} фото` : 'Текст'}
               </AppText>
             </View>
             <AppText variant="bodySm" numberOfLines={2} style={styles.cardTitle}>
               {template.title}
+            </AppText>
+            <AppText variant="caption" numberOfLines={2} style={styles.cardDescription}>
+              {template.description}
             </AppText>
           </Pressable>
         ))}
@@ -122,14 +132,25 @@ const styles = StyleSheet.create({
     height: 100,
     backgroundColor: colors.primarySurface,
     borderRadius: radii.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing.xs,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  previewText: {
+  previewBadge: {
+    position: 'absolute',
+    right: spacing.xs,
+    bottom: spacing.xs,
     color: colors.primary,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radii.sm,
   },
   cardTitle: {
     color: colors.textPrimary,
+  },
+  cardDescription: {
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 });
