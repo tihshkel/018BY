@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 
 import { spacing } from "@/constants/design-tokens";
+import { resolveEditorCoordinateViewport } from "@/utils/exportViewport";
 import {
   FORM_MODAL_MAX_WIDTH,
   getEditorPageDisplayScale,
-  getEditorPageViewportWidth,
   getTabletContentShell,
   getTabletSectionWrap,
   isTabletLayout,
@@ -41,10 +41,12 @@ export function useAlbumPagePreviewLayout(imageAspectRatio?: number) {
     const isTablet = isTabletLayout(width);
     const isLandscape = width > height;
     const useSplitLayout = isTablet && isLandscape;
-    const phoneCoordinateWidth = Math.max(width - spacing.md * 2, 280);
-    const coordinateWidth = isTablet
-      ? getEditorPageViewportWidth(width)
-      : phoneCoordinateWidth;
+    const { width: coordinateWidth, height: coordinateHeight } =
+      resolveEditorCoordinateViewport({
+        windowWidth: width,
+        imageAspectRatio:
+          imageAspectRatio && imageAspectRatio > 0 ? imageAspectRatio : undefined,
+      });
 
     const chromeHeight = useSplitLayout
       ? PREVIEW_CHROME_HEIGHT_SPLIT
@@ -58,10 +60,6 @@ export function useAlbumPagePreviewLayout(imageAspectRatio?: number) {
           chromeHeight,
         )
       : 1;
-
-    const aspect =
-      imageAspectRatio && imageAspectRatio > 0 ? imageAspectRatio : 1.414;
-    const coordinateHeight = coordinateWidth * aspect;
     const displayWidth = coordinateWidth * displayScale;
     const displayHeight = coordinateHeight * displayScale;
 

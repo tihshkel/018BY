@@ -16,7 +16,8 @@ export type PageType =
   | 'godparents_page'
   | 'timeline_page'
   | 'text_page'
-  | 'free_page';
+  | 'free_page'
+  | 'birthday_free_page';
 
 export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
 
@@ -84,7 +85,17 @@ export interface AlbumPageSchema {
   captionEnabled?: boolean;
   /** Always included in electronic export even when empty (e.g. kids p2). */
   requiredInExport?: boolean;
+  /** Birthday free pages — default custom field definitions (labels editable in UI). */
+  customFieldDefs?: BirthdayCustomFieldDef[];
 }
+
+export type BirthdayCustomFieldDef = {
+  id: string;
+  defaultLabel: string;
+  fieldType: 'short_text' | 'long_text';
+  maxLabelLength?: number;
+  maxValueLength?: number;
+};
 
 export interface AlbumSectionDefinition {
   sectionId: string;
@@ -141,7 +152,16 @@ export interface PageValues {
   draftSavedAt?: string;
   /** FreePageTemplate — произвольные элементы на canvas */
   freeElements?: FreePageElement[];
+  /** Birthday free pages — user-editable field labels and values */
+  customFields?: BirthdayCustomFieldValue[];
 }
+
+export type BirthdayCustomFieldValue = {
+  id: string;
+  label: string;
+  value: string;
+  fieldType: 'short_text' | 'long_text';
+};
 
 export type FreePageElement = {
   id: string;

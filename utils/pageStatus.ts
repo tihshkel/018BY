@@ -106,7 +106,50 @@ function hasAnyUserContent(values: PageValues, schema: AlbumPageSchema): boolean
   const hasCaption = hasText(values.caption);
   const hasPhotoCaptions = (values.photoCaptions ?? []).some((c) => hasText(c));
   const hasFreeElements = (values.freeElements ?? []).some((el) => hasText(el.content));
-  return filledFields > 0 || photoFilled > 0 || hasCaption || hasPhotoCaptions || hasFreeElements;
+  const hasCustomFields = (values.customFields ?? []).some(
+    (field) => hasText(field.label) || hasText(field.value),
+  );
+  return filledFields > 0 || photoFilled > 0 || hasCaption || hasPhotoCaptions || hasFreeElements || hasCustomFields;
+}
+
+function meetsBirthdayFilledRule(values: PageValues, schema: AlbumPageSchema): boolean {
+  if (schema.lineGuideId !== 'holidays_birthday_60') {
+    return false;
+  }
+
+  if (schema.pageType === 'birthday_free_page' || schema.pageType === 'caption_photo_page') {
+    return hasAnyUserContent(values, schema);
+  }
+
+  if (schema.pageType === 'text_page') {
+    return (schema.fields ?? []).some((field) => hasText(values.fields[field.fieldId]));
+  }
+
+  const fieldIds = schema.fields?.map((f) => f.fieldId) ?? [];
+  const filledFields = fieldIds.filter((id) => hasText(values.fields[id])).length;
+  const totalFields = fieldIds.length;
+  const fieldsComplete = totalFields === 0 || filledFields === totalFields;
+
+  let photoFilled = 0;
+  for (const block of schema.photoBlocks ?? []) {
+    const blockValues = values.photoBlocks[block.blockId];
+    const variant =
+      block.variants.find((v) => v.variantId === blockValues?.variantId) ?? block.variants[0];
+    if (!variant) continue;
+    for (let i = 0; i < variant.slots; i += 1) {
+      if (hasText(blockValues?.slots[i])) photoFilled += 1;
+    }
+  }
+
+  if (fieldsComplete && (photoFilled > 0 || !(schema.photoBlocks?.length ?? 0))) {
+    return true;
+  }
+
+  if (schema.sourcePageNumber === 1 && filledFields > 0) {
+    return true;
+  }
+
+  return false;
 }
 
 export function computePageStatus(schema: AlbumPageSchema, values?: PageValues | null): PageStatus {
@@ -142,6 +185,10 @@ export function computePageStatus(schema: AlbumPageSchema, values?: PageValues |
   if (!hasAnyContent) return 'empty';
 
   if (meetsTemplateFilledRule(values, schema)) {
+    return 'filled';
+  }
+
+  if (meetsBirthdayFilledRule(values, schema)) {
     return 'filled';
   }
 

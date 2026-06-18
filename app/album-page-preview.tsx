@@ -31,6 +31,7 @@ import {
 } from "@/utils/variantPreview";
 import { usesUnifiedPhotoEditor } from "@/utils/albumPageNavigation";
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
+import { persistProjectViewport } from "@/utils/exportViewport";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
@@ -216,6 +217,17 @@ export default function AlbumPagePreviewScreen() {
       cancelled = true;
     };
   }, [imageUri]);
+
+  useEffect(() => {
+    if (!id || previewLayout.coordinateWidth <= 0 || previewLayout.coordinateHeight <= 0) {
+      return;
+    }
+
+    persistProjectViewport(id, {
+      width: previewLayout.coordinateWidth,
+      height: previewLayout.coordinateHeight,
+    }).catch(() => {});
+  }, [id, previewLayout.coordinateWidth, previewLayout.coordinateHeight]);
 
   if (project.isLoading || !instance || !schema) {
     return (

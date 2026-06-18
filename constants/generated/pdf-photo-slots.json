@@ -1945,6 +1945,729 @@
       ]
     }
   },
-  "pregnancy_a5": {},
+  "pregnancy_a5": {
+    "5": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "6": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "7": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "8": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "9": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "10": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "11": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "12": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "13": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "15": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "16": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "17": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "18": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "19": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "20": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "21": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "22": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "23": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "24": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "25": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "26": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "27": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "28": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "30": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "31": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "32": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "33": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "34": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "35": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "36": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "37": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "38": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "39": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "40": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "41": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "42": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "43": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.125,
+              "y": 0.5146,
+              "width": 0.75,
+              "height": 0.375,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "48": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.2222,
+              "y": 0.5275,
+              "width": 0.5556,
+              "height": 0.625,
+              "aspectRatio": [
+                3,
+                4
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
   "holidays_birthday_60": {}
 }

@@ -141,6 +141,14 @@ export default function AlbumPageFormScreen() {
           onFreeElementsChange={(elements) =>
             photoEditor.updatePageValues((prev) => ({ ...prev, freeElements: elements }))
           }
+          onCustomFieldsChange={(fields) =>
+            photoEditor.updatePageValues((prev) => ({ ...prev, customFields: fields }))
+          }
+          allowCustomFieldCrud={
+            Boolean(instance.addedByUser) &&
+            schema.pageType === 'birthday_free_page' &&
+            schema.sourcePageNumber >= 7
+          }
           ensureMediaLibraryPermission={ensureMediaLibraryPermission}
           showCaption={photoEditor.showCaption}
           showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}

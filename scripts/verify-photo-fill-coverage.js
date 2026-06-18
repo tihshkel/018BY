@@ -48,6 +48,7 @@ const PHOTO_PAGE_TYPES = new Set([
   'free_photo_caption',
   'timeline_page',
   'free_page',
+  'birthday_free_page',
 ]);
 
 function isPregnancyWeeklyPhotoPage(lineGuideId, pageNumber) {

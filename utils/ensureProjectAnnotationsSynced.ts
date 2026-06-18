@@ -13,6 +13,10 @@ import {
   getCachedPageSourceSize,
   resolvePageSourceSize,
 } from '@/utils/pageSourceDimensions';
+import {
+  loadProjectViewport,
+  resolveEditorCoordinateViewport,
+} from '@/utils/exportViewport';
 import { syncPageValuesToAnnotationsStorage } from '@/utils/pageValuesAdapter';
 
 const { width: DEFAULT_VIEWPORT_WIDTH, height: DEFAULT_VIEWPORT_HEIGHT } =
@@ -63,19 +67,6 @@ export async function ensureProjectAnnotationsSynced(projectId: string): Promise
     return raw ? JSON.parse(raw) : [];
   }
 
-  let viewportWidth = DEFAULT_VIEWPORT_WIDTH;
-  let viewportHeight = DEFAULT_VIEWPORT_HEIGHT;
-  const viewportRaw = await AsyncStorage.getItem(`@project_viewport_${projectId}`);
-  if (viewportRaw) {
-    try {
-      const vp = JSON.parse(viewportRaw);
-      viewportWidth = vp.width ?? viewportWidth;
-      viewportHeight = vp.height ?? viewportHeight;
-    } catch {
-      /* defaults */
-    }
-  }
-
   const imagesRaw = await AsyncStorage.getItem(`@project_images_${projectId}`);
   let imageUris: string[] = [];
   if (imagesRaw) {
@@ -91,6 +82,27 @@ export async function ensureProjectAnnotationsSynced(projectId: string): Promise
     imageUris,
     instances.map((i) => i.imageIndex)
   );
+
+  const firstInstance = instances[0];
+  const firstSourceSize = firstInstance
+    ? sourceSizesByImageIndex.get(firstInstance.imageIndex)
+    : undefined;
+
+  let viewportWidth: number;
+  let viewportHeight: number;
+  const savedViewport = await loadProjectViewport(projectId);
+  if (savedViewport) {
+    viewportWidth = savedViewport.width;
+    viewportHeight = savedViewport.height;
+  } else {
+    const derived = resolveEditorCoordinateViewport({
+      windowWidth: DEFAULT_VIEWPORT_WIDTH,
+      sourceWidth: firstSourceSize?.width,
+      sourceHeight: firstSourceSize?.height,
+    });
+    viewportWidth = derived.width;
+    viewportHeight = derived.height;
+  }
 
   const annotations = syncPageValuesToAnnotationsStorage(
     instances,

@@ -45,10 +45,33 @@ const TEETH_SLOT_IDS = [
   'lower_10_right_outer_molar_8',
 ];
 
+const TEETH_LABELS_RU = [
+  'Верхний левый крайний моляр',
+  'Верхний левый 1-й моляр',
+  'Верхний левый клык',
+  'Верхний левый 2-й резец',
+  'Верхний левый 1-й резец',
+  'Верхний правый 1-й резец',
+  'Верхний правый 2-й резец',
+  'Верхний правый клык',
+  'Верхний правый 1-й моляр',
+  'Верхний правый крайний моляр',
+  'Нижний левый крайний моляр',
+  'Нижний левый 1-й моляр',
+  'Нижний левый клык',
+  'Нижний левый 2-й резец',
+  'Нижний левый 1-й резец',
+  'Нижний правый 1-й резец',
+  'Нижний правый 2-й резец',
+  'Нижний правый клык',
+  'Нижний правый 1-й моляр',
+  'Нижний правый крайний моляр',
+];
+
 function buildTeethFields(lineGuideId, pageNumber, slots) {
   const fields = TEETH_SLOT_IDS.map((id, index) => ({
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
-    label: id.replace(/_/g, ' '),
+    label: TEETH_LABELS_RU[index] ?? id.replace(/_/g, ' '),
     type: 'date',
     required: false,
     templateLineStart: Math.min(index, (slots?.length ?? 1) - 1),
@@ -158,16 +181,43 @@ function buildPage1Fields(lineGuideId, pageNumber, slots) {
   }));
 }
 
-function buildPage3Fields(lineGuideId, pageNumber, slots) {
+function buildPage3Fields(lineGuideId, pageNumber, _slots) {
   return [
-    { fieldId: `${lineGuideId}_p${pageNumber}_due_date`, label: 'ПДР', type: 'date', required: false, templateLineStart: 0, templateLineCount: 1 },
-    { fieldId: `${lineGuideId}_p${pageNumber}_first_kicks`, label: 'Первые пиночки', type: 'text', required: false, templateLineStart: 1, templateLineCount: 1 },
-    { fieldId: `${lineGuideId}_p${pageNumber}_mother_guess`, label: 'Мама думала', type: 'radio', required: false, templateLineStart: 2, templateLineCount: 1, options: ['Мальчик', 'Девочка'] },
-    { fieldId: `${lineGuideId}_p${pageNumber}_father_guess`, label: 'Папа думал', type: 'radio', required: false, templateLineStart: 3, templateLineCount: 1, options: ['Мальчик', 'Девочка'] },
-  ].map((f) => ({
-    ...f,
-    templateLineStart: Math.min(f.templateLineStart, Math.max(0, (slots?.length ?? 4) - 1)),
-  }));
+    {
+      fieldId: `${lineGuideId}_p${pageNumber}_due_date`,
+      label: 'ПДР',
+      type: 'date',
+      required: false,
+      templateLineStart: 0,
+      templateLineCount: 1,
+    },
+    {
+      fieldId: `${lineGuideId}_p${pageNumber}_first_kicks`,
+      label: 'Первые пиночки',
+      type: 'text',
+      required: false,
+      templateLineStart: 1,
+      templateLineCount: 1,
+    },
+    {
+      fieldId: `${lineGuideId}_p${pageNumber}_mother_guess`,
+      label: 'Мама думала',
+      type: 'radio',
+      required: false,
+      templateLineStart: 2,
+      templateLineCount: 1,
+      options: ['Мальчик', 'Девочка'],
+    },
+    {
+      fieldId: `${lineGuideId}_p${pageNumber}_father_guess`,
+      label: 'Папа думал',
+      type: 'radio',
+      required: false,
+      templateLineStart: 3,
+      templateLineCount: 1,
+      options: ['Мальчик', 'Девочка'],
+    },
+  ];
 }
 
 function buildPage4Fields(lineGuideId, pageNumber) {

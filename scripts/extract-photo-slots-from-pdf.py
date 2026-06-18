@@ -182,12 +182,59 @@ def extract_album(config: dict) -> dict[str, dict]:
     return extract_album_from_folder(config)
 
 
+def derive_pregnancy_a5_from_60(pregnancy_60: dict[str, dict]) -> dict[str, dict]:
+    """Map pregnancy_60 PDF slots onto A5 weekly pages when block PDF has no detectable frames."""
+
+    def week_for_a5_page(page_no: int) -> int | None:
+        if 5 <= page_no <= 13:
+            return page_no + 1
+        if 15 <= page_no <= 28:
+            return page_no
+        if 30 <= page_no <= 43:
+            return page_no - 1
+        return None
+
+    def page_60_for_week(week: int) -> int | None:
+        if 6 <= week <= 14:
+            return week + 3
+        if 15 <= week <= 28:
+            return week + 4
+        if 29 <= week <= 42:
+            return week + 5
+        return None
+
+    pages: dict[str, dict] = {}
+    for page_no in range(1, 49):
+        week = week_for_a5_page(page_no)
+        if week is None:
+            continue
+        source_page = page_60_for_week(week)
+        if source_page is None:
+            continue
+        slot = pregnancy_60.get(str(source_page))
+        if slot:
+            pages[str(page_no)] = slot
+
+    if pregnancy_60.get("56"):
+        pages["48"] = pregnancy_60["56"]
+    elif pregnancy_60.get("57"):
+        pages["48"] = pregnancy_60["57"]
+
+    return pages
+
+
 def main() -> None:
     result: dict[str, dict] = {}
     for config in ALBUMS:
         album_pages = extract_album(config)
         result[config["album_id"]] = album_pages
         print(f"{config['album_id']}: {len(album_pages)} pages with photo placeholder")
+
+    if not result.get("pregnancy_a5") and result.get("pregnancy_60"):
+        result["pregnancy_a5"] = derive_pregnancy_a5_from_60(result["pregnancy_60"])
+        print(
+            f"pregnancy_a5: {len(result['pregnancy_a5'])} pages derived from pregnancy_60 slots",
+        )
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

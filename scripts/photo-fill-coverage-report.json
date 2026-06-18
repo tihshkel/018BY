@@ -1,0 +1,42 @@
+{
+  "coverage": {
+    "pregnancy_60": {
+      "photoZoneCount": 45,
+      "fillReadyCount": 45
+    },
+    "pregnancy_a5": {
+      "photoZoneCount": 38,
+      "fillReadyCount": 38
+    },
+    "kids_48": {
+      "photoZoneCount": 45,
+      "fillReadyCount": 45
+    },
+    "holidays_birthday_60": {
+      "photoZoneCount": 45,
+      "fillReadyCount": 45
+    },
+    "diary_interior_brown": {
+      "photoZoneCount": 13,
+      "fillReadyCount": 13
+    },
+    "diary_interior_purple": {
+      "photoZoneCount": 1,
+      "fillReadyCount": 1
+    },
+    "family_blank": {
+      "photoZoneCount": 0,
+      "fillReadyCount": 0
+    },
+    "holidays_blank": {
+      "photoZoneCount": 0,
+      "fillReadyCount": 0
+    },
+    "family_blank_21x21": {
+      "photoZoneCount": 0,
+      "fillReadyCount": 0
+    }
+  },
+  "gaps": [],
+  "generatedAt": "2026-06-18T21:52:07.692Z"
+}

@@ -89,7 +89,9 @@ export function getTemplateLayout(
 }
 
 export function getPageFormatForLineGuide(lineGuideId: string): PageFormat {
-  if (lineGuideId === 'family_blank_21x21') return '21x21';
+  if (lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60') {
+    return '21x21';
+  }
   if (lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank') return '18x24';
   return '18x24';
 }

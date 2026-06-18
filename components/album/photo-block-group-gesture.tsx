@@ -92,7 +92,7 @@ export function PhotoBlockGroupGesture({
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.activeIndicator}>
+      <View style={styles.activeIndicator} testID="photo-edit-mode-active">
         <Ionicons name="move-outline" size={14} color={colors.primary} />
       </View>
       <GestureDetector gesture={composed}>

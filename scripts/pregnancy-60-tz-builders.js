@@ -18,10 +18,22 @@ const {
   buildBirthStoryFields,
   isPregnancy60WeeklyPage,
   getPregnancy60WeekNumber,
+  LETTER_TO_BABY_FIELDS,
 } = require('./pregnancy-60-field-specs');
 
 function tzOverride(partial) {
   return { replaceFields: true, ...partial };
+}
+
+function buildPregnancyStaticPage(title) {
+  return tzOverride({
+    title,
+    pageType: 'non_editable',
+    editable: false,
+    fields: [],
+    replacePhotoBlocks: true,
+    photoBlocks: undefined,
+  });
 }
 
 function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
@@ -91,9 +103,13 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
       });
     case 5:
+      return buildPregnancyStaticPage('Триместры');
     case 8:
+      return buildPregnancyStaticPage('1 триместр');
     case 18:
+      return buildPregnancyStaticPage('2 триместр');
     case 33:
+      return buildPregnancyStaticPage('3 триместр');
     case 48:
     case 49:
     case 55:
@@ -101,8 +117,15 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 57:
     case 58:
     case 59:
-    case 60:
       return tzOverride({ fields: [] });
+    case 60:
+      return tzOverride({
+        title: 'Письмо малышу',
+        pageType: 'text_page',
+        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, LETTER_TO_BABY_FIELDS),
+        replacePhotoBlocks: true,
+        photoBlocks: undefined,
+      });
     default:
       return null;
   }
@@ -111,4 +134,5 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
 module.exports = {
   applyPregnancy60PageFields,
   tzOverride,
+  buildPregnancyStaticPage,
 };

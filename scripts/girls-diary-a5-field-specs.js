@@ -182,12 +182,11 @@ function buildWeeklyScheduleSpec(day1, day2, slots) {
 }
 
 function buildBrownWeeklyScheduleWithNoteSpec(slots) {
-  const scheduleSpec = buildWeeklyScheduleSpec('Пятница', 'Суббота', slots);
-  const noteLines = Math.max(1, (slots?.length ?? 0) - scheduleSpec.length);
-  return [
-    ...scheduleSpec,
-    ['weekNote', 'Заметки на неделю', 'text', noteLines],
-  ].slice(0, slots?.length ?? scheduleSpec.length + 1);
+  const total = slots?.length ?? 17;
+  const scheduleSlots = Array.from({ length: Math.max(8, total - 1) });
+  const scheduleSpec = buildWeeklyScheduleSpec('Пятница', 'Суббота', scheduleSlots);
+  const noteLines = Math.max(1, total - scheduleSpec.length);
+  return [...scheduleSpec, ['weekNote', 'Заметки на неделю', 'text', noteLines]];
 }
 
 module.exports = {

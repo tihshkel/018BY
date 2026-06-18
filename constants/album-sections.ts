@@ -56,6 +56,15 @@ export const DIARY_PURPLE_A5_SECTIONS: AlbumSectionDefinition[] = [
   { sectionId: 'finale', title: 'Завершение', pageRange: [40, 40], order: 8 },
 ];
 
+export const BIRTHDAY_48_SECTIONS: AlbumSectionDefinition[] = [
+  { sectionId: 'intro', title: 'Вступление', pageRange: [1, 3], order: 1 },
+  { sectionId: 'ages_1_6', title: 'Дни рождения 1–6 лет', pageRange: [4, 15], order: 2 },
+  { sectionId: 'ages_7_12', title: 'Дни рождения 7–12 лет', pageRange: [16, 27], order: 3 },
+  { sectionId: 'ages_13_18', title: 'Дни рождения 13–18 лет', pageRange: [28, 39], order: 4 },
+  { sectionId: 'travel', title: 'Мои путешествия', pageRange: [40, 47], order: 5 },
+  { sectionId: 'letter', title: 'Письмо во взрослую жизнь', pageRange: [48, 48], order: 6 },
+];
+
 export function getAlbumSections(lineGuideId: string): AlbumSectionDefinition[] {
   if (lineGuideId === 'kids_48') {
     return KIDS_48_SECTIONS;
@@ -69,10 +78,14 @@ export function getAlbumSections(lineGuideId: string): AlbumSectionDefinition[] 
     return DIARY_PURPLE_A5_SECTIONS;
   }
 
+  if (lineGuideId === 'holidays_birthday_60') {
+    return BIRTHDAY_48_SECTIONS;
+  }
+
   const pageCounts: Record<string, number> = {
     pregnancy_60: 60,
     pregnancy_a5: 48,
-    holidays_birthday_60: 60,
+    holidays_birthday_60: 48,
     diary_interior_brown: 60,
     diary_interior_purple: 40,
     family_blank: 20,

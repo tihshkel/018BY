@@ -24,13 +24,16 @@ import {
   getExportFormatOptions,
   type ExportFormatType,
 } from '@/utils/exportFormatOptions';
-import { getSchemaForInstance } from '@/utils/albumProjectInit';
+import { getSchemaForInstance, getInstanceTitle } from '@/utils/albumProjectInit';
 import {
+  buildExportSelection,
   filterProjectDataForExport,
   getExportSelectionStorageKey,
   mergeStaticPagesIntoExportSelection,
 } from '@/utils/exportPageSelection';
-import { loadPageInstances } from '@/utils/pageStorage';
+import { resolveProjectViewportForExport } from '@/utils/exportViewport';
+import type { PageInstance } from '@/types/album-page-schema';
+import { loadPageInstances, loadPageValuesMap } from '@/utils/pageStorage';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
@@ -694,60 +697,112 @@ export default function ExportPdfScreen() {
             projectCategory ?? undefined,
           );
           const blankPageUri = await getBlankInteriorPageUri(lineGuideId);
+          const instances = await loadPageInstances(
+            (k) => AsyncStorage.getItem(k),
+            projectId,
+          );
+          const pageValuesMap = await loadPageValuesMap(
+            (k) => AsyncStorage.getItem(k),
+            projectId,
+          );
+
+          const getSchema = (instance: PageInstance) =>
+            getSchemaForInstance(instance, lineGuideId);
+
+          let includedIds: string[];
           const selectionRaw = await AsyncStorage.getItem(
-            getExportSelectionStorageKey(projectId)
+            getExportSelectionStorageKey(projectId),
           );
           if (selectionRaw) {
             const storedIds = JSON.parse(selectionRaw) as string[];
-            const instances = await loadPageInstances(
-              (k) => AsyncStorage.getItem(k),
-              projectId
-            );
-            const includedIds = mergeStaticPagesIntoExportSelection({
+            includedIds = mergeStaticPagesIntoExportSelection({
               instances,
               includedInstanceIds: storedIds,
-              getSchema: (instance) => getSchemaForInstance(instance, lineGuideId),
+              getSchema,
             });
-            const filtered = filterProjectDataForExport({
+          } else {
+            includedIds = buildExportSelection({
               instances,
-              images,
-              annotations,
-              includedInstanceIds: includedIds,
-              blankPageUri,
-            });
-            images = filtered.images;
-            annotations = filtered.annotations;
-            console.log(
-              `[PDF Export] Selection filter: ${images.length} pages after export review`
-            );
+              pageValuesMap,
+              getSchema,
+              getTitle: (instance) => getInstanceTitle(instance, lineGuideId),
+            }).includedInstanceIds;
           }
+
+          const sourceSizesByImageIndex = new Map<
+            number,
+            { width: number; height: number }
+          >();
+          await Promise.all(
+            [...new Set(instances.map((instance) => instance.imageIndex))].map(
+              async (index) => {
+                const uri = images[index];
+                if (!uri) return;
+                const cached = getCachedPageSourceSize(uri);
+                const size = cached ?? (await resolvePageSourceSize(uri));
+                if (size) sourceSizesByImageIndex.set(index, size);
+              },
+            ),
+          );
+
+          const sampleInstance = instances.find((instance) =>
+            includedIds.includes(instance.instanceId),
+          );
+          const sampleSize = sampleInstance
+            ? sourceSizesByImageIndex.get(sampleInstance.imageIndex)
+            : undefined;
+
+          const pagesViewportResolved = await resolveProjectViewportForExport(
+            projectId,
+            sampleSize?.width,
+            sampleSize?.height,
+          );
+
+          const filtered = filterProjectDataForExport({
+            instances,
+            images,
+            pageValuesMap,
+            lineGuideId,
+            includedInstanceIds: includedIds,
+            blankPageUri,
+            viewportWidth: pagesViewportResolved.width,
+            viewportHeight: pagesViewportResolved.height,
+            sourceSizesByImageIndex,
+            getSchema,
+          });
+          images = filtered.images;
+          annotations = filtered.annotations;
+          console.log(
+            `[PDF Export] Instance filter: ${images.length} pages (${includedIds.length} instances selected)`,
+          );
         }
       }
 
-      // ВАЖНО: берём реальные размеры viewport редактора, чтобы экспорт был 1:1
-      // (эти значения сохраняются в `app/edit-album.tsx`)
-      const defaultViewport = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT };
-      let pagesViewport = defaultViewport;
-      let coverViewport = defaultViewport;
+      // Viewport редактора для 1:1 экспорта (сохраняется в album-page-preview)
+      let pagesViewport = {
+        width: SCREEN_WIDTH,
+        height: SCREEN_HEIGHT,
+      };
+      let coverViewport = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT };
       if (projectId) {
-        try {
-          const raw = await AsyncStorage.getItem(`@project_viewport_${projectId}`);
-          if (raw) {
-            const parsed = JSON.parse(raw) as any;
-            if (typeof parsed?.width === 'number' && typeof parsed?.height === 'number' && parsed.width > 0 && parsed.height > 0) {
-              pagesViewport = { width: parsed.width, height: parsed.height };
-            }
-          }
-        } catch {}
+        const resolvedViewport = await resolveProjectViewportForExport(projectId);
+        pagesViewport = resolvedViewport;
         try {
           const raw = await AsyncStorage.getItem(`@project_cover_viewport_${projectId}`);
           if (raw) {
-            const parsed = JSON.parse(raw) as any;
-            if (typeof parsed?.width === 'number' && typeof parsed?.height === 'number' && parsed.width > 0 && parsed.height > 0) {
+            const parsed = JSON.parse(raw) as { width?: number; height?: number };
+            if (
+              typeof parsed?.width === 'number' &&
+              typeof parsed?.height === 'number' &&
+              parsed.width > 0 &&
+              parsed.height > 0
+            ) {
               coverViewport = { width: parsed.width, height: parsed.height };
             }
           }
-        } catch {}
+        } catch {
+          /* defaults */
+        }
       }
 
       // Если проект не найден или нет projectId, используем значения по умолчанию

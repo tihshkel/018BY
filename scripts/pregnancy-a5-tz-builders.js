@@ -13,7 +13,15 @@ const {
   isPregnancyA5WeeklyPage,
   getPregnancyA5WeekNumber,
 } = require('./pregnancy-60-field-specs');
-const { tzOverride } = require('./pregnancy-60-tz-builders');
+const { tzOverride, buildPregnancyStaticPage } = require('./pregnancy-60-tz-builders');
+
+const PREGNANCY_A5_STATIC_PAGES = {
+  2: 'Триместры беременности',
+  4: '1 триместр',
+  14: '2 триместр',
+  29: '3 триместр',
+  47: '46 неделя',
+};
 
 function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
   if (isPregnancyA5WeeklyPage(pageNumber)) {
@@ -23,6 +31,10 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
       pageType: 'structured',
       fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, WEEKLY_PAGE_FIELDS),
     });
+  }
+
+  if (PREGNANCY_A5_STATIC_PAGES[pageNumber]) {
+    return buildPregnancyStaticPage(PREGNANCY_A5_STATIC_PAGES[pageNumber]);
   }
 
   switch (pageNumber) {
@@ -51,11 +63,6 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
         title: 'Уже мама',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
       });
-    case 2:
-    case 4:
-    case 14:
-    case 29:
-    case 47:
     case 48:
       return tzOverride({ fields: [] });
     default:

@@ -13,6 +13,7 @@ import {
 import {
   distributeTextWithinFieldLines,
 } from '@/utils/templateLineText';
+import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -133,6 +134,53 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         sourcePageNumber: schema.sourcePageNumber,
         ...layout,
       });
+    }
+  }
+
+  if (schema.pageType === 'birthday_free_page') {
+    const customFields = resolveCustomFields(schema, values);
+    let slotCursor = 0;
+
+    for (const field of customFields) {
+      const text = field.value?.trim();
+      if (!text) continue;
+
+      const preferredLines = field.fieldType === 'long_text' ? 2 : 1;
+      const remainingSlots = Math.max(0, slots.length - slotCursor);
+      if (remainingSlots === 0) break;
+
+      const lineCount = Math.min(preferredLines, remainingSlots);
+      const distributed = distributeTextWithinFieldLines({
+        text,
+        startSlotIndex: slotCursor,
+        lineCount,
+        slots,
+        fontSize,
+        lineGuideId,
+      });
+
+      for (const segment of distributed.segments) {
+        if (!segment.content) continue;
+        const slot = slots[segment.slotIndex];
+        if (!slot) continue;
+        const layout = layoutAnnotationFromSlot(slot);
+        annotations.push({
+          id: createId('ann'),
+          type: 'text',
+          page: schema.sourcePageNumber,
+          content: segment.content,
+          fontSize,
+          fontFamily: textFontFamily,
+          color: '#3D3D3D',
+          zIndex: zIndex++,
+          templateLineStart: segment.slotIndex,
+          templateLineCount: 1,
+          sourcePageNumber: schema.sourcePageNumber,
+          ...layout,
+        });
+      }
+
+      slotCursor += lineCount;
     }
   }
 

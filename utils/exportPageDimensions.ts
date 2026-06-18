@@ -29,7 +29,8 @@ export function getExportPageDimensions(
   contentHeight: number;
 } {
   const isKids = category === 'kids';
-  const isSquareBlank = lineGuideId === 'family_blank_21x21';
+  const isSquareBlank =
+    lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60';
 
   if (isKids || isSquareBlank) {
     return {

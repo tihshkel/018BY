@@ -1,0 +1,338 @@
+{
+  "1": {
+    "title": "Этот альбом принадлежит",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "2": {
+    "title": "Привет, мир!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "3": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "4": {
+    "title": "Мне 1 годик",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "5": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "6": {
+    "title": "Мне 2 года!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "7": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "8": {
+    "title": "Мне 3 года!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "9": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "10": {
+    "title": "Мне 4 года!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "11": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "12": {
+    "title": "Мне 5 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "13": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "14": {
+    "title": "Мне 6 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "15": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "16": {
+    "title": "Мне 7 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "17": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "18": {
+    "title": "Мне 8 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "19": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "20": {
+    "title": "Мне 9 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "21": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "22": {
+    "title": "Мне 10 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "23": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "24": {
+    "title": "Мне 11 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "25": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "26": {
+    "title": "Мне 12 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "27": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "28": {
+    "title": "Мне 13 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "29": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "30": {
+    "title": "Мне 14 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "31": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "32": {
+    "title": "Мне 15 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "33": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "34": {
+    "title": "Мне 16 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "35": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "36": {
+    "title": "Мне 17 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "37": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "38": {
+    "title": "Мне 18 лет!",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "39": {
+    "title": "Свободная страница",
+    "pageType": "birthday_free_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "40": {
+    "title": "Мои путешествия",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "41": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "42": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "43": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "44": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "45": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "46": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "47": {
+    "title": "Свободная фотостраница",
+    "pageType": "caption_photo_page",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": true
+  },
+  "48": {
+    "title": "Письмо во взрослую жизнь",
+    "pageType": "text_page",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  }
+}

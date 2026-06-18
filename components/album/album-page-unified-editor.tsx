@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { FamilyTreePhotoPicker } from '@/components/album/family-tree-photo-picker';
+import { BirthdayFreePageEditor } from '@/components/album/birthday-free-page-editor';
 import { FreePageEditor } from '@/components/album/free-page-editor';
 import { TimelinePageEditor } from '@/components/album/timeline-page-editor';
 import { AlbumVariantBar } from '@/components/album/album-variant-bar';
@@ -15,7 +16,7 @@ import {
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails } from '@/utils/variantPreview';
 
@@ -37,6 +38,8 @@ type AlbumPageUnifiedEditorProps = {
   onRemovePhoto: (blockId: string, slotIndex: number) => void;
   onInitPhotoBlock: (blockId: string, variantId: string, slotCount: number) => void;
   onFreeElementsChange?: (elements: FreePageElement[]) => void;
+  onCustomFieldsChange?: (fields: BirthdayCustomFieldValue[]) => void;
+  allowCustomFieldCrud?: boolean;
   ensureMediaLibraryPermission?: () => Promise<boolean>;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
@@ -56,6 +59,8 @@ export function AlbumPageUnifiedEditor({
   onRemovePhoto,
   onInitPhotoBlock,
   onFreeElementsChange,
+  onCustomFieldsChange,
+  allowCustomFieldCrud = false,
   ensureMediaLibraryPermission,
   showCaption,
   showPerPhotoCaptions,
@@ -127,6 +132,17 @@ export function AlbumPageUnifiedEditor({
             if (!primaryBlock) return;
             onRemovePhoto(primaryBlock.blockId, slotIndex);
           }}
+        />
+      );
+    }
+
+    if (resolvedSchema.pageType === 'birthday_free_page' && onCustomFieldsChange) {
+      return (
+        <BirthdayFreePageEditor
+          schema={resolvedSchema}
+          customFields={pageValues.customFields ?? []}
+          onChange={onCustomFieldsChange}
+          allowFieldCrud={allowCustomFieldCrud}
         />
       );
     }

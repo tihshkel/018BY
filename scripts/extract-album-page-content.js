@@ -44,7 +44,7 @@ const PAGE_COUNTS = {
   pregnancy_60: 60,
   pregnancy_a5: 48,
   kids_48: 48,
-  holidays_birthday_60: 60,
+  holidays_birthday_60: 48,
   diary_interior_brown: 60,
   diary_interior_purple: 40,
   family_blank: 20,

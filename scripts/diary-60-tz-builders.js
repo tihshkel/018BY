@@ -175,6 +175,9 @@ function buildFreePhotoNotes(pageNumber, slots, lineGuideId, tzEntry) {
 
 function buildFriendQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
   return {
+    replaceFields: true,
+    replacePhotoBlocks: true,
+    photoBlocks: undefined,
     title: tzEntry.title,
     pageType: 'structured',
     editable: true,
@@ -185,6 +188,9 @@ function buildFriendQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
 
 function buildFoodQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
   return {
+    replaceFields: true,
+    replacePhotoBlocks: true,
+    photoBlocks: undefined,
     title: tzEntry.title,
     pageType: 'structured',
     editable: true,
@@ -207,6 +213,9 @@ function buildStaticPage(tzEntry) {
 
 function buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec) {
   return {
+    replaceFields: true,
+    replacePhotoBlocks: true,
+    photoBlocks: undefined,
     title: tzEntry.title,
     pageType: 'structured',
     editable: true,
@@ -281,6 +290,9 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
 
   if (template === 'MyDayTemplate') {
     return {
+      replaceFields: true,
+      replacePhotoBlocks: true,
+      photoBlocks: undefined,
       title: tzEntry.title,
       pageType: 'structured',
       editable: true,

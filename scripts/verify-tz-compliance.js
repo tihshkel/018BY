@@ -92,7 +92,12 @@ function verifyBrown60() {
   }
 
   const p37 = byPage['37'];
-  assert((p37.fields?.length ?? 0) >= 8, 'brown p37 schedule with note fields (>=8)');
+  assert((p37.fields?.length ?? 0) >= 9, 'brown p37 schedule with note fields (>=9)');
+  assert(
+    (p37.fields ?? []).some((f) => f.fieldId.endsWith('_weekNote')),
+    'brown p37 has weekNote field',
+  );
+  assert(!p37.photoBlocks?.length, 'brown p37 has no stray photoBlocks');
 
   const p4brown = byPage['4'];
   assert((p4brown.photoBlocks?.length ?? 0) > 0, 'brown p4 has photoBlocks');
@@ -172,13 +177,144 @@ function verifyPurpleA5() {
   assert(p40.pageType === 'non_editable', 'purple p40 is static finale');
   assert(p40.title === 'История продолжается', 'purple p40 title');
 
+  for (const page of [34, 35, 36, 37, 38, 39]) {
+    const schema = byPage[String(page)];
+    assert(!schema.photoBlocks?.length, `purple p${page} has no stray photoBlocks`);
+  }
+
   const src = fs.readFileSync(path.join(root, 'constants/album-sections.ts'), 'utf8');
   assert(src.includes('DIARY_PURPLE_A5_SECTIONS'), 'album-sections defines DIARY_PURPLE_A5_SECTIONS');
+}
+
+function getSchemasForAlbum(albumId, nextAlbumId) {
+  const schemasPath = path.join(root, 'constants/generated/album-page-schemas.ts');
+  const raw = fs.readFileSync(schemasPath, 'utf8');
+  const pattern = new RegExp(
+    `"${albumId}":\\s*(\\[[\\s\\S]*?\\])\\s*,\\s*"${nextAlbumId}"`,
+  );
+  const match = raw.match(pattern);
+  if (!match) {
+    throw new Error(`Could not parse ${albumId} schemas from album-page-schemas.ts`);
+  }
+  return JSON.parse(match[1]);
+}
+
+function verifyBirthday48() {
+  const manifestPath = path.join(root, 'scripts/birthday-48-tz-manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    assert(false, 'birthday-48-tz-manifest.json exists (run node scripts/generate-birthday-48-tz-manifest.js)');
+    return;
+  }
+  const manifest = loadJson('scripts/birthday-48-tz-manifest.json');
+  const schemas = getSchemasForAlbum('holidays_birthday_60', 'diary_interior_brown');
+  const byPage = Object.fromEntries(schemas.map((s) => [String(s.sourcePageNumber), s]));
+
+  assert(Object.keys(manifest).length === 48, 'birthday-48 manifest has 48 pages');
+  assert(schemas.length === 48, 'holidays_birthday_60 schemas has 48 pages');
+
+  for (let page = 1; page <= 48; page += 1) {
+    const key = String(page);
+    const tz = manifest[key];
+    const schema = byPage[key];
+    assert(schema.title === tz.title, `birthday p${page} title matches TZ`);
+    assert(schema.pageType === tz.pageType, `birthday p${page} pageType matches TZ`);
+    assert(schema.editable === tz.editable, `birthday p${page} editable matches TZ`);
+    assert(schema.canDuplicate === tz.canDuplicate, `birthday p${page} canDuplicate matches TZ`);
+  }
+
+  const p1 = byPage['1'];
+  assert((p1.fields ?? []).some((f) => f.fieldId.endsWith('_ownerName')), 'birthday p1 owner field');
+
+  const p48 = byPage['48'];
+  assert(p48.pageType === 'text_page', 'birthday p48 is text_page');
+  assert((p48.fields ?? []).some((f) => f.fieldId.endsWith('_letter_text')), 'birthday p48 letter field');
+
+  const p40 = byPage['40'];
+  assert((p40.fields ?? []).length >= 3, 'birthday p40 travel fields (>=3)');
+}
+
+function verifyKids48() {
+  const manifest = loadJson('constants/kids-48-tz-manifest.json');
+  const schemas = getSchemasForAlbum('kids_48', 'holidays_birthday_60');
+  const byPage = Object.fromEntries(schemas.map((s) => [String(s.sourcePageNumber), s]));
+
+  assert(Object.keys(manifest).length === 48, 'kids-48 manifest has 48 pages');
+  assert(schemas.length === 48, 'kids_48 schemas has 48 pages');
+
+  for (let page = 1; page <= 48; page += 1) {
+    const key = String(page);
+    const tz = manifest[key];
+    const schema = byPage[key];
+    assert(schema.title === tz.title, `kids p${page} title matches TZ`);
+    assert(schema.pageType === tz.pageType, `kids p${page} pageType matches TZ`);
+  }
+
+  const p10 = byPage['10'];
+  assert(p10.pageType === 'teeth', 'kids p10 is teeth page');
+  assert((p10.fields ?? []).length >= 20, 'kids p10 has tooth fields (>=20)');
+  assert(
+    !(p10.fields ?? []).some((f) => /upper|lower|molar|canine/i.test(f.label)),
+    'kids p10 tooth labels are Russian (not English ids)',
+  );
+
+  const p3 = byPage['3'];
+  const mother = (p3.fields ?? []).find((f) => f.fieldId.endsWith('_mother_guess'));
+  const father = (p3.fields ?? []).find((f) => f.fieldId.endsWith('_father_guess'));
+  assert(mother && father, 'kids p3 has gender radio fields');
+  assert(mother.templateLineStart !== father.templateLineStart, 'kids p3 radio fields do not overlap lines');
+}
+
+function verifyPregnancy60() {
+  const schemas = getSchemasForAlbum('pregnancy_60', 'pregnancy_a5');
+  const byPage = Object.fromEntries(schemas.map((s) => [String(s.sourcePageNumber), s]));
+
+  assert(schemas.length === 60, 'pregnancy_60 schemas has 60 pages');
+
+  const p60 = byPage['60'];
+  assert(p60.title === 'Письмо малышу', 'pregnancy p60 title');
+  assert((p60.fields ?? []).some((f) => f.fieldId.endsWith('_letter_text')), 'pregnancy p60 letter field');
+
+  for (const page of [5, 8, 18, 33]) {
+    const schema = byPage[String(page)];
+    assert(schema.pageType === 'non_editable', `pregnancy p${page} is non_editable static`);
+    assert(schema.editable === false, `pregnancy p${page} editable=false`);
+  }
+
+  const p9 = byPage['9'];
+  assert(p9.title === '6-я неделя', 'pregnancy p9 week title');
+}
+
+function verifyPregnancyA5() {
+  const schemas = getSchemasForAlbum('pregnancy_a5', 'kids_48');
+  const byPage = Object.fromEntries(schemas.map((s) => [String(s.sourcePageNumber), s]));
+
+  assert(schemas.length === 48, 'pregnancy_a5 schemas has 48 pages');
+
+  for (const page of [2, 4, 14, 29, 47]) {
+    const schema = byPage[String(page)];
+    assert(schema.pageType === 'non_editable', `pregnancy A5 p${page} is non_editable static`);
+    assert(schema.editable === false, `pregnancy A5 p${page} editable=false`);
+  }
+
+  assert(byPage['29'].title === '3 триместр', 'pregnancy A5 p29 is 3rd trimester static');
+  assert(byPage['5'].title === '6-я неделя', 'pregnancy A5 p5 week 6');
+  assert(byPage['20'].title === '20-я неделя', 'pregnancy A5 p20 week 20');
+  assert(byPage['43'].title === '42-я неделя', 'pregnancy A5 p43 week 42');
+
+  const pdfSlots = loadJson('constants/generated/pdf-photo-slots.json');
+  assert(
+    Object.keys(pdfSlots.pregnancy_a5 ?? {}).length > 0,
+    'pdf-photo-slots: pregnancy_a5 has entries',
+  );
 }
 
 verifyBrown60();
 verifyPurpleA5();
 verifyAlbumSections();
+verifyBirthday48();
+verifyKids48();
+verifyPregnancy60();
+verifyPregnancyA5();
 
 if (failed > 0) {
   console.error(`\n${failed} verification error(s)`);

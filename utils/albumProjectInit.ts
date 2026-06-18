@@ -13,10 +13,13 @@ export function buildInitialPageInstances(
   imageCount: number
 ): PageInstance[] {
   const schemas = getAlbumPageSchemas(lineGuideId);
+  const schemaCount = schemas.length;
+  const effectiveCount =
+    schemaCount > 0 ? Math.min(imageCount, schemaCount) : imageCount;
   const instances: PageInstance[] = [];
 
-  for (let imageIndex = 0; imageIndex < imageCount; imageIndex += 1) {
-    const sourcePageNumber = Math.min(imageIndex + 1, schemas.length || imageCount);
+  for (let imageIndex = 0; imageIndex < effectiveCount; imageIndex += 1) {
+    const sourcePageNumber = imageIndex + 1;
     const schema =
       schemas.find((s) => s.sourcePageNumber === sourcePageNumber) ??
       schemas[imageIndex] ??

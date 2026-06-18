@@ -33,7 +33,9 @@ export function useAlbumPagePhotoEditor({
   const photoBlocks = pageValues.photoBlocks;
 
   const showCaption = resolvedSchema?.captionEnabled === true;
-  const showPerPhotoCaptions = resolvedSchema?.pageType === 'caption_photo_page';
+  const showPerPhotoCaptions =
+    resolvedSchema?.pageType === 'caption_photo_page' ||
+    resolvedSchema?.pageType === 'birthday_free_page';
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {

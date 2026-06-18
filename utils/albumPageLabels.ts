@@ -73,13 +73,27 @@ const KIDS_48_LABELS: Partial<Record<number, string>> = {
   5: 'Первая фото',
 };
 
-const HOLIDAYS_BIRTHDAY_LABELS: Partial<Record<number, string>> = {
-  1: 'Приглашение',
-  2: 'Именинник',
-  3: 'Пожелания',
-  4: 'Гости',
-  5: 'Праздник',
-};
+function getBirthday48PageLabel(pageNumber: number): string {
+  if (pageNumber === 1) return 'Этот альбом принадлежит';
+  if (pageNumber === 2) return 'Привет, мир!';
+  if (pageNumber === 40) return 'Мои путешествия';
+  if (pageNumber === 48) return 'Письмо во взрослую жизнь';
+  if (
+    pageNumber === 3 ||
+    pageNumber === 5 ||
+    (pageNumber >= 7 && pageNumber <= 39 && pageNumber % 2 === 1) ||
+    (pageNumber >= 41 && pageNumber <= 47)
+  ) {
+    return 'Свободная страница';
+  }
+  if (pageNumber === 4) return 'Мне 1 годик';
+  if (pageNumber >= 6 && pageNumber <= 38 && pageNumber % 2 === 0) {
+    const age = (pageNumber - 4) / 2 + 1;
+    if (age >= 2 && age <= 4) return `Мне ${age} года!`;
+    return `Мне ${age} лет!`;
+  }
+  return `Страница ${pageNumber}`;
+}
 
 const DIARY_BROWN_LABELS: Partial<Record<number, string>> = {
   1: 'Обо мне',
@@ -137,7 +151,7 @@ export function getAlbumPageLabel(
     case 'kids_48':
       return getLabelFromMap(pageNumber, KIDS_48_LABELS, 'Фото');
     case 'holidays_birthday_60':
-      return getLabelFromMap(pageNumber, HOLIDAYS_BIRTHDAY_LABELS, 'Праздник');
+      return getBirthday48PageLabel(pageNumber);
     case 'diary_interior_brown':
       return getLabelFromMap(pageNumber, DIARY_BROWN_LABELS, 'Для фото');
     case 'diary_interior_purple':

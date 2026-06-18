@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const fs = require('fs');
 const path = require('path');
+const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides');
 const { PNG } = require('pngjs');
 
 function clamp(value, min, max) {
@@ -1227,24 +1228,34 @@ async function main() {
     if (!matchesOnlyAlbum(spec.albumId)) continue;
     const result = await generateForAlbum(projectRoot, spec, overrides);
     if (!result) continue;
-    if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {
-      lineSlots[spec.albumId] = { ...lineSlots[spec.albumId], ...result.slots };
-      lineGuides[spec.albumId] = { ...lineGuides[spec.albumId], ...result.guides };
-    } else {
-      lineSlots[spec.albumId] = result.slots;
-      lineGuides[spec.albumId] = result.guides;
+
+    let albumSlots = result.slots;
+    let albumGuides = result.guides;
+    if (spec.albumId === 'holidays_birthday_60') {
+      const trimmed = applyBirthday48LineSlots(albumSlots, albumGuides);
+      albumSlots = trimmed.slots;
+      albumGuides = trimmed.guides;
+      console.log(`[${spec.albumId}] applied 48-page TZ slot overrides`);
     }
 
-    const pages = Object.keys(result.slots);
-    const empty = pages.filter((p) => !result.slots[p]?.length);
-    const totalSlots = pages.reduce((sum, p) => sum + (result.slots[p]?.length ?? 0), 0);
+    if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {
+      lineSlots[spec.albumId] = { ...lineSlots[spec.albumId], ...albumSlots };
+      lineGuides[spec.albumId] = { ...lineGuides[spec.albumId], ...albumGuides };
+    } else {
+      lineSlots[spec.albumId] = albumSlots;
+      lineGuides[spec.albumId] = albumGuides;
+    }
+
+    const pages = Object.keys(albumSlots);
+    const empty = pages.filter((p) => !albumSlots[p]?.length);
+    const totalSlots = pages.reduce((sum, p) => sum + (albumSlots[p]?.length ?? 0), 0);
     report.albums[spec.albumId] = {
       pageCount: pages.length,
       totalSlots,
       emptyPages: empty,
       emptyCount: empty.length,
       slotsPerPage: Object.fromEntries(
-        pages.map((p) => [p, result.slots[p]?.length ?? 0])
+        pages.map((p) => [p, albumSlots[p]?.length ?? 0])
       ),
     };
   }

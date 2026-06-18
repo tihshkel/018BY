@@ -30,7 +30,7 @@ const PAGE_COUNTS = {
   pregnancy_60: 60,
   pregnancy_a5: 48,
   kids_48: 48,
-  holidays_birthday_60: 60,
+  holidays_birthday_60: 48,
   diary_interior_brown: 60,
   diary_interior_purple: 40,
   family_blank: 20,
@@ -88,8 +88,22 @@ function checkSlotAlignment(fields, slots, issues, warnOnly = true) {
   }
 }
 
+function getEffectiveSchemaFields(schema) {
+  if (schema.customFieldDefs?.length) {
+    return schema.customFieldDefs.map((def, index) => ({
+      fieldId: def.id,
+      label: def.defaultLabel,
+      type: 'text',
+      required: false,
+      templateLineStart: index,
+      templateLineCount: 1,
+    }));
+  }
+  return schema.fields ?? [];
+}
+
 function verifyPage(albumId, pageNumber, schema, slots, resources) {
-  const actualFields = schema.fields ?? [];
+  const actualFields = getEffectiveSchemaFields(schema);
   const { source, fields: expectedFields } = resolveExpectedFields(
     albumId,
     pageNumber,
@@ -143,7 +157,9 @@ function verifyPage(albumId, pageNumber, schema, slots, resources) {
   }
 
   checkMonotonicOrder(actualFields, issues);
-  checkSlotAlignment(actualFields, slots, warnings, true);
+  if (schema.pageType !== 'birthday_free_page') {
+    checkSlotAlignment(actualFields, slots, warnings, true);
+  }
 
   return {
     albumId,

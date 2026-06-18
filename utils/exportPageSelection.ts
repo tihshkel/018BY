@@ -1,7 +1,10 @@
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
+import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
 import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
+import { createEmptyPageValues } from '@/utils/pageStorage';
 
 export type ExportPageRow = {
   instanceId: string;
@@ -172,14 +175,30 @@ export function buildElectronicExportFileName(childName?: string): string {
 export function filterProjectDataForExport(params: {
   instances: PageInstance[];
   images: string[];
-  annotations: Annotation[];
+  pageValuesMap: Record<string, PageValues>;
+  lineGuideId: string;
   includedInstanceIds: string[];
   blankPageUri?: string | null;
+  viewportWidth: number;
+  viewportHeight: number;
+  sourceSizesByImageIndex?: Map<number, { width: number; height: number }>;
+  getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
 }): {
   images: string[];
   annotations: Annotation[];
 } {
-  const { instances, images, annotations, includedInstanceIds, blankPageUri } = params;
+  const {
+    instances,
+    images,
+    pageValuesMap,
+    lineGuideId,
+    includedInstanceIds,
+    blankPageUri,
+    viewportWidth,
+    viewportHeight,
+    sourceSizesByImageIndex,
+    getSchema,
+  } = params;
   const idSet = new Set(includedInstanceIds);
   const filteredInstances = instances.filter((i) => idSet.has(i.instanceId));
 
@@ -187,20 +206,34 @@ export function filterProjectDataForExport(params: {
   const filteredAnnotations: Annotation[] = [];
 
   for (const instance of filteredInstances) {
+    const schema = getSchema(instance);
+    if (!schema) continue;
+
     const imageUri = resolveInstancePageImageUri(images, instance) ?? blankPageUri ?? null;
     if (!imageUri) continue;
 
     filteredImages.push(imageUri);
-    const sourcePageNumber = instance.sourcePageNumber;
     const targetPageNumber = filteredImages.length;
-    const pageAnnotations = annotations.filter(
-      (a) => Number(a.page) === sourcePageNumber
-    );
+    const values = pageValuesMap[instance.instanceId] ?? createEmptyPageValues();
+    const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
+    const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
+
+    const pageAnnotations = pageValuesToAnnotations({
+      lineGuideId,
+      pageNumber: schema.sourcePageNumber,
+      schema: resolvedSchema,
+      values,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth: sourceSize?.width,
+      sourceHeight: sourceSize?.height,
+    });
+
     filteredAnnotations.push(
-      ...pageAnnotations.map((a) => ({
-        ...a,
+      ...pageAnnotations.map((annotation) => ({
+        ...annotation,
         page: targetPageNumber,
-      }))
+      })),
     );
   }
 

@@ -54,7 +54,37 @@ function computeLayoutCharacterLimit(
   return clamped.length;
 }
 
+function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
+  if (params.lineGuideId !== 'holidays_birthday_60') {
+    return undefined;
+  }
+
+  if (params.sourcePageNumber === 1 && params.field.fieldId.endsWith('_ownerName')) {
+    return 60;
+  }
+
+  if (params.sourcePageNumber === 40) {
+    if (params.field.fieldId.endsWith('_favorite_travel_memory')) {
+      return 220;
+    }
+    if (params.field.fieldId.endsWith('_favorite_travel_memory_line2')) {
+      return 180;
+    }
+  }
+
+  if (params.sourcePageNumber === 48 && params.field.fieldId.endsWith('_letter_text')) {
+    return 1600;
+  }
+
+  return undefined;
+}
+
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
+  const birthdayLimit = getBirthdayFieldLimit(params);
+  if (birthdayLimit != null) {
+    return birthdayLimit;
+  }
+
   const viewportWidth = params.viewportWidth ?? DEFAULT_VIEWPORT.width;
   const viewportHeight = params.viewportHeight ?? DEFAULT_VIEWPORT.height;
   const typeLimit = getFieldMaxLength(params.field.type);

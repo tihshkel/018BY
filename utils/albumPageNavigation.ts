@@ -15,7 +15,8 @@ export function usesUnifiedPhotoEditor(schema: AlbumPageSchema | undefined): boo
   if (
     schema.pageType === 'timeline_page' ||
     schema.pageType === 'text_page' ||
-    schema.pageType === 'free_page'
+    schema.pageType === 'free_page' ||
+    schema.pageType === 'birthday_free_page'
   ) {
     return true;
   }

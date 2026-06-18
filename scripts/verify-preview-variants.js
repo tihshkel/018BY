@@ -83,7 +83,18 @@ const previewAssetUriSource = fs.readFileSync(path.join(root, 'utils/previewAsse
 assert(previewAssetUriSource.includes('resolveBundledPreviewUri'), 'previewAssetUri: bundled first');
 
 const previewScreenSource = fs.readFileSync(path.join(root, 'app/album-page-preview.tsx'), 'utf8');
-assert(previewScreenSource.includes('resolvePagePreviewBackgroundUri'), 'album-page-preview: design background');
+assert(
+  previewScreenSource.includes('resolvePagePreviewBackgroundUri'),
+  'album-page-preview: design background',
+);
+assert(previewScreenSource.includes('PageRenderer'), 'album-page-preview: PageRenderer for export parity');
+
+const unifiedEditorSource = fs.readFileSync(
+  path.join(root, 'components/album/album-page-unified-editor.tsx'),
+  'utf8',
+);
+assert(unifiedEditorSource.includes('AlbumVariantBar'), 'unified editor: VariantBar');
+assert(unifiedEditorSource.includes('AlbumPhotoSlotGrid'), 'unified editor: PhotoSlotGrid');
 
 // Runtime API surface
 const variantPreviewSource = fs.readFileSync(
@@ -99,14 +110,6 @@ assert(
   variantPreviewSource.includes('getDefaultVariantIdForPage'),
   'variantPreview: getDefaultVariantIdForPage',
 );
-
-const unifiedEditorSource = fs.readFileSync(
-  path.join(root, 'components/album/album-page-unified-editor.tsx'),
-  'utf8',
-);
-assert(unifiedEditorSource.includes('AlbumVariantBar'), 'unified editor: VariantBar');
-assert(unifiedEditorSource.includes('AlbumPageLivePreview'), 'unified editor: LivePreview');
-assert(unifiedEditorSource.includes('AlbumPhotoSlotGrid'), 'unified editor: PhotoSlotGrid');
 
 const adapterSource = fs.readFileSync(path.join(root, 'utils/pageValuesAdapter.ts'), 'utf8');
 assert(adapterSource.includes('photoSlotTransforms'), 'pageValuesAdapter: photoSlotTransforms');

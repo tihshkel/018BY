@@ -103,6 +103,7 @@ function shouldEnrichWithPhotoBlocks(schema: AlbumPageSchema): boolean {
     'free_photo_caption',
     'timeline_page',
     'free_page',
+    'birthday_free_page',
   ]);
   if (photoPageTypes.has(schema.pageType)) return true;
 

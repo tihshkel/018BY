@@ -2823,9 +2823,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p50",
       "title": "Список покупок",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 50,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 50,
       "fields": [
@@ -3124,9 +3124,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p51",
       "title": "Список дел",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 51,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 51,
       "fields": [
@@ -3438,9 +3438,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p53",
       "title": "История родов",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 53,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 53,
       "fields": [
@@ -3459,7 +3459,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p54",
       "title": "Уже мама",
-      "pageType": "structured",
+      "pageType": "photo",
       "order": 54,
       "editable": true,
       "lineGuideId": "pregnancy_60",
@@ -3506,7 +3506,53 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "canDuplicate": false,
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
       "canAddAfter": true
     },
     {
@@ -3760,12 +3806,21 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p60",
       "title": "Письмо малышу",
-      "pageType": "structured",
+      "pageType": "text_page",
       "order": 60,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 60,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "pregnancy_60_p60_letter_text",
+          "label": "Письмо малышу",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 12
+        }
+      ],
       "canDuplicate": false,
       "canAddAfter": true
     }
@@ -3827,9 +3882,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_a5_p2",
       "title": "Триместры беременности",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 2,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 2,
       "fields": [],
@@ -4020,9 +4075,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_a5_p4",
       "title": "1 триместр",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 4,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 4,
       "fields": [],
@@ -4031,7 +4086,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p5",
-      "title": "4-я неделя",
+      "title": "6-я неделя",
       "pageType": "structured",
       "order": 5,
       "editable": true,
@@ -4084,7 +4139,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p6",
-      "title": "5-я неделя",
+      "title": "7-я неделя",
       "pageType": "structured",
       "order": 6,
       "editable": true,
@@ -4137,7 +4192,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p7",
-      "title": "6-я неделя",
+      "title": "8-я неделя",
       "pageType": "structured",
       "order": 7,
       "editable": true,
@@ -4190,7 +4245,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p8",
-      "title": "7-я неделя",
+      "title": "9-я неделя",
       "pageType": "structured",
       "order": 8,
       "editable": true,
@@ -4243,7 +4298,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p9",
-      "title": "8-я неделя",
+      "title": "10-я неделя",
       "pageType": "structured",
       "order": 9,
       "editable": true,
@@ -4296,7 +4351,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p10",
-      "title": "9-я неделя",
+      "title": "11-я неделя",
       "pageType": "structured",
       "order": 10,
       "editable": true,
@@ -4349,7 +4404,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p11",
-      "title": "10-я неделя",
+      "title": "12-я неделя",
       "pageType": "structured",
       "order": 11,
       "editable": true,
@@ -4402,7 +4457,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p12",
-      "title": "11-я неделя",
+      "title": "13-я неделя",
       "pageType": "structured",
       "order": 12,
       "editable": true,
@@ -4455,7 +4510,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p13",
-      "title": "12-я неделя",
+      "title": "14-я неделя",
       "pageType": "structured",
       "order": 13,
       "editable": true,
@@ -4509,9 +4564,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_a5_p14",
       "title": "2 триместр",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 14,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 14,
       "fields": [],
@@ -4520,7 +4575,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p15",
-      "title": "14-я неделя",
+      "title": "15-я неделя",
       "pageType": "structured",
       "order": 15,
       "editable": true,
@@ -4573,7 +4628,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p16",
-      "title": "15-я неделя",
+      "title": "16-я неделя",
       "pageType": "structured",
       "order": 16,
       "editable": true,
@@ -4626,7 +4681,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p17",
-      "title": "16-я неделя",
+      "title": "17-я неделя",
       "pageType": "structured",
       "order": 17,
       "editable": true,
@@ -4679,7 +4734,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p18",
-      "title": "17-я неделя",
+      "title": "18-я неделя",
       "pageType": "structured",
       "order": 18,
       "editable": true,
@@ -4732,7 +4787,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p19",
-      "title": "18-я неделя",
+      "title": "19-я неделя",
       "pageType": "structured",
       "order": 19,
       "editable": true,
@@ -4785,7 +4840,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p20",
-      "title": "19-я неделя",
+      "title": "20-я неделя",
       "pageType": "structured",
       "order": 20,
       "editable": true,
@@ -4838,7 +4893,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p21",
-      "title": "20-я неделя",
+      "title": "21-я неделя",
       "pageType": "structured",
       "order": 21,
       "editable": true,
@@ -4891,7 +4946,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p22",
-      "title": "21-я неделя",
+      "title": "22-я неделя",
       "pageType": "structured",
       "order": 22,
       "editable": true,
@@ -4944,7 +4999,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p23",
-      "title": "22-я неделя",
+      "title": "23-я неделя",
       "pageType": "structured",
       "order": 23,
       "editable": true,
@@ -4997,7 +5052,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p24",
-      "title": "23-я неделя",
+      "title": "24-я неделя",
       "pageType": "structured",
       "order": 24,
       "editable": true,
@@ -5050,7 +5105,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p25",
-      "title": "24-я неделя",
+      "title": "25-я неделя",
       "pageType": "structured",
       "order": 25,
       "editable": true,
@@ -5103,7 +5158,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p26",
-      "title": "25-я неделя",
+      "title": "26-я неделя",
       "pageType": "structured",
       "order": 26,
       "editable": true,
@@ -5156,7 +5211,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p27",
-      "title": "26-я неделя",
+      "title": "27-я неделя",
       "pageType": "structured",
       "order": 27,
       "editable": true,
@@ -5209,7 +5264,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p28",
-      "title": "27-я неделя",
+      "title": "28-я неделя",
       "pageType": "structured",
       "order": 28,
       "editable": true,
@@ -5262,10 +5317,10 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p29",
-      "title": "29 неделя",
-      "pageType": "structured",
+      "title": "3 триместр",
+      "pageType": "non_editable",
       "order": 29,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 29,
       "fields": [],
@@ -5274,7 +5329,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p30",
-      "title": "28-я неделя",
+      "title": "29-я неделя",
       "pageType": "structured",
       "order": 30,
       "editable": true,
@@ -5327,7 +5382,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p31",
-      "title": "29-я неделя",
+      "title": "30-я неделя",
       "pageType": "structured",
       "order": 31,
       "editable": true,
@@ -5380,7 +5435,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p32",
-      "title": "30-я неделя",
+      "title": "31-я неделя",
       "pageType": "structured",
       "order": 32,
       "editable": true,
@@ -5433,7 +5488,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p33",
-      "title": "31-я неделя",
+      "title": "32-я неделя",
       "pageType": "structured",
       "order": 33,
       "editable": true,
@@ -5486,7 +5541,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p34",
-      "title": "32-я неделя",
+      "title": "33-я неделя",
       "pageType": "structured",
       "order": 34,
       "editable": true,
@@ -5539,7 +5594,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p35",
-      "title": "33-я неделя",
+      "title": "34-я неделя",
       "pageType": "structured",
       "order": 35,
       "editable": true,
@@ -5592,7 +5647,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p36",
-      "title": "34-я неделя",
+      "title": "35-я неделя",
       "pageType": "structured",
       "order": 36,
       "editable": true,
@@ -5645,7 +5700,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p37",
-      "title": "35-я неделя",
+      "title": "36-я неделя",
       "pageType": "structured",
       "order": 37,
       "editable": true,
@@ -5698,7 +5753,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p38",
-      "title": "36-я неделя",
+      "title": "37-я неделя",
       "pageType": "structured",
       "order": 38,
       "editable": true,
@@ -5751,7 +5806,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p39",
-      "title": "37-я неделя",
+      "title": "38-я неделя",
       "pageType": "structured",
       "order": 39,
       "editable": true,
@@ -5804,7 +5859,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p40",
-      "title": "38-я неделя",
+      "title": "39-я неделя",
       "pageType": "structured",
       "order": 40,
       "editable": true,
@@ -5857,7 +5912,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p41",
-      "title": "39-я неделя",
+      "title": "40-я неделя",
       "pageType": "structured",
       "order": 41,
       "editable": true,
@@ -5910,7 +5965,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p42",
-      "title": "40-я неделя",
+      "title": "41-я неделя",
       "pageType": "structured",
       "order": 42,
       "editable": true,
@@ -5963,7 +6018,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p43",
-      "title": "41-я неделя",
+      "title": "42-я неделя",
       "pageType": "structured",
       "order": 43,
       "editable": true,
@@ -6166,9 +6221,9 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_a5_p45",
       "title": "История родов",
-      "pageType": "structured",
+      "pageType": "non_editable",
       "order": 45,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 45,
       "fields": [
@@ -6434,7 +6489,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мама думала",
           "type": "radio",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1,
           "options": [
             "Мальчик",
@@ -6446,7 +6501,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Папа думал",
           "type": "radio",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 3,
           "templateLineCount": 1,
           "options": [
             "Мальчик",
@@ -6963,7 +7018,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "kids_48_p10_upper_01_left_outer_molar_8",
-          "label": "upper 01 left outer molar 8",
+          "label": "Верхний левый крайний моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 0,
@@ -6971,7 +7026,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_02_left_molar_5",
-          "label": "upper 02 left molar 5",
+          "label": "Верхний левый 1-й моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -6979,7 +7034,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_03_left_canine_7",
-          "label": "upper 03 left canine 7",
+          "label": "Верхний левый клык",
           "type": "date",
           "required": false,
           "templateLineStart": 2,
@@ -6987,7 +7042,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_04_left_lateral_3",
-          "label": "upper 04 left lateral 3",
+          "label": "Верхний левый 2-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 3,
@@ -6995,7 +7050,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_05_left_central_2",
-          "label": "upper 05 left central 2",
+          "label": "Верхний левый 1-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 4,
@@ -7003,7 +7058,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_06_right_central_2",
-          "label": "upper 06 right central 2",
+          "label": "Верхний правый 1-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 5,
@@ -7011,7 +7066,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_07_right_lateral_3",
-          "label": "upper 07 right lateral 3",
+          "label": "Верхний правый 2-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 6,
@@ -7019,7 +7074,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_08_right_canine_7",
-          "label": "upper 08 right canine 7",
+          "label": "Верхний правый клык",
           "type": "date",
           "required": false,
           "templateLineStart": 7,
@@ -7027,7 +7082,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_09_right_molar_5",
-          "label": "upper 09 right molar 5",
+          "label": "Верхний правый 1-й моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 8,
@@ -7035,7 +7090,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_upper_10_right_outer_molar_8",
-          "label": "upper 10 right outer molar 8",
+          "label": "Верхний правый крайний моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 9,
@@ -7043,7 +7098,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_01_left_outer_molar_8",
-          "label": "lower 01 left outer molar 8",
+          "label": "Нижний левый крайний моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 10,
@@ -7051,7 +7106,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_02_left_molar_6",
-          "label": "lower 02 left molar 6",
+          "label": "Нижний левый 1-й моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 11,
@@ -7059,7 +7114,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_03_left_canine_7",
-          "label": "lower 03 left canine 7",
+          "label": "Нижний левый клык",
           "type": "date",
           "required": false,
           "templateLineStart": 12,
@@ -7067,7 +7122,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_04_left_lateral_4",
-          "label": "lower 04 left lateral 4",
+          "label": "Нижний левый 2-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 13,
@@ -7075,7 +7130,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_05_left_central_1",
-          "label": "lower 05 left central 1",
+          "label": "Нижний левый 1-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 14,
@@ -7083,7 +7138,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_06_right_central_1",
-          "label": "lower 06 right central 1",
+          "label": "Нижний правый 1-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 15,
@@ -7091,7 +7146,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_07_right_lateral_4",
-          "label": "lower 07 right lateral 4",
+          "label": "Нижний правый 2-й резец",
           "type": "date",
           "required": false,
           "templateLineStart": 16,
@@ -7099,7 +7154,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_08_right_canine_7",
-          "label": "lower 08 right canine 7",
+          "label": "Нижний правый клык",
           "type": "date",
           "required": false,
           "templateLineStart": 17,
@@ -7107,7 +7162,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_09_right_molar_6",
-          "label": "lower 09 right molar 6",
+          "label": "Нижний правый 1-й моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 18,
@@ -7115,7 +7170,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "kids_48_p10_lower_10_right_outer_molar_8",
-          "label": "lower 10 right outer molar 8",
+          "label": "Нижний правый крайний моляр",
           "type": "date",
           "required": false,
           "templateLineStart": 19,
@@ -10035,12 +10090,108 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
   "holidays_birthday_60": [
     {
       "pageId": "holidays_birthday_60_p1",
-      "title": "Приглашение",
-      "pageType": "photo",
+      "title": "Этот альбом принадлежит",
+      "pageType": "structured",
       "order": 1,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 1,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p1_ownerName",
+          "label": "Имя владельца альбома",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: Анна Ковалёва",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "TextPageTemplate"
+    },
+    {
+      "pageId": "holidays_birthday_60_p2",
+      "title": "Привет, мир!",
+      "pageType": "structured",
+      "order": 2,
+      "editable": true,
+      "lineGuideId": "holidays_birthday_60",
+      "sourcePageNumber": 2,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p2_dateOfBirth",
+          "label": "Дата рождения",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p2_birthTime",
+          "label": "Время рождения",
+          "type": "time",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p2_birthWeight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 3420 г",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p2_birthHeight",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 52 см",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p2_birthPlace",
+          "label": "Место рождения",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: Минск",
+          "templateLineStart": 4,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Горизонтальная фотография",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "1 горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate"
+    },
+    {
+      "pageId": "holidays_birthday_60_p3",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "order": 3,
+      "editable": true,
+      "lineGuideId": "holidays_birthday_60",
+      "sourcePageNumber": 3,
       "fields": [],
       "photoBlocks": [
         {
@@ -10048,52 +10199,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            }
-          ]
-        }
-      ],
-      "canDuplicate": true,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p2",
-      "title": "Привет, мир!",
-      "pageType": "photo",
-      "order": 2,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 2,
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10101,8 +10216,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10115,60 +10240,71 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p3",
-      "title": "Пожелания",
-      "pageType": "photo",
-      "order": 3,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 3,
-      "photoBlocks": [
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
         {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            }
-          ]
+          "id": "field_1",
+          "defaultLabel": "Цвет волос",
+          "fieldType": "short_text",
+          "maxLabelLength": 24,
+          "maxValueLength": 40
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Цвет глаз",
+          "fieldType": "short_text",
+          "maxLabelLength": 24,
+          "maxValueLength": 40
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p4",
-      "title": "Чувства и эмоции мамы",
-      "pageType": "photo",
+      "title": "Мне 1 годик",
+      "pageType": "structured",
       "order": 4,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 4,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p4_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p4_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p4_teethCount",
+          "label": "Кол-во зубов",
+          "type": "number",
+          "required": false,
+          "placeholder": "Например: 8",
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
@@ -10177,179 +10313,293 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p5",
-      "title": "Чувства и эмоции папы",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 5,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 5,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Дополнительное поле",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_3",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p6",
-      "title": "Мне 1 годик!",
-      "pageType": "photo",
+      "title": "Мне 2 года!",
+      "pageType": "structured",
       "order": 6,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 6,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p6_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p6_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p7",
-      "title": "Страница 7",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 7,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 7,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p8",
-      "title": "Мне 2 года!",
-      "pageType": "photo",
+      "title": "Мне 3 года!",
+      "pageType": "structured",
       "order": 8,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 8,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p8_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p8_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p9",
-      "title": "Страница 9",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 9,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 9,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10357,8 +10607,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10371,212 +10631,350 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p10",
-      "title": "Мне 3 года!",
-      "pageType": "photo",
+      "title": "Мне 4 года!",
+      "pageType": "structured",
       "order": 10,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 10,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p10_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p10_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p11",
-      "title": "Страница 11",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 11,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 11,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p12",
-      "title": "Мне 4 года!",
-      "pageType": "photo",
+      "title": "Мне 5 лет!",
+      "pageType": "structured",
       "order": 12,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 12,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p12_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p12_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p13",
-      "title": "Страница 13",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 13,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 13,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p14",
-      "title": "Мне 5 лет!",
-      "pageType": "photo",
+      "title": "Мне 6 лет!",
+      "pageType": "structured",
       "order": 14,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 14,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p14_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p14_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p15",
-      "title": "Страница 15",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 15,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 15,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10584,8 +10982,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10598,212 +11006,350 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p16",
-      "title": "Мне 6 лет!",
-      "pageType": "photo",
+      "title": "Мне 7 лет!",
+      "pageType": "structured",
       "order": 16,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 16,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p16_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p16_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p17",
-      "title": "Страница 17",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 17,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 17,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p18",
-      "title": "Мне 7 лет!",
-      "pageType": "photo",
+      "title": "Мне 8 лет!",
+      "pageType": "structured",
       "order": 18,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 18,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p18_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p18_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p19",
-      "title": "Страница 19",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 19,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 19,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p20",
-      "title": "Мне 8 лет!",
-      "pageType": "photo",
+      "title": "Мне 9 лет!",
+      "pageType": "structured",
       "order": 20,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 20,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p20_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p20_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p21",
-      "title": "Страница 21",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 21,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 21,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10811,8 +11357,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10825,223 +11381,350 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p22",
-      "title": "Мне 9 rem!",
-      "pageType": "photo",
+      "title": "Мне 10 лет!",
+      "pageType": "structured",
       "order": 22,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 22,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p22_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p22_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p23",
-      "title": "Страница 23",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 23,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 23,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p24",
-      "title": "Мне 10 лет!",
-      "pageType": "photo",
+      "title": "Мне 11 лет!",
+      "pageType": "structured",
       "order": 24,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 24,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p24_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p24_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p25",
-      "title": "Страница 25",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 25,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 25,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p26",
-      "title": "Мне 11 лет!",
-      "pageType": "photo",
+      "title": "Мне 12 лет!",
+      "pageType": "structured",
       "order": 26,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 26,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p26_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p26_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p27",
-      "title": "Страница 27",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 27,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 27,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -11049,8 +11732,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11063,212 +11756,350 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p28",
-      "title": "Мне 12 лет!",
-      "pageType": "photo",
+      "title": "Мне 13 лет!",
+      "pageType": "structured",
       "order": 28,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 28,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p28_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p28_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p29",
-      "title": "Страница 29",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 29,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 29,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p30",
-      "title": "Мне 13 лет!",
-      "pageType": "photo",
+      "title": "Мне 14 лет!",
+      "pageType": "structured",
       "order": 30,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 30,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p30_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p30_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p31",
-      "title": "Страница 31",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 31,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 31,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p32",
-      "title": "Mre 14 sem!",
-      "pageType": "photo",
+      "title": "Мне 15 лет!",
+      "pageType": "structured",
       "order": 32,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 32,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p32_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p32_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p33",
-      "title": "Страница 33",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 33,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 33,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -11276,8 +12107,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11290,223 +12131,225 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p34",
-      "title": "Мне 15 sem!",
-      "pageType": "photo",
+      "title": "Мне 16 лет!",
+      "pageType": "structured",
       "order": 34,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 34,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p34_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p34_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p35",
-      "title": "Страница 35",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 35,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 35,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p36",
-      "title": "Мне 16 лет!",
-      "pageType": "photo",
+      "title": "Мне 17 лет!",
+      "pageType": "structured",
       "order": 36,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 36,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p36_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p36_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Фото для страницы",
+          "label": "Главное фото",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно фото",
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
               ]
             }
           ]
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p37",
-      "title": "Страница 37",
-      "pageType": "photo",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
       "order": 37,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 37,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            }
-          ]
-        }
-      ],
-      "canDuplicate": true,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p38",
-      "title": "Мне 17 лет!",
-      "pageType": "photo",
-      "order": 38,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 38,
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            }
-          ]
-        }
-      ],
-      "canDuplicate": true,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p39",
-      "title": "Страница 39",
-      "pageType": "photo",
-      "order": 39,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 39,
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -11514,8 +12357,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_photos",
-              "label": "4 фото",
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11528,334 +12381,633 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
+    },
+    {
+      "pageId": "holidays_birthday_60_p38",
+      "title": "Мне 18 лет!",
+      "pageType": "structured",
+      "order": 38,
+      "editable": true,
+      "lineGuideId": "holidays_birthday_60",
+      "sourcePageNumber": 38,
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p38_weight",
+          "label": "Мой вес",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 10,4 кг",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p38_height",
+          "label": "Мой рост",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: 78 см",
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Главное фото",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "SinglePhotoTemplate",
+      "captionEnabled": true
+    },
+    {
+      "pageId": "holidays_birthday_60_p39",
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "order": 39,
+      "editable": true,
+      "lineGuideId": "holidays_birthday_60",
+      "sourcePageNumber": 39,
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "customFieldDefs": [
+        {
+          "id": "field_1",
+          "defaultLabel": "Как прошёл этот день",
+          "fieldType": "long_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 300
+        },
+        {
+          "id": "field_2",
+          "defaultLabel": "Мои подарки",
+          "fieldType": "short_text",
+          "maxLabelLength": 40,
+          "maxValueLength": 120
+        }
+      ],
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p40",
-      "title": "Мне 18 лет!",
-      "pageType": "photo",
+      "title": "Мои путешествия",
+      "pageType": "structured",
       "order": 40,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 40,
-      "photoBlocks": [
+      "fields": [
         {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            }
-          ]
+          "fieldId": "holidays_birthday_60_p40_countries_count",
+          "label": "Количество стран",
+          "type": "number",
+          "required": false,
+          "placeholder": "Например: 5",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p40_favorite_travel_memory",
+          "label": "Мне больше всего понравилось в",
+          "type": "text",
+          "required": false,
+          "placeholder": "Например: море, горы и поездка на поезде",
+          "templateLineStart": 1,
+          "templateLineCount": 3
+        },
+        {
+          "fieldId": "holidays_birthday_60_p40_favorite_travel_memory_line2",
+          "label": "Дополнительная строка",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 2
         }
       ],
-      "canDuplicate": true,
-      "canAddAfter": true
+      "canDuplicate": false,
+      "canAddAfter": false,
+      "templateLibraryId": "TextPageTemplate"
     },
     {
       "pageId": "holidays_birthday_60_p41",
-      "title": "Страница 41",
-      "pageType": "photo",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 41,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 41,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
+              "variantId": "two_photos",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
                 1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p42",
-      "title": "Мои путешествия",
-      "pageType": "photo",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 42,
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 42,
+      "fields": [],
       "photoBlocks": [
         {
           "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
         }
       ],
       "canDuplicate": true,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p43",
-      "title": "Страница 43",
-      "pageType": "non_editable",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 43,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 43,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p44",
-      "title": "Страница 44",
-      "pageType": "non_editable",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 44,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 44,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p45",
-      "title": "Страница 45",
-      "pageType": "non_editable",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 45,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 45,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p46",
-      "title": "Страница 46",
-      "pageType": "non_editable",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 46,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 46,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p47",
-      "title": "Страница 47",
-      "pageType": "non_editable",
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
       "order": 47,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 47,
-      "canDuplicate": false,
-      "canAddAfter": true
+      "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_photos",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+      "canDuplicate": true,
+      "canAddAfter": true,
+      "templateLibraryId": "CaptionGalleryTemplate",
+      "captionEnabled": true
     },
     {
       "pageId": "holidays_birthday_60_p48",
-      "title": "Страница 48",
-      "pageType": "non_editable",
+      "title": "Письмо во взрослую жизнь",
+      "pageType": "text_page",
       "order": 48,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 48,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p49",
-      "title": "Страница 49",
-      "pageType": "non_editable",
-      "order": 49,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 49,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p50",
-      "title": "Страница 50",
-      "pageType": "non_editable",
-      "order": 50,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 50,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p51",
-      "title": "Страница 51",
-      "pageType": "non_editable",
-      "order": 51,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 51,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p52",
-      "title": "Страница 52",
-      "pageType": "non_editable",
-      "order": 52,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 52,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p53",
-      "title": "Страница 53",
-      "pageType": "non_editable",
-      "order": 53,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 53,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p54",
-      "title": "Страница 54",
-      "pageType": "non_editable",
-      "order": 54,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 54,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p55",
-      "title": "Страница 55",
-      "pageType": "non_editable",
-      "order": 55,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 55,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p56",
-      "title": "Страница 56",
-      "pageType": "non_editable",
-      "order": 56,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 56,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p57",
-      "title": "Страница 57",
-      "pageType": "non_editable",
-      "order": 57,
-      "editable": false,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 57,
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p58",
-      "title": "• Письмо во взрослую жизно",
-      "pageType": "structured",
-      "order": 58,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 58,
       "fields": [
         {
-          "fieldId": "holidays_birthday_60_p58_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
+          "fieldId": "holidays_birthday_60_p48_letter_text",
+          "label": "Письмо во взрослую жизнь",
           "type": "text",
           "required": false,
+          "placeholder": "Напишите письмо во взрослую жизнь: пожелания, мечты, важные слова",
           "templateLineStart": 0,
-          "templateLineCount": 10
+          "templateLineCount": 12
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p59",
-      "title": "• Письмо во взрослую жизно",
-      "pageType": "structured",
-      "order": 59,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 59,
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p59_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 10
-        }
-      ],
-      "canDuplicate": false,
-      "canAddAfter": true
-    },
-    {
-      "pageId": "holidays_birthday_60_p60",
-      "title": "• Письмо во взрослую жизно",
-      "pageType": "structured",
-      "order": 60,
-      "editable": true,
-      "lineGuideId": "holidays_birthday_60",
-      "sourcePageNumber": 60,
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p60_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 10
-        }
-      ],
-      "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": false,
+      "templateLibraryId": "TextPageTemplate"
     }
   ],
   "diary_interior_brown": [
@@ -12151,31 +13303,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                13
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                13,
-                14
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -12277,42 +13404,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -12412,42 +13503,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -12634,42 +13689,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -12737,42 +13756,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -12866,42 +13849,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -13006,42 +13953,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -13093,42 +14004,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -13190,31 +14065,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                11
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                11,
-                12
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -13385,42 +14235,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -13472,42 +14286,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -13620,42 +14398,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -13762,42 +14504,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -13865,42 +14571,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -14011,42 +14681,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -14168,42 +14802,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                5,
-                6
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -14312,42 +14910,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -14459,42 +15021,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -14602,42 +15128,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -14749,42 +15239,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -14854,19 +15308,11 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d1_l8",
-          "label": "Пятница: урок 8",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 7,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_brown_p37_d2_l1",
           "label": "Суббота: урок 1",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -14874,7 +15320,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -14882,7 +15328,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 3",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -14890,7 +15336,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 4",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -14898,7 +15344,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 5",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -14906,7 +15352,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 6",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -14914,52 +15360,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 7",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d2_l8",
-          "label": "Суббота: урок 8",
+          "fieldId": "diary_interior_brown_p37_weekNote",
+          "label": "Заметки на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                6,
-                7
-              ]
-            }
-          ]
+          "templateLineStart": 14,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -15021,42 +15431,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                6,
-                7
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -15200,42 +15574,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                7,
-                8,
-                16,
-                17
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -15375,31 +15713,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                15
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                15,
-                16
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -15543,42 +15856,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                7,
-                8,
-                15,
-                16
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -15718,42 +15995,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                8,
-                9,
-                16,
-                17
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -15897,42 +16138,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                7,
-                8,
-                15,
-                16
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16074,42 +16279,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                8,
-                9,
-                16,
-                17
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16161,42 +16330,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -16252,42 +16385,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16339,42 +16436,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -16430,42 +16491,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16517,42 +16542,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -16608,42 +16597,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16695,42 +16648,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -16786,42 +16703,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -16873,42 +16754,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -16964,42 +16809,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -17053,42 +16862,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -17140,42 +16913,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                1
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -17578,31 +17315,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -17702,42 +17414,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 10,
           "templateLineCount": 2
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -17841,42 +17517,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                12
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                12,
-                13
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                12,
-                13,
-                14,
-                15
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -17970,42 +17610,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                3,
-                4
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18057,42 +17661,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -18156,42 +17724,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                5
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                5,
-                6
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                5,
-                6,
-                7,
-                8
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18243,42 +17775,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -18342,42 +17838,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                4,
-                5
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18429,42 +17889,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -18520,42 +17944,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                3
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                3,
-                4
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                3,
-                4,
-                5,
-                6
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18607,42 +17995,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -18714,42 +18066,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18801,42 +18117,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -18900,42 +18180,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                9,
-                10
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -18987,42 +18231,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -19144,42 +18352,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 2
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                4,
-                5
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -19231,42 +18403,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -19378,42 +18514,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -19523,42 +18623,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -19652,42 +18716,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -19739,42 +18767,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                7,
-                8
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -19918,31 +18910,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -20082,31 +19049,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -20250,31 +19192,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -20414,31 +19331,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 15,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -20582,31 +19474,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -20748,31 +19615,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                7
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                7,
-                8
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -20824,42 +19666,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -20915,42 +19721,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -21002,42 +19772,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,
@@ -21093,42 +19827,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -21182,42 +19880,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 4
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": true,
       "canAddAfter": true
     },
@@ -21269,42 +19931,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 4
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": true,

@@ -6,6 +6,11 @@ import {
   makeDirectoryAsync,
 } from 'expo-file-system/legacy';
 import { usesSquareBlankInterior } from '@/constants/square-blank-interior';
+import {
+  BIRTHDAY_48_PAGE_COUNT,
+  getBirthday48AssetPageNumber,
+  isBirthday48Album,
+} from '@/utils/birthday48AssetRemap';
 import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 
 /**
@@ -47,7 +52,10 @@ function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
     case 'kids_48':
       return { folderPath: 'assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр', pageCount: 48 };
     case 'holidays_birthday_60':
-      return { folderPath: 'assets/pdfs/Блок ДНЕЙ РОЖДЕНИЯ 60 стр', pageCount: 60 };
+      return {
+        folderPath: 'assets/pdfs/Блок ДНЕЙ РОЖДЕНИЯ 60 стр',
+        pageCount: BIRTHDAY_48_PAGE_COUNT,
+      };
     default: {
       // Для всех детских альбомов используем kids_48
       if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) {
@@ -60,6 +68,32 @@ function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
 
 function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
+}
+
+function resolveRemotePageFileName(albumId: string, logicalPage: number): string {
+  const assetPage = isBirthday48Album(albumId)
+    ? getBirthday48AssetPageNumber(logicalPage)
+    : logicalPage;
+  return pageFileName(assetPage);
+}
+
+async function loadRemoteAlbumPageUri(
+  albumId: string,
+  folderPath: string,
+  logicalPage: number,
+  preferCache: boolean
+): Promise<string> {
+  const fileName = resolveRemotePageFileName(albumId, logicalPage);
+  if (preferCache) {
+    const localPath = remotePageCachePath(folderPath, fileName);
+    const info = await getInfoAsync(localPath);
+    if (info.exists) {
+      return normalizeFileUri(localPath);
+    }
+  }
+  const uri = await downloadRemotePageToCache(folderPath, fileName);
+  if (uri) return uri;
+  return remotePageUrl(folderPath, fileName);
 }
 
 function toHex(n: number): string {
@@ -132,7 +166,11 @@ async function downloadRemotePageToCacheWithRetry(
   return null;
 }
 
-async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Promise<void> {
+async function warmRemoteAlbumCache(
+  albumId: string,
+  folderPath: string,
+  pageCount: number
+): Promise<void> {
   const maxParallel = 4;
   let idx = 1;
 
@@ -141,7 +179,8 @@ async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Prom
       const current = idx;
       idx += 1;
       if (current > pageCount) return;
-      await downloadRemotePageToCache(folderPath, pageFileName(current));
+      const fileName = resolveRemotePageFileName(albumId, current);
+      await downloadRemotePageToCache(folderPath, fileName);
     }
   };
 
@@ -164,16 +203,12 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
 
   const uris = await Promise.all(
     Array.from({ length: spec.pageCount }, async (_, index) => {
-      const fileName = pageFileName(index + 1);
-      const localPath = remotePageCachePath(spec.folderPath, fileName);
-      const info = await getInfoAsync(localPath);
-      return info.exists
-        ? normalizeFileUri(localPath)
-        : remotePageUrl(spec.folderPath, fileName);
+      const logicalPage = index + 1;
+      return loadRemoteAlbumPageUri(albumId, spec.folderPath, logicalPage, true);
     })
   );
 
-  warmRemoteAlbumCache(spec.folderPath, spec.pageCount).catch(() => {});
+  warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
 
   return uris;
 }
@@ -272,7 +307,8 @@ export async function ensureRemoteAlbumPageCachedByIndex(
   const interiorId = resolveInteriorAlbumId(albumId, category);
   const spec = getRemoteAlbumSpec(interiorId);
   if (!spec || pageNumber > spec.pageCount) return null;
-  return downloadRemotePageToCacheWithRetry(spec.folderPath, pageFileName(pageNumber));
+  const fileName = resolveRemotePageFileName(interiorId, pageNumber);
+  return downloadRemotePageToCacheWithRetry(spec.folderPath, fileName);
 }
 
 /**
@@ -297,7 +333,7 @@ export async function ensureAlbumPagesCachedForExport(
   await ensureRemoteAlbumCacheDir();
   const uris: string[] = [];
   for (let page = 1; page <= spec.pageCount; page += 1) {
-    const fileName = pageFileName(page);
+    const fileName = resolveRemotePageFileName(interiorId, page);
     const uri = await downloadRemotePageToCacheWithRetry(spec.folderPath, fileName);
     if (!uri) {
       throw new Error(
@@ -336,8 +372,7 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
         idx += 1;
         if (current > spec.pageCount) return;
 
-        const fileName = pageFileName(current);
-        const uri = await downloadRemotePageToCache(spec.folderPath, fileName);
+        const uri = await loadRemoteAlbumPageUri(albumId, spec.folderPath, current, false);
         if (uri) results.push(uri);
       }
     };
@@ -546,7 +581,7 @@ export function getAlbumImages(albumId: string): any[] {
     case 'holidays_blank':
       return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':
-      return [blankWhitePage];
+      return blankPageArray(48, true);
     case 'family_blank':
       return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
     case 'family_blank_21x21':
@@ -572,7 +607,7 @@ export function getAlbumPageCount(albumId: string): number {
     case 'holidays_blank':
       return HOLIDAY_BLANK_PAGE_COUNT;
     case 'holidays_birthday_60':
-      return 60;
+      return 48;
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
     case 'family_blank_21x21':

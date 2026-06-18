@@ -10,7 +10,8 @@ const { applyDiary60TzManifest } = require('./diary-60-tz-builders');
 const { applyGirlsDiaryA5TzManifest } = require('./girls-diary-a5-tz-builders');
 const { applyPregnancy60PageFields } = require('./pregnancy-60-tz-builders');
 const { applyPregnancyA5PageFields } = require('./pregnancy-a5-tz-builders');
-const { applyHolidaysBirthday60PageFields } = require('./holidays-birthday-60-tz-builders');
+const { applyBirthday48PageFields } = require('./birthday-48-tz-builders');
+const { getBirthday48PageTitle } = require('./birthday-48-field-specs');
 const { PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const ALBUM_IDS = [
@@ -29,13 +30,23 @@ const PAGE_COUNTS = {
   pregnancy_60: 60,
   pregnancy_a5: 48,
   kids_48: 48,
-  holidays_birthday_60: 60,
+  holidays_birthday_60: 48,
   diary_interior_brown: 60,
   diary_interior_purple: 40,
   family_blank: 20,
   holidays_blank: 20,
   family_blank_21x21: 20,
 };
+
+/** Albums whose page schemas come from TZ builders — skip OCR album-page-content fallback. */
+const TZ_BUILDER_ALBUMS = new Set([
+  'kids_48',
+  'diary_interior_brown',
+  'diary_interior_purple',
+  'pregnancy_60',
+  'pregnancy_a5',
+  'holidays_birthday_60',
+]);
 
 const PREGNANCY_INTRO_LABELS = {
   1: 'Новость',
@@ -74,13 +85,6 @@ const KIDS_48_LABELS = {
   5: 'Первая фото',
 };
 
-const HOLIDAYS_BIRTHDAY_LABELS = {
-  1: 'Приглашение',
-  2: 'Именинник',
-  3: 'Пожелания',
-  4: 'Гости',
-  5: 'Праздник',
-};
 
 const DIARY_BROWN_LABELS = {
   1: 'Обо мне',
@@ -137,7 +141,7 @@ function getPageTitle(lineGuideId, pageNumber) {
     case 'kids_48':
       return getLabelFromMap(pageNumber, KIDS_48_LABELS, `Страница ${pageNumber}`);
     case 'holidays_birthday_60':
-      return getLabelFromMap(pageNumber, HOLIDAYS_BIRTHDAY_LABELS, `Страница ${pageNumber}`);
+      return getBirthday48PageTitle(pageNumber);
     case 'diary_interior_brown':
       return getLabelFromMap(pageNumber, DIARY_BROWN_LABELS);
     case 'diary_interior_purple':
@@ -370,14 +374,15 @@ function mergeOverride(base, override) {
 function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override, pageContent) {
   const listTitle = getPageTitle(lineGuideId, pageNumber);
   const heading = pageContent?.heading;
-  const title = override?.title ?? heading ?? listTitle;
+  const usesTzBuilder = TZ_BUILDER_ALBUMS.has(lineGuideId);
+  const title = override?.title ?? (usesTzBuilder ? listTitle : (heading ?? listTitle));
   let pageType = override?.pageType ?? inferPageType(lineGuideId, pageNumber, slots, title, auditPageType);
 
   const pageId = `${lineGuideId}_p${pageNumber}`;
   let fields = override?.fields;
   let photoBlocks = override?.photoBlocks;
 
-  if (!fields && pageContent?.fields?.length) {
+  if (!fields && pageContent?.fields?.length && !usesTzBuilder) {
     fields = buildFieldsFromContent(lineGuideId, pageNumber, pageContent.fields);
   }
 
@@ -385,7 +390,7 @@ function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override
     pageType = 'structured';
   }
 
-  if (!fields && (pageType === 'structured' || pageType === 'free')) {
+  if (!fields && (pageType === 'structured' || pageType === 'free') && !usesTzBuilder) {
     fields = buildFieldsFromSlots(lineGuideId, pageNumber, slots);
     if (fields.length === 0 && pageType === 'structured') {
       pageType = slots.length === 0 ? 'non_editable' : 'photo';
@@ -498,9 +503,9 @@ function generateSchemas(projectRoot) {
       }
 
       if (lineGuideId === 'holidays_birthday_60') {
-        const holidaysFields = applyHolidaysBirthday60PageFields(pageNumber);
-        if (holidaysFields) {
-          schema = mergeOverride(schema, holidaysFields);
+        const birthdayFields = applyBirthday48PageFields(pageNumber, lineGuideId, slots);
+        if (birthdayFields) {
+          schema = mergeOverride(schema, birthdayFields);
         }
       }
 

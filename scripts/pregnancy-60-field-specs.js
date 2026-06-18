@@ -246,10 +246,12 @@ function getPregnancy60WeekNumber(pageNumber) {
   return null;
 }
 
+const LETTER_TO_BABY_FIELDS = [['letter_text', 'Письмо малышу', 'text', 12]];
+
 function getPregnancyA5WeekNumber(pageNumber) {
-  if (pageNumber >= 5 && pageNumber <= 13) return pageNumber - 1;
-  if (pageNumber >= 15 && pageNumber <= 28) return pageNumber - 1;
-  if (pageNumber >= 30 && pageNumber <= 43) return pageNumber - 2;
+  if (pageNumber >= 5 && pageNumber <= 13) return pageNumber + 1;
+  if (pageNumber >= 15 && pageNumber <= 28) return pageNumber;
+  if (pageNumber >= 30 && pageNumber <= 43) return pageNumber - 1;
   return null;
 }
 
@@ -275,4 +277,5 @@ module.exports = {
   isPregnancyA5WeeklyPage,
   getPregnancy60WeekNumber,
   getPregnancyA5WeekNumber,
+  LETTER_TO_BABY_FIELDS,
 };

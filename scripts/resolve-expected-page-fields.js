@@ -9,7 +9,7 @@ const { applyDiary60TzManifest } = require('./diary-60-tz-builders');
 const { applyGirlsDiaryA5TzManifest } = require('./girls-diary-a5-tz-builders');
 const { applyPregnancy60PageFields } = require('./pregnancy-60-tz-builders');
 const { applyPregnancyA5PageFields } = require('./pregnancy-a5-tz-builders');
-const { applyHolidaysBirthday60PageFields } = require('./holidays-birthday-60-tz-builders');
+const { applyBirthday48PageFields } = require('./birthday-48-tz-builders');
 
 const TZ_ALBUMS = new Set([
   'kids_48',
@@ -60,12 +60,21 @@ function resolveExpectedFields(albumId, pageNumber, slots, resources) {
   }
 
   if (albumId === 'holidays_birthday_60') {
-    const tz = applyHolidaysBirthday60PageFields(pageNumber);
-    if (tz) return { source: 'tz', fields: tz.fields ?? [] };
+    const tz = applyBirthday48PageFields(pageNumber, albumId, slots);
+    if (tz) {
+      const fields =
+        tz.fields?.length
+          ? tz.fields
+          : (tz.customFieldDefs ?? []).map((def) => ({
+              label: def.defaultLabel,
+              type: def.fieldType === 'long_text' ? 'text' : 'text',
+            }));
+      return { source: 'tz', fields };
+    }
   }
 
   const content = pageContent[albumId]?.[pageKey];
-  if (content?.fields?.length) {
+  if (!TZ_ALBUMS.has(albumId) && content?.fields?.length) {
     return {
       source: 'content',
       fields: content.fields.map((field) => ({
