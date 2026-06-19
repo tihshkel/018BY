@@ -1,3 +1,4 @@
+import { AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 function formatReceivedAt(iso: string): string {
   const date = new Date(iso);
@@ -54,11 +54,11 @@ export default function NotificationsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>История уведомлений</Text>
-        <Text style={styles.headerSubtitle}>Все полученные push-уведомления</Text>
-      </View>
+    <AppScreen tabletShell contentMaxWidth={640} edges={['top']}>
+      <AppHeader title="История уведомлений" showBack={false} />
+      <AppText variant="bodySm" style={styles.headerSubtitle}>
+        Все полученные push-уведомления
+      </AppText>
 
       <FlatList
         data={items}
@@ -79,65 +79,39 @@ export default function NotificationsScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
   headerSubtitle: {
-    marginTop: 6,
-    fontSize: 14,
     color: colors.textSecondary,
-    lineHeight: 20,
+    marginBottom: 16,
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 112,
-    gap: 12,
+    paddingBottom: 24,
   },
   listContentEmpty: {
     flexGrow: 1,
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.white,
+    borderRadius: radii.md,
     padding: 16,
-    shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 12,
+    ...createShadow('sm'),
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -145,34 +119,55 @@ const styles = StyleSheet.create({
   cardTime: {
     fontSize: 12,
     color: colors.textSecondary,
+    fontFamily: sansFont('regular'),
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.textPrimary,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
     marginBottom: 4,
   },
   cardBody: {
     fontSize: 14,
-    color: colors.textPrimary,
+    color: colors.textSecondary,
     lineHeight: 20,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
   },
   emptyState: {
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingVertical: 48,
+    paddingHorizontal: 24,
   },
   emptyTitle: {
-    marginTop: 16,
     fontSize: 18,
     fontWeight: '600',
     color: colors.textPrimary,
-    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
   emptyText: {
-    marginTop: 8,
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
   },
 });

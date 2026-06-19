@@ -5,6 +5,7 @@ import { getSupabase } from '@/lib/supabase';
 import { setAccountSyncId } from '@/utils/account-identity';
 import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
 import { ACCOUNT_SYNC_ID_KEY } from '@/utils/account-identity';
+import { clearWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 export type ReferralSource = 'physical_album' | 'instagram' | 'organic';
 
@@ -463,6 +464,7 @@ export async function signOutFromAccount(): Promise<{ success: boolean; error?: 
 
     await clearLocalDataForAccountSwitch(prevSyncId);
     await AsyncStorage.removeItem(ACCOUNT_SYNC_ID_KEY);
+    await clearWidgetSnapshot();
 
     return { success: true };
   } catch (e) {

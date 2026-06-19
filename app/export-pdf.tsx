@@ -31,7 +31,7 @@ import {
   getExportSelectionStorageKey,
   mergeStaticPagesIntoExportSelection,
 } from '@/utils/exportPageSelection';
-import { resolveProjectViewportForExport } from '@/utils/exportViewport';
+import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from '@/utils/exportViewport';
 import type { PageInstance } from '@/types/album-page-schema';
 import { loadPageInstances, loadPageValuesMap } from '@/utils/pageStorage';
 import {
@@ -57,6 +57,11 @@ import {
   getExportPageDimensions,
 } from '@/utils/exportPageDimensions';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
+import {
+  getTabletContentShell,
+  getTabletSectionWrap,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import fontkit from '@pdf-lib/fontkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -81,14 +86,14 @@ function hexToColor(hex: string, useCmyk: boolean) {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
-    Dimensions,
     Linking,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    useWindowDimensions,
 } from 'react-native';
 import Animated, {
     useAnimatedStyle,
@@ -193,8 +198,6 @@ function drawTextAnnotationOnPdfPage(params: {
     font,
   });
 }
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type ExportProgress = { current: number; total: number };
 
@@ -349,6 +352,11 @@ function resolveExportPdfFileName(
 
 export default function ExportPdfScreen() {
   const params = useLocalSearchParams();
+  const { width: windowWidth } = useWindowDimensions();
+  const layout = useResponsiveLayout(640);
+  const contentShellStyle =
+    getTabletContentShell(layout) ?? getTabletSectionWrap(layout, 24);
+  const overlayMaxWidth = Math.min(layout.contentMaxWidth, 420);
   const projectId = params.id as string;
   const formatParam = params.format as string | undefined;
   const coverTypeParam = params.coverType as string | undefined;
@@ -686,13 +694,16 @@ export default function ExportPdfScreen() {
       }
 
       // Viewport редактора для 1:1 экспорта (сохраняется в album-page-preview)
-      let pagesViewport = {
-        width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT,
-      };
-      let coverViewport = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT };
+      const fallbackViewport = resolveEditorCoordinateViewport({ windowWidth });
+      let pagesViewport = fallbackViewport;
+      let coverViewport = { ...fallbackViewport };
       if (projectId) {
-        const resolvedViewport = await resolveProjectViewportForExport(projectId);
+        const resolvedViewport = await resolveProjectViewportForExport(
+          projectId,
+          undefined,
+          undefined,
+          windowWidth,
+        );
         pagesViewport = resolvedViewport;
         try {
           const raw = await AsyncStorage.getItem(`@project_cover_viewport_${projectId}`);
@@ -2856,7 +2867,7 @@ export default function ExportPdfScreen() {
         {/* Оверлей генерации — как на "старом" экране (центральная плашка) */}
         {isGenerating ? (
           <View style={styles.exportOverlay} pointerEvents="auto">
-            <View style={styles.exportSkeletonFrame}>
+            <View style={[styles.exportSkeletonFrame, { maxWidth: overlayMaxWidth }]}>
               <PdfSkeletonLoader />
             </View>
             <Text style={styles.exportOverlayTitle}>Создание PDF…</Text>
@@ -2864,7 +2875,7 @@ export default function ExportPdfScreen() {
               {formatExportProgressLabel(generationStatus, generationProgress)}
             </Text>
             {generationProgress.total > 0 ? (
-              <View style={styles.exportProgressTrack}>
+              <View style={[styles.exportProgressTrack, { maxWidth: overlayMaxWidth * 0.75 }]}>
                 <View
                   style={[
                     styles.exportProgressFill,
@@ -2922,7 +2933,7 @@ export default function ExportPdfScreen() {
           ref={scrollViewRef}
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, contentShellStyle]}
         >
           {!showPreview ? (
             <>
@@ -3342,7 +3353,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
     paddingBottom: 32,
   },
   formatCard: {

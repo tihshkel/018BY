@@ -6,6 +6,7 @@ import { resolveEditorCoordinateViewport } from "@/utils/exportViewport";
 import {
   FORM_MODAL_MAX_WIDTH,
   getEditorPageDisplayScale,
+  getGridColumnCount,
   getTabletContentShell,
   getTabletSectionWrap,
   isTabletLayout,
@@ -28,8 +29,12 @@ export function useAlbumFormLayout() {
 
 export function useAlbumPageListLayout() {
   const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const pageGridColumnCount =
+    layout.isTablet && layout.isLandscape
+      ? getGridColumnCount(layout, { tabletColumns: 3, wideColumns: 4 })
+      : 1;
 
-  return { layout, shellStyle: getAlbumShellStyle(layout) };
+  return { layout, shellStyle: getAlbumShellStyle(layout), pageGridColumnCount };
 }
 
 export function useAlbumPagePreviewLayout(imageAspectRatio?: number) {

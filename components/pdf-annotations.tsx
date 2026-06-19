@@ -59,8 +59,6 @@ import {
     View
 } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 const FLOATING_TEXT_MIN_CARD_WIDTH = 260;
 
 export interface Annotation {

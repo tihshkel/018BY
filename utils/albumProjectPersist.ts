@@ -1,5 +1,7 @@
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
+
 export type AlbumProjectPersistMeta = {
   id: string;
   title: string;
@@ -60,6 +62,7 @@ export async function flushAlbumProjectPersist(projectId: string): Promise<boole
   payloads.delete(projectId);
   runners.delete(projectId);
   await run(payload);
+  void syncWidgetSnapshot();
   return true;
 }
 

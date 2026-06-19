@@ -35,7 +35,7 @@ import {
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
 } from '@/utils/templateLineText';
-import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
+import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletDevice, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -146,7 +146,7 @@ export default function ImageViewer({
 }: ImageViewerProps) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
-  const isTabletEditor = isTabletLayout(windowWidth);
+  const isTabletEditor = isTabletDevice(windowWidth);
   const displayScale = isTabletEditor
     ? getEditorPageDisplayScale(windowWidth, windowHeight, editorViewportWidth)
     : 1;

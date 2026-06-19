@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useEffect } from 'react';
 import {
@@ -16,6 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { ONBOARDING_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface HelpItem {
   id: string;
@@ -65,6 +67,7 @@ export default function HelpScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={ONBOARDING_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -87,6 +90,7 @@ export default function HelpScreen() {
             </View>
           ))}
         </ScrollView>
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );

@@ -1,4 +1,5 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { ensureSyncReady, pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
 import { getImagePickerImagesMediaTypes } from '@/utils/image-picker-media-types';
@@ -10,7 +11,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    Dimensions,
     Platform,
     ScrollView,
     StyleSheet,
@@ -19,6 +19,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { PICKER_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -29,9 +30,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SIDEBAR_WIDTH = 200;
-const CONTENT_WIDTH = SCREEN_WIDTH - SIDEBAR_WIDTH - 48;
 
 interface Section {
   id: string;
@@ -58,6 +57,8 @@ interface Block {
 
 export default function EditProjectScreen() {
   const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
+  const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const useSideBySideLayout = layout.isTablet && layout.isLandscape;
   const params = useLocalSearchParams();
   const projectId = params.id as string;
   
@@ -319,9 +320,10 @@ export default function EditProjectScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.layout}>
+      <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH} style={styles.shell}>
+      <View style={[styles.layout, !useSideBySideLayout && styles.layoutStacked]}>
         {/* Боковая панель с оглавлением */}
-        <View style={styles.sidebar}>
+        <View style={[styles.sidebar, !useSideBySideLayout && styles.sidebarStacked]}>
           <ScrollView style={styles.sidebarScroll}>
             {sections.map((section) => (
               <View key={section.id} style={styles.sectionItem}>
@@ -560,6 +562,7 @@ export default function EditProjectScreen() {
           <Text style={styles.actionButtonText}>Напоминания</Text>
         </TouchableOpacity>
       </View>
+      </ResponsiveScreenShell>
     </SafeAreaView>
   );
 }
@@ -569,9 +572,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  shell: {
+    flex: 1,
+  },
   layout: {
     flex: 1,
     flexDirection: 'row',
+  },
+  layoutStacked: {
+    flexDirection: 'column',
   },
   sidebar: {
     width: SIDEBAR_WIDTH,
@@ -583,6 +592,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
+  },
+  sidebarStacked: {
+    width: '100%',
+    maxHeight: 220,
+    borderRightWidth: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   sidebarScroll: {
     flex: 1,

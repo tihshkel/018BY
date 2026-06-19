@@ -20,6 +20,7 @@ type PageListItemProps = {
   onMenuPress?: () => void;
   canDelete?: boolean;
   showChevron?: boolean;
+  compact?: boolean;
 };
 
 function PageCard({
@@ -30,17 +31,22 @@ function PageCard({
   onPress,
   onMenuPress,
   showChevron,
+  compact = false,
 }: Pick<
   PageListItemProps,
-  'title' | 'status' | 'pageNumber' | 'thumbnailUri' | 'onPress' | 'onMenuPress' | 'showChevron'
+  'title' | 'status' | 'pageNumber' | 'thumbnailUri' | 'onPress' | 'onMenuPress' | 'showChevron' | 'compact'
 >) {
   return (
     <Pressable
       testID={pageNumber != null ? `page-card-${pageNumber}` : undefined}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        compact && styles.cardCompact,
+        pressed && styles.pressed,
+      ]}
     >
-      <View style={styles.thumbnailWrap}>
+      <View style={[styles.thumbnailWrap, compact && styles.thumbnailWrapCompact]}>
         {thumbnailUri ? (
           <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} contentFit="cover" />
         ) : (
@@ -50,7 +56,7 @@ function PageCard({
         )}
       </View>
 
-      <View style={styles.info}>
+      <View style={[styles.info, compact && styles.infoCompact]}>
         {pageNumber != null ? (
           <AppText variant="caption" style={styles.pageNumber}>
             {pageNumber}.
@@ -62,7 +68,7 @@ function PageCard({
         <PageStatusBadge status={status} />
       </View>
 
-      <View style={styles.trailing}>
+      <View style={[styles.trailing, compact && styles.trailingCompact]}>
         {onMenuPress ? (
           <Pressable
             onPress={() => onMenuPress()}
@@ -72,11 +78,11 @@ function PageCard({
             <Ionicons name="ellipsis-horizontal" size={20} color={colors.textSecondary} />
           </Pressable>
         ) : null}
-        {showChevron ? (
+        {!compact && showChevron ? (
           <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
-        ) : (
+        ) : !compact ? (
           <PageStatusIndicator status={status} size={32} />
-        )}
+        ) : null}
       </View>
     </Pressable>
   );
@@ -92,6 +98,7 @@ export function PageListItem({
   onMenuPress,
   canDelete = true,
   showChevron = false,
+  compact = false,
 }: PageListItemProps) {
   const swipeRef = useRef<SwipeableMethods>(null);
 
@@ -106,6 +113,7 @@ export function PageListItem({
           onPress={onPress}
           onMenuPress={onMenuPress}
           showChevron={showChevron}
+          compact={compact}
         />
       </View>
     );
@@ -142,6 +150,7 @@ export function PageListItem({
           onPress={onPress}
           onMenuPress={onMenuPress}
           showChevron={showChevron}
+          compact={compact}
         />
       </Swipeable>
     </View>
@@ -151,6 +160,12 @@ export function PageListItem({
 const styles = StyleSheet.create({
   row: {
     marginBottom: spacing.sm,
+  },
+  cardCompact: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    padding: spacing.xs,
+    position: 'relative',
   },
   card: {
     flexDirection: 'row',
@@ -172,6 +187,12 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     backgroundColor: '#F5F5F5',
   },
+  thumbnailWrapCompact: {
+    width: '100%',
+    height: 120,
+    marginRight: 0,
+    marginBottom: spacing.xs,
+  },
   thumbnail: {
     width: '100%',
     height: '100%',
@@ -186,6 +207,9 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
     paddingRight: spacing.xs,
+  },
+  infoCompact: {
+    paddingRight: 0,
   },
   pageNumber: {
     color: colors.textSecondary,
@@ -203,6 +227,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+  },
+  trailingCompact: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
   },
   menuBtn: {
     padding: 4,

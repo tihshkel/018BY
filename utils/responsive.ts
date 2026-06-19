@@ -168,7 +168,12 @@ export interface ResponsiveLayout {
   width: number;
   height: number;
   fontScale: number;
+  /** Wide tablet UI (grid, centered shell). False in Split View on iPad. */
   isTablet: boolean;
+  /** iPad in narrow Split View — use phone-like layout. */
+  isCompactTablet: boolean;
+  /** Physical tablet device — editor/export coords stay at 390px. */
+  isTabletDevice: boolean;
   isLandscape: boolean;
   isCompactHeight: boolean;
   contentMaxWidth: number;
@@ -177,16 +182,25 @@ export interface ResponsiveLayout {
   verticalScale: (size: number) => number;
 }
 
-export function isTabletLayout(width: number): boolean {
+/** iPad hardware or Android tablet width — for editor coordinate space only. */
+export function isTabletDevice(windowWidth?: number): boolean {
   if (Platform.OS === "ios" && Platform.isPad) {
     return true;
   }
+  if (windowWidth != null && windowWidth >= TABLET_BREAKPOINT) {
+    return true;
+  }
+  return false;
+}
+
+/** Wide layout shell (grids, max-width columns). Respects Split View width. */
+export function isTabletLayout(width: number): boolean {
   return width >= TABLET_BREAKPOINT;
 }
 
 /** Viewport width passed to page editor / PdfAnnotations (phone = full width, tablet = fixed). */
 export function getEditorPageViewportWidth(windowWidth: number): number {
-  return isTabletLayout(windowWidth) ? EDITOR_PAGE_VIEWPORT_WIDTH : windowWidth;
+  return isTabletDevice(windowWidth) ? EDITOR_PAGE_VIEWPORT_WIDTH : windowWidth;
 }
 
 /**
@@ -198,7 +212,7 @@ export function getEditorPageDisplayScale(
   coordinateViewportWidth: number = EDITOR_PAGE_VIEWPORT_WIDTH,
   chromeHeight = 280,
 ): number {
-  if (!isTabletLayout(windowWidth)) return 1;
+  if (!isTabletDevice(windowWidth)) return 1;
 
   const horizontalInset = 48;
   const availableHeight = Math.max(
@@ -224,7 +238,9 @@ export function useResponsiveLayout(
   maxContentWidth: number = ONBOARDING_CONTENT_MAX_WIDTH,
 ): ResponsiveLayout {
   const { width, height, fontScale } = useWindowDimensions();
+  const tabletDevice = isTabletDevice(width);
   const isTablet = isTabletLayout(width);
+  const isCompactTablet = tabletDevice && !isTablet;
   const isLandscape = width > height;
   const isCompactHeight = height < 700;
   const horizontalPadding = isTablet ? (isLandscape ? 64 : 48) : 32;
@@ -253,6 +269,8 @@ export function useResponsiveLayout(
     height,
     fontScale,
     isTablet,
+    isCompactTablet,
+    isTabletDevice: tabletDevice,
     isLandscape,
     isCompactHeight,
     contentMaxWidth,

@@ -1,8 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Dimensions } from 'react-native';
 
 import { spacing } from '@/constants/design-tokens';
-import { getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
+import { getEditorPageViewportWidth, isTabletDevice } from '@/utils/responsive';
 
 export type EditorCoordinateViewport = {
   width: number;
@@ -24,7 +23,7 @@ export function resolveEditorCoordinateViewport(params: {
   imageAspectRatio?: number;
 }): EditorCoordinateViewport {
   const { windowWidth, sourceWidth, sourceHeight, imageAspectRatio } = params;
-  const isTablet = isTabletLayout(windowWidth);
+  const isTablet = isTabletDevice(windowWidth);
   const phoneCoordinateWidth = Math.max(windowWidth - spacing.md * 2, 280);
   const coordinateWidth = isTablet
     ? getEditorPageViewportWidth(windowWidth)
@@ -82,13 +81,14 @@ export async function resolveProjectViewportForExport(
   projectId: string,
   sourceWidth?: number,
   sourceHeight?: number,
+  windowWidth?: number,
 ): Promise<EditorCoordinateViewport> {
   const saved = await loadProjectViewport(projectId);
   if (saved) return saved;
 
-  const { width: windowWidth } = Dimensions.get('window');
+  const fallbackWidth = windowWidth ?? 390;
   return resolveEditorCoordinateViewport({
-    windowWidth,
+    windowWidth: fallbackWidth,
     sourceWidth,
     sourceHeight,
   });

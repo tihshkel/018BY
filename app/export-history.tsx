@@ -212,8 +212,8 @@ export default function ExportHistoryScreen() {
   }));
 
   return (
-    <AppScreen edges={['top', 'bottom']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
+    <AppScreen tabletShell contentMaxWidth={640} edges={['top', 'bottom']}>
+      <Animated.View style={[styles.content, animatedStyle, { flex: 1 }]}>
         <AppHeader title="История экспорта" showBack />
 
         <ScrollView

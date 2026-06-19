@@ -75,7 +75,11 @@ export default function AlbumPagesScreen() {
     interiorType,
     eventDate,
   });
-  const { shellStyle } = useAlbumPageListLayout();
+  const { shellStyle, pageGridColumnCount, layout } = useAlbumPageListLayout();
+  const pageItemWidth =
+    pageGridColumnCount > 1
+      ? (layout.contentMaxWidth - (pageGridColumnCount - 1) * spacing.sm) / pageGridColumnCount
+      : undefined;
 
   useFocusEffect(
     useCallback(() => {
@@ -272,6 +276,8 @@ export default function AlbumPagesScreen() {
               key={section.sectionId}
               sectionProgress={progress}
               pages={rows}
+              pageColumnCount={pageGridColumnCount}
+              pageItemWidth={pageItemWidth}
               defaultExpanded={index === 0}
               onOpenPage={handleOpenPage}
               onDuplicate={(instanceId) => void project.duplicatePage(instanceId)}

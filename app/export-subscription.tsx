@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { APPLE_PURCHASE_HISTORY_URL } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
@@ -24,6 +25,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ONBOARDING_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 
@@ -109,6 +111,7 @@ export default function ExportSubscriptionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']} testID="export-subscription-screen">
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={ONBOARDING_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -194,6 +197,7 @@ export default function ExportSubscriptionScreen() {
             </Text>
           ) : null}
         </ScrollView>
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );

@@ -1,11 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
 import PdfAnnotations, { type Annotation } from './pdf-annotations';
 import { setPageSourceSize } from '@/utils/pageSourceDimensions';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export interface PageRendererRef {
   capture: () => Promise<string | null>;
@@ -37,8 +35,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   ({
     imageUri,
     annotations,
-    width = SCREEN_WIDTH,
-    height = SCREEN_HEIGHT,
+    width,
+    height,
     lineGuideId,
     sourceWidth: sourceWidthProp,
     sourceHeight: sourceHeightProp,
@@ -49,6 +47,9 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     captureQuality = 0.92,
     backgroundColor = 'transparent',
   }, ref) => {
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const renderWidth = width ?? windowWidth;
+  const renderHeight = height ?? windowHeight;
   const viewRef = useRef<View>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [loadedAnnotationImageUris, setLoadedAnnotationImageUris] = useState<Set<string>>(new Set());
@@ -110,8 +111,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         format: captureFormat,
         quality: captureQuality,
         result: 'tmpfile',
-        width: width * captureScale,
-        height: height * captureScale,
+        width: renderWidth * captureScale,
+        height: renderHeight * captureScale,
         snapshotContentContainer: false,
       });
       
@@ -132,8 +133,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
       style={[
         styles.container,
         {
-          width,
-          height,
+          width: renderWidth,
+          height: renderHeight,
           backgroundColor,
         },
       ]}
@@ -184,8 +185,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
             isEditing={false}
             currentTool={null}
             zoomLevel={1}
-            viewportWidth={width}
-            viewportHeight={height}
+            viewportWidth={renderWidth}
+            viewportHeight={renderHeight}
             sourceWidth={sourceWidth}
             sourceHeight={sourceHeight}
             lineGuideId={lineGuideId}

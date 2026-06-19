@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
@@ -27,6 +28,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 export default function SelectActionScreen() {
   const { celebration, coverType, eventDate } = useLocalSearchParams<{
@@ -225,6 +227,7 @@ export default function SelectActionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         {/* Заголовок с кнопкой назад */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -318,6 +321,7 @@ export default function SelectActionScreen() {
             </View>
           </ScrollView>
         )}
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );

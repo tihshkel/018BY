@@ -18,6 +18,7 @@
     "primaryColor": "#F194A2",
     "ios": {
       "supportsTablet": true,
+      "requireFullScreen": false,
       "bundleIdentifier": "com.tihshkel.x018BY",
       "buildNumber": "36",
       "runtimeVersion": {
@@ -101,7 +102,27 @@
           }
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@bittingz/expo-widgets",
+        {
+          "ios": {
+            "src": "./ios-widgets",
+            "devTeamId": "3JY55YHULX",
+            "mode": "production",
+            "useLiveActivities": false,
+            "frequentUpdates": false,
+            "entitlements": {
+              "com.apple.security.application-groups": [
+                "group.com.tihshkel.x018BY.expowidgets"
+              ]
+            },
+            "xcode": {
+              "appExtAPI": true
+            }
+          }
+        }
+      ]
     ],
     "updates": {
       "url": "https://u.expo.dev/cb0b872b-bcbb-450d-aee7-e2c3148df391",

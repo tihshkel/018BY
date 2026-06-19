@@ -5,7 +5,7 @@ import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { createId } from '@/utils/id';
 import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
-import { getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
+import { getEditorPageViewportWidth, isTabletDevice } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -87,7 +87,7 @@ export default function CoverViewer({
 }: CoverViewerProps) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
-  const isTabletEditor = isTabletLayout(windowWidth);
+  const isTabletEditor = isTabletDevice(windowWidth);
 
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 

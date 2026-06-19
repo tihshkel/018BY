@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { scheduleSyncToCloud } from '@/utils/account-sync';
 import { setupAlbumNotificationsForCelebration } from '@/utils/albumNotificationCoordinator';
@@ -27,6 +28,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ONBOARDING_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface PaperAlbumNotification {
   id: string;
@@ -245,6 +247,7 @@ export default function PaperAlbumNotificationsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={ONBOARDING_CONTENT_MAX_WIDTH}>
         {/* Заголовок */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
@@ -357,6 +360,7 @@ export default function PaperAlbumNotificationsScreen() {
           minimumDate={new Date(1900, 0, 1)}
           maximumDate={new Date(2030, 11, 31)}
         />
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );

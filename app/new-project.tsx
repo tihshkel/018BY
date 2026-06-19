@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState } from 'react';
 import {
@@ -19,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppBottomSheet } from '@/components/ui/app-bottom-sheet';
 import { AppButton } from '@/components/ui/app-button';
 import { AppInlineDatePicker } from '@/components/ui/app-date-picker-sheet';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface Category {
   id: string;
@@ -158,6 +160,7 @@ export default function NewProjectScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -267,6 +270,7 @@ export default function NewProjectScreen() {
             maximumDate={new Date(2030, 11, 31)}
           />
         </AppBottomSheet>
+        </ResponsiveScreenShell>
 
       </Animated.View>
     </SafeAreaView>

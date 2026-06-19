@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
 import { projectCategories } from '@/constants/projectTemplates';
@@ -38,6 +39,8 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ONBOARDING_CONTENT_MAX_WIDTH } from '@/utils/responsive';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 // Проверяем, находимся ли мы в Expo Go (где уведомления не работают)
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
@@ -365,6 +368,7 @@ export default function RemindersListScreen() {
     } else {
       await AsyncStorage.setItem('@reminders', json);
     }
+    void syncWidgetSnapshot();
     return pushCoreOnlyToCloud({ remindersAuthoritativeLocal: true });
   };
 
@@ -544,6 +548,7 @@ export default function RemindersListScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={ONBOARDING_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -659,6 +664,7 @@ export default function RemindersListScreen() {
             })
           )}
         </ScrollView>
+        </ResponsiveScreenShell>
       </Animated.View>
 
       {/* Модальное окно добавления напоминания */}

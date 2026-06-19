@@ -358,6 +358,8 @@ export default function ProfileScreen() {
 
         <AppScreen
           scroll
+          tabletShell
+          contentMaxWidth={640}
           edges={[]}
           style={styles.screen}
           contentContainerStyle={styles.scrollContent}

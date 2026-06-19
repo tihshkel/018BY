@@ -23,6 +23,9 @@ type SectionPageRow = {
 type AlbumSectionAccordionProps = {
   sectionProgress: SectionProgress;
   pages: SectionPageRow[];
+  pageColumnCount?: number;
+  pageItemWidth?: number;
+  pageGridGap?: number;
   onOpenPage: (instanceId: string) => void;
   onDuplicate?: (instanceId: string) => void;
   onDeleteCopy?: (instanceId: string, title: string) => void;
@@ -36,6 +39,9 @@ type AlbumSectionAccordionProps = {
 export function AlbumSectionAccordion({
   sectionProgress,
   pages,
+  pageColumnCount = 1,
+  pageItemWidth,
+  pageGridGap = spacing.sm,
   onOpenPage,
   onDuplicate,
   onDeleteCopy,
@@ -106,6 +112,7 @@ export function AlbumSectionAccordion({
   };
 
   const progressWidth = `${sectionProgress.percent}%`;
+  const usePageGrid = pageColumnCount > 1 && pageItemWidth != null;
 
   return (
     <View style={styles.section}>
@@ -133,18 +140,23 @@ export function AlbumSectionAccordion({
       </Pressable>
 
       {expanded ? (
-        <View style={styles.body}>
+        <View style={[styles.body, usePageGrid && styles.bodyGrid, usePageGrid && { gap: pageGridGap }]}>
           {visiblePages.map((row) => (
-            <PageListItem
+            <View
               key={row.instance.instanceId}
-              pageNumber={row.instance.order}
-              title={row.title}
-              status={row.status}
-              thumbnailUri={row.thumbnailUri}
-              onPress={() => onOpenPage(row.instance.instanceId)}
-              onMenuPress={row.canShowMenu ? () => openMenu(row) : undefined}
-              showChevron
-            />
+              style={usePageGrid ? [styles.gridItem, { width: pageItemWidth }] : undefined}
+            >
+              <PageListItem
+                pageNumber={row.instance.order}
+                title={row.title}
+                status={row.status}
+                thumbnailUri={row.thumbnailUri}
+                onPress={() => onOpenPage(row.instance.instanceId)}
+                onMenuPress={row.canShowMenu ? () => openMenu(row) : undefined}
+                showChevron
+                compact={usePageGrid}
+              />
+            </View>
           ))}
 
           {!showAll && pages.length > VISIBLE_PAGE_LIMIT ? (
@@ -241,6 +253,13 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: spacing.sm,
     paddingBottom: spacing.sm,
+  },
+  bodyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  gridItem: {
+    marginBottom: 0,
   },
   showAll: {
     flexDirection: 'row',

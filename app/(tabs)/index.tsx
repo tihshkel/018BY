@@ -46,6 +46,7 @@ import {
   HOME_CONTENT_MAX_WIDTH,
   useResponsiveLayout,
 } from '@/utils/responsive';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 export default function HomeScreen() {
   const layout = useResponsiveLayout(HOME_CONTENT_MAX_WIDTH);
@@ -103,6 +104,7 @@ export default function HomeScreen() {
     React.useCallback(() => {
       loadUserData();
       loadProjects();
+      void syncWidgetSnapshot();
       ensureSyncReady().catch(() => {});
 
       // Фоновая подгрузка из облака — если там появились новые проекты, обновляем список

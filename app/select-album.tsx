@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
@@ -29,6 +30,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface LocalParams {
   category?: string | string[];
@@ -265,6 +267,7 @@ export default function SelectAlbumScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -365,6 +368,7 @@ export default function SelectAlbumScreen() {
             ))
           )}
         </ScrollView>
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );

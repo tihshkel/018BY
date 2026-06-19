@@ -1,16 +1,39 @@
 import { Tabs, useSegments } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomTabButton } from '@/components/custom-tab-button';
 import { colors, createShadow } from '@/constants/design-tokens';
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
+import { useResponsiveLayout } from '@/utils/responsive';
 
 export default function TabLayout() {
   const { isNotificationTabActive, deactivateNotificationTab } = useNotificationTabContext();
   const segments = useSegments();
   const isOnNotificationsTab = (segments as readonly string[]).includes('notifications');
+  const layout = useResponsiveLayout();
+
+  const tabBarStyle = useMemo(() => {
+    const compactLandscapeTablet = layout.isTablet && layout.isLandscape;
+    return {
+      backgroundColor: colors.background,
+      borderTopWidth: 0,
+      height: compactLandscapeTablet ? 72 : Platform.OS === 'ios' ? 90 : 72,
+      paddingBottom: compactLandscapeTablet
+        ? Platform.OS === 'ios'
+          ? 16
+          : 8
+        : Platform.OS === 'ios'
+          ? 32
+          : 12,
+      paddingTop: compactLandscapeTablet ? 8 : 12,
+      elevation: 0,
+      ...createShadow('sm'),
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    };
+  }, [layout.isLandscape, layout.isTablet]);
 
   useEffect(() => {
     if (isNotificationTabActive && !isOnNotificationsTab) {
@@ -24,17 +47,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: CustomTabButton,
         contentStyle: { backgroundColor: colors.background },
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 72,
-          paddingBottom: Platform.OS === 'ios' ? 32 : 12,
-          paddingTop: 12,
-          elevation: 0,
-          ...createShadow('sm'),
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-        },
+        tabBarStyle,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabInactive,
         tabBarLabelStyle: {

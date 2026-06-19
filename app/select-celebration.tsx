@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory } from '@/albums';
 import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
@@ -9,7 +10,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, type Href } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
     Platform,
     ScrollView,
     StyleSheet,
@@ -17,14 +17,18 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import {
+  getGridColumnCount,
+  getGridItemWidth,
+  PICKER_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Celebration {
   id: string;
@@ -95,6 +99,12 @@ const celebrations: Celebration[] = [
 ];
 
 export default function SelectCelebrationScreen() {
+  const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const celebrationColumnCount = getGridColumnCount(layout);
+  const celebrationCardWidth =
+    celebrationColumnCount > 1
+      ? getGridItemWidth(layout, celebrationColumnCount, 12)
+      : undefined;
   const [selectedCelebration, setSelectedCelebration] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
 
@@ -220,6 +230,7 @@ export default function SelectCelebrationScreen() {
       />
 
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         {/* Заголовок */}
         <View style={styles.header}>
           <Text style={styles.title}>Выберите праздник</Text>
@@ -232,7 +243,10 @@ export default function SelectCelebrationScreen() {
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            celebrationColumnCount > 1 && styles.scrollContentGrid,
+          ]}
         >
           {celebrations.map((celebration) => (
             <TouchableOpacity
@@ -240,6 +254,7 @@ export default function SelectCelebrationScreen() {
               testID={`celebration-${celebration.id}`}
               style={[
                 styles.celebrationCard,
+                celebrationCardWidth != null && { width: celebrationCardWidth },
                 selectedCelebration === celebration.id && styles.celebrationCardSelected,
               ]}
               onPress={() => handleCelebrationSelect(celebration.id)}
@@ -326,6 +341,7 @@ export default function SelectCelebrationScreen() {
             </TouchableOpacity>
           </View>
         )}
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );
@@ -368,8 +384,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
     paddingBottom: 24,
+  },
+  scrollContentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   celebrationCard: {
     marginBottom: 16,
@@ -443,7 +463,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   continueContainer: {
-    paddingHorizontal: 24,
     paddingBottom: 24,
   },
   continueButton: {

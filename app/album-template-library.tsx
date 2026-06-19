@@ -11,6 +11,7 @@ import {
   getPageFormatForLineGuide,
   listTemplatesForFormat,
 } from '@/utils/photoPageTemplateManifest';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 export default function AlbumTemplateLibraryScreen() {
   const { id, celebration, coverType, interiorType, afterIndex } = useLocalSearchParams<{
@@ -62,7 +63,7 @@ export default function AlbumTemplateLibraryScreen() {
   }
 
   return (
-    <AppScreen scroll contentContainerStyle={styles.container}>
+    <AppScreen scroll tabletShell contentMaxWidth={PICKER_CONTENT_MAX_WIDTH} contentContainerStyle={styles.container}>
       <AppHeader
         title="Выберите шаблон"
         onBack={() => navigateToAlbumPages(albumFlowParams)}

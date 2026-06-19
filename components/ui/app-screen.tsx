@@ -8,12 +8,12 @@ import React, {
   type RefObject,
 } from 'react';
 import {
-  Dimensions,
   Keyboard,
   Platform,
   ScrollView,
   StyleSheet,
   View,
+  useWindowDimensions,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type StyleProp,
@@ -22,6 +22,12 @@ import {
 import { SafeAreaView, useSafeAreaInsets, type Edge } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '@/constants/design-tokens';
+import {
+  getTabletContentShell,
+  getTabletSectionWrap,
+  ONBOARDING_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 
 type AppScreenScrollContextValue = {
   scrollToField: (fieldRef: RefObject<View | null>) => void;
@@ -40,6 +46,9 @@ export interface AppScreenProps {
   edges?: Edge[];
   contentContainerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
+  /** Center content on tablet with max-width column. */
+  tabletShell?: boolean;
+  contentMaxWidth?: number;
 }
 
 const KEYBOARD_SCROLL_DELAY_MS = Platform.OS === 'ios' ? 100 : 50;
@@ -51,9 +60,16 @@ export function AppScreen({
   edges = ['top', 'bottom'],
   contentContainerStyle,
   style,
+  tabletShell = false,
+  contentMaxWidth,
 }: AppScreenProps) {
   const isKeyboardAware = keyboardAware ?? scroll;
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const layout = useResponsiveLayout(contentMaxWidth ?? ONBOARDING_CONTENT_MAX_WIDTH);
+  const tabletShellStyle = tabletShell
+    ? (getTabletContentShell(layout) ?? getTabletSectionWrap(layout, spacing.md))
+    : undefined;
   const scrollRef = useRef<ScrollView>(null);
   const scrollOffsetRef = useRef(0);
   const keyboardHeightRef = useRef(0);
@@ -63,7 +79,6 @@ export function AppScreen({
     if (!field || !scrollRef.current || keyboardHeightRef.current <= 0) return;
 
     field.measureInWindow((_x, y, _width, height) => {
-      const windowHeight = Dimensions.get('window').height;
       const visibleBottom = windowHeight - keyboardHeightRef.current - spacing.md;
       const fieldBottom = y + height;
 
@@ -132,6 +147,11 @@ export function AppScreen({
   }, [contentContainerStyle, insets.bottom, isKeyboardAware]);
 
   const screenEdges = isKeyboardAware ? (['top'] as Edge[]) : edges;
+  const screenChildren = tabletShellStyle ? (
+    <View style={[styles.tabletShell, tabletShellStyle]}>{children}</View>
+  ) : (
+    children
+  );
 
   if (scroll) {
     const scrollView = (
@@ -150,7 +170,7 @@ export function AppScreen({
         onScroll={isKeyboardAware ? handleScroll : undefined}
         scrollEventThrottle={16}
       >
-        {children}
+        {screenChildren}
       </ScrollView>
     );
 
@@ -169,7 +189,7 @@ export function AppScreen({
 
   return (
     <SafeAreaView style={[styles.safe, style]} edges={edges}>
-      <View style={[styles.content, contentContainerStyle]}>{children}</View>
+      <View style={[styles.content, contentContainerStyle]}>{screenChildren}</View>
     </SafeAreaView>
   );
 }
@@ -186,6 +206,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
+  },
+  tabletShell: {
     flexGrow: 1,
   },
 });

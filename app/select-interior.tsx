@@ -1,3 +1,4 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState, useMemo } from 'react';
 import {
@@ -7,8 +8,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Dimensions,
 } from 'react-native';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
@@ -22,7 +23,6 @@ import * as Haptics from 'expo-haptics';
 import { Asset } from 'expo-asset';
 import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface InteriorOption {
   id: string;
@@ -154,6 +154,7 @@ export default function SelectInteriorScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         {/* Заголовок с кнопкой назад */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -259,6 +260,7 @@ export default function SelectInteriorScreen() {
             </TouchableOpacity>
           </View>
         )}
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );
