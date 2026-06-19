@@ -13,6 +13,27 @@ const BLOCK = (x, y, width, height, continuationGroup = 1) => ({
   continuationGroup,
 });
 
+/** Lined text row — baseline sits on the printed rule (not a filled block). */
+const LINE = (x, y, width, height, continuationGroup = 1) => ({
+  x,
+  y,
+  width,
+  height,
+  hasLabel: false,
+  inputKind: 'line',
+  continuationGroup,
+});
+
+/** Page 2 — «Привет, мир!»: 4 поля сверху + 2 строки места рождения. */
+const HELLO_WORLD_PAGE_SLOTS = [
+  BLOCK(0.06295, 0.30949, 0.23503, 0.04381, 1),
+  BLOCK(0.3484, 0.30949, 0.1957, 0.04381, 2),
+  BLOCK(0.59975, 0.30949, 0.13979, 0.04381, 3),
+  BLOCK(0.79219, 0.30949, 0.13979, 0.04381, 4),
+  BLOCK(0.26414, 0.902, 0.66308, 0.04381, 5),
+  BLOCK(0.26414, 0.946, 0.66308, 0.04381, 5),
+];
+
 /** Page 1 — owner name on the central line inside the decorative area. */
 const OWNER_PAGE_SLOTS = [
   BLOCK(0, 0.16676, 0.6869, 0.04014, 1),
@@ -61,18 +82,18 @@ const TRAVEL_MAP_PAGE_SLOTS = [
 
 /** Page 48 — letter lines (from legacy PDF page 60, first 12 rows). */
 const LETTER_PAGE_SLOTS = [
-  BLOCK(0.10433, 0.23893, 0.79238, 0.04263, 1),
-  BLOCK(0.10433, 0.28156, 0.79238, 0.04268, 1),
-  BLOCK(0.10433, 0.32429, 0.79238, 0.04268, 1),
-  BLOCK(0.10433, 0.36692, 0.79238, 0.04229, 1),
-  BLOCK(0.10433, 0.40886, 0.79238, 0.04208, 1),
-  BLOCK(0.10433, 0.45107, 0.79238, 0.04242, 1),
-  BLOCK(0.10433, 0.4937, 0.79238, 0.04268, 1),
-  BLOCK(0.10433, 0.53642, 0.79238, 0.04268, 1),
-  BLOCK(0.10433, 0.57905, 0.79238, 0.04229, 1),
-  BLOCK(0.10433, 0.621, 0.79238, 0.04195, 1),
-  BLOCK(0.10433, 0.66337, 0.79238, 0.04255, 1),
-  BLOCK(0.10433, 0.70609, 0.79238, 0.04273, 1),
+  LINE(0.10433, 0.23893, 0.79238, 0.04263, 1),
+  LINE(0.10433, 0.28156, 0.79238, 0.04268, 1),
+  LINE(0.10433, 0.32429, 0.79238, 0.04268, 1),
+  LINE(0.10433, 0.36692, 0.79238, 0.04229, 1),
+  LINE(0.10433, 0.40886, 0.79238, 0.04208, 1),
+  LINE(0.10433, 0.45107, 0.79238, 0.04242, 1),
+  LINE(0.10433, 0.4937, 0.79238, 0.04268, 1),
+  LINE(0.10433, 0.53642, 0.79238, 0.04268, 1),
+  LINE(0.10433, 0.57905, 0.79238, 0.04229, 1),
+  LINE(0.10433, 0.621, 0.79238, 0.04195, 1),
+  LINE(0.10433, 0.66337, 0.79238, 0.04255, 1),
+  LINE(0.10433, 0.70609, 0.79238, 0.04273, 1),
 ];
 
 function isBirthdayAgeMainPage(pageNumber) {
@@ -101,6 +122,8 @@ function getBirthday48LineSlotOverrides(pageNumber) {
   switch (pageNumber) {
     case 1:
       return OWNER_PAGE_SLOTS;
+    case 2:
+      return HELLO_WORLD_PAGE_SLOTS;
     case 3:
       return INTRO_FREE_PAGE_SLOTS;
     case 4:

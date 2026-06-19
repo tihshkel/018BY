@@ -38,6 +38,21 @@ export function normalizePhotoSlotTransform(
   };
 }
 
+const TRANSFORM_EPSILON = 0.001;
+
+/** True when the user moved/scaled the photo block in preview (not the default state). */
+export function isNonDefaultPhotoSlotTransform(
+  transform?: PhotoSlotTransform | null,
+): boolean {
+  if (!transform) return false;
+  const normalized = normalizePhotoSlotTransform(transform);
+  return (
+    Math.abs(normalized.scale - 1) > TRANSFORM_EPSILON ||
+    Math.abs(normalized.offsetX) > TRANSFORM_EPSILON ||
+    Math.abs(normalized.offsetY) > TRANSFORM_EPSILON
+  );
+}
+
 export function applyPhotoSlotTransform(
   rect: { x: number; y: number; width: number; height: number },
   transform?: PhotoSlotTransform | null,

@@ -3,6 +3,8 @@ import { projectCategories } from '@/constants/projectTemplates';
 import { getPregnancyCoverPdf } from '@/utils/coverPdfMapping';
 import { getGiftDisplayTitle, getGiftItemByAlbumName } from '@/utils/albumGiftMapping';
 import { filterProjectsByDeleted, loadDeletedProjectIds } from '@/utils/deleted-project-ids';
+import { getAlbumPageCount, resolveInteriorAlbumId } from '@/utils/albumImages';
+import { pruneGhostAlbumProjects } from '@/utils/pruneGhostAlbumProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HOME_PROJECTS_PREVIEW_LIMIT = 2;
@@ -136,7 +138,7 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     `@project_cover_annotations_${projectId}`,
   ] as const;
 
-  let pagesCount = 0;
+  let pagesCount = typeof p?.pagesCount === 'number' ? p.pagesCount : 0;
   let photosCount = 0;
 
   try {
@@ -148,11 +150,9 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     const savedImages = safeParseArray(imagesRaw);
     if (savedImages.length > 0) {
       pagesCount = savedImages.length;
-    } else if (albumId) {
-      const template = getAlbumTemplateById(albumId);
-      if (typeof template?.pages === 'number') {
-        pagesCount = template.pages;
-      }
+    } else if (pagesCount === 0 && albumId) {
+      const interiorId = resolveInteriorAlbumId(albumId, String(p?.category ?? ''));
+      pagesCount = getAlbumPageCount(interiorId);
     }
 
     const anns = safeParseArray(annotationsRaw);
@@ -186,6 +186,12 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
 
 /** Все проекты пользователя из AsyncStorage, новые первыми */
 export async function loadUserProjects(): Promise<UserProject[]> {
+  try {
+    await pruneGhostAlbumProjects();
+  } catch (error) {
+    console.warn('[loadUserProjects] prune ghost projects failed', error);
+  }
+
   const savedProjects = await AsyncStorage.getItem('@user_projects');
   if (!savedProjects) return [];
 

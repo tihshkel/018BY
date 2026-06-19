@@ -93,8 +93,8 @@ export const PARENTS_PHOTO_BLOCK: PhotoBlockSchema = {
       slotIndices: [0],
     },
     {
-      variantId: 'two_vertical',
-      label: '2 вертикальных фото',
+      variantId: 'two_horizontal',
+      label: '2 горизонтальных фото',
       slots: 2,
       slotIndices: [0, 1],
     },
@@ -107,16 +107,30 @@ export const GODPARENTS_PHOTO_BLOCK: PhotoBlockSchema = {
   label: 'Фото крестных',
   variants: [
     {
-      variantId: 'one_horizontal_common',
+      variantId: 'one_horizontal',
       label: 'Одно общее фото',
       slots: 1,
       slotIndices: [0],
     },
     {
-      variantId: 'two_vertical_separate',
-      label: 'Два отдельных фото',
+      variantId: 'two_horizontal',
+      label: 'Два фото',
       slots: 2,
       slotIndices: [0, 1],
+    },
+  ],
+};
+
+/** Structured pages with a single photo zone (e.g. kids p12). */
+export const SINGLE_HORIZONTAL_PHOTO_BLOCK: PhotoBlockSchema = {
+  blockId: 'main_photo',
+  label: 'Фото',
+  variants: [
+    {
+      variantId: 'one_horizontal',
+      label: '1 горизонтальное фото',
+      slots: 1,
+      slotIndices: [0],
     },
   ],
 };

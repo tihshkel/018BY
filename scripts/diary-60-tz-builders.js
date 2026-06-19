@@ -75,7 +75,7 @@ const FRIEND_FIELDS = [
   ['favoriteBook', 'Любимая книга', 'text', 1],
   ['bestGirlfriend', 'Лучшая подруга', 'text', 1],
   ['bestFriend', 'Лучший друг', 'text', 1],
-  ['wishes', 'Пожелания хозяйке анкеты', 'text', 3],
+  ['wishes', 'Пожелания хозяйке анкеты', 'text', 2],
 ];
 
 const FOOD_FIELDS = [

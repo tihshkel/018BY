@@ -5,6 +5,7 @@
 const {
   EVENT_PHOTO_BLOCK,
   PARENTS_PHOTO_BLOCK,
+  SINGLE_HORIZONTAL_PHOTO_BLOCK,
   GODPARENTS_PHOTO_BLOCK,
 } = require('./photo-block-presets-data');
 
@@ -289,7 +290,7 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       break;
     case 12:
       fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
-      photoBlocks = [PARENTS_PHOTO_BLOCK];
+      photoBlocks = [SINGLE_HORIZONTAL_PHOTO_BLOCK];
       break;
     case 13:
       fields = [];

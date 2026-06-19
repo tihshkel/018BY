@@ -17,6 +17,7 @@ import {
   clampPhotoScale,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
+  applyPhotoSlotTransform,
 } from '@/utils/photoSlotTransform';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
@@ -65,6 +66,8 @@ function PhotoSlotFilled({
   const scale = useSharedValue(transform.scale || 1);
   const offsetX = useSharedValue(transform.offsetX || 0);
   const offsetY = useSharedValue(transform.offsetY || 0);
+  const slotWidth = useSharedValue(120);
+  const slotHeight = useSharedValue(120);
 
   useEffect(() => {
     const next = normalizePhotoSlotTransform(transform);
@@ -89,11 +92,13 @@ function PhotoSlotFilled({
   const panGesture = Gesture.Pan()
     .enabled(gesturesEnabled !== false)
     .onUpdate((event) => {
+      const width = Math.max(slotWidth.value, 1);
+      const height = Math.max(slotHeight.value, 1);
       offsetX.value = clampPhotoOffset(
-        savedOffsetX.value + event.translationX / 120,
+        savedOffsetX.value + event.translationX / width,
       );
       offsetY.value = clampPhotoOffset(
-        savedOffsetY.value + event.translationY / 120,
+        savedOffsetY.value + event.translationY / height,
       );
     })
     .onEnd(() => {
@@ -114,19 +119,39 @@ function PhotoSlotFilled({
 
   const composed = Gesture.Simultaneous(panGesture, pinchGesture);
 
-  const imageStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateX: offsetX.value * 24 },
-      { translateY: offsetY.value * 24 },
-    ],
-  }));
+  const imageStyle = useAnimatedStyle(() => {
+    const rect = applyPhotoSlotTransform(
+      { x: 0, y: 0, width: slotWidth.value, height: slotHeight.value },
+      {
+        scale: scale.value,
+        offsetX: offsetX.value,
+        offsetY: offsetY.value,
+      },
+    );
+
+    return {
+      position: 'absolute',
+      left: rect.x,
+      top: rect.y,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
 
   const isOverlay = chromeStyle === 'overlay';
   const canUseGestures = gesturesEnabled !== false;
 
   const imageContent = (
-    <Animated.View style={styles.imageClip}>
+    <Animated.View
+      style={styles.imageClip}
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+          slotWidth.value = width;
+          slotHeight.value = height;
+        }
+      }}
+    >
       <Animated.View style={[styles.imageInner, imageStyle]}>
         <Image source={{ uri }} style={styles.image} contentFit="cover" />
       </Animated.View>
@@ -143,6 +168,12 @@ function PhotoSlotFilled({
       ) : (
         imageContent
       )}
+
+      {isOverlay && canUseGestures ? (
+        <AppText variant="caption" style={styles.overlayGestureHint} pointerEvents="none">
+          Щипок — масштаб, перетаскивание — позиция
+        </AppText>
+      ) : null}
 
       {isOverlay ? (
         <View style={styles.overlayChrome} pointerEvents="box-none">
@@ -284,10 +315,10 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     backgroundColor: colors.primarySurface,
+    position: 'relative',
   },
   imageInner: {
-    width: '100%',
-    height: '100%',
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
@@ -313,6 +344,19 @@ const styles = StyleSheet.create({
   },
   overlayBtnPressed: {
     opacity: 0.85,
+  },
+  overlayGestureHint: {
+    position: 'absolute',
+    left: 6,
+    right: 6,
+    bottom: 6,
+    textAlign: 'center',
+    color: colors.white,
+    backgroundColor: 'rgba(61, 61, 61, 0.45)',
+    borderRadius: radii.sm,
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    overflow: 'hidden',
   },
   toolbar: {
     flexDirection: 'row',

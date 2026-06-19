@@ -9,6 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const PROJECT_STORAGE_KEYS = (projectId: string) => [
   `@project_${projectId}`,
   `@project_images_${projectId}`,
+  `@project_page_instances_${projectId}`,
+  `@project_page_values_${projectId}`,
   `@project_annotations_${projectId}`,
   `@project_cover_annotations_${projectId}`,
   `@project_viewport_${projectId}`,

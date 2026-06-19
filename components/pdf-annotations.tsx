@@ -29,7 +29,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import {
   findNextEmptyFieldTarget,
   findPreviousFieldTarget,
@@ -2476,6 +2476,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 rowTypography.fontSize,
                 getWishSlotInputKind(row.lineSlot, lineGuideId)
               );
+              const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2497,8 +2498,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       {
                         position: 'absolute',
                         top: ascenderPadding,
-                        left: 0,
-                        width: row.lineSlot.width,
+                        left: textInsets.left,
+                        width: textInsets.width,
                         color: currentColor,
                         fontSize: rowTypography.fontSize,
                         fontFamily: currentFontFamily,

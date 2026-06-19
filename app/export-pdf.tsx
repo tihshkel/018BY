@@ -38,7 +38,7 @@ import {
   getContentRect,
   mapViewportAnnotationToPdf,
 } from '@/utils/imageContentRect';
-import { computeObjectFitCover } from '@/utils/imageCoverDraw';
+import { drawImageAnnotationsOnPdfPage } from '@/utils/exportPdfImageAnnotations';
 import {
   getCachedPageSourceSize,
   resolvePageSourceSize,
@@ -211,99 +211,6 @@ function formatExportProgressLabel(
 function exportProgressPercent(progress: ExportProgress): number {
   if (progress.total <= 0) return 0;
   return Math.min(100, Math.max(0, (progress.current / progress.total) * 100));
-}
-
-async function drawImageAnnotationsOnPdfPage(params: {
-  page: PDFPage;
-  pdfDoc: PDFDocument;
-  pageAnnotations: Annotation[];
-  annotationImageMap: Map<string, Uint8Array | null>;
-  embeddedImagesCache: Map<string, unknown>;
-  pagesViewport: { width: number; height: number };
-  sourceWidth: number;
-  sourceHeight: number;
-  pdfImageX: number;
-  pdfImageY: number;
-  pdfImageWidth: number;
-  pdfImageHeight: number;
-}): Promise<void> {
-  const imageAnnotations = params.pageAnnotations
-    .filter((ann: Annotation) => ann.type === 'image' && ann.imageUri)
-    .sort((a: Annotation, b: Annotation) => (a.zIndex || 0) - (b.zIndex || 0));
-
-  if (imageAnnotations.length === 0) return;
-
-  const editorContentRect = getContentRect(
-    params.pagesViewport.width,
-    params.pagesViewport.height,
-    params.sourceWidth,
-    params.sourceHeight
-  );
-
-  for (const ann of imageAnnotations) {
-    if (!ann.imageUri) continue;
-
-    const annImageBytes = params.annotationImageMap.get(ann.imageUri);
-    if (!annImageBytes) continue;
-
-    try {
-      let embeddedAnnImage = params.embeddedImagesCache.get(ann.imageUri);
-      if (!embeddedAnnImage) {
-        const isJpg = annImageBytes[0] === 0xff && annImageBytes[1] === 0xd8;
-        embeddedAnnImage = isJpg
-          ? await params.pdfDoc.embedJpg(annImageBytes)
-          : await params.pdfDoc.embedPng(annImageBytes);
-        params.embeddedImagesCache.set(ann.imageUri, embeddedAnnImage);
-      }
-
-      const mapped = mapViewportAnnotationToPdf({
-        x: ann.x,
-        y: ann.y,
-        width: ann.width,
-        height: ann.height,
-        editorContentRect,
-        pdfImageX: params.pdfImageX,
-        pdfImageY: params.pdfImageY,
-        pdfImageWidth: params.pdfImageWidth,
-        pdfImageHeight: params.pdfImageHeight,
-      });
-
-      const embedded = embeddedAnnImage as Awaited<ReturnType<PDFDocument['embedJpg']>>;
-
-      if (ann.imageContentFit === 'cover') {
-        const cover = computeObjectFitCover(
-          embedded.width,
-          embedded.height,
-          mapped.x,
-          mapped.y,
-          mapped.width,
-          mapped.height,
-        );
-        params.page.pushOperators(
-          pushGraphicsState(),
-          rectangle(cover.clipX, cover.clipY, cover.clipWidth, cover.clipHeight),
-          clip(),
-          endPath(),
-        );
-        params.page.drawImage(embedded, {
-          x: cover.drawX,
-          y: cover.drawY,
-          width: cover.drawWidth,
-          height: cover.drawHeight,
-        });
-        params.page.pushOperators(popGraphicsState());
-      } else {
-        params.page.drawImage(embedded, {
-          x: mapped.x,
-          y: mapped.y,
-          width: mapped.width,
-          height: mapped.height,
-        });
-      }
-    } catch {
-      // ignore single annotation failures
-    }
-  }
 }
 
 async function savePdfToAndroidDirectory(params: {
@@ -1700,14 +1607,8 @@ export default function ExportPdfScreen() {
         const reoptimized = originalUri
           ? await loadOptimizedPageBytes(originalUri)
           : null;
-        if (reoptimized) {
-          const bytes = await loadBytesWithRetry(
-            reoptimized,
-            `страницу ${pageIndex + 1} (повторная оптимизация)`
-          );
-          if (bytes && bytes.length > 0) {
-            return bytes;
-          }
+        if (reoptimized && reoptimized.length > 0) {
+          return reoptimized;
         }
 
         if (lineGuideAlbumId) {
@@ -2191,10 +2092,25 @@ export default function ExportPdfScreen() {
             height: actualImageHeight,
           });
           
-          // Добавляем аннотации (предварительно отсортированные для оптимизации)
+          // Сначала фото, затем текст — текст всегда поверх фото при пересечении зон.
           const sortedAnnotations = pageAnnotations.length > 0 
             ? [...pageAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
             : [];
+
+          await drawImageAnnotationsOnPdfPage({
+            page,
+            pdfDoc,
+            pageAnnotations: sortedAnnotations,
+            annotationImageMap,
+            embeddedImagesCache,
+            pagesViewport,
+            sourceWidth,
+            sourceHeight,
+            pdfImageX: offsetX,
+            pdfImageY: offsetY,
+            pdfImageWidth: actualImageWidth,
+            pdfImageHeight: actualImageHeight,
+          });
           
           for (const ann of sortedAnnotations) {
             try {
@@ -2227,21 +2143,6 @@ export default function ExportPdfScreen() {
               // ignore
             }
           }
-
-          await drawImageAnnotationsOnPdfPage({
-            page,
-            pdfDoc,
-            pageAnnotations: sortedAnnotations,
-            annotationImageMap,
-            embeddedImagesCache,
-            pagesViewport,
-            sourceWidth,
-            sourceHeight,
-            pdfImageX: offsetX,
-            pdfImageY: offsetY,
-            pdfImageWidth: actualImageWidth,
-            pdfImageHeight: actualImageHeight,
-          });
           
           processedCount++;
           interiorProcessedCount++;

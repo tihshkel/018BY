@@ -17,7 +17,8 @@ export type PageType =
   | 'timeline_page'
   | 'text_page'
   | 'free_page'
-  | 'birthday_free_page';
+  | 'birthday_free_page'
+  | 'travel_map_page';
 
 export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
 
@@ -154,7 +155,16 @@ export interface PageValues {
   freeElements?: FreePageElement[];
   /** Birthday free pages — user-editable field labels and values */
   customFields?: BirthdayCustomFieldValue[];
+  /** Travel map page — pins on the world map (normalized within map bounds). */
+  mapMarkers?: TravelMapMarker[];
 }
+
+export type TravelMapMarker = {
+  id: string;
+  nx: number;
+  ny: number;
+  label?: string;
+};
 
 export type BirthdayCustomFieldValue = {
   id: string;

@@ -9,9 +9,10 @@ import {
   TeethForm,
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields } from '@/components/album/page-form-fields';
+import { TravelWorldMapEditor } from '@/components/album/travel-world-map-editor';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import type { AlbumPageSchema, PageValues, TravelMapMarker } from '@/types/album-page-schema';
 
 type AlbumPageFillFormProps = {
   schema: AlbumPageSchema;
@@ -24,6 +25,7 @@ type AlbumPageFillFormProps = {
   onAddPhoto: (blockId: string, slotIndex: number) => void;
   onReplacePhoto: (blockId: string, slotIndex: number) => void;
   onRemovePhoto: (blockId: string, slotIndex: number) => void;
+  onMapMarkersChange?: (markers: TravelMapMarker[]) => void;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
 };
@@ -39,6 +41,7 @@ export function AlbumPageFillForm({
   onAddPhoto,
   onReplacePhoto,
   onRemovePhoto,
+  onMapMarkersChange,
   showCaption,
   showPerPhotoCaptions,
 }: AlbumPageFillFormProps) {
@@ -114,6 +117,13 @@ export function AlbumPageFillForm({
           </View>
         );
       })}
+
+      {schema.pageType === 'travel_map_page' && onMapMarkersChange ? (
+        <TravelWorldMapEditor
+          markers={pageValues.mapMarkers ?? []}
+          onChange={onMapMarkersChange}
+        />
+      ) : null}
 
       {textForm}
 

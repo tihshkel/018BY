@@ -21,7 +21,7 @@ export async function pickPhotoFromLibrary(
   }
 
   const result = await launchPhotoLibrary({
-    allowsEditing: true,
+    allowsEditing: false,
     quality: 0.9,
     ...(aspect ? { aspect } : {}),
   });

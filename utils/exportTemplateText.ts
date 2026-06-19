@@ -1,6 +1,5 @@
 import type { Annotation } from '@/components/pdf-annotations';
 import type { Color, PDFPage, PDFFont } from 'pdf-lib';
-import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   getContentRect,
   getViewportToPdfScale,
@@ -10,7 +9,9 @@ import {
   distributeTextWithinContinuationGroup,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
+  getTemplateLineAscenderPadding,
   getTemplateLineTextTop,
+  getTemplateLineTypography,
   truncateTextToSlotWidth,
   type TextWidthMeasure,
 } from '@/utils/templateLineText';
@@ -82,8 +83,6 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     startSlot,
     ann.fontSize || 16
   );
-  const profile = getTemplateTypographyProfile(lineGuideId);
-  const baselineRatio = profile.lineFontOffsetRatio;
 
   const pdfImageRect: ContentRect = {
     offsetX,
@@ -129,15 +128,24 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     if (!content) continue;
 
     const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
+    const inputKind = slot.inputKind ?? 'line';
+    const rowTypography = getTemplateLineTypography(
+      effectiveFontSize,
+      slot.lineHeight,
+      inputKind,
+      lineGuideId,
+    );
+    const ascenderPadding = getTemplateLineAscenderPadding(
+      rowTypography.fontSize,
+      inputKind,
+    );
     const relX = slot.x - editorContentRect.offsetX;
-    const relY = textTop - editorContentRect.offsetY;
+    const viewportBaseline = textTop + ascenderPadding + rowTypography.fontSize;
+    const relBaseline = viewportBaseline - editorContentRect.offsetY;
 
     const scaledX = pdfImageRect.offsetX + relX * scaleX;
     const scaledY =
-      pdfImageRect.offsetY +
-      pdfImageRect.height -
-      relY * scaleY -
-      scaledFontSize * baselineRatio;
+      pdfImageRect.offsetY + pdfImageRect.height - relBaseline * scaleY;
 
     let drawX = scaledX;
     if (font && textAlign !== 'left') {

@@ -117,7 +117,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
     case 40:
       return tzOverride({
         title: 'Мои путешествия',
-        pageType: 'structured',
+        pageType: 'travel_map_page',
         templateLibraryId: 'TextPageTemplate',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, TRAVEL_MAP_FIELDS),
         photoBlocks: undefined,

@@ -173,6 +173,9 @@ export default function AlbumPageFormScreen() {
           onAddPhoto={photoEditor.handlePickPhoto}
           onReplacePhoto={photoEditor.handlePickPhoto}
           onRemovePhoto={photoEditor.handleRemovePhoto}
+          onMapMarkersChange={(markers) =>
+            photoEditor.updatePageValues((prev) => ({ ...prev, mapMarkers: markers }))
+          }
           showCaption={photoEditor.showCaption}
           showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
         />

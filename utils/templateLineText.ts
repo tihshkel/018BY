@@ -179,6 +179,13 @@ export function fitFontSizeToSlot(
     return profile.fixedLineFontSize;
   }
 
+  if (
+    inputKind === 'line' &&
+    lineGuideId === 'holidays_birthday_60'
+  ) {
+    return Math.min(fontSize, Math.max(10, lineHeight * 0.82), 18);
+  }
+
   const maxFromSlot = Math.max(8, lineHeight * 0.76);
   return Math.min(fontSize, maxFromSlot, 16);
 }
@@ -214,11 +221,16 @@ export function getTemplateLineTypography(
     inputKind === 'block' &&
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple');
 
-  const lineTextLineHeight = isDiaryBlock
-    ? fittedSize * 1.08
-    : inputKind === 'block'
+  const isBirthdayLetterLine =
+    lineGuideId === 'holidays_birthday_60' && inputKind === 'line';
+
+  const lineTextLineHeight = isBirthdayLetterLine
+    ? fittedSize
+    : isDiaryBlock
       ? fittedSize * 1.08
-      : fittedSize * 1.06;
+      : inputKind === 'block'
+        ? fittedSize * 1.08
+        : fittedSize * 1.06;
   const ascenderPadding = getTemplateLineAscenderPadding(fittedSize, inputKind);
   const lineInputHeight =
     inputKind === 'block'
@@ -233,7 +245,7 @@ export function getTemplateLineTypography(
 }
 
 function resolveTemplateTextVerticalRatios(
-  slot: Pick<TextLineSlot, 'inputKind' | 'normY' | 'normHeight'>,
+  slot: Pick<TextLineSlot, 'inputKind' | 'normY' | 'normHeight' | 'page'>,
   lineGuideId?: string
 ): { centerRatio: number; fontOffsetRatio: number } {
   const profile = getTemplateTypographyProfile(lineGuideId);
@@ -252,6 +264,16 @@ function resolveTemplateTextVerticalRatios(
   }
 
   if (inputKind === 'line') {
+    if (
+      lineGuideId === 'holidays_birthday_60' &&
+      slot.page === 48 &&
+      slot.normY != null &&
+      slot.normY >= 0.22 &&
+      slot.normY <= 0.75
+    ) {
+      return { centerRatio: 1, fontOffsetRatio: 0.98 };
+    }
+
     if (
       lineGuideId === 'diary_interior_brown' ||
       lineGuideId === 'diary_interior_purple'
@@ -291,9 +313,13 @@ function resolveTemplateTextVerticalRatios(
       }
       return { centerRatio: 0.52, fontOffsetRatio: 0.78 };
     }
+    // Верхний/средний ряд коротких полей (дата, вес, рост на стр. 2 и «Мне N лет»)
+    if (normHeight < 0.055 && normY >= 0.25 && normY <= 0.38) {
+      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
+    }
     // Нижняя строка коротких полей (место рождения и аналоги на стр. 2+)
     if (normY >= 0.85 && normHeight < 0.055) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.8 };
+      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
     }
   }
 
@@ -357,6 +383,17 @@ export function getWishSlotInputKind(
   return slot.inputKind ?? 'line';
 }
 
+export function getTemplateBlockTextInsets(
+  slot: Pick<TextLineSlot, 'inputKind' | 'width'>,
+  lineGuideId?: string,
+): { left: number; width: number } {
+  if (lineGuideId === 'holidays_birthday_60' && slot.inputKind === 'block') {
+    const pad = slot.width * 0.08;
+    return { left: pad, width: Math.max(0, slot.width - pad * 2) };
+  }
+  return { left: 0, width: slot.width };
+}
+
 export function getTemplateLineTextTop(
   slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page'>,
   fontSize: number,
@@ -371,7 +408,6 @@ export function getTemplateLineTextTop(
   );
 
   if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
-    const inputKind = slot.inputKind ?? 'line';
     const isBrownPeachDreamsPage =
       lineGuideId === 'diary_interior_brown' && slot.page === 15;
     if (isBrownPeachDreamsPage) {
@@ -431,8 +467,25 @@ export function getTemplateLineTextTop(
       );
       return lineY - lineFitted * 0.98;
     }
+    if (
+      slot.normY != null &&
+      slot.normY >= 0.25 &&
+      slot.normY <= 0.78 &&
+      inputKind === 'line'
+    ) {
+      return lineY - fittedSize * 0.92;
+    }
     const fontOffsetRatio = inputKind === 'block' ? 0.96 : 0.98;
     return lineY - fittedSize * fontOffsetRatio;
+  }
+
+  if (
+    lineGuideId === 'holidays_birthday_60' &&
+    slot.page === 48 &&
+    inputKind === 'line'
+  ) {
+    const lineY = slot.y + slot.lineHeight;
+    return lineY - fittedSize * 0.98;
   }
 
   const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
@@ -752,11 +805,12 @@ export function distributeTextWithinFieldLines(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): {
   segments: { slotIndex: number; content: string }[];
   truncated: boolean;
 } {
-  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId, fontId } = params;
   const fieldSlots = slots.slice(startSlotIndex, startSlotIndex + lineCount);
 
   if (fieldSlots.length === 0) {
@@ -773,7 +827,13 @@ export function distributeTextWithinFieldLines(params: {
       continue;
     }
 
-    const { line, rest } = consumeOneLineForSlot(remaining, slot, fontSize, lineGuideId);
+    const { line, rest } = consumeOneLineForSlot(
+      remaining,
+      slot,
+      fontSize,
+      lineGuideId,
+      fontId,
+    );
     const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
     segments.push({ slotIndex: slot.index, content });
     remaining = rest;
@@ -789,8 +849,9 @@ export function clampTextToFieldLines(params: {
   slots: TextLineSlot[];
   fontSize: number;
   lineGuideId?: string;
+  fontId?: string;
 }): string {
-  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId } = params;
+  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId, fontId } = params;
   if (!text) return text;
 
   const { truncated } = distributeTextWithinFieldLines({
@@ -800,6 +861,7 @@ export function clampTextToFieldLines(params: {
     slots,
     fontSize,
     lineGuideId,
+    fontId,
   });
 
   if (!truncated) return text;
@@ -818,6 +880,7 @@ export function clampTextToFieldLines(params: {
       slots,
       fontSize,
       lineGuideId,
+      fontId,
     });
 
     if (stillTruncated) {

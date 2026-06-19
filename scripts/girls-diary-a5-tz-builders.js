@@ -10,6 +10,7 @@ const A5_TEMPLATE_MAP = {
   FriendsQuestionnaireTemplate: 'FriendQuestionnaireTemplate',
   StaticPageTemplate: 'StaticPageTemplate',
   DiaryOwnerTemplate: 'DiaryOwnerTemplate',
+  DiaryRulesTemplate: 'DiaryRulesTemplate',
   PhotoPageWithTitleTemplate: 'PersonalPhotoTemplate',
   UserQuestionnaireTemplate: 'UserQuestionnaireTemplate',
   ParentQuestionnaireTemplate: 'ParentQuestionnaireTemplate',

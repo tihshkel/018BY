@@ -85,9 +85,14 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     return birthdayLimit;
   }
 
+  const typeLimit = getFieldMaxLength(params.field.type);
+  // Дата и время имеют фиксированный формат (ДД.ММ.ГГГГ / ЧЧ:ММ), не зависят от ширины слота.
+  if (params.field.type === 'date' || params.field.type === 'time') {
+    return typeLimit;
+  }
+
   const viewportWidth = params.viewportWidth ?? DEFAULT_VIEWPORT.width;
   const viewportHeight = params.viewportHeight ?? DEFAULT_VIEWPORT.height;
-  const typeLimit = getFieldMaxLength(params.field.type);
   const layoutLimit = computeLayoutCharacterLimit(
     params.field,
     params.lineGuideId,

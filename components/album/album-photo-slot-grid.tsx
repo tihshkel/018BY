@@ -31,6 +31,7 @@ export function AlbumPhotoSlotGrid({
   slotTransforms,
   onPickPhoto,
   onRemovePhoto,
+  onSlotTransformChange,
   embedded = false,
 }: AlbumPhotoSlotGridProps) {
   const variant =
@@ -65,10 +66,12 @@ export function AlbumPhotoSlotGrid({
         </View>
         <AppText variant="bodySm" style={styles.hint}>
           {slotCount === 1
-            ? 'Нажмите на зону, чтобы добавить фото'
+            ? slotUris.some(Boolean)
+              ? 'Перетаскивайте и масштабируйте фото, чтобы лицо не обрезалось'
+              : 'Нажмите на зону, чтобы добавить фото'
             : filledCount === 0
               ? `Добавьте до ${slotCount} фото в раскладку`
-              : 'Нажмите на фото, чтобы заменить или удалить'}
+              : 'Нажмите на фото, чтобы заменить. Перетаскивайте для кадрирования'}
         </AppText>
       </View>
 
@@ -98,11 +101,11 @@ export function AlbumPhotoSlotGrid({
                 slotIndex={slotIndex}
                 transform={transform}
                 chromeStyle="overlay"
-                gesturesEnabled={false}
+                gesturesEnabled={Boolean(slotUris[slotIndex])}
                 onPressEmpty={() => onPickPhoto(slotIndex)}
                 onReplacePhoto={() => onPickPhoto(slotIndex)}
                 onRemovePhoto={onRemovePhoto ? () => onRemovePhoto(slotIndex) : undefined}
-                onTransformChange={() => {}}
+                onTransformChange={(next) => onSlotTransformChange(slotIndex, next)}
               />
             </View>
           );

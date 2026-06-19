@@ -17,7 +17,11 @@ import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
-import { applyPhotoSlotTransform, photoSlotTransformKey } from '@/utils/photoSlotTransform';
+import {
+  applyPhotoSlotTransform,
+  isNonDefaultPhotoSlotTransform,
+  photoSlotTransformKey,
+} from '@/utils/photoSlotTransform';
 import {
   getBranchFillColor,
   mapGenderFillToViewport,
@@ -25,12 +29,17 @@ import {
 import { getGenderFillTargets } from '@/utils/pdfCircleSlots';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { TRAVEL_MAP_COLORS } from '@/constants/travel-world-map';
+import { mapMarkerToViewport } from '@/utils/travelMap';
 import {
   appendBlankTemplateFreeImageAnnotations,
   appendBlankTemplateTextAnnotations,
+  appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
+/** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
+const TEXT_ANNOTATION_ZINDEX_BASE = 10_000;
 
 type AdapterParams = {
   lineGuideId: string;
@@ -113,6 +122,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       slots,
       fontSize,
       lineGuideId,
+      fontId: textFontFamily,
     });
 
     for (const segment of distributed.segments) {
@@ -157,6 +167,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         slots,
         fontSize,
         lineGuideId,
+        fontId: textFontFamily,
       });
 
       for (const segment of distributed.segments) {
@@ -211,6 +222,25 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     });
   }
 
+  if (schema.pageType === 'travel_map_page') {
+    for (const marker of values.mapMarkers ?? []) {
+      const rect = mapMarkerToViewport(marker, editorContentRect);
+      annotations.push({
+        id: createId('ann'),
+        type: 'image',
+        page: schema.sourcePageNumber,
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        fillColor: TRAVEL_MAP_COLORS.pin,
+        clipShape: 'circle',
+        sourcePageNumber: schema.sourcePageNumber,
+        zIndex: zIndex++,
+      });
+    }
+  }
+
   for (const block of schema.photoBlocks ?? []) {
     if (schema.pageType === 'free_page') continue;
 
@@ -239,7 +269,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     });
 
     if (blockLayout) {
-      const useGroupTransform = values.photoGroupTransform;
+      const useGroupTransform = isNonDefaultPhotoSlotTransform(values.photoGroupTransform)
+        ? values.photoGroupTransform
+        : null;
       const resolvedSlots = resolvePhotoBlockSlotRects(blockLayout, useGroupTransform);
 
       for (const slot of resolvedSlots) {
@@ -324,11 +356,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (photoRect) {
         const transformKey = photoSlotTransformKey(block.blockId, i);
         const slotTransform = values.photoSlotTransforms?.[transformKey];
-        const groupTransform = values.photoGroupTransform;
         let rect = photoRect;
-        if (groupTransform) {
-          rect = applyPhotoSlotTransform(rect, groupTransform);
-        }
         if (slotTransform) {
           rect = applyPhotoSlotTransform(rect, slotTransform);
         }
@@ -413,28 +441,46 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  if (!isBlankTemplate && schema.pageType === 'caption_photo_page' && values.photoCaptions?.length) {
-    const labelSlots = slots.filter((s) => s.hasLabel);
-    for (let i = 0; i < values.photoCaptions.length; i += 1) {
-      const text = values.photoCaptions[i]?.trim();
-      if (!text) continue;
-      const slot = labelSlots[i];
-      if (!slot) continue;
-      const layout = layoutAnnotationFromSlot(slot);
-      annotations.push({
-        id: createId('ann'),
-        type: 'text',
-        page: schema.sourcePageNumber,
-        content: text,
-        fontSize,
-        fontFamily: textFontFamily,
-        color: '#3D3D3D',
-        zIndex: zIndex++,
-        templateLineStart: slot.index,
-        templateLineCount: 1,
-        sourcePageNumber: schema.sourcePageNumber,
-        ...layout,
-      });
+  if (!isBlankTemplate && values.photoCaptions?.length) {
+    const templateCaptions = appendTemplatePhotoCaptionAnnotations({
+      schema,
+      values,
+      lineGuideId,
+      editorContentRect,
+      viewportHeight,
+      fontSize,
+      textFontFamily,
+      zIndex,
+    });
+    annotations.push(...templateCaptions.annotations);
+    zIndex = templateCaptions.zIndex;
+
+    if (
+      templateCaptions.annotations.length === 0 &&
+      schema.pageType === 'caption_photo_page'
+    ) {
+      const labelSlots = slots.filter((s) => s.hasLabel);
+      for (let i = 0; i < values.photoCaptions.length; i += 1) {
+        const text = values.photoCaptions[i]?.trim();
+        if (!text) continue;
+        const slot = labelSlots[i];
+        if (!slot) continue;
+        const layout = layoutAnnotationFromSlot(slot);
+        annotations.push({
+          id: createId('ann'),
+          type: 'text',
+          page: schema.sourcePageNumber,
+          content: text,
+          fontSize,
+          fontFamily: textFontFamily,
+          color: '#3D3D3D',
+          zIndex: zIndex++,
+          templateLineStart: slot.index,
+          templateLineCount: 1,
+          sourcePageNumber: schema.sourcePageNumber,
+          ...layout,
+        });
+      }
     }
   }
 
@@ -461,6 +507,12 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     });
     annotations.push(...freeResult.annotations);
     zIndex = freeResult.zIndex;
+  }
+
+  for (const ann of annotations) {
+    if (ann.type === 'text') {
+      ann.zIndex = (ann.zIndex ?? 0) + TEXT_ANNOTATION_ZINDEX_BASE;
+    }
   }
 
   return annotations;

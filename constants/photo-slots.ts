@@ -90,6 +90,20 @@ function layoutsFromTemplates(safeZone: SafeZone, templateIds: readonly string[]
   return buildPageLayoutsFromTemplates(safeZone, [...templateIds]) as PhotoPageLayouts;
 }
 
+/** «Люблю» / memory block (p56–59): center zone below title, above rose decor */
+const PREGNANCY_MEMORY_PHOTO_SAFE: SafeZone = {
+  x: 0.08,
+  y: 0.14,
+  width: 0.84,
+  height: 0.52,
+};
+
+function pregnancyMemoryPhotoLayouts(): PhotoPageLayouts {
+  return layoutsFromTemplates(PREGNANCY_MEMORY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES);
+}
+
+const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59];
+
 function pregnancyPhotoLayouts(): PhotoPageLayouts {
   return layoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES);
 }
@@ -122,7 +136,8 @@ const PREGNANCY_WEEKLY_PHOTO_LAYOUT: PhotoPageLayouts = {
   variants: [
     {
       variantId: 'one_horizontal',
-      slots: [{ x: 0.1, y: 0.85, width: 0.8, height: 0.22, aspectRatio: [4, 3] }],
+      // Center-based coords: keep photo below text lines (lines end ~0.89 on weekly pages).
+      slots: [{ x: 0.1, y: 0.98, width: 0.8, height: 0.14, aspectRatio: [4, 3] }],
     },
   ],
 };
@@ -148,142 +163,7 @@ const PREGNANCY_A5_WEEKLY_PAGES = [
 export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
     pregnancy_60: {
     ...repeatPhotoLayout(PREGNANCY_60_WEEKLY_PAGES, PREGNANCY_WEEKLY_PHOTO_LAYOUT),
-    '56': {
-    variants: [
-    {
-      variantId: 'one_large',
-      slots: [
-      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'two_photos',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'three_hero',
-      slots: [
-      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      ],
-    },
-    {
-      variantId: 'four_grid',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      ],
-    },
-    ],
-  },
-    '57': {
-    variants: [
-    {
-      variantId: 'one_large',
-      slots: [
-      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'two_photos',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'three_hero',
-      slots: [
-      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      ],
-    },
-    {
-      variantId: 'four_grid',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      ],
-    },
-    ],
-  },
-    '58': {
-    variants: [
-    {
-      variantId: 'one_large',
-      slots: [
-      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'two_photos',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'three_hero',
-      slots: [
-      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      ],
-    },
-    {
-      variantId: 'four_grid',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      ],
-    },
-    ],
-  },
-    '59': {
-    variants: [
-    {
-      variantId: 'one_large',
-      slots: [
-      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'two_photos',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
-      ],
-    },
-    {
-      variantId: 'three_hero',
-      slots: [
-      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
-      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
-      ],
-    },
-    {
-      variantId: 'four_grid',
-      slots: [
-      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
-      ],
-    },
-    ],
-  },
+    ...repeatPhotoLayout(PREGNANCY_60_MEMORY_PAGES, pregnancyMemoryPhotoLayouts()),
   },
   pregnancy_a5: {
     ...repeatPhotoLayout(PREGNANCY_A5_WEEKLY_PAGES, PREGNANCY_WEEKLY_PHOTO_LAYOUT),
@@ -1564,6 +1444,28 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
     },
     ],
   },
+  },
+  /** «Дни рождения» 21×21 — калиброванные зоны фото по типам страниц */
+  holidays_birthday_60: {
+    '2': {
+      variants: [
+        {
+          variantId: 'one_horizontal',
+          slots: [{ x: 0.08, y: 0.61, width: 0.84, height: 0.46, aspectRatio: [4, 3] }],
+        },
+      ],
+    },
+    ...repeatPhotoLayout(
+      [4, ...Array.from({ length: 17 }, (_, index) => 6 + index * 2)],
+      {
+        variants: [
+          {
+            variantId: 'one_large',
+            slots: [{ x: 0.09, y: 0.54, width: 0.82, height: 0.5, aspectRatio: [4, 3] }],
+          },
+        ],
+      },
+    ),
   },
   family_blank: blankAlbumPages(20),
   holidays_blank: blankAlbumPages(20),

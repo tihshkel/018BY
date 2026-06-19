@@ -80,26 +80,31 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 50:
       return tzOverride({
         title: 'Список покупок',
+        pageType: 'structured',
         fields: buildShoppingListFields(lineGuideId, pageNumber, slots),
       });
     case 51:
       return tzOverride({
         title: 'Список дел',
+        pageType: 'structured',
         fields: buildTodoListFields(lineGuideId, pageNumber, slots),
       });
     case 52:
       return tzOverride({
         title: 'Анкета родов',
+        pageType: 'structured',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, BIRTH_QUESTIONNAIRE_60),
       });
     case 53:
       return tzOverride({
         title: 'История родов',
+        pageType: 'structured',
         fields: buildBirthStoryFields(lineGuideId, pageNumber, slots),
       });
     case 54:
       return tzOverride({
         title: 'Уже мама',
+        pageType: 'structured',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
       });
     case 5:
@@ -112,16 +117,25 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
       return buildPregnancyStaticPage('3 триместр');
     case 48:
     case 49:
+      return tzOverride({
+        pageType: 'photo',
+        fields: [],
+      });
     case 55:
+      return buildPregnancyStaticPage('Памятные моменты');
     case 56:
     case 57:
     case 58:
     case 59:
-      return tzOverride({ fields: [] });
+      return tzOverride({
+        pageType: 'photo',
+        fields: [],
+      });
     case 60:
       return tzOverride({
         title: 'Письмо малышу',
         pageType: 'text_page',
+        editable: true,
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, LETTER_TO_BABY_FIELDS),
         replacePhotoBlocks: true,
         photoBlocks: undefined,

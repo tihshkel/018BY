@@ -51,6 +51,7 @@ import {
   subscribeAlbumProjectSnapshot,
 } from '@/utils/albumProjectStateSync';
 import { pushAccountDataToCloud, scheduleSyncToCloud, addProjectToSyncedList } from '@/utils/account-sync';
+import { runDedupedAlbumProjectCreation } from '@/utils/albumProjectCreationLock';
 import { getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 
 export type AlbumProjectMeta = {
@@ -588,63 +589,120 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           return;
         }
 
-        const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
-        const imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? [];
+        const newProjectId = await runDedupedAlbumProjectCreation(
+          { celebration, coverType, interiorType, eventDate },
+          async () => {
+            const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
+            const imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? [];
+
+            const lgId = resolveLineGuideId(albumId, celebration);
+            const newInstances = buildInitialPageInstances(lgId, imageUris.length);
+            const newValues = buildInitialPageValuesMap(newInstances);
+
+            const createdProjectId = Date.now().toString();
+            const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
+            const projectData: AlbumProjectMeta & {
+              createdAt?: string;
+              thumbnailPath?: ImageSourcePropType;
+              reminderDate?: string;
+            } = {
+              id: createdProjectId,
+              title: albumTemplate?.name ?? getCelebrationTitle(celebration),
+              category: celebration,
+              albumId,
+              interiorType: interiorType ?? albumId,
+              coverType: coverType ?? undefined,
+              createdAt: new Date().toISOString(),
+              isReadyMadeAlbum: true,
+              hasPdfTemplate: true,
+              pagesCount: imageUris.length,
+            };
+
+            const thumb = getCoverThumbnailForProject(coverType, celebration);
+            if (thumb) projectData.thumbnailPath = thumb;
+            if (eventDate) projectData.reminderDate = eventDate;
+
+            await AsyncStorage.setItem(`@project_${createdProjectId}`, JSON.stringify(projectData));
+            await AsyncStorage.setItem(
+              `@project_images_${createdProjectId}`,
+              JSON.stringify(imageUris),
+            );
+            await savePageInstances(
+              (k, v) => AsyncStorage.setItem(k, v),
+              createdProjectId,
+              newInstances,
+            );
+            await savePageValuesMap(
+              (k, v) => AsyncStorage.setItem(k, v),
+              createdProjectId,
+              newValues,
+            );
+            await AsyncStorage.setItem(`@project_annotations_${createdProjectId}`, JSON.stringify([]));
+
+            const existingProjects = await AsyncStorage.getItem('@user_projects');
+            const projects = existingProjects ? JSON.parse(existingProjects) : [];
+            if (!projects.some((entry: { id?: string }) => entry?.id === createdProjectId)) {
+              projects.push(projectData);
+              await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+            }
+
+            await pushAccountDataToCloud({ forceIncludeProjectIds: [createdProjectId] });
+            scheduleSyncToCloud();
+
+            if (eventDate && celebration) {
+              try {
+                await linkNewProjectToEventReminders(createdProjectId, celebration, eventDate);
+              } catch {
+                /* ignore */
+              }
+            }
+
+            return createdProjectId;
+          },
+        );
+
         if (cancelled) return;
-        setImages(imageUris);
+
+        const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
+        const imageUrisRaw = await AsyncStorage.getItem(`@project_images_${newProjectId}`);
+        const imageUris = imageUrisRaw
+          ? (JSON.parse(imageUrisRaw) as string[])
+          : (await loadImagesForAlbum(albumId, celebration)) ?? [];
 
         const lgId = resolveLineGuideId(albumId, celebration);
-        const newInstances = buildInitialPageInstances(lgId, imageUris.length);
-        const newValues = buildInitialPageValuesMap(newInstances);
-        setInstances(newInstances);
-        setPageValuesMap(newValues);
+        const loadedInstancesRaw = await loadPageInstances(
+          (k) => AsyncStorage.getItem(k),
+          newProjectId,
+        );
+        const loadedInstances =
+          loadedInstancesRaw.length > 0
+            ? loadedInstancesRaw
+            : buildInitialPageInstances(lgId, imageUris.length);
+        const loadedValuesRaw = await loadPageValuesMap(
+          (k) => AsyncStorage.getItem(k),
+          newProjectId,
+        );
+        const loadedValues =
+          Object.keys(loadedValuesRaw).length > 0
+            ? loadedValuesRaw
+            : buildInitialPageValuesMap(loadedInstances);
 
-        const newProjectId = Date.now().toString();
-        const albumTemplate = coverType ? getAlbumTemplateById(coverType) : null;
-        const projectData: AlbumProjectMeta & {
-          createdAt?: string;
-          thumbnailPath?: ImageSourcePropType;
-          reminderDate?: string;
-        } = {
-          id: newProjectId,
-          title: albumTemplate?.name ?? getCelebrationTitle(celebration),
-          category: celebration,
-          albumId,
-          interiorType: interiorType ?? albumId,
-          coverType: coverType ?? undefined,
-          createdAt: new Date().toISOString(),
-          isReadyMadeAlbum: true,
-          hasPdfTemplate: true,
-          pagesCount: imageUris.length,
-        };
+        const projectRaw = await AsyncStorage.getItem(`@project_${newProjectId}`);
+        const projectData = projectRaw
+          ? (JSON.parse(projectRaw) as AlbumProjectMeta)
+          : null;
 
-        const thumb = getCoverThumbnailForProject(coverType, celebration);
-        if (thumb) projectData.thumbnailPath = thumb;
-        if (eventDate) projectData.reminderDate = eventDate;
-
-        await AsyncStorage.setItem(`@project_${newProjectId}`, JSON.stringify(projectData));
-        await savePageInstances((k, v) => AsyncStorage.setItem(k, v), newProjectId, newInstances);
-        await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), newProjectId, newValues);
-        await AsyncStorage.setItem(`@project_annotations_${newProjectId}`, JSON.stringify([]));
-
-        const existingProjects = await AsyncStorage.getItem('@user_projects');
-        const projects = existingProjects ? JSON.parse(existingProjects) : [];
-        projects.push(projectData);
-        await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
-
-        await pushAccountDataToCloud({ forceIncludeProjectIds: [newProjectId] });
-        scheduleSyncToCloud();
-
-        if (eventDate && celebration) {
-          try {
-            await linkNewProjectToEventReminders(newProjectId, celebration, eventDate);
-          } catch {
-            /* ignore */
-          }
-        }
-
+        setImages(imageUris);
+        setInstances(loadedInstances);
+        setPageValuesMap(loadedValues);
         setMeta(projectData);
         setEffectiveProjectId(newProjectId);
+        publishAlbumProjectSnapshot(newProjectId, {
+          pageValuesMap: loadedValues,
+          instances: loadedInstances,
+          images: imageUris,
+        });
+
         router.replace({
           pathname: '/album-intro',
           params: {

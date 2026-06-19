@@ -778,6 +778,27 @@ export function isBrownWishContinuationNorm(
   );
 }
 
+function refineBrownParentQuestionnaireRowNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  const isParentPage =
+    (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8)) ||
+    (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7));
+  if (!isParentPage) return norm;
+  if (norm.inputKind === 'block') return norm;
+  if (norm.y < 0.22 || norm.y > 0.82) return norm;
+
+  const minAnswerLeft = 0.32;
+  if (norm.x >= minAnswerLeft || norm.width <= 0.45) return norm;
+
+  const right = norm.x + norm.width;
+  const x = minAnswerLeft;
+  const width = Math.max(0.15, Math.min(right - x, 0.98 - x));
+  return { ...norm, x, width };
+}
+
 /** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
 function refineNormalizedSlotForTextLayout(
   lineGuideId: string,
@@ -789,7 +810,7 @@ function refineNormalizedSlotForTextLayout(
     return norm;
   }
 
-  let refined = norm;
+  let refined = refineBrownParentQuestionnaireRowNorm(lineGuideId, page, norm);
   if (lineGuideId === 'diary_interior_brown') {
     refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
     refined = refineBrownPage15PeachLineNorm(page, refined);

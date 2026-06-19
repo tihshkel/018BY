@@ -118,6 +118,9 @@ export default function AlbumPagePhotosScreen() {
         onGroupTransformChange={photoEditor.handleGroupTransformChange}
         onRemovePhoto={photoEditor.handleRemovePhoto}
         onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
+        onCustomFieldsChange={(fields) =>
+          photoEditor.updatePageValues((prev) => ({ ...prev, customFields: fields }))
+        }
         showCaption={photoEditor.showCaption}
         showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
       />

@@ -6,7 +6,7 @@ import type { useAlbumProject } from '@/hooks/use-album-project';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
-import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
+import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
@@ -120,11 +120,15 @@ export function useAlbumPagePhotoEditor({
   const handleSelectVariant = useCallback(
     (blockId: string, newVariantId: string) => {
       const block = blocks.find((item) => item.blockId === blockId);
-      const variant = block?.variants.find((item) => item.variantId === newVariantId);
+      const variant = resolvePhotoBlockVariant(
+        block?.variants ?? [],
+        newVariantId,
+        resolvedSchema?.lineGuideId,
+      );
       if (!variant) return;
 
       const prevBlock = photoBlocks[blockId];
-      if (prevBlock?.variantId === newVariantId) return;
+      if (prevBlock?.variantId === variant.variantId) return;
 
       const migrated = migratePhotoBlockOnVariantChange({
         blockId,
@@ -135,7 +139,7 @@ export function useAlbumPagePhotoEditor({
       });
 
       updateBlock(blockId, () => ({
-        variantId: newVariantId,
+        variantId: variant.variantId,
         slots: migrated.slots,
       }));
 
@@ -151,6 +155,7 @@ export function useAlbumPagePhotoEditor({
       pageValues.photoCaptions,
       pageValues.photoSlotTransforms,
       photoBlocks,
+      resolvedSchema?.lineGuideId,
       showPerPhotoCaptions,
       updateBlock,
       updatePageValues,

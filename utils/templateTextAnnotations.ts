@@ -121,6 +121,67 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   return { annotations, zIndex };
 }
 
+export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
+  annotations: Annotation[];
+  zIndex: number;
+} {
+  const {
+    schema,
+    values,
+    lineGuideId,
+    editorContentRect,
+    viewportHeight,
+    fontSize,
+    textFontFamily,
+  } = params;
+
+  let zIndex = params.zIndex;
+  const annotations: Annotation[] = [];
+
+  if (!schema.templateLibraryId || !values.photoCaptions?.length) {
+    return { annotations, zIndex };
+  }
+
+  const format = getPageFormatForLineGuide(lineGuideId);
+  const layout = getTemplateLayout(schema.templateLibraryId, format);
+  if (!layout?.perPhotoCaptions) {
+    return { annotations, zIndex };
+  }
+
+  const captionBlocks =
+    layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+
+  for (let i = 0; i < values.photoCaptions.length; i += 1) {
+    const text = values.photoCaptions[i];
+    if (!hasText(text)) continue;
+
+    const block =
+      captionBlocks[i] ??
+      layout.textBlocks?.find((item) => item.id === `caption${i + 1}`);
+    if (!block) continue;
+
+    const rect = mapTemplateFrameToViewport(block, editorContentRect);
+    annotations.push({
+      id: createId('ann'),
+      type: 'text',
+      page: schema.sourcePageNumber,
+      content: text!.trim(),
+      fontSize: estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      fontFamily: textFontFamily,
+      color: '#3D3D3D',
+      textAlign: 'center',
+      zIndex: zIndex++,
+      sourcePageNumber: schema.sourcePageNumber,
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+    });
+  }
+
+  return { annotations, zIndex };
+}
+
 export function appendBlankTemplateFreeImageAnnotations(params: {
   schema: AlbumPageSchema;
   values: PageValues;

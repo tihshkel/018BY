@@ -2,6 +2,23 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+// pdf-lib тянет вложенный tslib с ESM-обёрткой, которая ломается в Metro web.
+const tslibPath = require.resolve('tslib/tslib.es6.js');
+const defaultResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (
+    moduleName === 'tslib'
+    || moduleName.endsWith('/tslib')
+    || moduleName.includes('pdf-lib/node_modules/tslib')
+  ) {
+    return { filePath: tslibPath, type: 'sourceFile' };
+  }
+  if (defaultResolveRequest) {
+    return defaultResolveRequest(context, moduleName, platform);
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 // Добавляем поддержку дополнительных папок с изображениями и PDF
 config.resolver.assetExts.push(
   // изображения

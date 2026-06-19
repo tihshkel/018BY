@@ -29,7 +29,11 @@ import {
 import {
   getDefaultVariantIdForPage,
 } from "@/utils/variantPreview";
-import { usesUnifiedPhotoEditor } from "@/utils/albumPageNavigation";
+import {
+  hasFormTextInput,
+  resolveFormPathname,
+  usesUnifiedPhotoEditor,
+} from "@/utils/albumPageNavigation";
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { persistProjectViewport } from "@/utils/exportViewport";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
@@ -143,7 +147,7 @@ export default function AlbumPagePreviewScreen() {
 
   const imageUri = displayImageUri ?? resolvedImageUri;
   const selectedFontId = values?.textFontFamily ?? "default";
-  const hasTextFields = (schema?.fields?.length ?? 0) > 0;
+  const hasTextFields = hasFormTextInput(schema);
   const isLocked =
     schema?.pageType === "non_editable" || status === "locked";
 
@@ -164,11 +168,13 @@ export default function AlbumPagePreviewScreen() {
     "default";
   const primarySlotUris = primaryBlockValues?.slots ?? [];
   const hasFilledPhotos = primarySlotUris.some(Boolean);
+  const isCircleTreeBlock = primaryPhotoBlock?.layoutKind === "circle_tree";
   const showPhotoBlockEditor =
     isFinalPreview &&
     !isLocked &&
     primaryPhotoBlock != null &&
-    hasFilledPhotos;
+    hasFilledPhotos &&
+    !isCircleTreeBlock;
 
   const annotations = usePageAnnotationsForLayout({
     instance,
@@ -183,7 +189,10 @@ export default function AlbumPagePreviewScreen() {
 
   const displayAnnotations = useMemo(() => {
     if (!showPhotoBlockEditor) return annotations;
-    return annotations.filter((item) => item.type !== "image");
+    // Draggable collage editor redraws user photos; keep gender fills and placeholders.
+    return annotations.filter(
+      (item) => item.type !== "image" || !item.imageUri,
+    );
   }, [annotations, showPhotoBlockEditor]);
 
   useEffect(() => {
@@ -242,9 +251,7 @@ export default function AlbumPagePreviewScreen() {
 
   const handleFill = () => {
     const pathname = usesUnifiedPhotoEditor(schema)
-      ? (schema?.fields?.length ?? 0) > 0
-        ? "/album-page-form"
-        : "/album-page-photos"
+      ? resolveFormPathname(schema)
       : "/album-page-form";
     router.push({
       pathname,
@@ -346,6 +353,7 @@ export default function AlbumPagePreviewScreen() {
                 }
                 variantId={primaryVariantId}
                 slotUris={primarySlotUris}
+                templateLibraryId={schema.templateLibraryId}
                 groupTransform={values?.photoGroupTransform}
                 coordinateWidth={previewLayout.coordinateWidth}
                 coordinateHeight={previewLayout.coordinateHeight}

@@ -14,6 +14,26 @@ const COLLAGE_TEMPLATE_SETS: Record<string, string[]> = {
   default: ['one_horizontal', 'two_horizontal', 'four_grid'],
 };
 
+/** Weekly + memory photo pages: use calibrated PHOTO_SLOTS, not OCR PDF zones. */
+function prefersManualPhotoLayout(lineGuideId: string, page: number): boolean {
+  if (lineGuideId === 'pregnancy_60') {
+    if (page >= 56 && page <= 59) return true;
+    return (
+      (page >= 9 && page <= 17) ||
+      (page >= 19 && page <= 32) ||
+      (page >= 34 && page <= 47)
+    );
+  }
+  if (lineGuideId === 'pregnancy_a5') {
+    return (
+      (page >= 5 && page <= 13) ||
+      (page >= 15 && page <= 28) ||
+      (page >= 30 && page <= 43)
+    );
+  }
+  return false;
+}
+
 function slotToSafeZone(slot: {
   x: number;
   y: number;
@@ -77,14 +97,19 @@ export function resolvePhotoPageLayouts(
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
   const pdf = getPdfPhotoPageLayouts(lineGuideId, page);
 
-  if (pdf?.variants?.length) {
-    return finalizeLayouts(pdf) ?? pdf;
+  if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
+    return manual;
   }
+  // Calibrated multi-variant layouts win over PDF zones that overlap text lines.
   if (manual?.variants && manual.variants.length > 1) {
     return manual;
   }
+  if (pdf?.variants?.length) {
+    return finalizeLayouts(pdf) ?? pdf;
+  }
   if (manual?.variants?.length) {
-    return finalizeLayouts(manual) ?? manual;
+    const skipCollageExpand = lineGuideId === 'holidays_birthday_60';
+    return finalizeLayouts(manual, { skipCollageExpand }) ?? manual;
   }
   return DEFAULT_PHOTO_PAGE_LAYOUTS;
 }
@@ -107,14 +132,18 @@ export function resolvePhotoPageLayoutsOrUndefined(
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
   const pdf = getPdfPhotoPageLayouts(lineGuideId, page);
 
-  if (pdf?.variants?.length) {
-    return finalizeLayouts(pdf);
+  if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
+    return manual;
   }
   if (manual?.variants && manual.variants.length > 1) {
     return manual;
   }
+  if (pdf?.variants?.length) {
+    return finalizeLayouts(pdf);
+  }
   if (manual?.variants?.length) {
-    return finalizeLayouts(manual);
+    const skipCollageExpand = lineGuideId === 'holidays_birthday_60';
+    return finalizeLayouts(manual, { skipCollageExpand });
   }
   return undefined;
 }

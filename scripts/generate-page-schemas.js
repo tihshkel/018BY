@@ -69,7 +69,7 @@ const PREGNANCY_60_SPECIAL = {
   52: 'Анкета родов',
   53: 'История родов',
   54: 'Первая фото',
-  55: 'Моменты',
+  55: 'Памятные моменты',
   56: 'Для фото',
   57: 'Для фото',
   58: 'Для фото',
@@ -371,6 +371,28 @@ function mergeOverride(base, override) {
   };
 }
 
+/** After TZ overrides, re-sync editable/pageType when fields were injected post-infer. */
+function finalizePageSchema(schema) {
+  const hasFields = (schema.fields?.length ?? 0) > 0;
+  const hasCustomFields = (schema.customFieldDefs?.length ?? 0) > 0;
+
+  if (schema.pageType === 'non_editable' && (hasFields || hasCustomFields)) {
+    schema.pageType = 'structured';
+  }
+
+  if (schema.pageType === 'photo' && !schema.photoBlocks?.length) {
+    schema.photoBlocks = [PREGNANCY_PHOTO_BLOCK];
+  }
+
+  if (schema.pageType === 'non_editable') {
+    schema.editable = false;
+  } else {
+    schema.editable = true;
+  }
+
+  return schema;
+}
+
 function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override, pageContent) {
   const listTitle = getPageTitle(lineGuideId, pageNumber);
   const heading = pageContent?.heading;
@@ -509,7 +531,7 @@ function generateSchemas(projectRoot) {
         }
       }
 
-      pages.push(schema);
+      pages.push(finalizePageSchema(schema));
     }
 
     result[lineGuideId] = pages;

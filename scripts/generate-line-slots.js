@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides');
+const { applyDiaryLineSlotOverrides } = require('./diary-line-slot-overrides');
 const { PNG } = require('pngjs');
 
 function clamp(value, min, max) {
@@ -1236,6 +1237,16 @@ async function main() {
       albumSlots = trimmed.slots;
       albumGuides = trimmed.guides;
       console.log(`[${spec.albumId}] applied 48-page TZ slot overrides`);
+    }
+
+    if (
+      spec.albumId === 'diary_interior_brown' ||
+      spec.albumId === 'diary_interior_purple'
+    ) {
+      const trimmed = applyDiaryLineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = trimmed.slots;
+      albumGuides = trimmed.guides;
+      console.log(`[${spec.albumId}] applied diary TZ slot overrides`);
     }
 
     if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {

@@ -28,6 +28,7 @@ type AlbumPreviewPhotoBlockEditorProps = {
   sourcePageNumber: number;
   variantId: string;
   slotUris: (string | null)[];
+  templateLibraryId?: string;
   groupTransform?: PhotoSlotTransform;
   coordinateWidth: number;
   coordinateHeight: number;
@@ -75,6 +76,7 @@ export function AlbumPreviewPhotoBlockEditor({
   sourcePageNumber,
   variantId,
   slotUris,
+  templateLibraryId,
   groupTransform = DEFAULT_PHOTO_SLOT_TRANSFORM,
   coordinateWidth,
   coordinateHeight,
@@ -95,6 +97,7 @@ export function AlbumPreviewPhotoBlockEditor({
         viewportHeight: coordinateHeight,
         sourceWidth,
         sourceHeight,
+        templateLibraryId,
       }),
     [
       coordinateHeight,
@@ -104,6 +107,7 @@ export function AlbumPreviewPhotoBlockEditor({
       sourceHeight,
       sourcePageNumber,
       sourceWidth,
+      templateLibraryId,
       variantId,
     ],
   );

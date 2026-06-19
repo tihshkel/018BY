@@ -19,31 +19,35 @@ const USER_QUESTIONNAIRE_FIELDS = [
 ];
 
 const PARENT_MOM_FIELDS = [
-  ['name', 'Имя мамы', 'text', 1],
+  ['name', 'Имя', 'text', 1],
   ['birthDate', 'Дата рождения', 'date', 1],
-  ['zodiac', 'Знак зодиака', 'text', 1],
   ['phone', 'Номер телефона', 'text', 1],
+  ['zodiac', 'Знак зодиака', 'text', 1],
+  ['profession', 'Профессия', 'text', 1],
+  ['favoriteFlowers', 'Любимые цветы', 'text', 1],
+  ['favoriteAnimal', 'Любимое животное', 'text', 1],
   ['favoriteColor', 'Любимый цвет', 'text', 1],
   ['favoriteSeason', 'Любимое время года', 'text', 1],
   ['hobby', 'Хобби', 'text', 1],
-  ['favoriteFood', 'Любимая еда', 'text', 1],
-  ['favoriteMovie', 'Любимый фильм', 'text', 1],
-  ['favoriteBook', 'Любимая книга', 'text', 1],
-  ['wishForDaughter', 'Пожелание дочери', 'text', 2],
+  ['favoriteDrink', 'Любимый напиток', 'text', 1],
+  ['favoriteDish', 'Любимое блюдо', 'text', 1],
+  ['wishes', 'Пожелания хозяйке дневника', 'text', 4],
 ];
 
 const PARENT_DAD_FIELDS = [
-  ['name', 'Имя папы', 'text', 1],
+  ['name', 'Имя', 'text', 1],
   ['birthDate', 'Дата рождения', 'date', 1],
-  ['zodiac', 'Знак зодиака', 'text', 1],
   ['phone', 'Номер телефона', 'text', 1],
+  ['zodiac', 'Знак зодиака', 'text', 1],
+  ['profession', 'Профессия', 'text', 1],
+  ['favoriteFlowers', 'Любимые цветы', 'text', 1],
+  ['favoriteAnimal', 'Любимое животное', 'text', 1],
   ['favoriteColor', 'Любимый цвет', 'text', 1],
   ['favoriteSeason', 'Любимое время года', 'text', 1],
   ['hobby', 'Хобби', 'text', 1],
-  ['favoriteFood', 'Любимая еда', 'text', 1],
-  ['favoriteMovie', 'Любимый фильм', 'text', 1],
-  ['favoriteBook', 'Любимая книга', 'text', 1],
-  ['wishForDaughter', 'Пожелание дочери', 'text', 2],
+  ['favoriteDrink', 'Любимый напиток', 'text', 1],
+  ['favoriteDish', 'Любимое блюдо', 'text', 1],
+  ['wishes', 'Пожелания хозяйке дневника', 'text', 4],
 ];
 
 const HOBBY_FIELDS = [
@@ -114,7 +118,7 @@ const SCHOOL_LIFE_FIELDS = [
   ['achievements', 'Мои достижения', 'text', 2],
   ['dreamProfession', 'Кем хочу стать', 'text', 1],
   ['afterSchool', 'Чем занимаюсь после школы', 'text', 2],
-  ['schoolMemory', 'Школьное воспоминание', 'text', 2],
+  ['schoolMemory', 'Школьное воспоминание', 'text', 1],
 ];
 
 const SUNDAY_SCHEDULE_FIELDS = [
@@ -151,9 +155,7 @@ const TRAVEL_FIELDS = [
 ];
 
 const DIARY_RULES_FIELDS = [
-  ['rule1', 'Правило 1', 'text', 1],
-  ['rule2', 'Правило 2', 'text', 1],
-  ['rule3', 'Правило 3', 'text', 1],
+  ['diary_start_date', 'Дата начала заполнения дневника', 'date', 1],
 ];
 
 const WEEKLY_SCHEDULE_DAY_PAIRS = {

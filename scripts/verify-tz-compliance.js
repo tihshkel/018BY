@@ -231,6 +231,8 @@ function verifyBirthday48() {
 
   const p40 = byPage['40'];
   assert((p40.fields ?? []).length >= 3, 'birthday p40 travel fields (>=3)');
+
+  require('./verify-birthday-48-asset-map.js');
 }
 
 function verifyKids48() {
@@ -272,7 +274,15 @@ function verifyPregnancy60() {
 
   const p60 = byPage['60'];
   assert(p60.title === 'Письмо малышу', 'pregnancy p60 title');
+  assert(p60.pageType === 'text_page', 'pregnancy p60 is text_page');
+  assert(p60.editable === true, 'pregnancy p60 editable');
   assert((p60.fields ?? []).some((f) => f.fieldId.endsWith('_letter_text')), 'pregnancy p60 letter field');
+
+  for (const page of [50, 51, 53]) {
+    const schema = byPage[String(page)];
+    assert(schema.editable === true, `pregnancy p${page} editable`);
+    assert(schema.pageType === 'structured', `pregnancy p${page} is structured`);
+  }
 
   for (const page of [5, 8, 18, 33]) {
     const schema = byPage[String(page)];

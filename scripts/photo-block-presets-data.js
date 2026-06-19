@@ -33,7 +33,15 @@ const PARENTS_PHOTO_BLOCK = {
   label: 'Фото',
   variants: [
     { variantId: 'one_horizontal', label: '1 горизонтальное фото', slots: 1, slotIndices: [0] },
-    { variantId: 'two_vertical', label: '2 вертикальных фото', slots: 2, slotIndices: [0, 1] },
+    { variantId: 'two_horizontal', label: '2 горизонтальных фото', slots: 2, slotIndices: [0, 1] },
+  ],
+};
+
+const SINGLE_HORIZONTAL_PHOTO_BLOCK = {
+  blockId: 'main_photo',
+  label: 'Фото',
+  variants: [
+    { variantId: 'one_horizontal', label: '1 горизонтальное фото', slots: 1, slotIndices: [0] },
   ],
 };
 
@@ -41,8 +49,8 @@ const GODPARENTS_PHOTO_BLOCK = {
   blockId: 'godparents_photo',
   label: 'Фото крестных',
   variants: [
-    { variantId: 'one_horizontal_common', label: 'Одно общее фото', slots: 1, slotIndices: [0] },
-    { variantId: 'two_vertical_separate', label: 'Два отдельных фото', slots: 2, slotIndices: [0, 1] },
+    { variantId: 'one_horizontal', label: 'Одно общее фото', slots: 1, slotIndices: [0] },
+    { variantId: 'two_horizontal', label: 'Два фото', slots: 2, slotIndices: [0, 1] },
   ],
 };
 
@@ -51,5 +59,6 @@ module.exports = {
   PREGNANCY_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,
   PARENTS_PHOTO_BLOCK,
+  SINGLE_HORIZONTAL_PHOTO_BLOCK,
   GODPARENTS_PHOTO_BLOCK,
 };

@@ -27,11 +27,50 @@ const PREGNANCY_VARIANT_ALIASES: Record<string, string> = {
   four_vertical: 'four_grid',
 };
 
+const KIDS_48_VARIANT_ALIASES: Record<string, string> = {
+  two_vertical: 'two_horizontal',
+  two_vertical_separate: 'two_horizontal',
+  one_horizontal_common: 'one_horizontal',
+};
+
 function manifestVariantKey(lineGuideId: string, variantId: string): string {
   if (lineGuideId === 'pregnancy_60') {
     return PREGNANCY_VARIANT_ALIASES[variantId] ?? variantId;
   }
+  if (lineGuideId === 'kids_48') {
+    return KIDS_48_VARIANT_ALIASES[variantId] ?? variantId;
+  }
   return variantId;
+}
+
+function resolveSchemaVariantForManifestKey(
+  lineGuideId: string,
+  manifestKey: string,
+  variants: PhotoBlockSchema['variants'],
+): (typeof variants)[number] | undefined {
+  return (
+    variants.find((v) => manifestVariantKey(lineGuideId, v.variantId) === manifestKey) ??
+    variants.find((v) => v.variantId === manifestKey)
+  );
+}
+
+export function resolvePhotoBlockVariant(
+  variants: PhotoBlockSchema['variants'],
+  requestedVariantId: string,
+  lineGuideId?: string,
+): (typeof variants)[number] | undefined {
+  const direct = variants.find((v) => v.variantId === requestedVariantId);
+  if (direct) return direct;
+
+  if (lineGuideId) {
+    const requestedKey = manifestVariantKey(lineGuideId, requestedVariantId);
+    const byKey = variants.find(
+      (v) => manifestVariantKey(lineGuideId, v.variantId) === requestedKey,
+    );
+    if (byKey) return byKey;
+  }
+
+  return undefined;
 }
 
 function resolveManifestPath(relativePath: string): string {
@@ -94,7 +133,7 @@ export function getDefaultVariantIdForPage(
   if (!firstManifestKey) return schemaVariant ?? null;
 
   const schemaMatch = photoBlock?.variants.find(
-    (v) => manifestVariantKey(lineGuideId, v.variantId) === firstManifestKey
+    (v) => manifestVariantKey(lineGuideId, v.variantId) === firstManifestKey,
   );
   return schemaMatch?.variantId ?? firstManifestKey;
 }
@@ -110,18 +149,22 @@ export function getVariantPreviewThumbnails(params: {
   const labelById = Object.fromEntries(variants.map((v) => [v.variantId, v.label]));
 
   if (pageEntry && Object.keys(pageEntry).length > 0) {
-    return Object.entries(pageEntry).map(([manifestKey, relativePath]) => {
-      const schemaVariant =
-        variants.find((v) => manifestVariantKey(lineGuideId, v.variantId) === manifestKey) ??
-        variants.find((v) => v.variantId === manifestKey);
+    return Object.entries(pageEntry)
+      .map(([manifestKey, relativePath]) => {
+        const schemaVariant = resolveSchemaVariantForManifestKey(
+          lineGuideId,
+          manifestKey,
+          variants,
+        );
+        if (!schemaVariant) return null;
 
-      const variantId = schemaVariant?.variantId ?? manifestKey;
-      return {
-        variantId,
-        label: schemaVariant?.label ?? labelById[variantId] ?? manifestKey,
-        uri: resolveManifestPath(relativePath),
-      };
-    });
+        return {
+          variantId: schemaVariant.variantId,
+          label: schemaVariant.label ?? labelById[schemaVariant.variantId] ?? manifestKey,
+          uri: resolveManifestPath(relativePath),
+        };
+      })
+      .filter((item): item is VariantPreviewThumbnail => item != null);
   }
 
   if (variants.length <= 1) return [];

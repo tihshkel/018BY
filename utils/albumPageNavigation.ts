@@ -23,8 +23,29 @@ export function usesUnifiedPhotoEditor(schema: AlbumPageSchema | undefined): boo
   return hasPhotoBlocks(schema);
 }
 
+/** Страницы с текстовым вводом помимо «голых» photoBlocks (customFieldDefs, free canvas и т.д.). */
+export function hasFormTextInput(schema: AlbumPageSchema | undefined): boolean {
+  if (!schema) return false;
+  if ((schema.fields?.length ?? 0) > 0) return true;
+  if (
+    schema.pageType === 'birthday_free_page' &&
+    (schema.customFieldDefs?.length ?? 0) > 0
+  ) {
+    return true;
+  }
+  if (
+    schema.pageType === 'free_page' ||
+    schema.pageType === 'timeline_page' ||
+    schema.pageType === 'text_page'
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function isPhotoOnlySchema(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;
+  if (hasFormTextInput(schema)) return false;
   if (
     schema.pageType === 'photo' ||
     schema.pageType === 'event_photo' ||

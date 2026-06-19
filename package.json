@@ -12,8 +12,11 @@
     "verify:photo-fill-coverage": "node ./scripts/verify-photo-fill-coverage.js",
     "verify:field-labels": "node ./scripts/verify-field-labels.js",
     "verify:tz-compliance": "node ./scripts/verify-tz-compliance.js",
+    "verify:birthday-asset-map": "node ./scripts/verify-birthday-48-asset-map.js",
     "verify:preview-variants": "node ./scripts/verify-preview-variants.js",
     "verify:export-matrix": "node ./scripts/verify-export-matrix.js",
+    "audit:diary-pages": "node ./scripts/diary-full-page-audit.js",
+    "test:playwright:diary": "playwright test e2e/playwright/diary-export.spec.ts",
     "generate:photo-slots": ".venv/bin/python3 ./scripts/extract-photo-slots-from-variants.py && node ./scripts/merge-photo-slots.js",
     "generate:pdf-photo-slots": ".venv/bin/python3 ./scripts/extract-photo-slots-from-pdf.py",
     "generate:pdf-circle-slots": ".venv/bin/python3 ./scripts/extract-circle-slots-from-pdf.py",
@@ -118,6 +121,7 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "eslint": "^9.25.0",
@@ -125,6 +129,7 @@
     "patch-package": "^8.0.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.10.38",
+    "playwright": "^1.61.0",
     "pngjs": "^7.0.0",
     "sharp": "^0.34.5",
     "typescript": "~5.9.2"
