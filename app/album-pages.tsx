@@ -183,9 +183,15 @@ export default function AlbumPagesScreen() {
 
   const handleMove = (instanceId: string, direction: -1 | 1) => {
     const index = project.instances.findIndex((i) => i.instanceId === instanceId);
+    const instance = project.instances[index];
+    if (!instance?.addedByUser) return;
     const target = index + direction;
     if (index < 0 || target < 0 || target >= project.instances.length) return;
     void project.movePage(instanceId, target);
+  };
+
+  const handleReorderPage = (instanceId: string, toIndex: number) => {
+    void project.movePage(instanceId, toIndex);
   };
 
   if (project.isLoading) {
@@ -268,6 +274,10 @@ export default function AlbumPagesScreen() {
               canShowMenu: canShowPageActions(schema, instance),
               canDuplicate: schema?.canDuplicate ?? false,
               canDeleteCopy: instance.addedByUser,
+              canReorder: instance.addedByUser,
+              globalIndex: project.instances.findIndex(
+                (item) => item.instanceId === instance.instanceId,
+              ),
             };
           });
 
@@ -285,6 +295,9 @@ export default function AlbumPagesScreen() {
               onRename={(instanceId, title) => void project.renamePage(instanceId, title)}
               onMoveUp={(instanceId) => handleMove(instanceId, -1)}
               onMoveDown={(instanceId) => handleMove(instanceId, 1)}
+              onReorderPage={handleReorderPage}
+              totalPages={project.instances.length}
+              reorderDisabled={project.isSaving}
               onToggleExcluded={(instanceId, excluded) =>
                 project.setPageExcluded(instanceId, excluded)
               }

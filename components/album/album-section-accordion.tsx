@@ -18,6 +18,8 @@ type SectionPageRow = {
   canShowMenu: boolean;
   canDuplicate: boolean;
   canDeleteCopy: boolean;
+  canReorder: boolean;
+  globalIndex: number;
 };
 
 type AlbumSectionAccordionProps = {
@@ -32,6 +34,9 @@ type AlbumSectionAccordionProps = {
   onRename?: (instanceId: string, title: string) => void;
   onMoveUp?: (instanceId: string) => void;
   onMoveDown?: (instanceId: string) => void;
+  onReorderPage?: (instanceId: string, toIndex: number) => void;
+  totalPages?: number;
+  reorderDisabled?: boolean;
   onToggleExcluded?: (instanceId: string, excluded: boolean) => void;
   defaultExpanded?: boolean;
 };
@@ -48,6 +53,9 @@ export function AlbumSectionAccordion({
   onRename,
   onMoveUp,
   onMoveDown,
+  onReorderPage,
+  totalPages = 0,
+  reorderDisabled = false,
   onToggleExcluded,
   defaultExpanded = false,
 }: AlbumSectionAccordionProps) {
@@ -80,13 +88,13 @@ export function AlbumSectionAccordion({
         },
       });
     }
-    if (onMoveUp) {
+    if (onMoveUp && row.canReorder) {
       actions.push({
         text: 'Переместить выше',
         onPress: () => onMoveUp(row.instance.instanceId),
       });
     }
-    if (onMoveDown) {
+    if (onMoveDown && row.canReorder) {
       actions.push({
         text: 'Переместить ниже',
         onPress: () => onMoveDown(row.instance.instanceId),
@@ -155,6 +163,15 @@ export function AlbumSectionAccordion({
                 onMenuPress={row.canShowMenu ? () => openMenu(row) : undefined}
                 showChevron
                 compact={usePageGrid}
+                canReorder={row.canReorder}
+                itemIndex={row.globalIndex}
+                itemsCount={totalPages}
+                onReorder={
+                  row.canReorder && onReorderPage
+                    ? (toIndex) => onReorderPage(row.instance.instanceId, toIndex)
+                    : undefined
+                }
+                reorderDisabled={reorderDisabled}
               />
             </View>
           ))}

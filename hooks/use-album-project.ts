@@ -446,6 +446,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     async (instanceId: string, toIndex: number) => {
       const fromIndex = instances.findIndex((item) => item.instanceId === instanceId);
       if (fromIndex < 0 || !effectiveProjectId) return false;
+      if (!instances[fromIndex]?.addedByUser) return false;
 
       const result = movePageAtIndex({
         instances,
