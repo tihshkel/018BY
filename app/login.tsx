@@ -1,5 +1,6 @@
 ﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  mapOAuthErrorMessage,
   normalizeEmail,
   OAuthProvider,
   restoreLocalAccountKeysFromSupabase,
@@ -51,19 +52,6 @@ export default function LoginScreen() {
     }
   };
 
-  const mapOAuthError = (error?: string): string => {
-    if (error === 'SUPABASE_NOT_CONFIGURED') {
-      return 'Сервис входа недоступен. Проверьте настройки Supabase.';
-    }
-    if (error === 'OAUTH_CANCELLED') {
-      return 'Вход отменён.';
-    }
-    if (error && error.length > 0) {
-      return `Не удалось войти: ${error}`;
-    }
-    return 'Не удалось войти через выбранный сервис.';
-  };
-
   const handleSocialSignIn = async (provider: OAuthProvider) => {
     if (isSubmitting || socialLoading) return;
     setErrorText(null);
@@ -72,7 +60,7 @@ export default function LoginScreen() {
       const res = await signInWithOAuthProvider(provider);
       if (!res.success) {
         if (res.error !== 'OAUTH_CANCELLED') {
-          setErrorText(mapOAuthError(res.error));
+          setErrorText(mapOAuthErrorMessage(res.error, 'signIn'));
         }
         return;
       }

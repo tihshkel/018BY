@@ -246,9 +246,57 @@ async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boo
   return { success: false, error: 'OAUTH_CALLBACK_FAILED' };
 }
 
+export function mapOAuthErrorMessage(
+  error: string | undefined,
+  mode: 'signIn' | 'signUp' = 'signIn'
+): string {
+  const serviceUnavailable =
+    mode === 'signUp'
+      ? 'Сервис регистрации недоступен. Проверьте настройки Supabase.'
+      : 'Сервис входа недоступен. Проверьте настройки Supabase.';
+  const cancelled = mode === 'signUp' ? 'Регистрация отменена.' : 'Вход отменён.';
+  const fallback =
+    mode === 'signUp'
+      ? 'Не удалось зарегистрироваться через выбранный сервис.'
+      : 'Не удалось войти через выбранный сервис.';
+
+  if (error === 'SUPABASE_NOT_CONFIGURED') {
+    return serviceUnavailable;
+  }
+  if (error === 'OAUTH_CANCELLED') {
+    return cancelled;
+  }
+  if (error === 'GOOGLE_NOT_CONFIGURED') {
+    return 'Google Sign-In не настроен. Добавьте client ID в .env и пересоберите приложение.';
+  }
+  if (error === 'GOOGLE_PLAY_SERVICES_NOT_AVAILABLE') {
+    return 'На устройстве нет Google Play Services или они устарели. Обновите их и попробуйте снова.';
+  }
+  if (error === 'GOOGLE_IN_PROGRESS') {
+    return 'Вход через Google уже выполняется. Подождите несколько секунд.';
+  }
+  if (error === 'GOOGLE_DEVELOPER_ERROR' || error?.includes('DEVELOPER_ERROR')) {
+    return 'Google Sign-In: неверная настройка Android (SHA-1). Добавьте отпечаток debug-сборки в Google Cloud → Credentials → 018BY Android.';
+  }
+  if (error && error.length > 0) {
+    const prefix = mode === 'signUp' ? 'Не удалось зарегистрироваться' : 'Не удалось войти';
+    return `${prefix}: ${error}`;
+  }
+  return fallback;
+}
+
 export async function signInWithOAuthProvider(
   provider: OAuthProvider
 ): Promise<{ success: boolean; error?: string }> {
+  if (provider === 'google') {
+    const { canUseNativeGoogleSignIn, signInWithGoogleNative } = await import(
+      '@/utils/google-native-sign-in'
+    );
+    if (canUseNativeGoogleSignIn()) {
+      return signInWithGoogleNative();
+    }
+  }
+
   const supabase = getSupabase();
   if (!supabase) {
     return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };

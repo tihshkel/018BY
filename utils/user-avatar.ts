@@ -3,10 +3,16 @@ import * as FileSystem from 'expo-file-system/legacy';
 
 import {
   getRandomPresetAvatar,
+  isPresetAvatarValue,
   toPresetAvatarStorageValue,
 } from '@/constants/default-avatars';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import {
+  pushAccountDataToCloud,
+  pushCoreKeysToCloud,
+  pushCoreOnlyToCloud,
+  scheduleSyncToCloud,
+} from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
 import { uploadImageToStorage } from '@/utils/supabase-storage';
 
@@ -45,10 +51,10 @@ export async function saveUserName(trimmedName: string): Promise<void> {
   }
 
   await AsyncStorage.setItem(USER_NAME_KEY, name);
-  scheduleSyncToCloud();
 
   const code = await getAccountSyncId();
   if (!code) {
+    scheduleSyncToCloud();
     return;
   }
 
@@ -56,6 +62,11 @@ export async function saveUserName(trimmedName: string): Promise<void> {
   const res = await saveAccountToSupabase(code, name, avatar);
   if (!res.success) {
     throw new Error(res.error ?? 'Не удалось сохранить имя в облаке');
+  }
+
+  const corePush = await pushCoreKeysToCloud(['@user_name']);
+  if (!corePush.ok) {
+    throw new Error(corePush.error ?? 'Не удалось синхронизировать имя в облаке');
   }
 }
 
@@ -104,13 +115,27 @@ export async function saveGalleryUserAvatar(sourceUri: string): Promise<string> 
 
 async function syncAvatarToCloud(value: string): Promise<void> {
   const code = await getAccountSyncId();
-  const name = (await AsyncStorage.getItem(USER_NAME_KEY))?.trim() || 'Пользователь';
-
-  if (code && value.startsWith('https://')) {
-    await saveAccountToSupabase(code, name, value);
-  } else {
-    await pushAccountDataToCloud();
+  if (!code) {
+    return;
   }
 
-  scheduleSyncToCloud();
+  const name = (await AsyncStorage.getItem(USER_NAME_KEY))?.trim() || 'Пользователь';
+
+  if (value.startsWith('https://')) {
+    const res = await saveAccountToSupabase(code, name, value);
+    if (!res.success) {
+      throw new Error(res.error ?? 'Не удалось сохранить аватар в облаке');
+    }
+    return;
+  }
+
+  if (isPresetAvatarValue(value)) {
+    const res = await pushCoreOnlyToCloud();
+    if (!res.ok) {
+      throw new Error(res.error ?? 'Не удалось сохранить аватар в облаке');
+    }
+    return;
+  }
+
+  await pushAccountDataToCloud();
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -101,14 +102,16 @@ export function SocialAuthButtons({
           accessibilityLabel={getGoogleLabel(mode)}
         />
 
-        <SocialButton
-          label={getAppleLabel(mode)}
-          icon={<AppleIcon size={22} color={colors.textPrimary} />}
-          onPress={onApplePress}
-          disabled={disabled}
-          loading={loadingProvider === 'apple'}
-          accessibilityLabel={getAppleLabel(mode)}
-        />
+        {Platform.OS === 'ios' && (
+          <SocialButton
+            label={getAppleLabel(mode)}
+            icon={<AppleIcon size={22} color={colors.textPrimary} />}
+            onPress={onApplePress}
+            disabled={disabled}
+            loading={loadingProvider === 'apple'}
+            accessibilityLabel={getAppleLabel(mode)}
+          />
+        )}
       </View>
     </View>
   );

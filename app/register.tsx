@@ -1,6 +1,7 @@
 ﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   isValidEmail,
+  mapOAuthErrorMessage,
   normalizeEmail,
   OAuthProvider,
   ReferralSource,
@@ -64,19 +65,6 @@ export default function RegisterScreen() {
     }
   };
 
-  const mapOAuthError = (error?: string): string => {
-    if (error === 'SUPABASE_NOT_CONFIGURED') {
-      return 'Сервис регистрации недоступен. Проверьте настройки Supabase.';
-    }
-    if (error === 'OAUTH_CANCELLED') {
-      return 'Регистрация отменена.';
-    }
-    if (error && error.length > 0) {
-      return `Не удалось зарегистрироваться: ${error}`;
-    }
-    return 'Не удалось зарегистрироваться через выбранный сервис.';
-  };
-
   const handleSocialSignUp = async (provider: OAuthProvider) => {
     if (isSubmitting || socialLoading) return;
     setErrorText(null);
@@ -85,7 +73,7 @@ export default function RegisterScreen() {
       const res = await signInWithOAuthProvider(provider);
       if (!res.success) {
         if (res.error !== 'OAUTH_CANCELLED') {
-          setErrorText(mapOAuthError(res.error));
+          setErrorText(mapOAuthErrorMessage(res.error, 'signUp'));
         }
         return;
       }
