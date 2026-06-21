@@ -36,6 +36,16 @@ export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   return BLANK_LINE_GUIDE_IDS.has(lineGuideId);
 }
 
+export type EditorTool = 'text' | 'floatingText' | 'image' | 'drawing' | null;
+
+/** Два инструмента текста: поля макета + плавающий (беременность, дети, ДР, дневники). */
+export function usesDualTextTools(
+  lineGuideId?: string,
+  category?: string | null
+): boolean {
+  return usesTemplateLineTextEditing(lineGuideId, category);
+}
+
 /** Ввод по строкам макета (беременность, дети, ДР, дневники). */
 export function usesTemplateLineTextEditing(
   lineGuideId?: string,
@@ -74,75 +84,75 @@ export type TemplateTypographyProfile = {
 
 const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
   fixedLineFontSize: null,
-  charWidthRatio: 0.52,
-  lineWidthSlackRatio: 1.0,
-  lineCenterRatio: 0.46,
-  lineFontOffsetRatio: 0.92,
-  blockCenterRatio: 0.66,
-  blockFontOffsetRatio: 0.72,
-  blockMaxFontSize: 21,
+  charWidthRatio: 0.56,
+  lineWidthSlackRatio: 0.97,
+  lineCenterRatio: 0.5,
+  lineFontOffsetRatio: 0.84,
+  blockCenterRatio: 0.58,
+  blockFontOffsetRatio: 0.66,
+  blockMaxFontSize: 20,
 };
 
 const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_60: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 1.02,
-    lineCenterRatio: 0.48,
-    lineFontOffsetRatio: 0.85,
-    blockCenterRatio: 0.66,
-    blockFontOffsetRatio: 0.72,
-    blockMaxFontSize: 21,
+    charWidthRatio: 0.54,
+    lineWidthSlackRatio: 0.98,
+    lineCenterRatio: 0.5,
+    lineFontOffsetRatio: 0.8,
+    blockCenterRatio: 0.58,
+    blockFontOffsetRatio: 0.66,
+    blockMaxFontSize: 20,
   },
   pregnancy_a5: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 1.02,
-    lineCenterRatio: 0.48,
-    lineFontOffsetRatio: 0.85,
-    blockCenterRatio: 0.66,
-    blockFontOffsetRatio: 0.72,
-    blockMaxFontSize: 21,
+    charWidthRatio: 0.54,
+    lineWidthSlackRatio: 0.98,
+    lineCenterRatio: 0.5,
+    lineFontOffsetRatio: 0.8,
+    blockCenterRatio: 0.58,
+    blockFontOffsetRatio: 0.66,
+    blockMaxFontSize: 20,
   },
   kids_48: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 1.02,
-    lineCenterRatio: 0.45,
-    lineFontOffsetRatio: 0.88,
-    blockCenterRatio: 0.63,
-    blockFontOffsetRatio: 0.75,
-    blockMaxFontSize: 21,
+    charWidthRatio: 0.54,
+    lineWidthSlackRatio: 0.98,
+    lineCenterRatio: 0.5,
+    lineFontOffsetRatio: 0.82,
+    blockCenterRatio: 0.56,
+    blockFontOffsetRatio: 0.68,
+    blockMaxFontSize: 20,
   },
   holidays_birthday_60: {
     fixedLineFontSize: null,
-    charWidthRatio: 0.52,
-    lineWidthSlackRatio: 1.0,
-    lineCenterRatio: 0.32,
-    lineFontOffsetRatio: 1.02,
-    blockCenterRatio: 0.66,
-    blockFontOffsetRatio: 0.72,
-    blockMaxFontSize: 21,
+    charWidthRatio: 0.56,
+    lineWidthSlackRatio: 0.97,
+    lineCenterRatio: 0.34,
+    lineFontOffsetRatio: 0.96,
+    blockCenterRatio: 0.56,
+    blockFontOffsetRatio: 0.66,
+    blockMaxFontSize: 20,
   },
   diary_interior_brown: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.46,
-    lineWidthSlackRatio: 1.06,
-    lineCenterRatio: 0.54,
-    lineFontOffsetRatio: 0.92,
-    blockCenterRatio: 0.72,
-    blockFontOffsetRatio: 0.88,
-    blockMaxFontSize: 18,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 0.98,
+    lineCenterRatio: 1,
+    lineFontOffsetRatio: 0.98,
+    blockCenterRatio: 0.58,
+    blockFontOffsetRatio: 0.92,
+    blockMaxFontSize: 17,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.46,
-    lineWidthSlackRatio: 1.06,
-    lineCenterRatio: 0.52,
-    lineFontOffsetRatio: 0.9,
-    blockCenterRatio: 0.72,
-    blockFontOffsetRatio: 0.88,
-    blockMaxFontSize: 18,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 0.98,
+    lineCenterRatio: 1,
+    lineFontOffsetRatio: 0.98,
+    blockCenterRatio: 0.58,
+    blockFontOffsetRatio: 0.92,
+    blockMaxFontSize: 17,
   },
 };
 

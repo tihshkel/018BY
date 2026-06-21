@@ -1,0 +1,25 @@
+appId: com.tihonshkel.x018BY
+env:
+  E2E_COUNTRIES: '3'
+---
+- runFlow:
+    file: ../03-album-create/create-birthday-dfa34.yaml
+- tapOn:
+    id: page-card-40
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    text: 'Количество стран'
+    optional: true
+- inputText: ${E2E_COUNTRIES}
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- assertVisible:
+    id: album-export-button

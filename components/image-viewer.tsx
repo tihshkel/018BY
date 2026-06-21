@@ -1,16 +1,24 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import type { EditorTool } from '@/constants/album-text-margins';
 import {
   usesFreeFormTextEditing,
   usesTemplateLineTextEditing,
 } from '@/constants/album-text-margins';
+import { AppActionSheet } from '@/components/ui';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { createId } from '@/utils/id';
-import { getCachedPageSourceSize, resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import {
+  DIARY_BLOCK_PAGE_SIZE,
+  getCachedPageSourceSize,
+  resolvePageSourceSize,
+} from '@/utils/pageSourceDimensions';
 import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
   BLANK_INTERIOR_PAGE_HEIGHT,
   BLANK_INTERIOR_PAGE_WIDTH,
 } from '@/utils/albumImages';
+import { isLineSlotDebugEnabled } from '@/constants/line-slot-debug';
 import { LineGuideDevOverlay } from '@/components/line-guide-dev-overlay';
 import { LineSlotPressables } from '@/components/line-slot-pressables';
 import { snapYToNearestTemplateLine } from '@/utils/lineGuides';
@@ -27,7 +35,7 @@ import {
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
 } from '@/utils/templateLineText';
-import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
+import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletDevice, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -37,8 +45,8 @@ import {
     Animated,
     FlatList,
     Keyboard,
-    Modal,
     Platform,
+    Pressable,
     ScrollView,
     StyleSheet,
     Text,
@@ -49,6 +57,7 @@ import {
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
+const FLOATING_TEXT_DEFAULT_WIDTH = 272;
 const TEXT_ANNOTATION_DEFAULT_HEIGHT = 40;
 const TEXT_EDITING_MIN_HEIGHT = 50;
 const TEXT_EDITING_ACTIONS_HEIGHT = 36;
@@ -97,7 +106,7 @@ interface ImageViewerProps {
   onAnnotationUpdate?: (id: string, annotation: Partial<Annotation>) => void;
   onAnnotationDelete?: (id: string) => void;
   isEditing?: boolean;
-  currentTool?: 'text' | 'image' | 'drawing' | null;
+  currentTool?: EditorTool;
   onPageDuplicate?: (pageIndex: number) => void;
   onPageDelete?: (pageIndex: number) => void;
   onToolReset?: () => void; // Callback для сброса инструмента
@@ -137,7 +146,7 @@ export default function ImageViewer({
 }: ImageViewerProps) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
-  const isTabletEditor = isTabletLayout(windowWidth);
+  const isTabletEditor = isTabletDevice(windowWidth);
   const displayScale = isTabletEditor
     ? getEditorPageDisplayScale(windowWidth, windowHeight, editorViewportWidth)
     : 1;
@@ -151,6 +160,7 @@ export default function ImageViewer({
   const [editingAnnotationId, setEditingAnnotationId] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isInteractingWithAnnotation, setIsInteractingWithAnnotation] = useState(false);
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
   const [pageSourceSizes, setPageSourceSizes] = useState<
     Record<number, { width: number; height: number }>
@@ -197,20 +207,51 @@ export default function ImageViewer({
 
   const isBlankInteriorAlbum = usesFreeFormTextEditing(lineGuideId);
 
-  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
-    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+  const resolvePageSourceSizeForPage = (page: number) => {
     const imageUri = images[page - 1];
     const cached = imageUri ? getCachedPageSourceSize(imageUri) : null;
-    const size = pageSourceSizes[page] ?? cached ?? undefined;
+    const measured = pageSourceSizes[page] ?? cached;
+    if (measured?.width && measured?.height) {
+      return measured;
+    }
+    if (lineGuideId?.startsWith('diary_interior_')) {
+      return DIARY_BLOCK_PAGE_SIZE;
+    }
+    return {
+      width: editorViewportWidth,
+      height: containerHeight,
+    };
+  };
+
+  const buildSlotParams = (page: number): GetLineSlotsParams | null => {
+    if (!lineGuideId || !hasLineGuides(lineGuideId)) return null;
+    const size = resolvePageSourceSizeForPage(page);
     return {
       lineGuideId,
       page,
       viewportWidth: editorViewportWidth,
       viewportHeight: containerHeight,
-      sourceWidth: size?.width,
-      sourceHeight: size?.height,
+      sourceWidth: size.width,
+      sourceHeight: size.height,
     };
   };
+
+  // Дневники: фиксированный размер блока 180×240 до onLoad — иначе слоты не попадают в линии
+  useEffect(() => {
+    if (!lineGuideId?.startsWith('diary_interior_') || images.length === 0) return;
+    setPageSourceSizes((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (let page = 1; page <= images.length; page += 1) {
+        if (next[page]?.width === DIARY_BLOCK_PAGE_SIZE.width) continue;
+        next[page] = DIARY_BLOCK_PAGE_SIZE;
+        changed = true;
+        const uri = images[page - 1];
+        if (uri) setPageSourceSize(uri, DIARY_BLOCK_PAGE_SIZE);
+      }
+      return changed ? next : prev;
+    });
+  }, [lineGuideId, images]);
 
   // Размеры PNG до onLoad — иначе contentRect = весь экран и слоты «съезжают»
   useEffect(() => {
@@ -337,14 +378,15 @@ export default function ImageViewer({
   };
 
   const loadTextStyleForNewAnnotation = async (pageForAnnotation: number) => {
-    let savedStyle: { color?: string; fontSize?: number; fontFamily?: string } | null = null;
+    type SavedTextStyle = { color?: string; fontSize?: number; fontFamily?: string };
+    let savedStyle: SavedTextStyle | null = null;
     let savedFont: string | null = null;
     try {
       const [raw, fontRaw] = await Promise.all([
         AsyncStorage.getItem('@last_text_style'),
         AsyncStorage.getItem('@last_text_font_family'),
       ]);
-      if (raw) savedStyle = JSON.parse(raw) as typeof savedStyle;
+      if (raw) savedStyle = JSON.parse(raw) as SavedTextStyle;
       if (fontRaw && typeof fontRaw === 'string') savedFont = fontRaw;
     } catch {
       // ignore
@@ -378,13 +420,59 @@ export default function ImageViewer({
     });
   };
 
-  const handleLineSlotTap = async (x: number, y: number, pageForAnnotation: number) => {
+  const addFreeFormTextAnnotation = async (
+    pageForAnnotation: number,
+    x: number,
+    y: number
+  ) => {
+    if (!onAnnotationAdd) return;
+
+    const maxZIndex =
+      annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
+    const viewportWidth = editorViewportWidth;
+    const viewportHeight = containerHeight;
+    const proposedX = x - FLOATING_TEXT_DEFAULT_WIDTH / 2;
+    const proposedY = y - TEXT_ANNOTATION_DEFAULT_HEIGHT / 2;
+    const nextX = clamp(proposedX, 0, viewportWidth - FLOATING_TEXT_DEFAULT_WIDTH);
+    const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
+    const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
+
+    const newAnnotation: Annotation = {
+      id: createId('ann'),
+      type: 'text',
+      x: nextX,
+      y: nextY,
+      width: FLOATING_TEXT_DEFAULT_WIDTH,
+      height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
+      content: '',
+      color: style.color,
+      fontSize: style.fontSize,
+      fontFamily: style.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageForAnnotation,
+    };
+    onAnnotationAdd(newAnnotation);
+    startAnnotationEditing(newAnnotation.id);
+    onToolReset?.();
+  };
+
+  const handleLineSlotTap = async (
+    pageForAnnotation: number,
+    slotIndex?: number,
+    tapX?: number,
+    tapY?: number
+  ) => {
     if (!lineGuideId || !hasLineGuides(lineGuideId) || !onAnnotationAdd) return false;
 
     const slotParams = buildSlotParams(pageForAnnotation);
     if (!slotParams) return false;
     const { slots } = buildLineSlotsContext(slotParams);
-    const slot = hitTestLineSlot({ x, y, slots });
+    const slot =
+      slotIndex != null
+        ? slots[slotIndex] ?? null
+        : tapX != null && tapY != null
+          ? hitTestLineSlot({ x: tapX, y: tapY, slots, slotParams })
+          : null;
     if (!slot) return false;
 
     const { startSlotIndex } = getContinuationGroupSlots(slots, slot.index);
@@ -450,8 +538,8 @@ export default function ImageViewer({
       const slotParams = buildSlotParams(pageForAnnotation);
       if (slotParams) {
         const { slots } = buildLineSlotsContext(slotParams);
-        if (hitTestLineSlot({ x, y, slots })) {
-          void handleLineSlotTap(x, y, pageForAnnotation);
+        if (hitTestLineSlot({ x, y, slots, slotParams })) {
+          void handleLineSlotTap(pageForAnnotation, undefined, x, y);
           return;
         }
       }
@@ -460,19 +548,32 @@ export default function ImageViewer({
     // Если мы в режиме редактирования, но инструмент не выбран — тап по пустому месту
     // должен закрывать выделение (рамку/ручки/корзину) у фото/аннотаций.
     if (isEditing && !currentTool) {
+      const slotParams = buildSlotParams(pageForAnnotation);
+      if (slotParams) {
+        const { slots } = buildLineSlotsContext(slotParams);
+        if (hitTestLineSlot({ x, y, slots, slotParams })) {
+          void handleLineSlotTap(pageForAnnotation, undefined, x, y);
+          return;
+        }
+      }
       annotationsRef.current?.clearSelection?.();
       return;
     }
 
     if (!isEditing || !currentTool) return;
 
+    if (currentTool === 'floatingText' && onAnnotationAdd) {
+      void addFreeFormTextAnnotation(pageForAnnotation, x, y);
+      return;
+    }
+
     if (currentTool === 'text' && onAnnotationAdd) {
       if (usesTemplateLineTextEditing(lineGuideId)) {
         const slotParams = buildSlotParams(pageForAnnotation);
         if (slotParams) {
           const { slots } = buildLineSlotsContext(slotParams);
-          if (hitTestLineSlot({ x, y, slots })) {
-            void handleLineSlotTap(x, y, pageForAnnotation);
+          if (hitTestLineSlot({ x, y, slots, slotParams })) {
+            void handleLineSlotTap(pageForAnnotation, undefined, x, y);
             return;
           }
         }
@@ -491,27 +592,7 @@ export default function ImageViewer({
       const nextY = clamp(proposedY, 0, viewportHeight - TEXT_EDITING_ESTIMATED_HEIGHT);
 
       if (usesFreeFormTextEditing(lineGuideId)) {
-        const applyFreeFormStyle = async () => {
-          const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
-          const newAnnotation: Annotation = {
-            id: createId('ann'),
-            type: 'text',
-            x: nextX,
-            y: nextY,
-            width: TEXT_ANNOTATION_DEFAULT_WIDTH,
-            height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-            content: 'Новый текст',
-            color: style.color,
-            fontSize: style.fontSize,
-            fontFamily: style.fontFamily,
-            zIndex: maxZIndex + 1,
-            page: pageForAnnotation,
-          };
-          onAnnotationAdd(newAnnotation);
-          startAnnotationEditing(newAnnotation.id);
-          if (onToolReset) onToolReset();
-        };
-        void applyFreeFormStyle();
+        void addFreeFormTextAnnotation(pageForAnnotation, x, y);
         return;
       }
 
@@ -545,7 +626,7 @@ export default function ImageViewer({
                 y: snappedNextY,
                 width: TEXT_ANNOTATION_DEFAULT_WIDTH,
                 height: TEXT_ANNOTATION_DEFAULT_HEIGHT,
-                content: 'Новый текст',
+                content: '',
               }),
           color: style.color,
           fontSize: style.fontSize,
@@ -676,10 +757,19 @@ export default function ImageViewer({
     });
   };
 
+  const navigateToPage = React.useCallback(
+    (page: number) => {
+      const clampedPage = Math.max(1, Math.min(page, images.length));
+      setCurrentPage(clampedPage);
+      scrollToPage(clampedPage);
+    },
+    [containerHeight, images.length]
+  );
+
   if (images.length === 0) {
     return (
       <View style={styles.errorContainer}>
-        <Ionicons name="image-outline" size={64} color="#D4C4B5" />
+        <Ionicons name="image-outline" size={64} color={colors.tabInactive} />
         <Text style={styles.errorText}>Изображения не найдены</Text>
       </View>
     );
@@ -744,23 +834,23 @@ export default function ImageViewer({
                     isEditingOnThisPage && { transform: [{ translateY: pageShiftY }] },
                   ]}
                 >
-                  <TouchableOpacity
-                    style={styles.imageContainerInner}
-                    activeOpacity={1}
-                    onPress={(e) => {
-                      const { locationX, locationY } = e.nativeEvent;
-                      const { x, y } = mapScreenPointToUnscaledPagePoint({
-                        locationX,
-                        locationY,
-                        viewportWidth: editorViewportWidth,
-                        viewportHeight: containerHeight,
-                        zoomLevel: visualScale,
-                      });
-                      handleImagePress(x, y, pageNumber);
-                    }}
-                    onLongPress={() => handleImageLongPress(index)}
-                    delayLongPress={500}
-                  >
+                  <View style={styles.imageContainerInner}>
+                    <Pressable
+                      style={StyleSheet.absoluteFill}
+                      onPress={(e) => {
+                        const { locationX, locationY } = e.nativeEvent;
+                        const { x, y } = mapScreenPointToUnscaledPagePoint({
+                          locationX,
+                          locationY,
+                          viewportWidth: editorViewportWidth,
+                          viewportHeight: containerHeight,
+                          zoomLevel: visualScale,
+                        });
+                        handleImagePress(x, y, pageNumber);
+                      }}
+                      onLongPress={() => handleImageLongPress(index)}
+                      delayLongPress={500}
+                    />
                     <View
                       style={{
                         width: editorViewportWidth,
@@ -769,9 +859,10 @@ export default function ImageViewer({
                         alignItems: 'center',
                         transform: [{ scale: visualScale }],
                       }}
+                      pointerEvents="box-none"
                     >
                       {isBlankInteriorAlbum && blankPageLayout ? (
-                        <View style={[styles.blankPageFrame, blankPageLayout]}>
+                        <View style={[styles.blankPageFrame, blankPageLayout]} pointerEvents="none">
                           <Image
                             source={{ uri: imageUri }}
                             style={styles.blankPageImage}
@@ -794,6 +885,7 @@ export default function ImageViewer({
                           cachePolicy="disk"
                           priority={index < 3 ? 'high' : 'normal'}
                           recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
+                          pointerEvents="none"
                           onLoad={(event) => {
                             const w = event.source?.width;
                             const h = event.source?.height;
@@ -806,49 +898,68 @@ export default function ImageViewer({
 
                       {(() => {
                         const slotParams = buildSlotParams(pageNumber);
-                        if (!slotParams) return null;
+                        const showSlotPressables =
+                          pageNumber === currentPage &&
+                          !!slotParams &&
+                          isEditing &&
+                          !isTextEditing &&
+                          !selectedAnnotationId &&
+                          hasLineGuides(lineGuideId) &&
+                          usesTemplateLineTextEditing(lineGuideId) &&
+                          currentTool !== 'image' &&
+                          currentTool !== 'drawing' &&
+                          currentTool !== 'floatingText';
+
                         return (
                           <>
-                            {isEditing &&
-                            !isTextEditing &&
-                            hasLineGuides(lineGuideId) &&
-                            (!currentTool ||
-                              (currentTool === 'text' &&
-                                usesTemplateLineTextEditing(lineGuideId))) ? (
+                            {showSlotPressables ? (
                               <LineSlotPressables
                                 slotParams={slotParams}
                                 enabled
-                                onSlotPress={(tapX, tapY) =>
-                                  void handleLineSlotTap(tapX, tapY, pageNumber)
+                                onSlotPress={(slotIndex) =>
+                                  void handleLineSlotTap(pageNumber, slotIndex)
                                 }
                               />
                             ) : null}
-                            {__DEV__ ? <LineGuideDevOverlay {...slotParams} /> : null}
+                            <PdfAnnotations
+                              ref={pageNumber === currentPage ? annotationsRef : null}
+                              annotations={pageAnnotations}
+                              onAnnotationAdd={onAnnotationAdd || (() => {})}
+                              onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                              onAnnotationDelete={onAnnotationDelete || (() => {})}
+                              isEditing={isEditing}
+                              currentTool={currentTool}
+                              onToolDeactivate={onToolDeactivate}
+                              onEditingStateChange={handleEditingStateChange}
+                              onInteractionChange={setIsInteractingWithAnnotation}
+                              onSelectionChange={
+                                pageNumber === currentPage ? setSelectedAnnotationId : undefined
+                              }
+                              zoomLevel={visualScale}
+                              viewportWidth={editorViewportWidth}
+                              viewportHeight={containerHeight}
+                              sourceWidth={resolvePageSourceSizeForPage(pageNumber).width}
+                              sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
+                              lineGuideId={lineGuideId}
+                              onTextSelectionChange={onTextSelectionChange}
+                              totalPages={
+                                pageNumber === currentPage ? images.length : undefined
+                              }
+                              onNavigateToPage={
+                                pageNumber === currentPage ? navigateToPage : undefined
+                              }
+                              resolveSlotParams={
+                                pageNumber === currentPage ? buildSlotParams : undefined
+                              }
+                            />
+                            {slotParams && isLineSlotDebugEnabled() ? (
+                              <LineGuideDevOverlay {...slotParams} />
+                            ) : null}
                           </>
                         );
                       })()}
-
-                      <PdfAnnotations
-                        ref={pageNumber === currentPage ? annotationsRef : null}
-                        annotations={pageAnnotations}
-                        onAnnotationAdd={onAnnotationAdd || (() => {})}
-                        onAnnotationUpdate={onAnnotationUpdate || (() => {})}
-                        onAnnotationDelete={onAnnotationDelete || (() => {})}
-                        isEditing={isEditing}
-                        currentTool={currentTool}
-                        onToolDeactivate={onToolDeactivate}
-                        onEditingStateChange={handleEditingStateChange}
-                        onInteractionChange={setIsInteractingWithAnnotation}
-                        zoomLevel={visualScale}
-                        viewportWidth={editorViewportWidth}
-                        viewportHeight={containerHeight}
-                        sourceWidth={pageSourceSizes[pageNumber]?.width}
-                        sourceHeight={pageSourceSizes[pageNumber]?.height}
-                        lineGuideId={lineGuideId}
-                        onTextSelectionChange={onTextSelectionChange}
-                      />
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 </Animated.View>
               </View>
             </View>
@@ -856,63 +967,32 @@ export default function ImageViewer({
         }}
       />
 
-      {/* Модальное окно с опциями страницы */}
-      <Modal
+      <AppActionSheet
         visible={showPageMenu}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {
+        onClose={() => {
           setShowPageMenu(false);
           setSelectedPageIndex(null);
         }}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => {
-            setShowPageMenu(false);
-            setSelectedPageIndex(null);
-          }}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Действия со страницей</Text>
-            <Text style={styles.modalSubtitle}>
-              Страница {selectedPageIndex !== null ? selectedPageIndex + 1 : ''}
-            </Text>
-            
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalActionButton, styles.duplicateButton]}
-                onPress={handleDuplicatePage}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="copy-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.modalActionButtonText}>Дублировать</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalActionButton, styles.deleteButton]}
-                onPress={handleDeletePage}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.modalActionButtonText}>Удалить</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => {
-                setShowPageMenu(false);
-                setSelectedPageIndex(null);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        title="Действия со страницей"
+        subtitle={
+          selectedPageIndex !== null ? `Страница ${selectedPageIndex + 1}` : undefined
+        }
+        actions={[
+          {
+            id: 'duplicate',
+            title: 'Дублировать',
+            icon: 'copy-outline',
+            onPress: handleDuplicatePage,
+          },
+          {
+            id: 'delete',
+            title: 'Удалить',
+            icon: 'trash-outline',
+            destructive: true,
+            onPress: handleDeletePage,
+          },
+        ]}
+      />
     </View>
   );
 }
@@ -920,7 +1000,7 @@ export default function ImageViewer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -931,7 +1011,7 @@ const styles = StyleSheet.create({
   pageContainer: {
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingVertical: 0,
     marginBottom: 0,
     borderBottomWidth: 0,
@@ -986,7 +1066,7 @@ const styles = StyleSheet.create({
     borderColor: '#C9B8A8',
     borderRadius: 3,
     overflow: 'hidden',
-    shadowColor: '#6B5D4F',
+    shadowColor: colors.textSecondary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1017,7 +1097,7 @@ const styles = StyleSheet.create({
       android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -1029,107 +1109,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     marginTop: 16,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  modalActions: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  modalActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  duplicateButton: {
-    backgroundColor: '#C9A89A',
-  },
-  deleteButton: {
-    backgroundColor: '#E74C3C',
-  },
-  modalActionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  modalCancelButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  modalCancelButtonText: {
-    color: '#9B8E7F',
-    fontSize: 16,
-    fontWeight: '500',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
       default: 'sans-serif',
     }),
   },

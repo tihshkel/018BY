@@ -1,6 +1,6 @@
 /**
- * Generates app icon assets from assets/images/logo-source.svg (logov2).
- * Updates Expo assets, iOS AppIcon, and Android mipmap launchers.
+ * App icon (launcher / iOS home screen): assets/images/app-icon-source.jpg
+ * Splash & in-app logo (logov2 blue): assets/images/logo-source.svg
  */
 const fs = require('fs');
 const path = require('path');
@@ -8,12 +8,12 @@ const path = require('path');
 const sharp = require('sharp');
 
 const root = path.join(__dirname, '..');
-const sourceLogo = path.join(root, 'assets/images/logo-source.svg');
+const splashLogo = path.join(root, 'assets/images/logo-source.svg');
+const appIconSource = path.join(root, 'assets/images/app-icon-source.jpg');
 const assetsDir = path.join(root, 'assets/images');
-const iosIcon = path.join(
-  root,
-  'ios/018BY/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png'
-);
+const iosIconSet = path.join(root, 'ios/018BY/Images.xcassets/AppIcon.appiconset');
+const iosIcon = path.join(iosIconSet, 'App-Icon-1024x1024@1x.png');
+const iosLogoJpg = path.join(iosIconSet, 'logo.jpg');
 const androidRes = path.join(root, 'android/app/src/main/res');
 
 const iosSplashDir = path.join(
@@ -23,6 +23,8 @@ const iosSplashDir = path.join(
 
 const WHITE_BG = { r: 255, g: 255, b: 255, alpha: 1 };
 const TRANSPARENT_BG = { r: 0, g: 0, b: 0, alpha: 0 };
+/** Pink background from iOS app icon (logo.jpg). */
+const APP_ICON_BG = { r: 233, g: 134, b: 155, alpha: 1 };
 
 const ANDROID_DENSITIES = {
   mdpi: 1,
@@ -45,23 +47,65 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-function loadLogo() {
-  return sharp(sourceLogo).resize(1024, 1024, {
+function loadSplashLogo() {
+  return sharp(splashLogo).resize(1024, 1024, {
     fit: 'contain',
     background: TRANSPARENT_BG,
   });
 }
 
-async function iconPipeline(size, background = WHITE_BG) {
-  return loadLogo().resize(size, size, { fit: 'contain', background }).png();
+function loadAppIcon() {
+  return sharp(appIconSource).resize(1024, 1024, {
+    fit: 'cover',
+    background: APP_ICON_BG,
+  });
 }
 
-async function logoPipeline(size) {
-  return loadLogo().resize(size, size, { fit: 'contain', background: TRANSPARENT_BG }).png();
+async function appIconPipeline(size) {
+  return loadAppIcon().resize(size, size, { fit: 'cover', background: APP_ICON_BG }).png();
 }
 
-async function whiteSilhouette(size) {
-  const { data, info } = await loadLogo()
+async function splashLogoPipeline(size) {
+  return loadSplashLogo()
+    .resize(size, size, { fit: 'contain', background: TRANSPARENT_BG })
+    .png();
+}
+
+async function appIconSilhouette(size) {
+  const { data, info } = await loadAppIcon()
+    .resize(size, size, { fit: 'cover', background: APP_ICON_BG })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const a = data[i + 3];
+    const isBackground =
+      a < 16 ||
+      (Math.abs(r - APP_ICON_BG.r) < 24 &&
+        Math.abs(g - APP_ICON_BG.g) < 24 &&
+        Math.abs(b - APP_ICON_BG.b) < 24);
+
+    if (isBackground) {
+      data[i + 3] = 0;
+    } else {
+      data[i] = 255;
+      data[i + 1] = 255;
+      data[i + 2] = 255;
+      data[i + 3] = 255;
+    }
+  }
+
+  return sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  }).png();
+}
+
+async function splashSilhouette(size) {
+  const { data, info } = await loadSplashLogo()
     .resize(size, size, { fit: 'contain', background: WHITE_BG })
     .ensureAlpha()
     .raw()
@@ -100,31 +144,32 @@ async function writeWebp(pipeline, targetPath) {
 }
 
 async function syncExpoAssets() {
-  await writePng(await iconPipeline(1024), path.join(assetsDir, 'icon.png'));
+  await writePng(await appIconPipeline(1024), path.join(assetsDir, 'icon.png'));
   await writePng(
-    await iconPipeline(1024),
+    await appIconPipeline(1024),
     path.join(assetsDir, 'android-icon-foreground.png')
   );
   await writePng(
-    await whiteSilhouette(1024),
+    await appIconSilhouette(1024),
     path.join(assetsDir, 'android-icon-monochrome.png')
   );
-  await writePng(await logoPipeline(1024), path.join(assetsDir, 'logo.png'));
-  await writePng(await logoPipeline(1024), path.join(assetsDir, 'splash-icon.png'));
-  await writePng(await iconPipeline(48), path.join(assetsDir, 'favicon.png'));
+  await writePng(await splashLogoPipeline(1024), path.join(assetsDir, 'logo.png'));
+  await writePng(await splashLogoPipeline(1024), path.join(assetsDir, 'splash-icon.png'));
+  await writePng(await appIconPipeline(48), path.join(assetsDir, 'favicon.png'));
   await writePng(
-    await whiteSilhouette(96),
+    await splashSilhouette(96),
     path.join(assetsDir, 'notification-icon.png')
   );
 }
 
 async function syncIosIcon() {
-  await writePng(await iconPipeline(1024), iosIcon);
+  await writePng(await appIconPipeline(1024), iosIcon);
+  fs.copyFileSync(appIconSource, iosLogoJpg);
 }
 
 async function syncIosSplash() {
   for (const [filename, size] of Object.entries(IOS_SPLASH_FILES)) {
-    await writePng(await logoPipeline(size), path.join(iosSplashDir, filename));
+    await writePng(await splashLogoPipeline(size), path.join(iosSplashDir, filename));
   }
 }
 
@@ -137,7 +182,7 @@ async function syncAndroidDrawables() {
     const notificationSize = Math.round(ANDROID_NOTIFICATION_BASE_PX * scale);
 
     await writePng(
-      await logoPipeline(splashSize),
+      await splashLogoPipeline(splashSize),
       path.join(drawableDir, 'splashscreen_logo.png')
     );
     await writePng(
@@ -161,12 +206,12 @@ async function syncAndroidMipmaps() {
     const foregroundSize = Math.round(108 * scale);
 
     const launcher = sharp(masterIcon).resize(launcherSize, launcherSize, {
-      fit: 'contain',
-      background: WHITE_BG,
+      fit: 'cover',
+      background: APP_ICON_BG,
     });
     const foreground = sharp(masterForeground).resize(foregroundSize, foregroundSize, {
-      fit: 'contain',
-      background: WHITE_BG,
+      fit: 'cover',
+      background: APP_ICON_BG,
     });
     const monochrome = sharp(masterMonochrome).resize(foregroundSize, foregroundSize, {
       fit: 'contain',
@@ -181,8 +226,12 @@ async function syncAndroidMipmaps() {
 }
 
 async function main() {
-  if (!fs.existsSync(sourceLogo)) {
-    console.error('Missing source logo:', sourceLogo);
+  if (!fs.existsSync(splashLogo)) {
+    console.error('Missing splash logo:', splashLogo);
+    process.exit(1);
+  }
+  if (!fs.existsSync(appIconSource)) {
+    console.error('Missing app icon source:', appIconSource);
     process.exit(1);
   }
 
@@ -193,7 +242,7 @@ async function main() {
   await syncAndroidMipmaps();
 
   console.log(
-    'App logo synced: Expo assets, iOS AppIcon/Splash, Android launcher/splash/notifications.'
+    'App logo synced: pink app icon (jpg) + blue splash (svg) → Expo, iOS, Android.'
   );
 }
 

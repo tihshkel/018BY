@@ -1,0 +1,18 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../04-album-fill/fill-pregnancy-page1.yaml
+- tapOn:
+    id: album-export-button
+- assertVisible:
+    id: export-format-electronic
+- tapOn:
+    id: export-format-electronic
+- tapOn:
+    id: export-start
+- extendedWaitUntil:
+    visible:
+      text: 'Электронная версия'
+    timeout: 120000
+- assertVisible:
+    id: export-done-home

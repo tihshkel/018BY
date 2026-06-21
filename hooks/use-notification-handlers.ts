@@ -4,6 +4,7 @@ import { router, type Href } from 'expo-router';
 import type { NotificationResponse } from 'expo-notifications';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
 import { recordNotificationToInbox } from '@/utils/notificationInbox';
@@ -34,7 +35,7 @@ export function useNotificationHandlers() {
   const handledInSessionRef = useRef(new Set<string>());
 
   useEffect(() => {
-    if (isExpoGo) return;
+    if (isExpoGo || Platform.OS === 'web') return;
 
     const handleNotificationResponse = async (response: NotificationResponse) => {
       const key = getResponseKey(response);

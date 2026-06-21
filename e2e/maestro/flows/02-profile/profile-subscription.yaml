@@ -1,0 +1,13 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- tapOn:
+    id: profile-subscription-badge-button
+- assertVisible:
+    id: export-subscription-screen
+- assertVisible:
+    text: 'Экспорт для печати'
+- back

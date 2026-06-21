@@ -1,0 +1,20 @@
+appId: com.tihonshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- tapOn:
+    id: tab-projects
+- tapOn:
+    id: project-category-family
+- tapOn:
+    id: cover-family_sdfa1
+- tapOn:
+    id: select-action-edit
+- extendedWaitUntil:
+    visible:
+      text: 'Скачать альбом'
+    timeout: 45000
+- assertVisible:
+    id: album-export-button
+- assertVisible:
+    text: 'из 20 страниц'

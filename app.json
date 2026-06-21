@@ -38,7 +38,7 @@
     "android": {
       "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#F9F9F7",
+        "backgroundColor": "#E9869B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -116,8 +116,9 @@
       "eas": {
         "projectId": "cb0b872b-bcbb-450d-aee7-e2c3148df391"
       },
-      "supabaseUrl": "",
-      "supabaseAnonKey": ""
+      "supabaseUrl": "https://xbjssrfenkaefudhlgks.supabase.co",
+      "supabaseAnonKey": "sb_publishable_fZast52ijbl0oqRyFv0UnA__cabgPkZ",
+      "showLineSlotDebug": "0"
     }
   }
 }

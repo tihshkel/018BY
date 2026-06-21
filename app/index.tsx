@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ensureDefaultAvatar } from '@/utils/user-avatar';
 
 const ONBOARDING_KEY = '@has_seen_onboarding';
 
@@ -10,6 +11,8 @@ export default function Index() {
   useEffect(() => {
     const checkStatus = async () => {
       try {
+        await ensureDefaultAvatar();
+
         const [hasSeenOnboarding, userName] = await Promise.all([
           AsyncStorage.getItem(ONBOARDING_KEY),
           AsyncStorage.getItem('@user_name'),

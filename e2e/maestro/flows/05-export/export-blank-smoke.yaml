@@ -1,0 +1,31 @@
+appId: com.tihonshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-blank-family.yaml
+- tapOn:
+    id: page-card-1
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- tapOn:
+    id: album-export-button
+- assertVisible:
+    id: export-format-electronic
+- tapOn:
+    id: export-format-electronic
+- tapOn:
+    id: export-start
+- extendedWaitUntil:
+    visible:
+      text: 'Электронная версия'
+    timeout: 120000
+- assertVisible:
+    id: export-done-home

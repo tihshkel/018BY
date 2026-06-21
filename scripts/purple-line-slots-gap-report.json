@@ -1,0 +1,835 @@
+{
+  "generatedAt": "2026-06-09T22:52:23.135Z",
+  "albumId": "diary_interior_purple",
+  "pageCount": 40,
+  "totalPdfSlots": 497,
+  "totalJsonSlots": 498,
+  "totalRuntimeFiltered": 13,
+  "criticalPages": [],
+  "pages": {
+    "1": {
+      "page": "1",
+      "pageType": "cover",
+      "slotCount": 2,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 2,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.567 x=0.45 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 2,
+      "jsonSlotCount": 2
+    },
+    "2": {
+      "page": "2",
+      "pageType": "decor",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "3": {
+      "page": "3",
+      "pageType": "decor",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "4": {
+      "page": "4",
+      "pageType": "intro",
+      "slotCount": 3,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 3,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.276 between y=0.208 and y=0.484"
+        },
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.226 between y=0.484 and y=0.711"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 3,
+      "jsonSlotCount": 3
+    },
+    "5": {
+      "page": "5",
+      "pageType": "questionnaire",
+      "slotCount": 15,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 15,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.131 between y=0.739 and y=0.870"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.458 x=0.38 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.500 x=0.58 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.538 x=0.47 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.578 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.619 x=0.37 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.739 x=0.65 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 15
+    },
+    "6": {
+      "page": "6",
+      "pageType": "questionnaire",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.544 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.622 x=0.38 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 17,
+      "jsonSlotCount": 17
+    },
+    "7": {
+      "page": "7",
+      "pageType": "questionnaire",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.544 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.582 x=0.49 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.622 x=0.39 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 17,
+      "jsonSlotCount": 17
+    },
+    "8": {
+      "page": "8",
+      "pageType": "parent_form",
+      "slotCount": 16,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 16,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.446 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.484 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.589 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.620 x=0.38 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.656 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.690 x=0.53 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.793 x=0.43 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 16
+    },
+    "9": {
+      "page": "9",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "10": {
+      "page": "10",
+      "pageType": "parent_form",
+      "slotCount": 11,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 11,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.313 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.349 x=0.65 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.451 x=0.48 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 11,
+      "jsonSlotCount": 11
+    },
+    "11": {
+      "page": "11",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "12": {
+      "page": "12",
+      "pageType": "parent_form",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.134 between y=0.758 and y=0.892"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.293 x=0.62 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.329 x=0.65 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.431 x=0.66 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.499 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.601 x=0.49 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "13": {
+      "page": "13",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "14": {
+      "page": "14",
+      "pageType": "parent_form",
+      "slotCount": 13,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.327 x=0.42 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.396 x=0.38 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 13
+    },
+    "15": {
+      "page": "15",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "16": {
+      "page": "16",
+      "pageType": "parent_form",
+      "slotCount": 11,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 11,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.141 between y=0.671 and y=0.812"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.319 x=0.52 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.354 x=0.55 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.423 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.458 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.493 x=0.61 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.527 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.562 x=0.60 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 11,
+      "jsonSlotCount": 11
+    },
+    "17": {
+      "page": "17",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "18": {
+      "page": "18",
+      "pageType": "parent_form",
+      "slotCount": 14,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 14,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.382 x=0.57 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.413 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.477 x=0.55 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.573 x=0.50 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.603 x=0.37 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.657 x=0.62 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "19": {
+      "page": "19",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "20": {
+      "page": "20",
+      "pageType": "decor",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "21": {
+      "page": "21",
+      "pageType": "parent_form",
+      "slotCount": 2,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 2,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.369 between y=0.320 and y=0.689"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 2,
+      "jsonSlotCount": 2
+    },
+    "22": {
+      "page": "22",
+      "pageType": "parent_form",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.434 x=0.43 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.524 x=0.51 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.568 x=0.53 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "23": {
+      "page": "23",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "24": {
+      "page": "24",
+      "pageType": "day_spread",
+      "slotCount": 13,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.228 between y=0.477 and y=0.705"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 13
+    },
+    "25": {
+      "page": "25",
+      "pageType": "day_spread",
+      "slotCount": 13,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.218 between y=0.487 and y=0.705"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 13
+    },
+    "26": {
+      "page": "26",
+      "pageType": "day_spread",
+      "slotCount": 11,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 11,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.238 between y=0.485 and y=0.723"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 11,
+      "jsonSlotCount": 11
+    },
+    "27": {
+      "page": "27",
+      "pageType": "day_spread",
+      "slotCount": 13,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.207 between y=0.488 and y=0.696"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 13
+    },
+    "28": {
+      "page": "28",
+      "pageType": "parent_form",
+      "slotCount": 22,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 22,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.43 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 22,
+      "jsonSlotCount": 22
+    },
+    "29": {
+      "page": "29",
+      "pageType": "parent_form",
+      "slotCount": 20,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 20,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.44 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 20,
+      "jsonSlotCount": 20
+    },
+    "30": {
+      "page": "30",
+      "pageType": "parent_form",
+      "slotCount": 21,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 21,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.44 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 21,
+      "jsonSlotCount": 21
+    },
+    "31": {
+      "page": "31",
+      "pageType": "parent_form",
+      "slotCount": 19,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 19,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.43 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 19,
+      "jsonSlotCount": 19
+    },
+    "32": {
+      "page": "32",
+      "pageType": "parent_form",
+      "slotCount": 19,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 19,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.43 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 19,
+      "jsonSlotCount": 19
+    },
+    "33": {
+      "page": "33",
+      "pageType": "parent_form",
+      "slotCount": 20,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 20,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.761 x=0.44 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 20,
+      "jsonSlotCount": 20
+    },
+    "34": {
+      "page": "34",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "35": {
+      "page": "35",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "36": {
+      "page": "36",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "37": {
+      "page": "37",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "38": {
+      "page": "38",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "39": {
+      "page": "39",
+      "pageType": "journal",
+      "slotCount": 14,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 13,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.213 between y=0.524 and y=0.737"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 14,
+      "jsonSlotCount": 14
+    },
+    "40": {
+      "page": "40",
+      "pageType": "decor",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    }
+  }
+}

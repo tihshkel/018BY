@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -7,7 +8,6 @@ import {
   FlatList,
   ImageSourcePropType,
   Linking,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -27,6 +27,8 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { RegionPickerSheet } from '@/components/catalog/region-picker-sheet';
+import { AppFilterSheet } from '@/components/ui';
 import { PDF_CATALOG_GIFT_ITEMS } from '@/constants/pdf-catalog-gift-items';
 import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
 import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
@@ -1218,7 +1220,7 @@ export default function GiftsScreen() {
 
         <View style={styles.searchContainer}>
           <View style={styles.searchWrapper}>
-            <Ionicons name="search-outline" size={18} color="#9B8E7F" />
+            <Ionicons name="search-outline" size={18} color={colors.textSecondary} />
             <TextInput
               style={styles.searchInput}
               placeholder="Поиск по названию или артикулу"
@@ -1240,7 +1242,7 @@ export default function GiftsScreen() {
             <Ionicons 
               name="filter-outline" 
               size={20} 
-              color={(selectedCategory !== null || selectedCoverType !== 'all') ? '#C9A89A' : '#9B8E7F'} 
+              color={(selectedCategory !== null || selectedCoverType !== 'all') ? colors.primary : colors.textSecondary} 
             />
             {(selectedCategory !== null || selectedCoverType !== 'all') && (
               <View style={styles.filterActiveIndicator} />
@@ -1289,7 +1291,7 @@ export default function GiftsScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyState}>
-              <Ionicons name="gift-outline" size={64} color="#D4C4B5" />
+              <Ionicons name="gift-outline" size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateText}>
                 Подходящие подарки не найдены. Попробуйте изменить запрос.
               </Text>
@@ -1298,193 +1300,48 @@ export default function GiftsScreen() {
         />
       </Animated.View>
 
-      {/* Модальное окно расширенного поиска */}
-      <Modal
+      <AppFilterSheet
         visible={showFilterModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Расширенный поиск</Text>
-              <TouchableOpacity
-                onPress={() => setShowFilterModal(false)}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#8B6F5F" />
-              </TouchableOpacity>
-            </View>
+        onClose={() => setShowFilterModal(false)}
+        title="Расширенный поиск"
+        sections={[
+          {
+            id: 'category',
+            title: 'Раздел',
+            options: CATEGORY_FILTERS.map((category) => ({
+              value: category,
+              label: category,
+            })),
+            value: selectedCategory ?? 'Все',
+            onChange: (value) =>
+              setSelectedCategory(value === 'Все' ? null : (value as CategoryFilter)),
+          },
+          {
+            id: 'cover',
+            title: 'Тип обложки',
+            options: [
+              { value: 'all', label: 'Все' },
+              { value: 'hard', label: 'Твердая обложка' },
+              { value: 'soft', label: 'Мягкая обложка' },
+            ],
+            value: selectedCoverType,
+            onChange: (value) => setSelectedCoverType(value as CoverType),
+          },
+        ]}
+        onReset={() => {
+          setSelectedCategory(null);
+          setSelectedCoverType('all');
+        }}
+        onApply={() => setShowFilterModal(false)}
+      />
 
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              {/* Фильтр по разделу */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Раздел</Text>
-                <View style={styles.filterOptions}>
-                  {CATEGORY_FILTERS.map((category) => (
-                    <TouchableOpacity
-                      key={category}
-                      style={[
-                        styles.filterOption,
-                        selectedCategory === category && styles.filterOptionSelected,
-                      ]}
-                      onPress={() => setSelectedCategory(category === 'Все' ? null : category)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.filterOptionText,
-                          selectedCategory === category && styles.filterOptionTextSelected,
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                      {selectedCategory === category && (
-                        <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Фильтр по типу обложки */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Тип обложки</Text>
-                <View style={styles.filterOptions}>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'all' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('all')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'all' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Все
-                    </Text>
-                    {selectedCoverType === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'hard' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('hard')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'hard' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Твердая обложка
-                    </Text>
-                    {selectedCoverType === 'hard' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'soft' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('soft')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'soft' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Мягкая обложка
-                    </Text>
-                    {selectedCoverType === 'soft' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </ScrollView>
-
-            {/* Кнопки действий */}
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={() => {
-                  setSelectedCategory(null);
-                  setSelectedCoverType('all');
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.resetButtonText}>Сбросить</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.applyButtonText}>Применить</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Модальное окно выбора региона */}
-      <Modal
+      <RegionPickerSheet
         visible={showRegionModal && !isLoadingRegion}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => {}}
-      >
-        <View style={styles.regionModalOverlay}>
-          <View style={styles.regionModalContent}>
-            <View style={styles.regionModalHeader}>
-              <Text style={styles.regionModalTitle}>Выберите регион</Text>
-            </View>
-
-            <Text style={styles.regionModalDescription}>
-              Выберите ваш регион для отображения актуальных цен
-            </Text>
-
-            <View style={styles.regionOptions}>
-              {REGIONS.map((region) => (
-                <TouchableOpacity
-                  key={region.value}
-                  style={[
-                    styles.regionOption,
-                    selectedRegion === region.value && styles.regionOptionSelected,
-                  ]}
-                  onPress={() => handleRegionSelect(region.value)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.regionOptionText,
-                      selectedRegion === region.value && styles.regionOptionTextSelected,
-                    ]}
-                  >
-                    {region.label}
-                  </Text>
-                  {selectedRegion === region.value && (
-                    <Ionicons name="checkmark-circle" size={24} color="#C9A89A" />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => {}}
+        options={REGIONS}
+        selectedValue={selectedRegion}
+        onSelect={handleRegionSelect}
+      />
     </SafeAreaView>
   );
 }
@@ -1492,7 +1349,7 @@ export default function GiftsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -1505,18 +1362,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   titleCount: {
     fontSize: 20,
-    color: '#C9A89A',
+    color: colors.primary,
     fontStyle: 'normal',
   },
   searchContainer: {
@@ -1532,7 +1384,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
@@ -1543,7 +1395,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -1555,7 +1407,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   searchInput: {
     flex: 1,
@@ -1583,15 +1435,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   categoryFilterButtonActive: {
-    backgroundColor: '#C9A89A',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   categoryFilterButtonPressed: {
     opacity: 0.8,
   },
   filterButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1612,7 +1464,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '90%',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.15,
     shadowRadius: 24,
@@ -1626,18 +1478,13 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    borderBottomColor: colors.border,
   },
   modalTitle: {
     fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   modalCloseButton: {
     width: 32,
@@ -1655,7 +1502,7 @@ const styles = StyleSheet.create({
   },
   filterSectionTitle: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1671,19 +1518,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   filterOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
   },
   filterOptionText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1702,20 +1549,20 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 40 : 20,
     gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
   },
   resetButton: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   resetButtonText: {
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -1725,11 +1572,11 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 1,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -1758,9 +1605,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
@@ -1770,7 +1617,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coverWrapper: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1789,20 +1636,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 26,
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -1818,7 +1660,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     borderRadius: 16,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
   },
   buyButtonPressed: {
@@ -1842,7 +1684,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({
@@ -1850,82 +1692,5 @@ const styles = StyleSheet.create({
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-  },
-  regionModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  regionModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 400,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  regionModalHeader: {
-    marginBottom: 16,
-  },
-  regionModalTitle: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    textAlign: 'center',
-  },
-  regionModalDescription: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  regionOptions: {
-    gap: 12,
-  },
-  regionOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-  },
-  regionOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
-  },
-  regionOptionText: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    flex: 1,
-  },
-  regionOptionTextSelected: {
-    fontWeight: '600',
   },
 });

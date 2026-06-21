@@ -1,6 +1,10 @@
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
+import { HomeActionRow } from '@/components/home/home-action-row';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
+import { ProjectActionSheet } from '@/components/modals/project-action-sheet';
 import { ProjectCard } from '@/components/project-card';
+import { AppButton, AppCard, AppText } from '@/components/ui';
 import { deleteUserProjectLocally } from '@/utils/delete-user-project';
-import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
 import {
   formatProjectsCountLabel,
   HOME_PROJECTS_PREVIEW_LIMIT,
@@ -14,21 +18,18 @@ import { fixMissingProjectsInList, runFullVerifyReport, verifyProjectInStorage }
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
-import { router, useFocusEffect } from 'expo-router';
+import { resolveAlbumEntryPath } from '@/utils/albumIntro';
+import { buildAlbumIntroHref, buildAlbumPagesHref } from '@/utils/albumNavigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
     FlatList,
-    Modal,
-    Platform,
     Pressable,
-    ScrollView,
     StyleSheet,
-    Text,
-    TouchableOpacity,
     View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { router, useFocusEffect, type Href } from 'expo-router';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -45,6 +46,7 @@ import {
   HOME_CONTENT_MAX_WIDTH,
   useResponsiveLayout,
 } from '@/utils/responsive';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 export default function HomeScreen() {
   const layout = useResponsiveLayout(HOME_CONTENT_MAX_WIDTH);
@@ -54,7 +56,7 @@ export default function HomeScreen() {
     tabletPadding: 0,
   });
   const gridListStyle = getGridListStyle(layout);
-  const gridColumnWrapper = getGridColumnWrapperStyle(16);
+  const gridColumnWrapper = getGridColumnWrapperStyle(spacing.md);
 
   const isTabletLayout = layout.isTablet;
   const projectsColumnCount = getGridColumnCount(layout);
@@ -74,7 +76,7 @@ export default function HomeScreen() {
     projects.length > HOME_PROJECTS_PREVIEW_LIMIT
       ? projects.slice(0, HOME_PROJECTS_PREVIEW_LIMIT)
       : projects;
-  const showAllStoriesLink = projects.length > HOME_PROJECTS_PREVIEW_LIMIT;
+  const showAllStoriesLink = projects.length >= HOME_PROJECTS_PREVIEW_LIMIT;
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -102,6 +104,7 @@ export default function HomeScreen() {
     React.useCallback(() => {
       loadUserData();
       loadProjects();
+      void syncWidgetSnapshot();
       ensureSyncReady().catch(() => {});
 
       // Фоновая подгрузка из облака — если там появились новые проекты, обновляем список
@@ -176,11 +179,18 @@ export default function HomeScreen() {
     router.push('/all-stories');
   };
 
+  const navigateToPdfAlbum = async (project: UserProject) => {
+    const entry = await resolveAlbumEntryPath(project.id);
+    const href =
+      entry === 'album-intro'
+        ? buildAlbumIntroHref({ id: project.id })
+        : buildAlbumPagesHref({ id: project.id });
+    router.push(href);
+  };
+
   const handleProjectPress = (project: UserProject) => {
-    // Если это готовый альбом с PDF, переходим к edit-album
-    // Иначе переходим к обычному edit-project
     if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      router.push(`/edit-album?id=${project.id}`);
+      void navigateToPdfAlbum(project);
     } else {
       router.push(`/edit-project?id=${project.id}`);
     }
@@ -202,10 +212,8 @@ export default function HomeScreen() {
   const handleEditProject = () => {
     if (selectedProjectForAction) {
       setShowActionModal(false);
-      // Если это готовый альбом с PDF, переходим к edit-album
-      // Иначе переходим к обычному edit-project
       if (selectedProjectForAction.isReadyMadeAlbum || selectedProjectForAction.hasPdfTemplate) {
-        router.push(`/edit-album?id=${selectedProjectForAction.id}`);
+        void navigateToPdfAlbum(selectedProjectForAction);
       } else {
         router.push(`/edit-project?id=${selectedProjectForAction.id}`);
       }
@@ -259,7 +267,17 @@ export default function HomeScreen() {
   const handleDevVerifyStorage = async () => {
     try {
       const report = await runFullVerifyReport();
-      Alert.alert('Проверка сохранения проектов', report, [{ text: 'OK' }]);
+      const lines = [
+        `Всего проектов: ${report.totalProjects}`,
+        `Валидных: ${report.validProjects}`,
+      ];
+      if (report.invalidProjects.length > 0) {
+        lines.push(`Повреждённые: ${report.invalidProjects.join(', ')}`);
+      }
+      if (report.orphanedProjects.length > 0) {
+        lines.push(`В списке без файла: ${report.orphanedProjects.join(', ')}`);
+      }
+      Alert.alert('Проверка сохранения проектов', lines.join('\n'), [{ text: 'OK' }]);
     } catch (e) {
       Alert.alert('Ошибка проверки', (e as Error).message);
     }
@@ -271,21 +289,26 @@ export default function HomeScreen() {
       return;
     }
     try {
-      const res = await verifyProjectInStorage(selectedProject.id);
-      if (res.ok) {
+      const isValid = await verifyProjectInStorage(selectedProject.id);
+      if (isValid) {
         Alert.alert('Проверка', `Проект ${selectedProject.id} в порядке.`);
-      } else {
-        const fix = await fixMissingProjectsInList();
-        Alert.alert(
-          'Проверка',
-          `Ошибки: ${res.errors?.join('\n') ?? ''}\n\nИсправление: ${fix.fixed ? `добавлено ${fix.added}` : fix.reason ?? '—'}`,
-          [{ text: 'OK' }]
-        );
+        return;
       }
+
+      await fixMissingProjectsInList();
+      await loadProjects();
+      Alert.alert(
+        'Проверка',
+        `Проект ${selectedProject.id} не найден или повреждён. Список проектов обновлён.`,
+        [{ text: 'OK' }]
+      );
     } catch (e) {
       Alert.alert('Ошибка', (e as Error).message);
     }
   };
+
+  const displayName =
+    userName && userName.trim() && userName !== 'Пользователь' ? userName.trim() : null;
 
   const renderProjectCard = useCallback(
     (project: UserProject, cardWidth: number, isGrid: boolean, index: number) => (
@@ -310,85 +333,74 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Приветствие: показываем имя только если оно задано и не дефолтное «Пользователь». В __DEV__ долгое нажатие — проверка сохранения проектов. */}
           <Pressable
             style={[styles.header, sectionWrap]}
             onLongPress={__DEV__ ? handleDevVerifyStorage : undefined}
             delayLongPress={800}
           >
-            <Text
-              style={[
-                styles.greeting,
-                layout.isTablet && styles.greetingTablet,
-              ]}
-            >
-              Привет{(userName && userName.trim() && userName !== 'Пользователь') ? `, ${userName.trim()}` : ''}!
-            </Text>
+            <AppText variant="stepLabel">ГЛАВНАЯ</AppText>
+            <AppText variant="display" style={styles.greeting} testID="home-greeting">
+              {displayName ? `Привет, ${displayName}` : 'Привет!'}
+            </AppText>
+            {projects.length > 0 ? (
+              <AppText variant="bodySm" style={styles.headerSubtitle}>
+                {formatProjectsCountLabel(projects.length)} в вашей коллекции
+              </AppText>
+            ) : (
+              <AppText variant="bodySm" style={styles.headerSubtitle}>
+                Создавайте альбомы и сохраняйте важные моменты
+              </AppText>
+            )}
           </Pressable>
 
-          {/* Основной проект или список проектов */}
           {projects.length === 0 ? (
-            <View style={[styles.emptyState, sectionWrap]}>
-              <Ionicons name="book-outline" size={64} color="#D4C4B5" />
-              <Text style={styles.emptyStateTitle}>У вас пока нет альбомов</Text>
-              <Text style={styles.emptyStateText}>
-                Создайте первый альбом, чтобы начать сохранять воспоминания
-              </Text>
-              <TouchableOpacity
-                style={styles.newProjectButton}
-                onPress={handleMyStories}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="book-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.newProjectButtonText}>Мои истории</Text>
-              </TouchableOpacity>
-              <Text style={styles.buyPaperVersionText}>Купить бумажную версию</Text>
-            </View>
-          ) : projects.length === 1 ? (
-            <View style={[styles.singleProject, sectionWrap]}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.projectCover,
-                  singleProjectCardWidth != null && {
-                    width: singleProjectCardWidth,
-                    alignSelf: 'center',
-                  },
-                  pressed && styles.projectCardPressed,
-                ]}
-                onPress={() => selectedProject && handleProjectPress(selectedProject)}
-                onLongPress={() => selectedProject && handleLongPress(selectedProject)}
-              >
-                <View style={styles.projectImagePlaceholder}>
-                  {selectedProject && (
-                    getProjectCoverImageSource(selectedProject) ? (
-                      <Image
-                        source={getProjectCoverImageSource(selectedProject)}
-                        style={styles.projectImage}
-                        contentFit="cover"
-                        priority="high"
-                        cachePolicy="disk"
-                        transition={0}
-                        fadeDuration={0}
-                        recyclingKey={selectedProject.id}
-                      />
-                    ) : (
-                      <Ionicons name="book" size={48} color="#C9A89A" />
-                    )
-                  )}
+            <View style={[styles.section, sectionWrap]}>
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIconWrap}>
+                  <Ionicons name="book-outline" size={40} color={colors.primary} />
                 </View>
-                <Text style={styles.projectTitle}>{selectedProject?.title}</Text>
-                {selectedProject?.category !== 'diary' && (
-                  <Text style={styles.projectCategory}>{selectedProject?.category}</Text>
-                )}
-              </Pressable>
+                <AppText variant="titleSm" style={styles.emptyTitle}>
+                  Пока нет альбомов
+                </AppText>
+                <AppText variant="bodySm" style={styles.emptyText}>
+                  Создайте первый альбом, чтобы начать сохранять воспоминания
+                </AppText>
+                <AppButton
+                  testID="home-go-projects"
+                  title="Мои истории"
+                  onPress={handleMyStories}
+                  style={styles.emptyButton}
+                />
+              </View>
+            </View>
+          ) : projects.length === 1 && selectedProject ? (
+            <View style={[styles.section, sectionWrap]}>
+              <HomeSectionHeader title="Ваш альбом" />
+              <ProjectCard
+                project={selectedProject}
+                cardWidth={singleProjectCardWidth ?? 0}
+                isGrid={false}
+                imagePriority="high"
+                onPress={() => handleProjectPress(selectedProject)}
+                onLongPress={() => handleLongPress(selectedProject)}
+                style={[
+                  styles.singleProjectCard,
+                  singleProjectCardWidth != null && styles.singleProjectCardCentered,
+                ]}
+              />
             </View>
           ) : (
-            <View style={sectionWrap}>
+            <View style={[styles.section, sectionWrap]}>
+              <HomeSectionHeader
+                title="Альбомы"
+                actionLabel={showAllStoriesLink ? 'Все' : undefined}
+                onActionPress={showAllStoriesLink ? handleAllStories : undefined}
+              />
               {isTabletLayout ? (
                 <FlatList
                   key={`home-projects-cols-${projectsColumnCount}`}
@@ -398,180 +410,93 @@ export default function HomeScreen() {
                   numColumns={projectsColumnCount}
                   scrollEnabled={false}
                   style={gridListStyle}
-                  columnWrapperStyle={
-                    projectsColumnCount > 1 ? gridColumnWrapper : undefined
-                  }
+                  columnWrapperStyle={projectsColumnCount > 1 ? gridColumnWrapper : undefined}
                   contentContainerStyle={styles.projectsGridList}
                 />
               ) : (
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.projectsScroll}
-                  snapToInterval={phoneCardWidth + 16}
+                  snapToInterval={phoneCardWidth + spacing.md}
                   decelerationRate="fast"
                 >
                   {previewProjects.map((project, index) => (
-                    <React.Fragment key={project.id}>
-                      {renderProjectCard(project, phoneCardWidth, false, index)}
-                    </React.Fragment>
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      cardWidth={phoneCardWidth}
+                      isGrid={false}
+                      imagePriority={index < 3 ? 'high' : 'normal'}
+                      onPress={() => handleProjectPress(project)}
+                      onLongPress={() => handleLongPress(project)}
+                      style={index === previewProjects.length - 1 ? styles.lastCarouselCard : undefined}
+                    />
                   ))}
                 </ScrollView>
               )}
-              {showAllStoriesLink && (
-                <TouchableOpacity
-                  style={styles.allStoriesLink}
-                  onPress={handleAllStories}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.allStoriesLinkText}>Все истории</Text>
-                  <Text style={styles.allStoriesLinkCount}>
-                    {formatProjectsCountLabel(projects.length)}
-                  </Text>
-                  <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
-                </TouchableOpacity>
-              )}
+              {showAllStoriesLink ? (
+                <Pressable style={styles.allStoriesMeta} onPress={handleAllStories}>
+                  <AppText variant="bodySm">
+                    Показаны последние {HOME_PROJECTS_PREVIEW_LIMIT} из {projects.length}
+                  </AppText>
+                  <Ionicons name="arrow-forward" size={16} color={colors.primary} />
+                </Pressable>
+              ) : null}
             </View>
           )}
 
-          {/* Кнопка "Мои истории" */}
-          {projects.length > 0 && (
-            <View style={[styles.createMoreContainer, sectionWrap]}>
-              <TouchableOpacity
-                style={styles.createMoreButton}
+          <View style={[styles.section, sectionWrap]}>
+            <HomeSectionHeader title="Быстрые действия" />
+            <AppCard style={styles.actionsCard}>
+              <HomeActionRow
+                icon="book-outline"
+                title="Мои истории"
+                subtitle="Создавать альбомы и дневники"
                 onPress={handleMyStories}
-                activeOpacity={0.8}
-              >
-                <View style={styles.createMoreIconWrapper}>
-                  <Ionicons name="book-outline" size={24} color="#FFFFFF" />
-                </View>
-                <View style={styles.createMoreContent}>
-                  <Text style={styles.createMoreTitle}>Мои истории</Text>
-                  <Text style={styles.createMoreText}>
-                    Создавайте альбомы и дневники для важных моментов жизни
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Кнопка помощника заполнения с напоминаниями */}
-          <View style={[styles.catalogContainer, sectionWrap]}>
-            <TouchableOpacity
-              style={styles.paperAlbumButton}
-              onPress={() => router.push('/paper-album-notifications')}
-              activeOpacity={0.85}
-            >
-              <View style={styles.catalogButtonIconWrapper}>
-                <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-              </View>
-              <View style={styles.catalogButtonContent}>
-                <Text style={styles.catalogButtonTitle}>Помощник заполнения с напоминаниями</Text>
-                <Text style={styles.catalogButtonText}>Настроить уведомления для бумажных альбомов</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
-            </TouchableOpacity>
+                accent
+              />
+              <HomeActionRow
+                icon="notifications-outline"
+                title="Помощник заполнения"
+                subtitle="Напоминания для бумажных альбомов"
+                onPress={() => router.push('/paper-album-notifications')}
+              />
+              <HomeActionRow
+                icon="gift-outline"
+                title="Каталог товаров"
+                subtitle="Бумажные версии альбомов"
+                onPress={() => router.push('/paper-catalog')}
+                showDivider={false}
+              />
+            </AppCard>
           </View>
 
-          {/* Кнопка каталога товаров */}
-          <View style={[styles.catalogContainer, sectionWrap]}>
-            <TouchableOpacity
-              style={styles.catalogButton}
+          {projects.length === 0 ? (
+            <Pressable
+              style={[styles.catalogLink, sectionWrap]}
               onPress={() => router.push('/paper-catalog')}
-              activeOpacity={0.85}
             >
-              <View style={styles.catalogButtonIconWrapper}>
-                <Ionicons name="gift-outline" size={24} color="#FFFFFF" />
-              </View>
-              <View style={styles.catalogButtonContent}>
-                <Text style={styles.catalogButtonTitle}>Каталог товаров</Text>
-                <Text style={styles.catalogButtonText}>Купить бумажную версию альбомов</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
-            </TouchableOpacity>
-          </View>
+              <AppText variant="bodySm" style={styles.catalogLinkText}>
+                Купить бумажную версию
+              </AppText>
+            </Pressable>
+          ) : null}
         </ScrollView>
       </Animated.View>
 
-      {/* Модальное окно с опциями действий */}
-      {showActionModal ? (
-      <Modal
-        visible
-        transparent={true}
-        animationType="fade"
+      <ProjectActionSheet
+        visible={showActionModal}
+        projectTitle={selectedProjectForAction?.title ?? 'Проект'}
+        step={actionModalStep}
         onRequestClose={handleActionModalRequestClose}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {actionModalStep === 'menu' ? (
-              <>
-                <Text style={styles.modalTitle}>
-                  {selectedProjectForAction?.title}
-                </Text>
-                <Text style={styles.modalSubtitle}>
-                  Выберите действие
-                </Text>
-
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.editButton]}
-                    onPress={handleEditProject}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="create-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Редактировать</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={handleDeleteProject}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Удалить</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={closeActionModal}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                <Text style={styles.modalTitle}>Удалить проект?</Text>
-                <Text style={styles.modalSubtitle}>
-                  {`Проект «${selectedProjectForAction?.title ?? ''}» будет удалён без возможности восстановления.`}
-                </Text>
-
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={handleDeleteConfirm}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
-                    <Text style={styles.actionButtonText}>Удалить</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={handleDeleteConfirmCancel}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
-      ) : null}
+        onEdit={handleEditProject}
+        onDelete={handleDeleteProject}
+        onDeleteConfirm={handleDeleteConfirm}
+        onDeleteConfirmCancel={handleDeleteConfirmCancel}
+      />
 
     </SafeAreaView>
   );
@@ -580,7 +505,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: surfaces.muted,
   },
   content: {
     flex: 1,
@@ -589,534 +514,84 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 112,
   },
   header: {
-    paddingTop: 24,
-    paddingBottom: 32,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
+    gap: 6,
   },
   greeting: {
-    fontSize: 36,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    letterSpacing: 0.3,
-    lineHeight: 44,
+    marginTop: 4,
   },
-  greetingTablet: {
-    fontSize: 40,
-    lineHeight: 48,
+  headerSubtitle: {
+    marginTop: 2,
+  },
+  section: {
+    marginBottom: spacing.lg,
   },
   emptyState: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-    paddingVertical: 100,
-  },
-  emptyStateTitle: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    marginTop: 28,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  emptyStateText: {
-    fontSize: 17,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    lineHeight: 26,
-    marginBottom: 40,
-    paddingHorizontal: 20,
-  },
-  newProjectButton: {
-    backgroundColor: '#C9A89A',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    gap: 10,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-    minWidth: 200,
-  },
-  newProjectButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  buyPaperVersionText: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    marginTop: 16,
-  },
-  singleProject: {},
-  projectCover: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 36,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
-  },
-  projectImagePlaceholder: {
-    width: 120,
-    height: 160,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    overflow: 'hidden',
-  },
-  projectImage: {
-    width: '100%',
-    height: '100%',
-  },
-  projectTitle: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  projectCategory: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-  },
-  projectStats: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    backgroundColor: colors.white,
     borderRadius: 20,
-    padding: 24,
-    justifyContent: 'space-around',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
-  statItem: {
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+    marginBottom: spacing.md,
   },
-  statValue: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    marginBottom: 4,
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: spacing.xs,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
+  emptyText: {
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
   },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#F0E8E0',
+  emptyButton: {
+    minWidth: 220,
+  },
+  singleProjectCard: {
+    marginRight: 0,
+  },
+  singleProjectCardCentered: {
+    alignSelf: 'center',
   },
   projectsScroll: {
-    gap: 16,
+    paddingVertical: 4,
   },
   projectsGridList: {
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
-  allStoriesLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-    gap: 8,
-  },
-  allStoriesLinkText: {
-    flex: 1,
-    fontSize: 17,
-    color: '#8B6F5F',
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  allStoriesLinkCount: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-  },
-  projectCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    marginRight: 16,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
-  },
-  projectCardGrid: {
-    flex: 1,
+  lastCarouselCard: {
     marginRight: 0,
-    padding: 18,
-    minWidth: 0,
   },
-  cardImageGrid: {
-    height: 160,
-    marginBottom: 14,
-  },
-  projectCardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
-  },
-  cardImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardImageContent: {
-    width: '100%',
-    height: '100%',
-  },
-  cardTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    marginBottom: 4,
-  },
-  cardCategory: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    marginBottom: 12,
-  },
-  cardStats: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-  },
-  cardStatText: {
-    fontSize: 13,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-  },
-  createMoreContainer: {
-    marginTop: 28,
-    marginBottom: 20,
-  },
-  createMoreButton: {
+  allStoriesMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
-    gap: 16,
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingHorizontal: 4,
   },
-  createMoreIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#C9A89A',
+  actionsCard: {
+    backgroundColor: colors.white,
+  },
+  catalogLink: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingBottom: spacing.md,
   },
-  createMoreContent: {
-    flex: 1,
-    flexShrink: 1,
-    gap: 4,
-    minWidth: 0,
-  },
-  createMoreTitle: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
+  catalogLinkText: {
+    color: colors.primary,
     fontWeight: '600',
-  },
-  createMoreText: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    lineHeight: 20,
-    flexShrink: 1,
-  },
-  catalogContainer: {
-    marginTop: 4,
-    marginBottom: 20,
-  },
-  paperAlbumButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  catalogButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  catalogButtonIconWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#C9A89A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  catalogButtonContent: {
-    flex: 1,
-    gap: 4,
-  },
-  catalogButtonTitle: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  catalogButtonText: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-  },
-  // Стили для модального окна
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  actionButtons: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  editButton: {
-    backgroundColor: '#C9A89A',
-  },
-  deleteButton: {
-    backgroundColor: '#E74C3C',
-  },
-  actionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  cancelButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#9B8E7F',
-    fontSize: 16,
-    fontWeight: '400',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
+    textDecorationLine: 'underline',
   },
 });

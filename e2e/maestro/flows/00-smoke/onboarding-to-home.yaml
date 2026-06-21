@@ -1,0 +1,6 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- assertVisible:
+    text: 'Привет, E2E Тест'

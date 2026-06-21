@@ -1,0 +1,6 @@
+appId: com.tihshkel.x018BY
+---
+- tapOn:
+    id: tab-profile
+- assertVisible:
+    text: 'Профиль'

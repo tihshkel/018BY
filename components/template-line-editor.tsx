@@ -1,10 +1,12 @@
 import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinContinuationGroup,
-  getFirstLineInputValue,
+  getActiveEditSlotIndex,
+  getTemplateLineAscenderPadding,
   getTemplateLineTextTop,
   getTemplateLineTypography,
-  mergeFirstLineEdit,
+  getWishSlotInputKind,
+  mergeActiveLineEdit,
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -20,6 +22,7 @@ type TemplateLineEditorProps = {
   color: string;
   fontSize: number;
   fontFamily: string | undefined;
+  fontId?: string;
   lineGuideId?: string;
   textAlign?: TextAlign;
   onChangeText: (text: string) => void;
@@ -31,8 +34,8 @@ type TemplateLineEditorProps = {
 };
 
 /**
- * Редактор строк макета: TextInput только на первой строке группы, Text на продолжениях.
- * В TextInput — только первая строка (iOS иначе сжимает длинный value в одну линию).
+ * Редактор строк макета: TextInput на активной строке (последняя с текстом), остальное — Text.
+ * В TextInput — только текущая строка (iOS иначе сжимает длинный value в одну линию).
  */
 export function TemplateLineEditor({
   slot,
@@ -41,6 +44,7 @@ export function TemplateLineEditor({
   value,
   color,
   fontFamily,
+  fontId,
   fontSize,
   lineGuideId,
   textAlign = 'left',
@@ -59,50 +63,48 @@ export function TemplateLineEditor({
   const startSlot = slotsToRender[0] ?? slot;
   const startSlotIndex = startSlot.index;
 
-  const segmentBySlotIndex = useMemo(() => {
-    const { segments } = distributeTextWithinContinuationGroup({
+  const { segments, segmentBySlotIndex } = useMemo(() => {
+    const distributed = distributeTextWithinContinuationGroup({
       text: value,
       startSlotIndex,
       slots: allSlots,
       fontSize,
       lineGuideId,
+      fontId,
     });
     const map = new Map<number, string>();
-    for (const segment of segments) {
+    for (const segment of distributed.segments) {
       map.set(
         segment.slotIndex,
-        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId)
+        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId, fontId)
       );
     }
-    return map;
-  }, [allSlots, fontSize, lineGuideId, startSlotIndex, value]);
+    return { segments: distributed.segments, segmentBySlotIndex: map };
+  }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
 
-  const inputValue = useMemo(
-    () =>
-      getFirstLineInputValue({
-        text: value,
-        startSlotIndex,
-        slots: allSlots,
-        fontSize,
-        lineGuideId,
-      }),
-    [allSlots, fontSize, lineGuideId, startSlotIndex, value]
+  const activeInputSlotIndex = useMemo(
+    () => getActiveEditSlotIndex(segments, startSlotIndex),
+    [segments, startSlotIndex]
   );
+
+  const inputValue = segmentBySlotIndex.get(activeInputSlotIndex) ?? '';
 
   const handleInputChange = useCallback(
     (newText: string) => {
       onChangeText(
-        mergeFirstLineEdit({
-          newFirstLine: newText,
+        mergeActiveLineEdit({
+          newLineText: newText,
           previousText: value,
+          editSlotIndex: activeInputSlotIndex,
           startSlotIndex,
           slots: allSlots,
           fontSize,
           lineGuideId,
+          fontId,
         })
       );
     },
-    [allSlots, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [activeInputSlotIndex, allSlots, fontId, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
   );
 
   useEffect(() => {
@@ -110,7 +112,7 @@ export function TemplateLineEditor({
       const t = setTimeout(() => inputRef.current?.focus(), 50);
       return () => clearTimeout(t);
     }
-  }, [autoFocus, inputRef, startSlotIndex]);
+  }, [autoFocus, inputRef, activeInputSlotIndex]);
 
   return (
     <>
@@ -119,11 +121,16 @@ export function TemplateLineEditor({
         const lineTypography = getTemplateLineTypography(
           fontSize,
           lineSlot.lineHeight,
-          lineSlot.inputKind,
+          getWishSlotInputKind(lineSlot, lineGuideId),
           lineGuideId
         );
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
-        const isInputSlot = lineSlot.index === startSlotIndex;
+        const isInputSlot = lineSlot.index === activeInputSlotIndex;
+        const ascenderPadding = getTemplateLineAscenderPadding(
+          lineTypography.fontSize,
+          getWishSlotInputKind(lineSlot, lineGuideId)
+        );
+        const inputTopInset = ascenderPadding;
 
         return (
           <View
@@ -132,15 +139,16 @@ export function TemplateLineEditor({
               styles.host,
               {
                 left: lineSlot.x,
-                top: textTop,
+                top: textTop - inputTopInset,
                 width: lineSlot.width,
-                height: lineTypography.inputHeight,
+                height: lineTypography.inputHeight + inputTopInset,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}
           >
             {isInputSlot ? (
               <TextInput
+                key={activeInputSlotIndex}
                 ref={inputRef}
                 style={[
                   styles.input,
@@ -149,7 +157,8 @@ export function TemplateLineEditor({
                     fontSize: lineTypography.fontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: lineTypography.lineHeight,
-                    height: lineTypography.inputHeight,
+                    height: lineTypography.lineHeight,
+                    top: inputTopInset,
                     width: lineSlot.width,
                     textAlign,
                   },
@@ -181,6 +190,7 @@ export function TemplateLineEditor({
                     fontSize: lineTypography.fontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: lineTypography.lineHeight,
+                    top: inputTopInset,
                     width: lineSlot.width,
                     textAlign,
                   },
@@ -202,7 +212,7 @@ const styles = StyleSheet.create({
   host: {
     position: 'absolute',
     zIndex: 100000,
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   lineText: {
     position: 'absolute',

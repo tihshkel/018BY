@@ -1,4 +1,106 @@
 {
+  "kids_48": {
+    "5": [
+      {
+        "x": 0.37974,
+        "y": 0.2753,
+        "width": 0.12971,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.1372,
+        "y": 0.3989,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 2
+      },
+      {
+        "x": 0.3037,
+        "y": 0.5189,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 3
+      },
+      {
+        "x": 0.11522,
+        "y": 0.5976,
+        "width": 0.13277,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 4
+      },
+      {
+        "x": 0.32159,
+        "y": 0.7338,
+        "width": 0.12563,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 5
+      },
+      {
+        "x": 0.60331,
+        "y": 0.3104,
+        "width": 0.13277,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 6
+      },
+      {
+        "x": 0.7731,
+        "y": 0.4315,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 7
+      },
+      {
+        "x": 0.58791,
+        "y": 0.5089,
+        "width": 0.13277,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 8
+      },
+      {
+        "x": 0.75995,
+        "y": 0.64805,
+        "width": 0.1337,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 9
+      }
+    ]
+  },
+  "diary_interior_brown": {
+    "3": [
+      {
+        "x": 0.12,
+        "y": 0.848,
+        "width": 0.36,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 1
+      }
+    ]
+  },
+  "diary_interior_purple": {
+    "3": [
+      {
+        "x": 0.12,
+        "y": 0.848,
+        "width": 0.36,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 1
+      }
+    ]
+  },
   "holidays_birthday_60": {
     "1": [
       {

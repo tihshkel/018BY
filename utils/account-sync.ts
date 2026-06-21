@@ -9,6 +9,7 @@ import {
 import { getStoredPushToken } from './pushToken';
 import {
   getAccountDataFromSupabase,
+  getAccountFromSupabase,
   getCoreDataFromSupabase,
   isSupabaseUserIdKey,
   pushCoreDataToSupabase,
@@ -23,6 +24,18 @@ const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
 
 /** Id проектов, которые сейчас пушатся — при pull не перезаписываем их локальные данные. */
 const pendingPushProjectIdsRef: { current: Set<string> } = { current: new Set() };
+
+/** Проекты, которые нужно синхронизировать в облако (явное сохранение или правки альбома). */
+export async function getProjectsSyncedToCloud(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(PROJECTS_SYNCED_TO_CLOUD_KEY);
+  if (!raw) return [];
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.filter(Boolean).map(String) : [];
+  } catch {
+    return [];
+  }
+}
 
 /** Добавить проект в список «сохранённых в облако» — только такие проекты попадают в БД при синхронизации. */
 export async function addProjectToSyncedList(projectId: string): Promise<void> {
@@ -84,6 +97,10 @@ const PROJECT_KEY_SUBPREFIXES = [
   'cover_viewport_',
   'last_text_style_',
   'sections_',
+  'page_instances_',
+  'page_values_',
+  'schema_version_',
+  'form_migration_',
 ];
 
 /**
@@ -137,6 +154,18 @@ export async function importAccountData(
 ): Promise<void> {
   try {
     const deletedIds = await loadDeletedProjectIds();
+    let profileUserName: string | null | undefined;
+    const resolveProfileUserName = async (): Promise<string | null> => {
+      if (profileUserName !== undefined) return profileUserName;
+      if (!accessCode || !isSupabaseUserIdKey(accessCode)) {
+        profileUserName = null;
+        return profileUserName;
+      }
+      const profile = await getAccountFromSupabase(accessCode);
+      profileUserName = profile?.userName?.trim() ?? null;
+      return profileUserName;
+    };
+
     for (const [key, value] of Object.entries(data)) {
       if (!key || typeof value !== 'string') continue;
       if (key.startsWith(PROJECT_PREFIX)) {
@@ -149,6 +178,17 @@ export async function importAccountData(
       }
       if (key === '@reminders' && accessCode) {
         await setLocalRemindersJsonForSyncId(accessCode, value);
+      } else if (key === '@user_name') {
+        const localRaw = await AsyncStorage.getItem('@user_name');
+        const localTrim = localRaw?.trim() ?? '';
+        const cloudTrim = value.trim();
+        if (localTrim && localTrim !== cloudTrim) {
+          const profileName = await resolveProfileUserName();
+          if (profileName === localTrim) {
+            continue;
+          }
+        }
+        await AsyncStorage.setItem(key, value);
       } else if (key === '@user_projects') {
         const localRaw = await AsyncStorage.getItem('@user_projects');
         const localList: { id?: string }[] = (() => {
@@ -168,12 +208,12 @@ export async function importAccountData(
             return [];
           }
         })();
-        const byId = new Map<string, any>();
-        for (const p of filterProjectsByDeleted(cloudList, deletedIds)) {
+        const byId = new Map<string, { id?: string }>();
+        for (const p of filterProjectsByDeleted(localList, deletedIds)) {
           const id = p?.id != null ? String(p.id) : '';
           if (id) byId.set(id, p);
         }
-        for (const p of filterProjectsByDeleted(localList, deletedIds)) {
+        for (const p of filterProjectsByDeleted(cloudList, deletedIds)) {
           const id = p?.id != null ? String(p.id) : '';
           if (id && !byId.has(id)) byId.set(id, p);
         }
@@ -248,7 +288,9 @@ export async function ensureSyncReady(): Promise<void> {
       await AsyncStorage.setItem('@user_name', userName);
     }
     const { saveAccountToSupabase, isSupabaseConfigured } = await import('./supabase-account');
+    const { ensureDefaultAvatar } = await import('./user-avatar');
     if (isSupabaseConfigured()) {
+      await ensureDefaultAvatar();
       await saveAccountToSupabase(syncId, userName.trim(), null);
     }
   } catch (e) {
@@ -292,6 +334,24 @@ async function markSyncError(error: string): Promise<void> {
   }
 }
 
+function getProjectStorageKeys(projectId: string): string[] {
+  return [
+    `@project_${projectId}`,
+    `@project_images_${projectId}`,
+    `@project_annotations_${projectId}`,
+    `@project_cover_annotations_${projectId}`,
+    `@project_sections_${projectId}`,
+    `@project_page_instances_${projectId}`,
+    `@project_page_values_${projectId}`,
+    `@project_schema_version_${projectId}`,
+    `@project_form_migration_${projectId}`,
+    `@project_pdf_${projectId}`,
+    `@project_viewport_${projectId}`,
+    `@project_cover_viewport_${projectId}`,
+    `@project_last_text_style_${projectId}`,
+  ];
+}
+
 async function persistUploadedProjectUrls(
   before: Record<string, string>,
   after: Record<string, string>
@@ -300,6 +360,7 @@ async function persistUploadedProjectUrls(
     '@project_images_',
     '@project_annotations_',
     '@project_cover_annotations_',
+    '@project_page_values_',
     '@project_pdf_',
   ];
 
@@ -321,6 +382,8 @@ async function persistUploadedProjectUrls(
  *   В `@user_projects` в облаке ДОБАВЛЯЕМ эти проекты (мерж), а не заменяем весь список.
  * - Если `projectIdsToSync` пусто — пушим ТОЛЬКО core (имя, напоминания, настройки).
  *   Проекты НЕ трогаем. Список `@user_projects` в облаке НЕ перезаписываем.
+ *
+ * `pushAccountDataToCloud` без forceInclude подставляет id из `@projects_synced_to_cloud`.
  */
 type PushAccountDataOnceOptions = {
   /** Не мержить с облаком — иначе удалённые напоминания снова попадут в user_sync. */
@@ -345,6 +408,13 @@ async function pushAccountDataToCloudOnce(
     console.log('[AccountSync] pushOnce: syncingProjects=', syncingProjects, 'ids=', [...projectIds]);
   }
 
+  if (syncingProjects) {
+    const { flushAlbumProjectPersist } = await import('./albumProjectPersist');
+    for (const pid of projectIds) {
+      await flushAlbumProjectPersist(pid);
+    }
+  }
+
   // --- Экспортируем все данные из AsyncStorage ---
   let data = await exportAccountData({ allowPrefixes: SYNC_DATA_PREFIXES });
   
@@ -361,15 +431,8 @@ async function pushAccountDataToCloudOnce(
 
   // --- Если пушим проекты, гарантируем что их ключи в data ---
   if (syncingProjects) {
-    const projectKeyTemplates = [
-      (pid: string) => `@project_${pid}`,
-      (pid: string) => `@project_images_${pid}`,
-      (pid: string) => `@project_annotations_${pid}`,
-      (pid: string) => `@project_cover_annotations_${pid}`,
-      (pid: string) => `@project_sections_${pid}`,
-    ];
     for (const pid of projectIds) {
-      const keysToLoad = projectKeyTemplates.map((t) => t(pid));
+      const keysToLoad = getProjectStorageKeys(pid);
       const pairs = await AsyncStorage.multiGet(keysToLoad);
       for (const [k, v] of pairs) {
         if (k && typeof v === 'string') data[k] = v;
@@ -429,19 +492,7 @@ async function pushAccountDataToCloudOnce(
 
   // --- Если пушим проекты, мержим @user_projects с облаком ---
   if (syncingProjects) {
-    // Получаем облачный список проектов
-    const cloudUserProjects: { id?: string }[] = (() => {
-      try {
-        const raw = cloudCore?.['@user_projects'];
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : [];
-        }
-      } catch {}
-      return [];
-    })();
-
-    // Получаем локальный список
+    const deletedIds = await loadDeletedProjectIds();
     const localUserProjects: { id?: string }[] = (() => {
       try {
         const raw = userProjectsRaw;
@@ -453,19 +504,16 @@ async function pushAccountDataToCloudOnce(
       return [];
     })();
 
-    // Мержим: облако + локальные записи по пушимым проектам
-    const byId = new Map<string, any>();
-    for (const p of cloudUserProjects) {
+    // Локальный список — источник правды: удалённые на устройстве не возвращаем из облака.
+    const byId = new Map<string, { id?: string }>();
+    for (const p of filterProjectsByDeleted(localUserProjects, deletedIds)) {
       const pid = p?.id != null ? String(p.id) : '';
       if (pid) byId.set(pid, p);
     }
-    for (const p of localUserProjects) {
-      const pid = p?.id != null ? String(p.id) : '';
-      if (pid && projectIds.has(pid)) byId.set(pid, p); // обновляем только пушимые
-    }
-    // Гарантируем что все пушимые id есть в списке
     for (const pid of projectIds) {
-      if (!byId.has(pid)) byId.set(pid, { id: pid });
+      if (!byId.has(pid) && !deletedIds.has(pid)) {
+        byId.set(pid, { id: pid });
+      }
     }
     core['@user_projects'] = JSON.stringify(Array.from(byId.values()));
   }
@@ -833,14 +881,16 @@ export async function pushAccountDataToCloud(
   options?: PushToCloudOptions
 ): Promise<PushToCloudResult> {
   const forceInclude = options?.forceIncludeProjectIds?.filter(Boolean) ?? [];
-  if (forceInclude.length > 0) {
-    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.add(id));
+  const projectIdsToSync =
+    forceInclude.length > 0 ? forceInclude : await getProjectsSyncedToCloud();
+  if (projectIdsToSync.length > 0) {
+    projectIdsToSync.forEach((id) => pendingPushProjectIdsRef.current.add(id));
   }
   let lastError: string | undefined;
   try {
     for (let attempt = 1; attempt <= SYNC_RETRY_ATTEMPTS; attempt++) {
       try {
-        const result = await pushAccountDataToCloudOnce(forceInclude, {
+        const result = await pushAccountDataToCloudOnce(projectIdsToSync, {
           remindersAuthoritativeLocal: options?.remindersAuthoritativeLocal,
         });
         if (result.ok) {
@@ -860,6 +910,6 @@ export async function pushAccountDataToCloud(
     await markSyncError(finalError);
     return { ok: false, error: finalError };
   } finally {
-    forceInclude.forEach((id) => pendingPushProjectIdsRef.current.delete(id));
+    projectIdsToSync.forEach((id) => pendingPushProjectIdsRef.current.delete(id));
   }
 }

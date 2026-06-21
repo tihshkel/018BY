@@ -1,0 +1,25 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_SUPABASE_EMAIL: ${E2E_SUPABASE_EMAIL}
+  E2E_SUPABASE_PASSWORD: ${E2E_SUPABASE_PASSWORD}
+---
+- launchApp:
+    clearState: true
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-start
+- tapOn:
+    id: login-email
+- inputText: ${E2E_SUPABASE_EMAIL}
+- tapOn:
+    id: login-password
+- inputText: ${E2E_SUPABASE_PASSWORD}
+- tapOn:
+    id: login-submit
+- extendedWaitUntil:
+    visible:
+      id: home-greeting
+    timeout: 30000

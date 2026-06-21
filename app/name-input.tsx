@@ -1,6 +1,9 @@
+import { AppButton, AppInput } from '@/components/ui';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
 import { saveAccountToSupabase } from '@/utils/supabase-account';
+import { ensureDefaultAvatar } from '@/utils/user-avatar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -25,8 +28,10 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AUTH_CONTENT_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export default function NameInputScreen() {
+  const { contentMaxWidth, horizontalPadding } = useResponsiveLayout(AUTH_CONTENT_MAX_WIDTH);
   const [name, setName] = useState('');
   const [showGreeting, setShowGreeting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,6 +138,7 @@ export default function NameInputScreen() {
 
       await AsyncStorage.setItem('@user_name', trimmedName);
       await AsyncStorage.setItem('@has_seen_onboarding', 'true');
+      await ensureDefaultAvatar();
 
       setIsSubmitting(false);
       setShowGreeting(true);
@@ -179,16 +185,23 @@ export default function NameInputScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
+        colors={[colors.border, colors.background, colors.border]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
 
       <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-        <Animated.View style={[styles.content, containerAnimatedStyle, keyboardPadStyle]}>
+        <Animated.View
+          style={[
+            styles.content,
+            { paddingHorizontal: horizontalPadding },
+            containerAnimatedStyle,
+            keyboardPadStyle,
+          ]}
+        >
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.innerContent}>
+            <View style={[styles.innerContent, { maxWidth: contentMaxWidth }]}>
               <Animated.View style={styles.header}>
                 <Text style={styles.title}>Как вас зовут?</Text>
                 <Text style={styles.subtitle}>
@@ -197,42 +210,27 @@ export default function NameInputScreen() {
               </Animated.View>
 
               <Animated.View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
+                <AppInput
+                  testID="name-input-field"
                   value={name}
                   onChangeText={setName}
                   placeholder="Введите ваше имя"
-                  placeholderTextColor="#B8A89A"
                   autoFocus
                   autoCapitalize="words"
                   autoCorrect={false}
                   onSubmitEditing={handleContinue}
+                  returnKeyType="done"
                 />
               </Animated.View>
 
               <Animated.View>
-                <TouchableOpacity
-                  style={[
-                    styles.continueButton,
-                    (name.trim().length > 0 || isSubmitting) && styles.continueButtonActive,
-                  ]}
+                <AppButton
+                  testID="name-input-submit"
+                  title="Продолжить"
                   onPress={handleContinue}
-                  activeOpacity={0.7}
+                  loading={isSubmitting}
                   disabled={name.trim().length === 0 || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text
-                      style={[
-                        styles.continueButtonText,
-                        name.trim().length > 0 && styles.continueButtonTextActive,
-                      ]}
-                    >
-                      Продолжить
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                />
               </Animated.View>
             </View>
           </TouchableWithoutFeedback>
@@ -261,16 +259,17 @@ export default function NameInputScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F0EB', // Фон на случай, если градиент не покрывает весь экран
+    backgroundColor: colors.border, // Фон на случай, если градиент не покрывает весь экран
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    width: '100%',
   },
   innerContent: {
     width: '100%',
+    alignSelf: 'center',
     alignItems: 'center',
   },
   header: {
@@ -280,20 +279,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -312,18 +306,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 60,
     borderWidth: 2,
-    borderColor: '#D4C4B5',
+    borderColor: colors.tabInactive,
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     fontSize: 19,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
       default: 'sans-serif',
     }),
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -340,9 +334,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   continueButtonActive: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     opacity: 1,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: {
       width: 0,
       height: 6,
@@ -379,14 +373,9 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     lineHeight: 40,
     paddingTop: Platform.OS === 'ios' ? 8 : 4,
     ...(Platform.OS === 'android' && {
@@ -397,7 +386,7 @@ const styles = StyleSheet.create({
   },
   greetingName: {
     fontSize: 40,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

@@ -1,0 +1,12 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-kids.yaml
+- tapOn:
+    id: page-card-2
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 15000
+- assertNotVisible:
+    id: form-save

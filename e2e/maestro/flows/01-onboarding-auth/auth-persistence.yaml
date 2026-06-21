@@ -1,0 +1,12 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: home-greeting
+    timeout: 15000
+- assertVisible:
+    text: 'Привет, E2E Тест'

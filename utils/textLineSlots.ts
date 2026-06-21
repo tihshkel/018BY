@@ -47,7 +47,28 @@ function getNormalizedSlotsForPage(
     lineGuideId
   ];
   const fromSlots = slotSet?.[String(page)];
-  if (fromSlots?.length) return fromSlots;
+  if (fromSlots?.length) {
+    return fromSlots.filter(
+      (slot) =>
+        !isBrownPage13AloneQuestionSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownPage16PeachTitleSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownPage17QuestionRowSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownPage31ClassQuestionSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownJournalTemplateSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownJournalFirstInstructionSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownJournalInstructionSpuriousSlot(lineGuideId, page, slot) &&
+        !isPurpleJournalTemplateSpuriousSlot(lineGuideId, page, slot) &&
+        !isPurpleJournalFirstInstructionSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownDaySpreadTitleSpuriousSlot(lineGuideId, page, slot) &&
+        !isPurpleDaySpreadTitleSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownPeachBottomTitleSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownPage24FooterSpuriousSlot(lineGuideId, page, slot) &&
+        !(
+          lineGuideId === 'diary_interior_brown' &&
+          isBrownSpuriousQuestionRowSlot(page, slot, fromSlots)
+        )
+    );
+  }
 
   const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId];
   const normalizedLines = guideSet?.[String(page)];
@@ -98,23 +119,773 @@ function clamp01(value: number): number {
   return Math.min(Math.max(value, 0), 0.98);
 }
 
+function isDiaryInteriorLineGuide(lineGuideId: string): boolean {
+  return (
+    lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple'
+  );
+}
+
+/** В PDF norm.y — координата штриха; полоса слота лежит над линией. */
+function getDiarySlotTopNormY(norm: NormalizedLineSlot): number {
+  return norm.y - norm.height;
+}
+
+/** Стр. 15: слот на заголовке «САМОЕ СОКРОВЕННОЕ». */
+function isBrownPeachBottomTitleSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 15 || slot.hasLabel) {
+    return false;
+  }
+  return (
+    slot.y >= 0.82 &&
+    slot.y <= 0.86 &&
+    slot.x < 0.2 &&
+    slot.width >= 0.4
+  );
+}
+
+/** Стр. 16: линия под заголовком розового блока — не поле ввода. */
+function isBrownPage16PeachTitleSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 16 || slot.hasLabel) {
+    return false;
+  }
+  return (
+    slot.y >= 0.695 &&
+    slot.y <= 0.715 &&
+    slot.x >= 0.08 &&
+    slot.width >= 0.65
+  );
+}
+
+/** Стр. 31: ложная широкая линия на тексте «Сколько человек в классе?». */
+function isBrownPage31ClassQuestionSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 31 || slot.hasLabel) {
+    return false;
+  }
+  return (
+    slot.y >= 0.548 &&
+    slot.y <= 0.562 &&
+    slot.x < 0.35 &&
+    slot.width >= 0.55
+  );
+}
+
+const BROWN_JOURNAL_TEMPLATE_PAGES = new Set([
+  16, 20, 23, 25, 28, 33,
+  45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+]);
+
+const PURPLE_JOURNAL_TEMPLATE_PAGES = new Set([
+  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
+]);
+
+const PURPLE_DAY_SPREAD_PAGES = new Set([24, 25, 26, 27]);
+
+function getDiaryCareerQuestionPage(lineGuideId: string): number {
+  return lineGuideId === 'diary_interior_purple' ? 5 : 6;
+}
+
+/** Первый розовый блок «НАПИШИ ИЛИ НАРИСУЙ!» — не поле ввода. */
+function isBrownJournalFirstInstructionSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
+  return (
+    slot.y >= 0.25 &&
+    slot.y <= 0.3 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.65
+  );
+}
+
+function isBrownJournalInstructionSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
+  return false;
+}
+
+function isPurpleJournalFirstInstructionSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (!PURPLE_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
+  return (
+    slot.y >= 0.25 &&
+    slot.y <= 0.3 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.65
+  );
+}
+
+function isPurpleJournalTemplateSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (!PURPLE_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
+  if (slot.y >= 0.57 && slot.y <= 0.64 && slot.width >= 0.35 && slot.width <= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.68 && slot.y <= 0.715 && slot.x < 0.15 && slot.width >= 0.65) {
+    return true;
+  }
+  return false;
+}
+
+/** Журнальные блоки: подпись, смайлы, заголовок нижней секции — не поля ввода. */
+function isBrownJournalTemplateSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
+  if (slot.y >= 0.57 && slot.y <= 0.64 && slot.width >= 0.35 && slot.width <= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.68 && slot.y <= 0.715 && slot.x < 0.15 && slot.width >= 0.65) {
+    return true;
+  }
+  return false;
+}
+
+/** Двойные дневные страницы: слоты на названии дня недели. */
+function isBrownDaySpreadTitleSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (page < 34 || page > 40) return false;
+  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.52 && slot.y <= 0.68 && slot.x < 0.15 && slot.width >= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.55 && slot.y <= 0.67 && slot.x >= 0.35 && slot.width <= 0.28) {
+    return true;
+  }
+  return false;
+}
+
+function isPurpleDaySpreadTitleSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (!PURPLE_DAY_SPREAD_PAGES.has(page)) return false;
+  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.48 && slot.y <= 0.58 && slot.x < 0.15 && slot.width >= 0.65) {
+    return true;
+  }
+  if (slot.y >= 0.55 && slot.y <= 0.67 && slot.x >= 0.35 && slot.width <= 0.28) {
+    return true;
+  }
+  return false;
+}
+
+/** Стр. 24: нижняя декоративная линия под пунктом 5. */
+function isBrownPage24FooterSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 24 || slot.hasLabel) {
+    return false;
+  }
+  return slot.y >= 0.915 && slot.x < 0.2 && slot.width >= 0.65;
+}
+
+const BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH = 0.55;
+
+function refineBrownDaySpreadIllustrationNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  allNorms: readonly NormalizedLineSlot[]
+): NormalizedLineSlot {
+  const isBrownDaySpread = page >= 34 && page <= 40;
+  const isPurpleDaySpread = PURPLE_DAY_SPREAD_PAGES.has(page);
+  if ((!isBrownDaySpread && !isPurpleDaySpread) || norm.hasLabel) return norm;
+
+  const band =
+    norm.y < 0.52
+      ? allNorms.filter((slot) => slot.y >= 0.16 && slot.y < 0.52)
+      : allNorms.filter((slot) => slot.y >= 0.6 && slot.y < 0.95);
+  if (band.length < 2) return norm;
+
+  const sortedBand = [...band].sort((a, b) => a.y - b.y || a.x - b.x);
+  const normIndex = sortedBand.findIndex(
+    (slot) => Math.abs(slot.y - norm.y) < 0.001 && Math.abs(slot.x - norm.x) < 0.001
+  );
+  if (normIndex < 0) return norm;
+
+  const widths = sortedBand.map((slot) => slot.width);
+  const maxWidth = Math.max(...widths);
+  const shortLineWidth = widths
+    .filter((width) => width < maxWidth - 0.03)
+    .sort((a, b) => a - b)[0];
+  const bottomStartIndex = Math.max(1, Math.floor(sortedBand.length * 0.5));
+  if (normIndex < bottomStartIndex) return norm;
+
+  const targetWidth =
+    shortLineWidth != null
+      ? Math.min(shortLineWidth, BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH)
+      : BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH;
+  if (norm.width <= targetWidth + 0.01) return norm;
+  return { ...norm, width: targetWidth };
+}
+
+/** Стр. 17: ложный слот на строке вопроса «Ты любишь животных?». */
+function isBrownPage17QuestionRowSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 17 || slot.hasLabel) {
+    return false;
+  }
+  return false;
+}
+
+function refineBrownPage16PeachBlockNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  allNorms: readonly NormalizedLineSlot[]
+): NormalizedLineSlot {
+  if (page !== 16 || norm.inputKind !== 'block' || norm.y < 0.74) {
+    return norm;
+  }
+
+  const index = allNorms.indexOf(norm);
+  const prev = index > 0 ? allNorms[index - 1] : null;
+  const gap = prev ? norm.y - prev.y : norm.height;
+  const cellHeight = Math.min(Math.max(gap * 0.94, 0.038), 0.05);
+
+  return { ...norm, height: cellHeight };
+}
+
+/** Стр. 21: хвосты вопросов — не залезать на текст подписи. */
+function refineBrownPage21LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 21 || norm.hasLabel) return norm;
+
+  const rowMinX: Array<{ minY: number; maxY: number; minX: number }> = [
+    { minY: 0.318, maxY: 0.338, minX: 0.52 },
+    { minY: 0.398, maxY: 0.418, minX: 0.5 },
+    { minY: 0.458, maxY: 0.478, minX: 0.56 },
+    { minY: 0.628, maxY: 0.648, minX: 0.58 },
+  ];
+
+  for (const row of rowMinX) {
+    if (norm.y < row.minY || norm.y > row.maxY) continue;
+    if (norm.x >= row.minX) return norm;
+    const right = norm.x + norm.width;
+    const x = row.minX;
+    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+  }
+
+  return norm;
+}
+
+/** Стр. 24: хвосты вопросов и список — не перекрывать подписи и кружки. */
+function refineBrownPage24ListRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 24 || norm.hasLabel) return norm;
+
+  const rowMinX: Array<{ minY: number; maxY: number; minX: number }> = [
+    { minY: 0.288, maxY: 0.312, minX: 0.5 },
+    { minY: 0.332, maxY: 0.356, minX: 0.4 },
+    { minY: 0.378, maxY: 0.402, minX: 0.52 },
+    { minY: 0.422, maxY: 0.446, minX: 0.53 },
+    { minY: 0.466, maxY: 0.492, minX: 0.6 },
+    { minY: 0.508, maxY: 0.534, minX: 0.58 },
+  ];
+
+  for (const row of rowMinX) {
+    if (norm.y < row.minY || norm.y > row.maxY) continue;
+    if (norm.x >= row.minX) return norm;
+    const right = norm.x + norm.width;
+    const x = row.minX;
+    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+  }
+
+  if (norm.y < 0.63) return norm;
+
+  const minX = 0.22;
+  if (norm.x >= minX) return norm;
+  const right = norm.x + norm.width;
+  const x = minX;
+  return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+}
+
+/** Стр. 17: единая высота полос на линиях. */
+function refineBrownPage17UniformHeightNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 17 || norm.hasLabel) return norm;
+  if (norm.y < 0.24 || norm.y > 0.9) return norm;
+  return { ...norm, height: 0.032 };
+}
+
+/** Стр. 17: нижний блок — только левая колонка, без иллюстрации кота. */
+function refineBrownPage17BottomBlockNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 17 || norm.y < 0.75) return norm;
+
+  const maxWidth = 0.59;
+  if (norm.width <= maxWidth) return norm;
+  return { ...norm, width: maxWidth };
+}
+
+function applyBrownLabeledRowMinX(
+  norm: NormalizedLineSlot,
+  rows: Array<{ minY: number; maxY: number; minX: number }>
+): NormalizedLineSlot {
+  for (const row of rows) {
+    if (norm.y < row.minY || norm.y > row.maxY) continue;
+    if (norm.x >= row.minX) return norm;
+    const right = norm.x + norm.width;
+    const x = row.minX;
+    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+  }
+  return norm;
+}
+
+function applyLabeledRowMinX(
+  norm: NormalizedLineSlot,
+  rows: { minY: number; maxY: number; minX: number }[]
+): NormalizedLineSlot {
+  for (const row of rows) {
+    if (norm.y < row.minY || norm.y > row.maxY) continue;
+    if (norm.x >= row.minX) return norm;
+    const right = norm.x + norm.width;
+    const x = row.minX;
+    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+  }
+  return norm;
+}
+
+function refinePurplePage5LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 5 || norm.hasLabel) return norm;
+  return applyLabeledRowMinX(norm, [{ minY: 0.728, maxY: 0.758, minX: 0.52 }]);
+}
+
+function refinePurplePage16LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 16 || norm.hasLabel) return norm;
+  return applyLabeledRowMinX(norm, [
+    { minY: 0.488, maxY: 0.508, minX: 0.58 },
+    { minY: 0.552, maxY: 0.572, minX: 0.56 },
+  ]);
+}
+
+function refinePurplePage22LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 22 || norm.hasLabel) return norm;
+  return applyLabeledRowMinX(norm, [
+    { minY: 0.338, maxY: 0.368, minX: 0.52 },
+    { minY: 0.598, maxY: 0.628, minX: 0.58 },
+    { minY: 0.818, maxY: 0.848, minX: 0.52 },
+  ]);
+}
+
+/** Стр. 26 «Одежда и стиль»: хвосты подписей — не на текст вопроса. */
+function refineBrownPage26LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 26 || norm.hasLabel) return norm;
+  return applyBrownLabeledRowMinX(norm, [
+    { minY: 0.498, maxY: 0.518, minX: 0.58 },
+    { minY: 0.572, maxY: 0.592, minX: 0.58 },
+    { minY: 0.752, maxY: 0.772, minX: 0.52 },
+  ]);
+}
+
+/** Стр. 31 «Школьная жизнь»: выравнивание хвостов и единая высота строк. */
+function refineBrownPage31LabeledRowNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 31 || norm.hasLabel) return norm;
+
+  let refined = applyBrownLabeledRowMinX(norm, [
+    { minY: 0.412, maxY: 0.432, minX: 0.55 },
+    { minY: 0.478, maxY: 0.498, minX: 0.42 },
+    { minY: 0.544, maxY: 0.564, minX: 0.62 },
+    { minY: 0.618, maxY: 0.638, minX: 0.65 },
+    { minY: 0.868, maxY: 0.888, minX: 0.52 },
+  ]);
+
+  if (refined.inputKind !== 'block' && refined.y >= 0.32 && refined.y <= 0.94) {
+    refined = { ...refined, height: 0.032 };
+  }
+
+  return refined;
+}
+
+/** Стр. 15 «Мечты»: единая высота полос на белых линиях. */
+function refineBrownPage15PeachLineNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 15 || norm.hasLabel) return norm;
+  if (norm.y < 0.16 || norm.y > 0.95) return norm;
+  return { ...norm, height: 0.028 };
+}
+
+/** Стр. 26: единая высота строк ввода. */
+function refineBrownPage26UniformHeightNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 26 || norm.hasLabel || norm.inputKind === 'block') return norm;
+  if (norm.y < 0.28 || norm.y > 0.94) return norm;
+  return { ...norm, height: 0.032 };
+}
+
+function isBrownWideBlockAnswerSlot(slot: NormalizedLineSlot): boolean {
+  return !slot.hasLabel && slot.x < 0.15 && slot.width >= 0.72;
+}
+
+/** Стр. 13: хвост «Любимый мультфильм» (PNG ny≈0.4663, left≈0.435). */
+function isBrownPage13CartoonTailNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || norm.hasLabel) {
+    return false;
+  }
+  return (
+    norm.y >= 0.468 &&
+    norm.y <= 0.482 &&
+    norm.x >= 0.42 &&
+    norm.width >= 0.38 &&
+    norm.width <= 0.52
+  );
+}
+
+/** Стр. 13: хвосты «Любимый мультфильм» / «…сериал» / «…игрушка». */
+function isBrownPage13FavoritesLabelTailSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || slot.hasLabel) {
+    return false;
+  }
+  return (
+    slot.y >= 0.455 &&
+    slot.y <= 0.555 &&
+    slot.x >= 0.28 &&
+    slot.width >= 0.38 &&
+    slot.width <= 0.62
+  );
+}
+
+function isBrownPage13AloneQuestionSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || slot.hasLabel) {
+    return false;
+  }
+  if (isBrownPage13FavoritesLabelTailSlot(lineGuideId, page, slot)) {
+    return false;
+  }
+
+  // «…остаёшься одна?» — микро-хвост справа на строке вопроса (ny≈0.36–0.39), не строка ответа ниже.
+  if (
+    slot.y >= 0.34 &&
+    slot.y <= 0.39 &&
+    slot.x >= 0.65 &&
+    slot.width >= 0.08 &&
+    slot.width <= 0.25
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/** Стр. 17 и др.: дубль на той же строке, не хвост+продолжение в одной группе. */
+function isBrownSpuriousQuestionRowSlot(
+  page: number,
+  slot: NormalizedLineSlot,
+  allSlots: readonly NormalizedLineSlot[]
+): boolean {
+  if (page === 17) return false;
+  if (slot.hasLabel || isBrownWideBlockAnswerSlot(slot)) return false;
+
+  const continuationPartner = allSlots.find(
+    (candidate) =>
+      candidate !== slot &&
+      candidate.continuationGroup === slot.continuationGroup &&
+      Math.abs(candidate.y - slot.y) > 0.015
+  );
+  if (continuationPartner) return false;
+
+  const sameRowDuplicate = allSlots.some(
+    (candidate) =>
+      candidate !== slot &&
+      Math.abs(candidate.y - slot.y) < 0.005 &&
+      brownSlotHorizontalOverlapRatio(slot, candidate) > 0.8
+  );
+  if (sameRowDuplicate) return true;
+
+  return false;
+}
+
+function brownSlotHorizontalOverlapRatio(
+  a: Pick<NormalizedLineSlot, 'x' | 'width'>,
+  b: Pick<NormalizedLineSlot, 'x' | 'width'>
+): number {
+  const aRight = a.x + a.width;
+  const bRight = b.x + b.width;
+  const overlap = Math.min(aRight, bRight) - Math.max(a.x, b.x);
+  if (overlap <= 0) return 0;
+  return overlap / Math.min(a.width, b.width);
+}
+
+/** Стр. 13: хвост «…заниматься?» — текст чуть правее «?». */
+function isBrownPage13SportQuestionTailNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || norm.hasLabel) {
+    return false;
+  }
+  return (
+    norm.y >= 0.285 &&
+    norm.y <= 0.295 &&
+    norm.x >= 0.77 &&
+    norm.width >= 0.08 &&
+    norm.width <= 0.2
+  );
+}
+
+/** Левый край широких строк (Пожелания, продолжение «Кем хочешь стать») — PDF wide-block. */
+const BROWN_WISH_CONTINUATION_LEFT_NORM = 0.08479;
+/** Первая короткая строка справа от подписи — чуть правее слота. */
+const BROWN_WISH_HEAD_TEXT_INSET_NORM = 0.012;
+/** Стр. 6: короткая строка ответа справа от «?» (~75–80% ширины макета). */
+const BROWN_PAGE6_CAREER_HEAD_LEFT_NORM = 0.768;
+const BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM = 0.127;
+
+export function isBrownPage6CareerShortHeadNorm(
+  lineGuideId: string,
+  page: number,
+  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width' | 'hasLabel'>
+): boolean {
+  const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  const minY = lineGuideId === 'diary_interior_purple' ? 0.728 : 0.755;
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    page === careerPage &&
+    !norm.hasLabel &&
+    norm.y >= minY &&
+    norm.y <= 0.782 &&
+    norm.x >= 0.52 &&
+    norm.width >= 0.06 &&
+    norm.width <= 0.42
+  );
+}
+
+export function isBrownPage6CareerContinuationNorm(
+  lineGuideId: string,
+  page: number,
+  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'hasLabel' | 'width'>
+): boolean {
+  const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    page === careerPage &&
+    !norm.hasLabel &&
+    norm.y >= 0.788 &&
+    norm.y <= 0.845 &&
+    norm.width >= 0.45 &&
+    norm.x < 0.2
+  );
+}
+
+export function isBrownWishShortHeadNorm(
+  lineGuideId: string,
+  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width' | 'hasLabel'>
+): boolean {
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    !norm.hasLabel &&
+    norm.y >= 0.772 &&
+    norm.y <= 0.79 &&
+    norm.x >= 0.27 &&
+    norm.width >= 0.3 &&
+    norm.width < 0.66
+  );
+}
+
+export function isBrownWishContinuationNorm(
+  lineGuideId: string,
+  norm: Pick<NormalizedLineSlot, 'y' | 'inputKind' | 'hasLabel' | 'width'>
+): boolean {
+  return (
+    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    norm.inputKind === 'block' &&
+    !norm.hasLabel &&
+    norm.y >= 0.815 &&
+    norm.width >= 0.65
+  );
+}
+
+function refineBrownParentQuestionnaireRowNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  const isParentPage =
+    (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8)) ||
+    (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7));
+  if (!isParentPage) return norm;
+  if (norm.inputKind === 'block') return norm;
+  if (norm.y < 0.22 || norm.y > 0.82) return norm;
+
+  const minAnswerLeft = 0.32;
+  if (norm.x >= minAnswerLeft || norm.width <= 0.45) return norm;
+
+  const right = norm.x + norm.width;
+  const x = minAnswerLeft;
+  const width = Math.max(0.15, Math.min(right - x, 0.98 - x));
+  return { ...norm, x, width };
+}
+
 /** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
 function refineNormalizedSlotForTextLayout(
   lineGuideId: string,
-  _page: number,
-  norm: NormalizedLineSlot
+  page: number,
+  norm: NormalizedLineSlot,
+  allNorms: readonly NormalizedLineSlot[] = []
 ): NormalizedLineSlot {
   if (!lineGuideId?.startsWith('diary_interior_')) {
     return norm;
   }
 
-  const isBlock = norm.inputKind === 'block';
-  const xInset = isBlock ? 0 : norm.hasLabel ? 0.003 : 0.006;
-  const widthTrim = isBlock ? 0 : norm.hasLabel ? 0.004 : 0.01;
-  const x = clamp01(norm.x + xInset);
-  const width = Math.max(0.05, Math.min(norm.width - widthTrim, 0.98 - x));
+  let refined = refineBrownParentQuestionnaireRowNorm(lineGuideId, page, norm);
+  if (lineGuideId === 'diary_interior_brown') {
+    refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
+    refined = refineBrownPage15PeachLineNorm(page, refined);
+    refined = refineBrownPage17UniformHeightNorm(page, refined);
+    refined = refineBrownPage17BottomBlockNorm(page, refined);
+    refined = refineBrownPage21LabeledRowNorm(page, refined);
+    refined = refineBrownPage24ListRowNorm(page, refined);
+    refined = refineBrownDaySpreadIllustrationNorm(page, refined, allNorms);
+    refined = refineBrownPage26LabeledRowNorm(page, refined);
+    refined = refineBrownPage26UniformHeightNorm(page, refined);
+    refined = refineBrownPage31LabeledRowNorm(page, refined);
+  }
 
-  return { ...norm, x, width };
+  if (lineGuideId === 'diary_interior_purple') {
+    refined = refineBrownDaySpreadIllustrationNorm(page, refined, allNorms);
+    refined = refinePurplePage5LabeledRowNorm(page, refined);
+    refined = refinePurplePage16LabeledRowNorm(page, refined);
+    refined = refinePurplePage22LabeledRowNorm(page, refined);
+  }
+
+  if (isBrownPage13SportQuestionTailNorm(lineGuideId, page, refined)) {
+    const textInset = 0.014;
+    const x = clamp01(refined.x + textInset);
+    const width = Math.max(0.05, Math.min(refined.width - textInset, 0.98 - x));
+    return { ...refined, x, width };
+  }
+
+  if (isBrownPage13CartoonTailNorm(lineGuideId, page, refined)) {
+    const textInset = 0.006;
+    const x = clamp01(refined.x + textInset);
+    const width = Math.max(0.05, Math.min(refined.width - textInset, 0.98 - x));
+    return { ...refined, x, width };
+  }
+
+  if (isBrownPage6CareerShortHeadNorm(lineGuideId, page, refined)) {
+    const baseLeft =
+      refined.x >= 0.55 ? refined.x : BROWN_PAGE6_CAREER_HEAD_LEFT_NORM;
+    const baseWidth =
+      refined.width <= 0.22 ? refined.width : BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM;
+    const x = clamp01(baseLeft + BROWN_WISH_HEAD_TEXT_INSET_NORM);
+    const width = Math.max(
+      0.05,
+      Math.min(baseWidth - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x)
+    );
+    const { inputKind: _drop, ...rest } = refined;
+    return { ...rest, x, width };
+  }
+
+  if (isBrownPage6CareerContinuationNorm(lineGuideId, page, refined)) {
+    const right = Math.max(refined.x + refined.width, BROWN_WISH_CONTINUATION_LEFT_NORM + 0.72);
+    const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
+    const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
+    return { ...refined, x, width, inputKind: 'block' as const };
+  }
+
+  if (isBrownWishShortHeadNorm(lineGuideId, refined)) {
+    const x = clamp01(refined.x + BROWN_WISH_HEAD_TEXT_INSET_NORM);
+    const width = Math.max(0.05, Math.min(refined.width - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x));
+    return { ...refined, x, width };
+  }
+
+  if (isBrownWishContinuationNorm(lineGuideId, refined)) {
+    const right = refined.x + refined.width;
+    const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
+    const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
+    return { ...refined, x, width };
+  }
+
+  const isBlock = refined.inputKind === 'block';
+  const xInset = isBlock ? 0 : refined.hasLabel ? 0.003 : 0.006;
+  const widthTrim = isBlock ? 0 : refined.hasLabel ? 0.004 : 0.01;
+  const x = clamp01(refined.x + xInset);
+  const width = Math.max(0.05, Math.min(refined.width - widthTrim, 0.98 - x));
+
+  return { ...refined, x, width };
 }
 
 export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
@@ -129,10 +900,13 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
   const rect = resolveContentRectForPage(params);
 
   return normalized.map((norm, index) => {
-    const layoutNorm = refineNormalizedSlotForTextLayout(lineGuideId, page, norm);
+    const layoutNorm = refineNormalizedSlotForTextLayout(lineGuideId, page, norm, normalized);
+    const topNormY = isDiaryInteriorLineGuide(lineGuideId)
+      ? getDiarySlotTopNormY(layoutNorm)
+      : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
-      layoutNorm.y - layoutNorm.height / 2,
+      topNormY,
       layoutNorm.width,
       layoutNorm.height,
       rect
@@ -206,25 +980,144 @@ export function getLineSlotGroupBounds(groupSlots: TextLineSlot[]): LineSlotGrou
   };
 }
 
+function getSlotVerticalHitBounds(
+  slot: TextLineSlot,
+  slots: TextLineSlot[],
+  minHitPx = 28
+): { top: number; height: number } {
+  if (slot.lineHeight >= minHitPx) {
+    return { top: slot.y, height: slot.lineHeight };
+  }
+
+  const prev = slots[slot.index - 1];
+  const next = slots[slot.index + 1];
+  const slotBottom = slot.y + slot.lineHeight;
+
+  const gapAbove = prev ? Math.max(0, slot.y - (prev.y + prev.lineHeight)) : Infinity;
+  const gapBelow = next ? Math.max(0, next.y - slotBottom) : Infinity;
+
+  const needExpand = minHitPx - slot.lineHeight;
+  let expandUp = Math.min(needExpand / 2, gapAbove / 2);
+  let expandDown = Math.min(needExpand - expandUp, gapBelow / 2);
+
+  if (next) {
+    expandDown = Math.min(expandDown, Math.max(0, next.y - slotBottom - 2));
+  }
+  if (prev) {
+    const slotTop = slot.y;
+    expandUp = Math.min(expandUp, Math.max(0, slotTop - (prev.y + prev.lineHeight) - 2));
+  }
+
+  return {
+    top: slot.y - expandUp,
+    height: slot.lineHeight + expandUp + expandDown,
+  };
+}
+
+/** Зона тапа: для дневников расширяем влево до начала видимой линии. */
+export function getSlotInteractionRect(
+  slot: TextLineSlot,
+  slots: TextLineSlot[],
+  slotParams: GetLineSlotsParams
+): { x: number; y: number; width: number; height: number } {
+  const vertical = getSlotVerticalHitBounds(slot, slots);
+  let left = slot.x;
+  let width = slot.width;
+
+  const isBrownWideAnswerRow =
+    slotParams.lineGuideId === 'diary_interior_brown' &&
+    !slot.hasLabel &&
+    slot.normY != null &&
+    slot.x < 0.16 &&
+    slot.width >= 0.72;
+
+  const isDiaryWishContinuation =
+    (slotParams.lineGuideId === 'diary_interior_brown' ||
+      slotParams.lineGuideId === 'diary_interior_purple') &&
+    !slot.hasLabel &&
+    slot.inputKind === 'block' &&
+    slot.normY != null &&
+    slot.normY >= 0.815 &&
+    slot.width >= 0.65;
+
+  const careerPage = getDiaryCareerQuestionPage(slotParams.lineGuideId ?? '');
+  const isPage6CareerContinuation =
+    (slotParams.lineGuideId === 'diary_interior_brown' ||
+      slotParams.lineGuideId === 'diary_interior_purple') &&
+    slotParams.page === careerPage &&
+    !slot.hasLabel &&
+    slot.normY != null &&
+    slot.normY >= 0.788 &&
+    slot.normY <= 0.845 &&
+    slot.width >= 0.45 &&
+    slot.x < 0.16;
+
+  if (
+    slotParams.lineGuideId === 'diary_interior_purple' ||
+    slotParams.lineGuideId === 'diary_interior_brown'
+  ) {
+    if (isDiaryWishContinuation || isPage6CareerContinuation) {
+      const rect = resolveContentRectForPage(slotParams);
+      const minLeft = rect.offsetX + rect.width * BROWN_WISH_CONTINUATION_LEFT_NORM;
+      if (left > minLeft + 2) {
+        width += left - minLeft;
+        left = minLeft;
+      }
+    } else if (
+      !isBrownWideAnswerRow &&
+      !slot.hasLabel &&
+      slot.normY != null &&
+      slot.normY < 0.45
+    ) {
+      const rect = resolveContentRectForPage(slotParams);
+      const minLeft = rect.offsetX + rect.width * 0.12;
+      if (left > minLeft + 2) {
+        width += left - minLeft;
+        left = minLeft;
+      }
+    }
+  }
+
+  return {
+    x: left,
+    y: vertical.top,
+    width,
+    height: vertical.height,
+  };
+}
+
 export function hitTestLineSlot(params: {
   x: number;
   y: number;
   slots: TextLineSlot[];
+  slotParams?: GetLineSlotsParams;
 }): TextLineSlot | null {
-  const { x, y, slots } = params;
+  const { x, y, slots, slotParams } = params;
 
   let best: TextLineSlot | null = null;
-  let bestCenterDistance = Infinity;
+  let bestScore = Infinity;
 
   for (const slot of slots) {
-    const inX = x >= slot.x && x <= slot.x + slot.width;
-    const inY = y >= slot.y && y <= slot.y + slot.lineHeight;
+    const bounds = slotParams
+      ? getSlotInteractionRect(slot, slots, slotParams)
+      : {
+          x: slot.x,
+          y: slot.y,
+          width: slot.width,
+          height: slot.lineHeight,
+        };
+
+    const inX = x >= bounds.x && x <= bounds.x + bounds.width;
+    const inY = y >= bounds.y && y <= bounds.y + bounds.height;
     if (!inX || !inY) continue;
 
-    const centerY = slot.y + slot.lineHeight / 2;
+    const centerY = bounds.y + bounds.height / 2;
     const centerDistance = Math.abs(y - centerY);
-    if (centerDistance < bestCenterDistance) {
-      bestCenterDistance = centerDistance;
+    const blockPriority = slot.inputKind === 'block' ? -1000 : 0;
+    const score = centerDistance + blockPriority;
+
+    if (score < bestScore) {
+      bestScore = score;
       best = slot;
     }
   }

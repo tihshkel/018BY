@@ -12,20 +12,51 @@ export type NotificationInboxItem = {
 const INBOX_STORAGE_KEY = '@notification_inbox';
 const MAX_INBOX_ITEMS = 200;
 
+/** Expo на Android отдаёт notification.date в секундах; в JS Date нужны миллисекунды. */
+function normalizeToMilliseconds(timestamp: number): number {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return Date.now();
+  }
+  if (timestamp < 1_000_000_000_000) {
+    return timestamp * 1000;
+  }
+  return timestamp;
+}
+
+function repairLegacyReceivedAt(item: NotificationInboxItem): NotificationInboxItem {
+  const parsed = new Date(item.receivedAt);
+  if (!Number.isNaN(parsed.getTime()) && parsed.getFullYear() >= 2000) {
+    return item;
+  }
+
+  const suffix = item.id.split('_').pop();
+  const fromId = Number(suffix);
+  if (Number.isFinite(fromId) && fromId > 0) {
+    return {
+      ...item,
+      receivedAt: new Date(normalizeToMilliseconds(fromId)).toISOString(),
+    };
+  }
+
+  return { ...item, receivedAt: new Date().toISOString() };
+}
+
 function parseInbox(raw: string | null): NotificationInboxItem[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item): item is NotificationInboxItem =>
-        typeof item === 'object' &&
-        item != null &&
-        typeof (item as NotificationInboxItem).id === 'string' &&
-        typeof (item as NotificationInboxItem).title === 'string' &&
-        typeof (item as NotificationInboxItem).body === 'string' &&
-        typeof (item as NotificationInboxItem).receivedAt === 'string'
-    );
+    return parsed
+      .filter(
+        (item): item is NotificationInboxItem =>
+          typeof item === 'object' &&
+          item != null &&
+          typeof (item as NotificationInboxItem).id === 'string' &&
+          typeof (item as NotificationInboxItem).title === 'string' &&
+          typeof (item as NotificationInboxItem).body === 'string' &&
+          typeof (item as NotificationInboxItem).receivedAt === 'string'
+      )
+      .map(repairLegacyReceivedAt);
   } catch {
     return [];
   }
@@ -37,7 +68,14 @@ async function saveInbox(items: NotificationInboxItem[]): Promise<void> {
 
 export async function getNotificationInbox(): Promise<NotificationInboxItem[]> {
   const raw = await AsyncStorage.getItem(INBOX_STORAGE_KEY);
-  return parseInbox(raw);
+  const items = parseInbox(raw);
+  if (raw && items.length > 0) {
+    const repaired = JSON.stringify(items);
+    if (repaired !== raw) {
+      await saveInbox(items);
+    }
+  }
+  return items;
 }
 
 export async function appendNotificationToInbox(
@@ -68,15 +106,18 @@ function inferSource(notification: Notification): 'local' | 'remote' {
 
 export function notificationToInboxItem(notification: Notification): NotificationInboxItem {
   const content = notification.request.content;
-  const id =
-    notification.request.identifier ||
-    `${content.title ?? ''}_${content.body ?? ''}_${Date.now()}`;
+  const deliveryMs =
+    typeof notification.date === 'number' && Number.isFinite(notification.date)
+      ? normalizeToMilliseconds(notification.date)
+      : Date.now();
+  const baseId = notification.request.identifier || 'notification';
+  const id = `${baseId}_${deliveryMs}`;
 
   return {
     id,
     title: content.title ?? 'Уведомление',
     body: content.body ?? '',
-    receivedAt: new Date().toISOString(),
+    receivedAt: new Date(deliveryMs).toISOString(),
     source: inferSource(notification),
   };
 }

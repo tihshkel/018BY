@@ -203,51 +203,128 @@ function yieldToUI(): Promise<void> {
 
 const BYTE_COPY_CHUNK = 65536; // 64KB — копируем порциями, между ними уступаем потоку
 
-async function uploadAnnotationImageUris(
-  accessCode: string,
-  projectId: string,
-  key: string,
-  value: string
-): Promise<string | null> {
-  const annotations = JSON.parse(value || '[]');
-  if (!Array.isArray(annotations)) return null;
+/** Индексы шаблонных страниц альбома обычно 0..N; пользовательские фото — с 10000. */
+const ALBUM_USER_PHOTO_INDEX_BASE = 10000;
+
+function isLocalMediaUri(uri: string): boolean {
+  return (
+    uri.startsWith('file://') || uri.startsWith('/') || uri.startsWith('content://')
+  );
+}
+
+type UriResolver = {
+  resolve: (uri: string) => Promise<{ uri: string; changed: boolean }>;
+};
+
+function createUriResolver(accessCode: string, projectId: string): UriResolver {
+  const uriCache = new Map<string, string>();
+  let nextIndex = ALBUM_USER_PHOTO_INDEX_BASE;
+
+  return {
+    async resolve(uri: string): Promise<{ uri: string; changed: boolean }> {
+      if (!uri || typeof uri !== 'string') return { uri, changed: false };
+      if (uri.startsWith('https://')) return { uri, changed: false };
+      if (!isLocalMediaUri(uri)) return { uri, changed: false };
+
+      const cached = uriCache.get(uri);
+      if (cached) return { uri: cached, changed: true };
+
+      const url = await uploadImageToStorage(accessCode, projectId, uri, nextIndex++);
+      if (url) {
+        uriCache.set(uri, url);
+        return { uri: url, changed: true };
+      }
+      return { uri, changed: false };
+    },
+  };
+}
+
+async function processAnnotationsJson(
+  value: string,
+  resolver: UriResolver
+): Promise<{ json: string; changed: boolean }> {
+  let annotations: unknown;
+  try {
+    annotations = JSON.parse(value);
+  } catch {
+    return { json: value, changed: false };
+  }
+  if (!Array.isArray(annotations)) return { json: value, changed: false };
 
   let changed = false;
-  const uploaded = [];
-
-  for (let index = 0; index < annotations.length; index++) {
-    const annotation = annotations[index];
-    if (!annotation || typeof annotation !== 'object') {
-      uploaded.push(annotation);
-      continue;
+  const next = [];
+  for (const ann of annotations) {
+    if (ann?.type === 'image' && typeof ann?.imageUri === 'string') {
+      const { uri, changed: slotChanged } = await resolver.resolve(ann.imageUri);
+      if (slotChanged) {
+        changed = true;
+        next.push({ ...ann, imageUri: uri });
+        continue;
+      }
     }
-    if (annotation.type !== 'image' || typeof annotation.imageUri !== 'string') {
-      uploaded.push(annotation);
-      continue;
-    }
-
-    const uri = annotation.imageUri;
-    if (uri.startsWith('https://')) {
-      uploaded.push(annotation);
-      continue;
-    }
-    if (!uri.startsWith('file://') && !uri.startsWith('/') && !uri.startsWith('content://')) {
-      uploaded.push(annotation);
-      continue;
-    }
-
-    const uploadIndex = key.startsWith('@project_cover_annotations_') ? 20000 + index : 10000 + index;
-    const url = await uploadImageToStorage(accessCode, projectId, uri, uploadIndex);
-    if (url) {
-      changed = true;
-      uploaded.push({ ...annotation, imageUri: url });
-    } else {
-      uploaded.push(annotation);
-    }
-    await yieldToUI();
+    next.push(ann);
   }
 
-  return changed ? JSON.stringify(uploaded) : null;
+  return { json: changed ? JSON.stringify(next) : value, changed };
+}
+
+async function processPageValuesJson(
+  value: string,
+  resolver: UriResolver
+): Promise<{ json: string; changed: boolean }> {
+  let map: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { json: value, changed: false };
+    }
+    map = parsed as Record<string, unknown>;
+  } catch {
+    return { json: value, changed: false };
+  }
+
+  let changed = false;
+  const nextMap: Record<string, unknown> = { ...map };
+
+  for (const instanceId of Object.keys(nextMap)) {
+    const pv = nextMap[instanceId];
+    if (!pv || typeof pv !== 'object' || Array.isArray(pv)) continue;
+    const pageValues = pv as {
+      photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+    };
+    if (!pageValues.photoBlocks) continue;
+
+    const blocks = { ...pageValues.photoBlocks };
+    let instanceChanged = false;
+
+    for (const blockId of Object.keys(blocks)) {
+      const block = blocks[blockId];
+      if (!block?.slots || !Array.isArray(block.slots)) continue;
+
+      const newSlots: (string | null)[] = [...block.slots];
+      let blockChanged = false;
+      for (let i = 0; i < newSlots.length; i++) {
+        const slot = newSlots[i];
+        if (typeof slot !== 'string') continue;
+        const { uri, changed: slotChanged } = await resolver.resolve(slot);
+        if (slotChanged) {
+          newSlots[i] = uri;
+          blockChanged = true;
+        }
+      }
+      if (blockChanged) {
+        blocks[blockId] = { ...block, slots: newSlots };
+        instanceChanged = true;
+      }
+    }
+
+    if (instanceChanged) {
+      nextMap[instanceId] = { ...pageValues, photoBlocks: blocks };
+      changed = true;
+    }
+  }
+
+  return { json: changed ? JSON.stringify(nextMap) : value, changed };
 }
 
 /**
@@ -259,6 +336,16 @@ export async function uploadProjectImagesBeforeSync(
   data: Record<string, string>
 ): Promise<Record<string, string>> {
   const result = { ...data };
+  const resolversByProject = new Map<string, UriResolver>();
+  const getResolver = (projectId: string): UriResolver => {
+    let resolver = resolversByProject.get(projectId);
+    if (!resolver) {
+      resolver = createUriResolver(accessCode, projectId);
+      resolversByProject.set(projectId, resolver);
+    }
+    return resolver;
+  };
+
   const keys = Object.keys(result).filter((k) => k.startsWith('@project_images_'));
 
   for (const key of keys) {
@@ -309,17 +396,33 @@ export async function uploadProjectImagesBeforeSync(
   );
   for (const key of annotationKeys) {
     try {
-      const value = result[key];
-      if (typeof value !== 'string' || !value) continue;
-      const projectId = key
-        .replace('@project_cover_annotations_', '')
-        .replace('@project_annotations_', '');
-      const uploadedJson = await uploadAnnotationImageUris(accessCode, projectId, key, value);
-      if (uploadedJson) {
-        result[key] = uploadedJson;
-      }
+      const projectId = key.startsWith('@project_cover_annotations_')
+        ? key.replace('@project_cover_annotations_', '')
+        : key.replace('@project_annotations_', '');
+      const { json, changed } = await processAnnotationsJson(
+        result[key],
+        getResolver(projectId)
+      );
+      if (changed) result[key] = json;
     } catch (e) {
-      console.warn('[SupabaseStorage] Failed to process annotation images', key, e);
+      console.warn('[SupabaseStorage] Failed to process annotations', key, e);
+    }
+    await yieldToUI();
+  }
+
+  const pageValuesKeys = Object.keys(result).filter((k) =>
+    k.startsWith('@project_page_values_')
+  );
+  for (const key of pageValuesKeys) {
+    try {
+      const projectId = key.replace('@project_page_values_', '');
+      const { json, changed } = await processPageValuesJson(
+        result[key],
+        getResolver(projectId)
+      );
+      if (changed) result[key] = json;
+    } catch (e) {
+      console.warn('[SupabaseStorage] Failed to process page values', key, e);
     }
     await yieldToUI();
   }

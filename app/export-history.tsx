@@ -1,3 +1,5 @@
+import { AppHeader, AppScreen, AppText } from '@/components/ui';
+import { colors, createShadow, radii, sansFont, spacing } from '@/constants/design-tokens';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -210,14 +212,9 @@ export default function ExportHistoryScreen() {
   }));
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
-          </TouchableOpacity>
-          <Text style={styles.title}>История экспорта</Text>
-        </View>
+    <AppScreen tabletShell contentMaxWidth={640} edges={['top', 'bottom']}>
+      <Animated.View style={[styles.content, animatedStyle, { flex: 1 }]}>
+        <AppHeader title="История экспорта" showBack />
 
         <ScrollView
           style={styles.scrollView}
@@ -226,7 +223,7 @@ export default function ExportHistoryScreen() {
         >
           {exports.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="document-text-outline" size={64} color="#D4C4B5" />
+              <Ionicons name="document-text-outline" size={64} color={colors.tabInactive} />
               <Text style={styles.emptyStateText}>
                 Здесь будут ваши экспортированные файлы
               </Text>
@@ -240,7 +237,7 @@ export default function ExportHistoryScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.exportIcon}>
-                  <Ionicons name="document-text" size={32} color="#C9A89A" />
+                  <Ionicons name="document-text" size={32} color={colors.primary} />
                 </View>
                 <View style={styles.exportInfo}>
                   <Text style={styles.exportProject}>{item.projectName}</Text>
@@ -253,20 +250,20 @@ export default function ExportHistoryScreen() {
                     })}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
               </TouchableOpacity>
             ))
           )}
         </ScrollView>
       </Animated.View>
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -283,14 +280,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     flex: 1,
   },
   scrollView: {
@@ -308,8 +300,8 @@ const styles = StyleSheet.create({
     padding: 22,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -319,7 +311,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -329,7 +321,7 @@ const styles = StyleSheet.create({
   },
   exportProject: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -340,7 +332,7 @@ const styles = StyleSheet.create({
   },
   exportFormat: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -351,7 +343,7 @@ const styles = StyleSheet.create({
   },
   exportDate: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -366,7 +358,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 18,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',

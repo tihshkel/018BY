@@ -1,0 +1,42 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-diary-purple.yaml
+- tapOn:
+    id: page-card-4
+- extendedWaitUntil:
+    visible:
+      text: 'Заполнить страницу'
+    timeout: 15000
+- tapOn:
+    text: 'Заполнить страницу'
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    id: photo-slot-0
+- tapOn:
+    text: 'Фото'
+    optional: true
+- tapOn:
+    text: 'Выбрать'
+    optional: true
+- tapOn:
+    text: 'Разрешить'
+    optional: true
+- tapOn:
+    point: 50%,50%
+    optional: true
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр страницы'
+    timeout: 20000
+- tapOn:
+    id: preview-photo-block-select
+- extendedWaitUntil:
+    visible:
+      id: preview-photo-block-selected
+    timeout: 10000

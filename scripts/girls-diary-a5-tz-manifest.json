@@ -1,0 +1,322 @@
+{
+  "1": {
+    "title": "Этот дневник принадлежит",
+    "template": "DiaryOwnerTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "2": {
+    "title": "Привет! Давай знакомиться!",
+    "template": "StaticPageTemplate",
+    "pageType": "non_editable",
+    "editable": false,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "3": {
+    "title": "Правила этого дневника",
+    "template": "DiaryRulesTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "4": {
+    "title": "Твое фото",
+    "template": "PhotoPageWithTitleTemplate",
+    "pageType": "photo",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": true
+  },
+  "5": {
+    "title": "Твоя анкета",
+    "template": "UserQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "6": {
+    "title": "Анкета для мамы",
+    "template": "ParentQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "7": {
+    "title": "Анкета для папы",
+    "template": "ParentQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "8": {
+    "title": "Хобби",
+    "template": "HobbyQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "9": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "10": {
+    "title": "Твои питомцы",
+    "template": "PetsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "11": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "12": {
+    "title": "Социальные сети",
+    "template": "SocialNetworksTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "13": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "14": {
+    "title": "Твое настроение",
+    "template": "MoodQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "15": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "16": {
+    "title": "Одежда и стиль",
+    "template": "StyleQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "17": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "18": {
+    "title": "Первая любовь",
+    "template": "FirstLoveTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "19": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "20": {
+    "title": "Самое заветное желание",
+    "template": "StaticPageTemplate",
+    "pageType": "non_editable",
+    "editable": false,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "21": {
+    "title": "Место для конверта",
+    "template": "StaticPageTemplate",
+    "pageType": "non_editable",
+    "editable": false,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "22": {
+    "title": "Школьная жизнь",
+    "template": "SchoolLifeQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "23": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "24": {
+    "title": "Расписание недели: понедельник и вторник",
+    "template": "WeeklyScheduleTwoDaysTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "25": {
+    "title": "Расписание недели: среда и четверг",
+    "template": "WeeklyScheduleTwoDaysTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "26": {
+    "title": "Расписание недели: пятница и суббота",
+    "template": "WeeklyScheduleTwoDaysTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "27": {
+    "title": "Расписание: воскресенье",
+    "template": "WeeklyScheduleSundayTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": false,
+    "hasPhoto": false
+  },
+  "28": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "29": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "30": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "31": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "32": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "33": {
+    "title": "Анкета для друзей",
+    "template": "FriendsQuestionnaireTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "34": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "35": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "36": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "37": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "38": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "39": {
+    "title": "Твой день",
+    "template": "DayDiaryTemplate",
+    "pageType": "structured",
+    "editable": true,
+    "canDuplicate": true,
+    "hasPhoto": false
+  },
+  "40": {
+    "title": "История продолжается",
+    "template": "StaticPageTemplate",
+    "pageType": "non_editable",
+    "editable": false,
+    "canDuplicate": false,
+    "hasPhoto": false
+  }
+}

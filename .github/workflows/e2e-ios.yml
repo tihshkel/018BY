@@ -1,0 +1,53 @@
+name: E2E iOS (Maestro)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  maestro-ios:
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Preflight checks
+        run: npm run test:preflight
+
+      - name: Install Maestro
+        run: curl -Ls "https://get.maestro.mobile.dev" | bash
+
+      - name: Boot iOS Simulator
+        run: |
+          xcrun simctl boot "iPhone 16" 2>/dev/null || true
+          xcrun simctl bootstatus booted -b
+
+      - name: Build and install iOS app
+        run: npx expo run:ios --device "iPhone 16" --configuration Release
+        env:
+          EXPO_NO_TELEMETRY: 1
+
+      - name: Run Maestro smoke flows
+        run: |
+          export PATH="$PATH:$HOME/.maestro/bin"
+          maestro test e2e/maestro/flows/00-smoke
+          maestro test e2e/maestro/flows/02-profile/profile-edit-name.yaml
+          maestro test e2e/maestro/flows/02-profile/profile-avatar-preset.yaml
+
+      - name: Upload Maestro artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-debug-output
+          path: |
+            ~/.maestro/tests/**/*
+          if-no-files-found: ignore

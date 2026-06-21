@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
@@ -24,7 +25,7 @@ export function ProfileSubscriptionStatusBadge({
   onPress,
 }: ProfileSubscriptionStatusBadgeProps) {
   const content = isLoading ? (
-    <ActivityIndicator size="small" color="#9B8E7F" />
+    <ActivityIndicator size="small" color={colors.textSecondary} />
   ) : isPremium ? (
     <>
       <MaterialCommunityIcons name="crown" size={14} color={PREMIUM_GOLD_DARK} />
@@ -44,6 +45,7 @@ export function ProfileSubscriptionStatusBadge({
         ]}
         onPress={onPress}
         activeOpacity={0.75}
+        testID="profile-subscription-badge-button"
         accessibilityRole="button"
         accessibilityLabel={isPremium ? 'Статус Премиум' : 'Статус Стандарт'}
       >
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   badgeStandard: {
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderColor: '#E8DDD4',
   },
   badgePremium: {
@@ -92,7 +94,7 @@ const styles = StyleSheet.create({
   standardText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',

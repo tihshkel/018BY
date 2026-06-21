@@ -1,0 +1,80 @@
+{
+  "1": {
+    "title": "Этот альбом принадлежит",
+    "pageType": "structured",
+    "canDuplicate": false,
+    "captionEnabled": false
+  },
+  "2": {
+    "title": "Любимые мама и папа",
+    "pageType": "non_editable",
+    "canDuplicate": false,
+    "requiredInExport": true,
+    "fields": []
+  },
+  "3": {
+    "title": "Мы ждем тебя",
+    "pageType": "structured",
+    "canDuplicate": false,
+    "photoBlockPreset": "parents"
+  },
+  "4": {
+    "title": "Мои мама и папа",
+    "pageType": "structured",
+    "canDuplicate": false,
+    "photoBlockPreset": "parents"
+  },
+  "5": {
+    "title": "Семейное дерево",
+    "pageType": "family_tree",
+    "canDuplicate": false
+  },
+  "6": { "title": "Мое первое фото", "pageType": "event_photo", "canDuplicate": true },
+  "7": { "title": "Выписка из роддома", "pageType": "event_photo", "canDuplicate": true },
+  "8": { "title": "Первый день дома", "pageType": "event_photo", "canDuplicate": true, "hasDate": true },
+  "9": { "title": "Первое купание", "pageType": "event_photo", "canDuplicate": true, "hasDate": true },
+  "10": { "title": "Мои зубки", "pageType": "teeth", "canDuplicate": false },
+  "11": { "title": "Мой рост и вес до года", "pageType": "growth_weight", "canDuplicate": false },
+  "12": { "title": "Мои следы", "pageType": "structured", "canDuplicate": false, "photoBlockPreset": "parents", "hasDate": true },
+  "13": { "title": "Мои достижения", "pageType": "structured", "canDuplicate": false, "photoBlockPreset": "parents" },
+  "14": { "title": "Моя первая прогулка", "pageType": "event_photo", "canDuplicate": true },
+  "15": { "title": "Моя первая игрушка", "pageType": "event_photo", "canDuplicate": true },
+  "16": { "title": "Мои сновидения", "pageType": "event_photo", "canDuplicate": true },
+  "17": { "title": "Моя первая улыбка", "pageType": "event_photo", "canDuplicate": true },
+  "18": { "title": "Я сижу", "pageType": "event_photo", "canDuplicate": true },
+  "19": { "title": "Я стою", "pageType": "event_photo", "canDuplicate": true },
+  "20": { "title": "Таинство крещения", "pageType": "baptism_page", "canDuplicate": true, "hasDate": true },
+  "21": { "title": "Мои крестные", "pageType": "godparents_page", "canDuplicate": true, "photoBlockPreset": "godparents" },
+  "22": { "title": "Мне 1 месяц", "pageType": "month_page", "canDuplicate": true },
+  "23": { "title": "Мне 2 месяца", "pageType": "month_page", "canDuplicate": true },
+  "24": { "title": "Мне 3 месяца", "pageType": "month_page", "canDuplicate": true },
+  "25": { "title": "Мне 4 месяца", "pageType": "month_page", "canDuplicate": true },
+  "26": { "title": "Мне 5 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "27": { "title": "Мне 6 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "28": { "title": "Мне 7 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "29": { "title": "Мне 8 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "30": { "title": "Мне 9 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "31": { "title": "Мне 10 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "32": { "title": "Мне 11 месяцев", "pageType": "month_page", "canDuplicate": true },
+  "33": { "title": "Мне 1 годик", "pageType": "month_page", "canDuplicate": true },
+  "34": { "title": "Мой первый Новый год", "pageType": "event_photo", "canDuplicate": true },
+  "35": { "title": "Свободная страница для Нового года", "pageType": "free_photo_caption", "canDuplicate": true },
+  "36": { "title": "Моя первая зима", "pageType": "event_photo", "canDuplicate": true },
+  "37": { "title": "Моя первая весна", "pageType": "event_photo", "canDuplicate": true },
+  "38": { "title": "Мое первое лето", "pageType": "event_photo", "canDuplicate": true },
+  "39": { "title": "Моя первая осень", "pageType": "event_photo", "canDuplicate": true },
+  "40": { "title": "Мое первое путешествие", "pageType": "event_photo", "canDuplicate": true },
+  "41": { "title": "Свободная страница для путешествия", "pageType": "free_photo_caption", "canDuplicate": true },
+  "42": { "title": "Памятные моменты", "pageType": "caption_photo_page", "canDuplicate": true },
+  "43": { "title": "Свободная страница для памятных моментов", "pageType": "caption_photo_page", "canDuplicate": true },
+  "44": { "title": "Свободная страница для памятных моментов", "pageType": "caption_photo_page", "canDuplicate": true },
+  "45": { "title": "Свободная страница для памятных моментов", "pageType": "caption_photo_page", "canDuplicate": true },
+  "46": { "title": "Свободная страница для памятных моментов", "pageType": "caption_photo_page", "canDuplicate": true },
+  "47": { "title": "Свободная страница для памятных моментов", "pageType": "caption_photo_page", "canDuplicate": true },
+  "48": {
+    "title": "Моя история только начинается",
+    "pageType": "non_editable",
+    "canDuplicate": false,
+    "fields": []
+  }
+}

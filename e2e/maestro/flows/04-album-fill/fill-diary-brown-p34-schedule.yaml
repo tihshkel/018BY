@@ -1,0 +1,23 @@
+appId: com.tihonshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-diary.yaml
+- tapOn:
+    id: page-card-34
+- extendedWaitUntil:
+    visible:
+      id: form-save
+    timeout: 15000
+- tapOn:
+    text: 'Понедельник'
+    optional: true
+- inputText: Математика
+- tapOn:
+    id: form-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- assertVisible:
+    id: album-export-button

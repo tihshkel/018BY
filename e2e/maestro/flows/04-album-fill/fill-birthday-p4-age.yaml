@@ -1,0 +1,25 @@
+appId: com.tihonshkel.x018BY
+env:
+  E2E_AGE_WEIGHT: 10,4 кг
+---
+- runFlow:
+    file: ../03-album-create/create-birthday-dfa34.yaml
+- tapOn:
+    id: page-card-4
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    text: 'Мой вес'
+    optional: true
+- inputText: ${E2E_AGE_WEIGHT}
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- assertVisible:
+    id: album-export-button

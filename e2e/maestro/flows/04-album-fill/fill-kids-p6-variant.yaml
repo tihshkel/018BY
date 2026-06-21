@@ -1,0 +1,38 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-kids.yaml
+- tapOn:
+    id: page-card-6
+- extendedWaitUntil:
+    visible:
+      id: variant-chip-one_horizontal
+    timeout: 20000
+- tapOn:
+    id: variant-chip-three_hero
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    id: photo-slot-0
+- tapOn:
+    text: 'Фото'
+    optional: true
+- tapOn:
+    text: 'Выбрать'
+    optional: true
+- tapOn:
+    text: 'Разрешить'
+    optional: true
+- tapOn:
+    point: 50%,50%
+    optional: true
+- tapOn:
+    id: unified-editor-save
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000

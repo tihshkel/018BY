@@ -1,13 +1,15 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory } from '@/albums';
+import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Dimensions,
     Platform,
     ScrollView,
     StyleSheet,
@@ -15,14 +17,18 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import {
+  getGridColumnCount,
+  getGridItemWidth,
+  PICKER_CONTENT_MAX_WIDTH,
+  useResponsiveLayout,
+} from '@/utils/responsive';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Celebration {
   id: string;
@@ -40,8 +46,8 @@ const celebrations: Celebration[] = [
     title: 'Беременность',
     description: 'Дневник ожидания малыша',
     icon: 'heart-outline',
-    color: '#FF6B9D',
-    gradient: ['#FF6B9D', '#FF8E9B'],
+    color: colors.primary,
+    gradient: [colors.primary, colors.primaryLight],
     image: require('@/assets/images/albums/DB1_0.png'),
   },
   {
@@ -78,8 +84,8 @@ const celebrations: Celebration[] = [
     icon: 'gift-outline',
     color: '#FF7043',
     gradient: ['#FF7043', '#FF5252'],
-    // В EAS исключаем папку `albums/`, поэтому здесь подставляем гарантированную картинку.
-    image: require('@/assets/images/albums/blank_white.png'),
+    // В репозитории нет `blank_white.png` — используем существующую светлую заглушку.
+    image: require('@/assets/images/albums/2.png'),
   },
   {
     id: 'travel',
@@ -93,6 +99,12 @@ const celebrations: Celebration[] = [
 ];
 
 export default function SelectCelebrationScreen() {
+  const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
+  const celebrationColumnCount = getGridColumnCount(layout);
+  const celebrationCardWidth =
+    celebrationColumnCount > 1
+      ? getGridItemWidth(layout, celebrationColumnCount, 12)
+      : undefined;
   const [selectedCelebration, setSelectedCelebration] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
 
@@ -182,9 +194,12 @@ export default function SelectCelebrationScreen() {
           const projects = existingProjects ? JSON.parse(existingProjects) : [];
           projects.push(projectData);
           await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+          syncToCloudNow();
+          scheduleSyncToCloud();
+          await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
-          router.push(`/edit-album?id=${projectId}`);
+          router.push(`/album-pages?id=${projectId}` as Href);
         } else {
           // Если нет PDF, переходим к выбору обложки
           router.push({
@@ -208,13 +223,14 @@ export default function SelectCelebrationScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
+        colors={[colors.border, colors.background, colors.border]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
 
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         {/* Заголовок */}
         <View style={styles.header}>
           <Text style={styles.title}>Выберите праздник</Text>
@@ -227,13 +243,18 @@ export default function SelectCelebrationScreen() {
         <ScrollView 
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            celebrationColumnCount > 1 && styles.scrollContentGrid,
+          ]}
         >
           {celebrations.map((celebration) => (
             <TouchableOpacity
               key={celebration.id}
+              testID={`celebration-${celebration.id}`}
               style={[
                 styles.celebrationCard,
+                celebrationCardWidth != null && { width: celebrationCardWidth },
                 selectedCelebration === celebration.id && styles.celebrationCardSelected,
               ]}
               onPress={() => handleCelebrationSelect(celebration.id)}
@@ -307,7 +328,7 @@ export default function SelectCelebrationScreen() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={selectedCelebrationData?.gradient || ['#C9A89A', '#8B6F5F']}
+                colors={selectedCelebrationData?.gradient || [colors.primary, colors.textPrimary]}
                 style={styles.continueButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -320,6 +341,7 @@ export default function SelectCelebrationScreen() {
             </TouchableOpacity>
           </View>
         )}
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );
@@ -340,20 +362,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -367,14 +384,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
     paddingBottom: 24,
+  },
+  scrollContentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   celebrationCard: {
     marginBottom: 16,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -399,7 +420,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 16,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   cardImage: {
     width: '100%',
@@ -411,14 +432,9 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   cardTitleSelected: {
@@ -426,7 +442,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -447,13 +463,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   continueContainer: {
-    paddingHorizontal: 24,
     paddingBottom: 24,
   },
   continueButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 12,

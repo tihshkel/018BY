@@ -1,3 +1,5 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import React, { useState } from 'react';
 import {
   View,
@@ -6,17 +8,19 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { AppBottomSheet } from '@/components/ui/app-bottom-sheet';
+import { AppButton } from '@/components/ui/app-button';
+import { AppInlineDatePicker } from '@/components/ui/app-date-picker-sheet';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface Category {
   id: string;
@@ -104,11 +108,8 @@ const products: Record<string, Product[]> = {
 };
 
 export default function NewProjectScreen() {
-  const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === 'ios' ? 32 : 20);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showSystemDatePicker, setShowSystemDatePicker] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const opacity = useSharedValue(0);
@@ -154,57 +155,25 @@ export default function NewProjectScreen() {
     setShowDatePicker(false);
   };
 
-  const handleSystemDateChange = (event: any, date?: Date) => {
-    if (Platform.OS === 'android') {
-      // На Android календарь закрывается автоматически после выбора
-      setShowSystemDatePicker(false);
-      if (event.type === 'set' && date) {
-        setSelectedDate(date);
-        // После выбора даты снова открываем модальное окно
-        setTimeout(() => {
-          setShowDatePicker(true);
-        }, 300);
-      }
-    } else {
-      // На iOS обновляем дату при каждом изменении
-      if (date) {
-        setSelectedDate(date);
-      }
-    }
-  };
-
-  const handleDatePreviewPress = () => {
-    if (Platform.OS === 'android') {
-      // На Android закрываем модальное окно и показываем календарь отдельно
-      setShowDatePicker(false);
-      setTimeout(() => {
-        setShowSystemDatePicker(true);
-      }, 300);
-    } else {
-      // На iOS показываем календарь внутри модального окна
-      setShowSystemDatePicker(true);
-    }
-  };
-
   const currentProducts = selectedCategory ? products[selectedCategory] || [] : [];
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Что хотите сохранить?</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Что хотите сохранить?</Text>
+          </View>
         </View>
 
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: bottomInset + 32 },
-          ]}
+          contentContainerStyle={styles.scrollContent}
         >
           {/* Категории */}
           <View style={styles.categoriesContainer}>
@@ -227,7 +196,7 @@ export default function NewProjectScreen() {
                   <Ionicons
                     name={category.icon as any}
                     size={28}
-                    color={selectedCategory === category.id ? '#FFFFFF' : '#C9A89A'}
+                    color={selectedCategory === category.id ? '#FFFFFF' : colors.primary}
                   />
                 </View>
                 <Text
@@ -254,7 +223,7 @@ export default function NewProjectScreen() {
                   activeOpacity={0.85}
                 >
                   <View style={styles.productImage}>
-                    <Ionicons name="book" size={40} color="#C9A89A" />
+                    <Ionicons name="book" size={40} color={colors.primary} />
                   </View>
                   <View style={styles.productContent}>
                     <Text style={styles.productName}>{product.name}</Text>
@@ -262,125 +231,46 @@ export default function NewProjectScreen() {
                     {(product.hasReminders && (selectedCategory === 'pregnancy' || selectedCategory === 'kids')) && (
                       <View style={styles.productFeatures}>
                         <View style={styles.feature}>
-                          <Ionicons name="notifications-outline" size={16} color="#9B8E7F" />
+                          <Ionicons name="notifications-outline" size={16} color={colors.textSecondary} />
                           <Text style={styles.featureText}>Напоминания</Text>
                         </View>
                       </View>
                     )}
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
+                  <Ionicons name="chevron-forward" size={20} color={colors.tabInactive} />
                 </TouchableOpacity>
               ))}
             </View>
           )}
         </ScrollView>
 
-        {/* Модальное окно выбора даты */}
-        <Modal
+        <AppBottomSheet
           visible={showDatePicker}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>
-                {selectedCategory === 'pregnancy'
-                  ? 'Когда родится ребёнок?'
-                  : selectedCategory === 'wedding'
-                  ? 'Дата свадьбы?'
-                  : 'Укажите дату события'}
-              </Text>
-              <Text style={styles.modalSubtitle}>
-                Эта дата станет основой для всех напоминаний и рекомендаций
-              </Text>
-
-              {Platform.OS === 'ios' && showSystemDatePicker ? (
-                <View style={styles.datePickerContainer}>
-                  <View style={styles.datePickerHeader}>
-                    <TouchableOpacity
-                      onPress={() => setShowSystemDatePicker(false)}
-                      style={styles.datePickerCancelButton}
-                    >
-                      <Text style={styles.datePickerCancelText}>Отмена</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.datePickerHeaderTitle}>Выберите дату</Text>
-                    <TouchableOpacity
-                      onPress={() => setShowSystemDatePicker(false)}
-                      style={styles.datePickerDoneButton}
-                    >
-                      <Text style={styles.datePickerDoneText}>Готово</Text>
-                    </TouchableOpacity>
-                  </View>
-                <DateTimePicker
-                  value={selectedDate}
-                  mode="date"
-                  display="spinner" // wheels иногда падает на старых iOS, spinner стабильнее
-                  onChange={handleSystemDateChange}
-                  locale="ru-RU"
-                  maximumDate={new Date(2030, 11, 31)}
-                  minimumDate={new Date(1900, 0, 1)}
-                  themeVariant="light"
-                  textColor="#8B6F5F"
-                />
-                </View>
-              ) : (
-                <TouchableOpacity 
-                  style={styles.datePreview}
-                  onPress={handleDatePreviewPress}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.datePreviewText}>
-                    {selectedDate && !isNaN(selectedDate.getTime()) 
-                      ? selectedDate.toLocaleDateString('ru-RU', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })
-                      : 'Выберите дату'
-                    }
-                  </Text>
-                  <Text style={styles.datePreviewHint}>
-                    Выберите дату в системном календаре
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.skipButton}
-                  onPress={handleSkipDate}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.skipButtonText}>Пропустить</Text>
-                  <Text style={styles.skipButtonHint}>
-                    Без даты напоминания не будут работать
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.confirmButton}
-                  onPress={handleDateConfirm}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.confirmButtonText}>Подтвердить</Text>
-                </TouchableOpacity>
-              </View>
+          onClose={() => setShowDatePicker(false)}
+          title={
+            selectedCategory === 'pregnancy'
+              ? 'Когда родится ребёнок?'
+              : selectedCategory === 'wedding'
+                ? 'Дата свадьбы?'
+                : 'Укажите дату события'
+          }
+          subtitle="Эта дата станет основой для всех напоминаний и рекомендаций"
+          scroll={false}
+          footer={
+            <View style={styles.modalButtons}>
+        <AppButton title="Пропустить" variant="outline" onPress={handleSkipDate} fullWidth={false} style={styles.modalBtnHalf} />
+              <AppButton title="Подтвердить" onPress={handleDateConfirm} fullWidth={false} style={styles.modalBtnHalf} />
             </View>
-          </View>
-        </Modal>
-
-        {/* Календарь для Android (показывается отдельно) */}
-        {Platform.OS === 'android' && showSystemDatePicker && (
-          <DateTimePicker
+          }
+        >
+          <AppInlineDatePicker
             value={selectedDate}
-            mode="date"
-            display="default"
-            onChange={handleSystemDateChange}
-            locale="ru_RU"
-            maximumDate={new Date(2030, 11, 31)}
+            onChange={setSelectedDate}
             minimumDate={new Date(1900, 0, 1)}
+            maximumDate={new Date(2030, 11, 31)}
           />
-        )}
+        </AppBottomSheet>
+        </ResponsiveScreenShell>
 
       </Animated.View>
     </SafeAreaView>
@@ -390,7 +280,7 @@ export default function NewProjectScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -405,22 +295,21 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
   },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
+    paddingBottom: 32,
   },
   categoriesContainer: {
     paddingHorizontal: 24,
@@ -434,27 +323,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   categoryCardSelected: {
-    borderColor: '#C9A89A',
-    backgroundColor: '#FAF8F5',
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
   },
   categoryIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   categoryIconSelected: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
   categoryName: {
     fontSize: 18,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -464,14 +353,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   categoryNameSelected: {
-    color: '#8B6F5F',
+    color: colors.textPrimary,
   },
   productsContainer: {
     paddingHorizontal: 24,
   },
   productsTitle: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -487,7 +376,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -496,7 +385,7 @@ const styles = StyleSheet.create({
   productImage: {
     width: 80,
     height: 100,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -507,19 +396,14 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
   },
   productDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -541,7 +425,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -565,20 +449,15 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -593,7 +472,11 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   modalButtons: {
+    flexDirection: 'row',
     gap: 12,
+  },
+  modalBtnHalf: {
+    flex: 1,
   },
   skipButton: {
     alignItems: 'center',
@@ -601,7 +484,7 @@ const styles = StyleSheet.create({
   },
   skipButtonText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif',
@@ -621,7 +504,7 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   confirmButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -639,12 +522,12 @@ const styles = StyleSheet.create({
   datePreview: {
     alignItems: 'center',
     paddingVertical: 20,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     borderRadius: 16,
     marginBottom: 24,
     borderWidth: 1,
     borderColor: '#E8D5C7',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -655,7 +538,7 @@ const styles = StyleSheet.create({
   },
   datePreviewText: {
     fontSize: 20,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-medium',
@@ -666,74 +549,13 @@ const styles = StyleSheet.create({
   },
   datePreviewHint: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
       default: 'sans-serif',
     }),
     fontWeight: '300',
-  },
-  datePickerContainer: {
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  datePickerModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  datePickerModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 0 : 20,
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8D5C7',
-  },
-  datePickerHeaderTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  datePickerCancelButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  datePickerCancelText: {
-    color: '#9B8E7F',
-    fontSize: 16,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  datePickerDoneButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  datePickerDoneText: {
-    color: '#C9A89A',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
   },
 });
 

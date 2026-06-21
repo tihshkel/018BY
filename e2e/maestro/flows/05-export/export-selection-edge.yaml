@@ -1,0 +1,10 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../03-album-create/create-kids.yaml
+- tapOn:
+    id: album-export-button
+- tapOn:
+    id: export-format-electronic
+- assertVisible:
+    id: export-start

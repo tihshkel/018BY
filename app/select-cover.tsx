@@ -1,3 +1,4 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAllAlbumTemplates } from '@/albums';
 import { getRemindersStorageKey } from '@/utils/account-sync';
 import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
@@ -13,7 +14,7 @@ import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { AlbumDateSheet, getAlbumCategoryDateBounds } from '@/components/album/album-date-sheet';
 import { Asset } from 'expo-asset';
 import Constants from 'expo-constants';
 import { SchedulableTriggerInputTypes, type DateTriggerInput } from 'expo-notifications';
@@ -25,7 +26,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
     Alert,
     FlatList,
-    Modal,
     Platform,
     ScrollView,
     StyleSheet,
@@ -39,12 +39,11 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatRouteEventDate } from '@/utils/routeParams';
 import {
-  FORM_MODAL_MAX_WIDTH,
   getGridColumnCount,
   getGridColumnWrapperStyle,
   getGridListStyle,
-  getTabletBottomModalStyles,
   getTabletContentShell,
   getTabletSectionWrap,
   PICKER_CONTENT_MAX_WIDTH,
@@ -113,13 +112,11 @@ interface CategoryInfo {
 
 export default function SelectCoverScreen() {
   const layout = useResponsiveLayout(PICKER_CONTENT_MAX_WIDTH);
-  const modalLayout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
   const contentShellStyle = getTabletContentShell(layout);
   const sectionWrap = getTabletSectionWrap(layout, {
     phonePadding: 24,
     tabletPadding: 0,
   });
-  const tabletModal = getTabletBottomModalStyles(modalLayout);
   const coverColumnCount = getGridColumnCount(layout);
   const gridListStyle = getGridListStyle(layout);
   const gridColumnWrapper = getGridColumnWrapperStyle(16);
@@ -136,13 +133,8 @@ export default function SelectCoverScreen() {
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedCoverId, setSelectedCoverId] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSavingDate, setIsSavingDate] = useState(false);
 
-
-  React.useEffect(() => {
-    console.log('[Select Cover] showDateModal state:', showDateModal);
-  }, [showDateModal]);
 
   // Получаем все альбомы и преобразуем их в обложки
   const albumTemplates = getAllAlbumTemplates();
@@ -151,13 +143,13 @@ export default function SelectCoverScreen() {
   const coverTypes: CoverType[] = useMemo(() => {
     // Генерация градиентов на основе категорий
     const categoryGradients: { [key: string]: string[] } = {
-      pregnancy: ['#FF6B9D', '#FF8E9B'],
+      pregnancy: [colors.primary, colors.primaryLight],
       kids: ['#4ECDC4', '#44A08D'],
-      family: ['#D4A574', '#C9A89A'],
+      family: ['#D4A574', colors.primary],
       wedding: ['#F093FB', '#F5576C'],
       travel: ['#FFD89B', '#19547B'],
       holidays: ['#FF7043', '#FF5252'],
-      diary: ['#C9A89A', '#A68B5B'],
+      diary: [colors.primary, '#A68B5B'],
     };
 
     // Для дневников используем специальные обложки
@@ -235,7 +227,7 @@ export default function SelectCoverScreen() {
       : albumTemplates;
 
     const result = filteredAlbums.map((album) => {
-      const gradient = categoryGradients[album.category] || ['#8B6F5F', '#A68B5B'];
+      const gradient = categoryGradients[album.category] || [colors.textPrimary, '#A68B5B'];
       return {
         id: album.id,
         title: album.name,
@@ -628,7 +620,7 @@ export default function SelectCoverScreen() {
     setIsSavingDate(true);
 
     const coverId = selectedCoverId;
-    const eventDateIso = dueDate.toISOString();
+    const eventDateParam = formatRouteEventDate(dueDate);
 
     try {
       await withTimeout(scheduleReminder(dueDate, celebration), 8_000, 'save-reminder');
@@ -644,7 +636,7 @@ export default function SelectCoverScreen() {
       params: {
         celebration,
         coverType: coverId,
-        eventDate: eventDateIso,
+        eventDate: eventDateParam,
       },
     });
 
@@ -745,7 +737,7 @@ export default function SelectCoverScreen() {
                 )}
               </View>
               {!isTile && (
-                <Ionicons name="chevron-forward" size={24} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={24} color={colors.primary} />
               )}
             </View>
           </LinearGradient>
@@ -782,7 +774,7 @@ export default function SelectCoverScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <LinearGradient
-        colors={['#F5F0EB', '#FAF8F5', '#F5F0EB']}
+        colors={[colors.border, colors.background, colors.border]}
         style={StyleSheet.absoluteFillObject}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -798,7 +790,7 @@ export default function SelectCoverScreen() {
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color="#8B6F5F" />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View style={styles.headerText}>
@@ -823,129 +815,21 @@ export default function SelectCoverScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Модальное окно выбора даты события - только для беременности и детей */}
-      {showDateModal && celebration && typeof celebration === 'string' && (celebration === 'pregnancy' || celebration === 'kids') && (() => {
-        const categoryInfo = getCategoryInfo(celebration);
-        const isPastDateAllowed = celebration === 'kids'; // Для детства можно выбрать дату в прошлом
-
-        return (
-          <Modal
+      {showDateModal &&
+        celebration &&
+        (celebration === 'pregnancy' || celebration === 'kids') && (
+          <AlbumDateSheet
             visible={showDateModal}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={handleDateCancel}
-          >
-            <View style={[styles.modalOverlay, tabletModal.overlay]}>
-              <View
-                style={[
-                  styles.modalContent,
-                  tabletModal.content,
-                  { paddingBottom: bottomInset + 20 },
-                ]}
-              >
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{categoryInfo.title}</Text>
-                  <TouchableOpacity onPress={handleDateCancel}>
-                    <Ionicons name="close" size={24} color="#8B6F5F" />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.modalBody}>
-                  <Text style={styles.modalDescription}>
-                    {categoryInfo.description}
-                  </Text>
-
-                  <TouchableOpacity
-                    style={styles.dateButton}
-                    onPress={() => setShowDatePicker(true)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="calendar-outline" size={24} color="#C9A89A" />
-                    <View style={styles.dateButtonTextContainer}>
-                      <Text style={styles.dateButtonLabel}>{categoryInfo.title}</Text>
-                      <Text style={styles.dateButtonText}>
-                        {dueDate.toLocaleDateString('ru-RU', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#D4C4B5" />
-                  </TouchableOpacity>
-
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={dueDate}
-                      mode="date"
-                      display={Platform.select({
-                        ios: 'spinner',
-                        android: 'default',
-                        default: 'default',
-                      })}
-                      minimumDate={
-                        isPastDateAllowed
-                          ? (() => {
-                              const d = new Date();
-                              d.setFullYear(d.getFullYear() - 100);
-                              return d;
-                            })()
-                          : new Date()
-                      }
-                      maximumDate={
-                        isPastDateAllowed ? new Date() : new Date(new Date().setFullYear(new Date().getFullYear() + 2))
-                      }
-                      onChange={(event, date) => {
-                        if (Platform.OS === 'android') {
-                          setShowDatePicker(false);
-                        }
-                        if (date && event.type !== 'dismissed') {
-                          setDueDate(date);
-                        }
-                      }}
-                      locale="ru-RU"
-                      themeVariant="light"
-                      textColor={Platform.OS === 'ios' ? '#8B6F5F' : undefined}
-                    />
-                  )}
-
-                  {Platform.OS === 'ios' && showDatePicker && (
-                    <View style={styles.iosDatePickerButtons}>
-                      <TouchableOpacity
-                        style={styles.iosDatePickerButton}
-                        onPress={() => setShowDatePicker(false)}
-                      >
-                        <Text style={styles.iosDatePickerButtonText}>Готово</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={styles.cancelButton}
-                    onPress={handleDateCancel}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.cancelButtonText}>Отмена</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.confirmButton, isSavingDate && { opacity: 0.6 }]}
-                    onPress={handleDateConfirm}
-                    activeOpacity={0.85}
-                    disabled={isSavingDate}
-                  >
-                    <Text style={styles.confirmButtonText}>
-                      {isSavingDate ? 'Сохраняем…' : 'Сохранить'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        );
-      })()}
+            title={getCategoryInfo(celebration).title}
+            description={getCategoryInfo(celebration).description}
+            value={dueDate}
+            onChange={setDueDate}
+            onClose={handleDateCancel}
+            onConfirm={handleDateConfirm}
+            isSaving={isSavingDate}
+            {...getAlbumCategoryDateBounds(celebration === 'kids')}
+          />
+        )}
     </SafeAreaView>
   );
 }
@@ -971,7 +855,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -982,19 +866,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1011,7 +890,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -1042,7 +921,7 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   cardImageContainerTile: {
     width: '100%',
@@ -1051,14 +930,9 @@ const styles = StyleSheet.create({
   },
   cardTitleTile: {
     fontSize: 15,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     textAlign: 'left',
     lineHeight: 20,
     marginBottom: 4,
@@ -1066,7 +940,7 @@ const styles = StyleSheet.create({
   },
   cardDescriptionTile: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1088,20 +962,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
     flexShrink: 1,
   },
   cardDescription: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -1110,150 +979,5 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     lineHeight: 17,
     flexShrink: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 24,
-    paddingHorizontal: 24,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-  },
-  modalBody: {
-    marginBottom: 24,
-  },
-  modalDescription: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-    gap: 12,
-  },
-  dateButtonTextContainer: {
-    flex: 1,
-    minWidth: 0,
-  },
-  dateButtonLabel: {
-    fontSize: 12,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    marginBottom: 4,
-  },
-  dateButtonText: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-  },
-  confirmButton: {
-    flex: 1,
-    backgroundColor: '#C9A89A',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-  },
-  iosDatePickerButtons: {
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-    marginTop: 12,
-  },
-  iosDatePickerButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  iosDatePickerButtonText: {
-    fontSize: 16,
-    color: '#C9A89A',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
   },
 });

@@ -27,5 +27,9 @@ export function requiresPrintSubscription(
 export const APPLE_PURCHASE_HISTORY_URL =
   'https://apps.apple.com/account/purchases';
 
+/** История заказов Google Play */
+export const GOOGLE_PLAY_PURCHASE_HISTORY_URL =
+  'https://play.google.com/store/account/orderhistory';
+
 /** @deprecated Для разовой покупки не используется */
 export const APPLE_MANAGE_SUBSCRIPTIONS_URL = APPLE_PURCHASE_HISTORY_URL;

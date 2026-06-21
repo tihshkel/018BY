@@ -1,15 +1,39 @@
 import { Tabs, useSegments } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomTabButton } from '@/components/custom-tab-button';
+import { colors, createShadow } from '@/constants/design-tokens';
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
+import { useResponsiveLayout } from '@/utils/responsive';
 
 export default function TabLayout() {
   const { isNotificationTabActive, deactivateNotificationTab } = useNotificationTabContext();
   const segments = useSegments();
   const isOnNotificationsTab = (segments as readonly string[]).includes('notifications');
+  const layout = useResponsiveLayout();
+
+  const tabBarStyle = useMemo(() => {
+    const compactLandscapeTablet = layout.isTablet && layout.isLandscape;
+    return {
+      backgroundColor: colors.background,
+      borderTopWidth: 0,
+      height: compactLandscapeTablet ? 72 : Platform.OS === 'ios' ? 90 : 72,
+      paddingBottom: compactLandscapeTablet
+        ? Platform.OS === 'ios'
+          ? 16
+          : 8
+        : Platform.OS === 'ios'
+          ? 32
+          : 12,
+      paddingTop: compactLandscapeTablet ? 8 : 12,
+      elevation: 0,
+      ...createShadow('sm'),
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    };
+  }, [layout.isLandscape, layout.isTablet]);
 
   useEffect(() => {
     if (isNotificationTabActive && !isOnNotificationsTab) {
@@ -22,23 +46,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarButton: CustomTabButton,
-        contentStyle: { backgroundColor: '#FAF8F5' },
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 0,
-          height: Platform.OS === 'ios' ? 90 : 72,
-          paddingBottom: Platform.OS === 'ios' ? 32 : 12,
-          paddingTop: 12,
-          elevation: 0,
-          shadowColor: 'transparent',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0,
-          shadowRadius: 0,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-        },
-        tabBarActiveTintColor: '#C9A89A',
-        tabBarInactiveTintColor: '#D4C4B5',
+        contentStyle: { backgroundColor: colors.background },
+        tabBarStyle,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tabInactive,
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: Platform.select({
@@ -57,6 +68,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Главная',
+          tabBarButtonTestID: 'tab-home',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -70,6 +82,7 @@ export default function TabLayout() {
         name="projects"
         options={{
           title: 'Проекты',
+          tabBarButtonTestID: 'tab-projects',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'book' : 'book-outline'}
@@ -97,6 +110,7 @@ export default function TabLayout() {
         options={{
           href: isNotificationTabActive ? null : undefined,
           title: 'Профиль',
+          tabBarButtonTestID: 'tab-profile',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

@@ -1,0 +1,1048 @@
+{
+  "generatedAt": "2026-06-09T22:21:37.136Z",
+  "albumId": "diary_interior_brown",
+  "pageCount": 60,
+  "totalPdfSlots": 588,
+  "totalJsonSlots": 602,
+  "totalRuntimeFiltered": 4,
+  "pages": {
+    "1": {
+      "page": "1",
+      "slotCount": 2,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 2,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 2,
+      "jsonSlotCount": 2
+    },
+    "2": {
+      "page": "2",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "3": {
+      "page": "3",
+      "slotCount": 3,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 3,
+      "issues": [],
+      "manualOverride": true,
+      "pdfSlotCount": 1,
+      "jsonSlotCount": 3
+    },
+    "4": {
+      "page": "4",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "5": {
+      "page": "5",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "6": {
+      "page": "6",
+      "slotCount": 16,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 16,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.143 x=0.48 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.351 x=0.37 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.400 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.443 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.492 x=0.63 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.549 x=0.50 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.598 x=0.43 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.645 x=0.40 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 16
+    },
+    "7": {
+      "page": "7",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.483 x=0.35 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.526 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.610 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.692 x=0.39 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "8": {
+      "page": "8",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.483 x=0.35 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.526 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.610 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.692 x=0.38 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "9": {
+      "page": "9",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "10": {
+      "page": "10",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "11": {
+      "page": "11",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.525 x=0.39 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.609 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.691 x=0.38 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "12": {
+      "page": "12",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.525 x=0.39 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.609 x=0.41 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.691 x=0.38 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "13": {
+      "page": "13",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.438 x=0.38 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.474 x=0.42 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.548 x=0.42 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.620 x=0.40 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.660 x=0.48 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "14": {
+      "page": "14",
+      "slotCount": 1,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 1,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 1,
+      "jsonSlotCount": 1
+    },
+    "15": {
+      "page": "15",
+      "slotCount": 26,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 26,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.232 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.276 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.321 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.365 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.408 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.453 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.497 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.545 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.586 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.637 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.682 x=0.59 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.726 x=0.59 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 26,
+      "jsonSlotCount": 26
+    },
+    "16": {
+      "page": "16",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "17": {
+      "page": "17",
+      "slotCount": 13,
+      "runtimeFilteredCount": 1,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.246 x=0.45 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.407 x=0.45 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.459 x=0.38 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.516 x=0.61 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.572 x=0.77 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.656 x=0.78 without full line below"
+        },
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "1 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 13
+    },
+    "18": {
+      "page": "18",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "19": {
+      "page": "19",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "20": {
+      "page": "20",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "21": {
+      "page": "21",
+      "slotCount": 17,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 17,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.184 x=0.44 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.407 x=0.38 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.442 x=0.45 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.628 x=0.41 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 16,
+      "jsonSlotCount": 17
+    },
+    "22": {
+      "page": "22",
+      "slotCount": 4,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 4,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.495 between y=0.240 and y=0.735"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 4,
+      "jsonSlotCount": 4
+    },
+    "23": {
+      "page": "23",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "24": {
+      "page": "24",
+      "slotCount": 11,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 11,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.302 x=0.46 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.346 x=0.36 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.392 x=0.49 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.435 x=0.50 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.480 x=0.58 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.522 x=0.55 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 11,
+      "jsonSlotCount": 11
+    },
+    "25": {
+      "page": "25",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "26": {
+      "page": "26",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 13,
+      "jsonSlotCount": 12
+    },
+    "27": {
+      "page": "27",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "28": {
+      "page": "28",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "29": {
+      "page": "29",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "30": {
+      "page": "30",
+      "slotCount": 4,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 4,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.210 between y=0.341 and y=0.551"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.551 x=0.61 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 3,
+      "jsonSlotCount": 4
+    },
+    "31": {
+      "page": "31",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.425 x=0.55 without full line below"
+        },
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.489 x=0.42 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "32": {
+      "page": "32",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "33": {
+      "page": "33",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "34": {
+      "page": "34",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.187 between y=0.498 and y=0.684"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "35": {
+      "page": "35",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.221 between y=0.486 and y=0.708"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "36": {
+      "page": "36",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.197 between y=0.485 and y=0.681"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "37": {
+      "page": "37",
+      "slotCount": 17,
+      "runtimeFilteredCount": 3,
+      "visibleCount": 14,
+      "issues": [
+        {
+          "code": "RUNTIME_FILTERED",
+          "detail": "3 slots hidden at runtime"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 17,
+      "jsonSlotCount": 17
+    },
+    "38": {
+      "page": "38",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.603 x=0.36 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "39": {
+      "page": "39",
+      "slotCount": 19,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 19,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.826 x=0.44 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 18,
+      "jsonSlotCount": 19
+    },
+    "40": {
+      "page": "40",
+      "slotCount": 18,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 18,
+      "issues": [
+        {
+          "code": "MISSING_TAIL_CONTINUATION",
+          "detail": "tail y=0.826 x=0.42 without full line below"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 17,
+      "jsonSlotCount": 18
+    },
+    "41": {
+      "page": "41",
+      "slotCount": 19,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 19,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 18,
+      "jsonSlotCount": 19
+    },
+    "42": {
+      "page": "42",
+      "slotCount": 20,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 20,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 19,
+      "jsonSlotCount": 20
+    },
+    "43": {
+      "page": "43",
+      "slotCount": 19,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 19,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 18,
+      "jsonSlotCount": 19
+    },
+    "44": {
+      "page": "44",
+      "slotCount": 20,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 20,
+      "issues": [],
+      "manualOverride": false,
+      "pdfSlotCount": 19,
+      "jsonSlotCount": 20
+    },
+    "45": {
+      "page": "45",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "46": {
+      "page": "46",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "47": {
+      "page": "47",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "48": {
+      "page": "48",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "49": {
+      "page": "49",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "50": {
+      "page": "50",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "51": {
+      "page": "51",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "52": {
+      "page": "52",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "53": {
+      "page": "53",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "54": {
+      "page": "54",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "55": {
+      "page": "55",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "56": {
+      "page": "56",
+      "slotCount": 12,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 12,
+      "issues": [
+        {
+          "code": "Y_GAP",
+          "detail": "gap 0.272 between y=0.475 and y=0.747"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 12,
+      "jsonSlotCount": 12
+    },
+    "57": {
+      "page": "57",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "58": {
+      "page": "58",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "59": {
+      "page": "59",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    },
+    "60": {
+      "page": "60",
+      "slotCount": 0,
+      "runtimeFilteredCount": 0,
+      "visibleCount": 0,
+      "issues": [
+        {
+          "code": "EMPTY_PAGE"
+        }
+      ],
+      "manualOverride": false,
+      "pdfSlotCount": 0,
+      "jsonSlotCount": 0
+    }
+  }
+}

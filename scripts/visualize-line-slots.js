@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { PNG } = require('pngjs');
 
+const DIARY_INTERIOR_ALBUMS = new Set(['diary_interior_brown', 'diary_interior_purple']);
+
 const ALBUM_FOLDERS = [
   { albumId: 'pregnancy_60', folder: 'Блок БЕРЕМЕННОСТЬ 60 стр' },
   { albumId: 'pregnancy_a5', folder: 'Блок БЕРЕМЕННОСТЬ A5 другой блок' },
@@ -67,8 +69,12 @@ async function main() {
           .on('error', reject);
       });
 
+      const isDiaryInterior = DIARY_INTERIOR_ALBUMS.has(spec.albumId);
+
       for (const slot of slots) {
-        const top = Math.round((slot.y - slot.height / 2) * png.height);
+        const top = Math.round(
+          (isDiaryInterior ? slot.y - slot.height : slot.y - slot.height / 2) * png.height
+        );
         const left = Math.round(slot.x * png.width);
         const w = Math.round(slot.width * png.width);
         const h = Math.max(2, Math.round(slot.height * png.height));
@@ -81,7 +87,7 @@ async function main() {
             png.data[idx] = 255;
             png.data[idx + 1] = 0;
             png.data[idx + 2] = 120;
-            png.data[idx + 3] = 90;
+            png.data[idx + 3] = isDiaryInterior && dy === h - 1 ? 200 : 90;
           }
         }
       }

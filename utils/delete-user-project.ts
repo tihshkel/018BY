@@ -1,6 +1,6 @@
 import { pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { markProjectAsDeleted, unmarkProjectAsDeleted } from '@/utils/deleted-project-ids';
+import { markProjectAsDeleted } from '@/utils/deleted-project-ids';
 import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
 import type { UserProject } from '@/utils/userProjects';
@@ -9,6 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const PROJECT_STORAGE_KEYS = (projectId: string) => [
   `@project_${projectId}`,
   `@project_images_${projectId}`,
+  `@project_page_instances_${projectId}`,
+  `@project_page_values_${projectId}`,
   `@project_annotations_${projectId}`,
   `@project_cover_annotations_${projectId}`,
   `@project_viewport_${projectId}`,
@@ -54,12 +56,10 @@ export async function deleteUserProjectLocally(project: UserProject): Promise<vo
         projectId,
         updatedUserProjectsJson: updatedJson,
       });
-      if (delRes.success) {
-        await unmarkProjectAsDeleted(projectId);
-      } else {
+      if (!delRes.success) {
         console.warn('[deleteUserProject] Supabase delete failed:', delRes.error);
-        await pushCoreOnlyToCloud({ userProjectsAuthoritativeLocal: true });
       }
+      await pushCoreOnlyToCloud({ userProjectsAuthoritativeLocal: true });
     }
   } catch (error) {
     console.warn('[deleteUserProject] cloud delete exception:', error);

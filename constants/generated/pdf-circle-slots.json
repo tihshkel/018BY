@@ -1,0 +1,325 @@
+{
+  "kids_48": {
+    "3": {
+      "genderFills": [
+        {
+          "id": "mother_boy",
+          "fieldId": "kids_48_p3_mother_guess",
+          "option": "Мальчик",
+          "fillColor": "#89CFF0",
+          "cx": 0.2352,
+          "cy": 0.8543,
+          "diameter": 0.0714
+        },
+        {
+          "id": "mother_girl",
+          "fieldId": "kids_48_p3_mother_guess",
+          "option": "Девочка",
+          "fillColor": "#F194A2",
+          "cx": 0.3445,
+          "cy": 0.8543,
+          "diameter": 0.0714
+        },
+        {
+          "id": "father_boy",
+          "fieldId": "kids_48_p3_father_guess",
+          "option": "Мальчик",
+          "fillColor": "#89CFF0",
+          "cx": 0.6732,
+          "cy": 0.8543,
+          "diameter": 0.0714
+        },
+        {
+          "id": "father_girl",
+          "fieldId": "kids_48_p3_father_guess",
+          "option": "Девочка",
+          "fillColor": "#F194A2",
+          "cx": 0.7808,
+          "cy": 0.8543,
+          "diameter": 0.0714
+        }
+      ]
+    },
+    "5": {
+      "slots": [
+        {
+          "slotId": "child",
+          "branch": "child",
+          "x": 0.4446,
+          "y": 0.181,
+          "width": 0.1526,
+          "height": 0.1526,
+          "shape": "circle"
+        },
+        {
+          "slotId": "mother_great_grandmother",
+          "branch": "mother",
+          "x": 0.2072,
+          "y": 0.2959,
+          "width": 0.17,
+          "height": 0.17,
+          "shape": "circle"
+        },
+        {
+          "slotId": "mother_great_grandfather",
+          "branch": "mother",
+          "x": 0.3737,
+          "y": 0.4159,
+          "width": 0.17,
+          "height": 0.17,
+          "shape": "circle"
+        },
+        {
+          "slotId": "mother_grandmother",
+          "branch": "mother",
+          "x": 0.1816,
+          "y": 0.5015,
+          "width": 0.1562,
+          "height": 0.1562,
+          "shape": "circle"
+        },
+        {
+          "slotId": "mother_grandfather",
+          "branch": "mother",
+          "x": 0.3844,
+          "y": 0.6419,
+          "width": 0.1478,
+          "height": 0.1478,
+          "shape": "circle"
+        },
+        {
+          "slotId": "father_great_grandmother",
+          "branch": "father",
+          "x": 0.6697,
+          "y": 0.2143,
+          "width": 0.1562,
+          "height": 0.1562,
+          "shape": "circle"
+        },
+        {
+          "slotId": "father_great_grandfather",
+          "branch": "father",
+          "x": 0.8431,
+          "y": 0.3285,
+          "width": 0.17,
+          "height": 0.17,
+          "shape": "circle"
+        },
+        {
+          "slotId": "father_grandmother",
+          "branch": "father",
+          "x": 0.6543,
+          "y": 0.4128,
+          "width": 0.1562,
+          "height": 0.1562,
+          "shape": "circle"
+        },
+        {
+          "slotId": "father_grandfather",
+          "branch": "father",
+          "x": 0.8268,
+          "y": 0.5514,
+          "width": 0.1573,
+          "height": 0.1573,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_01",
+          "branch": "mother",
+          "x": 0.2197,
+          "y": 0.7248,
+          "width": 0.1357,
+          "height": 0.1357,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_02",
+          "branch": "mother",
+          "x": 0.3506,
+          "y": 0.856,
+          "width": 0.1255,
+          "height": 0.1255,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_03",
+          "branch": "father",
+          "x": 0.612,
+          "y": 0.6081,
+          "width": 0.1552,
+          "height": 0.1552,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_04",
+          "branch": "father",
+          "x": 0.7586,
+          "y": 0.7081,
+          "width": 0.1562,
+          "height": 0.1562,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_05",
+          "branch": "father",
+          "x": 0.6777,
+          "y": 0.8449,
+          "width": 0.1478,
+          "height": 0.1478,
+          "shape": "circle"
+        },
+        {
+          "slotId": "extra_06",
+          "branch": "child",
+          "x": 0.5125,
+          "y": 0.7762,
+          "width": 0.1429,
+          "height": 0.1429,
+          "shape": "circle"
+        }
+      ],
+      "variants": [
+        {
+          "variantId": "tree",
+          "slots": [
+            {
+              "slotId": "child",
+              "branch": "child",
+              "x": 0.4446,
+              "y": 0.181,
+              "width": 0.1526,
+              "height": 0.1526,
+              "shape": "circle"
+            },
+            {
+              "slotId": "mother_great_grandmother",
+              "branch": "mother",
+              "x": 0.2072,
+              "y": 0.2959,
+              "width": 0.17,
+              "height": 0.17,
+              "shape": "circle"
+            },
+            {
+              "slotId": "mother_great_grandfather",
+              "branch": "mother",
+              "x": 0.3737,
+              "y": 0.4159,
+              "width": 0.17,
+              "height": 0.17,
+              "shape": "circle"
+            },
+            {
+              "slotId": "mother_grandmother",
+              "branch": "mother",
+              "x": 0.1816,
+              "y": 0.5015,
+              "width": 0.1562,
+              "height": 0.1562,
+              "shape": "circle"
+            },
+            {
+              "slotId": "mother_grandfather",
+              "branch": "mother",
+              "x": 0.3844,
+              "y": 0.6419,
+              "width": 0.1478,
+              "height": 0.1478,
+              "shape": "circle"
+            },
+            {
+              "slotId": "father_great_grandmother",
+              "branch": "father",
+              "x": 0.6697,
+              "y": 0.2143,
+              "width": 0.1562,
+              "height": 0.1562,
+              "shape": "circle"
+            },
+            {
+              "slotId": "father_great_grandfather",
+              "branch": "father",
+              "x": 0.8431,
+              "y": 0.3285,
+              "width": 0.17,
+              "height": 0.17,
+              "shape": "circle"
+            },
+            {
+              "slotId": "father_grandmother",
+              "branch": "father",
+              "x": 0.6543,
+              "y": 0.4128,
+              "width": 0.1562,
+              "height": 0.1562,
+              "shape": "circle"
+            },
+            {
+              "slotId": "father_grandfather",
+              "branch": "father",
+              "x": 0.8268,
+              "y": 0.5514,
+              "width": 0.1573,
+              "height": 0.1573,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_01",
+              "branch": "mother",
+              "x": 0.2197,
+              "y": 0.7248,
+              "width": 0.1357,
+              "height": 0.1357,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_02",
+              "branch": "mother",
+              "x": 0.3506,
+              "y": 0.856,
+              "width": 0.1255,
+              "height": 0.1255,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_03",
+              "branch": "father",
+              "x": 0.612,
+              "y": 0.6081,
+              "width": 0.1552,
+              "height": 0.1552,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_04",
+              "branch": "father",
+              "x": 0.7586,
+              "y": 0.7081,
+              "width": 0.1562,
+              "height": 0.1562,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_05",
+              "branch": "father",
+              "x": 0.6777,
+              "y": 0.8449,
+              "width": 0.1478,
+              "height": 0.1478,
+              "shape": "circle"
+            },
+            {
+              "slotId": "extra_06",
+              "branch": "child",
+              "x": 0.5125,
+              "y": 0.7762,
+              "width": 0.1429,
+              "height": 0.1429,
+              "shape": "circle"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

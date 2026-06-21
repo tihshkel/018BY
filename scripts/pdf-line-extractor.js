@@ -256,6 +256,7 @@ function collapseNearbyRows(lines, pageHeight, minRowGapNorm = 0.016) {
   return collapsed;
 }
 
+
 /** На одной строке объединяем только сегменты без колоночного разрыва. */
 function clusterRowSegments(rowSegments, columnGapPx) {
   const sorted = [...rowSegments].sort((a, b) => a.left - b.left);
@@ -469,12 +470,27 @@ function isSideBySideFieldRow(lines, pageWidth) {
   if (lines.length < 2) return false;
 
   const sorted = [...lines].sort((a, b) => a.left - b.left);
-  for (let i = 1; i < sorted.length; i += 1) {
-    const gap = sorted[i].left - sorted[i - 1].right;
-    if (gap / pageWidth < 0.06) return false;
+  const spans = sorted.map((line) => line.span / pageWidth);
+  const leftSpan = spans[0];
+  const rightSpan = spans[spans.length - 1];
+  const rightLeftRatio = sorted[sorted.length - 1].left / pageWidth;
+
+  // Широкая строка слева + узкое поле в сером блоке справа (недели дневника беременности).
+  const isSidebarRow =
+    lines.length === 2 &&
+    leftSpan > 0.38 &&
+    rightSpan < 0.35 &&
+    rightLeftRatio > 0.55;
+
+  if (!isSidebarRow) {
+    for (let i = 1; i < sorted.length; i += 1) {
+      const gap = sorted[i].left - sorted[i - 1].right;
+      if (gap / pageWidth < 0.06) return false;
+    }
   }
 
-  const spans = lines.map((line) => line.span / pageWidth);
+  if (isSidebarRow) return true;
+
   if (spans.some((span) => span > 0.38)) return false;
 
   return true;
@@ -518,7 +534,13 @@ function dedupeDuplicateFieldRows(lines, pageWidth, pageHeight, maxRowGapNorm = 
       Math.max(avgSpanUpper, avgSpanLower) / Math.max(Math.min(avgSpanUpper, avgSpanLower), 1);
     if (spanRatio < 1.08) continue;
 
-    const dropRow = avgSpanUpper <= avgSpanLower ? lower : upper;
+    // Верхняя строка — подпись в облаке, нижняя — поле ввода (детский альбом, стр. 4).
+    const dropRow =
+      upper.normY < lower.normY && spanRatio >= 1.08
+        ? upper
+        : avgSpanUpper <= avgSpanLower
+          ? lower
+          : upper;
     dropRow.lines.forEach((line) => toDrop.add(line));
   }
 
@@ -611,6 +633,24 @@ function filterDiaryFormLines(lines, pageWidth, pageHeight, options = {}) {
   return deduped.sort((a, b) => b.y - a.y || a.left - b.left);
 }
 
+/** Декоративный rowtrim рядом с полной линией ввода (артефакт склейки строк PDF). */
+function isBrownSpuriousRowtrimLine(line, pageWidth, pageHeight, lines) {
+  if (line.source !== 'rowtrim') return false;
+
+  const spanRatio = line.span / pageWidth;
+  const normY = (pageHeight - line.y) / pageHeight;
+  if (spanRatio >= 0.62) return false;
+
+  return lines.some((other) => {
+    if (other === line) return false;
+    const otherNormY = (pageHeight - other.y) / pageHeight;
+    if (Math.abs(otherNormY - normY) > 0.05) return false;
+    const otherSpan = other.span / pageWidth;
+    const otherLeft = other.left / pageWidth;
+    return other.source === 'wide-block' || (otherSpan >= 0.72 && otherLeft < 0.16);
+  });
+}
+
 function isBrownFullRowArtifact(line, pageWidth) {
   if (line.source === 'box' || line.source === 'wide-block') return false;
 
@@ -634,13 +674,26 @@ function isBrownInputDashSegment(seg, pageWidth, options = {}) {
   return true;
 }
 
+/** Строка из десятков микро-штрихов (контуры подписи без текстового слоя PDF). */
+function isBrownMicroSegmentLabelRow(sorted, pageWidth, options = {}) {
+  const minSegments = options.brownMicroRowMinSegments ?? 12;
+  if (sorted.length < minSegments) return false;
+  const avgSpanRatio =
+    sorted.reduce((sum, seg) => sum + seg.span, 0) / sorted.length / pageWidth;
+  return avgSpanRatio < (options.brownMicroRowMaxAvgSpanRatio ?? 0.008);
+}
+
 function findBrownGapInput(sorted, pageWidth, options = {}) {
   const minFallbackSpan = options.brownInputMinSpanFallback ?? 0.14;
   const minRightShort = options.brownInputMinRightShort ?? 0.45;
   const minGapRatio = options.brownInputMinGapRatio ?? 0.018;
+  const microRow = isBrownMicroSegmentLabelRow(sorted, pageWidth, options);
+  const microMinSpan = options.brownMicroRowMinWritableSpan ?? 0.08;
+  const microMinLabelEnd = options.brownMicroRowMinLabelEndRatio ?? 0.55;
 
   let best = null;
   let bestScore = -1;
+  const microCandidates = [];
 
   for (let gapIndex = 1; gapIndex < sorted.length; gapIndex += 1) {
     const gap = sorted[gapIndex].left - sorted[gapIndex - 1].right;
@@ -657,11 +710,22 @@ function findBrownGapInput(sorted, pageWidth, options = {}) {
     const leftRatio = left / pageWidth;
     const preRightRatio = preRight / pageWidth;
     const gapRatio = gap / pageWidth;
+    const minSpan = microRow ? microMinSpan : minFallbackSpan;
 
-    if (spanRatio < minFallbackSpan || rightRatio < minRightShort) continue;
+    if (spanRatio < minSpan || rightRatio < minRightShort) continue;
     if (leftRatio < preRightRatio + 0.012) continue;
     if (preRightRatio < 0.1 && gapIndex === 1) continue;
-    if (preRightRatio > 0.74) continue;
+    const maxPreRight = options.brownGapMaxPreRightRatio ?? 0.74;
+    if (preRightRatio > maxPreRight) continue;
+
+    const candidate = { left, right, span, source: 'gap', labelRight: preRight };
+
+    if (microRow) {
+      if (preRightRatio >= microMinLabelEnd) {
+        microCandidates.push(candidate);
+      }
+      continue;
+    }
 
     let score = spanRatio + rightRatio * 0.45 + gapRatio * 2;
     if (preRightRatio >= 0.14 && preRightRatio <= 0.5) score += 0.45;
@@ -671,23 +735,130 @@ function findBrownGapInput(sorted, pageWidth, options = {}) {
 
     if (score > bestScore) {
       bestScore = score;
-      best = { left, right, span, source: 'gap' };
+      best = candidate;
     }
   }
 
+  if (microRow) {
+    if (!microCandidates.length) return null;
+    microCandidates.sort((a, b) => b.labelRight - a.labelRight || b.span - a.span);
+    return microCandidates[0];
+  }
+
   return best;
+}
+
+function attachRowLabelGeometry(line, rowSegments, pageWidth, options = {}) {
+  if (!line || line.labelRight != null || !rowSegments?.length) return line;
+  const sorted = [...rowSegments].sort((a, b) => a.left - b.left);
+  const gapMeta = findBrownGapInput(sorted, pageWidth, options);
+  if (gapMeta?.labelRight != null) {
+    return { ...line, labelRight: gapMeta.labelRight };
+  }
+  return line;
 }
 
 function hasBrownSolidInputSegment(rowSegments, pageWidth, options = {}) {
   const minLongSpan = options.brownInputMinSpanRatio ?? 0.35;
   const minRightLong = options.brownInputMinRightRatio ?? 0.85;
   const minLeft = options.brownSolidMinLeftRatio ?? 0.28;
+  const minFullLeft = options.brownShortFullMinLeftRatio ?? 0.05;
   return rowSegments.some((seg) => {
     const leftRatio = seg.left / pageWidth;
     const spanRatio = seg.span / pageWidth;
     const rightRatio = seg.right / pageWidth;
+    if (
+      leftRatio >= minFullLeft &&
+      leftRatio < minLeft &&
+      spanRatio >= 0.45 &&
+      rightRatio >= minRightLong
+    ) {
+      return true;
+    }
     return spanRatio >= minLongSpan && rightRatio >= minRightLong && leftRatio >= minLeft;
   });
+}
+
+function isBrownDecorativeRightMicroLine(line, pageWidth) {
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  return leftRatio > 0.55 && spanRatio < 0.25;
+}
+
+function brownPageHasFormInputs(segments, pageWidth, pageHeight, options = {}) {
+  const maxHorizontalDeltaPt = options.maxHorizontalDeltaPt ?? 1.2;
+  const minSegmentSpanPt = options.minSegmentSpanPt ?? 1.2;
+  const bottomCutPt = options.bottomCutPt ?? 28;
+  const topCutPt = options.topCutPt ?? 40;
+
+  return segments.some((s) => {
+    if (Math.abs(s.y1 - s.y2) > maxHorizontalDeltaPt) return false;
+    const left = Math.min(s.x1, s.x2);
+    const right = Math.max(s.x1, s.x2);
+    const y = (s.y1 + s.y2) / 2;
+    const span = right - left;
+    if (span < minSegmentSpanPt) return false;
+    if (y < bottomCutPt || y > pageHeight - topCutPt) return false;
+    const leftRatio = left / pageWidth;
+    const spanRatio = span / pageWidth;
+    if (leftRatio < 0 || spanRatio > 0.92) return false;
+    return (
+      (leftRatio < 0.35 && spanRatio >= 0.25) ||
+      (leftRatio < 0.12 && spanRatio >= 0.55)
+    );
+  });
+}
+
+function isBrownNarrativeProsePage(lines, pageWidth) {
+  if (!lines.length) return false;
+  const hasRealFormLine = lines.some((line) => {
+    const leftRatio = line.left / pageWidth;
+    const spanRatio = line.span / pageWidth;
+    return (
+      (leftRatio < 0.35 && spanRatio >= 0.3) ||
+      (leftRatio < 0.15 && spanRatio >= 0.55) ||
+      line.source === 'wide-block' ||
+      line.source === 'box'
+    );
+  });
+  if (hasRealFormLine) return false;
+  return lines.every((line) => isBrownDecorativeRightMicroLine(line, pageWidth));
+}
+
+/**
+ * Короткая подпись («Имя:») — длинная линия ввода начинается левее brownSolidMinLeftRatio.
+ * Эталон: bbox сегмента PDF, не PNG.
+ */
+function pickBrownShortLabelFullRowLine(rowSegments, pageWidth, options = {}) {
+  const minLeft = options.brownShortFullMinLeftRatio ?? 0.1;
+  const maxLeft = options.brownShortFullMaxLeftRatio ?? (options.brownSolidMinLeftRatio ?? 0.28);
+  const minSpan = options.brownShortFullMinSpanRatio ?? 0.48;
+  const minRight = options.brownInputMinRightRatio ?? 0.85;
+
+  const candidates = rowSegments
+    .filter((seg) => {
+      const leftRatio = seg.left / pageWidth;
+      const spanRatio = seg.span / pageWidth;
+      const rightRatio = seg.right / pageWidth;
+      return (
+        leftRatio >= minLeft &&
+        leftRatio < maxLeft &&
+        spanRatio >= minSpan &&
+        rightRatio >= minRight
+      );
+    })
+    .sort((a, b) => b.span - a.span || a.left - b.left);
+
+  if (!candidates.length) return null;
+
+  const best = candidates[0];
+  return {
+    y: best.y,
+    left: best.left,
+    right: best.right,
+    span: best.span,
+    source: 'solid-short',
+  };
 }
 
 /** Сплошная линия ввода — один длинный сегмент справа от подписи. */
@@ -717,8 +888,155 @@ function pickBrownSolidRowInputLine(rowSegments, pageWidth, options = {}) {
   };
 }
 
-function isBrownDecorativeDashedRow(rowSegments, pageWidth) {
-  if (hasBrownSolidInputSegment(rowSegments, pageWidth)) return false;
+/**
+ * Короткий хвост подписи на строке с микро-штрихами (контуры букв без текстового слоя).
+ * Пример: «…заниматься?____» на стр. 13 — ввод с конца вопроса до правого края.
+ */
+function pickBrownMicroRowLabelTailLine(rowSegments, pageWidth, pageHeight, options = {}) {
+  const rowY =
+    rowSegments.reduce((sum, seg) => sum + seg.y, 0) / Math.max(rowSegments.length, 1);
+  const normY = (pageHeight - rowY) / pageHeight;
+  const labeledMinY = options.brownQuestionnaireLabeledRowMinNormY ?? 0.55;
+  const labeledMaxY = options.brownQuestionnaireLabeledRowMaxNormY ?? 0.72;
+  const disableMicroTailBand =
+    options.brownDisableMicroTailBand === true ||
+    (options.pageNumber === getDiaryCareerQuestionPage(options) &&
+      normY >= 0.68 &&
+      normY <= 0.72);
+  if (
+    disableMicroTailBand &&
+    isDiaryQuestionnairePage(options) &&
+    normY >= labeledMinY &&
+    normY <= labeledMaxY
+  ) {
+    return null;
+  }
+
+  const sorted = [...rowSegments].sort((a, b) => a.left - b.left);
+  if (!isBrownMicroSegmentLabelRow(sorted, pageWidth, options)) return null;
+
+  const gapMeta = findBrownGapInput(sorted, pageWidth, options);
+  if (!gapMeta?.labelRight) return null;
+
+  const labelRightRatio = gapMeta.labelRight / pageWidth;
+  const tailGap = options.brownMicroRowTailGapRatio ?? 0.008;
+  const minTailLeft = labelRightRatio + tailGap;
+  const tailSegs = sorted.filter((seg) => seg.left / pageWidth >= minTailLeft - 0.012);
+  if (!tailSegs.length) return null;
+
+  const columnGapPx = pageWidth * (options.brownDashClusterGapRatio ?? 0.032);
+  const clusters = clusterRowSegments(tailSegs, columnGapPx);
+  const rightCluster = clusters.sort((a, b) => b.right - a.right)[0];
+  if (!rightCluster) return null;
+
+  const minTailSpan = options.brownMicroRowMinTailSpan ?? 0.04;
+  const maxTailSpan = options.brownMicroRowMaxTailSpan ?? 0.32;
+  const targetRightRatio = options.brownMicroRowTailTargetRight ?? 0.895;
+
+  const gapPx = options.brownLabelInputGapPt ?? 5;
+  const leftFromLabel = gapMeta.labelRight + gapPx;
+  let left = Math.max(leftFromLabel, rightCluster.left);
+  let right = Math.max(rightCluster.right, pageWidth * targetRightRatio);
+  let span = right - left;
+  let spanRatio = span / pageWidth;
+
+  if (spanRatio < minTailSpan) {
+    right = pageWidth * targetRightRatio;
+    left = leftFromLabel;
+    span = right - left;
+    spanRatio = span / pageWidth;
+  }
+
+  if (spanRatio < minTailSpan || spanRatio > maxTailSpan) return null;
+
+  const leftRatio = left / pageWidth;
+  const minTailLeftRatio = options.brownMicroRowTailMinLeftRatio ?? 0.55;
+  if (leftRatio < minTailLeftRatio) return null;
+
+  const tailRowY =
+    tailSegs.reduce((sum, seg) => sum + seg.y, 0) / Math.max(tailSegs.length, 1);
+  const tailNormY = (pageHeight - tailRowY) / pageHeight;
+  const minNormY = options.brownMicroRowTailMinNormY ?? 0.2;
+  const maxNormY = options.brownMicroRowTailMaxNormY ?? 0.92;
+  if (tailNormY < minNormY || tailNormY > maxNormY) return null;
+
+  return {
+    y: tailRowY,
+    left,
+    right,
+    span,
+    source: 'dashed-gap',
+    labelRight: gapMeta.labelRight,
+  };
+}
+
+/**
+ * Короткий хвост после «?» на «Кем ты хочешь стать…» (стр. 6).
+ * PDF даёт сплошную линию под всем вопросом — ввод только справа от «?».
+ * Не путать со строками «Лучшая подруга» (~0.69) и «Лучший друг» (~0.73).
+ */
+function pickBrownPage6CareerQuestionTailLine(rowSegments, pageWidth, pageHeight, options = {}) {
+  if (
+    options.pageNumber !== getDiaryCareerQuestionPage(options) ||
+    !isDiaryQuestionnairePage(options) ||
+    !rowSegments.length
+  ) {
+    return null;
+  }
+
+  const rowY =
+    rowSegments.reduce((sum, seg) => sum + seg.y, 0) / Math.max(rowSegments.length, 1);
+  const normY = (pageHeight - rowY) / pageHeight;
+  const questionY = options.brownPage6CareerQuestionNormY ?? 0.773;
+  const minNormY = options.brownPage6CareerQuestionMinNormY ?? questionY - 0.012;
+  const maxNormY = options.brownPage6CareerQuestionMaxNormY ?? questionY + 0.012;
+  if (normY < minNormY || normY > maxNormY) return null;
+
+  const solid = rowSegments
+    .filter((seg) => {
+      const spanRatio = seg.span / pageWidth;
+      const rightRatio = seg.right / pageWidth;
+      const leftRatio = seg.left / pageWidth;
+      return spanRatio >= 0.45 && rightRatio >= 0.85 && leftRatio < 0.4;
+    })
+    .sort((a, b) => b.span - a.span)[0];
+
+  if (!solid) return null;
+
+  const targetRightRatio = options.brownMicroRowTailTargetRight ?? 0.895;
+  const tailLeftRatio = options.brownPage6CareerTailLeftRatio ?? 0.768;
+  const gapPx = options.brownLabelInputGapPt ?? 5;
+  const minTailSpan = options.brownPage6CareerMinTailSpan ?? 0.06;
+  const maxTailSpan = options.brownPage6CareerMaxTailSpan ?? 0.18;
+
+  const right = Math.max(solid.right, pageWidth * targetRightRatio);
+  let left = pageWidth * tailLeftRatio;
+  let span = right - left;
+  let spanRatio = span / pageWidth;
+
+  if (spanRatio < minTailSpan) {
+    left = right - pageWidth * minTailSpan;
+    span = right - left;
+    spanRatio = span / pageWidth;
+  }
+
+  if (spanRatio < minTailSpan || spanRatio > maxTailSpan) return null;
+
+  return {
+    y: solid.y,
+    left,
+    right,
+    span,
+    source: 'dashed-gap',
+    labelRight: left - gapPx,
+  };
+}
+
+function isBrownDecorativeDashedRow(rowSegments, pageWidth, pageHeight, options = {}) {
+  if (hasBrownSolidInputSegment(rowSegments, pageWidth, options)) return false;
+  if (pickBrownMicroRowLabelTailLine(rowSegments, pageWidth, pageHeight, options)) {
+    return false;
+  }
 
   const left = Math.min(...rowSegments.map((seg) => seg.left));
   const right = Math.max(...rowSegments.map((seg) => seg.right));
@@ -744,7 +1062,8 @@ function pickBrownDashedRowInputLine(rowSegments, pageWidth, pageHeight, options
   const gapFromRow = findBrownGapInput(sortedRow, pageWidth, options);
   if (gapFromRow) {
     const leftRatio = gapFromRow.left / pageWidth;
-    if (leftRatio >= 0.28) {
+    const minGapLeft = options.brownDashedGapMinLeftRatio ?? 0.18;
+    if (leftRatio >= minGapLeft) {
       return { y: rowY, ...gapFromRow, source: 'dashed-gap' };
     }
   }
@@ -833,15 +1152,65 @@ function pickBrownDashedRowInputLine(rowSegments, pageWidth, pageHeight, options
   };
 }
 
+/**
+ * Строки анкеты с подписью («Лучшая подруга:», «Лучший друг:» и т.п.).
+ * PDF даёт контуры букв + пунктир — micro-tail ошибочно ставит ввод у правого края.
+ */
+function pickBrownQuestionnaireLabeledRowLine(
+  rowSegments,
+  pageWidth,
+  pageHeight,
+  options = {}
+) {
+  if (!isDiaryQuestionnairePage(options) || !rowSegments.length) return null;
+
+  const rowY =
+    rowSegments.reduce((sum, seg) => sum + seg.y, 0) / Math.max(rowSegments.length, 1);
+  const normY = (pageHeight - rowY) / pageHeight;
+  const minY = options.brownQuestionnaireLabeledRowMinNormY ?? 0.55;
+  const maxY = options.brownQuestionnaireLabeledRowMaxNormY ?? 0.72;
+  if (normY < minY || normY > maxY) return null;
+
+  const maxLeft = options.brownQuestionnaireLabeledRowMaxLeftRatio ?? 0.68;
+  const minSpan = options.brownQuestionnaireLabeledRowMinSpan ?? 0.18;
+
+  const shortFull = pickBrownShortLabelFullRowLine(rowSegments, pageWidth, options);
+  if (shortFull) {
+    const leftRatio = shortFull.left / pageWidth;
+    const spanRatio = shortFull.span / pageWidth;
+    if (leftRatio < maxLeft && spanRatio >= minSpan) {
+      return attachRowLabelGeometry(shortFull, rowSegments, pageWidth, options);
+    }
+  }
+
+  const line = pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options);
+  if (!line) return null;
+
+  const leftRatio = line.left / pageWidth;
+  const spanRatio = line.span / pageWidth;
+  if (leftRatio >= maxLeft || spanRatio < minSpan) return null;
+
+  return line;
+}
+
 /** Одна визуальная строка: сплошная линия или склеенный пунктир. */
 function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {}) {
   if (!rowSegments.length) return null;
 
+  const shortFull = pickBrownShortLabelFullRowLine(rowSegments, pageWidth, options);
+  if (shortFull) {
+    return attachRowLabelGeometry(shortFull, rowSegments, pageWidth, options);
+  }
+
   const solid = pickBrownSolidRowInputLine(rowSegments, pageWidth, options);
-  if (solid) return solid;
+  if (solid) {
+    return attachRowLabelGeometry(solid, rowSegments, pageWidth, options);
+  }
 
   const dashed = pickBrownDashedRowInputLine(rowSegments, pageWidth, pageHeight, options);
-  if (dashed) return dashed;
+  if (dashed) {
+    return attachRowLabelGeometry(dashed, rowSegments, pageWidth, options);
+  }
 
   const minLongSpan = options.brownInputMinSpanRatio ?? 0.35;
   const minFallbackSpan = options.brownInputMinSpanFallback ?? 0.14;
@@ -852,7 +1221,7 @@ function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {})
 
   const gapInput = findBrownGapInput(sorted, pageWidth, options);
   if (gapInput) {
-    return { y, ...gapInput, source: 'gap' };
+    return attachRowLabelGeometry({ y, ...gapInput, source: 'gap' }, rowSegments, pageWidth, options);
   }
 
   for (const minSpan of [minLongSpan, minFallbackSpan]) {
@@ -867,13 +1236,18 @@ function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {})
 
     if (longCandidates.length > 0) {
       const best = longCandidates[0];
-      return {
-        y: best.y,
-        left: best.left,
-        right: best.right,
-        span: best.span,
-        source: 'input',
-      };
+      return attachRowLabelGeometry(
+        {
+          y: best.y,
+          left: best.left,
+          right: best.right,
+          span: best.span,
+          source: 'input',
+        },
+        rowSegments,
+        pageWidth,
+        options
+      );
     }
   }
 
@@ -887,7 +1261,12 @@ function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {})
       const span = right - left;
       const spanRatio = span / pageWidth;
       if (spanRatio >= minFallbackSpan && right / pageWidth >= minRightShort) {
-        return { y, left, right, span, source: 'rowtrim' };
+        return attachRowLabelGeometry(
+          { y, left, right, span, source: 'rowtrim' },
+          rowSegments,
+          pageWidth,
+          options
+        );
       }
     }
   }
@@ -906,13 +1285,18 @@ function pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options = {})
     .sort((a, b) => b.span - a.span || b.right - a.right)[0];
 
   if (bestCluster) {
-    return {
-      y: bestCluster.y,
-      left: bestCluster.left,
-      right: bestCluster.right,
-      span: bestCluster.span,
-      source: 'cluster',
-    };
+    return attachRowLabelGeometry(
+      {
+        y: bestCluster.y,
+        left: bestCluster.left,
+        right: bestCluster.right,
+        span: bestCluster.span,
+        source: 'cluster',
+      },
+      rowSegments,
+      pageWidth,
+      options
+    );
   }
 
   return null;
@@ -937,6 +1321,7 @@ function groupBrownDiaryRowBins(rowBins, pageHeight, mergeGapNorm = 0.024) {
 
   return groups;
 }
+
 
 function extractBrownCoverRowLines(rowSegments, pageWidth, pageHeight, options = {}) {
   const columnGapPx = pageWidth * (options.brownCoverGapRatio ?? 0.055);
@@ -981,10 +1366,22 @@ function extractBrownCoverRowLines(rowSegments, pageWidth, pageHeight, options =
 /** Коричневый дневник: поле ввода = длинный пунктир справа от подписи (из сегментов PDF). */
 function mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, options = {}) {
   if (options.pageNumber === 1) {
-    const coverLines = extractBrownCoverPageLines(segments, pageWidth, pageHeight, options);
+    const coverLines = extractBrownCoverPageLinesWithFallback(
+      segments,
+      pageWidth,
+      pageHeight,
+      options
+    );
     if (coverLines.length > 0) {
       return coverLines;
     }
+  }
+
+  if (
+    options.pageNumber !== 1 &&
+    !brownPageHasFormInputs(segments, pageWidth, pageHeight, options)
+  ) {
+    return [];
   }
 
   const mergeGapPt = options.mergeGapPt ?? 10;
@@ -1023,7 +1420,41 @@ function mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, options = {})
 
   let lines = [];
   for (const group of rowGroups) {
-    if (isBrownDecorativeDashedRow(group.segments, pageWidth)) continue;
+    const careerTail =
+      isDiaryQuestionnairePage(options) &&
+      pickBrownPage6CareerQuestionTailLine(
+        group.segments,
+        pageWidth,
+        pageHeight,
+        options
+      );
+    if (careerTail) {
+      lines.push(careerTail);
+      continue;
+    }
+
+    const labeledRow = pickBrownQuestionnaireLabeledRowLine(
+      group.segments,
+      pageWidth,
+      pageHeight,
+      options
+    );
+    if (labeledRow) {
+      lines.push(labeledRow);
+      continue;
+    }
+
+    const microTail =
+      isDiaryQuestionnairePage(options) &&
+      pickBrownMicroRowLabelTailLine(group.segments, pageWidth, pageHeight, options);
+    if (microTail) {
+      lines.push(microTail);
+      continue;
+    }
+
+    if (isBrownDecorativeDashedRow(group.segments, pageWidth, pageHeight, options)) {
+      continue;
+    }
 
     const boxLines = extractBrownBoxedInputLinesFromRow(
       group.segments,
@@ -1159,6 +1590,7 @@ function scoreBrownDiaryLine(line, pageWidth, pageHeight) {
   const normY = (pageHeight - line.y) / pageHeight;
   let score = spanRatio;
   if (line.source === 'solid' || line.source === 'dashed' || line.source === 'dashed-gap') score += 2.5;
+  if (line.source === 'solid' || line.source === 'dashed' || line.source === 'dashed-gap') score += 2.5;
   if (line.source === 'input' || line.source === 'gap' || line.source === 'cluster' || line.source === 'rowtrim') score += 2;
   if (leftRatio >= 0.18) score += 0.5;
   if (rightRatio(line, pageWidth) >= 0.82) score += 0.35;
@@ -1237,7 +1669,66 @@ function extractBrownCoverPageLines(segments, pageWidth, pageHeight, options = {
   return clustered.slice(0, 2).map(({ normY, ...line }) => ({ ...line, source: 'cover-input' }));
 }
 
+/** Обложка: пунктирные строки + сплошные (фиолетовый блок часто без solid). */
+function extractBrownCoverPageLinesWithFallback(segments, pageWidth, pageHeight, options = {}) {
+  const minNormY = options.brownCoverMinNormY ?? 0.45;
+  const maxNormY = options.brownCoverMaxNormY ?? 0.72;
+  const maxHorizontalDeltaPt = options.maxHorizontalDeltaPt ?? 1.2;
+  const minSegmentSpanPt = options.minSegmentSpanPt ?? 1.2;
+  const mergeGapPt = options.mergeGapPt ?? 6;
+
+  let lines = extractBrownCoverPageLines(segments, pageWidth, pageHeight, options);
+
+  if (lines.length >= 2) {
+    return lines.sort(
+      (a, b) => (pageHeight - a.y) / pageHeight - (pageHeight - b.y) / pageHeight
+    );
+  }
+
+  const candidates = segments
+    .filter((s) => Math.abs(s.y1 - s.y2) <= maxHorizontalDeltaPt)
+    .map((s) => {
+      const left = Math.min(s.x1, s.x2);
+      const right = Math.max(s.x1, s.x2);
+      const y = (s.y1 + s.y2) / 2;
+      return { y, left, right, span: right - left };
+    })
+    .filter((l) => l.span >= minSegmentSpanPt);
+
+  const rowBins = new Map();
+  for (const seg of candidates) {
+    const normY = (pageHeight - seg.y) / pageHeight;
+    if (normY < minNormY || normY > maxNormY) continue;
+    const bin = Math.round(seg.y / mergeGapPt);
+    if (!rowBins.has(bin)) rowBins.set(bin, []);
+    rowBins.get(bin).push(seg);
+  }
+
+  for (const [, rowSegments] of rowBins) {
+    if (isBrownDecorativeDashedRow(rowSegments, pageWidth, pageHeight, options)) {
+      continue;
+    }
+    const picked = pickBrownRowInputLine(rowSegments, pageWidth, pageHeight, options);
+    if (!picked) continue;
+    const normY = (pageHeight - picked.y) / pageHeight;
+    const duplicate = lines.some(
+      (prev) => Math.abs((pageHeight - prev.y) / pageHeight - normY) < 0.028
+    );
+    if (!duplicate) lines.push({ ...picked, source: picked.source ?? 'cover-input' });
+  }
+
+  lines.sort(
+    (a, b) => (pageHeight - a.y) / pageHeight - (pageHeight - b.y) / pageHeight
+  );
+
+  return lines.slice(0, 2);
+}
+
 function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {}) {
+  if (isBrownNarrativeProsePage(lines, pageWidth)) {
+    return [];
+  }
+
   const minRowGap = options.brownMinRowGapNorm ?? 0.022;
   const formEndNormY = options.brownFormEndNormY ?? 0.88;
 
@@ -1245,6 +1736,7 @@ function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {})
     const normY = (pageHeight - line.y) / pageHeight;
     const spanRatio = line.span / pageWidth;
     const leftRatio = line.left / pageWidth;
+    if (isBrownDecorativeRightMicroLine(line, pageWidth)) return false;
     if (isBrownFullRowArtifact(line, pageWidth)) return false;
     if (
       line.source !== 'box' &&
@@ -1255,11 +1747,14 @@ function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {})
       return false;
     }
     if (spanRatio < 0.08) return false;
+    const isMicroLabelTail =
+      line.source === 'dashed-gap' && line.labelRight != null && leftRatio >= 0.55;
     if (
+      !isMicroLabelTail &&
       line.source !== 'box' &&
       line.source !== 'wide-block' &&
       leftRatio > 0.58 &&
-      spanRatio < 0.32
+      spanRatio < 0.22
     ) {
       return false;
     }
@@ -1319,6 +1814,12 @@ function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {})
     if (line.source === 'wide-block') {
       if (normY < (options.brownWideBlockMinNormY ?? 0.28)) return false;
       if (normY > (options.brownWideBlockMaxNormY ?? 0.92)) return false;
+      if (normY > 0.935 && leftRatio < 0.14 && spanRatio > 0.75) return false;
+      return true;
+    }
+    if (line.source === 'wide-block') {
+      if (normY < (options.brownWideBlockMinNormY ?? 0.28)) return false;
+      if (normY > (options.brownWideBlockMaxNormY ?? 0.92)) return false;
       if (normY > 0.88 && leftRatio < 0.14 && spanRatio > 0.75) return false;
       return true;
     }
@@ -1328,14 +1829,27 @@ function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {})
     return true;
   });
 
+  filtered = filtered.filter(
+    (line) => !isBrownSpuriousRowtrimLine(line, pageWidth, pageHeight, filtered)
+  );
+
   filtered.sort((a, b) => b.y - a.y || a.left - b.left);
   const collapsed = [];
 
   for (const line of filtered) {
     const normY = (pageHeight - line.y) / pageHeight;
+    const lineLeftRatio = line.left / pageWidth;
     const duplicate = collapsed.find((prev) => {
       const prevNorm = (pageHeight - prev.y) / pageHeight;
       if (Math.abs(prevNorm - normY) >= minRowGap) return false;
+      const prevLeftRatio = prev.left / pageWidth;
+      if (
+        prev.source === 'box' &&
+        line.source === 'box' &&
+        Math.abs(prevLeftRatio - lineLeftRatio) > 0.22
+      ) {
+        return false;
+      }
       const overlap =
         horizontalOverlap(prev, line) / Math.min(prev.span, line.span);
       return overlap > 0.35;
@@ -1354,7 +1868,9 @@ function finalizeBrownDiaryPageLines(lines, pageWidth, pageHeight, options = {})
   }
 
   collapsed.sort((a, b) => b.y - a.y || a.left - b.left);
-  const maxLines = options.maxLinesPerPage ?? 30;
+  const maxLines = isBrownPeachDreamsPage(options)
+    ? (options.brownPeachMaxLinesPerPage ?? 35)
+    : (options.maxLinesPerPage ?? 30);
   return collapsed.slice(0, maxLines);
 }
 
@@ -1419,6 +1935,13 @@ async function collectTextItems(page) {
 
 /** Правая граница подписи на строке (вопрос «Кем ты хочешь…» и т.п.). */
 function getBrownRowLabelExtents(textItems, line, pageWidth, pageHeight, options = {}) {
+  if (line.labelRight != null) {
+    return {
+      left: 0,
+      right: line.labelRight,
+    };
+  }
+
   const labelYWindow = pageHeight * (options.brownLabelYWindowRatio ?? 0.026);
   const maxLabelLeft = pageWidth * (options.brownLabelMaxLeftRatio ?? 0.88);
 
@@ -1456,6 +1979,19 @@ function trimBrownWritableLineFromLabels(line, textItems, pageWidth, pageHeight,
   return { ...line, left: newLeft, span: line.right - newLeft };
 }
 
+
+const BROWN_WRITABLE_LINE_SOURCES = new Set([
+  'gap',
+  'solid',
+  'dashed',
+  'cover-input',
+  'box',
+  'wide-block',
+  'rowtrim',
+  'cluster',
+  'input',
+]);
+
 function detectHasLabel(textItems, line, pageWidth, pageHeight, options = {}) {
   const labelYWindow = pageHeight * 0.018;
   const labels = textItems.filter(
@@ -1475,12 +2011,29 @@ function detectHasLabel(textItems, line, pageWidth, pageHeight, options = {}) {
     if (meaningful.length > 0) return true;
   }
 
+  if (options.diaryBrownFormMode === true) {
+    if (line.source && BROWN_WRITABLE_LINE_SOURCES.has(line.source)) {
+      return false;
+    }
+    if (
+      line.labelRight != null &&
+      line.left >= line.labelRight - pageWidth * 0.012
+    ) {
+      return false;
+    }
+  }
+
   if (!options.inferLabelFromGeometry) return false;
 
   const leftRatio = line.left / pageWidth;
   const spanRatio = line.span / pageWidth;
   const maxLeft = options.brownInferLabelMaxLeftRatio ?? 0.42;
   const maxSpan = options.brownInferLabelMaxSpanRatio ?? 0.72;
+  const inlineLeftMax = options.brownInlineLabelMaxLeftRatio ?? 0.16;
+  const inlineSpanMax = options.brownInlineLabelMaxSpanRatio ?? 0.48;
+
+  if (leftRatio >= inlineLeftMax) return false;
+  if (spanRatio >= inlineSpanMax) return false;
   return leftRatio < maxLeft && spanRatio < maxSpan;
 }
 
@@ -1556,6 +2109,10 @@ function buildSlotsFromPdfLines(lines, textItems, pageWidth, pageHeight, options
     return slots;
   }
 
+  if (options.diaryBrownFormMode === true) {
+    return slots;
+  }
+
   return assignContinuationGroups(slots, options);
 }
 
@@ -1586,6 +2143,7 @@ function isBirthdayInputFill(color, options = {}) {
   const sat = Math.max(r, g, b) - Math.min(r, g, b);
   return lum >= 0.88 && sat <= 0.12;
 }
+
 
 /** Белые «таблетки» и широкие поля ввода в альбоме дня рождения. */
 function isWhiteInputBlock(wRatio, hRatio) {
@@ -1801,33 +2359,201 @@ function buildSlotsFromWhiteBlocks(blocks, textItems, pageWidth, pageHeight, opt
   return assignBlockFieldGroups(slots);
 }
 
+function isKidsAlbum(options = {}) {
+  return options.lineGuideId === 'kids_48';
+}
+
+function isPregnancyA5Album(options = {}) {
+  return options.lineGuideId === 'pregnancy_a5';
+}
+
+function isPregnancyA5WeeklyPage(pageNumber) {
+  return pageNumber >= 5 && pageNumber <= 43 && pageNumber !== 14 && pageNumber !== 29;
+}
+
+/** A5-дневник беременности: группы переноса на анкете и недельных страницах. */
+function assignPregnancyA5SlotGroups(slots, options = {}) {
+  if (!isPregnancyA5Album(options) || !slots.length) return slots;
+
+  const page = options.pageNumber;
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+
+  if (page === 3) {
+    const whenChildHead = sorted.find((slot) => slot.y > 0.53 && slot.y < 0.55 && slot.hasLabel);
+    const whenChildTail = sorted.find((slot) => slot.y > 0.57 && slot.y < 0.59 && !slot.hasLabel);
+    if (whenChildHead && whenChildTail) {
+      whenChildTail.continuationGroup = whenChildHead.continuationGroup;
+    }
+
+    return slots;
+  }
+
+  if (!isPregnancyA5WeeklyPage(page)) return slots;
+
+  const classifyWeeklySlot = (slot) => {
+    if (slot.y < 0.16 && slot.hasLabel) return 'date';
+    if (slot.x > 0.58 && slot.width < 0.35 && slot.y < 0.2) return 'weight';
+    if (slot.x > 0.58 && slot.width < 0.35 && slot.y > 0.26 && slot.y < 0.3) return 'belly';
+    if (slot.y >= 0.19 && slot.y <= 0.4 && slot.x < 0.58) return 'plans';
+    if (slot.y > 0.74 && slot.y < 0.79 && slot.hasLabel) return 'sensations';
+    if (slot.y > 0.79 && slot.width > 0.7) return 'sensations';
+    return 'other';
+  };
+
+  let groupId = 0;
+  let plansGroupId = null;
+  let sensationsGroupId = null;
+
+  for (const slot of sorted) {
+    const kind = classifyWeeklySlot(slot);
+
+    if (kind === 'plans') {
+      if (plansGroupId === null) {
+        groupId += 1;
+        plansGroupId = groupId;
+      }
+      slot.continuationGroup = plansGroupId;
+      continue;
+    }
+
+    if (kind === 'sensations') {
+      if (sensationsGroupId === null) {
+        groupId += 1;
+        sensationsGroupId = groupId;
+      }
+      slot.continuationGroup = sensationsGroupId;
+      continue;
+    }
+
+    groupId += 1;
+    slot.continuationGroup = groupId;
+  }
+
+  return sorted;
+}
+
+/** Детский фотоальбом: правки страниц с облаками и зубками. */
+function assignKidsAlbumSlotGroups(slots, options = {}) {
+  if (!isKidsAlbum(options) || !slots.length) return slots;
+
+  const page = options.pageNumber;
+  if (page === 10) {
+    const teethBand = options.kidsTeethLineHeight ?? 0.028;
+    const normalized = slots
+      .filter((slot) => slot.y < 0.78)
+      .map((slot) => ({
+        ...slot,
+        height: formatFloat(teethBand),
+      }));
+
+    const centerTeeth = [
+      { y: 0.2465, x: 0.52 },
+      { y: 0.7006, x: 0.52 },
+    ];
+    for (const target of centerTeeth) {
+      const exists = normalized.some(
+        (slot) =>
+          Math.abs(slot.y - target.y) < 0.012 &&
+          Math.abs(slot.x - target.x) < 0.04
+      );
+      if (exists) continue;
+      normalized.push({
+        x: formatFloat(target.x),
+        y: formatFloat(target.y),
+        width: formatFloat(0.1),
+        height: formatFloat(teethBand),
+        hasLabel: false,
+      });
+    }
+    normalized.sort((a, b) => a.y - b.y || a.x - b.x);
+
+    let teethGroupId = 0;
+    for (const slot of normalized) {
+      teethGroupId += 1;
+      slot.continuationGroup = teethGroupId;
+      delete slot.inputKind;
+    }
+
+    const brushingHeadY = options.kidsBrushingHeadNormY ?? 0.8349;
+    const brushingTailY = options.kidsBrushingTailNormY ?? 0.868;
+    const brushingHeadX = options.kidsBrushingHeadNormX ?? 0.559;
+    const brushingHeadWidth = options.kidsBrushingHeadNormWidth ?? 0.174;
+    const brushingTailX = options.kidsBrushingTailNormX ?? 0.08;
+    const brushingTailWidth = options.kidsBrushingTailNormWidth ?? 0.84;
+    const numberY = options.kidsTeethCountNormY ?? 0.895;
+    const numberX = options.kidsTeethCountNormX ?? 0.525;
+    const numberWidth = options.kidsTeethCountNormWidth ?? 0.053;
+    const lineHeight = options.kidsBottomLineHeight ?? 0.028;
+
+    const brushingGroupId = teethGroupId + 1;
+    normalized.push(
+      {
+        x: formatFloat(brushingHeadX),
+        y: formatFloat(brushingHeadY),
+        width: formatFloat(brushingHeadWidth),
+        height: formatFloat(lineHeight),
+        hasLabel: false,
+        continuationGroup: brushingGroupId,
+      },
+      {
+        x: formatFloat(brushingTailX),
+        y: formatFloat(brushingTailY),
+        width: formatFloat(brushingTailWidth),
+        height: formatFloat(lineHeight),
+        hasLabel: false,
+        continuationGroup: brushingGroupId,
+        inputKind: 'block',
+      },
+      {
+        x: formatFloat(numberX),
+        y: formatFloat(numberY),
+        width: formatFloat(numberWidth),
+        height: formatFloat(lineHeight),
+        hasLabel: false,
+        continuationGroup: brushingGroupId + 1,
+      }
+    );
+
+    return normalized;
+  }
+
+  return slots;
+}
+
 async function extractLineSlotsForPage(page, pageWidth, pageHeight, options) {
-  const segments = await collectPathSegments(page, options);
+  const pageOptions = options;
+  const segments = await collectPathSegments(page, pageOptions);
   let lines;
 
-  if (options.diaryBrownFormMode === true) {
-    lines = mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, options);
+  if (pageOptions.diaryBrownFormMode === true) {
+    lines = mergeBrownDiaryFormLines(segments, pageWidth, pageHeight, pageOptions);
   } else {
-    lines = mergeHorizontalLines(segments, pageWidth, pageHeight, options);
-    if (options.formLineRefine) {
-      lines = refineFormInputLines(lines, pageWidth, pageHeight, options);
+    lines = mergeHorizontalLines(segments, pageWidth, pageHeight, pageOptions);
+    if (pageOptions.formLineRefine) {
+      lines = refineFormInputLines(lines, pageWidth, pageHeight, pageOptions);
     }
-    if (options.collapseNearbyRows) {
-      lines = collapseNearbyRows(lines, pageHeight, options.minRowGapNorm ?? 0.016);
+    if (pageOptions.collapseNearbyRows) {
+      lines = collapseNearbyRows(lines, pageHeight, pageOptions.minRowGapNorm ?? 0.016);
     }
-    if (options.diaryFormMode === true) {
-      lines = filterDiaryFormLines(lines, pageWidth, pageHeight, options);
+    if (pageOptions.diaryFormMode === true) {
+      lines = filterDiaryFormLines(lines, pageWidth, pageHeight, pageOptions);
     }
   }
 
   const textItems = await collectTextItems(page);
-  let slots = buildSlotsFromPdfLines(lines, textItems, pageWidth, pageHeight, options);
+  const brownOptions =
+    pageOptions.diaryBrownFormMode === true
+      ? { ...pageOptions, brownPdfLines: lines, pageWidth, pageHeight }
+      : pageOptions;
+  let slots = buildSlotsFromPdfLines(lines, textItems, pageWidth, pageHeight, pageOptions);
 
-  if (options.diaryBrownFormMode === true) {
+  if (pageOptions.diaryBrownFormMode === true) {
     slots = normalizeBrownSlotBandHeights(slots);
-    slots = assignBrownDiarySlotGroups(slots, options);
+    slots = assignBrownDiarySlotGroups(slots, brownOptions);
   } else {
-    slots = assignContinuationGroups(slots, options);
+    slots = assignContinuationGroups(slots, pageOptions);
+    slots = assignKidsAlbumSlotGroups(slots, { ...pageOptions, pageWidth, pageHeight });
+    slots = assignPregnancyA5SlotGroups(slots, { ...pageOptions, pageWidth, pageHeight });
   }
 
   return slots;
@@ -1894,28 +2620,189 @@ function canJoinBrownBoxLines(prev, slot, clusterMinY, options = {}) {
 }
 
 function isBrownFooterArtifactSlot(slot) {
-  return slot.x < 0.12 && slot.width > 0.7 && slot.y > 0.88;
+  return slot.x < 0.12 && slot.width > 0.7 && slot.y > 0.948;
 }
 
+/** Нижняя декоративная линия под блоком «Пожелания» (не строки ввода). */
 function isBrownWishExcludeSlot(slot) {
-  return slot.x < 0.12 && slot.width > 0.7 && slot.y > 0.79;
+  return isBrownFooterArtifactSlot(slot);
 }
 
 function isDiaryQuestionnairePage(options = {}) {
-  const page = options.diaryQuestionnairePageNumber ?? 6;
-  return options.pageNumber === page;
+  const pageNum = options.pageNumber;
+  if (pageNum == null) return false;
+  if (isDiaryDaySpreadPage(options)) return false;
+  const pages = options.diaryQuestionnairePageNumbers;
+  if (Array.isArray(pages) && pages.length > 0) {
+    return pages.includes(pageNum);
+  }
+  const anchor = options.diaryQuestionnairePageNumber ?? 6;
+  if (pageNum === anchor) return true;
+  const minParent = options.brownParentQuestionnaireMinPage;
+  const maxParent = options.brownParentQuestionnaireMaxPage;
+  if (
+    minParent != null &&
+    maxParent != null &&
+    pageNum >= minParent &&
+    pageNum <= maxParent
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function getBrownQuestionnaireWideLineTemplate(slots) {
+  const wide = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.width >= 0.65 &&
+        s.y >= 0.35 &&
+        s.y <= 0.715
+    )
+    .sort((a, b) => b.width - a.width || a.y - b.y);
+
+  if (wide.length > 0) {
+    return {
+      x: wide[0].x,
+      width: wide[0].width,
+      height: wide[0].height,
+    };
+  }
+
+  return { x: 0.08479, width: 0.81765, height: 0.03525 };
 }
 
 /**
- * «Кем ты хочешь стать…»: две розовые линии ответа (PDF часто даёт одну).
+ * «Кем ты хочешь стать…»: первая строка — короткая после «?», ниже — на всю ширину.
+ */
+function normalizeBrownCareerAnswerSlots(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return;
+  const careerPage = options.diaryCareerQuestionPageNumber ?? 6;
+  if (options.pageNumber !== careerPage) return;
+
+  const careerMinY = options.brownCareerAnswerMinNormY ?? 0.735;
+  const careerMaxY = options.brownCareerAnswerMaxNormY ?? 0.84;
+  const minWidth = options.brownCareerAnswerMinWidth ?? 0.25;
+
+  const careerLines = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.y >= careerMinY &&
+        s.y <= careerMaxY &&
+        s.width >= minWidth &&
+        s.x <= 0.15 &&
+        s.width >= 0.72
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (!careerLines.length) return;
+
+  const template = getBrownQuestionnaireWideLineTemplate(slots);
+
+  for (const line of careerLines) {
+    line.x = template.x;
+    line.width = template.width;
+    if (template.height != null && (line.height == null || line.height <= 0)) {
+      line.height = template.height;
+    }
+  }
+}
+
+/**
+ * Разреженные страницы (PDF без контуров подписи): длинный вопрос + 2–3 строки ответа.
+ * Пример: «Чем ты любишь заниматься на переменах?» (стр. 22).
+ */
+function ensureBrownSparsePageInlineQuestionBlock(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return;
+  if (slots.length > 8) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const tailLeftRatio = options.brownInlineQuestionTailLeftRatio ?? 0.73;
+  const targetRightRatio = options.brownMicroRowTailTargetRight ?? 0.895;
+  const minAnswerY = options.brownInlineQuestionMinNormY ?? 0.68;
+  const maxAnswerY = options.brownInlineQuestionMaxNormY ?? 0.88;
+
+  const wideBlocks = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.width >= 0.72 &&
+        s.x < 0.15 &&
+        s.y >= minAnswerY &&
+        s.y <= maxAnswerY &&
+        (s.lineSource === 'wide-block' || s.lineSource == null)
+    )
+    .sort((a, b) => a.y - b.y);
+
+  for (const anchor of wideBlocks) {
+    const hasShortHeadAbove = slots.some(
+      (s) =>
+        !s.hasLabel &&
+        s.y < anchor.y &&
+        anchor.y - s.y <= 0.05 &&
+        s.x >= 0.55 &&
+        s.width < 0.35
+    );
+    if (hasShortHeadAbove) continue;
+
+    const headY = formatFloat(anchor.y - rowGap);
+    if (
+      headY >= minAnswerY - 0.06 &&
+      !slots.some((s) => Math.abs(s.y - headY) < 0.015)
+    ) {
+      slots.push({
+        x: formatFloat(tailLeftRatio),
+        y: headY,
+        width: formatFloat(Math.max(0.08, targetRightRatio - tailLeftRatio)),
+        height: anchor.height,
+        hasLabel: false,
+        lineSource: 'dashed-gap',
+      });
+    }
+
+    const tailY = formatFloat(anchor.y + rowGap);
+    if (
+      tailY <= maxAnswerY + 0.04 &&
+      !slots.some((s) => Math.abs(s.y - tailY) < 0.015)
+    ) {
+      slots.push({
+        x: anchor.x,
+        y: tailY,
+        width: anchor.width,
+        height: anchor.height,
+        hasLabel: false,
+        lineSource: anchor.lineSource,
+      });
+    }
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/**
+ * «Кем ты хочешь стать…»: широкие строки ответа ниже строки вопроса (PDF часто даёт одну).
+ * Первая линия сразу под вопросом (y≈0.784) — дубль подчёркивания, не слот ввода.
  */
 function ensureDiaryQuestionnaireCareerAnswerSlots(slots, options = {}) {
   if (!isDiaryQuestionnairePage(options) || !slots.length) return;
 
-  const rowGap = options.brownCareerAnswerRowGap ?? 0.042;
+  const careerPage = options.diaryCareerQuestionPageNumber ?? 6;
+  if (options.pageNumber !== careerPage) return;
+
   const bandNorm = options.brownCareerAnswerBandNorm ?? 0.042;
   const minAnswerWidth = options.brownCareerAnswerMinWidth ?? 0.35;
-  const careerMinY = options.brownCareerAnswerMinNormY ?? 0.735;
+  const careerMinY =
+    options.brownPage6CareerAnswerLineMinNormY ??
+    options.brownCareerAnswerMinNormY ??
+    0.788;
+  const template = getBrownQuestionnaireWideLineTemplate(slots);
+  const secondY = formatFloat(
+    options.brownCareerAnswerSecondNormY ??
+      (options.brownCareerAnswerFirstNormY ?? 0.784) +
+        (options.brownCareerAnswerRowGap ?? 0.048)
+  );
 
   const careerLines = slots
     .filter(
@@ -1923,34 +2810,49 @@ function ensureDiaryQuestionnaireCareerAnswerSlots(slots, options = {}) {
         !s.hasLabel &&
         s.width >= minAnswerWidth &&
         s.y >= careerMinY &&
-        s.y <= 0.83
+        s.y <= 0.85 &&
+        s.x <= 0.15 &&
+        s.width >= 0.72
     )
     .sort((a, b) => a.y - b.y);
 
-  if (!careerLines.length) return;
+  if (!careerLines.length) {
+    slots.push({
+      x: template.x,
+      y: secondY,
+      width: template.width,
+      height: formatFloat(template.height ?? bandNorm),
+      hasLabel: false,
+      inputKind: 'block',
+    });
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+    return;
+  }
 
   const anchor = careerLines[0];
-  const firstY =
-    options.brownCareerAnswerFirstNormY != null
-      ? formatFloat(options.brownCareerAnswerFirstNormY)
-      : formatFloat(anchor.y);
-  const secondY = formatFloat(firstY + rowGap);
+  anchor.y = secondY;
+  anchor.x = template.x;
+  anchor.width = template.width;
+  if (anchor.height == null || anchor.height <= 0) {
+    anchor.height = formatFloat(template.height ?? bandNorm);
+  }
+  anchor.inputKind = 'block';
 
-  anchor.y = firstY;
-  anchor.height = formatFloat(anchor.height ?? bandNorm);
-
-  let second = careerLines.find((s) => s !== anchor && Math.abs(s.y - secondY) < 0.02);
-  if (!second) {
-    slots.push({
-      x: anchor.x,
-      y: secondY,
-      width: anchor.width,
-      height: anchor.height,
-      hasLabel: false,
-    });
-  } else {
-    second.y = formatFloat(secondY);
-    second.height = formatFloat(second.height ?? bandNorm);
+  let extra = careerLines.find(
+    (s) => s !== anchor && Math.abs(s.y - secondY) > 0.022
+  );
+  if (!extra && careerLines.length >= 2) {
+    extra = careerLines[1];
+  }
+  if (extra) {
+    const extraY = formatFloat(secondY + (options.brownCareerAnswerRowGap ?? 0.048));
+    extra.y = extraY;
+    extra.x = template.x;
+    extra.width = template.width;
+    if (extra.height == null || extra.height <= 0) {
+      extra.height = formatFloat(template.height ?? bandNorm);
+    }
+    extra.inputKind = 'block';
   }
 }
 
@@ -1969,21 +2871,1383 @@ function isBrownQuestionHeaderRowSlot(slot, slots, options = {}) {
   );
 }
 
-/** Синтетическая/лишняя линия в зоне текста вопроса (не поле ответа). */
+function isBrownAlbum(options = {}) {
+  return options.lineGuideId === 'diary_interior_brown';
+}
+
+function isPurpleAlbum(options = {}) {
+  return options.lineGuideId === 'diary_interior_purple';
+}
+
+function getDiaryCareerQuestionPage(options = {}) {
+  return options.diaryCareerQuestionPageNumber ?? options.diaryQuestionnairePageNumber ?? 6;
+}
+
+const BROWN_JOURNAL_PAGE_SET = new Set([
+  16, 20, 23, 25, 28, 33,
+  45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+]);
+
+const PURPLE_JOURNAL_PAGE_SET = new Set([
+  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
+]);
+
+function isJournalTemplateByFirstSlot(slots) {
+  const first = slots[0];
+  return (
+    !!first &&
+    first.y >= 0.14 &&
+    first.y <= 0.18 &&
+    first.x >= 0.25 &&
+    first.width >= 0.28 &&
+    first.width <= 0.42
+  );
+}
+
+function isBrownPeachDreamsPage(options = {}) {
+  return isBrownAlbum(options) && options.pageNumber === 15;
+}
+
+function isBrownPetsPage(options = {}) {
+  return isBrownAlbum(options) && options.pageNumber === 17;
+}
+
+function isBrownHobbyPage(options = {}) {
+  return isBrownAlbum(options) && options.pageNumber === 13;
+}
+
+function isBrownMoodPage(options = {}) {
+  return isBrownAlbum(options) && options.pageNumber === 24;
+}
+
+function isBrownJournalTemplatePage(options = {}, slots = []) {
+  if (!isBrownAlbum(options)) return false;
+  const page = options.pageNumber;
+  if (page == null || page < 16 || page > 56) return false;
+  if (BROWN_JOURNAL_PAGE_SET.has(page)) return true;
+  return isJournalTemplateByFirstSlot(slots);
+}
+
+function isPurpleJournalTemplatePage(options = {}, slots = []) {
+  if (!isPurpleAlbum(options)) return false;
+  const page = options.pageNumber;
+  if (page == null) return false;
+  if (PURPLE_JOURNAL_PAGE_SET.has(page)) return true;
+  const wideMid = (slots || []).filter(
+    (s) =>
+      !s.hasLabel &&
+      s.y >= 0.28 &&
+      s.y <= 0.55 &&
+      s.x < 0.15 &&
+      s.width >= 0.65
+  );
+  const bottomBlock = (slots || []).filter(
+    (s) => s.y >= 0.68 && s.x < 0.2 && s.width >= 0.65
+  );
+  if (wideMid.length >= 5 && bottomBlock.length >= 3) return true;
+  return isJournalTemplateByFirstSlot(slots);
+}
+
+function isDiaryJournalTemplatePage(options = {}, slots = []) {
+  return isBrownJournalTemplatePage(options, slots) || isPurpleJournalTemplatePage(options, slots);
+}
+
+function isBrownDaySpreadPage(options = {}) {
+  if (!isBrownAlbum(options)) return false;
+  const page = options.pageNumber;
+  return page != null && page >= 34 && page <= 40;
+}
+
+function isPurpleDaySpreadPage(options = {}) {
+  if (!isPurpleAlbum(options)) return false;
+  const page = options.pageNumber;
+  return page != null && page >= 24 && page <= 27;
+}
+
+function isDiaryDaySpreadPage(options = {}) {
+  return isBrownDaySpreadPage(options) || isPurpleDaySpreadPage(options);
+}
+
+/** Первый розовый блок «НАПИШИ ИЛИ НАРИСУЙ!» — не поле ввода. */
+function isBrownJournalFirstInstructionSpuriousSlot(slot, options = {}) {
+  if (!isDiaryJournalTemplatePage(options) || slot.hasLabel) return false;
+  return (
+    slot.y >= 0.25 &&
+    slot.y <= 0.3 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.65
+  );
+}
+
+function isBrownJournalInstructionSpuriousSlot(slot, options = {}) {
+  if (!isDiaryJournalTemplatePage(options) || slot.hasLabel) return false;
+  return false;
+}
+
+function isBrownPeachBottomTitleSpuriousSlot(slot, options = {}) {
+  if (!isBrownPeachDreamsPage(options) || slot.hasLabel) return false;
+  return (
+    slot.y >= 0.82 &&
+    slot.y <= 0.86 &&
+    slot.x < 0.2 &&
+    slot.width >= 0.4
+  );
+}
+
+function isBrownJournalTemplateSpuriousSlot(slot, options = {}, slots = []) {
+  if (!isDiaryJournalTemplatePage(options, slots) || slot.hasLabel) return false;
+  if (slot.y >= 0.57 && slot.y <= 0.64 && slot.width >= 0.35 && slot.width <= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.68 && slot.y <= 0.715 && slot.x < 0.15 && slot.width >= 0.65) {
+    return true;
+  }
+  return false;
+}
+
+function isBrownDaySpreadTitleSpuriousSlot(slot, options = {}) {
+  if (!isDiaryDaySpreadPage(options) || slot.hasLabel) return false;
+  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.52 && slot.y <= 0.68 && slot.x < 0.15 && slot.width >= 0.55) {
+    return true;
+  }
+  if (slot.y >= 0.55 && slot.y <= 0.67 && slot.x >= 0.35 && slot.width <= 0.28) {
+    return true;
+  }
+  return false;
+}
+
+function refineBrownDaySpreadIllustrationWidths(slots, options = {}) {
+  if (!isDiaryDaySpreadPage(options) || !slots.length) return slots;
+
+  const illustrationSafeWidth = options.brownDaySpreadIllustrationMaxWidth ?? 0.55;
+  const bands = [
+    { minY: 0.16, maxY: 0.52 },
+    { minY: 0.6, maxY: 0.95 },
+  ];
+
+  for (const band of bands) {
+    const bandSlots = slots
+      .filter((slot) => slot.y >= band.minY && slot.y < band.maxY)
+      .sort((a, b) => a.y - b.y || a.x - b.x);
+    if (bandSlots.length < 2) continue;
+
+    const widths = bandSlots.map((slot) => slot.width);
+    const minWidth = Math.min(...widths);
+    const maxWidth = Math.max(...widths);
+    const shortLineWidth = widths
+      .filter((width) => width < maxWidth - 0.03)
+      .sort((a, b) => a - b)[0];
+    const bottomStartIndex = Math.max(1, Math.floor(bandSlots.length * 0.5));
+
+    for (let index = bottomStartIndex; index < bandSlots.length; index += 1) {
+      const slot = bandSlots[index];
+      const targetWidth = shortLineWidth != null
+        ? Math.min(shortLineWidth, illustrationSafeWidth)
+        : illustrationSafeWidth;
+      if (slot.width > targetWidth + 0.01) {
+        slot.width = formatFloat(targetWidth);
+      }
+    }
+  }
+
+  return slots;
+}
+
+/** Стр. 24: список 1–5 — отдельные строки; не сливать последний пункт. */
+function assignBrownPage24MoodSlotGroups(slots, options = {}) {
+  const listMinY = options.brownMoodListMinNormY ?? 0.63;
+  const footerMinY = options.brownMoodFooterMinNormY ?? 0.915;
+  const listMinX = options.brownMoodListMinNormX ?? 0.22;
+  const uniformHeight = options.brownMoodLineHeight ?? 0.032;
+
+  const prepared = slots
+    .filter((slot) => slot.y < footerMinY)
+    .map((slot) => {
+      const next = {
+        ...slot,
+        height: formatFloat(uniformHeight),
+      };
+      if (next.y >= listMinY && next.x < listMinX) {
+        const right = next.x + next.width;
+        next.x = formatFloat(listMinX);
+        next.width = formatFloat(Math.max(0.05, right - listMinX));
+      }
+      return next;
+    })
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let groupId = 0;
+  for (const slot of prepared) {
+    groupId += 1;
+    slot.continuationGroup = groupId;
+    slot.inputKind = 'line';
+  }
+
+  return prepared;
+}
+
+function injectBrownPage17MissingTailSlots(slots, options = {}) {
+  if (!isBrownPetsPage(options) || !slots.length) return;
+
+  const tails = [
+    { y: 0.57208, x: 0.77355, width: 0.1224 },
+    { y: 0.65608, x: 0.78355, width: 0.1123 },
+  ];
+  const extras = [
+    { y: 0.84745, x: 0.07755, width: 0.8199, minWidth: 0.5 },
+  ];
+  const band = options.brownPetsLineHeight ?? 0.032;
+
+  for (const extra of extras) {
+    const exists = slots.some(
+      (slot) =>
+        Math.abs(slot.y - extra.y) < 0.015 &&
+        slot.x < 0.2 &&
+        slot.width >= extra.minWidth
+    );
+    if (exists) continue;
+    slots.push({
+      x: formatFloat(extra.x),
+      y: formatFloat(extra.y),
+      width: formatFloat(extra.width),
+      height: formatFloat(band),
+      hasLabel: false,
+      lineSource: 'wide-block',
+    });
+  }
+
+  for (const tail of tails) {
+    const exists = slots.some(
+      (slot) =>
+        Math.abs(slot.y - tail.y) < 0.02 &&
+        ((slot.x >= 0.55 && slot.width >= 0.06 && slot.width <= 0.35) ||
+          (slot.x < 0.16 && slot.width >= 0.72))
+    );
+    if (exists) continue;
+    slots.push({
+      x: formatFloat(tail.x),
+      y: formatFloat(tail.y),
+      width: formatFloat(tail.width),
+      height: formatFloat(band),
+      hasLabel: false,
+      lineSource: 'dashed-gap',
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function injectBrownPage21MissingTailSlots(slots, options = {}) {
+  if (options.pageNumber !== 21 || !slots.length) return;
+
+  const tails = [
+    { y: 0.36182, x: 0.51255, width: 0.3874 },
+    { y: 0.44162, x: 0.51255, width: 0.3874 },
+    { y: 0.60082, x: 0.51255, width: 0.3874 },
+  ];
+  const band = options.brownTravelLineHeight ?? 0.032;
+
+  for (const tail of tails) {
+    const exists = slots.some(
+      (slot) =>
+        Math.abs(slot.y - tail.y) < 0.045 &&
+        (slot.x >= 0.38 || (slot.x < 0.16 && slot.width >= 0.72))
+    );
+    if (exists) continue;
+    slots.push({
+      x: formatFloat(tail.x),
+      y: formatFloat(tail.y),
+      width: formatFloat(tail.width),
+      height: formatFloat(band),
+      hasLabel: false,
+      lineSource: 'dashed-gap',
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function injectBrownPage37MissingBottomLines(slots, options = {}) {
+  if (options.pageNumber !== 37 || !slots.length) return;
+
+  const extras = [
+    { y: 0.54812, x: 0.10182, width: 0.7958 },
+    { y: 0.59258, x: 0.10182, width: 0.7958 },
+    { y: 0.63704, x: 0.10182, width: 0.7958 },
+    { y: 0.6815, x: 0.10182, width: 0.7958 },
+  ];
+  const band = slots[0]?.height ?? 0.028;
+
+  for (const extra of extras) {
+    const exists = slots.some((slot) => Math.abs(slot.y - extra.y) < 0.015);
+    if (exists) continue;
+    slots.push({
+      x: formatFloat(extra.x),
+      y: formatFloat(extra.y),
+      width: formatFloat(extra.width),
+      height: formatFloat(band),
+      hasLabel: false,
+      lineSource: 'wide-block',
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function refineBrownPage38FoodSlotWidths(slots, options = {}) {
+  if (options.pageNumber !== 38 || !slots.length) return slots;
+
+  const fullTemplate = slots
+    .filter((slot) => slot.x < 0.12 && slot.width >= 0.72)
+    .sort((a, b) => b.width - a.width)[0];
+  if (!fullTemplate) return slots;
+
+  for (const slot of slots) {
+    if (slot.x < 0.12 && slot.width >= 0.72) continue;
+    if (slot.width < 0.45 && slot.x >= 0.35) {
+      slot.x = fullTemplate.x;
+      slot.width = formatFloat(fullTemplate.width);
+    }
+  }
+
+  return slots;
+}
+
+/** Стр. 13 «ХОББИ»: хвост после подписи + широкая строка ниже — одна группа. */
+function assignBrownPage13HobbySlotGroups(slots, options = {}) {
+  const uniformHeight = options.brownHobbyLineHeight ?? 0.032;
+  const prepared = slots.map((slot) => ({
+    ...slot,
+    height: formatFloat(uniformHeight),
+    continuationGroup: undefined,
+    inputKind: undefined,
+  }));
+
+  prepared.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let groupId = 0;
+  for (let i = 0; i < prepared.length; i += 1) {
+    const slot = prepared[i];
+    if (slot.continuationGroup != null) continue;
+
+    groupId += 1;
+    slot.continuationGroup = groupId;
+
+    const next = prepared[i + 1];
+    const gap = next ? next.y - slot.y : null;
+    const isTail = slot.x >= 0.28 && slot.width >= 0.2 && slot.width < 0.68;
+    const nextIsWide = next && next.x < 0.16 && next.width >= 0.72;
+    if (isTail && nextIsWide && gap != null && gap >= 0.02 && gap <= 0.055) {
+      next.continuationGroup = groupId;
+      next.inputKind = 'block';
+      slot.inputKind = 'block';
+      continue;
+    }
+
+    const run = [slot];
+    let j = i + 1;
+    while (j < prepared.length) {
+      const prev = run[run.length - 1];
+      const candidate = prepared[j];
+      if (candidate.continuationGroup != null) break;
+      const rowGap = candidate.y - prev.y;
+      if (
+        candidate.x < 0.16 &&
+        prev.x < 0.16 &&
+        candidate.width >= 0.72 &&
+        prev.width >= 0.72 &&
+        rowGap >= 0.028 &&
+        rowGap <= 0.052
+      ) {
+        candidate.continuationGroup = groupId;
+        run.push(candidate);
+        j += 1;
+        if (run.length >= 3) break;
+        continue;
+      }
+      break;
+    }
+
+    if (run.length >= 2) {
+      for (const row of run) {
+        row.inputKind = 'block';
+      }
+    }
+    i = j - 1;
+  }
+
+  for (const slot of prepared) {
+    if (slot.continuationGroup == null) {
+      groupId += 1;
+      slot.continuationGroup = groupId;
+    }
+  }
+
+  return prepared.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Стр. 17 «Твои питомцы»: каждый вопрос — своё поле; низ — блок из 3 строк. */
+function assignBrownPage17PetsSlotGroups(slots, options = {}) {
+  const uniformHeight = options.brownPetsLineHeight ?? 0.032;
+  const bottomMinY = options.brownPetsBottomMinNormY ?? 0.75;
+  const bottomMaxWidth = options.brownPetsBottomMaxWidth ?? 0.59;
+  const footerMinY = options.brownPetsFooterMinNormY ?? 0.87;
+
+  const prepared = slots
+    .filter((slot) => slot.y < footerMinY)
+    .map((slot) => ({
+      ...slot,
+      height: formatFloat(uniformHeight),
+    }));
+
+  const bottom = prepared
+    .filter((slot) => slot.y >= bottomMinY && slot.x < 0.2 && slot.width >= 0.5)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+  const top = prepared
+    .filter((slot) => !(slot.y >= bottomMinY && slot.x < 0.2 && slot.width >= 0.5))
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+
+  let groupId = 0;
+  for (const slot of top) {
+    groupId += 1;
+    slot.continuationGroup = groupId;
+    slot.inputKind = 'line';
+  }
+
+  if (bottom.length) {
+    groupId += 1;
+    for (const slot of bottom) {
+      slot.continuationGroup = groupId;
+      slot.inputKind = 'block';
+      if (slot.width > bottomMaxWidth) {
+        slot.width = formatFloat(bottomMaxWidth);
+      }
+    }
+  }
+
+  return prepared.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function getBrownPeachDreamsLeftStackId(normY) {
+  if (normY < 0.345) return 1;
+  if (normY < 0.572) return 2;
+  if (normY < 0.82) return 3;
+  return 4;
+}
+
+/** Стр. 15 «Мечты»: белые линии внутри розовых блоков (координаты из PDF). */
+function buildBrownPage15CanonicalSlots(options = {}) {
+  const lineHeight = options.brownPeachLineHeight ?? 0.028;
+  const leftX = 0.14785;
+  const leftWidth = 0.34319;
+  const rightX = 0.5932;
+  const rightWidth = 0.27072;
+  const bottomX = 0.1418;
+  const bottomWidth = 0.4862;
+
+  const leftBlockLines = [
+    [0.23172, 0.27618, 0.32064],
+    [0.39228, 0.44612, 0.49058],
+    [0.58602, 0.65988, 0.70434, 0.7488],
+  ];
+  const rightLines = [
+    0.23172, 0.27618, 0.32064, 0.3651, 0.40842, 0.45288, 0.49734,
+    0.54512, 0.58602, 0.63745, 0.6819, 0.72636,
+  ];
+  const bottomLines = [0.8578, 0.9014];
+
+  const slots = [];
+  let groupId = 0;
+
+  for (const block of leftBlockLines) {
+    groupId += 1;
+    for (const y of block) {
+      slots.push({
+        x: formatFloat(leftX),
+        y: formatFloat(y),
+        width: formatFloat(leftWidth),
+        height: formatFloat(lineHeight),
+        hasLabel: false,
+        continuationGroup: groupId,
+        inputKind: 'block',
+        lineSource: 'box',
+      });
+    }
+  }
+
+  groupId += 1;
+  for (const y of rightLines) {
+    slots.push({
+      x: formatFloat(rightX),
+      y: formatFloat(y),
+      width: formatFloat(rightWidth),
+      height: formatFloat(lineHeight),
+      hasLabel: false,
+      continuationGroup: groupId,
+      inputKind: 'block',
+      lineSource: 'box',
+    });
+  }
+
+  groupId += 1;
+  for (const y of bottomLines) {
+    slots.push({
+      x: formatFloat(bottomX),
+      y: formatFloat(y),
+      width: formatFloat(bottomWidth),
+      height: formatFloat(lineHeight),
+      hasLabel: false,
+      continuationGroup: groupId,
+      inputKind: 'block',
+      lineSource: 'box',
+    });
+  }
+
+  return slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function injectBrownJournalDateSlot(slots, options = {}) {
+  if (!isDiaryJournalTemplatePage(options, slots)) return;
+  if (isPurpleAlbum(options) && PURPLE_JOURNAL_PAGE_SET.has(options.pageNumber)) {
+    return;
+  }
+
+  const dateY = options.brownJournalDateNormY ?? 0.156;
+  const dateX = options.brownJournalDateNormX ?? 0.36;
+  const dateWidth = options.brownJournalDateNormWidth ?? 0.34;
+  const band = options.brownJournalDateHeight ?? 0.032;
+
+  const hasDate = slots.some(
+    (slot) =>
+      slot.y >= 0.13 &&
+      slot.y <= 0.2 &&
+      slot.width >= 0.2 &&
+      slot.width <= 0.45
+  );
+  if (hasDate) return;
+
+  slots.push({
+    x: formatFloat(dateX),
+    y: formatFloat(dateY),
+    width: formatFloat(dateWidth),
+    height: formatFloat(band),
+    hasLabel: false,
+    lineSource: 'dashed-gap',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Журнал: седьмая строка «Как прошёл день» вне розового блока. */
+function injectBrownJournalSeventhMainLineSlot(slots, options = {}) {
+  if (!isDiaryJournalTemplatePage(options, slots) || !slots.length) return;
+
+  const mainLines = slots
+    .filter(
+      (slot) =>
+        !slot.hasLabel &&
+        slot.y >= 0.3 &&
+        slot.y <= 0.535 &&
+        slot.x < 0.15 &&
+        slot.width >= 0.65
+    )
+    .sort((a, b) => a.y - b.y);
+
+  if (mainLines.length < 5) return;
+
+  const hasSeventh = slots.some(
+    (slot) =>
+      !slot.hasLabel &&
+      slot.y >= 0.5 &&
+      slot.y <= 0.535 &&
+      slot.x < 0.15 &&
+      slot.width >= 0.65
+  );
+  if (hasSeventh) return;
+
+  const template = mainLines[0];
+  const last = mainLines[mainLines.length - 1];
+  const gaps = [];
+  for (let i = 1; i < mainLines.length; i += 1) {
+    gaps.push(mainLines[i].y - mainLines[i - 1].y);
+  }
+  const avgGap = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
+  const band = template.height ?? options.brownJournalMainLineHeight ?? 0.03644;
+
+  slots.push({
+    x: formatFloat(template.x),
+    y: formatFloat(last.y + avgGap),
+    width: formatFloat(template.width),
+    height: formatFloat(band),
+    hasLabel: false,
+    inputKind: 'block',
+    lineSource: 'journal-seventh',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Декоративное подчёркивание заголовка «Анкета для…» (не поле «Имя»). */
+function isBrownQuestionnaireTitleUnderlineSlot(slot, slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return false;
+  if (isBrownPeachDreamsPage(options)) return false;
+
+  // Короткий штрих справа под подзаголовком «Анкета для…»
+  if (
+    slot.y >= 0.17 &&
+    slot.y <= 0.28 &&
+    slot.width < 0.35 &&
+    slot.x >= 0.55
+  ) {
+    return true;
+  }
+
+  if (slot.y < 0.305 || slot.y > 0.328) return false;
+  if (slot.width < 0.68) return false;
+  if (slot.y < 0.308 && slot.width < 0.7) return false;
+  // Полноширинная строка «Имя:» / «Дата…» — не декоративное подчёркивание заголовка.
+  if (slot.x <= 0.2 && slot.width >= 0.72) return false;
+
+  return slots.some(
+    (candidate) =>
+      candidate !== slot &&
+      candidate.y >= slot.y + 0.03 &&
+      candidate.y <= slot.y + 0.055 &&
+      candidate.width >= 0.35 &&
+      candidate.width <= 0.78
+  );
+}
+
+
+/** Закрывающий текст анкеты на стр. карьеры — не поле ввода. */
+function isBrownCareerClosingTextSpuriousSlot(slot, slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return false;
+  if (options.pageNumber !== getDiaryCareerQuestionPage(options) || slot.hasLabel) {
+    return false;
+  }
+  if (slot.y >= 0.765 && slot.y <= 0.785 && slot.x >= 0.6 && slot.width < 0.35) {
+    return true;
+  }
+  if (
+    slot.y >= 0.772 &&
+    slot.y <= 0.785 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.72 &&
+    slots.some((c) => c.y >= 0.81 && c.x < 0.15 && c.width >= 0.72)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Полная линия под текстом вопроса «Кем ты хочешь…» — не поле ответа (хвост отдельно). */
 function isBrownPage6QuestionBandSlot(slot, slots, options = {}) {
   if (!isDiaryQuestionnairePage(options)) return false;
-  if (slot.y < 0.698 || slot.y > 0.778) return false;
-  if (slot.width < 0.38) return false;
+  const careerPage = options.diaryCareerQuestionPageNumber ?? 6;
+  if (options.pageNumber !== careerPage) return false;
+  if (slot.y < 0.745 || slot.y > 0.778) return false;
+  if (slot.width < 0.72) return false;
+  if (slot.x > 0.15) return false;
   if (slot.hasLabel) return false;
 
   return slots.some(
     (candidate) =>
       !candidate.hasLabel &&
       candidate.y >= 0.73 &&
-      candidate.y <= 0.83 &&
-      candidate.y > slot.y + 0.02 &&
+      candidate.y <= 0.85 &&
+      candidate.y >= slot.y + 0.008 &&
       brownSlotHorizontalOverlapRatio(slot, candidate) >= 0.2
   );
+}
+
+/** Стр. 6: «Лучший друг:» — PDF часто не выделяет строку отдельно. */
+function injectBrownPage6MissingBestFriendMaleRow(slots, options = {}) {
+  const careerPage = getDiaryCareerQuestionPage(options);
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber !== careerPage || !slots.length) {
+    return;
+  }
+
+  const bestFriendFemale = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.y >= 0.675 &&
+        s.y <= 0.705 &&
+        s.width >= 0.45 &&
+        s.x < 0.55
+    )
+    .sort((a, b) => b.y - a.y)[0];
+  if (!bestFriendFemale) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.047;
+  const maleY = formatFloat(
+    options.brownPage6BestFriendMaleNormY ?? bestFriendFemale.y + rowGap
+  );
+  const maleX = formatFloat(
+    options.brownPage6BestFriendMaleLeftNorm ??
+      Math.max(0.3, bestFriendFemale.x - 0.04)
+  );
+  const targetRight = options.brownMicroRowTailTargetRight ?? 0.895;
+  const maleWidth = formatFloat(
+    Math.max(0.45, targetRight - maleX)
+  );
+
+  const existingMale = slots.find(
+    (s) =>
+      !s.hasLabel &&
+      Math.abs(s.y - maleY) < 0.008 &&
+      s.width >= 0.4 &&
+      s.x < 0.55
+  );
+  if (existingMale) {
+    existingMale.x = maleX;
+    existingMale.y = maleY;
+    existingMale.width = maleWidth;
+    existingMale.height = bestFriendFemale.height;
+    delete existingMale.inputKind;
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+    return;
+  }
+
+  const misdetectedMale = slots.find(
+    (s) =>
+      !s.hasLabel &&
+      s.y > bestFriendFemale.y + 0.035 &&
+      s.y < (options.brownPage6CareerQuestionNormY ?? 0.773) - 0.02 &&
+      s.width >= 0.4 &&
+      s.x < 0.55
+  );
+  if (misdetectedMale) {
+    misdetectedMale.x = maleX;
+    misdetectedMale.y = maleY;
+    misdetectedMale.width = maleWidth;
+    misdetectedMale.height = bestFriendFemale.height;
+    delete misdetectedMale.inputKind;
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+    return;
+  }
+
+  const misdetectedTail = slots.find(
+    (s) =>
+      !s.hasLabel &&
+      Math.abs(s.y - maleY) < 0.012 &&
+      s.x >= 0.62 &&
+      s.width < 0.25
+  );
+  if (misdetectedTail) {
+    misdetectedTail.x = maleX;
+    misdetectedTail.y = maleY;
+    misdetectedTail.width = maleWidth;
+    misdetectedTail.height = bestFriendFemale.height;
+    delete misdetectedTail.inputKind;
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+    return;
+  }
+
+  slots.push({
+    x: maleX,
+    y: maleY,
+    width: maleWidth,
+    height: bestFriendFemale.height,
+    hasLabel: false,
+    lineSource: 'gap',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Стр. 6: убрать широкий блок ответа, попавший на строку вопроса. */
+function removeBrownPage6MisplacedCareerAnswerSlots(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber !== getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+
+  const questionY = options.brownPage6CareerQuestionNormY ?? 0.773;
+  const answerLineMinY =
+    options.brownPage6CareerAnswerLineMinNormY ??
+    options.brownCareerAnswerMinNormY ??
+    0.788;
+  for (let i = slots.length - 1; i >= 0; i -= 1) {
+    const slot = slots[i];
+    if (!slot.hasLabel) {
+      if (
+        slot.x < 0.15 &&
+        slot.width >= 0.72 &&
+        slot.y > 0.74 &&
+        slot.y < answerLineMinY
+      ) {
+        slots.splice(i, 1);
+        continue;
+      }
+      if (
+        slot.x >= 0.2 &&
+        slot.x < 0.55 &&
+        slot.width >= 0.45 &&
+        slot.y > questionY - 0.02 &&
+        slot.y < answerLineMinY + 0.02
+      ) {
+        slots.splice(i, 1);
+      }
+    }
+  }
+}
+
+/** Стр. 6: короткий ввод справа от «?» на строке вопроса. */
+function isBrownPage31ClassQuestionSpuriousSlot(slot, options = {}) {
+  if (
+    !isBrownAlbum(options) ||
+    !isDiaryQuestionnairePage(options) ||
+    options.pageNumber !== 31 ||
+    slot.hasLabel
+  ) {
+    return false;
+  }
+  return (
+    slot.y >= 0.548 &&
+    slot.y <= 0.562 &&
+    slot.x < 0.35 &&
+    slot.width >= 0.55
+  );
+}
+
+function injectBrownPage31ClassSizeTailSlot(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber !== 31 || !slots.length) {
+    return;
+  }
+
+  const tailY = formatFloat(options.brownPage31ClassTailNormY ?? 0.5573);
+  const tailLeft = options.brownPage31ClassTailLeftRatio ?? 0.5992;
+  const tailWidth = options.brownPage31ClassTailWidthRatio ?? 0.325;
+  const bandNorm = options.brownCareerAnswerBandNorm ?? 0.042;
+
+  const hasTail = slots.some(
+    (s) =>
+      !s.hasLabel &&
+      Math.abs(s.y - tailY) < 0.018 &&
+      s.x >= 0.55 &&
+      s.width >= 0.06 &&
+      s.width <= 0.42
+  );
+  if (hasTail) return;
+
+  slots.push({
+    x: formatFloat(tailLeft),
+    y: tailY,
+    width: formatFloat(tailWidth),
+    height: formatFloat(bandNorm),
+    hasLabel: false,
+    lineSource: 'dashed-gap',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function applyBrownLabeledRowMinX(slot, rows) {
+  for (const row of rows) {
+    if (slot.y < row.minY || slot.y > row.maxY) continue;
+    if (slot.x >= row.minX) return slot;
+    const right = slot.x + slot.width;
+    const x = row.minX;
+    return {
+      ...slot,
+      x,
+      width: formatFloat(Math.max(0.05, Math.min(right - x, 0.98 - x))),
+    };
+  }
+  return slot;
+}
+
+function refineBrownDiaryPageSlotGeometry(slots, options = {}) {
+  if (!isBrownAlbum(options) && !isPurpleAlbum(options)) return slots;
+  const page = options.pageNumber;
+  if (!isDiaryQuestionnairePage(options) || page == null) return slots;
+
+  const page26Rows = [
+    { minY: 0.498, maxY: 0.518, minX: 0.58 },
+    { minY: 0.572, maxY: 0.592, minX: 0.58 },
+    { minY: 0.752, maxY: 0.772, minX: 0.52 },
+  ];
+  const page31Rows = [
+    { minY: 0.412, maxY: 0.432, minX: 0.55 },
+    { minY: 0.478, maxY: 0.498, minX: 0.42 },
+    { minY: 0.544, maxY: 0.564, minX: 0.62 },
+    { minY: 0.618, maxY: 0.638, minX: 0.65 },
+    { minY: 0.868, maxY: 0.888, minX: 0.52 },
+  ];
+  const purplePage5Rows = [
+    { minY: 0.728, maxY: 0.758, minX: 0.52 },
+  ];
+  const purplePage16Rows = [
+    { minY: 0.488, maxY: 0.508, minX: 0.58 },
+    { minY: 0.552, maxY: 0.572, minX: 0.56 },
+  ];
+  const purplePage22Rows = [
+    { minY: 0.338, maxY: 0.368, minX: 0.52 },
+    { minY: 0.598, maxY: 0.628, minX: 0.58 },
+    { minY: 0.818, maxY: 0.848, minX: 0.52 },
+  ];
+
+  for (let i = 0; i < slots.length; i += 1) {
+    let slot = slots[i];
+    if (slot.hasLabel) continue;
+
+    if (page === 26 && isBrownAlbum(options)) {
+      slot = applyBrownLabeledRowMinX(slot, page26Rows);
+      if (slot.inputKind !== 'block' && slot.y >= 0.28 && slot.y <= 0.94) {
+        slot = { ...slot, height: formatFloat(0.032) };
+      }
+    } else if (page === 31 && isBrownAlbum(options)) {
+      slot = applyBrownLabeledRowMinX(slot, page31Rows);
+      if (slot.inputKind !== 'block' && slot.y >= 0.32 && slot.y <= 0.94) {
+        slot = { ...slot, height: formatFloat(0.032) };
+      }
+    } else if (page === 5 && isPurpleAlbum(options)) {
+      slot = applyBrownLabeledRowMinX(slot, purplePage5Rows);
+    } else if (page === 16 && isPurpleAlbum(options)) {
+      slot = applyBrownLabeledRowMinX(slot, purplePage16Rows);
+    } else if (page === 22 && isPurpleAlbum(options)) {
+      slot = applyBrownLabeledRowMinX(slot, purplePage22Rows);
+    }
+
+    slots[i] = slot;
+  }
+
+  return slots;
+}
+
+function injectBrownPage6CareerQuestionTailSlot(slots, options = {}) {
+  if (
+    !isDiaryQuestionnairePage(options) ||
+    options.pageNumber !== getDiaryCareerQuestionPage(options) ||
+    !slots.length
+  ) {
+    return;
+  }
+
+  const defaultTailY = options.brownPage6CareerQuestionNormY ?? 0.773;
+  const detectedTail = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.y >= 0.72 &&
+        s.y <= 0.76 &&
+        s.x >= 0.52 &&
+        s.width >= 0.06 &&
+        s.width <= 0.42
+    )
+    .sort((a, b) => Math.abs(a.y - defaultTailY) - Math.abs(b.y - defaultTailY))[0];
+  const tailY = formatFloat(detectedTail?.y ?? defaultTailY);
+  const tailLeft = options.brownPage6CareerTailLeftRatio ?? 0.768;
+  const targetRight = options.brownMicroRowTailTargetRight ?? 0.895;
+  const bandNorm = options.brownCareerAnswerBandNorm ?? 0.042;
+
+  const hasTail = slots.some(
+    (s) =>
+      !s.hasLabel &&
+      Math.abs(s.y - tailY) < 0.018 &&
+      s.x >= 0.52 &&
+      s.width >= 0.06 &&
+      s.width <= 0.42
+  );
+  if (hasTail) return;
+
+  slots.push({
+    x: formatFloat(tailLeft),
+    y: tailY,
+    width: formatFloat(Math.max(0.06, targetRight - tailLeft)),
+    height: formatFloat(bandNorm),
+    hasLabel: false,
+    lineSource: 'dashed-gap',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Стр. 6: широкие строки ответа — в одну группу (хвост после «?» отдельно). */
+function mergeBrownPage6CareerAnswerLines(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber !== getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+
+  const minAnswerY =
+    options.brownPage6CareerAnswerLineMinNormY ??
+    options.brownCareerAnswerMinNormY ??
+    0.788;
+  const answers = slots
+    .filter(
+      (s) =>
+        !s.hasLabel &&
+        s.y >= minAnswerY &&
+        s.y <= 0.85 &&
+        s.x < 0.16 &&
+        s.width >= 0.72
+    )
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+  if (answers.length < 2) return;
+
+  const groupId = answers[0].continuationGroup;
+  for (let i = 1; i < answers.length; i += 1) {
+    answers[i].continuationGroup = groupId;
+    answers[i].inputKind = 'block';
+  }
+  answers[0].inputKind = 'block';
+}
+
+/** Стр. 6: сплошная линия под вопросом → короткий хвост после «?». */
+function normalizeBrownPage6CareerHeadSlot(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber !== getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+
+  const tailLeft = options.brownPage6CareerTailLeftRatio ?? 0.768;
+  const targetRight = options.brownMicroRowTailTargetRight ?? 0.895;
+  const questionY = options.brownPage6CareerQuestionNormY ?? 0.773;
+  const minY = options.brownPage6CareerQuestionMinNormY ?? questionY - 0.012;
+  const maxY = options.brownPage6CareerQuestionMaxNormY ?? questionY + 0.012;
+
+  for (const slot of slots) {
+    if (slot.hasLabel) continue;
+    if (slot.y < minY || slot.y > maxY) continue;
+
+    if (slot.x >= 0.55 && slot.width <= 0.22) {
+      slot.x = formatFloat(tailLeft);
+      slot.width = formatFloat(Math.max(0.06, targetRight - tailLeft));
+      delete slot.inputKind;
+      continue;
+    }
+
+    if (slot.width < 0.35) continue;
+
+    slot.x = formatFloat(tailLeft);
+    slot.width = formatFloat(Math.max(0.06, targetRight - tailLeft));
+    delete slot.inputKind;
+  }
+}
+
+/** Пропущенные строки анкеты между соседними полями (телефон, цвет и т.д.). */
+function injectBrownQuestionnaireMissingMiddleRows(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options)) return;
+  if (!slots.length) return;
+
+  const careerPage = getDiaryCareerQuestionPage(options);
+  const isCareerPage = options.pageNumber === careerPage;
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const maxGap = rowGap * 1.55;
+  const maxBodyY = isCareerPage ? 0.72 : 0.76;
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+  const toAdd = [];
+
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const prev = sorted[i];
+    const next = sorted[i + 1];
+    if (prev.y < 0.28 || next.y > maxBodyY) continue;
+    if (prev.width < 0.25 || next.width < 0.25) continue;
+    const gap = next.y - prev.y;
+    if (gap <= maxGap) continue;
+
+    let y = formatFloat(prev.y + rowGap);
+    while (y < next.y - rowGap * 0.5) {
+      const exists =
+        sorted.some((s) => Math.abs(s.y - y) < 0.012) ||
+        toAdd.some((s) => Math.abs(s.y - y) < 0.012);
+      if (!exists) {
+        const template = prev.width >= next.width ? prev : next;
+        toAdd.push({
+          x: template.x,
+          y,
+          width: template.width,
+          height: template.height,
+          hasLabel: false,
+          lineSource: template.lineSource,
+        });
+      }
+      y = formatFloat(y + rowGap);
+    }
+  }
+
+  if (toAdd.length) {
+    slots.push(...toAdd);
+    slots.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
+}
+
+/** Стр. 16 «Одежда и стиль»: PDF отдаёт строку, но merge иногда её теряет. */
+function injectPurplePage16MissingColorComboRow(slots, options = {}) {
+  if (!isPurpleAlbum(options) || options.pageNumber !== 16 || !slots.length) return;
+
+  const targetY = 0.5275;
+  if (slots.some((s) => Math.abs(s.y - targetY) < 0.018)) return;
+
+  const anchor = slots.find(
+    (s) => !s.hasLabel && s.y >= 0.488 && s.y <= 0.498 && s.width >= 0.25 && s.width <= 0.35
+  );
+  if (!anchor) return;
+
+  slots.push({
+    x: formatFloat(0.482),
+    y: formatFloat(targetY),
+    width: formatFloat(0.427),
+    height: anchor.height,
+    hasLabel: false,
+    lineSource: 'dashed-gap',
+  });
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** «Анкета для друзей»: Instagram / VK / TikTok внизу страницы. */
+function injectBrownFriendQuestionnaireSocialLines(slots, options = {}) {
+  if (!isPurpleAlbum(options) || !slots.length) return;
+  const page = options.pageNumber;
+  if (page !== 28 && page !== 30) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const band = slots[0]?.height ?? 0.033;
+  const anchor = slots
+    .filter((s) => !s.hasLabel && s.y >= 0.72 && s.y <= 0.82 && s.x < 0.2 && s.width >= 0.45)
+    .sort((a, b) => b.y - a.y)[0];
+  if (!anchor) return;
+
+  const template = {
+    x: formatFloat(Math.min(anchor.x, 0.078)),
+    width: formatFloat(Math.max(anchor.width, 0.62)),
+    height: band,
+    lineSource: anchor.lineSource,
+  };
+
+  const targets = [
+    formatFloat(anchor.y + rowGap),
+    formatFloat(anchor.y + rowGap * 2),
+    formatFloat(anchor.y + rowGap * 3),
+  ];
+
+  for (const y of targets) {
+    if (y > 0.945) continue;
+    const exists = slots.some(
+      (s) => !s.hasLabel && Math.abs(s.y - y) < 0.016 && s.x < 0.25
+    );
+    if (exists) continue;
+    slots.push({
+      x: template.x,
+      y,
+      width: template.width,
+      height: template.height,
+      hasLabel: false,
+      lineSource: 'dashed-gap',
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/** Двойные дневные страницы (фиолетовый): PDF часто не отдаёт верхние широкие строки. */
+function injectPurpleDaySpreadMissingTopLines(slots, options = {}) {
+  if (!isPurpleDaySpreadPage(options) || !slots.length) return;
+
+  const rowGap = options.brownDaySpreadRowGap ?? 0.044;
+  const band = slots[0]?.height ?? 0.033;
+  const bands = [
+    { minY: 0.28, maxY: 0.52, topLines: options.purpleDaySpreadTopLines ?? 3 },
+    { minY: 0.62, maxY: 0.86, topLines: options.purpleDaySpreadBottomTopLines ?? 2 },
+  ];
+
+  for (const bandDef of bands) {
+    const firstBand = slots
+      .filter(
+        (s) =>
+          s.y >= bandDef.minY &&
+          s.y <= bandDef.maxY &&
+          s.x < 0.15 &&
+          s.width >= 0.55
+      )
+      .sort((a, b) => a.y - b.y);
+    if (!firstBand.length || firstBand[0].y <= bandDef.minY + 0.02) continue;
+
+    const template = firstBand[0];
+    for (let i = bandDef.topLines; i >= 1; i -= 1) {
+      const y = formatFloat(firstBand[0].y - rowGap * i);
+      if (y < bandDef.minY - 0.12) continue;
+      if (slots.some((s) => Math.abs(s.y - y) < 0.012)) continue;
+      slots.push({
+        x: template.x,
+        y,
+        width: formatFloat(Math.max(template.width, 0.75)),
+        height: band,
+        hasLabel: false,
+        lineSource: 'dashed-gap',
+      });
+    }
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+/**
+ * Анкета «для мамы/папы»: PDF часто пропускает первую строку «Имя:» под заголовком.
+ */
+function injectBrownQuestionnaireMissingFirstRow(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber === getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+  if (!slots.length) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const maxFirstY = options.brownQuestionnaireFirstRowMaxNormY ?? 0.305;
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  if (options.brownPdfLines?.length && options.pageHeight && options.pageWidth) {
+    const hasPdfFirstRow = options.brownPdfLines.some((line) => {
+      const normY = (options.pageHeight - line.y) / options.pageHeight;
+      const left = line.left / options.pageWidth;
+      const span = line.span / options.pageWidth;
+      return normY >= 0.28 && normY <= 0.34 && left <= 0.2 && span >= 0.65;
+    });
+    if (hasPdfFirstRow) return;
+  }
+
+  const hasShortHeadNearTop = slots.some(
+    (s) =>
+      !s.hasLabel &&
+      s.y >= 0.22 &&
+      s.y <= 0.34 &&
+      s.x >= 0.35 &&
+      s.width >= 0.3 &&
+      s.width <= 0.58
+  );
+  if (hasShortHeadNearTop) return;
+
+  const maxInjectBandY = options.brownQuestionnaireFirstRowInjectMaxNormY ?? 0.36;
+  const first = slots.find(
+    (s) => !s.hasLabel && s.y >= 0.28 && s.y <= maxInjectBandY && s.width >= 0.35
+  );
+  if (!first || first.y <= maxFirstY) return;
+
+  const nameY = formatFloat(first.y - rowGap);
+  if (nameY < 0.24) return;
+  if (slots.some((s) => Math.abs(s.y - nameY) < 0.014)) return;
+
+  const pageHeight = options.pageHeight;
+  const pageWidth = options.pageWidth;
+  const pdfLine = options.brownPdfLines?.find((line) => {
+    if (!pageHeight) return false;
+    const normY = (pageHeight - line.y) / pageHeight;
+    return Math.abs(normY - nameY) < 0.014;
+  });
+
+  if (pdfLine && pageWidth && pdfLine.source !== 'rowtrim') {
+    slots.unshift({
+      x: formatFloat(pdfLine.left / pageWidth),
+      y: nameY,
+      width: formatFloat(pdfLine.span / pageWidth),
+      height: first.height,
+      hasLabel: false,
+      lineSource: pdfLine.source,
+    });
+    return;
+  }
+
+  slots.unshift({
+    x: first.x,
+    y: nameY,
+    width: first.width,
+    height: first.height,
+    hasLabel: false,
+    lineSource: first.lineSource,
+  });
+}
+
+/**
+ * «Пожелания хозяйке дневника»: PDF не всегда отдаёт 3–4 строки продолжения.
+ */
+function injectBrownPage6MissingWishLines(slots, options = {}) {
+  if (options.pageNumber !== getDiaryCareerQuestionPage(options) || !slots.length) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const band = slots[0]?.height ?? 0.028;
+  const template = slots.find((slot) => slot.x < 0.12 && slot.width >= 0.72);
+  if (!template) return;
+
+  const targets = [
+    options.brownCareerAnswerFirstNormY ?? 0.815,
+    (options.brownCareerAnswerFirstNormY ?? 0.815) + rowGap,
+    (options.brownCareerAnswerFirstNormY ?? 0.815) + rowGap * 2,
+    (options.brownCareerAnswerFirstNormY ?? 0.815) + rowGap * 3,
+  ];
+
+  for (const y of targets) {
+    const normY = formatFloat(y);
+    if (slots.some((slot) => Math.abs(slot.y - normY) < 0.018)) continue;
+    slots.push({
+      x: template.x,
+      y: normY,
+      width: template.width,
+      height: band,
+      hasLabel: false,
+      lineSource: template.lineSource,
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function injectBrownQuestionnaireMissingWishLines(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber === getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+  if (slots.length < 8) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const wishMinY = options.brownWishFieldMinNormY ?? 0.772;
+  const wishMaxY = options.brownWishFieldMaxNormY ?? 0.92;
+  const targetWishLines = options.brownWishTotalLines ?? 4;
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  const pickWishLines = () =>
+    slots.filter(
+      (s) =>
+        !s.hasLabel &&
+        !isBrownFooterArtifactSlot(s) &&
+        !isBrownWishExcludeSlot(s) &&
+        s.y >= wishMinY &&
+        s.y <= wishMaxY
+    );
+
+  let wishLines = pickWishLines();
+  if (!wishLines.length) return;
+
+  const anchor = [...wishLines].sort((a, b) => a.y - b.y)[0];
+  const wideTemplate = [...wishLines]
+    .filter((s) => s.width >= 0.52)
+    .sort((a, b) => b.width - a.width)[0];
+  const template = {
+    x: wideTemplate?.x ?? Math.min(anchor.x, 0.2),
+    width: wideTemplate?.width ?? Math.max(anchor.width, 0.72),
+    height: anchor.height,
+    lineSource: wideTemplate?.lineSource ?? anchor.lineSource,
+  };
+
+  for (let attempt = 0; attempt < targetWishLines; attempt += 1) {
+    const current = [...pickWishLines()].sort((a, b) => a.y - b.y);
+    if (current.length >= targetWishLines) break;
+
+    const last = current[current.length - 1];
+    const prev = current[current.length - 2];
+    const measuredGap = prev ? last.y - prev.y : rowGap;
+    const stepGap =
+      measuredGap > 0.028 && measuredGap < 0.05 ? measuredGap : rowGap;
+    const nextY = formatFloat(last.y + stepGap);
+    if (nextY > (options.brownQuestionnaireEndNormY ?? 0.94)) break;
+    if (slots.some((s) => Math.abs(s.y - nextY) < 0.014)) continue;
+
+    slots.push({
+      x: template.x,
+      y: nextY,
+      width: template.width,
+      height: template.height,
+      hasLabel: false,
+      lineSource: template.lineSource,
+    });
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
 /**
@@ -2181,6 +4445,11 @@ function mergeBrownWideQuestionnaireFieldRuns(slots, options = {}) {
 
 /** Последняя пара широких строк («Кем ты хочешь стать…» — 2-я линия ниже). */
 function mergeBrownLastWideDualLinePair(slots, options = {}) {
+  const questionnaireParentPage =
+    isDiaryQuestionnairePage(options) &&
+    options.pageNumber >= (options.brownParentQuestionnaireMinPage ?? 7);
+  if (questionnaireParentPage) return;
+
   const rowGapMin = options.brownDualLineGapMin ?? 0.07;
   const rowGapMax = options.brownDualLineGapMax ?? 0.11;
   const minWidth = options.brownFieldRunMinWidth ?? 0.28;
@@ -2209,16 +4478,20 @@ function mergeBrownLastWideDualLinePair(slots, options = {}) {
   prev.inputKind = 'block';
 }
 
+
 /**
  * Нижний блок анкеты («Пожелания…»): 3–6 строк подряд с равномерным шагом.
  */
 function mergeBrownQuestionnaireWishTail(slots, options = {}) {
+  const wishPage = options.brownWishPageNumber ?? 3;
+  if (options.pageNumber !== wishPage) return;
+
   const minSlotsOnPage = options.brownWishPageMinSlots ?? 10;
   const minLines = options.brownWishMinLines ?? 3;
   const maxLines = options.brownWishMaxLines ?? 6;
   const rowGapMax = options.brownWishRowGapMax ?? 0.048;
   const minStartY = options.brownWishMinStartNormY ?? 0.625;
-  const maxEndY = options.brownWishMaxEndNormY ?? 0.82;
+  const maxEndY = options.brownWishMaxEndNormY ?? 0.9;
   const minWidth = options.brownWishMinWidth ?? 0.28;
 
   if (slots.length < minSlotsOnPage) return;
@@ -2240,16 +4513,20 @@ function mergeBrownQuestionnaireWishTail(slots, options = {}) {
 
   if (!candidates.length || candidates[0].y < 0.76) return;
 
+  const wishFieldTopMinY = options.brownWishFieldMinNormY ?? 0.772;
   const bestRun = [candidates[0]];
   for (let i = 1; i < candidates.length; i += 1) {
     const gap = bestRun[0].y - candidates[i].y;
     if (gap <= 0 || gap > rowGapMax) break;
+    if (candidates[i].y < wishFieldTopMinY) break;
     bestRun.unshift(candidates[i]);
     if (bestRun.length >= maxLines) break;
   }
 
   if (bestRun.length < minLines) return;
-  if (bestRun[bestRun.length - 1].y < 0.76) return;
+  const wishAnchorMinY = options.brownWishMinJoinNormY ?? 0.69;
+  if (bestRun[bestRun.length - 1].y < wishAnchorMinY) return;
+  if (bestRun[0].y < wishFieldTopMinY) return;
 
   const mergedGroupId = bestRun[0].continuationGroup;
   for (let k = 1; k < bestRun.length; k += 1) {
@@ -2283,31 +4560,96 @@ function normalizeBrownSlotBandHeights(slots) {
   return slots;
 }
 
+function isBrownFullWidthInputLine(slot) {
+  return !slot.hasLabel && slot.width >= 0.68 && slot.x < 0.18;
+}
+
+/** Соседние широкие строки (блок «Мечты», линованные страницы) — одна группа переноса. */
+function canMergeBrownFullWidthAdjacentLines(prev, next, options = {}) {
+  const gapMin = options.brownFullWidthGapMin ?? 0.028;
+  const gapMax = options.brownFullWidthGapMax ?? 0.058;
+  const gap = next.y - prev.y;
+  if (gap < gapMin || gap > gapMax) return false;
+  if (isBrownFooterArtifactSlot(next)) return false;
+  if (!isBrownFullWidthInputLine(prev) || !isBrownFullWidthInputLine(next)) return false;
+  return brownSlotHorizontalOverlapRatio(prev, next) >= 0.45;
+}
+
+function mergeBrownFullWidthAdjacentRuns(slots, options = {}) {
+  if (slots.length < 2) return slots;
+
+  const maxLines = options.brownFullWidthMaxLines ?? 10;
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+  let i = 0;
+
+  while (i < sorted.length) {
+    const run = [sorted[i]];
+    let j = i + 1;
+    while (j < sorted.length) {
+      const next = sorted[j];
+      if (!canMergeBrownFullWidthAdjacentLines(run[run.length - 1], next, options)) {
+        break;
+      }
+      run.push(next);
+      j += 1;
+      if (run.length >= maxLines) break;
+    }
+
+    if (run.length >= 2) {
+      const mergedGroupId = run[0].continuationGroup;
+      for (const slot of run) {
+        slot.continuationGroup = mergedGroupId;
+        slot.inputKind = 'block';
+      }
+    }
+
+    i = j;
+  }
+
+  return slots;
+}
+
+function assignMissingBrownContinuationGroups(slots) {
+  let maxGroup = slots.reduce(
+    (max, slot) => Math.max(max, slot.continuationGroup ?? 0),
+    0
+  );
+  const sorted = [...slots].sort((a, b) => a.y - b.y || a.x - b.x);
+
+  for (const slot of sorted) {
+    if (slot.continuationGroup != null) continue;
+    maxGroup += 1;
+    slot.continuationGroup = maxGroup;
+  }
+
+  return slots;
+}
+
 /** Соседние строки PDF → одна группа переноса; x/y/width каждой линии не трогаем. */
 function canJoinBrownSimpleAdjacentLines(prev, next, options = {}) {
+  if (options.pageNumber === 1) return false;
+
   const gapMin = options.brownSimpleGapMin ?? 0.03;
   const gapMax = options.brownSimpleGapMax ?? 0.058;
   const gap = next.y - prev.y;
-  if (gap < gapMin || gap > gapMax) return false;
   if (isBrownFooterArtifactSlot(next) || isBrownWishExcludeSlot(next)) return false;
+
+  if (canMergeBrownFullWidthAdjacentLines(prev, next, options)) {
+    return true;
+  }
 
   const columnEpsilon = options.brownSimpleColumnEpsilon ?? 0.04;
   const xAlign = Math.abs(prev.x - next.x) <= columnEpsilon;
   const overlap = brownSlotHorizontalOverlapRatio(prev, next);
 
-  const fromBox =
-    prev.lineSource === 'box' && next.lineSource === 'box' && xAlign;
-
-  const fromWide =
-    prev.lineSource === 'wide-block' &&
-    next.lineSource === 'wide-block' &&
-    xAlign;
-
+  const careerPage = getDiaryCareerQuestionPage(options);
   const blocksQuestionnaireToCareer =
     isDiaryQuestionnairePage(options) &&
+    options.pageNumber === careerPage &&
     prev.y >= 0.65 &&
-    prev.y <= 0.72 &&
-    next.y >= 0.725;
+    prev.y <= 0.715 &&
+    next.y >= 0.725 &&
+    prev.width >= 0.35;
 
   const blocksQuestionRowToAnswer =
     isDiaryQuestionnairePage(options) &&
@@ -2317,32 +4659,159 @@ function canJoinBrownSimpleAdjacentLines(prev, next, options = {}) {
     next.y >= 0.73 &&
     next.y <= 0.83;
 
+  const blocksFriendToCareerAnswer =
+    isDiaryQuestionnairePage(options) &&
+    options.pageNumber === careerPage &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.y >= 0.72 &&
+    prev.y <= 0.752 &&
+    prev.x >= 0.28 &&
+    prev.x <= 0.55 &&
+    prev.width >= 0.45 &&
+    next.y >= 0.755 &&
+    next.x < 0.16 &&
+    next.width >= 0.72;
+
+  const questionnaireParentPage =
+    isDiaryQuestionnairePage(options) &&
+    options.pageNumber >= (options.brownParentQuestionnaireMinPage ?? 7);
+
+  const shortHeadWideTail =
+    !blocksQuestionnaireToCareer &&
+    !blocksQuestionRowToAnswer &&
+    !blocksFriendToCareerAnswer &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.x >= 0.27 &&
+    prev.x < 0.65 &&
+    prev.width >= 0.25 &&
+    prev.width <= 0.68 &&
+    next.x < 0.16 &&
+    next.width >= 0.72 &&
+    gap >= 0.02 &&
+    gap <= 0.055;
+
+  const microLabelTailWideContinuation =
+    !blocksQuestionnaireToCareer &&
+    !blocksQuestionRowToAnswer &&
+    !blocksFriendToCareerAnswer &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.x >= 0.38 &&
+    prev.width >= 0.06 &&
+    prev.width <= 0.35 &&
+    next.x < 0.16 &&
+    next.width >= 0.72 &&
+    gap >= 0.02 &&
+    gap <= 0.055;
+
+  const careerHeadWidePair =
+    isDiaryQuestionnairePage(options) &&
+    options.pageNumber === careerPage &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.y >= 0.685 &&
+    prev.y <= 0.705 &&
+    prev.x >= 0.55 &&
+    prev.width <= 0.22 &&
+    next.y >= 0.755 &&
+    next.y <= 0.795 &&
+    next.x < 0.16 &&
+    next.width >= 0.72 &&
+    gap >= 0.055 &&
+    gap <= 0.09;
+
+  const blocksFriendRowToCareerTail =
+    isDiaryQuestionnairePage(options) &&
+    options.pageNumber === careerPage &&
+    !prev.hasLabel &&
+    !next.hasLabel &&
+    prev.y >= 0.72 &&
+    prev.y <= 0.752 &&
+    prev.x < 0.55 &&
+    prev.width >= 0.45 &&
+    next.y >= 0.755 &&
+    next.x >= 0.55 &&
+    next.width <= 0.28;
+
   const careerAnswerPair =
     isDiaryQuestionnairePage(options) &&
+    options.pageNumber === careerPage &&
+    !blocksFriendRowToCareerTail &&
     !prev.hasLabel &&
     !next.hasLabel &&
     prev.y >= 0.73 &&
     next.y >= 0.73 &&
     next.y <= 0.83 &&
     gap >= 0.034 &&
-    gap <= 0.05 &&
-    xAlign &&
-    overlap >= 0.45;
+    gap <= 0.052 &&
+    overlap >= 0.25;
 
+  const wishOverlapMin = options.brownWishRelaxedColumn ? 0.25 : 0.18;
+  const wishFieldTopMinY = options.brownWishFieldMinNormY ?? 0.772;
+  const wishPage = options.brownWishPageNumber ?? 3;
   const wishTail =
+    options.pageNumber === wishPage &&
     !options.brownSingleLineGroups &&
-    prev.y >= 0.648 &&
-    next.y >= 0.648 &&
-    next.y <= 0.805 &&
+    prev.y >= wishFieldTopMinY &&
+    next.y >= wishFieldTopMinY &&
+    next.y <= (options.brownWishFieldMaxNormY ?? 0.92) &&
     !blocksQuestionnaireToCareer &&
     !blocksQuestionRowToAnswer &&
+    gap >= gapMin &&
     gap <= 0.052 &&
-    overlap >= 0.18 &&
-    xAlign;
+    overlap >= wishOverlapMin &&
+    (xAlign || (options.brownWishRelaxedColumn === true && overlap >= 0.35));
 
+  if (shortHeadWideTail) return true;
+  if (microLabelTailWideContinuation) return true;
+  if (careerHeadWidePair) return true;
   if (careerAnswerPair) return true;
   if (wishTail) return true;
+
+  if (gap < gapMin || gap > gapMax) return false;
+
+  const fromBox =
+    prev.lineSource === 'box' && next.lineSource === 'box' && xAlign;
+
+  const fromWide =
+    prev.lineSource === 'wide-block' &&
+    next.lineSource === 'wide-block' &&
+    xAlign;
+
   return fromBox || fromWide;
+}
+
+/** Продолжения блока с короткой первой строкой — на всю ширину, с левого края. */
+function alignBrownBlockContinuationWidths(slots) {
+  const groups = new Map();
+  for (const slot of slots) {
+    if (!groups.has(slot.continuationGroup)) {
+      groups.set(slot.continuationGroup, []);
+    }
+    groups.get(slot.continuationGroup).push(slot);
+  }
+
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    group.sort((a, b) => a.y - b.y || a.x - b.x);
+    const head = group[0];
+    const isShortHeadRow = head.x >= 0.27 && head.width >= 0.3 && head.width < 0.66;
+    if (!head || !isShortHeadRow) continue;
+
+    const wideTemplate = group
+      .filter((slot) => slot.width >= 0.72 && slot.x < 0.16)
+      .sort((a, b) => a.x - b.x || b.width - a.width)[0];
+    if (!wideTemplate) continue;
+
+    for (let i = 1; i < group.length; i += 1) {
+      group[i].x = wideTemplate.x;
+      group[i].width = wideTemplate.width;
+    }
+  }
+
+  return slots;
 }
 
 /** Обложка дневника: две строки «принадлежит» и «телефон», если PDF дал одну. */
@@ -2380,23 +4849,99 @@ function assignBrownDiarySlotGroups(slots, options = {}) {
   if (!slots.length) return slots;
 
   const minLinesInBlock = options.brownSimpleMinLines ?? 2;
-  const maxLinesInBlock = options.brownSimpleMaxLines ?? 6;
+  const maxLinesInBlock = options.brownSimpleMaxLines ?? 10;
 
   slots.sort((a, b) => a.y - b.y || a.x - b.x);
 
+  injectBrownQuestionnaireMissingFirstRow(slots, options);
+  injectBrownQuestionnaireMissingMiddleRows(slots, options);
   injectBrownQuestionnaireMissingWideLine(slots, options);
+  injectBrownQuestionnaireMissingWishLines(slots, options);
+  injectBrownPage6MissingWishLines(slots, options);
+  injectBrownFriendQuestionnaireSocialLines(slots, options);
+  injectPurpleDaySpreadMissingTopLines(slots, options);
+  ensureBrownSparsePageInlineQuestionBlock(slots, options);
 
   const working = slots.filter(
     (slot) =>
       !isBrownFooterArtifactSlot(slot) &&
       !isBrownWishExcludeSlot(slot) &&
       !isBrownQuestionHeaderRowSlot(slot, slots, options) &&
-      !isBrownPage6QuestionBandSlot(slot, slots, options)
+      !isBrownQuestionnaireTitleUnderlineSlot(slot, slots, options) &&
+      !isBrownPage6QuestionBandSlot(slot, slots, options) &&
+      !isBrownCareerClosingTextSpuriousSlot(slot, slots, options) &&
+      !isBrownPage31ClassQuestionSpuriousSlot(slot, options) &&
+      !isBrownJournalTemplateSpuriousSlot(slot, options, slots) &&
+      !isBrownJournalFirstInstructionSpuriousSlot(slot, options) &&
+      !isBrownJournalInstructionSpuriousSlot(slot, options) &&
+      !isBrownPeachBottomTitleSpuriousSlot(slot, options) &&
+      !isBrownDaySpreadTitleSpuriousSlot(slot, options)
   );
 
+  normalizeBrownPage6CareerHeadSlot(working, options);
+  injectBrownPage6MissingBestFriendMaleRow(working, options);
+  injectBrownPage6CareerQuestionTailSlot(working, options);
+  injectBrownPage31ClassSizeTailSlot(working, options);
+  removeBrownPage6MisplacedCareerAnswerSlots(working, options);
   ensureDiaryQuestionnaireCareerAnswerSlots(working, options);
-  ensureDiaryCoverPageSlots(working, options);
+  normalizeBrownCareerAnswerSlots(working, options);
   working.sort((a, b) => a.y - b.y || a.x - b.x);
+
+  if (isBrownPeachDreamsPage(options)) {
+    const grouped = buildBrownPage15CanonicalSlots(options);
+    for (const slot of grouped) {
+      delete slot.lineSource;
+    }
+    return grouped;
+  }
+
+  injectBrownJournalDateSlot(working, options);
+  injectBrownJournalSeventhMainLineSlot(working, options);
+
+  if (isBrownHobbyPage(options)) {
+    const grouped = assignBrownPage13HobbySlotGroups(working, options);
+    for (const slot of grouped) {
+      delete slot.lineSource;
+    }
+    return grouped;
+  }
+
+  if (isBrownPetsPage(options)) {
+    injectBrownPage17MissingTailSlots(working, options);
+    const grouped = assignBrownPage17PetsSlotGroups(working, options);
+    for (const slot of grouped) {
+      delete slot.lineSource;
+    }
+    return grouped;
+  }
+
+  if (isBrownMoodPage(options)) {
+    const grouped = assignBrownPage24MoodSlotGroups(working, options);
+    for (const slot of grouped) {
+      delete slot.lineSource;
+    }
+    return grouped;
+  }
+
+  if (isBrownAlbum(options) && options.pageNumber === 21) {
+    injectBrownPage21MissingTailSlots(working, options);
+    working.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
+
+  if (isBrownAlbum(options) && options.pageNumber === 37) {
+    injectBrownPage37MissingBottomLines(working, options);
+    working.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
+
+  if (isBrownAlbum(options) && options.pageNumber === 38) {
+    refineBrownPage38FoodSlotWidths(working, options);
+    working.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
+
+  if (isDiaryDaySpreadPage(options)) {
+    refineBrownDaySpreadIllustrationWidths(working, options);
+    working.sort((a, b) => a.y - b.y || a.x - b.x);
+  }
 
   let groupId = 0;
   for (let i = 0; i < working.length; i += 1) {
@@ -2410,6 +4955,9 @@ function assignBrownDiarySlotGroups(slots, options = {}) {
     }
     return working;
   }
+
+  mergeBrownQuestionnaireWishTail(working, options);
+  mergeBrownLastWideDualLinePair(working, options);
 
   let i = 0;
   while (i < working.length) {
@@ -2438,11 +4986,106 @@ function assignBrownDiarySlotGroups(slots, options = {}) {
     i = j;
   }
 
+  ensureBrownQuestionnaireWishBlock(working, options);
+  mergeBrownFullWidthAdjacentRuns(working, options);
+  alignBrownBlockContinuationWidths(working);
+  mergeBrownPage6CareerAnswerLines(working, options);
+  assignMissingBrownContinuationGroups(working);
+  refineBrownDiaryPageSlotGeometry(working, options);
+  injectPurplePage16MissingColorComboRow(working, options);
+  ensureDiaryCoverPageSlots(working, options);
+
   for (const slot of working) {
     delete slot.lineSource;
   }
 
   return working;
+}
+
+/** «Пожелания хозяйке дневника»: 4 строки с переносом текста. */
+function ensureBrownQuestionnaireWishBlock(slots, options = {}) {
+  if (!isDiaryQuestionnairePage(options) || options.pageNumber === getDiaryCareerQuestionPage(options)) {
+    return;
+  }
+  const wishPage = options.brownWishPageNumber ?? 3;
+  if (options.pageNumber !== wishPage) return;
+  if (slots.length < 10) return;
+
+  const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
+  const wishMinY = options.brownWishFieldMinNormY ?? 0.772;
+  const targetLines = options.brownWishTotalLines ?? 4;
+
+  const isWishSlot = (slot) =>
+    !slot.hasLabel &&
+    !isBrownFooterArtifactSlot(slot) &&
+    !isBrownWishExcludeSlot(slot) &&
+    slot.y >= wishMinY;
+
+  let wishSlots = slots.filter(isWishSlot).sort((a, b) => a.y - b.y);
+  if (!wishSlots.length) return;
+
+  const anchor = wishSlots[0];
+  const wideTemplate = wishSlots
+    .filter((s) => s.width >= 0.52)
+    .sort((a, b) => b.width - a.width)[0];
+  const template = {
+    x: wideTemplate?.x ?? Math.min(anchor.x, 0.2),
+    width: wideTemplate?.width ?? Math.max(anchor.width, 0.72),
+    height: anchor.height ?? 0.033,
+  };
+
+  const wishGaps = [];
+  for (let i = 1; i < wishSlots.length; i += 1) {
+    wishGaps.push(wishSlots[i].y - wishSlots[i - 1].y);
+  }
+  const medianGap =
+    wishGaps.length > 0
+      ? wishGaps.sort((a, b) => a - b)[Math.floor(wishGaps.length / 2)]
+      : rowGap;
+  const stepGap =
+    medianGap > 0.028 && medianGap < 0.05 ? medianGap : rowGap;
+
+  let cursorY = wishSlots[wishSlots.length - 1]?.y ?? anchor.y;
+  while (wishSlots.length < targetLines) {
+    cursorY = formatFloat(cursorY + stepGap);
+    if (cursorY > (options.brownQuestionnaireEndNormY ?? 0.94)) break;
+    if (slots.some((s) => Math.abs(s.y - cursorY) < 0.012)) {
+      wishSlots = slots.filter(isWishSlot).sort((a, b) => a.y - b.y);
+      if (wishSlots.length >= targetLines) break;
+      continue;
+    }
+    slots.push({
+      x: template.x,
+      y: cursorY,
+      width: template.width,
+      height: template.height,
+      hasLabel: false,
+    });
+    wishSlots = slots.filter(isWishSlot).sort((a, b) => a.y - b.y);
+  }
+
+  wishSlots = slots.filter(isWishSlot).sort((a, b) => a.y - b.y);
+  if (wishSlots.length < 2) return;
+
+  const primaryWish = wishSlots.slice(0, targetLines);
+  let mergedGroupId = primaryWish[0]?.continuationGroup;
+  if (mergedGroupId == null) {
+    mergedGroupId =
+      slots.reduce((max, slot) => Math.max(max, slot.continuationGroup ?? 0), 0) + 1;
+  }
+
+  for (const slot of primaryWish) {
+    slot.continuationGroup = mergedGroupId;
+    slot.inputKind = 'block';
+  }
+
+  for (const slot of wishSlots.slice(targetLines)) {
+    if (slot.continuationGroup != null) continue;
+    slot.continuationGroup = mergedGroupId;
+    slot.inputKind = 'block';
+  }
+
+  slots.sort((a, b) => a.y - b.y || a.x - b.x);
 }
 
 async function extractSlotsForPdfPage(pdfDocument, pageNumber, options) {
@@ -2501,7 +5144,11 @@ async function extractAllSlotsFromPdf(pdfPath, options = {}) {
   const pageCount = doc.numPages;
 
   for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-    slotsByPage[String(pageNumber)] = await extractSlotsForPdfPage(doc, pageNumber, options);
+    slotsByPage[String(pageNumber)] = await extractSlotsForPdfPage(doc, pageNumber, {
+      ...options,
+      pageNumber,
+    });
+
   }
 
   return slotsByPage;
@@ -2509,11 +5156,15 @@ async function extractAllSlotsFromPdf(pdfPath, options = {}) {
 
 module.exports = {
   assignContinuationGroups,
+  assignBrownDiarySlotGroups,
   buildSlotsFromPdfLines,
   buildSlotsFromWhiteBlocks,
   collapseNearbyRows,
+  collectPathSegments,
+  collectTextItems,
   collectWhiteInputBlocks,
   extractAllSlotsFromPdf,
+  extractLineSlotsForPage,
   extractSlotsForPdfPage,
   loadPdfDocument,
   mergeBrownDiaryFormLines,

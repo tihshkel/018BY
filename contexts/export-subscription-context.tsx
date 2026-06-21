@@ -1,34 +1,17 @@
-import React, { createContext, useContext } from 'react';
+import React from 'react';
 import { Platform } from 'react-native';
 
-import { ExportSubscriptionIosProvider } from './export-subscription-ios-provider';
+import { ExportSubscriptionAndroidGate } from './export-subscription-android-gate';
+import {
+  ExportSubscriptionContext,
+  exportSubscriptionDefaultValue,
+  type ExportSubscriptionContextValue,
+  useExportSubscription,
+} from './export-subscription-context-core';
+import { ExportSubscriptionStoreProvider } from './export-subscription-store-provider';
 
-export type ExportSubscriptionContextValue = {
-  isSubscribed: boolean;
-  isLoading: boolean;
-  isIapEnabled: boolean;
-  priceLabel: string | null;
-  purchase: () => Promise<boolean>;
-  restore: () => Promise<boolean>;
-  refresh: () => Promise<void>;
-};
-
-const defaultValue: ExportSubscriptionContextValue = {
-  isSubscribed: true,
-  isLoading: false,
-  isIapEnabled: false,
-  priceLabel: null,
-  purchase: async () => true,
-  restore: async () => true,
-  refresh: async () => {},
-};
-
-export const ExportSubscriptionContext =
-  createContext<ExportSubscriptionContextValue>(defaultValue);
-
-export function useExportSubscription(): ExportSubscriptionContextValue {
-  return useContext(ExportSubscriptionContext);
-}
+export type { ExportSubscriptionContextValue };
+export { ExportSubscriptionContext, useExportSubscription };
 
 export function ExportSubscriptionProvider({
   children,
@@ -36,11 +19,23 @@ export function ExportSubscriptionProvider({
   children: React.ReactNode;
 }) {
   if (Platform.OS === 'ios') {
-    return <ExportSubscriptionIosProvider>{children}</ExportSubscriptionIosProvider>;
+    return <ExportSubscriptionStoreProvider>{children}</ExportSubscriptionStoreProvider>;
   }
 
+  if (Platform.OS === 'android') {
+    return <ExportSubscriptionAndroidGate>{children}</ExportSubscriptionAndroidGate>;
+  }
+
+  const webValue: ExportSubscriptionContextValue = {
+    ...exportSubscriptionDefaultValue,
+    isSubscribed: true,
+    isStoreConnected: true,
+    purchase: async () => true,
+    restore: async () => true,
+  };
+
   return (
-    <ExportSubscriptionContext.Provider value={defaultValue}>
+    <ExportSubscriptionContext.Provider value={webValue}>
       {children}
     </ExportSubscriptionContext.Provider>
   );

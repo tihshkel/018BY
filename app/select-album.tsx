@@ -1,3 +1,5 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
@@ -11,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
 import { Image } from 'expo-image';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
@@ -28,6 +30,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface LocalParams {
   category?: string | string[];
@@ -250,7 +253,7 @@ export default function SelectAlbumScreen() {
 
       // Переходим к редактированию сразу: страницы уже доступны как кешированные URI или remote URL.
       console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);
-      router.push(`/edit-album?id=${projectId}`);
+      router.push(`/album-pages?id=${projectId}` as Href);
     } catch (error) {
       console.error('Error loading album template:', error);
       Alert.alert(
@@ -264,11 +267,14 @@ export default function SelectAlbumScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, animatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Выберите альбом</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Выберите альбом</Text>
+          </View>
         </View>
 
         <ScrollView
@@ -284,7 +290,7 @@ export default function SelectAlbumScreen() {
 
           {filteredAlbums.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="alert-circle-outline" size={40} color="#D4C4B5" />
+              <Ionicons name="alert-circle-outline" size={40} color={colors.tabInactive} />
               <Text style={styles.emptyStateText}>
                 Пока нет альбомов для этой категории. Выберите другую тему или вернитесь назад.
               </Text>
@@ -343,7 +349,7 @@ export default function SelectAlbumScreen() {
                           : 'airplane'
                       }
                       size={40}
-                      color={selectedAlbum === album.id ? '#FFFFFF' : '#C9A89A'}
+                      color={selectedAlbum === album.id ? '#FFFFFF' : colors.primary}
                     />
                   </View>
                 )}
@@ -356,12 +362,13 @@ export default function SelectAlbumScreen() {
               <Ionicons
                 name="chevron-forward"
                 size={24}
-                color={selectedAlbum === album.id ? '#C9A89A' : '#D4C4B5'}
+                color={selectedAlbum === album.id ? colors.primary : colors.tabInactive}
               />
             </TouchableOpacity>
             ))
           )}
         </ScrollView>
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );
@@ -370,7 +377,7 @@ export default function SelectAlbumScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -385,17 +392,15 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
   },
+  headerText: {
+    flex: 1,
+    gap: 4,
+  },
   title: {
     fontSize: 32,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
@@ -406,7 +411,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 17,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -425,16 +430,16 @@ const styles = StyleSheet.create({
     padding: 22,
     marginBottom: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
   },
   albumCardSelected: {
-    borderColor: '#C9A89A',
-    backgroundColor: '#FAF8F5',
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
     shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 4,
@@ -453,7 +458,7 @@ const styles = StyleSheet.create({
   albumIcon: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -462,19 +467,14 @@ const styles = StyleSheet.create({
   },
   albumName: {
     fontSize: 16,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   albumDescription: {
     fontSize: 13,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({

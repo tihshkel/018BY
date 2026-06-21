@@ -1,16 +1,14 @@
-import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
+
 import {
-  ActivityIndicator,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+  AppButton,
+  AppCenterModal,
+  AppText,
+} from '@/components/ui';
+import { colors, spacing } from '@/constants/design-tokens';
+import { useExportSubscription } from '@/contexts/export-subscription-context';
 
 type SubscriptionPaywallModalProps = {
   visible: boolean;
@@ -18,13 +16,25 @@ type SubscriptionPaywallModalProps = {
   onSubscribed?: () => void;
 };
 
+const BENEFITS = [
+  'PDF для печати в твёрдой обложке',
+  'PDF для печати в мягкой обложке',
+  'Электронная версия остаётся бесплатной',
+] as const;
+
 export function SubscriptionPaywallModal({
   visible,
   onClose,
   onSubscribed,
 }: SubscriptionPaywallModalProps) {
-  const { priceLabel, purchase, restore, isLoading } = useExportSubscription();
+  const { priceLabel, purchase, restore, isLoading, warmUpStore } = useExportSubscription();
   const [busy, setBusy] = useState<'purchase' | 'restore' | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      warmUpStore?.();
+    }
+  }, [visible, warmUpStore]);
 
   const handlePurchase = async () => {
     setBusy('purchase');
@@ -53,184 +63,114 @@ export function SubscriptionPaywallModal({
   };
 
   const isBusy = busy !== null || isLoading;
-  const priceText = priceLabel ?? 'разовая покупка';
+  const priceText = priceLabel ?? '—';
 
   return (
-    <Modal
+    <AppCenterModal
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            contentFit="contain"
-          />
-          <Text style={styles.title}>Экспорт для печати</Text>
-          <Text style={styles.subtitle}>
-            Разовая покупка открывает экспорт PDF для твёрдой и мягкой обложки — готово для
-            типографии. Платите один раз, без ежемесячных списаний.
-          </Text>
-
-          <View style={styles.benefits}>
-            <BenefitRow text="PDF для печати в твёрдой обложке" />
-            <BenefitRow text="PDF для печати в мягкой обложке" />
-            <BenefitRow text="Электронная версия остаётся бесплатной" />
-          </View>
-
-          <Text style={styles.price}>{priceText} · один раз</Text>
-
-          <Pressable
-            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
+      onClose={onClose}
+      title="Экспорт для печати"
+      subtitle="Разовая покупка · PDF для типографии"
+      dismissOnBackdrop={!isBusy}
+      footer={
+        <View style={styles.footer}>
+          <AppButton
+            title={`Купить доступ${priceLabel ? ` · ${priceLabel}` : ''}`}
             onPress={handlePurchase}
+            loading={busy === 'purchase'}
             disabled={isBusy}
-          >
-            {busy === 'purchase' ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Купить доступ</Text>
-            )}
-          </Pressable>
-
-          <Pressable
-            style={styles.secondaryButton}
+          />
+          <AppButton
+            title="Восстановить покупки"
+            variant="outline"
             onPress={handleRestore}
+            loading={busy === 'restore'}
             disabled={isBusy}
-          >
-            {busy === 'restore' ? (
-              <ActivityIndicator color="#8B6F5F" />
-            ) : (
-              <Text style={styles.secondaryButtonText}>Восстановить покупки</Text>
-            )}
-          </Pressable>
+          />
+          <AppButton title="Позже" variant="ghost" onPress={onClose} disabled={isBusy} />
+        </View>
+      }
+    >
+      <AppText variant="bodySm" style={styles.intro}>
+        PDF для твёрдой и мягкой обложки. Без подписки и ежемесячных списаний.
+      </AppText>
 
-          <Pressable style={styles.tertiaryButton} onPress={onClose} disabled={isBusy}>
-            <Text style={styles.tertiaryButtonText}>Позже</Text>
-          </Pressable>
+      <View style={styles.benefitsList}>
+        {BENEFITS.map((text) => (
+          <BenefitRow key={text} text={text} />
+        ))}
+      </View>
 
-          {Platform.OS === 'ios' ? (
-            <Text style={styles.legal}>
-              Разовая оплата через Apple ID. Доступ сохраняется на этом Apple ID; при смене
-              устройства используйте «Восстановить покупки».
-            </Text>
-          ) : null}
-        </Pressable>
-      </Pressable>
-    </Modal>
+      <View style={styles.priceBlock}>
+        <AppText variant="display" style={styles.priceValue}>
+          {priceText}
+        </AppText>
+        <AppText variant="caption" style={styles.priceHint}>
+          {Platform.OS === 'android'
+            ? 'один раз · навсегда на этом Google Play аккаунте'
+            : 'один раз · навсегда на этом Apple ID'}
+        </AppText>
+      </View>
+
+      {Platform.OS === 'ios' || Platform.OS === 'android' ? (
+        <AppText variant="caption" style={styles.legal}>
+          {Platform.OS === 'android'
+            ? 'Оплата через Google Play. При смене устройства нажмите «Восстановить покупки».'
+            : 'Оплата через Apple ID. При смене устройства нажмите «Восстановить покупки».'}
+        </AppText>
+      ) : null}
+    </AppCenterModal>
   );
 }
 
 function BenefitRow({ text }: { text: string }) {
   return (
     <View style={styles.benefitRow}>
-      <Ionicons name="checkmark-circle" size={18} color="#C9A89A" />
-      <Text style={styles.benefitText}>{text}</Text>
+      <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+      <AppText variant="bodySm" style={styles.benefitText}>
+        {text}
+      </AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+  intro: {
+    marginBottom: spacing.md,
   },
-  card: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-  },
-  logo: {
-    width: 88,
-    height: 88,
-    borderRadius: 20,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#8B6F5F',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#9B8E7F',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  benefits: {
-    alignSelf: 'stretch',
-    gap: 10,
-    marginBottom: 20,
+  benefitsList: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    alignItems: 'flex-start',
+    gap: spacing.xs,
   },
   benefitText: {
     flex: 1,
-    fontSize: 14,
-    color: '#5B4D3F',
-    lineHeight: 20,
+    color: colors.textPrimary,
   },
-  price: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#8B6F5F',
-    marginBottom: 16,
-  },
-  primaryButton: {
-    alignSelf: 'stretch',
-    backgroundColor: '#C9A89A',
-    borderRadius: 16,
-    paddingVertical: 16,
+  priceBlock: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: spacing.sm,
+    gap: 4,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '600',
+  priceValue: {
+    fontSize: 28,
+    lineHeight: 34,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  secondaryButton: {
-    alignSelf: 'stretch',
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  secondaryButtonText: {
-    color: '#8B6F5F',
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  tertiaryButton: {
-    paddingVertical: 8,
-  },
-  tertiaryButtonText: {
-    color: '#9B8E7F',
-    fontSize: 15,
+  priceHint: {
+    textAlign: 'center',
   },
   legal: {
-    marginTop: 12,
-    fontSize: 11,
-    lineHeight: 16,
-    color: '#B5A89A',
     textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  footer: {
+    gap: spacing.sm,
   },
 });

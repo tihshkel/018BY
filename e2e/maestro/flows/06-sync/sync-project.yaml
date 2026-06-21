@@ -1,0 +1,52 @@
+appId: com.tihshkel.x018BY
+env:
+  E2E_SUPABASE_EMAIL: ${E2E_SUPABASE_EMAIL}
+  E2E_SUPABASE_PASSWORD: ${E2E_SUPABASE_PASSWORD}
+---
+- runFlow:
+    file: sync-profile.yaml
+- runFlow:
+    file: ../03-album-create/create-kids.yaml
+- tapOn:
+    id: page-card-1
+- extendedWaitUntil:
+    visible:
+      id: form-save
+    timeout: 15000
+- tapOn:
+    text: 'Введите'
+    optional: true
+- inputText: Sync project text
+- tapOn:
+    id: form-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- stopApp
+- launchApp:
+    clearState: true
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-next
+- tapOn:
+    id: onboarding-start
+- tapOn:
+    id: login-email
+- inputText: ${E2E_SUPABASE_EMAIL}
+- tapOn:
+    id: login-password
+- inputText: ${E2E_SUPABASE_PASSWORD}
+- tapOn:
+    id: login-submit
+- extendedWaitUntil:
+    visible:
+      id: home-greeting
+    timeout: 45000
+- tapOn:
+    id: tab-projects
+- assertVisible:
+    text: 'dfa_7'
+    optional: true

@@ -1,16 +1,43 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
+import type { EditorTool } from '@/constants/album-text-margins';
 import { usesTemplateLineTextEditing } from '@/constants/album-text-margins';
 import { TemplateLineEditor } from '@/components/template-line-editor';
 import {
+  EditorColorPickerSheet,
+  EditorFontPickerSheet,
+  EditorFontSizePickerSheet,
+  EditorZIndexSheet,
+  EDITOR_PICKER_COLORS,
+} from '@/components/editor/editor-style-picker-sheet';
+import {
   distributeTextAcrossSlots,
+  findAnnotationForContinuationGroup,
   findAnnotationForSlot,
   getLineSlotsForPage,
   hasLineGuides,
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
 import { createId } from '@/utils/id';
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateLineTextTop, getTemplateLineTypography } from '@/utils/templateLineText';
+import {
+  AVAILABLE_FONTS,
+  getAlbumFontFamilyName,
+  normalizeAlbumFontId,
+  type FontOption,
+} from '@/constants/album-fonts';
+
+export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
+
+import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import {
+  findNextEmptyFieldTarget,
+  findPreviousFieldTarget,
+  getAlbumFieldTargets,
+  getFieldNavigationState,
+  getPageFieldTargets,
+} from '@/utils/templateLineNavigation';
+import type { GetLineSlotsParams } from '@/utils/textLineSlots';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
@@ -22,10 +49,8 @@ import {
     Dimensions,
     Easing,
     Keyboard,
-    Modal,
     PanResponder,
     Platform,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
@@ -34,48 +59,7 @@ import {
     View
 } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Цвета из темы приложения
-const APP_COLORS = [
-  '#000000', // Черный
-  '#8B6F5F', // Основной коричневый
-  '#C9A89A', // Светло-коричневый
-  '#9B8E7F', // Серо-коричневый
-  '#6B5D4F', // Темно-коричневый
-  '#5B4D3F', // Очень темный коричневый
-  '#D4C4B5', // Светло-бежевый
-  '#F0E8E0', // Светлый бежевый
-  '#FFFFFF', // Белый
-];
-
-// Размеры шрифта
-const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40];
-
-// Доступные шрифты из папки assets/fonts
-export interface FontOption {
-  id: string;
-  name: string;
-  file: any; // require() модуль
-  displayName: string;
-}
-
-export const AVAILABLE_FONTS: FontOption[] = [
-  { id: 'default', name: 'System', file: null, displayName: 'Системный' },
-  { id: 'AmaticSC-Regular', name: 'AmaticSC-Regular', file: require('@/assets/fonts/AmaticSC-Regular.ttf'), displayName: 'Amatic SC' },
-  { id: 'AmaticSC-Bold', name: 'AmaticSC-Bold', file: require('@/assets/fonts/AmaticSC-Bold.ttf'), displayName: 'Amatic SC Bold' },
-  { id: 'inspiration', name: 'inspiration', file: require('@/assets/fonts/inspiration.ttf'), displayName: 'Inspiration' },
-  { id: 'Nefelibata-Brush', name: 'Nefelibata-Brush', file: require('@/assets/fonts/Nefelibata-Brush.otf'), displayName: 'Nefelibata Brush' },
-  { id: 'Nefelibata-BrushCanvas', name: 'Nefelibata-BrushCanvas', file: require('@/assets/fonts/Nefelibata-BrushCanvas.otf'), displayName: 'Nefelibata Brush Canvas' },
-  { id: 'Nefelibata-Extras', name: 'Nefelibata-Extras', file: require('@/assets/fonts/Nefelibata-Extras.otf'), displayName: 'Nefelibata Extras' },
-  { id: 'Nefelibata-PenSans', name: 'Nefelibata-PenSans', file: require('@/assets/fonts/Nefelibata-PenSans.otf'), displayName: 'Nefelibata Pen Sans' },
-  { id: 'Nefelibata-Sans', name: 'Nefelibata-Sans', file: require('@/assets/fonts/Nefelibata-Sans.otf'), displayName: 'Nefelibata Sans' },
-  { id: 'Nefelibata-SansCanvas', name: 'Nefelibata-SansCanvas', file: require('@/assets/fonts/Nefelibata-SansCanvas.otf'), displayName: 'Nefelibata Sans Canvas' },
-  { id: 'Nefelibata-SansCd', name: 'Nefelibata-SansCd', file: require('@/assets/fonts/Nefelibata-SansCd.otf'), displayName: 'Nefelibata Sans Cd' },
-  { id: 'Nefelibata-SansCdCanvas', name: 'Nefelibata-SansCdCanvas', file: require('@/assets/fonts/Nefelibata-SansCdCanvas.otf'), displayName: 'Nefelibata Sans Cd Canvas' },
-  { id: 'Nefelibata-Script', name: 'Nefelibata-Script', file: require('@/assets/fonts/Nefelibata-Script.otf'), displayName: 'Nefelibata Script' },
-  { id: 'SvyaznoyRF', name: 'SvyaznoyRF', file: require('@/assets/fonts/SvyaznoyRF.ttf'), displayName: 'Svyaznoy RF' },
-];
+const FLOATING_TEXT_MIN_CARD_WIDTH = 260;
 
 export interface Annotation {
   id: string;
@@ -95,8 +79,16 @@ export interface Annotation {
   templateLineStart?: number;
   /** Сколько строк шаблона занимает блок */
   templateLineCount?: number;
+  /** Номер страницы в LINE_SLOTS / LINE_GUIDES (не индекс в PDF после фильтра) */
+  sourcePageNumber?: number;
   /** Горизонтальное выравнивание текста в блоке */
   textAlign?: 'left' | 'center' | 'right';
+  /** Режим вписывания фото: cover для album auto-placement, fill для legacy редактора */
+  imageContentFit?: 'cover' | 'fill';
+  /** Круглый клип для семейного дерева / gender-fill */
+  clipShape?: 'circle';
+  /** Заливка круга без фото (gender-fill или пустой слот дерева) */
+  fillColor?: string;
 }
 
 export type AnnotationTextAlign = 'left' | 'center' | 'right';
@@ -111,6 +103,13 @@ export interface PdfAnnotationsRef {
   setTextAlign: (align: AnnotationTextAlign) => void;
   /** Снять фокус с поля ввода перед системным диалогом (иначе Alert на iOS не реагирует) */
   blurEditingInput: () => void;
+  /** Предотвращает закрытие редактирования при blur от тапа по панели форматирования */
+  markToolbarInteraction: () => void;
+  navigateTemplateLinePrevious: () => void;
+  navigateTemplateLineNext: () => void;
+  getTemplateLineNavigationState: () => { canGoBack: boolean; canGoNext: boolean };
+  insertLineBreak: () => void;
+  deleteEditingAnnotation: () => void;
 }
 
 interface PdfAnnotationsProps {
@@ -119,7 +118,7 @@ interface PdfAnnotationsProps {
   onAnnotationUpdate: (id: string, annotation: Partial<Annotation>) => void;
   onAnnotationDelete: (id: string) => void;
   isEditing: boolean;
-  currentTool: 'text' | 'image' | 'drawing' | null;
+  currentTool: EditorTool;
   onEditingStateChange?: (isEditing: boolean, annotationId: string | null) => void;
   zoomLevel?: number; // Уровень масштабирования
   // Для привязки текста к линиям + корректной геометрии
@@ -134,8 +133,14 @@ interface PdfAnnotationsProps {
   onInteractionChange?: (isInteracting: boolean) => void;
   /** Выделение текста при редактировании (как в Word — показать панель выравнивания) */
   onTextSelectionChange?: (hasSelection: boolean) => void;
+  /** Выбранная аннотация (рамка / кнопка «Редактировать») — чтобы не перекрывать слотами */
+  onSelectionChange?: (annotationId: string | null) => void;
   /** Сигнал о загрузке фото-аннотации (для экспорта через PageRenderer) */
   onImageAnnotationLoad?: (imageUri: string) => void;
+  /** Навигация по полям шаблона на всех страницах альбома */
+  totalPages?: number;
+  onNavigateToPage?: (page: number) => void;
+  resolveSlotParams?: (page: number) => GetLineSlotsParams | null;
 }
 
 const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(({
@@ -155,7 +160,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   onToolDeactivate,
   onInteractionChange,
   onTextSelectionChange,
+  onSelectionChange,
   onImageAnnotationLoad,
+  totalPages,
+  onNavigateToPage,
+  resolveSlotParams,
 }, ref) => {
   // Получаем актуальные размеры экрана
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -171,6 +180,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   );
 
   const getSlotsForPage = (pageNumber: number) => {
+    const resolvedParams = resolveSlotParams?.(pageNumber);
+    if (resolvedParams) {
+      return getLineSlotsForPage(resolvedParams);
+    }
+
     if (!lineGuideId || lineSlotsContext.viewportWidth <= 0 || lineSlotsContext.viewportHeight <= 0) {
       return [];
     }
@@ -183,6 +197,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       sourceHeight: lineSlotsContext.sourceHeight,
     });
   };
+
+  const usesAlbumWideFieldNavigation = (totalPages ?? 0) > 1 && !!resolveSlotParams;
 
   const isTemplateLineAlbum = usesTemplateLineTextEditing(lineGuideId);
 
@@ -223,11 +239,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     slots: ReturnType<typeof getSlotsForPage>
   ): string => {
     const { groupSlots } = getContinuationGroupSlots(slots, startSlotIndex);
-    const merged = groupSlots
-      .map((s) => findAnnotationForSlot(annotations, pageNumber, s.index)?.content?.trim() ?? '')
-      .filter(Boolean)
-      .join(' ');
-    return merged || annotation.content || '';
+    const parts = groupSlots.map((s) => ({
+      content: findAnnotationForSlot(annotations, pageNumber, s.index)?.content ?? '',
+    }));
+    const merged = joinContinuationSegmentTexts(parts);
+    return merged.trim() || annotation.content || '';
   };
 
   const openTextEditing = (annotation: Annotation) => {
@@ -313,18 +329,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     Keyboard.dismiss();
   };
 
-  const saveTemplateLineEditing = () => {
-    if (!editingAnnotation) return;
+  const persistTemplateLineEditing = (): boolean => {
+    if (!editingAnnotation) return false;
     const annotation = annotations.find((ann) => ann.id === editingAnnotation);
     if (!annotation || annotation.type !== 'text' || !isTemplateLineAnnotation(annotation)) {
-      return;
+      return false;
     }
 
     const pageNumber = getPageNumber(annotation);
     if (!pageNumber || typeof annotation.templateLineStart !== 'number') {
       onAnnotationUpdate(editingAnnotation, { content: editingText });
-      dismissTextEditing();
-      return;
+      return true;
     }
 
     const slots = getSlotsForPage(pageNumber);
@@ -335,12 +350,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       startSlot,
       annotation.fontSize || 16
     );
+    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
     const { segments, truncated } = distributeTextWithinContinuationGroup({
       text: editingText,
       startSlotIndex,
       slots,
       fontSize: effectiveFontSize,
       lineGuideId,
+      fontId: normalizedFontId,
     });
 
     if (truncated) {
@@ -389,7 +406,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
 
     lastSelectedFontIdRef.current = null;
-    dismissTextEditing();
+    return true;
+  };
+
+  const saveTemplateLineEditing = () => {
+    if (persistTemplateLineEditing()) {
+      dismissTextEditing();
+    }
   };
   
   // Загружаем все шрифты через expo-font
@@ -407,6 +430,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const [selectedAnnotation, setSelectedAnnotation] = useState<string | null>(null);
   const textInputRef = useRef<TextInput | null>(null);
   const templateLineInputRef = useRef<TextInput | null>(null);
+  const isTemplateLineNavigatingRef = useRef(false);
+  const isToolbarInteractionRef = useRef(false);
+  const editingTextRef = useRef('');
+  const TEMPLATE_LINE_NAV_BLUR_GUARD_MS = 120;
+  const TOOLBAR_INTERACTION_BLUR_GUARD_MS = 200;
   const textSelectionRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const hasTextSelectionRef = useRef(false);
   const [selectionOverride, setSelectionOverride] = useState<{ start: number; end: number } | null>(null);
@@ -446,6 +474,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const editingAnnotationRef = useRef<string | null>(editingAnnotation);
   isEditingRef.current = isEditing;
   editingAnnotationRef.current = editingAnnotation;
+  editingTextRef.current = editingText;
+
+  const annotationsListRef = useRef(annotations);
+  annotationsListRef.current = annotations;
 
   // Анимации для плавного появления окна редактирования
   const editingScaleAnim = useRef(new Animated.Value(0)).current;
@@ -584,6 +616,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     selectedAnnotationRef.current = selectedAnnotation;
   }, [selectedAnnotation]);
 
+  useEffect(() => {
+    onSelectionChange?.(selectedAnnotation);
+  }, [selectedAnnotation, onSelectionChange]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setSelectedAnnotation(null);
+    }
+  }, [isEditing]);
+
   // Обновляем editingText при открытии редактирования (для сохранения текста при повторном открытии)
   const previousEditingAnnotation = useRef<string | null>(null);
   useEffect(() => {
@@ -667,7 +709,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       return;
     }
 
-    if (isTemplateLineAlbum || isTemplateLineAnnotation(currentAnnotation)) {
+    if (isTemplateLineAnnotation(currentAnnotation)) {
       dragButtonResponderRef.current = null;
       return;
     }
@@ -696,8 +738,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         // 1. Сохраняем текст с учетом всех параметров
         const shouldSnap =
           currentAnnotation.type === 'text' &&
-          !!lineGuideId &&
-          isTemplateLineAlbum &&
+          isTemplateLineAnnotation(currentAnnotation) &&
           typeof viewportHeight === 'number' &&
           viewportHeight > 0 &&
           typeof currentAnnotation.page === 'number';
@@ -808,7 +849,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       return null;
     }
 
-    if (annotation.type === 'text' && isTemplateLineAlbum) {
+    if (annotation.type === 'text' && isTemplateLineAnnotation(annotation)) {
       return null;
     }
 
@@ -1446,6 +1487,277 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     return { isValid, lines, issues };
   };
 
+  const markTemplateLineNavigating = () => {
+    isTemplateLineNavigatingRef.current = true;
+    setTimeout(() => {
+      isTemplateLineNavigatingRef.current = false;
+    }, TEMPLATE_LINE_NAV_BLUR_GUARD_MS);
+  };
+
+  const markToolbarInteraction = () => {
+    isToolbarInteractionRef.current = true;
+    setTimeout(() => {
+      isToolbarInteractionRef.current = false;
+    }, TOOLBAR_INTERACTION_BLUR_GUARD_MS);
+  };
+
+  const refocusEditingInput = () => {
+    requestAnimationFrame(() => {
+      const editingId = editingAnnotationRef.current;
+      if (!editingId) return;
+      const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+      if (current && isTemplateLineAnnotation(current)) {
+        templateLineInputRef.current?.focus();
+      } else {
+        textInputRef.current?.focus();
+      }
+    });
+  };
+
+  const refocusTemplateLineInput = () => {
+    requestAnimationFrame(() => {
+      templateLineInputRef.current?.focus();
+    });
+  };
+
+  const getActivePageNumber = (): number | null => {
+    const editingId = editingAnnotationRef.current;
+    if (editingId) {
+      const editing = annotationsListRef.current.find((ann) => ann.id === editingId);
+      if (editing) {
+        const pageNumber = getPageNumber(editing);
+        if (pageNumber != null) return pageNumber;
+      }
+    }
+
+    const firstWithPage = annotationsListRef.current.find(
+      (ann) => getPageNumber(ann) != null
+    );
+    return firstWithPage ? getPageNumber(firstWithPage) : null;
+  };
+
+  const getLiveFieldOverride = (
+    pageNumber: number,
+    startSlotIndex: number
+  ): { page: number; startSlotIndex: number; isEmpty: boolean } | undefined => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return undefined;
+
+    const editing = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!editing || !isTemplateLineAnnotation(editing)) return undefined;
+    if (getPageNumber(editing) !== pageNumber) return undefined;
+    if (typeof editing.templateLineStart !== 'number') return undefined;
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex: editingGroupStart } = getContinuationGroupSlots(
+      slots,
+      editing.templateLineStart
+    );
+    if (editingGroupStart !== startSlotIndex) return undefined;
+
+    return {
+      page: pageNumber,
+      startSlotIndex,
+      isEmpty: editingTextRef.current.trim() === '',
+    };
+  };
+
+  const getTemplateLineNavigationTargets = (pageNumber: number, startSlotIndex: number) => {
+    const liveOverride = getLiveFieldOverride(pageNumber, startSlotIndex);
+
+    if (usesAlbumWideFieldNavigation && totalPages) {
+      return getAlbumFieldTargets(
+        totalPages,
+        getSlotsForPage,
+        annotationsListRef.current,
+        liveOverride
+      );
+    }
+
+    const slots = getSlotsForPage(pageNumber);
+    return getPageFieldTargets(
+      slots,
+      annotationsListRef.current,
+      pageNumber,
+      liveOverride
+        ? {
+            startSlotIndex: liveOverride.startSlotIndex,
+            isEmpty: liveOverride.isEmpty,
+          }
+        : undefined
+    );
+  };
+
+  const openTemplateLineFieldOnPage = (pageNumber: number, startSlotIndex: number) => {
+    const slots = getSlotsForPage(pageNumber);
+    const startSlot = slots[startSlotIndex];
+    if (!startSlot) return;
+
+    const { startSlotIndex: groupStart } = getContinuationGroupSlots(slots, startSlot.index);
+    const groupStartSlot = slots[groupStart] ?? startSlot;
+
+    const existing = findAnnotationForContinuationGroup(
+      annotationsListRef.current,
+      pageNumber,
+      slots,
+      groupStart
+    );
+
+    if (existing) {
+      markTemplateLineNavigating();
+      openTextEditing(existing);
+      refocusTemplateLineInput();
+      return;
+    }
+
+    const styleSource = editingAnnotationRef.current
+      ? annotationsListRef.current.find((ann) => ann.id === editingAnnotationRef.current)
+      : null;
+    const maxZIndex =
+      annotationsListRef.current.length > 0
+        ? Math.max(...annotationsListRef.current.map((ann) => ann.zIndex), 0)
+        : 0;
+    const layout = layoutAnnotationFromSlot(groupStartSlot);
+    const effectiveFontSize = getEffectiveTemplateFontSize(
+      lineGuideId,
+      groupStartSlot,
+      styleSource?.fontSize || 16
+    );
+    const newId = createId('ann');
+    const newAnnotation: Annotation = {
+      id: newId,
+      type: 'text',
+      ...layout,
+      content: '',
+      color: styleSource?.color ?? '#000000',
+      fontSize: effectiveFontSize,
+      fontFamily: styleSource?.fontFamily,
+      zIndex: maxZIndex + 1,
+      page: pageNumber,
+    };
+
+    onAnnotationAdd(newAnnotation);
+
+    const tryOpen = (attemptsLeft: number) => {
+      const annotation = annotationsListRef.current.find((ann) => ann.id === newId);
+      if (annotation?.type === 'text') {
+        markTemplateLineNavigating();
+        openTextEditing(annotation);
+        refocusTemplateLineInput();
+        return;
+      }
+      if (attemptsLeft > 0) {
+        requestAnimationFrame(() => tryOpen(attemptsLeft - 1));
+      }
+    };
+    tryOpen(8);
+  };
+
+  const beginTemplateLineFieldAtSlot = (pageNumber: number, startSlotIndex: number) => {
+    const activePageNumber = getActivePageNumber();
+    if (activePageNumber != null && activePageNumber !== pageNumber && onNavigateToPage) {
+      onNavigateToPage(pageNumber);
+      const tryOpenOnPage = (attemptsLeft: number) => {
+        const slots = getSlotsForPage(pageNumber);
+        if (slots[startSlotIndex]) {
+          openTemplateLineFieldOnPage(pageNumber, startSlotIndex);
+          return;
+        }
+        if (attemptsLeft > 0) {
+          requestAnimationFrame(() => tryOpenOnPage(attemptsLeft - 1));
+        }
+      };
+      requestAnimationFrame(() => tryOpenOnPage(12));
+      return;
+    }
+
+    openTemplateLineFieldOnPage(pageNumber, startSlotIndex);
+  };
+
+  const navigateTemplateLinePrevious = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return;
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) return;
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') return;
+
+    persistTemplateLineEditing();
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const previousTarget = findPreviousFieldTarget(targets, pageNumber, startSlotIndex);
+    if (!previousTarget) return;
+
+    beginTemplateLineFieldAtSlot(previousTarget.page, previousTarget.startSlotIndex);
+  };
+
+  const navigateTemplateLineNext = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) return;
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) return;
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') return;
+
+    persistTemplateLineEditing();
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const nextTarget = findNextEmptyFieldTarget(targets, pageNumber, startSlotIndex);
+
+    if (nextTarget) {
+      beginTemplateLineFieldAtSlot(nextTarget.page, nextTarget.startSlotIndex);
+      return;
+    }
+
+    dismissTextEditing();
+  };
+
+  const getTemplateLineNavigationState = () => {
+    const editingId = editingAnnotationRef.current;
+    if (!editingId) {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const current = annotationsListRef.current.find((ann) => ann.id === editingId);
+    if (!current || !isTemplateLineAnnotation(current)) {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const pageNumber = getPageNumber(current);
+    if (pageNumber == null || typeof current.templateLineStart !== 'number') {
+      return { canGoBack: false, canGoNext: false };
+    }
+
+    const slots = getSlotsForPage(pageNumber);
+    const { startSlotIndex } = getContinuationGroupSlots(slots, current.templateLineStart);
+    const targets = getTemplateLineNavigationTargets(pageNumber, startSlotIndex);
+    const state = getFieldNavigationState(targets, pageNumber, startSlotIndex);
+
+    return {
+      canGoBack: state.canGoBack,
+      canGoNext: state.canGoNext,
+    };
+  };
+
+  const handleDeleteEditingAnnotation = () => {
+    if (!editingAnnotation) return;
+    const annotationId = editingAnnotation;
+    onAnnotationDelete(annotationId);
+    setEditingAnnotation(null);
+    setEditingText('');
+    setSelectedAnnotation(null);
+    Keyboard.dismiss();
+    onEditingStateChange?.(false, null);
+  };
+
   const handleCloseEditing = () => {
     if (editingAnnotation) {
       const current = annotations.find(ann => ann.id === editingAnnotation) || null;
@@ -1456,8 +1768,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const shouldSnap =
         !!current &&
         current.type === 'text' &&
-        !!lineGuideId &&
-        isTemplateLineAlbum &&
+        isTemplateLineAnnotation(current) &&
         typeof viewportHeight === 'number' &&
         viewportHeight > 0 &&
         typeof current.page === 'number';
@@ -1507,6 +1818,19 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
   };
 
+  const handleTemplateLineEditorDismiss = () => {
+    if (isTemplateLineNavigatingRef.current) {
+      isTemplateLineNavigatingRef.current = false;
+      return;
+    }
+    if (isToolbarInteractionRef.current) {
+      isToolbarInteractionRef.current = false;
+      refocusEditingInput();
+      return;
+    }
+    handleCloseEditing();
+  };
+
   // Публичная функция для закрытия редактирования извне
   React.useImperativeHandle(ref, () => ({
     closeEditing: handleCloseEditing,
@@ -1526,9 +1850,19 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       }
     },
     startEditing: (annotationId: string) => {
-      const annotation = annotations.find(ann => ann.id === annotationId);
-      if (!annotation || annotation.type !== 'text') return;
-      openTextEditing(annotation);
+      const tryOpen = (attemptsLeft: number) => {
+        const annotation = annotationsListRef.current.find(
+          (ann) => ann.id === annotationId
+        );
+        if (annotation?.type === 'text') {
+          openTextEditing(annotation);
+          return;
+        }
+        if (attemptsLeft > 0) {
+          requestAnimationFrame(() => tryOpen(attemptsLeft - 1));
+        }
+      };
+      tryOpen(8);
     },
     clearSelection: () => {
       setSelectedAnnotation(null);
@@ -1543,6 +1877,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       setShowFontPicker(false);
       Keyboard.dismiss();
     },
+    markToolbarInteraction,
     setTextAlign: (align: AnnotationTextAlign) => {
       if (!editingAnnotation) return;
 
@@ -1568,8 +1903,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const { end } = textSelectionRef.current;
       collapseTextSelection(end);
       notifyTextSelection(false);
-      Keyboard.dismiss();
+      refocusEditingInput();
     },
+    navigateTemplateLinePrevious,
+    navigateTemplateLineNext,
+    getTemplateLineNavigationState,
+    insertLineBreak: handleInsertLineBreak,
+    deleteEditingAnnotation: handleDeleteEditingAnnotation,
   }), [annotations, editingAnnotation, editingText, onAnnotationUpdate, onEditingStateChange]);
 
   const handleColorSelect = (color: string) => {
@@ -1606,15 +1946,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   const handleFontSelect = (fontId: string) => {
     if (editingAnnotation) {
-      lastSelectedFontIdRef.current = fontId;
-      onAnnotationUpdate(editingAnnotation, { fontFamily: fontId });
-      AsyncStorage.setItem('@last_text_font_family', fontId).catch(() => {});
+      const normalizedFontId = normalizeAlbumFontId(fontId);
+      lastSelectedFontIdRef.current = normalizedFontId;
+      onAnnotationUpdate(editingAnnotation, { fontFamily: normalizedFontId });
+      AsyncStorage.setItem('@last_text_font_family', normalizedFontId).catch(() => {});
       const currentAnnotation = annotations.find(ann => ann.id === editingAnnotation);
       if (currentAnnotation && currentAnnotation.type === 'text') {
         const newStyle = {
           color: currentAnnotation.color,
           fontSize: currentAnnotation.fontSize,
-          fontFamily: fontId,
+          fontFamily: normalizedFontId,
         };
         AsyncStorage.setItem('@last_text_style', JSON.stringify(newStyle)).catch((error) => {
           console.error('Error saving last text style:', error);
@@ -1945,13 +2286,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
   // Получаем имя шрифта для React Native из ID шрифта
   const getFontFamilyName = (fontId?: string): string | undefined => {
-    if (!fontId || fontId === 'default') return undefined;
-    const font = AVAILABLE_FONTS.find(f => f.id === fontId);
-    if (!font) return undefined;
-    // В React Native с expo-font шрифты доступны по имени, указанному в useFonts
-    // Используем font.name, которое соответствует ключу в useFonts
-    // Если шрифты еще не загружены, все равно возвращаем имя - React Native попытается использовать его
-    return font.name;
+    return getAlbumFontFamilyName(fontId);
   };
 
   const renderAnnotation = (annotation: Annotation) => {
@@ -1960,7 +2295,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const panResponder = createPanResponder(annotation);
     const currentColor = annotation.color || '#000000';
     const currentFontSize = annotation.fontSize || 16;
-    const currentFontFamily = getFontFamilyName(annotation.fontFamily);
+    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
+    const currentFontFamily = getFontFamilyName(normalizedFontId);
 
     if (annotation.type === 'text') {
       const basePos = getDisplayPosition(annotation);
@@ -2035,6 +2371,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         textFieldCoordinate?.width ??
         annotation.width ??
         360;
+      const floatingTextEditingWidth =
+        isEditingText && !isTemplateLineAnnotation(annotation)
+          ? Math.max(slotLayoutWidth, FLOATING_TEXT_MIN_CARD_WIDTH)
+          : slotLayoutWidth;
 
       if (shouldHideTemplateGroupSibling(annotation, pageNumberForSlots, templateSlots)) {
         return null;
@@ -2067,10 +2407,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               color={currentColor}
               fontSize={effectiveFontSize}
               fontFamily={currentFontFamily}
+              fontId={normalizedFontId}
               lineGuideId={lineGuideId}
               textAlign={getTextAlign(annotation)}
               onChangeText={handleTextChange}
-              onSubmit={handleCloseEditing}
+              onSubmit={handleTemplateLineEditorDismiss}
               onSelectionChange={handleSelectionChange}
               selection={selectionOverride ?? undefined}
               inputRef={templateLineInputRef}
@@ -2088,6 +2429,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           slots: templateSlots,
           fontSize: effectiveFontSize,
           lineGuideId,
+          fontId: normalizedFontId,
         });
         const linesToRender =
           groupSlots.length > 1
@@ -2125,35 +2467,51 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               const rowTypography = getTemplateLineTypography(
                 effectiveFontSize,
                 row.lineSlot.lineHeight,
-                row.lineSlot.inputKind,
+                getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
+              const ascenderPadding = getTemplateLineAscenderPadding(
+                rowTypography.fontSize,
+                getWishSlotInputKind(row.lineSlot, lineGuideId)
+              );
+              const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
-                <Text
+                <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
-                  style={[
-                    styles.textAnnotation,
-                    styles.templateLineText,
-                    {
-                      position: 'absolute',
-                      left: row.lineSlot.x,
-                      top: rowTop,
-                      width: row.lineSlot.width,
-                      color: currentColor,
-                      fontSize: rowTypography.fontSize,
-                      fontFamily: currentFontFamily,
-                      lineHeight: rowTypography.lineHeight,
-                      includeFontPadding: false,
-                      textAlign: getTextAlign(annotation),
-                      zIndex: annotation.zIndex,
-                    },
-                  ]}
+                  style={{
+                    position: 'absolute',
+                    left: row.lineSlot.x,
+                    top: rowTop - ascenderPadding,
+                    width: row.lineSlot.width,
+                    height: rowTypography.lineHeight + ascenderPadding,
+                    overflow: 'visible',
+                    zIndex: annotation.zIndex,
+                  }}
                   pointerEvents="none"
-                  numberOfLines={1}
-                  ellipsizeMode="clip"
                 >
-                  {row.content}
-                </Text>
+                  <Text
+                    style={[
+                      styles.textAnnotation,
+                      styles.templateLineText,
+                      {
+                        position: 'absolute',
+                        top: ascenderPadding,
+                        left: textInsets.left,
+                        width: textInsets.width,
+                        color: currentColor,
+                        fontSize: rowTypography.fontSize,
+                        fontFamily: currentFontFamily,
+                        lineHeight: rowTypography.lineHeight,
+                        includeFontPadding: false,
+                        textAlign: getTextAlign(annotation),
+                      },
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="clip"
+                  >
+                    {row.content}
+                  </Text>
+                </View>
               );
             })}
           </>
@@ -2239,105 +2597,70 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   }
                 }}
               >
-                <View pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
-                  <TextInput
-                    ref={textInputRef}
+                <>
+                  <View
                     style={[
-                      styles.textAnnotation,
-                      styles.textInput,
-                      {
-                        color: currentColor,
-                        fontSize: alignedFontSize,
-                        fontFamily: currentFontFamily,
-                        // Единый базовый стиль для всех PDF
-                        lineHeight: alignedFontSize * 1.2, // Небольшие отступы между строками
-                        includeFontPadding: false, // Единый размер курсора
-                        textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
-                        textAlign: getTextAlign(annotation),
-                        // Используем ширину из текстового поля, если оно определено, иначе из аннотации
-                        width: slotLayoutWidth,
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                        paddingLeft: 0, // Убираем левый отступ, чтобы текст начинался с начала строки
-                        paddingRight: 0, // Убираем правый отступ
-                        paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса
-                        // Применяем X координату из текстового поля для правильного начала
-                        marginLeft: textFieldCoordinate ? 0 : 0, // Убеждаемся, что нет дополнительных отступов
-                      },
+                      styles.floatingTextCard,
+                      isDraggingWhileEditing && styles.floatingTextCardDragging,
                     ]}
-                    value={editingText}
-                    onChangeText={handleTextChange}
-                    onContentSizeChange={handleTextContentSizeChange}
-                    onSelectionChange={handleSelectionChange}
-                    {...(selectionOverride ? { selection: selectionOverride } : {})}
-                    onSubmitEditing={handleTextSubmit}
-                    onBlur={handleTextSubmit}
-                    autoFocus={!isDraggingWhileEditing}
-                    multiline
-                    placeholder="Введите текст..."
-                    placeholderTextColor={currentColor + '80'}
-                    editable={!isDraggingWhileEditing}
-                    selectTextOnFocus={false}
-                    textBreakStrategy="simple"
-                    {...(Platform.OS === 'android' && {
-                      textAlignVertical: 'top',
-                    })}
-                  />
-                </View>
-                {/* Кнопки: Перетащить (оранжевая), Перенос строки, Принять и Удалить за полем ввода */}
-                <View style={styles.textActionButtons} pointerEvents={isDraggingWhileEditing ? "none" : "auto"}>
-                  {!isTemplateLineAlbum ? (
+                    pointerEvents={isDraggingWhileEditing ? 'auto' : 'box-none'}
+                  >
                     <View
-                      style={[styles.actionButton, styles.dragButton]}
+                      style={[
+                        styles.floatingTextHeader,
+                        isDraggingWhileEditing && styles.floatingTextHeaderDragging,
+                      ]}
                       {...(dragButtonResponderRef.current?.panHandlers || {})}
+                      pointerEvents={isDraggingWhileEditing ? 'none' : 'auto'}
+                      accessibilityRole="button"
+                      accessibilityLabel="Перетащите, чтобы переместить текст"
+                      accessibilityHint="Удерживайте полоску сверху и перетащите блок"
                     >
-                      <Ionicons name="move" size={18} color="#FFFFFF" />
+                      <View
+                        style={[
+                          styles.floatingTextGripBar,
+                          isDraggingWhileEditing && styles.floatingTextGripBarDragging,
+                        ]}
+                      />
                     </View>
-                  ) : null}
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.lineBreakButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={handleInsertLineBreak}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                    accessibilityLabel="Перенос строки"
-                    accessibilityHint="Вставляет перенос строки в текущую позицию"
-                  >
-                    <Ionicons name="return-down-forward" size={18} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.acceptButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={handleCloseEditing}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                  >
-                    <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.actionButton, 
-                      styles.removeButton,
-                      isDraggingWhileEditing && styles.buttonDisabled
-                    ]}
-                    onPress={() => {
-                      onAnnotationDelete(annotation.id);
-                      setEditingAnnotation(null);
-                      setEditingText('');
-                      Keyboard.dismiss();
-                    }}
-                    activeOpacity={0.7}
-                    disabled={isDraggingWhileEditing}
-                  >
-                    <Ionicons name="trash" size={18} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
+                    <View pointerEvents={isDraggingWhileEditing ? 'none' : 'auto'}>
+                      <TextInput
+                        ref={textInputRef}
+                        style={[
+                          styles.textAnnotation,
+                          styles.floatingTextInput,
+                          {
+                            color: currentColor,
+                            fontSize: alignedFontSize,
+                            fontFamily: currentFontFamily,
+                            lineHeight: alignedFontSize * 1.2,
+                            includeFontPadding: false,
+                            textAlignVertical: 'top',
+                            textAlign: getTextAlign(annotation),
+                            width: floatingTextEditingWidth,
+                          },
+                        ]}
+                        value={editingText}
+                        onChangeText={handleTextChange}
+                        onContentSizeChange={handleTextContentSizeChange}
+                        onSelectionChange={handleSelectionChange}
+                        {...(selectionOverride ? { selection: selectionOverride } : {})}
+                        onSubmitEditing={handleTextSubmit}
+                        onBlur={handleTextSubmit}
+                        autoFocus={!isDraggingWhileEditing}
+                        multiline
+                        placeholder="Введите текст..."
+                        placeholderTextColor="#A89888"
+                        editable={!isDraggingWhileEditing}
+                        selectTextOnFocus={false}
+                        textBreakStrategy="simple"
+                        {...(Platform.OS === 'android' && {
+                          textAlignVertical: 'top',
+                        })}
+                      />
+                    </View>
+                  </View>
+                </>
               </Animated.View>
             </>
           ) : (
@@ -2418,11 +2741,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               )}
               {/* Кнопки редактирования при долгом нажатии */}
               {isSelected && isEditing && !isDragging && (
-                <View style={styles.textControlsOverlay}>
+                <View style={styles.textControlsOverlay} pointerEvents="box-none">
                   <TouchableOpacity
                     style={styles.editButton}
                     onPress={() => handleEditText(annotation)}
                     activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Ionicons name="create-outline" size={18} color="#FFFFFF" />
                     <Text style={styles.editButtonText}>Редактировать</Text>
@@ -2453,6 +2777,35 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     if (annotation.type === 'image') {
       const basePos = getDisplayPosition(annotation);
+      const isCircle = annotation.clipShape === 'circle';
+      const circleRadius = isCircle
+        ? Math.min(annotation.width, annotation.height) / 2
+        : 0;
+      const circleClipStyle = isCircle
+        ? { borderRadius: circleRadius, overflow: 'hidden' as const }
+        : undefined;
+
+      if (!annotation.imageUri && annotation.fillColor) {
+        return (
+          <View
+            key={annotation.id}
+            style={[
+              styles.annotation,
+              {
+                left: basePos.x,
+                top: basePos.y,
+                width: annotation.width,
+                height: annotation.height,
+                zIndex: annotation.zIndex,
+                backgroundColor: annotation.fillColor,
+                borderRadius: circleRadius,
+              },
+            ]}
+            pointerEvents="none"
+          />
+        );
+      }
+
       const resizeResponderTL = createImageResizeResponder({ annotationId: annotation.id, corner: 'tl' });
       const resizeResponderTR = createImageResizeResponder({ annotationId: annotation.id, corner: 'tr' });
       const resizeResponderBL = createImageResizeResponder({ annotationId: annotation.id, corner: 'bl' });
@@ -2477,25 +2830,41 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           {/* Основной PanResponder для перетаскивания - всегда в режиме редактирования для выбора при тапе */}
           <View
             {...(isEditing && panResponder ? panResponder.panHandlers : {})}
-            style={styles.imageContainer}
+            style={[styles.imageContainer, circleClipStyle]}
             pointerEvents={isEditing ? 'auto' : 'box-none'}
           >
-            <Image
-              source={{ uri: annotation.imageUri }}
-              style={styles.imageAnnotation}
-              contentFit="fill"
-              priority="high"
-              cachePolicy="disk"
-              transition={0}
-              fadeDuration={0}
-              recyclingKey={annotation.id}
-              contentPosition="center"
-              onLoad={() => {
-                if (annotation.imageUri) {
-                  onImageAnnotationLoad?.(annotation.imageUri);
-                }
-              }}
-            />
+            {annotation.fillColor ? (
+              <View
+                style={[
+                  styles.imageAnnotation,
+                  circleClipStyle,
+                  { backgroundColor: annotation.fillColor },
+                ]}
+              />
+            ) : null}
+            {annotation.imageUri ? (
+              <Image
+                source={{ uri: annotation.imageUri }}
+                style={[
+                  styles.imageAnnotation,
+                  circleClipStyle,
+                  isCircle && styles.circleImageAnnotation,
+                  annotation.fillColor && styles.imageOnFill,
+                ]}
+                contentFit={annotation.imageContentFit ?? 'fill'}
+                priority="high"
+                cachePolicy="disk"
+                transition={0}
+                fadeDuration={0}
+                recyclingKey={annotation.id}
+                contentPosition="center"
+                onLoad={() => {
+                  if (annotation.imageUri) {
+                    onImageAnnotationLoad?.(annotation.imageUri);
+                  }
+                }}
+              />
+            ) : null}
           </View>
           {/* Ручки отображаются только если изображение выбрано, режим редактирования активен, 
               и НЕ редактируется текст (чтобы ручки не появлялись при редактировании текста) */}
@@ -2529,7 +2898,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     { maxWidth: Math.max(80, imageWidth - 10) } // Ограничиваем ширину размером изображения
                   ]}
                 >
-                  <Ionicons name="move-outline" size={iconSize} color="#8B6F5F" />
+                  <Ionicons name="move-outline" size={iconSize} color={colors.textPrimary} />
                   <Text 
                     style={[styles.dragHint, { fontSize }]}
                     numberOfLines={1}
@@ -2600,204 +2969,47 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           currentTool && !editingAnnotation && { pointerEvents: 'box-none' }
         ]}
       >
-        {annotations.map(renderAnnotation)}
+        {annotations.map((annotation) => (
+          <React.Fragment key={annotation.id}>
+            {renderAnnotation(annotation)}
+          </React.Fragment>
+        ))}
       </View>
 
 
-      {/* Модальное окно выбора цвета */}
-      <Modal
+      <EditorColorPickerSheet
         visible={showColorPicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowColorPicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowColorPicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите цвет</Text>
-            <View style={styles.colorGrid}>
-              {APP_COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    {
-                      backgroundColor: color,
-                      borderColor: color === '#FFFFFF' ? '#E8D5C7' : 'transparent',
-                      borderWidth: color === '#FFFFFF' ? 2 : 0,
-                    },
-                    currentEditingAnnotation?.color === color &&
-                      styles.colorOptionSelected,
-                  ]}
-                  onPress={() => handleColorSelect(color)}
-                  activeOpacity={0.7}
-                />
-              ))}
-            </View>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowColorPicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowColorPicker(false)}
+        colors={EDITOR_PICKER_COLORS}
+        selectedColor={currentEditingAnnotation?.color}
+        onSelectColor={handleColorSelect}
+      />
 
-      {/* Модальное окно выбора размера шрифта */}
-      <Modal
+      <EditorFontSizePickerSheet
         visible={showFontSizePicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontSizePicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontSizePicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите размер</Text>
-            <ScrollView style={styles.fontSizeList} showsVerticalScrollIndicator={false}>
-              {FONT_SIZES.map((size) => (
-                <TouchableOpacity
-                  key={size}
-                  style={[
-                    styles.fontSizeOption,
-                    currentEditingAnnotation?.fontSize === size &&
-                      styles.fontSizeOptionSelected,
-                  ]}
-                  onPress={() => handleFontSizeSelect(size)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.fontSizeText,
-                      { fontSize: size },
-                      currentEditingAnnotation?.fontSize === size &&
-                        styles.fontSizeTextSelected,
-                    ]}
-                  >
-                    {size}px - Пример текста
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowFontSizePicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowFontSizePicker(false)}
+        selectedSize={currentEditingAnnotation?.fontSize}
+        onSelectSize={handleFontSizeSelect}
+        showSampleText
+      />
 
-      {/* Модальное окно выбора шрифта */}
-      <Modal
+      <EditorFontPickerSheet
         visible={showFontPicker}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontPicker(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontPicker(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Выберите шрифт</Text>
-            <ScrollView style={styles.fontList} showsVerticalScrollIndicator={false}>
-              {AVAILABLE_FONTS.map((font) => (
-                <TouchableOpacity
-                  key={font.id}
-                  style={[
-                    styles.fontOption,
-                    (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
-                      styles.fontOptionSelected,
-                  ]}
-                  onPress={() => handleFontSelect(font.id)}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.fontOptionText,
-                      {
-                        fontFamily: font.id === 'default' 
-                          ? Platform.select({
-                              ios: 'System',
-                              android: 'sans-serif',
-                              default: 'sans-serif',
-                            })
-                          : font.name,
-                      },
-                      (currentEditingAnnotation?.fontFamily || 'default') === font.id &&
-                        styles.fontOptionTextSelected,
-                    ]}
-                  >
-                    {font.displayName}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowFontPicker(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Готово</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowFontPicker(false)}
+        fonts={AVAILABLE_FONTS}
+        selectedFontId={currentEditingAnnotation?.fontFamily || 'default'}
+        onSelectFont={handleFontSelect}
+      />
 
-      {/* Модальное окно изменения z-index */}
-      <Modal
+      <EditorZIndexSheet
         visible={showZIndexMenu}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowZIndexMenu(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowZIndexMenu(false)}
-        >
-          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-            <Text style={styles.modalTitle}>Порядок отображения</Text>
-            <View style={styles.zIndexActions}>
-              <TouchableOpacity
-                style={[styles.zIndexButton, styles.forwardButton]}
-                onPress={() => handleZIndexChange('forward')}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="arrow-up-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.zIndexButtonText}>На передний план</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.zIndexButton, styles.backwardButton]}
-                onPress={() => handleZIndexChange('backward')}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="arrow-down-outline" size={24} color="#FFFFFF" />
-                <Text style={styles.zIndexButtonText}>На задний план</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => setShowZIndexMenu(false)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.modalCancelButtonText}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => {
+          setShowZIndexMenu(false);
+          setZIndexAnnotationId(null);
+        }}
+        onMoveForward={() => handleZIndexChange('forward')}
+        onMoveBackward={() => handleZIndexChange('backward')}
+      />
     </>
   );
 });
@@ -2852,7 +3064,7 @@ const styles = StyleSheet.create({
     right: -4,
     bottom: -4,
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderRadius: 4,
     borderStyle: 'dashed',
     pointerEvents: 'none',
@@ -2868,11 +3080,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 12,
+    zIndex: 200,
   },
   editButton: {
     flexDirection: 'row',
@@ -2916,50 +3129,69 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     borderRadius: 8,
-    paddingHorizontal: 0, // Убираем горизонтальные отступы для правильного переноса текста
-    paddingVertical: 8, // Небольшие вертикальные отступы
+    paddingHorizontal: 0,
+    paddingVertical: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     minHeight: 50,
-    textAlignVertical: 'top', // Текст начинается с верха для правильного переноса
-    textAlign: 'left', // Выравнивание по левому краю для правильного начала каждой строки
-    includeFontPadding: false, // Единый размер курсора для всех
+    textAlignVertical: 'top',
+    textAlign: 'left',
+    includeFontPadding: false,
   },
   textEditingContainer: {
     flex: 1,
-    minWidth: 200,
+    minWidth: FLOATING_TEXT_MIN_CARD_WIDTH,
   },
-  textActionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+  floatingTextCard: {
+    minWidth: FLOATING_TEXT_MIN_CARD_WIDTH,
+    borderWidth: 1.5,
+    borderColor: '#E8D5C7',
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    shadowColor: colors.textPrimary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  floatingTextCardDragging: {
+    opacity: 0.92,
+    borderColor: colors.primary,
+  },
+  floatingTextHeader: {
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0E6DC',
   },
-  dragButton: {
-    backgroundColor: '#FF8C42',
+  floatingTextHeaderDragging: {
+    backgroundColor: '#F5EDE6',
   },
-  lineBreakButton: {
-    backgroundColor: '#8B6F5F',
+  floatingTextGripBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D4C4B8',
   },
-  acceptButton: {
-    backgroundColor: '#4ECDC4',
+  floatingTextGripBarDragging: {
+    width: 48,
+    backgroundColor: colors.primary,
   },
-  removeButton: {
-    backgroundColor: '#FF4444',
+  floatingTextInput: {
+    borderWidth: 0,
+    borderRadius: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+    minHeight: 64,
+    textAlignVertical: 'top',
+    textAlign: 'left',
+    includeFontPadding: false,
   },
   buttonDisabled: {
     opacity: 0.3,
@@ -2971,10 +3203,10 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
+    borderTopColor: colors.border,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -2988,14 +3220,14 @@ const styles = StyleSheet.create({
   toolbarButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     gap: 8,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -3003,7 +3235,7 @@ const styles = StyleSheet.create({
   },
   toolbarButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3020,13 +3252,13 @@ const styles = StyleSheet.create({
   controlButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     padding: 10,
     borderRadius: 10,
     borderWidth: 1.5,
     borderColor: '#E8D5C7',
     gap: 6,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -3034,7 +3266,7 @@ const styles = StyleSheet.create({
   },
   controlButtonText: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '600',
     fontFamily: Platform.select({
       ios: 'System',
@@ -3063,14 +3295,14 @@ const styles = StyleSheet.create({
     left: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
     gap: 4,
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -3078,27 +3310,34 @@ const styles = StyleSheet.create({
     maxWidth: '100%', // Ограничиваем ширину для обрезки текста
   },
   dragHint: {
-    color: '#8B6F5F',
-    fontWeight: '400',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
+    color: colors.textPrimary,
+    fontWeight: '700',
+    fontFamily: sansFont('bold'),
     // fontSize будет задаваться динамически
   },
   imageContainer: {
     width: '100%',
     height: '100%',
     pointerEvents: 'auto',
+    overflow: 'hidden',
+    borderRadius: 12,
   },
   imageAnnotation: {
     width: '100%',
     height: '100%',
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#C9A89A',
+    borderColor: colors.primary,
+  },
+  imageOnFill: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    borderWidth: 0,
+  },
+  circleImageAnnotation: {
+    borderWidth: 0,
+    borderRadius: 9999,
   },
   imageControls: {
     position: 'absolute',
@@ -3108,8 +3347,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 6,
     borderWidth: 2,
-    borderColor: '#C9A89A',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.primary,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -3149,183 +3388,5 @@ const styles = StyleSheet.create({
   resizeHandleBR: {
     bottom: -8,
     right: -8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    width: '100%',
-    maxWidth: 320,
-    maxHeight: '80%',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 24,
-  },
-  colorOption: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  colorOptionSelected: {
-    borderWidth: 4,
-    borderColor: '#C9A89A',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-    transform: [{ scale: 1.1 }],
-  },
-  fontSizeList: {
-    maxHeight: 300,
-    marginBottom: 24,
-  },
-  fontSizeOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: '#FAF8F5',
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  fontSizeOptionSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
-    borderWidth: 2,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fontSizeText: {
-    color: '#8B6F5F',
-    fontWeight: '500',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  fontSizeTextSelected: {
-    color: '#8B6F5F',
-    fontWeight: '600',
-  },
-  fontList: {
-    maxHeight: 400,
-    marginBottom: 24,
-  },
-  fontOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 8,
-    backgroundColor: '#FAF8F5',
-    borderWidth: 1.5,
-    borderColor: '#E8D5C7',
-  },
-  fontOptionSelected: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#C9A89A',
-    borderWidth: 2,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  fontOptionText: {
-    color: '#8B6F5F',
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  fontOptionTextSelected: {
-    color: '#8B6F5F',
-    fontWeight: '600',
-  },
-  zIndexActions: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  zIndexButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  forwardButton: {
-    backgroundColor: '#C9A89A',
-  },
-  backwardButton: {
-    backgroundColor: '#9B8E7F',
-  },
-  zIndexButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  modalCancelButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E8D5C7',
-  },
-  modalCancelButtonText: {
-    color: '#8B6F5F',
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
   },
 });

@@ -1,4 +1,6 @@
-import { APPLE_PURCHASE_HISTORY_URL } from '@/constants/subscription';
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { APPLE_PURCHASE_HISTORY_URL, GOOGLE_PLAY_PURCHASE_HISTORY_URL } from '@/constants/subscription';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -23,13 +25,14 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ONBOARDING_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscription-status-badge';
 
 function BenefitRow({ text }: { text: string }) {
   return (
     <View style={styles.benefitRow}>
-      <Ionicons name="checkmark-circle" size={18} color="#C9A89A" />
+      <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
       <Text style={styles.benefitText}>{text}</Text>
     </View>
   );
@@ -41,10 +44,12 @@ export default function ExportSubscriptionScreen() {
     isSubscribed,
     isLoading: isSubscriptionLoading,
     isIapEnabled,
+    isStoreConnected,
     priceLabel,
     purchase,
     restore,
     refresh,
+    warmUpStore,
   } = useExportSubscription();
   const [isRestoringPurchases, setIsRestoringPurchases] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
@@ -55,10 +60,11 @@ export default function ExportSubscriptionScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      warmUpStore?.();
       if (isIapEnabled) {
         refresh();
       }
-    }, [isIapEnabled, refresh])
+    }, [warmUpStore, isIapEnabled, refresh])
   );
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -73,7 +79,9 @@ export default function ExportSubscriptionScreen() {
         restored ? 'Готово' : 'Покупки не найдены',
         restored
           ? 'Доступ к экспорту для печати восстановлен.'
-          : 'Покупка для этого Apple ID не найдена.'
+          : Platform.OS === 'android'
+            ? 'Покупка для этого Google Play аккаунта не найдена.'
+            : 'Покупка для этого Apple ID не найдена.'
       );
     } finally {
       setIsRestoringPurchases(false);
@@ -94,23 +102,34 @@ export default function ExportSubscriptionScreen() {
   };
 
   const handleOpenPurchaseHistory = () => {
-    Linking.openURL(APPLE_PURCHASE_HISTORY_URL).catch(() => {});
+    const url =
+      Platform.OS === 'android'
+        ? GOOGLE_PLAY_PURCHASE_HISTORY_URL
+        : APPLE_PURCHASE_HISTORY_URL;
+    Linking.openURL(url).catch(() => {});
   };
+
+  const purchaseHistoryLabel =
+    Platform.OS === 'android' ? 'История заказов Google Play' : 'История покупок Apple ID';
 
   const statusText = isSubscriptionLoading
     ? 'Проверяем статус…'
     : isSubscribed
       ? 'Куплено — PDF для твёрдой и мягкой обложки навсегда'
-      : priceLabel
-        ? `Не куплено · ${priceLabel} (один раз)`
-        : 'Не куплено';
+      : !isStoreConnected && isIapEnabled
+        ? Platform.OS === 'android'
+          ? 'Google Play недоступен — нужна сборка с Play Store и аккаунт Google'
+          : 'App Store недоступен на этом устройстве'
+        : priceLabel
+          ? `Не куплено · ${priceLabel} (один раз)`
+          : 'Не куплено';
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']} testID="export-subscription-screen">
       <Animated.View style={[styles.content, animatedStyle]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Экспорт для печати</Text>
         </View>
@@ -120,6 +139,7 @@ export default function ExportSubscriptionScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          <ResponsiveScreenShell maxContentWidth={ONBOARDING_CONTENT_MAX_WIDTH}>
           <View style={styles.heroCard}>
             <Image
               source={require('@/assets/images/logo.png')}
@@ -140,7 +160,7 @@ export default function ExportSubscriptionScreen() {
             <BenefitRow text="Электронная версия остаётся бесплатной" />
           </View>
 
-          {isIapEnabled && !isSubscribed ? (
+          {isIapEnabled && isStoreConnected && !isSubscribed ? (
             <Pressable
               style={[styles.primaryButton, isPurchasing && styles.buttonDisabled]}
               onPress={handlePurchase}
@@ -156,7 +176,7 @@ export default function ExportSubscriptionScreen() {
             </Pressable>
           ) : null}
 
-          {isIapEnabled ? (
+          {isIapEnabled && isStoreConnected ? (
             <View style={styles.actionsCard}>
               <TouchableOpacity
                 style={[styles.actionRow, styles.actionRowFirst]}
@@ -165,7 +185,7 @@ export default function ExportSubscriptionScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.actionIcon}>
-                  <Ionicons name="refresh-outline" size={24} color="#C9A89A" />
+                  <Ionicons name="refresh-outline" size={24} color={colors.primary} />
                 </View>
                 <Text style={styles.actionText}>
                   {isRestoringPurchases ? 'Восстановление…' : 'Восстановить покупки'}
@@ -178,20 +198,22 @@ export default function ExportSubscriptionScreen() {
                 activeOpacity={0.7}
               >
                 <View style={styles.actionIcon}>
-                  <Ionicons name="receipt-outline" size={24} color="#C9A89A" />
+                  <Ionicons name="receipt-outline" size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.actionText}>История покупок Apple ID</Text>
-                <Ionicons name="open-outline" size={18} color="#D4C4B5" />
+                <Text style={styles.actionText}>{purchaseHistoryLabel}</Text>
+                <Ionicons name="open-outline" size={18} color={colors.tabInactive} />
               </TouchableOpacity>
             </View>
           ) : null}
 
-          {Platform.OS === 'ios' && isIapEnabled ? (
+          {isIapEnabled && isStoreConnected ? (
             <Text style={styles.legal}>
-              Разовая оплата через Apple ID. Доступ сохраняется на этом Apple ID; при смене
-              устройства используйте «Восстановить покупки».
+              {Platform.OS === 'android'
+                ? 'Разовая оплата через Google Play. Доступ сохраняется на этом аккаунте; при смене устройства используйте «Восстановить покупки».'
+                : 'Разовая оплата через Apple ID. Доступ сохраняется на этом Apple ID; при смене устройства используйте «Восстановить покупки».'}
             </Text>
           ) : null}
+          </ResponsiveScreenShell>
         </ScrollView>
       </Animated.View>
     </SafeAreaView>
@@ -201,7 +223,7 @@ export default function ExportSubscriptionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -223,21 +245,16 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontSize: 22,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
     paddingBottom: 40,
+    flexGrow: 1,
   },
   heroCard: {
     alignItems: 'center',
@@ -246,8 +263,8 @@ const styles = StyleSheet.create({
     padding: 28,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -263,7 +280,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 15,
     lineHeight: 22,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
   },
   section: {
@@ -272,13 +289,13 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     gap: 10,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   benefitRow: {
@@ -293,7 +310,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   primaryButton: {
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -311,7 +328,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
     overflow: 'hidden',
   },
   actionRow: {
@@ -320,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 18,
     borderTopWidth: 1,
-    borderTopColor: '#F5F0EB',
+    borderTopColor: colors.border,
   },
   actionRowFirst: {
     borderTopWidth: 0,
@@ -329,7 +346,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -337,7 +354,7 @@ const styles = StyleSheet.create({
   actionText: {
     flex: 1,
     fontSize: 16,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   legal: {

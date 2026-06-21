@@ -1,0 +1,32 @@
+appId: com.tihonshkel.x018BY
+---
+- runFlow:
+    file: fill-birthday-p1-owner.yaml
+- tapOn:
+    id: page-card-2
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- tapOn:
+    id: page-card-5
+- extendedWaitUntil:
+    visible:
+      id: unified-editor-save
+    timeout: 15000
+- tapOn:
+    id: unified-editor-save
+- extendedWaitUntil:
+    visible:
+      text: 'Предпросмотр'
+    timeout: 20000
+- back
+- assertVisible:
+    id: album-export-button

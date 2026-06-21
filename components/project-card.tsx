@@ -1,9 +1,13 @@
+import { colors, createShadow, radii, spacing } from '@/constants/design-tokens';
 import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
 import { getProjectCategoryLabel, type UserProject } from '@/utils/userProjects';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from 'react-native-gesture-handler';
+
+import { AppText } from '@/components/ui/app-text';
 
 type ProjectCardProps = {
   project: UserProject;
@@ -12,6 +16,7 @@ type ProjectCardProps = {
   imagePriority?: 'high' | 'normal';
   onPress: () => void;
   onLongPress: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function ProjectCard({
@@ -21,28 +26,30 @@ export function ProjectCard({
   imagePriority = 'normal',
   onPress,
   onLongPress,
+  style,
 }: ProjectCardProps) {
   const coverSource = getProjectCoverImageSource(project);
   const categoryLabel = getProjectCategoryLabel(project.category);
 
   const sizeStyle = isGrid
     ? [
+        styles.projectCard,
         styles.projectCardGrid,
         cardWidth > 0
           ? { width: cardWidth, flexGrow: 0, flexShrink: 0 }
           : { flex: 1 },
       ]
-    : { width: cardWidth };
+    : [
+        styles.projectCard,
+        cardWidth > 0 ? { width: cardWidth } : { width: '100%' as const },
+      ];
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        styles.projectCard,
-        sizeStyle,
-        pressed && styles.projectCardPressed,
-      ]}
+      style={({ pressed }) => [sizeStyle, pressed && styles.projectCardPressed, style]}
       onPress={onPress}
       onLongPress={onLongPress}
+      delayLongPress={Platform.OS === 'android' ? 450 : 500}
     >
       <View style={[styles.cardImage, isGrid && styles.cardImageGrid]}>
         {coverSource ? (
@@ -58,27 +65,26 @@ export function ProjectCard({
             placeholderContentFit="contain"
           />
         ) : (
-          <Ionicons name="book" size={40} color="#C9A89A" />
+          <Ionicons name="book-outline" size={36} color={colors.primary} />
         )}
       </View>
-      <Text
-        style={[styles.cardTitle, isGrid && styles.cardTitleGrid]}
-        numberOfLines={isGrid ? 3 : undefined}
-      >
-        {project.title}
-      </Text>
-      {project.category !== 'diary' ? (
-        <Text
-          style={[styles.cardCategory, isGrid && styles.cardCategoryGrid]}
-          numberOfLines={isGrid ? 2 : undefined}
-        >
-          {categoryLabel}
-        </Text>
-      ) : isGrid ? (
-        <View style={styles.cardCategorySpacer} />
-      ) : null}
-      <View style={styles.cardStats}>
-        <Text style={styles.cardStatText}>{project.pagesCount} стр.</Text>
+
+      <View style={styles.cardBody}>
+        <AppText variant="titleSm" numberOfLines={2} style={styles.cardTitle}>
+          {project.title}
+        </AppText>
+
+        {project.category !== 'diary' ? (
+          <AppText variant="bodySm" numberOfLines={1}>
+            {categoryLabel}
+          </AppText>
+        ) : null}
+
+        <View style={styles.pageBadge}>
+          <AppText variant="caption" style={styles.pageBadgeText}>
+            {project.pagesCount} стр.
+          </AppText>
+        </View>
       </View>
     </Pressable>
   );
@@ -86,103 +92,59 @@ export function ProjectCard({
 
 const styles = StyleSheet.create({
   projectCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 24,
-    marginRight: 16,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginRight: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    ...createShadow('sm'),
   },
   projectCardGrid: {
     marginRight: 0,
-    padding: 12,
+    padding: spacing.sm,
     minWidth: 0,
     alignSelf: 'flex-start',
   },
   projectCardPressed: {
-    opacity: 0.9,
+    opacity: 0.92,
     transform: [{ scale: 0.98 }],
   },
   cardImage: {
     width: '100%',
-    height: 200,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
+    height: 176,
+    backgroundColor: colors.primarySurface,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 18,
+    marginBottom: spacing.sm,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
   },
   cardImageGrid: {
-    height: 128,
+    height: 120,
     marginBottom: 10,
   },
   cardImageContent: {
     width: '100%',
     height: '100%',
   },
+  cardBody: {
+    gap: 4,
+  },
   cardTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    marginBottom: 4,
+    fontSize: 17,
+    lineHeight: 22,
   },
-  cardTitleGrid: {
-    fontSize: 15,
-    lineHeight: 20,
-    marginBottom: 6,
+  pageBadge: {
+    alignSelf: 'flex-start',
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
+    backgroundColor: colors.primarySurface,
   },
-  cardCategory: {
-    fontSize: 14,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-light',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
-    marginBottom: 12,
-  },
-  cardCategoryGrid: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginBottom: 8,
-  },
-  cardCategorySpacer: {
-    minHeight: 24,
-    marginBottom: 8,
-  },
-  cardStats: {
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-  },
-  cardStatText: {
-    fontSize: 13,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '300',
+  pageBadgeText: {
+    color: colors.primaryPressed,
+    fontWeight: '600',
   },
 });

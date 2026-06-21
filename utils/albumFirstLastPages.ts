@@ -899,7 +899,10 @@ export async function getKidsFirstLastPages(
     return { firstPage: null, lastPage: null };
   }
 
-  const mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber];
+  const mapping =
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber] ||
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toUpperCase()] ||
+    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toLowerCase()];
   if (!mapping || (!mapping.firstPage && !mapping.lastPage)) {
     console.warn(`[First/Last Pages] Не найдены страницы для DFA: ${dfaNumber}`);
     return { firstPage: null, lastPage: null };
@@ -1131,4 +1134,77 @@ export async function getFamilyOrHolidayFirstLastPages(
   }
 
   return result;
+}
+
+function normalizeExportImageKey(uri: string): string {
+  try {
+    const decoded = decodeURIComponent(uri);
+    const withoutScheme = decoded.replace(/^file:\/\//i, '');
+    const base = withoutScheme.split(/[/\\]/).pop() ?? withoutScheme;
+    return base.toLowerCase().replace(/\.(png|jpe?g|webp)$/i, '');
+  } catch {
+    return uri.toLowerCase();
+  }
+}
+
+/** Сравнение URI обложек (file:// vs cache path) по имени файла. */
+export function isSameExportImageUri(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  if (!a || !b) return false;
+  const ka = normalizeExportImageKey(a);
+  const kb = normalizeExportImageKey(b);
+  return ka.length > 0 && ka === kb;
+}
+
+function pickPregnancyClosingPage(lastPages: string[]): string | null {
+  if (lastPages.length === 0) return null;
+  const formzaц = lastPages.find((uri) => /last_str_/i.test(uri));
+  return formzaц ?? lastPages[lastPages.length - 1] ?? null;
+}
+
+/**
+ * Первая и финальная декоративные страницы для soft/electronic PDF.
+ * electronic использует soft-ассеты (A5) + форзац last_str_*.
+ */
+export async function getExportCoverPages(
+  albumId: string | null,
+  category: string | null | undefined,
+  formatType: 'hard' | 'soft' | 'electronic',
+): Promise<{ firstPage: string | null; closingPage: string | null }> {
+  if (!albumId || formatType === 'hard') {
+    return { firstPage: null, closingPage: null };
+  }
+
+  const coverFormat: 'hard' | 'soft' =
+    formatType === 'soft' || formatType === 'electronic' ? 'soft' : 'hard';
+
+  if (category === 'kids') {
+    const { firstPage, lastPage } = await getKidsFirstLastPages(albumId, coverFormat);
+    return { firstPage, closingPage: lastPage };
+  }
+
+  if (category === 'pregnancy') {
+    const { firstPage, lastPages } =
+      coverFormat === 'soft'
+        ? await getPregnancyFirstLastPagesForExport(albumId, 'soft')
+        : await getPregnancyFirstLastPagesFromGitHub(albumId, coverFormat);
+
+    return {
+      firstPage,
+      closingPage: pickPregnancyClosingPage(lastPages),
+    };
+  }
+
+  if (category === 'family' || category === 'holidays' || category === 'holiday') {
+    const { firstPage, lastPages } = await getFamilyOrHolidayFirstLastPages(albumId, category);
+    return {
+      firstPage,
+      closingPage: lastPages.length > 0 ? lastPages[lastPages.length - 1] : null,
+    };
+  }
+
+  // diary и blank-альбомы: null → export-pdf возьмёт первую/последнюю из внутрянки
+  return { firstPage: null, closingPage: null };
 }

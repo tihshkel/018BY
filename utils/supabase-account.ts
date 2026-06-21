@@ -1,4 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
+import { isBenignNetworkError, reportNetworkFailure } from '@/utils/networkReachability';
 
 const DEFAULT_USER_NAME = 'Пользователь';
 
@@ -38,6 +39,7 @@ async function requireSupabaseAuthUserId(
     }
     return { ok: true };
   } catch (e) {
+    if (isBenignNetworkError(e)) reportNetworkFailure('cloud');
     return {
       ok: false,
       error:

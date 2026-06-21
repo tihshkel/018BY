@@ -1,37 +1,44 @@
-import React, { useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Категории с новыми названиями
+import { HomeActionRow } from '@/components/home/home-action-row';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
+import { AppCard, AppHeader, AppScreen, AppText } from '@/components/ui';
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
+import {
+  CATALOG_MAX_WIDTH,
+  getTabletContentShell,
+  getTabletSectionWrap,
+  useResponsiveLayout,
+} from '@/utils/responsive';
+
 const CATALOG_CATEGORIES = [
-  { id: 'pregnancy', name: 'Ожидание чуда', icon: 'heart-outline' },
-  { id: 'kids', name: 'Первые годы малыша', icon: 'flower-outline' },
-  { id: 'family', name: 'Семья', icon: 'people-outline' },
-  { id: 'wedding', name: 'Любовь и свадьба', icon: 'diamond-outline' },
-  { id: 'holidays', name: 'Праздники и события', icon: 'gift-outline' },
-  { id: 'girls', name: 'Мои истории: дневники', icon: 'book-outline' },
+  { id: 'pregnancy', name: 'Ожидание чуда', icon: 'heart-outline' as const, subtitle: 'Альбомы для будущих мам' },
+  { id: 'kids', name: 'Первые годы малыша', icon: 'flower-outline' as const, subtitle: 'Выписка, первый год и не только' },
+  { id: 'family', name: 'Семья', icon: 'people-outline' as const, subtitle: 'Семейные фотоальбомы' },
+  { id: 'wedding', name: 'Любовь и свадьба', icon: 'diamond-outline' as const, subtitle: 'Свадебные истории' },
+  { id: 'holidays', name: 'Праздники и события', icon: 'gift-outline' as const, subtitle: 'Дни рождения и праздники' },
+  { id: 'girls', name: 'Мои истории: дневники', icon: 'book-outline' as const, subtitle: 'Личные дневники для девочек' },
 ];
 
 export default function PaperCatalogScreen() {
+  const layout = useResponsiveLayout(CATALOG_MAX_WIDTH);
+  const contentShellStyle = getTabletContentShell(layout);
+  const sectionWrap = getTabletSectionWrap(layout, { phonePadding: spacing.md, tabletPadding: 0 });
+
   const opacity = useSharedValue(0);
 
   useEffect(() => {
     opacity.value = withTiming(1, { duration: 400 });
-  }, []);
+  }, [opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -46,45 +53,43 @@ export default function PaperCatalogScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
-          </TouchableOpacity>
-          <Text style={styles.title}>КАТАЛОГ ТОВАРОВ</Text>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
+        <View style={sectionWrap}>
+          <AppHeader title="Каталог" />
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <Text style={styles.subtitle}>
-            Выберите категорию, чтобы посмотреть доступные товары
-          </Text>
-
-          {/* Категории */}
-          <View style={styles.categoriesContainer}>
-            {CATALOG_CATEGORIES.map(category => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryCard}
-                onPress={() => handleCategorySelect(category.name)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.categoryIcon}>
-                  <Ionicons
-                    name={category.icon as any}
-                    size={28}
-                    color="#C9A89A"
-                  />
-                </View>
-                <Text style={styles.categoryName}>{category.name}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#C9A89A" />
-              </TouchableOpacity>
-            ))}
+        <AppScreen scroll contentContainerStyle={[styles.scrollContent, sectionWrap]}>
+          <View style={styles.intro}>
+            <AppText variant="stepLabel">БУМАЖНЫЕ АЛЬБОМЫ</AppText>
+            <AppText variant="bodySm" style={styles.introText}>
+              Выберите категорию, чтобы посмотреть товары на Wildberries
+            </AppText>
           </View>
-        </ScrollView>
+
+          <View style={styles.section}>
+            <HomeSectionHeader title="Категории" />
+            <AppCard style={styles.categoriesCard}>
+              {CATALOG_CATEGORIES.map((category, index) => (
+                <HomeActionRow
+                  key={category.id}
+                  icon={category.icon}
+                  title={category.name}
+                  subtitle={category.subtitle}
+                  onPress={() => handleCategorySelect(category.name)}
+                  accent={category.id === 'pregnancy'}
+                  showDivider={index < CATALOG_CATEGORIES.length - 1}
+                />
+              ))}
+            </AppCard>
+          </View>
+
+          <View style={styles.note}>
+            <Ionicons name="information-circle-outline" size={18} color={colors.textSecondary} />
+            <AppText variant="bodySm" style={styles.noteText}>
+              Покупка оформляется на сайте Wildberries — мы откроем нужную страницу товара.
+            </AppText>
+          </View>
+        </AppScreen>
       </Animated.View>
     </SafeAreaView>
   );
@@ -93,95 +98,36 @@ export default function PaperCatalogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: surfaces.muted,
   },
   content: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: spacing.xl,
+    gap: spacing.lg,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-    lineHeight: 22,
+  intro: {
+    gap: 6,
+    paddingTop: spacing.xs,
   },
-  categoriesContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    gap: 12,
+  introText: {
+    paddingRight: spacing.sm,
   },
-  categoryCard: {
+  section: {
+    gap: spacing.sm,
+  },
+  categoriesCard: {
+    backgroundColor: colors.white,
+  },
+  note: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 2,
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    paddingHorizontal: 4,
+    paddingBottom: spacing.md,
   },
-  categoryIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 18,
-  },
-  categoryName: {
-    fontSize: 19,
-    color: '#5B4D3F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
+  noteText: {
     flex: 1,
-    letterSpacing: 0.2,
   },
 });
-

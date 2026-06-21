@@ -1,10 +1,11 @@
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplateById } from '@/albums';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
 import { createId } from '@/utils/id';
 import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
-import { getEditorPageViewportWidth, isTabletLayout } from '@/utils/responsive';
+import { getEditorPageViewportWidth, isTabletDevice } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
@@ -86,7 +87,7 @@ export default function CoverViewer({
 }: CoverViewerProps) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
-  const isTabletEditor = isTabletLayout(windowWidth);
+  const isTabletEditor = isTabletDevice(windowWidth);
 
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 
@@ -394,7 +395,7 @@ export default function CoverViewer({
     return (
       <View style={styles.errorContainer}>
         <View style={styles.errorIconContainer}>
-          <Ionicons name="book-outline" size={64} color="#D4C4B5" />
+          <Ionicons name="book-outline" size={64} color={colors.tabInactive} />
         </View>
         <Text style={styles.errorTitle}>Развертка обложки не найдена</Text>
         <Text style={styles.errorText}>{error}</Text>
@@ -406,7 +407,7 @@ export default function CoverViewer({
     return (
       <View style={styles.errorContainer}>
         <View style={styles.errorIconContainer}>
-          <Ionicons name="book-outline" size={64} color="#D4C4B5" />
+          <Ionicons name="book-outline" size={64} color={colors.tabInactive} />
         </View>
         <Text style={styles.errorTitle}>Развертка обложки недоступна</Text>
         <Text style={styles.errorText}>
@@ -499,7 +500,7 @@ export default function CoverViewer({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -515,13 +516,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#FFFFFF',
-    shadowColor: '#8B6F5F',
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   imageWrapperInner: {
     flex: 1,
@@ -559,22 +560,22 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#F5F0EB',
+    borderColor: colors.border,
   },
   errorIconContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#F0E8E0',
+    borderColor: colors.border,
   },
   errorTitle: {
     fontSize: 22,
-    color: '#8B6F5F',
+    color: colors.textPrimary,
     marginBottom: 12,
     fontFamily: Platform.select({
       ios: 'System',
@@ -586,7 +587,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 15,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: Platform.select({

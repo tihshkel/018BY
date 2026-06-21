@@ -5,7 +5,13 @@ import {
   getInfoAsync,
   makeDirectoryAsync,
 } from 'expo-file-system/legacy';
-import { GITHUB_RAW_MAIN_BASE } from '@/utils/githubRawAssets';
+import { usesSquareBlankInterior } from '@/constants/square-blank-interior';
+import {
+  BIRTHDAY_48_PAGE_COUNT,
+  getBirthday48AssetPageNumber,
+  isBirthday48Album,
+} from '@/utils/birthday48AssetRemap';
+import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 
 /**
  * Маппинг изображений страниц альбомов
@@ -23,6 +29,20 @@ const REMOTE_ALBUM_CACHE_DIR = `${cacheDirectory}remote_album_pages/`;
 const pregnancy60Preview = require('@/assets/app-bundled/pregnancy_60_preview.png');
 const pregnancyA5Preview = require('@/assets/app-bundled/pregnancy_a5_preview.png');
 
+export {
+  getDefaultVariantIdForPage,
+  getVariantPreviewManifest,
+  getVariantPreviewThumbnails,
+  hasVariantPreviewManifest,
+  resolveVariantPreviewBackgroundUri,
+} from '@/utils/variantPreview';
+export type { VariantPreviewThumbnail } from '@/utils/variantPreview';
+export {
+  getDesignPreviewManifest,
+  hasDesignPreviewManifest,
+  resolveDesignPreviewUri,
+} from '@/utils/designPreview';
+
 function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
   switch (albumId) {
     case 'pregnancy_60':
@@ -32,7 +52,10 @@ function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
     case 'kids_48':
       return { folderPath: 'assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр', pageCount: 48 };
     case 'holidays_birthday_60':
-      return { folderPath: 'assets/pdfs/Блок ДНЕЙ РОЖДЕНИЯ 60 стр', pageCount: 60 };
+      return {
+        folderPath: 'assets/pdfs/Блок ДНЕЙ РОЖДЕНИЯ 60 стр',
+        pageCount: BIRTHDAY_48_PAGE_COUNT,
+      };
     default: {
       // Для всех детских альбомов используем kids_48
       if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) {
@@ -45,6 +68,34 @@ function getRemoteAlbumSpec(albumId: string): RemoteAlbumSpec | null {
 
 function pageFileName(pageNumber: number): string {
   return `page_${String(pageNumber).padStart(3, '0')}.png`;
+}
+
+function resolveRemotePageFileName(albumId: string, logicalPage: number): string {
+  const assetPage = isBirthday48Album(albumId)
+    ? getBirthday48AssetPageNumber(logicalPage)
+    : logicalPage;
+  return pageFileName(assetPage);
+}
+
+async function loadRemoteAlbumPageUri(
+  albumId: string,
+  folderPath: string,
+  logicalPage: number,
+  preferCache: boolean
+): Promise<string> {
+  const fileName = resolveRemotePageFileName(albumId, logicalPage);
+  if (preferCache) {
+    const localPath = remotePageCachePath(folderPath, fileName);
+    const info = await getInfoAsync(localPath);
+    if (info.exists) {
+      return normalizeFileUri(localPath);
+    }
+    // Просмотр: не блокируем UI скачиванием — URL открывается сразу, кеш в фоне.
+    return remotePageUrl(folderPath, fileName);
+  }
+  const uri = await downloadRemotePageToCache(folderPath, fileName);
+  if (uri) return uri;
+  return remotePageUrl(folderPath, fileName);
 }
 
 function toHex(n: number): string {
@@ -102,7 +153,26 @@ async function downloadRemotePageToCache(folderPath: string, fileName: string): 
   }
 }
 
-async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Promise<void> {
+async function downloadRemotePageToCacheWithRetry(
+  folderPath: string,
+  fileName: string,
+  maxAttempts = 3
+): Promise<string | null> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const uri = await downloadRemotePageToCache(folderPath, fileName);
+    if (uri) return uri;
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+    }
+  }
+  return null;
+}
+
+async function warmRemoteAlbumCache(
+  albumId: string,
+  folderPath: string,
+  pageCount: number
+): Promise<void> {
   const maxParallel = 4;
   let idx = 1;
 
@@ -111,7 +181,8 @@ async function warmRemoteAlbumCache(folderPath: string, pageCount: number): Prom
       const current = idx;
       idx += 1;
       if (current > pageCount) return;
-      await downloadRemotePageToCache(folderPath, pageFileName(current));
+      const fileName = resolveRemotePageFileName(albumId, current);
+      await downloadRemotePageToCache(folderPath, fileName);
     }
   };
 
@@ -130,20 +201,14 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
     return getAlbumImageUris(albumId);
   }
 
-  await ensureRemoteAlbumCacheDir();
+  const uris = Array.from({ length: spec.pageCount }, (_, index) => {
+    const fileName = resolveRemotePageFileName(albumId, index + 1);
+    return remotePageUrl(spec.folderPath, fileName);
+  });
 
-  const uris = await Promise.all(
-    Array.from({ length: spec.pageCount }, async (_, index) => {
-      const fileName = pageFileName(index + 1);
-      const localPath = remotePageCachePath(spec.folderPath, fileName);
-      const info = await getInfoAsync(localPath);
-      return info.exists
-        ? normalizeFileUri(localPath)
-        : remotePageUrl(spec.folderPath, fileName);
-    })
-  );
-
-  warmRemoteAlbumCache(spec.folderPath, spec.pageCount).catch(() => {});
+  void ensureRemoteAlbumCacheDir().then(() => {
+    warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
+  });
 
   return uris;
 }
@@ -153,7 +218,101 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
  * Конвертирует require() модули в URI через Asset API
  */
 /**
- * Перед экспортом PDF: все страницы должны быть локальными file:// (не https из редактора).
+ * Перед экспортом PDF: выбранные страницы должны быть локальными file:// (не https из редактора).
+ * Кэширует только переданный список URI (учитывает фильтр страниц на export-review).
+ */
+export async function ensurePageUrisCachedForExport(
+  uris: string[],
+  onProgress?: (done: number, total: number) => void
+): Promise<string[]> {
+  if (uris.length === 0) return [];
+
+  await ensureRemoteAlbumCacheDir();
+  const cached: string[] = [];
+
+  for (let i = 0; i < uris.length; i += 1) {
+    const sourceUri = uris[i];
+    let localUri = await ensureSinglePageUriCachedForExport(sourceUri);
+    if (!localUri && sourceUri.startsWith('http')) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      localUri = await ensureSinglePageUriCachedForExport(sourceUri);
+    }
+    if (!localUri) {
+      console.warn(
+        `[albumImages] Страница ${i + 1}/${uris.length} не закеширована локально, экспорт попробует загрузить по URL`
+      );
+      cached.push(sourceUri);
+    } else {
+      cached.push(localUri);
+    }
+    onProgress?.(i + 1, uris.length);
+  }
+
+  return cached.filter((uri): uri is string => Boolean(uri));
+}
+
+function parseRemoteAlbumPageUri(uri: string): { folderPath: string; fileName: string } | null {
+  if (!uri.startsWith('http')) return null;
+
+  const decoded = decodeURIComponent(uri);
+  const fileNameMatch = decoded.match(/(page_\d+\.png)$/i);
+  if (!fileNameMatch) return null;
+
+  const fileName = fileNameMatch[1];
+  const assetsIdx = decoded.indexOf('assets/pdfs/');
+  if (assetsIdx === -1) return null;
+
+  const folderPath = decoded.slice(assetsIdx, decoded.lastIndexOf('/'));
+  return { folderPath, fileName };
+}
+
+export async function ensureSinglePageUriCachedForExport(uri: string): Promise<string | null> {
+  if (!uri) return null;
+
+  const normalized = normalizeFileUri(uri);
+  if (normalized.startsWith('file://') || normalized.startsWith('/')) {
+    const info = await getInfoAsync(normalized);
+    return info.exists ? normalized : null;
+  }
+
+  if (uri.startsWith('http')) {
+    const parsed = parseRemoteAlbumPageUri(uri);
+    if (parsed) {
+      return downloadRemotePageToCacheWithRetry(parsed.folderPath, parsed.fileName);
+    }
+
+    try {
+      const ext = uri.toLowerCase().includes('.png') ? 'png' : 'jpg';
+      const dest = `${REMOTE_ALBUM_CACHE_DIR}export_${stablePathKey(uri)}.${ext}`;
+      const info = await getInfoAsync(dest);
+      if (info.exists) return normalizeFileUri(dest);
+      const res = await downloadAsync(uri, dest);
+      return normalizeFileUri(res.uri);
+    } catch (error) {
+      console.warn('[albumImages] Не удалось скачать URI для экспорта', uri, error);
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/** Скачивает одну страницу альбома по номеру (1-based) — запасной путь при экспорте PDF. */
+export async function ensureRemoteAlbumPageCachedByIndex(
+  albumId: string,
+  category: string | null | undefined,
+  pageNumber: number
+): Promise<string | null> {
+  if (pageNumber < 1) return null;
+  const interiorId = resolveInteriorAlbumId(albumId, category);
+  const spec = getRemoteAlbumSpec(interiorId);
+  if (!spec || pageNumber > spec.pageCount) return null;
+  const fileName = resolveRemotePageFileName(interiorId, pageNumber);
+  return downloadRemotePageToCacheWithRetry(spec.folderPath, fileName);
+}
+
+/**
+ * Перед экспортом PDF: все страницы альбома должны быть локальными file:// (не https из редактора).
  * Скачивает недостающие страницы в кэш и возвращает URI в порядке страниц.
  */
 export async function ensureAlbumPagesCachedForExport(
@@ -174,10 +333,21 @@ export async function ensureAlbumPagesCachedForExport(
   await ensureRemoteAlbumCacheDir();
   const uris: string[] = [];
   for (let page = 1; page <= spec.pageCount; page += 1) {
-    const fileName = pageFileName(page);
-    const uri = await downloadRemotePageToCache(spec.folderPath, fileName);
-    if (uri) uris.push(uri);
+    const fileName = resolveRemotePageFileName(interiorId, page);
+    const uri = await downloadRemotePageToCacheWithRetry(spec.folderPath, fileName);
+    if (!uri) {
+      throw new Error(
+        `Не удалось загрузить страницу ${page} из ${spec.pageCount}. Проверьте интернет и попробуйте снова.`
+      );
+    }
+    uris.push(uri);
     onProgress?.(page, spec.pageCount);
+  }
+
+  if (uris.length !== spec.pageCount) {
+    throw new Error(
+      `Загружено только ${uris.length} из ${spec.pageCount} страниц. Проверьте интернет и попробуйте снова.`
+    );
   }
 
   return uris
@@ -187,6 +357,29 @@ export async function ensureAlbumPagesCachedForExport(
       const bNum = Number((b.match(/page_(\d+)\.png/) || [])[1] || 0);
       return aNum - bNum;
     });
+}
+
+/** Номер страницы шаблона из URI (page_008.png → 8) для слотов line-guides. */
+export function resolveSlotPageNumber(
+  imageUri: string | undefined | null,
+  fallbackPage: number,
+): number {
+  if (!imageUri || typeof imageUri !== 'string') return fallbackPage;
+
+  let decoded = imageUri;
+  try {
+    decoded = decodeURIComponent(imageUri);
+  } catch {
+    /* use raw */
+  }
+
+  const match = decoded.match(/page_(\d{1,3})\.(png|jpe?g|webp)/i);
+  if (match) {
+    const parsed = parseInt(match[1], 10);
+    if (parsed > 0) return parsed;
+  }
+
+  return fallbackPage;
 }
 
 export async function getAlbumImageUris(albumId: string): Promise<string[]> {
@@ -202,8 +395,7 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
         idx += 1;
         if (current > spec.pageCount) return;
 
-        const fileName = pageFileName(current);
-        const uri = await downloadRemotePageToCache(spec.folderPath, fileName);
+        const uri = await loadRemoteAlbumPageUri(albumId, spec.folderPath, current, false);
         if (uri) results.push(uri);
       }
     };
@@ -251,18 +443,25 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
 
 // Пустой лист 180×240 мм @ 300 dpi — тот же формат, что у печатных блоков и экспорта PDF.
 const blankWhitePage = require('@/assets/images/albums/blank_interior_page.png');
+const blankSquarePage = require('@/assets/images/albums/blank_interior_square_page.png');
 
 /** 180×240 мм @ 300 dpi (совпадает с albums/.../180х240_print и export 510×680 pt) */
 export const BLANK_INTERIOR_PAGE_WIDTH = 2126;
 export const BLANK_INTERIOR_PAGE_HEIGHT = 2835;
 
+/** 210×210 мм @ 300 dpi */
+export const BLANK_SQUARE_PAGE_WIDTH = 2480;
+export const BLANK_SQUARE_PAGE_HEIGHT = 2480;
+
 /** Меняем при замене blank_interior_page.png, чтобы сбросить кеш expo-image */
 export const BLANK_INTERIOR_CACHE_REVISION = 'white-v3-2126x2835';
 const HOLIDAY_BLANK_PAGE_COUNT = 20;
 const FAMILY_BLANK_PAGE_COUNT = 20;
+const FAMILY_BLANK_21_PAGE_COUNT = 20;
 
-function blankPageArray(count: number): typeof blankWhitePage[] {
-  return Array(count).fill(blankWhitePage);
+function blankPageArray(count: number, square = false): typeof blankWhitePage[] {
+  const page = square ? blankSquarePage : blankWhitePage;
+  return Array(count).fill(page);
 }
 
 /** ID обложки семейного альбома (SDFA1–7), не внутренняя часть */
@@ -276,13 +475,20 @@ export function isBlankInteriorAlbum(
   category?: string | null
 ): boolean {
   const interiorId = resolveInteriorAlbumId(albumId ?? '', category);
-  return interiorId === 'family_blank' || interiorId === 'holidays_blank';
+  return (
+    interiorId === 'family_blank' ||
+    interiorId === 'holidays_blank' ||
+    interiorId === 'family_blank_21x21'
+  );
 }
 
 /** Один URI белого листа — для выбора при добавлении страницы */
-export async function getBlankInteriorPageUri(): Promise<string | null> {
+export async function getBlankInteriorPageUri(
+  lineGuideId?: string | null,
+): Promise<string | null> {
   try {
-    const asset = Asset.fromModule(blankWhitePage);
+    const square = lineGuideId === 'family_blank_21x21';
+    const asset = Asset.fromModule(square ? blankSquarePage : blankWhitePage);
     await asset.downloadAsync();
     return asset.localUri || asset.uri || null;
   } catch {
@@ -297,7 +503,10 @@ export function resolveInteriorAlbumId(
   albumId: string | null | undefined,
   category?: string | null
 ): string {
-  if (category === 'family') return 'family_blank';
+  if (category === 'family') {
+    if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
+    return 'family_blank';
+  }
   if (category === 'kids') return 'kids_48';
 
   if (!albumId) {
@@ -305,6 +514,9 @@ export function resolveInteriorAlbumId(
     return '';
   }
 
+  if (albumId === 'family_blank_21x21' || usesSquareBlankInterior(albumId)) {
+    return 'family_blank_21x21';
+  }
   if (albumId === 'family_blank' || isFamilyCoverAlbumId(albumId)) return 'family_blank';
   if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
   if (albumId.startsWith('holiday_')) {
@@ -392,9 +604,11 @@ export function getAlbumImages(albumId: string): any[] {
     case 'holidays_blank':
       return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':
-      return [blankWhitePage];
+      return blankPageArray(48, true);
     case 'family_blank':
       return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
+    case 'family_blank_21x21':
+      return blankPageArray(FAMILY_BLANK_21_PAGE_COUNT, true);
     default:
       return [];
   }
@@ -416,9 +630,11 @@ export function getAlbumPageCount(albumId: string): number {
     case 'holidays_blank':
       return HOLIDAY_BLANK_PAGE_COUNT;
     case 'holidays_birthday_60':
-      return 60;
+      return 48;
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
+    case 'family_blank_21x21':
+      return FAMILY_BLANK_21_PAGE_COUNT;
     default:
       return 0;
   }

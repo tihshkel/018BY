@@ -1,3 +1,5 @@
+import { AppHeader, AppScreen, AppText } from '@/components/ui';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -9,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 function formatReceivedAt(iso: string): string {
   const date = new Date(iso);
@@ -28,7 +29,7 @@ function NotificationRow({ item }: { item: NotificationInboxItem }) {
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconWrap}>
-          <Ionicons name="notifications-outline" size={20} color="#C9A89A" />
+          <Ionicons name="notifications-outline" size={20} color={colors.primary} />
         </View>
         <Text style={styles.cardTime}>{formatReceivedAt(item.receivedAt)}</Text>
       </View>
@@ -53,11 +54,11 @@ export default function NotificationsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>История уведомлений</Text>
-        <Text style={styles.headerSubtitle}>Все полученные push-уведомления</Text>
-      </View>
+    <AppScreen tabletShell contentMaxWidth={640} edges={['top']}>
+      <AppHeader title="История уведомлений" showBack={false} />
+      <AppText variant="bodySm" style={styles.headerSubtitle}>
+        Все полученные push-уведомления
+      </AppText>
 
       <FlatList
         data={items}
@@ -69,7 +70,7 @@ export default function NotificationsScreen() {
         ]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons name="notifications-off-outline" size={48} color="#D4C4B5" />
+            <Ionicons name="notifications-off-outline" size={48} color={colors.tabInactive} />
             <Text style={styles.emptyTitle}>Уведомлений пока нет</Text>
             <Text style={styles.emptyText}>
               Когда вы получите напоминание, оно появится здесь
@@ -78,100 +79,95 @@ export default function NotificationsScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAF8F5',
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
   headerSubtitle: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#9B8E7F',
-    lineHeight: 20,
+    color: colors.textSecondary,
+    marginBottom: 16,
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 112,
-    gap: 12,
+    paddingBottom: 24,
   },
   listContentEmpty: {
     flexGrow: 1,
     justifyContent: 'center',
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.white,
+    borderRadius: radii.md,
     padding: 16,
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 12,
+    ...createShadow('sm'),
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F5F0EB',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTime: {
     fontSize: 12,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
+    fontFamily: sansFont('regular'),
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B5D4F',
+    color: colors.textPrimary,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
     marginBottom: 4,
   },
   cardBody: {
     fontSize: 14,
-    color: '#8B6F5F',
+    color: colors.textSecondary,
     lineHeight: 20,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
   },
   emptyState: {
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingVertical: 48,
+    paddingHorizontal: 24,
   },
   emptyTitle: {
-    marginTop: 16,
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B6F5F',
-    textAlign: 'center',
+    color: colors.textPrimary,
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-medium',
+      default: 'sans-serif',
+    }),
   },
   emptyText: {
-    marginTop: 8,
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif',
+      default: 'sans-serif',
+    }),
   },
 });

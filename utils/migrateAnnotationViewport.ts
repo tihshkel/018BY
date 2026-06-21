@@ -5,6 +5,7 @@ import {
   mapSourceNormToViewport,
   type ContentRect,
 } from '@/utils/imageContentRect';
+import { resolveSlotPageNumber } from '@/utils/albumImages';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { EDITOR_PAGE_VIEWPORT_WIDTH } from '@/utils/responsive';
 import {
@@ -55,7 +56,8 @@ function migrateInteriorAnnotation(
   newViewport: { width: number; height: number },
   sourceWidth: number,
   sourceHeight: number,
-  lineGuideId?: string | null
+  lineGuideId?: string | null,
+  projectImages?: string[]
 ): Annotation {
   if (
     ann.type === 'text' &&
@@ -64,9 +66,11 @@ function migrateInteriorAnnotation(
     lineGuideId &&
     hasLineGuides(lineGuideId)
   ) {
+    const imageUri = projectImages?.[ann.page - 1];
+    const slotPage = resolveSlotPageNumber(imageUri, ann.page);
     const slots = getLineSlotsForPage({
       lineGuideId,
-      page: ann.page,
+      page: slotPage,
       viewportWidth: newViewport.width,
       viewportHeight: newViewport.height,
       sourceWidth,
@@ -140,12 +144,14 @@ export async function maybeMigrateProjectViewport(params: {
   annotations: Annotation[];
   coverAnnotations: Annotation[];
   sampleImageUri?: string | null;
+  projectImages?: string[];
 }): Promise<{
   changed: boolean;
   annotations: Annotation[];
   coverAnnotations: Annotation[];
 }> {
-  const { projectId, lineGuideId, annotations, coverAnnotations, sampleImageUri } = params;
+  const { projectId, lineGuideId, annotations, coverAnnotations, sampleImageUri, projectImages } =
+    params;
   const flagKey = viewportMigrationFlagKey(projectId);
 
   if ((await AsyncStorage.getItem(flagKey)) === '1') {
@@ -187,7 +193,8 @@ export async function maybeMigrateProjectViewport(params: {
         newPagesViewport,
         sourceWidth,
         sourceHeight,
-        lineGuideId
+        lineGuideId,
+        projectImages
       )
     );
     await AsyncStorage.setItem(

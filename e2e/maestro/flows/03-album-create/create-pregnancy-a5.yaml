@@ -1,0 +1,28 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- tapOn:
+    id: tab-projects
+- tapOn:
+    id: project-category-pregnancy
+- tapOn:
+    id: cover-pregnancy_a5
+    optional: true
+- tapOn:
+    id: cover-pregnancy_60
+    optional: true
+- tapOn:
+    id: cover-date-confirm
+- tapOn:
+    id: select-action-edit
+- tapOn:
+    id: interior-pregnancy_a5
+- tapOn:
+    id: interior-continue
+- extendedWaitUntil:
+    visible:
+      text: 'Скачать альбом'
+    timeout: 45000
+- assertVisible:
+    id: album-export-button

@@ -1,0 +1,26 @@
+appId: com.tihshkel.x018BY
+---
+- runFlow:
+    file: ../_helpers/guest-setup-to-home.yaml
+- runFlow:
+    file: ../_helpers/go-to-profile.yaml
+- addMedia:
+    - ./e2e/fixtures/avatar-test.jpg
+- tapOn:
+    id: profile-avatar-button
+- tapOn:
+    id: avatar-gallery-pick
+- tapOn:
+    text: 'Choose'
+    optional: true
+- tapOn:
+    text: 'Выбрать'
+    optional: true
+- tapOn:
+    text: 'Done'
+    optional: true
+- tapOn:
+    text: 'Готово'
+    optional: true
+- assertVisible:
+    id: profile-user-name

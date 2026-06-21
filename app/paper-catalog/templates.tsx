@@ -1,26 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Linking,
-  Modal,
-} from 'react-native';
-import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
+import { CatalogProductCard } from '@/components/catalog/catalog-product-card';
+import { HomeSectionHeader } from '@/components/home/home-section-header';
+import { AppButton, AppFilterSheet, AppHeader, AppScreen, AppText } from '@/components/ui';
+import { colors, spacing, surfaces } from '@/constants/design-tokens';
 import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
+import {
+  CATALOG_MAX_WIDTH,
+  getTabletContentShell,
+  getTabletSectionWrap,
+  useResponsiveLayout,
+} from '@/utils/responsive';
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { GIFT_ITEMS } from '../(tabs)/gifts';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { GIFT_ITEMS, type GiftItem } from '../(tabs)/gifts';
 
 interface LocalParams {
   category?: string | string[];
@@ -36,23 +37,20 @@ const formatCategoryName = (value: LocalParams['category']) => {
   return null;
 };
 
-// Маппинг названий категорий на старые названия в celebrations и SKU
 const CATEGORY_TO_CELEBRATIONS: Record<string, string[]> = {
   'Ожидание чуда': ['Беременность'],
   'Праздники и события': ['День рождения'],
   'Первые годы малыша': ['Выписка', 'Первый год'],
   'Семья': [],
-  'Мои истории: дневники': [], // Определяется по SKU (DD1-DD21)
-  'Любовь и свадьба': [], // Определяется по SKU (SVA)
+  'Мои истории: дневники': [],
+  'Любовь и свадьба': [],
 };
 
-// Маппинг категорий на SKU для специальных случаев
 const CATEGORY_TO_SKU_PREFIXES: Record<string, string[]> = {
-  'Мои истории: дневники': ['DD'], // Личные дневники для девочки (DD1-DD21)
-  'Любовь и свадьба': ['SVA'], // Свадебные фотоальбомы
+  'Мои истории: дневники': ['DD'],
+  'Любовь и свадьба': ['SVA'],
 };
 
-// Все доступные категории для фильтра
 const ALL_CATEGORIES = [
   'Ожидание чуда',
   'Первые годы малыша',
@@ -62,10 +60,8 @@ const ALL_CATEGORIES = [
   'Мои истории: дневники',
 ];
 
-// Типы обложек
 type CoverType = 'all' | 'hard' | 'soft';
 
-// Функция определения типа обложки из названия
 const getCoverType = (title: string): 'hard' | 'soft' | null => {
   const lowerTitle = title.toLowerCase();
   if (lowerTitle.includes('твердой обложке') || lowerTitle.includes('твердой')) {
@@ -82,10 +78,14 @@ export default function PaperCatalogTemplatesScreen() {
   const categoryName = formatCategoryName(params.category);
   const categoryTitle = categoryName || 'Категория не выбрана';
 
+  const layout = useResponsiveLayout(CATALOG_MAX_WIDTH);
+  const contentShellStyle = getTabletContentShell(layout);
+  const sectionWrap = getTabletSectionWrap(layout, { phonePadding: spacing.md, tabletPadding: 0 });
+
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryName);
   const [selectedCoverType, setSelectedCoverType] = useState<CoverType>('all');
-  // Обновляем selectedCategory при изменении categoryName
+
   useEffect(() => {
     if (categoryName) {
       setSelectedCategory(categoryName);
@@ -102,40 +102,39 @@ export default function PaperCatalogTemplatesScreen() {
     opacity: opacity.value,
   }));
 
-  // Фильтруем товары по выбранной категории и типу обложки
+  const hasActiveFilters =
+    selectedCategory !== categoryName || selectedCoverType !== 'all';
+
   const categoryItems = useMemo(() => {
     const filterCategory = selectedCategory || categoryName;
-    
+
     if (!filterCategory) {
       return [];
     }
-    
+
     let filtered: GiftItem[] = [];
-    
-    // Проверяем специальные категории по SKU
+
     const skuPrefixes = CATEGORY_TO_SKU_PREFIXES[filterCategory] || [];
     if (skuPrefixes.length > 0) {
-      filtered = GIFT_ITEMS.filter(item => 
-        skuPrefixes.some(prefix => item.sku.startsWith(prefix))
+      filtered = GIFT_ITEMS.filter((item) =>
+        skuPrefixes.some((prefix) => item.sku.startsWith(prefix))
       );
     } else if (filterCategory === 'Праздники и события') {
-      // Для категории "Праздники и события" исключаем дневники для девочек (DD1-DD21)
-      filtered = GIFT_ITEMS.filter(item => 
-        item.celebrations.includes('День рождения') && !item.sku.startsWith('DD')
+      filtered = GIFT_ITEMS.filter(
+        (item) =>
+          item.celebrations.includes('День рождения') && !item.sku.startsWith('DD')
       );
     } else {
-      // Для остальных категорий используем маппинг celebrations
       const celebrationsToMatch = CATEGORY_TO_CELEBRATIONS[filterCategory] || [];
       if (celebrationsToMatch.length > 0) {
-        filtered = GIFT_ITEMS.filter(item => 
-          item.celebrations.some(celeb => celebrationsToMatch.includes(celeb))
+        filtered = GIFT_ITEMS.filter((item) =>
+          item.celebrations.some((celeb) => celebrationsToMatch.includes(celeb))
         );
       }
     }
-    
-    // Применяем фильтр по типу обложки
+
     if (selectedCoverType !== 'all') {
-      filtered = filtered.filter(item => {
+      filtered = filtered.filter((item) => {
         const coverType = getCoverType(item.title);
         if (selectedCoverType === 'hard') {
           return coverType === 'hard';
@@ -146,11 +145,10 @@ export default function PaperCatalogTemplatesScreen() {
         return true;
       });
     }
-    
+
     return filtered;
   }, [categoryName, selectedCategory, selectedCoverType]);
 
-  // Предзагрузка фото WB — как на вкладке «Каталог»
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
@@ -160,11 +158,7 @@ export default function PaperCatalogTemplatesScreen() {
           .map((item) => getWildberriesProductImageUrl(item.link))
           .filter((u): u is string => Boolean(u));
 
-        await Promise.all(
-          wbUrls.map((uri) =>
-            Image.prefetch(uri).catch(() => undefined)
-          )
-        );
+        await Promise.all(wbUrls.map((uri) => Image.prefetch(uri).catch(() => undefined)));
       };
 
       preloadCategoryImages();
@@ -183,23 +177,28 @@ export default function PaperCatalogTemplatesScreen() {
     }
   }, []);
 
+  const headerTitle =
+    hasActiveFilters || categoryItems.length > 0
+      ? `${categoryTitle} · ${categoryItems.length}`
+      : categoryTitle;
+
   if (!categoryName) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.emptyState}>
-          <Ionicons name='alert-circle-outline' size={48} color='#C9A89A' />
-          <Text style={styles.emptyStateText}>Не удалось определить категорию</Text>
-          <Text style={styles.emptyStateText}>
-            Вернитесь к списку и выберите категорию ещё раз.
-          </Text>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.8}
-          >
-            <Ionicons name='chevron-back' size={20} color='#FFFFFF' />
-            <Text style={styles.backButtonText}>Вернуться</Text>
-          </TouchableOpacity>
+        <View style={[styles.errorWrap, sectionWrap]}>
+          <AppHeader title="Каталог" />
+          <View style={styles.errorState}>
+            <View style={styles.errorIconWrap}>
+              <Ionicons name="alert-circle-outline" size={36} color={colors.primary} />
+            </View>
+            <AppText variant="titleSm" style={styles.errorTitle}>
+              Категория не выбрана
+            </AppText>
+            <AppText variant="bodySm" style={styles.errorText}>
+              Вернитесь к списку и выберите категорию ещё раз.
+            </AppText>
+            <AppButton title="Вернуться" onPress={() => router.back()} style={styles.errorButton} />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -207,225 +206,102 @@ export default function PaperCatalogTemplatesScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View style={[styles.content, animatedStyle]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.headerBackButton}
-            accessibilityRole='button'
-          >
-            <Ionicons name='chevron-back' size={24} color='#8B6F5F' />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {selectedCategory !== categoryName || selectedCoverType !== 'all'
-              ? `${categoryTitle} (${categoryItems.length})`
-              : categoryTitle}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setShowFilterModal(true)}
-            style={styles.filterButton}
-            accessibilityRole='button'
-          >
-            <Ionicons
-              name='options-outline'
-              size={24}
-              color={
-                selectedCategory !== categoryName || selectedCoverType !== 'all'
-                  ? '#C9A89A'
-                  : '#8B6F5F'
-              }
-            />
-            {(selectedCategory !== categoryName || selectedCoverType !== 'all') && (
-              <View style={styles.filterBadge} />
-            )}
-          </TouchableOpacity>
+      <Animated.View style={[styles.content, contentShellStyle, animatedStyle]}>
+        <View style={sectionWrap}>
+          <AppHeader
+            title={headerTitle}
+            right={
+              <Pressable
+                onPress={() => setShowFilterModal(true)}
+                style={styles.filterButton}
+                accessibilityRole="button"
+                accessibilityLabel="Фильтры"
+              >
+                <Ionicons
+                  name="options-outline"
+                  size={22}
+                  color={hasActiveFilters ? colors.primary : colors.textPrimary}
+                />
+                {hasActiveFilters ? <View style={styles.filterBadge} /> : null}
+              </Pressable>
+            }
+          />
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <AppScreen scroll contentContainerStyle={[styles.scrollContent, sectionWrap]}>
+          <HomeSectionHeader title="Товары" />
+
           {categoryItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name='gift-outline' size={64} color='#D4C4B5' />
-              <Text style={styles.emptyStateText}>
-                Пока нет товаров для этой категории. Попробуйте выбрать
-                другую категорию.
-              </Text>
+              <View style={styles.emptyIconWrap}>
+                <Ionicons name="gift-outline" size={36} color={colors.primary} />
+              </View>
+              <AppText variant="titleSm" style={styles.emptyTitle}>
+                Ничего не найдено
+              </AppText>
+              <AppText variant="bodySm" style={styles.emptyText}>
+                Попробуйте другую категорию или сбросьте фильтры обложки.
+              </AppText>
+              {hasActiveFilters ? (
+                <AppButton
+                  title="Сбросить фильтры"
+                  variant="outline"
+                  onPress={() => {
+                    setSelectedCategory(categoryName);
+                    setSelectedCoverType('all');
+                  }}
+                  style={styles.emptyButton}
+                />
+              ) : null}
             </View>
           ) : (
-            categoryItems.map((item, index) => {
-              const imagePriority = index < 10 ? "high" : "normal";
-              return (
-                <View key={item.id} style={styles.card}>
-                  <View style={styles.coverWrapper}>
-                    <CatalogGiftCoverImage
-                      item={item}
-                      style={styles.coverImage}
-                      imagePriority={imagePriority}
-                    />
-                  </View>
-
-                  <View style={styles.cardContent}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                    <TouchableOpacity
-                      style={styles.buyButton}
-                      onPress={() => handleOpenLink(item.link)}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name="open-outline" size={20} color="#FFFFFF" />
-                      <Text style={styles.buyButtonText}>Открыть на Wildberries</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })
+            <View style={styles.productsList}>
+              {categoryItems.map((item, index) => (
+                <CatalogProductCard
+                  key={item.id}
+                  item={item}
+                  imagePriority={index < 8 ? 'high' : 'normal'}
+                  onPress={() => handleOpenLink(item.link)}
+                />
+              ))}
+            </View>
           )}
-        </ScrollView>
+        </AppScreen>
       </Animated.View>
 
-      {/* Модальное окно расширенного поиска */}
-      <Modal
+      <AppFilterSheet
         visible={showFilterModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Расширенный поиск</Text>
-              <TouchableOpacity
-                onPress={() => setShowFilterModal(false)}
-                style={styles.modalCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#8B6F5F" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              {/* Фильтр по разделу */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Раздел</Text>
-                <View style={styles.filterOptions}>
-                  {ALL_CATEGORIES.map((category) => (
-                    <TouchableOpacity
-                      key={category}
-                      style={[
-                        styles.filterOption,
-                        selectedCategory === category && styles.filterOptionSelected,
-                      ]}
-                      onPress={() => setSelectedCategory(category)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.filterOptionText,
-                          selectedCategory === category && styles.filterOptionTextSelected,
-                        ]}
-                      >
-                        {category}
-                      </Text>
-                      {selectedCategory === category && (
-                        <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Фильтр по типу обложки */}
-              <View style={styles.filterSection}>
-                <Text style={styles.filterSectionTitle}>Тип обложки</Text>
-                <View style={styles.filterOptions}>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'all' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('all')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'all' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Все
-                    </Text>
-                    {selectedCoverType === 'all' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'hard' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('hard')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'hard' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Твердая обложка
-                    </Text>
-                    {selectedCoverType === 'hard' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.filterOption,
-                      selectedCoverType === 'soft' && styles.filterOptionSelected,
-                    ]}
-                    onPress={() => setSelectedCoverType('soft')}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.filterOptionText,
-                        selectedCoverType === 'soft' && styles.filterOptionTextSelected,
-                      ]}
-                    >
-                      Мягкая обложка
-                    </Text>
-                    {selectedCoverType === 'soft' && (
-                      <Ionicons name="checkmark-circle" size={20} color="#C9A89A" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </ScrollView>
-
-            {/* Кнопки действий */}
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.resetButton}
-                onPress={() => {
-                  setSelectedCategory(categoryName);
-                  setSelectedCoverType('all');
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.resetButtonText}>Сбросить</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.applyButtonText}>Применить</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowFilterModal(false)}
+        title="Расширенный поиск"
+        sections={[
+          {
+            id: 'category',
+            title: 'Раздел',
+            options: ALL_CATEGORIES.map((category) => ({
+              value: category,
+              label: category,
+            })),
+            value: selectedCategory ?? categoryName ?? ALL_CATEGORIES[0],
+            onChange: (value) => setSelectedCategory(value),
+          },
+          {
+            id: 'cover',
+            title: 'Тип обложки',
+            options: [
+              { value: 'all', label: 'Все' },
+              { value: 'hard', label: 'Твердая обложка' },
+              { value: 'soft', label: 'Мягкая обложка' },
+            ],
+            value: selectedCoverType,
+            onChange: (value) => setSelectedCoverType(value as CoverType),
+          },
+        ]}
+        onReset={() => {
+          setSelectedCategory(categoryName);
+          setSelectedCoverType('all');
+        }}
+        onApply={() => setShowFilterModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -433,316 +309,90 @@ export default function PaperCatalogTemplatesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: surfaces.muted,
   },
   content: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
-    gap: 16,
-  },
-  headerBackButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    paddingBottom: 100,
-    gap: 20,
+    paddingBottom: spacing.xl,
+    gap: spacing.sm,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
-    overflow: 'hidden',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  coverWrapper: {
-    height: 280,
-    backgroundColor: '#FAF8F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  coverImage: {
-    width: '100%',
-    height: '100%',
-  },
-  coverPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardContent: {
-    padding: 20,
-    gap: 12,
-  },
-  cardTitle: {
-    fontSize: 20,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-    lineHeight: 24,
-  },
-  buyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    borderRadius: 16,
-    backgroundColor: '#C9A89A',
-    paddingVertical: 14,
-  },
-  buyButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 80,
-    paddingHorizontal: 40,
-    gap: 20,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#9B8E7F',
-    textAlign: 'center',
-    lineHeight: 22,
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#C9A89A',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    gap: 8,
-    marginTop: 24,
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
+  productsList: {
+    gap: spacing.md,
   },
   filterButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   filterBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
+    top: 10,
+    right: 8,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C9A89A',
+    backgroundColor: colors.primary,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  modalHeader: {
-    flexDirection: 'row',
+  emptyState: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0E8E0',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
-  modalTitle: {
-    fontSize: 24,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
-  },
-  modalCloseButton: {
-    width: 32,
-    height: 32,
+  emptyIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+    marginBottom: spacing.md,
   },
-  modalScroll: {
-    maxHeight: 400,
+  emptyTitle: {
+    textAlign: 'center',
+    marginBottom: spacing.xs,
   },
-  filterSection: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
+  emptyText: {
+    textAlign: 'center',
+    marginBottom: spacing.md,
   },
-  filterSectionTitle: {
-    fontSize: 18,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-    marginBottom: 16,
+  emptyButton: {
+    minWidth: 220,
   },
-  filterOptions: {
-    gap: 12,
-  },
-  filterOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FAF8F5',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
-  },
-  filterOptionSelected: {
-    backgroundColor: '#FAF8F5',
-    borderColor: '#C9A89A',
-  },
-  filterOptionText: {
-    fontSize: 16,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif',
-      default: 'sans-serif',
-    }),
-    fontWeight: '400',
+  errorWrap: {
     flex: 1,
   },
-  filterOptionTextSelected: {
-    fontWeight: '600',
-  },
-  modalActions: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0E8E0',
-  },
-  resetButton: {
+  errorState: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
-    borderRadius: 16,
-    paddingVertical: 16,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#F0E8E0',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
-  resetButtonText: {
-    fontSize: 16,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
-  },
-  applyButton: {
-    flex: 1,
-    backgroundColor: '#C9A89A',
-    borderRadius: 16,
-    paddingVertical: 16,
+  errorIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 4,
+    justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+    marginBottom: spacing.sm,
   },
-  applyButtonText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontFamily: Platform.select({
-      ios: 'System',
-      android: 'sans-serif-medium',
-      default: 'sans-serif',
-    }),
-    fontWeight: '600',
+  errorTitle: {
+    textAlign: 'center',
+  },
+  errorText: {
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  errorButton: {
+    minWidth: 200,
   },
 });
-

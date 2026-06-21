@@ -2,7 +2,7 @@ import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { PDFFont } from 'pdf-lib';
-import { AVAILABLE_FONTS, type FontOption } from '@/components/pdf-annotations';
+import { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
 // Кэш для загруженных шрифтов
 const fontCache = new Map<string, PDFFont>();

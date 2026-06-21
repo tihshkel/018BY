@@ -2,7 +2,9 @@ import { getAlbumTemplateById } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { getPregnancyCoverPdf } from '@/utils/coverPdfMapping';
 import { getGiftDisplayTitle, getGiftItemByAlbumName } from '@/utils/albumGiftMapping';
-import { filterProjectsByDeleted, loadDeletedProjectIds } from '@/utils/deleted-project-ids';
+import { filterProjectsByDeleted, loadDeletedProjectIds, markProjectAsDeleted } from '@/utils/deleted-project-ids';
+import { getAlbumPageCount, resolveInteriorAlbumId } from '@/utils/albumImages';
+import { pruneGhostAlbumProjects } from '@/utils/pruneGhostAlbumProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HOME_PROJECTS_PREVIEW_LIMIT = 2;
@@ -136,7 +138,7 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     `@project_cover_annotations_${projectId}`,
   ] as const;
 
-  let pagesCount = 0;
+  let pagesCount = typeof p?.pagesCount === 'number' ? p.pagesCount : 0;
   let photosCount = 0;
 
   try {
@@ -148,11 +150,9 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     const savedImages = safeParseArray(imagesRaw);
     if (savedImages.length > 0) {
       pagesCount = savedImages.length;
-    } else if (albumId) {
-      const template = getAlbumTemplateById(albumId);
-      if (typeof template?.pages === 'number') {
-        pagesCount = template.pages;
-      }
+    } else if (pagesCount === 0 && albumId) {
+      const interiorId = resolveInteriorAlbumId(albumId, String(p?.category ?? ''));
+      pagesCount = getAlbumPageCount(interiorId);
     }
 
     const anns = safeParseArray(annotationsRaw);
@@ -184,8 +184,74 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
   };
 }
 
+async function purgeStaleUserProjectEntries(): Promise<number> {
+  const raw = await AsyncStorage.getItem('@user_projects');
+  if (!raw) return 0;
+
+  let list: Record<string, unknown>[];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return 0;
+    list = parsed as Record<string, unknown>[];
+  } catch {
+    return 0;
+  }
+
+  const deletedIds = await loadDeletedProjectIds();
+  const kept: Record<string, unknown>[] = [];
+  let removed = 0;
+
+  for (const project of list) {
+    const id = project?.id != null ? String(project.id) : '';
+    if (!id || deletedIds.has(id)) {
+      removed += 1;
+      continue;
+    }
+
+    const [meta, imagesRaw] = await AsyncStorage.multiGet([
+      `@project_${id}`,
+      `@project_images_${id}`,
+    ]);
+    const hasMeta = !!meta[1];
+    const hasImages = safeParseArray(imagesRaw[1]).length > 0;
+
+    if (!hasMeta && !hasImages) {
+      removed += 1;
+      await markProjectAsDeleted(id);
+      await AsyncStorage.multiRemove([
+        `@project_${id}`,
+        `@project_images_${id}`,
+        `@project_page_instances_${id}`,
+        `@project_page_values_${id}`,
+        `@project_annotations_${id}`,
+      ]);
+      continue;
+    }
+
+    kept.push(project);
+  }
+
+  if (removed > 0) {
+    await AsyncStorage.setItem('@user_projects', JSON.stringify(kept));
+  }
+
+  return removed;
+}
+
 /** Все проекты пользователя из AsyncStorage, новые первыми */
 export async function loadUserProjects(): Promise<UserProject[]> {
+  try {
+    await purgeStaleUserProjectEntries();
+  } catch (error) {
+    console.warn('[loadUserProjects] purge stale projects failed', error);
+  }
+
+  try {
+    await pruneGhostAlbumProjects();
+  } catch (error) {
+    console.warn('[loadUserProjects] prune ghost projects failed', error);
+  }
+
   const savedProjects = await AsyncStorage.getItem('@user_projects');
   if (!savedProjects) return [];
 

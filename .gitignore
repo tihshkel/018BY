@@ -70,6 +70,7 @@ eas-build-*.json
 # Environment variables (.env в репо — одна БД на команду, обновляется при pull)
 .env.local
 .env.*.local
+.env.e2e.local
 
 # Sensitive files
 activation-keys.json

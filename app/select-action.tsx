@@ -1,7 +1,14 @@
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { getCoverSelectTitle } from '@/utils/coverSelectTitle';
+import {
+  formatRouteEventDate,
+  parseRouteEventDate,
+  resolveRouteParam,
+} from '@/utils/routeParams';
 import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
@@ -9,7 +16,7 @@ import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React from 'react';
 import {
   Linking,
@@ -26,13 +33,17 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 export default function SelectActionScreen() {
-  const { celebration, coverType, eventDate } = useLocalSearchParams<{
-    celebration: string;
-    coverType: string;
-    eventDate?: string;
+  const rawParams = useLocalSearchParams<{
+    celebration: string | string[];
+    coverType: string | string[];
+    eventDate?: string | string[];
   }>();
+  const celebration = resolveRouteParam(rawParams.celebration);
+  const coverType = resolveRouteParam(rawParams.coverType);
+  const eventDate = parseRouteEventDate(rawParams.eventDate);
   const containerOpacity = useSharedValue(0);
 
   React.useEffect(() => {
@@ -81,16 +92,7 @@ export default function SelectActionScreen() {
         : isDiary && diaryCover
           ? 'Личный дневник для записи мыслей и воспоминаний'
           : albumTemplate?.description ?? 'Дизайн обложки';
-  const hasSelection = Boolean(
-    coverImage ||
-      albumTemplate ||
-      diaryCover ||
-      holidayCover ||
-      familyCover ||
-      pregnancyDesign ||
-      holidayDesign ||
-      familyDesign
-  );
+  const hasSelection = Boolean(coverType && celebration);
 
   const handleEdit = () => {
     if (!coverType || !celebration) return;
@@ -105,7 +107,7 @@ export default function SelectActionScreen() {
       };
       // Передаем дату события, если она есть
       if (eventDate) {
-        params.eventDate = eventDate;
+        params.eventDate = formatRouteEventDate(new Date(eventDate));
       }
       router.push({
         pathname: '/select-interior',
@@ -141,13 +143,13 @@ export default function SelectActionScreen() {
       
       // Передаем дату события, если она есть
       if (eventDate) {
-        params.eventDate = eventDate;
+        params.eventDate = formatRouteEventDate(new Date(eventDate));
       }
       
       router.push({
-        pathname: '/edit-album',
+        pathname: '/album-intro',
         params,
-      });
+      } as unknown as Href);
     }
   };
 
@@ -224,6 +226,7 @@ export default function SelectActionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH} style={styles.shell}>
         {/* Заголовок с кнопкой назад */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -231,10 +234,11 @@ export default function SelectActionScreen() {
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="chevron-back" size={24} color="#8B6F5F" />
+            <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View style={styles.headerText}>
+
             <Text style={styles.title}>Что вы хотите сделать?</Text>
             <Text style={styles.subtitle}>
               Выберите дальнейшее действие
@@ -275,13 +279,14 @@ export default function SelectActionScreen() {
             <View style={styles.actionsContainer}>
               {/* Кнопка редактирования */}
               <TouchableOpacity
+                testID="select-action-edit"
                 style={styles.actionCard}
                 onPress={handleEdit}
                 activeOpacity={0.85}
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="create-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="create-outline" size={28} color={colors.textPrimary} />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
@@ -290,7 +295,7 @@ export default function SelectActionScreen() {
                     Создайте свой уникальный альбом
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
 
               {/* Переход к бумажной версии */}
@@ -301,7 +306,7 @@ export default function SelectActionScreen() {
               >
                 <View style={styles.actionImageContainer}>
                   <View style={styles.actionImageSolid}>
-                    <Ionicons name="open-outline" size={28} color="#8B6F5F" />
+                    <Ionicons name="open-outline" size={28} color={colors.textPrimary} />
                   </View>
                 </View>
                 <View style={styles.actionContent}>
@@ -310,11 +315,12 @@ export default function SelectActionScreen() {
                     Открыть на Wildberries
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={22} color="#C9A89A" />
+                <Ionicons name="chevron-forward" size={22} color={colors.primary} />
               </TouchableOpacity>
             </View>
           </ScrollView>
         )}
+        </ResponsiveScreenShell>
       </Animated.View>
     </SafeAreaView>
   );
@@ -323,9 +329,12 @@ export default function SelectActionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   content: {
+    flex: 1,
+  },
+  shell: {
     flex: 1,
   },
   header: {
@@ -347,19 +356,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#8B6F5F',
-    fontFamily: Platform.select({
-      ios: 'Georgia',
-      android: 'serif',
-      default: 'serif',
-    }),
-    fontStyle: 'italic',
-    fontWeight: '400',
+    color: colors.textPrimary,
+    fontFamily: sansFont('bold'),
+    fontWeight: '700',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -380,8 +384,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -396,7 +400,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginRight: 18,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
   },
   coverImage: {
     width: '100%',
@@ -419,7 +423,7 @@ const styles = StyleSheet.create({
   },
   coverDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -438,8 +442,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     borderWidth: 2,
-    borderColor: '#F0E8E0',
-    shadowColor: '#8B6F5F',
+    borderColor: colors.border,
+    shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -455,7 +459,7 @@ const styles = StyleSheet.create({
   actionImageSolid: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#FAF8F5',
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -488,7 +492,7 @@ const styles = StyleSheet.create({
   },
   actionDescription: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
@@ -499,7 +503,7 @@ const styles = StyleSheet.create({
   },
   actionDescriptionSolid: {
     fontSize: 14,
-    color: '#9B8E7F',
+    color: colors.textSecondary,
     fontFamily: Platform.select({
       ios: 'System',
       android: 'sans-serif-light',
