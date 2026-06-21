@@ -1,48 +1,74 @@
 ﻿import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  mapOAuthErrorMessage,
   normalizeEmail,
+  OAuthProvider,
   restoreLocalAccountKeysFromSupabase,
   signInWithEmailPassword,
+  signInWithOAuthProvider,
 } from '@/utils/auth-session';
-import { Ionicons } from '@expo/vector-icons';
+import { ensureDefaultAvatar } from '@/utils/user-avatar';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
-} from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 
-const FIELD_MAX_WIDTH = 400;
+import { AuthErrorBanner } from '@/components/auth/auth-error-banner';
+import { AuthFooterLink, AuthScreenLayout } from '@/components/auth/auth-screen-layout';
+import { AuthPasswordField } from '@/components/auth/auth-password-field';
+import { AppButton, AppCard, AppInput, AppText, SocialAuthButtons } from '@/components/ui';
+import { colors, spacing } from '@/constants/design-tokens';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<OAuthProvider | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
 
-  const opacity = useSharedValue(0);
   const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 420, easing: Easing.out(Easing.ease) });
-    const t = setTimeout(() => emailRef.current?.focus(), 200);
-    return () => clearTimeout(t);
-  }, [opacity]);
+    const timer = setTimeout(() => emailRef.current?.focus(), 240);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const navigateAfterAuth = async () => {
+    const restored = await restoreLocalAccountKeysFromSupabase();
+    if (!restored.success) {
+      setErrorText(
+        restored.error && restored.error.length > 0
+          ? `Вход выполнен, но облако не отдало профиль: ${restored.error}`
+          : 'Вход выполнен, но профиль не найден. Проверьте таблицу profiles и RLS в Supabase.'
+      );
+      return;
+    }
+    const name = await AsyncStorage.getItem('@user_name');
+    await ensureDefaultAvatar();
+    if (!name?.trim()) {
+      router.replace('/name-input' as never);
+    } else {
+      router.replace('/(tabs)' as never);
+    }
+  };
+
+  const handleSocialSignIn = async (provider: OAuthProvider) => {
+    if (isSubmitting || socialLoading) return;
+    setErrorText(null);
+    setSocialLoading(provider);
+    try {
+      const res = await signInWithOAuthProvider(provider);
+      if (!res.success) {
+        if (res.error !== 'OAUTH_CANCELLED') {
+          setErrorText(mapOAuthErrorMessage(res.error, 'signIn'));
+        }
+        return;
+      }
+      await navigateAfterAuth();
+    } finally {
+      setSocialLoading(null);
+    }
+  };
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
@@ -62,263 +88,100 @@ export default function LoginScreen() {
         }
         return;
       }
-      const restored = await restoreLocalAccountKeysFromSupabase();
-      if (!restored.success) {
-        setErrorText(
-          restored.error && restored.error.length > 0
-            ? `Вход выполнен, но облако не отдало профиль: ${restored.error}`
-            : 'Вход выполнен, но профиль не найден. Проверьте таблицу profiles и RLS в Supabase.'
-        );
-        return;
-      }
-      const name = await AsyncStorage.getItem('@user_name');
-      if (!name?.trim()) {
-        router.replace('/name-input' as any);
-      } else {
-        router.replace('/(tabs)' as any);
-      }
+      await navigateAfterAuth();
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.flex}
-        >
-          <Animated.View style={[styles.inner, fadeStyle]}>
-            <Text style={styles.heroTitle}>Вход</Text>
+    <AuthScreenLayout
+      title="Вход"
+      subtitle="Войдите, чтобы продолжить работу с альбомами и экспортом."
+      showBack={router.canGoBack()}
+      footer={
+        <AuthFooterLink
+          prefix="Нет аккаунта?"
+          actionLabel="Зарегистрироваться"
+          onPress={() => router.push('/register' as never)}
+        />
+      }
+    >
+      <AppCard style={styles.formCard}>
+        <AppInput
+          ref={emailRef}
+          testID="login-email"
+          label="Email"
+          value={email}
+          onChangeText={(value) => setEmail(normalizeEmail(value))}
+          placeholder="name@example.com"
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+        />
 
-            <View style={styles.fieldsColumn}>
-              <View style={styles.inputShell}>
-                <TextInput
-                  ref={emailRef}
-                  value={email}
-                  onChangeText={(t) => setEmail(normalizeEmail(t))}
-                  placeholder="Email"
-                  placeholderTextColor="#B9A99A"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                  returnKeyType="next"
-                  onSubmitEditing={() => passwordRef.current?.focus()}
-                  style={styles.inputInShell}
-                  underlineColorAndroid="transparent"
-                />
-              </View>
+        <AuthPasswordField
+          ref={passwordRef}
+          testID="login-password"
+          label="Пароль"
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Введите пароль"
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="done"
+          onSubmitEditing={handleSubmit}
+        />
 
-              <View style={[styles.inputShell, styles.passwordShell]}>
-                <TextInput
-                  ref={passwordRef}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Пароль"
-                  placeholderTextColor="#B9A99A"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  secureTextEntry={!showPassword}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubmit}
-                  style={[styles.inputInShell, styles.inputInRow]}
-                  underlineColorAndroid="transparent"
-                />
-                <Pressable
-                  onPress={() => setShowPassword((v) => !v)}
-                  hitSlop={10}
-                  style={styles.eyeBtn}
-                  accessibilityLabel={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
-                >
-                  <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={22}
-                    color="#9B8E7F"
-                  />
-                </Pressable>
-              </View>
+        <View style={styles.forgotRow}>
+          <Pressable onPress={() => router.push('/forgot-password' as never)} hitSlop={8}>
+            <AppText variant="bodySm" style={styles.forgotLink}>
+              Забыли пароль?
+            </AppText>
+          </Pressable>
+        </View>
+      </AppCard>
 
-              <View style={styles.forgotRow}>
-                <Pressable onPress={() => router.push('/forgot-password' as any)} hitSlop={8}>
-                  <Text style={styles.footerLink}>Забыли пароль?</Text>
-                </Pressable>
-              </View>
-            </View>
+      {errorText ? <AuthErrorBanner message={errorText} /> : null}
 
-            {errorText ? (
-              <Text style={[styles.error, styles.errorConstrained]}>{errorText}</Text>
-            ) : null}
+      <AppButton
+        testID="login-submit"
+        title="Войти"
+        onPress={handleSubmit}
+        loading={isSubmitting}
+        disabled={isSubmitting || !!socialLoading}
+      />
 
-            <View style={styles.actionsColumn}>
-              <TouchableOpacity
-                style={[styles.primary, isSubmitting && styles.primaryDisabled]}
-                onPress={handleSubmit}
-                activeOpacity={0.88}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.primaryLabel}>Войти</Text>
-                )}
-              </TouchableOpacity>
-
-              <View style={styles.footer}>
-                <Text style={styles.footerMuted}>Нет аккаунта? </Text>
-                <Pressable onPress={() => router.push('/register' as any)} hitSlop={8}>
-                  <Text style={styles.footerLink}>Зарегистрироваться</Text>
-                </Pressable>
-              </View>
-            </View>
-          </Animated.View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+      <SocialAuthButtons
+        mode="login"
+        disabled={isSubmitting || !!socialLoading}
+        loadingProvider={socialLoading}
+        onGooglePress={() => handleSocialSignIn('google')}
+        onApplePress={() => handleSocialSignIn('apple')}
+        style={styles.socialButtons}
+      />
+    </AuthScreenLayout>
   );
 }
 
-const shellBase = {
-  width: '100%' as const,
-  maxWidth: FIELD_MAX_WIDTH,
-  alignSelf: 'center' as const,
-  backgroundColor: '#FFFFFF',
-  borderRadius: 14,
-  borderWidth: 1,
-  borderColor: '#E8E0D8',
-  shadowColor: '#8B6F5F',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.08,
-  shadowRadius: 12,
-  elevation: 3,
-};
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF8F5' },
-  flex: { flex: 1 },
-  inner: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-    paddingTop: Platform.OS === 'ios' ? 64 : 56,
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  heroTitle: {
-    width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
-    fontSize: 42,
-    lineHeight: 48,
-    color: '#8B6F5F',
-    fontStyle: 'italic',
-    fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', default: 'serif' }),
-    fontWeight: '400',
-    letterSpacing: 0.3,
-    marginTop: 0,
-    marginBottom: 28,
-    textAlign: 'center',
-    textShadowColor: 'rgba(139, 111, 95, 0.12)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  fieldsColumn: {
-    width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
-    alignSelf: 'center',
-    gap: 14,
-  },
-  inputShell: {
-    ...shellBase,
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 4 : 2,
-  },
-  passwordShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  inputInShell: {
-    fontSize: 17,
-    color: '#5C4F44',
-    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
-    paddingHorizontal: 0,
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
-  },
-  inputInRow: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  eyeBtn: {
-    padding: 10,
-    marginRight: 4,
+  formCard: {
+    padding: spacing.md,
+    gap: spacing.md,
   },
   forgotRow: {
-    width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
-    alignSelf: 'center',
-    marginTop: 10,
     alignItems: 'flex-end',
+    marginTop: -4,
   },
-  actionsColumn: {
-    width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
-    alignSelf: 'center',
-    marginTop: 8,
-  },
-  error: {
-    marginTop: 14,
-    fontSize: 14,
-    color: '#C45C52',
-    lineHeight: 20,
-    textAlign: 'center',
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
-  },
-  errorConstrained: {
-    width: '100%',
-    maxWidth: FIELD_MAX_WIDTH,
-    alignSelf: 'center',
-    paddingHorizontal: 8,
-  },
-  primary: {
-    marginTop: 22,
-    backgroundColor: '#C9A89A',
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    width: '100%',
-    shadowColor: '#8B6F5F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  primaryDisabled: { opacity: 0.75 },
-  primaryLabel: {
-    color: '#FFFFFF',
-    fontSize: 17,
+  forgotLink: {
+    color: colors.primary,
     fontWeight: '600',
-    letterSpacing: 0.5,
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),
   },
-  footer: {
-    marginTop: 26,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  footerMuted: {
-    fontSize: 15,
-    color: '#7D6F62',
-    opacity: 0.85,
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif', default: 'sans-serif' }),
-  },
-  footerLink: {
-    fontSize: 15,
-    color: '#8B6F5F',
-    fontWeight: '600',
-    textDecorationLine: 'underline',
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'sans-serif' }),
+  socialButtons: {
+    marginTop: 0,
   },
 });

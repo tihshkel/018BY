@@ -1,12 +1,80 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { getSupabase } from '@/lib/supabase';
 import { setAccountSyncId } from '@/utils/account-identity';
 import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
+import { ACCOUNT_SYNC_ID_KEY } from '@/utils/account-identity';
+import { clearWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 export type ReferralSource = 'physical_album' | 'instagram' | 'organic';
 
+export type OAuthProvider = 'google' | 'apple';
+
 const DEFAULT_USER_NAME = 'Пользователь';
+
+WebBrowser.maybeCompleteAuthSession();
+
+async function clearLocalDataForAccountSwitch(prevSyncId: string | null): Promise<void> {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const toRemove: string[] = [];
+
+    const hasAnyPrefix = (k: string, prefixes: string[]) => prefixes.some((p) => k.startsWith(p));
+    const prefixes = [
+      '@project_',
+      '@project_images_',
+      '@project_annotations_',
+      '@project_cover_annotations_',
+      '@project_pdf_',
+      '@project_sections_',
+      '@project_viewport_',
+      '@project_cover_viewport_',
+      '@project_last_text_style_',
+      '@project_user_committed_',
+      '@tutorial_shown_',
+      '@export_history_',
+      '@project_images_uploaded_',
+    ];
+
+    for (const k of keys) {
+      if (!k) continue;
+      if (k === '@user_projects') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@reminders' || k === '@pregnancy_info' || k === '@kids_info' || k === '@paper_albums') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@user_name' || k === '@user_avatar') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@projects_synced_to_cloud' || k === '@projects_synced_to_cloud_v2') {
+        toRemove.push(k);
+        continue;
+      }
+      if (k === '@access_code') {
+        toRemove.push(k);
+        continue;
+      }
+      if (prevSyncId && k === `@reminders_${prevSyncId}`) {
+        toRemove.push(k);
+        continue;
+      }
+      if (hasAnyPrefix(k, prefixes)) {
+        toRemove.push(k);
+      }
+    }
+
+    if (toRemove.length > 0) {
+      await AsyncStorage.multiRemove(toRemove);
+    }
+  } catch (e) {
+    if (__DEV__) console.warn('[auth-session] clearLocalDataForAccountSwitch:', e);
+  }
+}
 
 export function getReferralSourceLabel(s: ReferralSource): string {
   const labels: Record<ReferralSource, string> = {
@@ -83,7 +151,11 @@ export async function signUpWithEmailPassword(params: {
   }
 
   try {
+    const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
     const userId = data.session.user.id;
+    if (prevSyncId && prevSyncId !== userId) {
+      await clearLocalDataForAccountSwitch(prevSyncId);
+    }
     await setAccountSyncId(userId);
 
     const saveRes = await saveAccountToSupabase(userId, DEFAULT_USER_NAME, null, {
@@ -128,6 +200,135 @@ export async function signInWithEmailPassword(params: {
   return { success: true };
 }
 
+/** Redirect URL для OAuth (добавьте в Supabase → Authentication → URL configuration). */
+export function getOAuthRedirectUrl(): string {
+  return Linking.createURL('/');
+}
+
+async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const { query, hash } = splitUrlQueryAndHash(url);
+  const qParams = new URLSearchParams(query);
+  const hParams = new URLSearchParams(hash);
+
+  const code = qParams.get('code');
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  const access_token = hParams.get('access_token') ?? qParams.get('access_token');
+  const refresh_token = hParams.get('refresh_token') ?? qParams.get('refresh_token');
+  if (access_token && refresh_token) {
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  }
+
+  const oauthError =
+    qParams.get('error_description') ??
+    hParams.get('error_description') ??
+    qParams.get('error') ??
+    hParams.get('error');
+  if (oauthError) {
+    return { success: false, error: oauthError };
+  }
+
+  return { success: false, error: 'OAUTH_CALLBACK_FAILED' };
+}
+
+export function mapOAuthErrorMessage(
+  error: string | undefined,
+  mode: 'signIn' | 'signUp' = 'signIn'
+): string {
+  const serviceUnavailable =
+    mode === 'signUp'
+      ? 'Сервис регистрации недоступен. Проверьте настройки Supabase.'
+      : 'Сервис входа недоступен. Проверьте настройки Supabase.';
+  const cancelled = mode === 'signUp' ? 'Регистрация отменена.' : 'Вход отменён.';
+  const fallback =
+    mode === 'signUp'
+      ? 'Не удалось зарегистрироваться через выбранный сервис.'
+      : 'Не удалось войти через выбранный сервис.';
+
+  if (error === 'SUPABASE_NOT_CONFIGURED') {
+    return serviceUnavailable;
+  }
+  if (error === 'OAUTH_CANCELLED') {
+    return cancelled;
+  }
+  if (error === 'GOOGLE_NOT_CONFIGURED') {
+    return 'Google Sign-In не настроен. Добавьте client ID в .env и пересоберите приложение.';
+  }
+  if (error === 'GOOGLE_PLAY_SERVICES_NOT_AVAILABLE') {
+    return 'На устройстве нет Google Play Services или они устарели. Обновите их и попробуйте снова.';
+  }
+  if (error === 'GOOGLE_IN_PROGRESS') {
+    return 'Вход через Google уже выполняется. Подождите несколько секунд.';
+  }
+  if (error === 'GOOGLE_DEVELOPER_ERROR' || error?.includes('DEVELOPER_ERROR')) {
+    return 'Google Sign-In: неверная настройка Android (SHA-1). Добавьте отпечаток debug-сборки в Google Cloud → Credentials → 018BY Android.';
+  }
+  if (error && error.length > 0) {
+    const prefix = mode === 'signUp' ? 'Не удалось зарегистрироваться' : 'Не удалось войти';
+    return `${prefix}: ${error}`;
+  }
+  return fallback;
+}
+
+export async function signInWithOAuthProvider(
+  provider: OAuthProvider
+): Promise<{ success: boolean; error?: string }> {
+  if (provider === 'google') {
+    const { canUseNativeGoogleSignIn, signInWithGoogleNative } = await import(
+      '@/utils/google-native-sign-in'
+    );
+    if (canUseNativeGoogleSignIn()) {
+      return signInWithGoogleNative();
+    }
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const redirectTo = getOAuthRedirectUrl();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    return { success: false, error: error.message || 'OAUTH_START_FAILED' };
+  }
+  if (!data?.url) {
+    return { success: false, error: 'OAUTH_URL_MISSING' };
+  }
+
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  if (result.type === 'cancel' || result.type === 'dismiss') {
+    return { success: false, error: 'OAUTH_CANCELLED' };
+  }
+  if (result.type !== 'success' || !result.url) {
+    return { success: false, error: 'OAUTH_FAILED' };
+  }
+
+  return completeOAuthFromRedirectUrl(result.url);
+}
+
 /** @deprecated Используйте signInWithEmailPassword; поле username = email. */
 export async function signInWithUsernamePassword(params: {
   username: string;
@@ -154,6 +355,11 @@ export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: 
     return { success: false, error: 'NO_USER_ID' };
   }
 
+  const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
+  if (prevSyncId && prevSyncId !== userId) {
+    await clearLocalDataForAccountSwitch(prevSyncId);
+  }
+
   await setAccountSyncId(userId);
 
   let account = await getAccountFromSupabase(userId);
@@ -176,6 +382,11 @@ export async function restoreLocalAccountKeysFromSupabase(): Promise<{ success: 
     await AsyncStorage.setItem('@user_name', rawName);
   } else {
     await AsyncStorage.removeItem('@user_name');
+  }
+
+  const avatarFromProfile = account?.avatarUrl?.trim();
+  if (avatarFromProfile) {
+    await AsyncStorage.setItem('@user_avatar', avatarFromProfile);
   }
 
   return { success: true };
@@ -285,4 +496,53 @@ export async function updatePasswordAfterRecovery(newPassword: string): Promise<
   }
   await supabase.auth.signOut();
   return { success: true };
+}
+
+/** Выход из аккаунта: сессия Supabase и локальные данные пользователя. */
+export async function signOutFromAccount(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const prevSyncId = await AsyncStorage.getItem(ACCOUNT_SYNC_ID_KEY);
+
+    try {
+      const supabase = getSupabase();
+      await supabase?.auth.signOut();
+    } catch (e) {
+      if (__DEV__) console.warn('[auth-session] signOut:', e);
+    }
+
+    await clearLocalDataForAccountSwitch(prevSyncId);
+    await AsyncStorage.removeItem(ACCOUNT_SYNC_ID_KEY);
+    await clearWidgetSnapshot();
+
+    return { success: true };
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e.message : 'SIGNOUT_FAILED',
+    };
+  }
+}
+
+/**
+ * Полный "сброс" локального состояния, чтобы заново пройти онбординг/логин.
+ * Полезно для разработки (когда симулятор сохраняет сессию и флаги).
+ */
+export async function resetAppToOnboarding(): Promise<void> {
+  // Пытаемся выйти из Supabase-сессии (если Supabase настроен)
+  try {
+    const supabase = getSupabase();
+    await supabase?.auth.signOut();
+  } catch (e) {
+    if (__DEV__) console.warn('[auth-session] signOut during reset:', e);
+  }
+
+  // Чистим локальные ключи, влияющие на стартовый роут
+  const keysToRemove = [
+    '@has_seen_onboarding',
+    '@user_name',
+    '@user_avatar',
+    ACCOUNT_SYNC_ID_KEY,
+  ];
+
+  await AsyncStorage.multiRemove(keysToRemove);
 }
