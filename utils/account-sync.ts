@@ -8,12 +8,11 @@ import {
 } from './deleted-project-ids';
 import { getStoredPushToken } from './pushToken';
 import {
-  getAccountDataFromSupabase,
   getAccountFromSupabase,
   getCoreDataFromSupabase,
   isSupabaseUserIdKey,
   pushCoreDataToSupabase,
-  pushProjectDataToSupabase,
+  pushProjectDataToSupabase
 } from './supabase-account';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
 
