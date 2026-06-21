@@ -48,9 +48,12 @@ ios/Pods/
 !/albums/pregnant/
 !/albums/pregnant/**
 
-# Exclude heavy PDF content. Лёгкие превью для бандла лежат в assets/app-bundled/
-# (вне /assets/pdfs/**), чтобы EAS всегда их загружал — отрицания в ignore легко сломать.
+# Exclude heavy PDF/page PNG content, but keep preview PNGs + manifests required by Metro.
 /assets/pdfs/**
+!/assets/pdfs/**/design_previews/
+!/assets/pdfs/**/design_previews/**
+!/assets/pdfs/**/preview_variants/
+!/assets/pdfs/**/preview_variants/**
 
 **/*.mp4
 **/*.mov
