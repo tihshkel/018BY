@@ -48,12 +48,13 @@ ios/Pods/
 !/albums/pregnant/
 !/albums/pregnant/**
 
-# Exclude heavy PDF/page PNG content, but keep preview PNGs + manifests required by Metro.
-/assets/pdfs/**
-!/assets/pdfs/**/design_previews/
-!/assets/pdfs/**/design_previews/**
-!/assets/pdfs/**/preview_variants/
-!/assets/pdfs/**/preview_variants/**
+# Exclude heavy PDF caches and full birthday page PNG set (loaded from GitHub at runtime).
+/assets/pdfs/compressed/
+/assets/pdfs/covers/
+/assets/pdfs/optimized/
+/assets/pdfs/**/*.pdf
+/assets/pdfs/Блок ДНЕЙ РОЖДЕНИЯ 60 стр/
+/assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок/
 
 **/*.mp4
 **/*.mov

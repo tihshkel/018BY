@@ -1,10 +1,13 @@
 import { resolvePreviewAssetUri } from '@/utils/previewAssetUri';
 
+import kids48DesignManifestJson from '@/constants/generated/kids-48-design-manifest.json';
+import pregnancy60DesignManifestJson from '@/constants/generated/pregnancy-60-design-manifest.json';
+
 type DesignManifest = Record<string, string>;
 
-const pregnancy60DesignManifest = require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/design_previews/pregnancy_60_design_manifest.json') as DesignManifest;
+const pregnancy60DesignManifest = pregnancy60DesignManifestJson as DesignManifest;
 
-const kids48DesignManifest = require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/design_previews/kids_48_design_manifest.json') as DesignManifest;
+const kids48DesignManifest = kids48DesignManifestJson as DesignManifest;
 
 const DESIGN_MANIFESTS: Record<string, DesignManifest> = {
   pregnancy_60: pregnancy60DesignManifest,

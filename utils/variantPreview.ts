@@ -1,6 +1,9 @@
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 import { resolvePreviewAssetUri } from '@/utils/previewAssetUri';
 
+import kids48VariantsManifest from '@/constants/generated/kids-48-variants-manifest.json';
+import pregnancy60VariantsManifest from '@/constants/generated/pregnancy-60-variants-manifest.json';
+
 export type VariantPreviewThumbnail = {
   variantId: string;
   label: string;
@@ -9,9 +12,10 @@ export type VariantPreviewThumbnail = {
 
 type VariantManifest = Record<string, Record<string, string>>;
 
-const pregnancy60PreviewVariantsManifest = require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/preview_variants/pregnancy_60_variants_manifest.json') as VariantManifest;
+const pregnancy60PreviewVariantsManifest =
+  pregnancy60VariantsManifest as VariantManifest;
 
-const kids48PreviewVariantsManifest = require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/kids_48_variants_manifest.json') as VariantManifest;
+const kids48PreviewVariantsManifest = kids48VariantsManifest as VariantManifest;
 
 const MANIFESTS: Record<string, VariantManifest> = {
   pregnancy_60: pregnancy60PreviewVariantsManifest,
