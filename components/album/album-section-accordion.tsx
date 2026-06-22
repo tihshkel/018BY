@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { PageListItem } from '@/components/album/page-list-item';
@@ -39,6 +39,9 @@ type AlbumSectionAccordionProps = {
   reorderDisabled?: boolean;
   onToggleExcluded?: (instanceId: string, excluded: boolean) => void;
   defaultExpanded?: boolean;
+  highlightInstanceId?: string;
+  onHighlightMeasured?: (y: number) => void;
+  scrollContentRef?: RefObject<View | null>;
 };
 
 export function AlbumSectionAccordion({
@@ -58,9 +61,15 @@ export function AlbumSectionAccordion({
   reorderDisabled = false,
   onToggleExcluded,
   defaultExpanded = false,
+  highlightInstanceId,
+  onHighlightMeasured,
+  scrollContentRef,
 }: AlbumSectionAccordionProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-  const [showAll, setShowAll] = useState(false);
+  const containsHighlight = highlightInstanceId
+    ? pages.some((row) => row.instance.instanceId === highlightInstanceId)
+    : false;
+  const [expanded, setExpanded] = useState(defaultExpanded || containsHighlight);
+  const [showAll, setShowAll] = useState(containsHighlight);
   const [renameModal, setRenameModal] = useState<{ instanceId: string; title: string } | null>(
     null
   );
@@ -149,9 +158,16 @@ export function AlbumSectionAccordion({
 
       {expanded ? (
         <View style={[styles.body, usePageGrid && styles.bodyGrid, usePageGrid && { gap: pageGridGap }]}>
-          {visiblePages.map((row) => (
-            <View
+          {visiblePages.map((row) => {
+            const isHighlighted = row.instance.instanceId === highlightInstanceId;
+            return (
+            <HighlightedPageRow
               key={row.instance.instanceId}
+              enabled={isHighlighted}
+              scrollContentRef={scrollContentRef}
+              onHighlightMeasured={onHighlightMeasured}
+            >
+            <View
               style={usePageGrid ? [styles.gridItem, { width: pageItemWidth }] : undefined}
             >
               <PageListItem
@@ -172,9 +188,12 @@ export function AlbumSectionAccordion({
                     : undefined
                 }
                 reorderDisabled={reorderDisabled}
+                isHighlighted={isHighlighted}
               />
             </View>
-          ))}
+            </HighlightedPageRow>
+            );
+          })}
 
           {!showAll && pages.length > VISIBLE_PAGE_LIMIT ? (
             <Pressable
@@ -224,6 +243,38 @@ export function AlbumSectionAccordion({
       </AppCenterModal>
     </View>
   );
+}
+
+function HighlightedPageRow({
+  children,
+  enabled,
+  scrollContentRef,
+  onHighlightMeasured,
+}: {
+  children: React.ReactNode;
+  enabled: boolean;
+  scrollContentRef?: RefObject<View | null>;
+  onHighlightMeasured?: (y: number) => void;
+}) {
+  const rowRef = useRef<View>(null);
+
+  useEffect(() => {
+    if (!enabled || !scrollContentRef?.current || !onHighlightMeasured) return;
+    const timer = setTimeout(() => {
+      rowRef.current?.measureLayout(
+        scrollContentRef.current as View,
+        (_x, y) => onHighlightMeasured(y),
+        () => {},
+      );
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [enabled, onHighlightMeasured, scrollContentRef]);
+
+  if (!enabled) {
+    return <>{children}</>;
+  }
+
+  return <View ref={rowRef}>{children}</View>;
 }
 
 const styles = StyleSheet.create({

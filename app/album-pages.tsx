@@ -6,10 +6,11 @@ import {
   useLocalSearchParams,
   type Href,
 } from "expo-router";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -50,14 +51,21 @@ import { computePageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 
 export default function AlbumPagesScreen() {
-  const { id, celebration, coverType, interiorType, eventDate } =
+  const { id, celebration, coverType, interiorType, eventDate, highlightInstanceId } =
     useLocalSearchParams<{
       id?: string;
       celebration?: string;
       coverType?: string;
       interiorType?: string;
       eventDate?: string;
+      highlightInstanceId?: string;
     }>();
+
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollContentRef = useRef<View>(null);
+  const hasScrolledToHighlightRef = useRef(false);
+  const skipNextReloadRef = useRef(Boolean(highlightInstanceId));
+  const [highlightDismissed, setHighlightDismissed] = useState(false);
 
   const insets = useSafeAreaInsets();
   const albumFlowParams: AlbumFlowParams = {
@@ -83,11 +91,33 @@ export default function AlbumPagesScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (project.projectId && !project.isLoading) {
-        void project.reloadProjectData();
+      if (!project.projectId || project.isLoading) return;
+      if (skipNextReloadRef.current) {
+        skipNextReloadRef.current = false;
+        return;
       }
+      void project.reloadProjectData();
     }, [project.projectId, project.isLoading, project.reloadProjectData]),
   );
+
+  const highlightedInstance = useMemo(() => {
+    if (!highlightInstanceId || highlightDismissed) return null;
+    return project.instances.find((item) => item.instanceId === highlightInstanceId) ?? null;
+  }, [highlightInstanceId, highlightDismissed, project.instances]);
+
+  const highlightedPosition = useMemo(() => {
+    if (!highlightedInstance) return null;
+    const index = project.instances.findIndex(
+      (item) => item.instanceId === highlightedInstance.instanceId,
+    );
+    return index >= 0 ? index + 1 : null;
+  }, [highlightedInstance, project.instances]);
+
+  const scrollToHighlightedPage = useCallback((y: number) => {
+    if (hasScrolledToHighlightRef.current) return;
+    hasScrolledToHighlightRef.current = true;
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 48), animated: true });
+  }, []);
 
   const sections = useMemo(
     () => getAlbumSections(project.lineGuideId),
@@ -101,7 +131,7 @@ export default function AlbumPagesScreen() {
         project.pageValuesMap,
         project.getSchemaForInstance,
       ),
-    [project.instances, project.pageValuesMap, project],
+    [project.instances, project.pageValuesMap, project.getSchemaForInstance],
   );
 
   const sectionProgressList = useMemo(
@@ -112,8 +142,16 @@ export default function AlbumPagesScreen() {
         project.pageValuesMap,
         project.getSchemaForInstance,
       ),
-    [project.lineGuideId, project.instances, project.pageValuesMap, project],
+    [project.lineGuideId, project.instances, project.pageValuesMap, project.getSchemaForInstance],
   );
+
+  const instanceIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    project.instances.forEach((instance, index) => {
+      map.set(instance.instanceId, index);
+    });
+    return map;
+  }, [project.instances]);
 
   const coverSource = useMemo(
     () =>
@@ -209,6 +247,7 @@ export default function AlbumPagesScreen() {
       <AppHeader showBack onBack={() => navigateToHomeFromAlbum()} />
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
@@ -216,7 +255,42 @@ export default function AlbumPagesScreen() {
           { paddingBottom: spacing.lg + insets.bottom + 160 },
         ]}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === "android"}
       >
+        {highlightedInstance && highlightedPosition != null ? (
+          <View style={styles.highlightBanner}>
+            <View style={styles.highlightBannerText}>
+              <AppText variant="bodySm" style={styles.highlightTitle}>
+                Страница добавлена на позицию {highlightedPosition}
+              </AppText>
+              <AppText variant="caption" style={styles.highlightSubtitle}>
+                {project.getInstanceTitle(highlightedInstance)}
+              </AppText>
+            </View>
+            <View style={styles.highlightActions}>
+              <Pressable
+                onPress={() => handleOpenPage(highlightedInstance.instanceId)}
+                style={({ pressed }) => [
+                  styles.highlightEditBtn,
+                  pressed && styles.highlightEditBtnPressed,
+                ]}
+              >
+                <AppText variant="caption" style={styles.highlightEditText}>
+                  Заполнить
+                </AppText>
+              </Pressable>
+              <Pressable
+                onPress={() => setHighlightDismissed(true)}
+                hitSlop={8}
+                style={({ pressed }) => [pressed && styles.pressedIcon]}
+              >
+                <Ionicons name="close" size={18} color={colors.textSecondary} />
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+
+        <View ref={scrollContentRef}>
         <View style={styles.hero}>
           {coverSource ? (
             <Image source={coverSource} style={styles.heroCover} contentFit="cover" />
@@ -275,9 +349,7 @@ export default function AlbumPagesScreen() {
               canDuplicate: schema?.canDuplicate ?? false,
               canDeleteCopy: instance.addedByUser,
               canReorder: instance.addedByUser,
-              globalIndex: project.instances.findIndex(
-                (item) => item.instanceId === instance.instanceId,
-              ),
+              globalIndex: instanceIndexById.get(instance.instanceId) ?? -1,
             };
           });
 
@@ -301,9 +373,15 @@ export default function AlbumPagesScreen() {
               onToggleExcluded={(instanceId, excluded) =>
                 project.setPageExcluded(instanceId, excluded)
               }
+              highlightInstanceId={
+                highlightDismissed ? undefined : highlightInstanceId
+              }
+              scrollContentRef={scrollContentRef}
+              onHighlightMeasured={scrollToHighlightedPage}
             />
           );
         })}
+        </View>
       </ScrollView>
 
       <View
@@ -430,6 +508,50 @@ const styles = StyleSheet.create({
     fontFamily: sansFont("semibold"),
     fontWeight: "600",
     marginBottom: spacing.sm,
+  },
+  highlightBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.primarySurface,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+    ...createShadow("sm"),
+  },
+  highlightBannerText: {
+    flex: 1,
+    gap: 2,
+  },
+  highlightTitle: {
+    color: colors.textPrimary,
+    fontFamily: sansFont("semibold"),
+  },
+  highlightSubtitle: {
+    color: colors.textSecondary,
+  },
+  highlightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  highlightEditBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+  },
+  highlightEditBtnPressed: {
+    opacity: 0.9,
+  },
+  highlightEditText: {
+    color: colors.white,
+    fontFamily: sansFont("semibold"),
+  },
+  pressedIcon: {
+    opacity: 0.75,
   },
   footer: {
     position: "absolute",

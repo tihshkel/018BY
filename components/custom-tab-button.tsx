@@ -5,7 +5,7 @@ import { PlatformPressable } from '@react-navigation/elements';
 import * as Haptics from 'expo-haptics';
 
 export function CustomTabButton(props: BottomTabBarButtonProps) {
-  const { children, onPress, accessibilityState } = props;
+  const { children, onPress, onLongPress, accessibilityState, style, ...pressableProps } = props;
   const isFocused = accessibilityState?.selected ?? false;
 
   const handlePressIn = () => {
@@ -16,10 +16,14 @@ export function CustomTabButton(props: BottomTabBarButtonProps) {
 
   return (
     <PlatformPressable
-      {...props}
+      {...pressableProps}
+      accessibilityState={accessibilityState}
       onPress={onPress}
+      onLongPress={onLongPress}
       onPressIn={handlePressIn}
-      style={styles.container}
+      hitSlop={styles.hitSlop}
+      pressRetentionOffset={styles.pressRetentionOffset}
+      style={[style, styles.container]}
     >
       <View style={[styles.content, { opacity: isFocused ? 1 : 0.7 }]}>
         {isFocused ? <View style={styles.indicator} /> : null}
@@ -30,8 +34,21 @@ export function CustomTabButton(props: BottomTabBarButtonProps) {
 }
 
 const styles = StyleSheet.create({
+  hitSlop: {
+    top: 8,
+    right: 6,
+    bottom: 8,
+    left: 6,
+  },
+  pressRetentionOffset: {
+    top: 12,
+    right: 12,
+    bottom: 12,
+    left: 12,
+  },
   container: {
     flex: 1,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },

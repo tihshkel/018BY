@@ -67,6 +67,7 @@ export default function AlbumPagePreviewScreen() {
     celebration,
     coverType,
     interiorType,
+    subscribeSnapshots: false,
   });
 
   const albumFlowParams: AlbumFlowParams = {

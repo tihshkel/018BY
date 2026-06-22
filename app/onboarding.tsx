@@ -19,11 +19,9 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { markOnboardingFlowCompleted } from '@/constants/onboardingFlow';
 import { colors, sansFont } from '@/constants/design-tokens';
 import { useResponsiveLayout, type ResponsiveLayout } from '@/utils/responsive';
-
-const ONBOARDING_KEY = '@has_seen_onboarding';
 
 interface OnboardingSlide {
   id: number;
@@ -318,7 +316,7 @@ export default function OnboardingScreen() {
         setCurrentIndex(currentIndex + 1);
       } else {
         try {
-          await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
+          await markOnboardingFlowCompleted();
         } catch (error) {
           console.error('Error saving onboarding status:', error);
         }

@@ -6,12 +6,12 @@ import type { useAlbumProject } from '@/hooks/use-album-project';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
-import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
 type AlbumProject = ReturnType<typeof useAlbumProject>;
 

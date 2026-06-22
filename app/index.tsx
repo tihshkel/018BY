@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { shouldShowOnboarding } from '@/constants/onboardingFlow';
 import { ensureDefaultAvatar } from '@/utils/user-avatar';
-
-const ONBOARDING_KEY = '@has_seen_onboarding';
 
 export default function Index() {
   const router = useRouter();
@@ -13,12 +12,12 @@ export default function Index() {
       try {
         await ensureDefaultAvatar();
 
-        const [hasSeenOnboarding, userName] = await Promise.all([
-          AsyncStorage.getItem(ONBOARDING_KEY),
+        const [showOnboarding, userName] = await Promise.all([
+          shouldShowOnboarding(),
           AsyncStorage.getItem('@user_name'),
         ]);
 
-        if (hasSeenOnboarding !== 'true') {
+        if (showOnboarding) {
           router.replace('/onboarding');
           return;
         }

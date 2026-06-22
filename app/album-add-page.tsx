@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TextInput,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { AppButton, AppHeader, AppScreen, AppText } from "@/components/ui";
@@ -85,7 +86,7 @@ function StepProgressBar({ step }: { step: WizardStep }) {
       <AppText variant="bodySm" style={styles.stepHint}>
         {step === "pick-page"
           ? "Выберите макет из каталога альбома"
-          : "Новая страница уже стоит под оригиналом — зажмите ≡ слева и перетащите"}
+          : "Нажмите на страницу — новая встанет сразу после неё. Или зажмите ≡ и перетащите"}
       </AppText>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
@@ -119,6 +120,7 @@ export default function AlbumAddPageScreen() {
     coverType?: string;
     interiorType?: string;
   }>();
+  const { height: windowHeight } = useWindowDimensions();
 
   const project = useAlbumProject({
     projectId: id,
@@ -144,6 +146,10 @@ export default function AlbumAddPageScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [placementOrder, setPlacementOrder] = useState<PlacementRow[]>([]);
+  const loadingTopOffset = Math.min(
+    Math.max(windowHeight * 0.18, 120),
+    180,
+  );
 
   const schemas = useMemo(
     () => getAlbumPageSchemas(project.lineGuideId),
@@ -291,7 +297,7 @@ export default function AlbumAddPageScreen() {
         project.lineGuideId,
         selectedSourcePageIndex + 1,
       );
-      await project.addPage({
+      const newInstanceId = await project.addPage({
         insertAfterIndex: newIndex - 1,
         sourcePageIndex: selectedSourcePageIndex,
         titleOverride: schema?.title,
@@ -303,6 +309,7 @@ export default function AlbumAddPageScreen() {
           celebration,
           coverType,
           interiorType,
+          ...(newInstanceId ? { highlightInstanceId: newInstanceId } : {}),
         },
       } as unknown as Href);
     } finally {
@@ -320,11 +327,18 @@ export default function AlbumAddPageScreen() {
 
   if (project.isLoading || catalogLoading) {
     return (
-      <AppScreen style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <AppText variant="bodySm" style={styles.loadingText}>
-          Загружаем страницы альбома…
-        </AppText>
+      <AppScreen
+        contentContainerStyle={[
+          styles.loadingContent,
+          { paddingTop: loadingTopOffset },
+        ]}
+      >
+        <View style={styles.loadingCard}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <AppText variant="bodySm" style={styles.loadingText}>
+            Загружаем страницы альбома…
+          </AppText>
+        </View>
       </AppScreen>
     );
   }
@@ -550,9 +564,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 220,
   },
-  centered: {
+  loadingContent: {
     alignItems: "center",
-    justifyContent: "center",
+  },
+  loadingCard: {
+    alignItems: "center",
     gap: spacing.sm,
   },
   loadingText: {

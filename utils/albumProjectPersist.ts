@@ -27,6 +27,16 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const payloads = new Map<string, PersistPayload>();
 const runners = new Map<string, PersistRunner>();
 
+export function cancelAlbumProjectPersist(projectId: string): void {
+  const timer = timers.get(projectId);
+  if (timer) {
+    clearTimeout(timer);
+    timers.delete(projectId);
+  }
+  payloads.delete(projectId);
+  runners.delete(projectId);
+}
+
 export function scheduleAlbumProjectPersist(
   projectId: string,
   payload: PersistPayload,

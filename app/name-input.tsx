@@ -1,4 +1,5 @@
 import { AppButton, AppInput } from '@/components/ui';
+import { markOnboardingFlowCompleted } from '@/constants/onboardingFlow';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { createAndStoreAccountSyncId, getAccountSyncId } from '@/utils/account-identity';
 import { syncToCloudNow } from '@/utils/account-sync';
@@ -137,7 +138,7 @@ export default function NameInputScreen() {
       }
 
       await AsyncStorage.setItem('@user_name', trimmedName);
-      await AsyncStorage.setItem('@has_seen_onboarding', 'true');
+      await markOnboardingFlowCompleted();
       await ensureDefaultAvatar();
 
       setIsSubmitting(false);

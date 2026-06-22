@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { runOnJS, type SharedValue, withSpring } from "react-native-reanimated";
 
 import { colors, radii } from "@/constants/design-tokens";
 
@@ -10,7 +10,8 @@ type PageDragHandleProps = {
   disabled?: boolean;
   onDragStart: () => void;
   onDragMove: (translationY: number) => void;
-  onDragEnd: () => void;
+  onDragEnd: (translationY?: number) => void;
+  dragTranslateY?: SharedValue<number>;
   active?: boolean;
 };
 
@@ -19,8 +20,14 @@ export function PageDragHandle({
   onDragStart,
   onDragMove,
   onDragEnd,
+  dragTranslateY,
   active = false,
 }: PageDragHandleProps) {
+  const resetSpringConfig =
+    Platform.OS === "android"
+      ? { damping: 22, stiffness: 180, mass: 0.9 }
+      : { damping: 18, stiffness: 160, mass: 0.9 };
+
   const panGesture = Gesture.Pan()
     .activateAfterLongPress(Platform.OS === "android" ? 220 : 280)
     .enabled(!disabled)
@@ -29,10 +36,17 @@ export function PageDragHandle({
       runOnJS(onDragStart)();
     })
     .onUpdate((event) => {
+      if (dragTranslateY) {
+        dragTranslateY.value = event.translationY;
+        return;
+      }
       runOnJS(onDragMove)(event.translationY);
     })
-    .onEnd(() => {
-      runOnJS(onDragEnd)();
+    .onFinalize((event) => {
+      if (dragTranslateY) {
+        dragTranslateY.value = withSpring(0, resetSpringConfig);
+      }
+      runOnJS(onDragEnd)(event.translationY);
     });
 
   return (

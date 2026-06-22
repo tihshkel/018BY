@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'expo-asset';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,6 +19,7 @@ import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinat
 import { syncToCloudNow } from '@/utils/account-sync';
 import { getAndStorePushToken } from '@/utils/pushToken';
 import { initializeImagePreload } from '@/utils/imagePreloader';
+import { shouldShowOnboarding } from '@/constants/onboardingFlow';
 import Constants from 'expo-constants';
 
 function NotificationHandlersBootstrap() {
@@ -27,6 +29,15 @@ function NotificationHandlersBootstrap() {
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
+async function hasCompletedEntryFlow(): Promise<boolean> {
+  const [showOnboarding, userName] = await Promise.all([
+    shouldShowOnboarding(),
+    AsyncStorage.getItem('@user_name'),
+  ]);
+
+  return !showOnboarding && Boolean(userName?.trim());
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -35,16 +46,38 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    getAndStorePushToken();
+    let cancelled = false;
+
+    void hasCompletedEntryFlow()
+      .then((isReady) => {
+        if (!cancelled && isReady) {
+          return getAndStorePushToken();
+        }
+        return null;
+      })
+      .catch((error) => {
+        console.warn('[RootLayout] Failed to check push bootstrap state:', error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (isExpoGo) return;
 
     const timer = setTimeout(() => {
-      void refreshAllAlbumNotifications({ skipCloudSync: true }).catch((error) => {
-        console.warn('[RootLayout] Failed to refresh album notifications:', error);
-      });
+      void hasCompletedEntryFlow()
+        .then((isReady) => {
+          if (isReady) {
+            return refreshAllAlbumNotifications({ skipCloudSync: true });
+          }
+          return null;
+        })
+        .catch((error) => {
+          console.warn('[RootLayout] Failed to refresh album notifications:', error);
+        });
     }, 2500);
 
     return () => clearTimeout(timer);
@@ -52,7 +85,15 @@ export default function RootLayout() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      syncToCloudNow();
+      void hasCompletedEntryFlow()
+        .then((isReady) => {
+          if (isReady) {
+            syncToCloudNow();
+          }
+        })
+        .catch((error) => {
+          console.warn('[RootLayout] Failed to check sync bootstrap state:', error);
+        });
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
@@ -60,15 +101,30 @@ export default function RootLayout() {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
       if (state === 'background' || state === 'inactive') {
-        syncToCloudNow();
+        void hasCompletedEntryFlow()
+          .then((isReady) => {
+            if (isReady) {
+              syncToCloudNow();
+            }
+          })
+          .catch((error) => {
+            console.warn('[RootLayout] Failed to check background sync state:', error);
+          });
       }
       if (state === 'active') {
-        syncToCloudNow();
-        if (!isExpoGo) {
-          void refreshAllAlbumNotifications({ skipCloudSync: true }).catch((error) => {
-            console.warn('[RootLayout] Failed to refresh album notifications on resume:', error);
+        void hasCompletedEntryFlow()
+          .then((isReady) => {
+            if (!isReady) return null;
+
+            syncToCloudNow();
+            if (!isExpoGo) {
+              return refreshAllAlbumNotifications({ skipCloudSync: true });
+            }
+            return null;
+          })
+          .catch((error) => {
+            console.warn('[RootLayout] Failed to run resume bootstraps:', error);
           });
-        }
       }
     });
     return () => sub.remove();

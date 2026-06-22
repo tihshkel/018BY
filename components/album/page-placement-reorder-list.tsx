@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -108,6 +108,14 @@ function moveRow(rows: PlacementRow[], from: number, to: number): PlacementRow[]
   return next;
 }
 
+function moveNewPageAfterRow(rows: PlacementRow[], afterIndex: number): PlacementRow[] {
+  const newIndex = rows.findIndex((row) => row.kind === "new");
+  if (newIndex < 0) return rows;
+  const targetIndex = Math.max(0, Math.min(rows.length - 1, afterIndex + 1));
+  if (newIndex === targetIndex) return rows;
+  return moveRow(rows, newIndex, targetIndex);
+}
+
 type RowProps = {
   row: PlacementRow;
   index: number;
@@ -116,7 +124,13 @@ type RowProps = {
   disabled: boolean;
   onDragStart: (index: number) => void;
   onDragMove: (index: number, translationY: number) => void;
-  onDragEnd: () => void;
+  onDragEnd: (translationY?: number) => void;
+  onInsertAfter?: (index: number) => void;
+  onMoveNewUp?: () => void;
+  onMoveNewDown?: () => void;
+  onMoveNewToStart?: () => void;
+  onMoveNewToEnd?: () => void;
+  showQuickMoves?: boolean;
 };
 
 function PlacementRowCard({
@@ -128,9 +142,16 @@ function PlacementRowCard({
   onDragStart,
   onDragMove,
   onDragEnd,
+  onInsertAfter,
+  onMoveNewUp,
+  onMoveNewDown,
+  onMoveNewToStart,
+  onMoveNewToEnd,
+  showQuickMoves = false,
 }: RowProps) {
   const isNew = row.kind === "new";
   const canDrag = isNew && !disabled;
+  const canTapInsert = row.kind === "existing" && !disabled && onInsertAfter;
   const translateY = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -151,71 +172,132 @@ function PlacementRowCard({
     [index, onDragMove, translateY],
   );
 
-  const handleDragEnd = useCallback(() => {
-    translateY.value = withSpring(0);
-    onDragEnd();
+  const handleDragEnd = useCallback((finalTranslationY?: number) => {
+    if (finalTranslationY == null) {
+      translateY.value = withSpring(0);
+    }
+    onDragEnd(finalTranslationY);
   }, [onDragEnd, translateY]);
+
+  const card = (
+    <View
+      style={[
+        styles.row,
+        isNew && styles.rowNew,
+        isActive && styles.rowDragging,
+        !isNew && styles.rowFixed,
+      ]}
+    >
+      {canDrag ? (
+        <PageDragHandle
+          active={isActive}
+          dragTranslateY={translateY}
+          onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDragEnd}
+        />
+      ) : (
+        <View style={styles.fixedSlot}>
+          <Ionicons name="lock-closed-outline" size={16} color={colors.tabInactive} />
+        </View>
+      )}
+
+      <View style={styles.thumbWrap}>
+        {row.thumbnailUri ? (
+          <Image
+            source={{ uri: row.thumbnailUri }}
+            style={styles.thumb}
+            contentFit="cover"
+            transition={0}
+          />
+        ) : (
+          <View style={styles.thumbPlaceholder}>
+            <Ionicons name="image-outline" size={16} color={colors.tabInactive} />
+          </View>
+        )}
+      </View>
+
+      <View style={styles.rowText}>
+        <AppText variant="caption" style={styles.rowOrder}>
+          {displayNumber}. {isNew ? "Новая страница" : "Страница альбома"}
+        </AppText>
+        <AppText variant="body" numberOfLines={2}>
+          {row.title}
+        </AppText>
+        {isNew ? (
+          <AppText variant="caption" style={styles.newHint}>
+            Зажмите ≡ и перетащите или используйте кнопки ниже
+          </AppText>
+        ) : canTapInsert ? (
+          <AppText variant="caption" style={styles.tapHint}>
+            Нажмите, чтобы поставить новую страницу после этой
+          </AppText>
+        ) : null}
+      </View>
+
+      {isNew ? (
+        <View style={styles.newBadge}>
+          <AppText variant="caption" style={styles.newBadgeText}>
+            Новая
+          </AppText>
+        </View>
+      ) : null}
+    </View>
+  );
 
   return (
     <Animated.View style={[styles.rowWrap, animatedStyle]}>
-      <View
-        style={[
-          styles.row,
-          isNew && styles.rowNew,
-          isActive && styles.rowDragging,
-          !isNew && styles.rowFixed,
-        ]}
-      >
-        {canDrag ? (
-          <PageDragHandle
-            active={isActive}
-            onDragStart={handleDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDragEnd}
-          />
-        ) : (
-          <View style={styles.fixedSlot}>
-            <Ionicons name="lock-closed-outline" size={16} color={colors.tabInactive} />
-          </View>
-        )}
+      {canTapInsert ? (
+        <Pressable
+          onPress={() => onInsertAfter(index)}
+          style={({ pressed }) => [pressed && styles.rowPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`Поставить новую страницу после ${row.title}`}
+        >
+          {card}
+        </Pressable>
+      ) : (
+        card
+      )}
 
-        <View style={styles.thumbWrap}>
-          {row.thumbnailUri ? (
-            <Image
-              source={{ uri: row.thumbnailUri }}
-              style={styles.thumb}
-              contentFit="cover"
-              transition={0}
-            />
-          ) : (
-            <View style={styles.thumbPlaceholder}>
-              <Ionicons name="image-outline" size={16} color={colors.tabInactive} />
-            </View>
-          )}
-        </View>
-
-        <View style={styles.rowText}>
-          <AppText variant="caption" style={styles.rowOrder}>
-            {displayNumber}. {isNew ? "Новая страница" : "Страница альбома"}
-          </AppText>
-          <AppText variant="body" numberOfLines={2}>
-            {row.title}
-          </AppText>
-          {isNew ? (
-            <AppText variant="caption" style={styles.newHint}>
-              Зажмите ≡ и перетащите
+      {isNew && showQuickMoves ? (
+        <View style={styles.quickMoves}>
+          <Pressable
+            onPress={onMoveNewToStart}
+            disabled={disabled}
+            style={({ pressed }) => [styles.quickBtn, pressed && styles.quickBtnPressed]}
+          >
+            <Ionicons name="arrow-up" size={14} color={colors.primary} />
+            <AppText variant="caption" style={styles.quickBtnText}>
+              В начало
             </AppText>
-          ) : null}
-        </View>
-
-        {isNew ? (
-          <View style={styles.newBadge}>
-            <AppText variant="caption" style={styles.newBadgeText}>
-              Новая
+          </Pressable>
+          <Pressable
+            onPress={onMoveNewUp}
+            disabled={disabled}
+            style={({ pressed }) => [styles.quickBtn, pressed && styles.quickBtnPressed]}
+          >
+            <Ionicons name="chevron-up" size={16} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={onMoveNewDown}
+            disabled={disabled}
+            style={({ pressed }) => [styles.quickBtn, pressed && styles.quickBtnPressed]}
+          >
+            <Ionicons name="chevron-down" size={16} color={colors.primary} />
+          </Pressable>
+          <Pressable
+            onPress={onMoveNewToEnd}
+            disabled={disabled}
+            style={({ pressed }) => [styles.quickBtn, pressed && styles.quickBtnPressed]}
+          >
+            <Ionicons name="arrow-down" size={14} color={colors.primary} />
+            <AppText variant="caption" style={styles.quickBtnText}>
+              В конец
             </AppText>
-          </View>
-        ) : null}
-      </View>
+          </Pressable>
+        </View>
+      ) : null}
     </Animated.View>
   );
 }
@@ -233,6 +315,7 @@ export function PagePlacementReorderList({
 }: PagePlacementReorderListProps) {
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const scrollRef = useRef<ScrollView>(null);
 
   const rowsRef = useRef(rows);
   const draggingIndexRef = useRef<number | null>(null);
@@ -241,6 +324,19 @@ export function PagePlacementReorderList({
   useEffect(() => {
     rowsRef.current = rows;
   }, [rows]);
+
+  const newIndex = rows.findIndex((row) => row.kind === "new");
+
+  useEffect(() => {
+    if (newIndex < 0) return;
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        y: Math.max(0, newIndex * ROW_HEIGHT - ROW_HEIGHT),
+        animated: true,
+      });
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [newIndex]);
 
   const handleDragStart = useCallback((index: number) => {
     const row = rowsRef.current[index];
@@ -260,9 +356,15 @@ export function PagePlacementReorderList({
     hoverIndexRef.current = nextHover;
   }, []);
 
-  const handleDragEnd = useCallback(() => {
+  const handleDragEnd = useCallback((finalTranslationY?: number) => {
     const from = draggingIndexRef.current;
-    const to = hoverIndexRef.current;
+    const to =
+      from != null && finalTranslationY != null
+        ? Math.max(
+            0,
+            Math.min(rowsRef.current.length - 1, Math.round(from + finalTranslationY / ROW_HEIGHT)),
+          )
+        : hoverIndexRef.current;
     if (from != null && to != null) {
       onOrderChange(moveRow(rowsRef.current, from, to));
     }
@@ -272,8 +374,47 @@ export function PagePlacementReorderList({
     setScrollEnabled(true);
   }, [onOrderChange]);
 
+  const handleInsertAfter = useCallback(
+    (afterIndex: number) => {
+      onOrderChange(moveNewPageAfterRow(rowsRef.current, afterIndex));
+    },
+    [onOrderChange],
+  );
+
+  const moveNewToIndex = useCallback(
+    (targetIndex: number) => {
+      const currentNewIndex = rowsRef.current.findIndex((row) => row.kind === "new");
+      if (currentNewIndex < 0) return;
+      onOrderChange(moveRow(rowsRef.current, currentNewIndex, targetIndex));
+    },
+    [onOrderChange],
+  );
+
+  const handleMoveNewUp = useCallback(() => {
+    const currentNewIndex = rowsRef.current.findIndex((row) => row.kind === "new");
+    if (currentNewIndex > 0) {
+      moveNewToIndex(currentNewIndex - 1);
+    }
+  }, [moveNewToIndex]);
+
+  const handleMoveNewDown = useCallback(() => {
+    const currentNewIndex = rowsRef.current.findIndex((row) => row.kind === "new");
+    if (currentNewIndex >= 0 && currentNewIndex < rowsRef.current.length - 1) {
+      moveNewToIndex(currentNewIndex + 1);
+    }
+  }, [moveNewToIndex]);
+
+  const handleMoveNewToStart = useCallback(() => {
+    moveNewToIndex(0);
+  }, [moveNewToIndex]);
+
+  const handleMoveNewToEnd = useCallback(() => {
+    moveNewToIndex(rowsRef.current.length - 1);
+  }, [moveNewToIndex]);
+
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.scroll}
       scrollEnabled={scrollEnabled}
       nestedScrollEnabled
@@ -293,6 +434,12 @@ export function PagePlacementReorderList({
             onDragStart={handleDragStart}
             onDragMove={handleDragMove}
             onDragEnd={handleDragEnd}
+            onInsertAfter={handleInsertAfter}
+            onMoveNewUp={handleMoveNewUp}
+            onMoveNewDown={handleMoveNewDown}
+            onMoveNewToStart={handleMoveNewToStart}
+            onMoveNewToEnd={handleMoveNewToEnd}
+            showQuickMoves={row.kind === "new"}
           />
         ))}
       </View>
@@ -336,6 +483,9 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryLight,
     ...createShadow("md"),
   },
+  rowPressed: {
+    opacity: 0.88,
+  },
   fixedSlot: {
     width: 36,
     height: 52,
@@ -369,6 +519,10 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: sansFont("medium"),
   },
+  tapHint: {
+    color: colors.textSecondary,
+    fontFamily: sansFont("medium"),
+  },
   newBadge: {
     backgroundColor: colors.primary,
     borderRadius: radii.sm,
@@ -378,5 +532,31 @@ const styles = StyleSheet.create({
   newBadgeText: {
     color: colors.white,
     fontFamily: sansFont("semibold"),
+  },
+  quickMoves: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  quickBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radii.sm,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  quickBtnPressed: {
+    backgroundColor: colors.primarySurface,
+  },
+  quickBtnText: {
+    color: colors.primary,
+    fontFamily: sansFont("medium"),
   },
 });
