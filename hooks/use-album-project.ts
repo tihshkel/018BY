@@ -41,6 +41,7 @@ import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotations
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
+  cancelAlbumProjectPersist,
   flushAlbumProjectPersist,
   scheduleAlbumProjectPersist,
 } from '@/utils/albumProjectPersist';
@@ -130,6 +131,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     ) => {
       setIsSaving(true);
       try {
+        cancelAlbumProjectPersist(pid);
         await savePageInstances((k, v) => AsyncStorage.setItem(k, v), pid, nextInstances);
         await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), pid, nextValues);
         await AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(nextImages));

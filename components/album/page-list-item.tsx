@@ -36,6 +36,7 @@ type PageListItemProps = {
   itemsCount?: number;
   onReorder?: (toIndex: number) => void;
   reorderDisabled?: boolean;
+  isHighlighted?: boolean;
 };
 
 function PageCard({
@@ -50,6 +51,7 @@ function PageCard({
   canReorder = false,
   dragHandle,
   isDragging = false,
+  isHighlighted = false,
 }: {
   title: string;
   status: PageStatus;
@@ -62,6 +64,7 @@ function PageCard({
   canReorder?: boolean;
   dragHandle?: React.ReactNode;
   isDragging?: boolean;
+  isHighlighted?: boolean;
 }) {
   return (
     <Pressable
@@ -71,6 +74,7 @@ function PageCard({
         styles.card,
         compact && styles.cardCompact,
         canReorder && styles.cardAdded,
+        isHighlighted && styles.cardHighlighted,
         isDragging && styles.cardDragging,
         pressed && !isDragging && styles.pressed,
       ]}
@@ -140,6 +144,7 @@ export function PageListItem({
   itemsCount = 0,
   onReorder,
   reorderDisabled = false,
+  isHighlighted = false,
 }: PageListItemProps) {
   const swipeRef = useRef<SwipeableMethods>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -207,6 +212,7 @@ export function PageListItem({
       canReorder={canReorder}
       dragHandle={dragHandle}
       isDragging={isDragging}
+      isHighlighted={isHighlighted}
     />
   );
 
@@ -217,8 +223,10 @@ export function PageListItem({
       card
     );
 
+  const rowContent = <View style={styles.row}>{wrappedCard}</View>;
+
   if (!canDelete || !onDelete) {
-    return <View style={styles.row}>{wrappedCard}</View>;
+    return rowContent;
   }
 
   const handleDeletePress = () => {
@@ -273,6 +281,11 @@ const styles = StyleSheet.create({
   },
   cardAdded: {
     borderColor: colors.primaryLight,
+  },
+  cardHighlighted: {
+    borderColor: colors.primary,
+    borderWidth: 2,
+    backgroundColor: colors.primarySurface,
   },
   cardDragging: {
     borderColor: colors.primary,

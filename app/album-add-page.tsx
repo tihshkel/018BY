@@ -85,7 +85,7 @@ function StepProgressBar({ step }: { step: WizardStep }) {
       <AppText variant="bodySm" style={styles.stepHint}>
         {step === "pick-page"
           ? "Выберите макет из каталога альбома"
-          : "Новая страница уже стоит под оригиналом — зажмите ≡ слева и перетащите"}
+          : "Нажмите на страницу — новая встанет сразу после неё. Или зажмите ≡ и перетащите"}
       </AppText>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
@@ -291,7 +291,7 @@ export default function AlbumAddPageScreen() {
         project.lineGuideId,
         selectedSourcePageIndex + 1,
       );
-      await project.addPage({
+      const newInstanceId = await project.addPage({
         insertAfterIndex: newIndex - 1,
         sourcePageIndex: selectedSourcePageIndex,
         titleOverride: schema?.title,
@@ -303,6 +303,7 @@ export default function AlbumAddPageScreen() {
           celebration,
           coverType,
           interiorType,
+          ...(newInstanceId ? { highlightInstanceId: newInstanceId } : {}),
         },
       } as unknown as Href);
     } finally {
