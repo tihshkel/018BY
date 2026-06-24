@@ -1,6 +1,6 @@
 /**
- * Generates app icon assets from assets/images/logo-source.svg (logov2).
- * Updates Expo assets, iOS AppIcon, and Android mipmap launchers.
+ * Generates app icon assets from the master logo (PNG preferred, SVG fallback).
+ * Updates Expo assets, iOS AppIcon, and Android mipmap launchers + notification icons.
  */
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +8,8 @@ const path = require('path');
 const sharp = require('sharp');
 
 const root = path.join(__dirname, '..');
-const sourceLogo = path.join(root, 'assets/images/logo-source.svg');
+const sourceLogoPng = path.join(root, 'assets/images/logo-source.png');
+const sourceLogoSvg = path.join(root, 'assets/images/logo-source.svg');
 const assetsDir = path.join(root, 'assets/images');
 const iosIcon = path.join(
   root,
@@ -21,6 +22,7 @@ const iosSplashDir = path.join(
   'ios/018BY/Images.xcassets/SplashScreenLogo.imageset'
 );
 
+const BRAND_PINK = { r: 241, g: 148, b: 162, alpha: 1 };
 const WHITE_BG = { r: 255, g: 255, b: 255, alpha: 1 };
 const TRANSPARENT_BG = { r: 0, g: 0, b: 0, alpha: 0 };
 
@@ -45,24 +47,43 @@ function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+function resolveSourcePath() {
+  if (fs.existsSync(sourceLogoPng)) return sourceLogoPng;
+  if (fs.existsSync(sourceLogoSvg)) return sourceLogoSvg;
+  return null;
+}
+
 function loadLogo() {
-  return sharp(sourceLogo).resize(1024, 1024, {
+  const sourcePath = resolveSourcePath();
+  if (!sourcePath) {
+    throw new Error('Missing assets/images/logo-source.png (or logo-source.svg)');
+  }
+
+  return sharp(sourcePath).resize(1024, 1024, {
     fit: 'contain',
-    background: TRANSPARENT_BG,
+    background: BRAND_PINK,
   });
 }
 
-async function iconPipeline(size, background = WHITE_BG) {
-  return loadLogo().resize(size, size, { fit: 'contain', background }).png();
+function isSilhouetteBackground(r, g, b, a) {
+  if (a < 16) return true;
+  if (r > 235 && g > 235 && b > 235) return true;
+  // Розовый фон основного логотипа (#F194A2 и близкие оттенки)
+  if (r > 170 && g > 90 && b > 100 && r >= g - 20 && b >= g - 40) return true;
+  return false;
+}
+
+async function iconPipeline(size) {
+  return loadLogo().resize(size, size, { fit: 'contain', background: BRAND_PINK }).png();
 }
 
 async function logoPipeline(size) {
-  return loadLogo().resize(size, size, { fit: 'contain', background: TRANSPARENT_BG }).png();
+  return loadLogo().resize(size, size, { fit: 'contain', background: BRAND_PINK }).png();
 }
 
 async function whiteSilhouette(size) {
   const { data, info } = await loadLogo()
-    .resize(size, size, { fit: 'contain', background: WHITE_BG })
+    .resize(size, size, { fit: 'contain', background: BRAND_PINK })
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -72,9 +93,8 @@ async function whiteSilhouette(size) {
     const g = data[i + 1];
     const b = data[i + 2];
     const a = data[i + 3];
-    const isBackground = a < 16 || (r > 235 && g > 235 && b > 235);
 
-    if (isBackground) {
+    if (isSilhouetteBackground(r, g, b, a)) {
       data[i + 3] = 0;
     } else {
       data[i] = 255;
@@ -162,11 +182,11 @@ async function syncAndroidMipmaps() {
 
     const launcher = sharp(masterIcon).resize(launcherSize, launcherSize, {
       fit: 'contain',
-      background: WHITE_BG,
+      background: BRAND_PINK,
     });
     const foreground = sharp(masterForeground).resize(foregroundSize, foregroundSize, {
       fit: 'contain',
-      background: WHITE_BG,
+      background: BRAND_PINK,
     });
     const monochrome = sharp(masterMonochrome).resize(foregroundSize, foregroundSize, {
       fit: 'contain',
@@ -181,10 +201,13 @@ async function syncAndroidMipmaps() {
 }
 
 async function main() {
-  if (!fs.existsSync(sourceLogo)) {
-    console.error('Missing source logo:', sourceLogo);
+  const sourcePath = resolveSourcePath();
+  if (!sourcePath) {
+    console.error('Missing source logo: assets/images/logo-source.png');
     process.exit(1);
   }
+
+  console.log('Using logo source:', path.relative(root, sourcePath));
 
   await syncExpoAssets();
   await syncIosIcon();

@@ -88,8 +88,8 @@ export default function ExportReviewScreen() {
   });
 
   const formatOptions = useMemo(
-    () => getExportFormatOptions(celebration),
-    [celebration],
+    () => getExportFormatOptions(celebration, project.lineGuideId),
+    [celebration, project.lineGuideId],
   );
 
   const selectedFormatOption = useMemo(

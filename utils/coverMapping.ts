@@ -21,6 +21,12 @@ const PREGNANCY_COVER_MAPPING: Record<string, ImageSourcePropType> = {
   'pregnancy_db5_soft': require('../assets/images/albums/DB5_п.png'),
 };
 
+function toImageSource(source: unknown): ImageSourcePropType | null {
+  if (!source) return null;
+  if (typeof source === 'string') return { uri: source };
+  return source as ImageSourcePropType;
+}
+
 /**
  * Получает обложку для альбома беременности по ID альбома
  * @param albumId - ID альбома
@@ -38,7 +44,7 @@ export function getPregnancyCover(albumId: string | null): ImageSourcePropType |
   try {
     const albumTemplate = getAlbumTemplateById(albumId);
     if (albumTemplate && albumTemplate.category === 'pregnancy' && albumTemplate.thumbnailPath) {
-      return albumTemplate.thumbnailPath;
+      return toImageSource(albumTemplate.thumbnailPath);
     }
   } catch (error) {
     console.warn(`[Cover Mapping] Не удалось получить обложку для ${albumId}:`, error);
@@ -102,7 +108,7 @@ export function getCoverForExport(albumId: string | null, category?: string): Im
   try {
     const albumTemplate = getAlbumTemplateById(albumId);
     if (albumTemplate?.thumbnailPath) {
-      return albumTemplate.thumbnailPath;
+      return toImageSource(albumTemplate.thumbnailPath);
     }
   } catch (error) {
     console.warn(`[Cover Mapping] Не удалось получить обложку для ${albumId}:`, error);

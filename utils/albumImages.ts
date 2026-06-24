@@ -90,6 +90,7 @@ async function loadRemoteAlbumPageUri(
     if (info.exists) {
       return normalizeFileUri(localPath);
     }
+    return remotePageUrl(folderPath, fileName);
   }
   const uri = await downloadRemotePageToCache(folderPath, fileName);
   if (uri) return uri;
@@ -188,10 +189,9 @@ async function warmRemoteAlbumCache(
 }
 
 /**
- * Быстрый список страниц для просмотра: уже закешированные страницы отдаются с диска,
- * остальные сразу открываются по URL, а кеширование запускается в фоне.
- *
- * Это нужно, чтобы альбом открывался моментально (без ожидания скачивания всех 60 страниц).
+ * Быстрый список страниц для просмотра: сразу отдаём URL с GitHub,
+ * без ожидания проверки кеша каждой из 48–60 страниц.
+ * Локальный кеш прогревается в фоне.
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
@@ -199,14 +199,10 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
     return getAlbumImageUris(albumId);
   }
 
-  await ensureRemoteAlbumCacheDir();
-
-  const uris = await Promise.all(
-    Array.from({ length: spec.pageCount }, async (_, index) => {
-      const logicalPage = index + 1;
-      return loadRemoteAlbumPageUri(albumId, spec.folderPath, logicalPage, true);
-    })
-  );
+  const uris = Array.from({ length: spec.pageCount }, (_, index) => {
+    const fileName = resolveRemotePageFileName(albumId, index + 1);
+    return remotePageUrl(spec.folderPath, fileName);
+  });
 
   warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
 
@@ -401,8 +397,9 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
     const assetPromises = images.map(async (image) => {
       try {
         const asset = Asset.fromModule(image);
-        await asset.downloadAsync();
-        return asset.localUri || asset.uri;
+        const immediateUri = asset.localUri || asset.uri;
+        asset.downloadAsync().catch(() => {});
+        return immediateUri;
       } catch (error) {
         console.warn('Ошибка загрузки изображения:', error);
         return null;
@@ -446,6 +443,10 @@ export function isFamilyCoverAlbumId(albumId: string | null | undefined): boolea
   return !!albumId && albumId.startsWith('family_sdfa');
 }
 
+export function isWeddingCoverAlbumId(albumId: string | null | undefined): boolean {
+  return !!albumId && (albumId.startsWith('wedding_sva') || albumId.startsWith('wedding_sa'));
+}
+
 /** Альбомы с одним пустым листом для добавления страниц (семья, праздники blank) */
 export function isBlankInteriorAlbum(
   albumId: string | null | undefined,
@@ -480,7 +481,19 @@ export function resolveInteriorAlbumId(
   albumId: string | null | undefined,
   category?: string | null
 ): string {
+  if (albumId === 'family_blank_21x21') return 'family_blank_21x21';
+  if (albumId === 'family_blank') return 'family_blank';
+
+  if (category === 'pregnancy') {
+    if (albumId === 'pregnancy_a5') return 'pregnancy_a5';
+    return 'pregnancy_60';
+  }
+
   if (category === 'family') {
+    if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
+    return 'family_blank';
+  }
+  if (category === 'wedding') {
     if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
     return 'family_blank';
   }
@@ -491,10 +504,11 @@ export function resolveInteriorAlbumId(
     return '';
   }
 
-  if (albumId === 'family_blank_21x21' || usesSquareBlankInterior(albumId)) {
+  if (usesSquareBlankInterior(albumId)) {
     return 'family_blank_21x21';
   }
-  if (albumId === 'family_blank' || isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (isWeddingCoverAlbumId(albumId)) return 'family_blank';
   if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
   if (albumId.startsWith('holiday_')) {
     if (albumId === 'holiday_dfa34' || albumId === 'holiday_dfa35') return 'holidays_birthday_60';
@@ -515,12 +529,7 @@ export const TEMPLATE_LINE_GUIDE_IDS = new Set([
 ]);
 
 function isPregnancyA5LineGuide(albumId: string): boolean {
-  return (
-    albumId === 'pregnancy_a5' ||
-    albumId.includes('a5') ||
-    albumId.includes('_soft') ||
-    albumId.includes('_п')
-  );
+  return albumId === 'pregnancy_a5' || albumId.includes('a5');
 }
 
 /**

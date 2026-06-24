@@ -101,9 +101,11 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     viewportHeight
   );
 
-  if (layoutLimit == null) return typeLimit;
-  if (typeLimit == null) return layoutLimit;
-  return Math.min(typeLimit, layoutLimit);
+  const limits = [params.field.maxLength, typeLimit, layoutLimit].filter(
+    (limit): limit is number => limit != null,
+  );
+  if (limits.length === 0) return undefined;
+  return Math.min(...limits);
 }
 
 export function clampFieldInput(

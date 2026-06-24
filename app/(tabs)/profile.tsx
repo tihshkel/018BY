@@ -136,7 +136,7 @@ export default function ProfileScreen() {
       const dataMap = new Map(results);
       const name = dataMap.get('@user_name');
       const storedAvatar = dataMap.get('@user_avatar') ?? avatar;
-      if (name) setUserName(name);
+      setUserName(name?.trim() || '');
       if (storedAvatar) setAvatarUri(storedAvatar);
     } catch (error) {
       console.error('Error loading user data:', error);

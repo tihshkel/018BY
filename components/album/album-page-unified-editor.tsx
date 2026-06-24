@@ -239,6 +239,9 @@ export function AlbumPageUnifiedEditor({
                 slotUris={uris}
                 slotTransforms={pageValues.photoSlotTransforms ?? {}}
                 groupTransform={pageValues.photoGroupTransform}
+                lineGuideId={lineGuideId}
+                sourcePageNumber={resolvedSchema.sourcePageNumber}
+                templateLibraryId={resolvedSchema.templateLibraryId}
                 onPickPhoto={(slotIndex) => onPickPhoto(block.blockId, slotIndex)}
                 onRemovePhoto={(slotIndex) => onRemovePhoto(block.blockId, slotIndex)}
                 onSlotTransformChange={(slotIndex, transform) =>

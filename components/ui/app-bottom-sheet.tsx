@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Keyboard,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -56,6 +58,29 @@ export function AppBottomSheet({
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
   const tabletModal = getTabletBottomModalStyles(layout);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardOffset(0);
+      return;
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardOffset(event.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setKeyboardOffset(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [visible]);
 
   if (!visible) return null;
 
@@ -94,7 +119,10 @@ export function AppBottomSheet({
             size === 'large' && styles.sheetLarge,
             layout.isTablet && styles.sheetTablet,
             tabletModal.content,
-            { paddingBottom: Math.max(insets.bottom, spacing.md) },
+            {
+              paddingBottom: Math.max(insets.bottom, spacing.md),
+              marginBottom: keyboardOffset,
+            },
           ]}
         >
           {!layout.isTablet && showHandle ? <View style={styles.handle} /> : null}

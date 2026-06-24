@@ -3,7 +3,11 @@ import { projectCategories } from '@/constants/projectTemplates';
 import { getPregnancyCoverPdf } from '@/utils/coverPdfMapping';
 import { getGiftDisplayTitle, getGiftItemByAlbumName } from '@/utils/albumGiftMapping';
 import { filterProjectsByDeleted, loadDeletedProjectIds } from '@/utils/deleted-project-ids';
-import { getAlbumPageCount, resolveInteriorAlbumId } from '@/utils/albumImages';
+import {
+  getAlbumPageCount,
+  resolveInteriorAlbumId,
+  resolveLineGuideId,
+} from '@/utils/albumImages';
 import { pruneGhostAlbumProjects } from '@/utils/pruneGhostAlbumProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -62,6 +66,25 @@ const countPhotoAnnotations = (items: unknown[]): number => {
       ((ann as { imageUri: string }).imageUri?.length ?? 0) > 0
   ).length;
 };
+
+function hasValidReadyMadeMeta(project: Record<string, unknown>): boolean {
+  const id = String(project?.id ?? '').trim();
+  if (!id) return false;
+  if (!project?.isReadyMadeAlbum && !project?.hasPdfTemplate) return true;
+
+  const category = String(project.category ?? '').trim();
+  const rawInterior = String(project.interiorType ?? project.albumId ?? '').trim();
+  const interiorId = resolveInteriorAlbumId(rawInterior, category);
+  const lineGuideId = resolveLineGuideId(interiorId, category);
+
+  if (category === 'diary') return lineGuideId.startsWith('diary_interior_');
+  if (category === 'pregnancy') return lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5';
+  if (category === 'kids') return lineGuideId === 'kids_48';
+  if (category === 'holidays') return Boolean(interiorId);
+  if (category === 'family') return Boolean(interiorId);
+
+  return getAlbumPageCount(interiorId) > 0;
+}
 
 function resolveGiftSku(params: {
   albumId: string | null;
@@ -202,7 +225,7 @@ export async function loadUserProjects(): Promise<UserProject[]> {
   const visibleProjects = filterProjectsByDeleted(
     parsedProjects as Array<{ id?: string }>,
     deletedIds
-  );
+  ).filter((project) => hasValidReadyMadeMeta(project as Record<string, unknown>));
   if (visibleProjects.length === 0) return [];
 
   const formatted = await Promise.all(

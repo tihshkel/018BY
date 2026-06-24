@@ -41,7 +41,7 @@ export function ProfileNameEditSheet({
       onClose={onClose}
       title="Изменить имя"
       subtitle="Как к вам обращаться в приложении"
-      scroll={false}
+      scroll
       footer={
         <AppButton
           testID="profile-name-save"
@@ -59,6 +59,14 @@ export function ProfileNameEditSheet({
         placeholder="Введите ваше имя"
         autoCapitalize="words"
         autoCorrect={false}
+        autoFocus={visible}
+        returnKeyType="done"
+        blurOnSubmit={false}
+        onSubmitEditing={() => {
+          if (canSave) {
+            void handleSave();
+          }
+        }}
         containerStyle={styles.input}
       />
     </AppBottomSheet>

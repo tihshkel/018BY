@@ -1,4 +1,9 @@
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
+import {
+  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerTitle,
+  WEDDING_COVER_DESIGNS,
+} from '@/utils/weddingCoverDesigns';
 
 export interface PhotoPosition {
   x: number;
@@ -43,7 +48,7 @@ export interface AlbumTemplate {
   description: string;
   category: 'pregnancy' | 'kids' | 'family' | 'wedding' | 'travel' | 'holidays';
   pages: number;
-  thumbnailPath?: string;
+  thumbnailPath?: any;
   pdfPath?: string | number | any;
   hasPdfTemplate?: boolean; // Указывает, есть ли готовый PDF шаблон
   sections: AlbumSection[];
@@ -583,6 +588,16 @@ export const albumTemplates: AlbumTemplate[] = [
     hasPdfTemplate: false,
     sections: [],
   },
+  ...WEDDING_COVER_DESIGNS.map((design) => ({
+    id: design.id,
+    name: getWeddingCoverPickerTitle(design),
+    description: getWeddingCoverFormatLabel(design.format),
+    category: 'wedding' as const,
+    pages: 20,
+    thumbnailPath: design.image,
+    hasPdfTemplate: false,
+    sections: [],
+  })),
 ];
 
 export function getAllAlbumTemplates(): AlbumTemplate[] {

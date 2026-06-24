@@ -220,6 +220,7 @@ function buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec) 
     pageType: 'structured',
     editable: true,
     fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec),
+    formHint: tzEntry.formHint,
     canDuplicate: tzEntry.canDuplicate ?? false,
   };
 }
@@ -326,11 +327,23 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'ParentProfileTemplate_Mom') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PARENT_MOM_FIELDS);
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      { ...tzEntry, formHint: 'Анкета про маму: контакты, профессия, любимые вещи и пожелания.' },
+      PARENT_MOM_FIELDS,
+    );
   }
 
   if (template === 'ParentProfileTemplate_Dad') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PARENT_DAD_FIELDS);
+    return buildStructuredFromSpec(
+      pageNumber,
+      slots,
+      lineGuideId,
+      { ...tzEntry, formHint: 'Анкета про папу: контакты, профессия, любимые вещи и пожелания.' },
+      PARENT_DAD_FIELDS,
+    );
   }
 
   if (
@@ -392,7 +405,11 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
 
   if (template === 'ParentQuestionnaireTemplate') {
     const spec = pageNumber === 6 ? PARENT_MOM_FIELDS : PARENT_DAD_FIELDS;
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, spec);
+    const formHint =
+      pageNumber === 6
+        ? 'Анкета про маму: контакты, профессия, любимые вещи и пожелания.'
+        : 'Анкета про папу: контакты, профессия, любимые вещи и пожелания.';
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, { ...tzEntry, formHint }, spec);
   }
 
   if (template === 'WeeklyScheduleTwoDaysTemplate') {

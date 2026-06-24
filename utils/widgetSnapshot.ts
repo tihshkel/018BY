@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-import { setWidgetData } from '@bittingz/expo-widgets';
-
 import { getAccountSyncId, getRemindersStorageKey } from '@/utils/account-sync';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import {
@@ -80,6 +78,15 @@ const MAX_PROJECTS = 5;
 const MAX_PROGRESS_PROJECTS = 3;
 
 let syncInFlight: Promise<void> | null = null;
+
+function writeWidgetData(payload: string): void {
+  if (Platform.OS !== 'ios') return;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const widgets = require('@bittingz/expo-widgets') as {
+    setWidgetData?: (value: string) => void;
+  };
+  widgets.setWidgetData?.(payload);
+}
 
 function daysUntil(isoDate: string): number {
   const target = new Date(isoDate);
@@ -280,7 +287,7 @@ async function buildSnapshot(): Promise<WidgetSnapshot> {
 
 async function doSync(): Promise<void> {
   const snapshot = await buildSnapshot();
-  setWidgetData(JSON.stringify(snapshot));
+  writeWidgetData(JSON.stringify(snapshot));
 }
 
 export async function syncWidgetSnapshot(): Promise<void> {
@@ -302,5 +309,5 @@ export async function clearWidgetSnapshot(): Promise<void> {
     projects: [],
     reminders: [],
   };
-  setWidgetData(JSON.stringify(empty));
+  writeWidgetData(JSON.stringify(empty));
 }

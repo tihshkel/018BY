@@ -9,6 +9,11 @@ import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
+import {
+  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerTitle,
+  WEDDING_COVER_DESIGNS,
+} from '@/utils/weddingCoverDesigns';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
@@ -214,6 +219,18 @@ export default function SelectCoverScreen() {
         id: design.id,
         title: getCoverSelectTitleBySku(design.sku, 'family'),
         description: 'Семейный альбом',
+        image: design.image,
+        color: gradient[0],
+        gradient,
+      }));
+    }
+
+    if (celebration === 'wedding') {
+      const gradient = categoryGradients.wedding;
+      return WEDDING_COVER_DESIGNS.map((design) => ({
+        id: design.id,
+        title: getWeddingCoverPickerTitle(design),
+        description: getWeddingCoverFormatLabel(design.format),
         image: design.image,
         color: gradient[0],
         gradient,
@@ -592,7 +609,7 @@ export default function SelectCoverScreen() {
 
     console.log('[Select Cover] Cover selected:', coverId, 'Celebration:', celebration, 'Type:', typeof celebration);
 
-    // Для беременности и детей показываем модальное окно выбора даты
+    // Дата нужна только для альбомов, где она влияет на напоминания и контент.
     if (celebration === 'pregnancy' || celebration === 'kids') {
       console.log('[Select Cover] Showing date modal for:', celebration);
       setSelectedCoverId(coverId);

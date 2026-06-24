@@ -89,10 +89,10 @@ assert(templatesSource.includes('buildPageLayoutsFromTemplates'), 'photo-layout-
 // --- 2. Photo slot coverage ---
 const photoSlotsSource = readFile('constants/photo-slots.ts');
 assert(
-  ['56', '57', '58', '59'].every(
-    (p) =>
-      photoSlotsSource.includes(`'${p}':`) && photoSlotsSource.includes(`variantId: 'one_large'`),
-  ),
+  photoSlotsSource.includes('const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59]') &&
+    photoSlotsSource.includes('function pregnancyMemoryPhotoLayouts') &&
+    photoSlotsSource.includes('PREGNANCY_MEMORY_PHOTO_SAFE') &&
+    photoSlotsSource.includes('FULL_PHOTO_TEMPLATES'),
   'pregnancy_60: photo-slots 56–59 with calibrated variants',
 );
 assert(photoSlotsSource.includes('three_hero'), 'photo-slots: three_hero template');
@@ -137,9 +137,9 @@ assert(
   'pdf-annotations: cover/fill switch',
 );
 
-const exportSource = readFile('app/export-pdf.tsx');
-assert(exportSource.includes('computeObjectFitCover'), 'export-pdf: cover crop');
-assert(exportSource.includes("ann.imageContentFit === 'cover'"), 'export-pdf: cover branch');
+const exportImageSource = readFile('utils/exportPdfImageAnnotations.ts');
+assert(exportImageSource.includes('computeObjectFitCover'), 'export-pdf: cover crop');
+assert(exportImageSource.includes("ann.imageContentFit === 'cover'"), 'export-pdf: cover branch');
 
 // --- 5. Presets ---
 const presetsSource = readFile('constants/photo-block-presets.ts');

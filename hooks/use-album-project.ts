@@ -31,13 +31,13 @@ import {
   renamePageInstance,
 } from '@/utils/albumPageOperations';
 import {
+  createEmptyPageValues,
   loadPageInstances,
   loadPageValuesMap,
   savePageInstances,
   savePageValuesMap,
 } from '@/utils/pageStorage';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
-import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
@@ -51,7 +51,7 @@ import {
   publishAlbumProjectSnapshot,
   subscribeAlbumProjectSnapshot,
 } from '@/utils/albumProjectStateSync';
-import { pushAccountDataToCloud, scheduleSyncToCloud, addProjectToSyncedList } from '@/utils/account-sync';
+import { scheduleSyncToCloud, addProjectToSyncedList } from '@/utils/account-sync';
 import { runDedupedAlbumProjectCreation } from '@/utils/albumProjectCreationLock';
 import { getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 
@@ -80,6 +80,7 @@ function getCelebrationTitle(celebration: string): string {
     pregnancy: 'Дневник беременности',
     kids: 'Детский фотоальбом',
     family: 'Семейный альбом',
+    wedding: 'Свадебный альбом',
     holidays: 'Праздничный альбом',
     diary: 'Дневник',
   };
@@ -121,6 +122,24 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     return assets.map((a) => String(a));
   }, []);
 
+  const normalizeBlankImageUris = useCallback(
+    async (albumId: string, category: string | undefined, imageUris: string[]): Promise<string[]> => {
+      const lineGuide = resolveLineGuideId(albumId, category);
+      if (!isBlankInteriorAlbum(lineGuide, category)) {
+        return imageUris;
+      }
+
+      const blankUri = await getBlankInteriorPageUri(lineGuide);
+      if (!blankUri) {
+        return imageUris;
+      }
+
+      const count = imageUris.length > 0 ? imageUris.length : getAlbumPageCount(lineGuide);
+      return Array(count).fill(blankUri);
+    },
+    [],
+  );
+
   const persistAll = useCallback(
     async (
       pid: string,
@@ -135,8 +154,6 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         await savePageInstances((k, v) => AsyncStorage.setItem(k, v), pid, nextInstances);
         await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), pid, nextValues);
         await AsyncStorage.setItem(`@project_images_${pid}`, JSON.stringify(nextImages));
-
-        await ensureProjectAnnotationsSynced(pid);
 
         if (nextMeta) {
           const updated = { ...nextMeta, pagesCount: nextImages.length };
@@ -157,7 +174,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         setIsSaving(false);
       }
     },
-    [lineGuideId]
+    []
   );
 
   const scheduleSave = useCallback(
@@ -328,6 +345,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         schemaPageId,
         sourcePageNumber,
         titleOverride: params.titleOverride,
+        templateLibraryId: params.templateLibraryId,
         lineGuideId,
       });
 
@@ -444,6 +462,39 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     [instances, pageValuesMap, images, effectiveProjectId, meta, persistAll]
   );
 
+  const changePageTemplate = useCallback(
+    async (instanceId: string, templateLibraryId: string, title: string) => {
+      if (!effectiveProjectId) return false;
+      const index = instances.findIndex((item) => item.instanceId === instanceId);
+      const instance = instances[index];
+      if (!instance) return false;
+
+      const schemaPageId = `${lineGuideId}_lib_${templateLibraryId}_${Date.now()}`;
+      const nextInstances = [...instances];
+      nextInstances[index] = {
+        ...instance,
+        schemaPageId,
+        templateLibraryId,
+        titleOverride: title,
+      };
+      const nextPageValuesMap = {
+        ...pageValuesMap,
+        [instanceId]: createEmptyPageValues(),
+      };
+
+      setInstances(nextInstances);
+      setPageValuesMap(nextPageValuesMap);
+      publishAlbumProjectSnapshot(effectiveProjectId, {
+        pageValuesMap: nextPageValuesMap,
+        instances: nextInstances,
+        images,
+      });
+      await persistAll(effectiveProjectId, images, nextInstances, nextPageValuesMap, meta);
+      return true;
+    },
+    [instances, pageValuesMap, images, effectiveProjectId, meta, lineGuideId, persistAll]
+  );
+
   const movePage = useCallback(
     async (instanceId: string, toIndex: number) => {
       const fromIndex = instances.findIndex((item) => item.instanceId === instanceId);
@@ -521,10 +572,30 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       setIsLoading(true);
       try {
         if (projectId) {
-          await migrateProjectToPageValues(projectId);
-          const projectRaw = await AsyncStorage.getItem(`@project_${projectId}`);
-          if (!projectRaw) {
+          const memorySnapshot = getAlbumProjectSnapshot(projectId);
+          if (
+            memorySnapshot?.instances.length &&
+            memorySnapshot.images.length &&
+            Object.keys(memorySnapshot.pageValuesMap).length > 0
+          ) {
+            setEffectiveProjectId(projectId);
+            setInstances(memorySnapshot.instances);
+            setPageValuesMap(memorySnapshot.pageValuesMap);
+            setImages(memorySnapshot.images);
             setIsLoading(false);
+          }
+
+          await migrateProjectToPageValues(projectId);
+          const [projectRaw, savedImages, loadedInstances, loadedValues] = await Promise.all([
+            AsyncStorage.getItem(`@project_${projectId}`),
+            AsyncStorage.getItem(`@project_images_${projectId}`),
+            loadPageInstances((k) => AsyncStorage.getItem(k), projectId),
+            loadPageValuesMap((k) => AsyncStorage.getItem(k), projectId),
+          ]);
+          if (!projectRaw) {
+            if (!memorySnapshot?.instances.length) {
+              setIsLoading(false);
+            }
             return;
           }
           const project = JSON.parse(projectRaw) as AlbumProjectMeta;
@@ -533,9 +604,13 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           setEffectiveProjectId(projectId);
 
           let imageUris: string[] = [];
-          const savedImages = await AsyncStorage.getItem(`@project_images_${projectId}`);
           if (savedImages) {
-            imageUris = JSON.parse(savedImages);
+            imageUris = await normalizeBlankImageUris(
+              project.interiorType ?? project.albumId ?? '',
+              project.category,
+              JSON.parse(savedImages),
+            );
+            void AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
           } else {
             imageUris = await loadImagesForAlbum(
               project.interiorType ?? project.albumId ?? '',
@@ -544,35 +619,30 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           }
           setImages(imageUris);
 
-          let loadedInstances = await loadPageInstances(
-            (k) => AsyncStorage.getItem(k),
-            projectId
-          );
-          let loadedValues = await loadPageValuesMap(
-            (k) => AsyncStorage.getItem(k),
-            projectId
-          );
+          let nextInstances = loadedInstances;
+          let nextValues = loadedValues;
 
           const lgId = resolveLineGuideId(project.interiorType ?? project.albumId, project.category);
-          if (loadedInstances.length === 0 && imageUris.length > 0) {
-            loadedInstances = buildInitialPageInstances(lgId, imageUris.length);
-            loadedValues = buildInitialPageValuesMap(loadedInstances);
-            await savePageInstances((k, v) => AsyncStorage.setItem(k, v), projectId, loadedInstances);
-            await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, loadedValues);
+          if (nextInstances.length === 0 && imageUris.length > 0) {
+            nextInstances = buildInitialPageInstances(lgId, imageUris.length);
+            nextValues = buildInitialPageValuesMap(nextInstances);
+            await savePageInstances((k, v) => AsyncStorage.setItem(k, v), projectId, nextInstances);
+            await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, nextValues);
           }
 
-          const memorySnapshot = getAlbumProjectSnapshot(projectId);
-          const mergedValues = memorySnapshot?.pageValuesMap
-            ? { ...loadedValues, ...memorySnapshot.pageValuesMap }
-            : loadedValues;
+          const memorySnapshotAfterLoad = getAlbumProjectSnapshot(projectId);
+          const mergedValues = memorySnapshotAfterLoad?.pageValuesMap
+            ? { ...nextValues, ...memorySnapshotAfterLoad.pageValuesMap }
+            : nextValues;
           const mergedInstances =
-            memorySnapshot?.instances?.length &&
-            memorySnapshot.instances.length >= loadedInstances.length
-              ? memorySnapshot.instances
-              : loadedInstances;
+            memorySnapshotAfterLoad?.instances?.length &&
+            memorySnapshotAfterLoad.instances.length >= nextInstances.length
+              ? memorySnapshotAfterLoad.instances
+              : nextInstances;
           const mergedImages =
-            memorySnapshot?.images?.length && memorySnapshot.images.length >= imageUris.length
-              ? memorySnapshot.images
+            memorySnapshotAfterLoad?.images?.length &&
+            memorySnapshotAfterLoad.images.length >= imageUris.length
+              ? memorySnapshotAfterLoad.images
               : imageUris;
 
           setInstances(mergedInstances);
@@ -649,7 +719,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
             }
 
-            await pushAccountDataToCloud({ forceIncludeProjectIds: [createdProjectId] });
+            await addProjectToSyncedList(createdProjectId);
             scheduleSyncToCloud();
 
             if (eventDate && celebration) {
@@ -667,30 +737,35 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         if (cancelled) return;
 
         const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
-        const imageUrisRaw = await AsyncStorage.getItem(`@project_images_${newProjectId}`);
+        const [projectRaw, imageUrisRaw, loadedInstancesRaw, loadedValuesRaw] = await Promise.all([
+          AsyncStorage.getItem(`@project_${newProjectId}`),
+          AsyncStorage.getItem(`@project_images_${newProjectId}`),
+          loadPageInstances((k) => AsyncStorage.getItem(k), newProjectId),
+          loadPageValuesMap((k) => AsyncStorage.getItem(k), newProjectId),
+        ]);
+
         const imageUris = imageUrisRaw
-          ? (JSON.parse(imageUrisRaw) as string[])
+          ? await normalizeBlankImageUris(
+              interiorType ?? albumId,
+              celebration,
+              JSON.parse(imageUrisRaw) as string[],
+            )
           : (await loadImagesForAlbum(albumId, celebration)) ?? [];
 
+        if (imageUrisRaw) {
+          await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
+        }
+
         const lgId = resolveLineGuideId(albumId, celebration);
-        const loadedInstancesRaw = await loadPageInstances(
-          (k) => AsyncStorage.getItem(k),
-          newProjectId,
-        );
         const loadedInstances =
           loadedInstancesRaw.length > 0
             ? loadedInstancesRaw
             : buildInitialPageInstances(lgId, imageUris.length);
-        const loadedValuesRaw = await loadPageValuesMap(
-          (k) => AsyncStorage.getItem(k),
-          newProjectId,
-        );
         const loadedValues =
           Object.keys(loadedValuesRaw).length > 0
             ? loadedValuesRaw
             : buildInitialPageValuesMap(loadedInstances);
 
-        const projectRaw = await AsyncStorage.getItem(`@project_${newProjectId}`);
         const projectData = projectRaw
           ? (JSON.parse(projectRaw) as AlbumProjectMeta)
           : null;
@@ -705,6 +780,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           instances: loadedInstances,
           images: imageUris,
         });
+
+        setIsLoading(false);
 
         router.replace({
           pathname: '/album-intro',
@@ -727,7 +804,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     return () => {
       cancelled = true;
     };
-  }, [projectId, celebration, coverType, interiorType, eventDate, loadImagesForAlbum]);
+  }, [projectId, celebration, coverType, interiorType, eventDate, loadImagesForAlbum, normalizeBlankImageUris]);
 
   return {
     projectId: effectiveProjectId,
@@ -744,6 +821,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     removePage,
     duplicatePage,
     renamePage,
+    changePageTemplate,
     movePage,
     setPageExcluded,
     markDraftSaved,

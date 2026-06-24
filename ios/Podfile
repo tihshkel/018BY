@@ -25,6 +25,10 @@ prepare_react_native_project!
 target '018BY' do
   use_expo_modules!
 
+  # Google Sign-In (RNGoogleSignin) requires module maps when linked as static libraries.
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
+
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
   else
@@ -99,6 +103,24 @@ target '018BY' do
         if config.name == 'Debug'
           config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf'
         end
+      end
+    end
+
+    # RNSVG (New Architecture) must see codegen props in ios/build/generated/ios.
+    # Without this path, Xcode can compile RNSVGShadowNodes.h before ReactCodegen
+    # headers are visible and fail with "Use of undeclared identifier RNSVGCircleProps".
+    codegen_ios = File.join(__dir__, 'build', 'generated', 'ios')
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'RNSVG'
+
+      target.build_configurations.each do |config|
+        header_paths = config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)'
+        header_paths = [header_paths] unless header_paths.is_a?(Array)
+        codegen_entry = "\"#{codegen_ios}\""
+        unless header_paths.any? { |entry| entry.to_s.include?('build/generated/ios') }
+          header_paths << codegen_entry
+        end
+        config.build_settings['HEADER_SEARCH_PATHS'] = header_paths
       end
     end
 

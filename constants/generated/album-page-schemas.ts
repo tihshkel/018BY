@@ -250,7 +250,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "pregnancy_60_p3_name",
-          "label": "Имя",
+          "label": "Имя папы",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -258,7 +258,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_birth_date",
-          "label": "Дата рождения",
+          "label": "Дата рождения папы",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -266,7 +266,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_eye_color",
-          "label": "Цвет глаз",
+          "label": "Цвет глаз папы",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -274,7 +274,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_hair_color",
-          "label": "Цвет волос",
+          "label": "Цвет волос папы",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -282,7 +282,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_education",
-          "label": "Образование",
+          "label": "Образование папы",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -290,7 +290,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_workplace",
-          "label": "Место работы",
+          "label": "Место работы папы",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
@@ -298,7 +298,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_position",
-          "label": "Должность",
+          "label": "Должность папы",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -306,7 +306,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_hobby",
-          "label": "Хобби",
+          "label": "Хобби папы",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -314,7 +314,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_want_child",
-          "label": "Когда понял, что хочет ребенка",
+          "label": "Когда папа понял, что хочет ребенка",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -322,7 +322,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p3_want_count",
-          "label": "Хотел бы иметь",
+          "label": "Сколько детей папа хотел бы иметь",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -330,7 +330,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Анкета про папу малыша: личные данные, работа, увлечения и ожидания."
     },
     {
       "pageId": "pregnancy_60_p4",
@@ -375,7 +376,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_fio",
-          "label": "ФИО",
+          "label": "ФИО врача / акушерки",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -383,7 +384,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_cabinet",
-          "label": "Кабинет",
+          "label": "Кабинет врача",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -391,7 +392,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_phone",
-          "label": "Номер телефона",
+          "label": "Телефон врача или регистратуры",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -399,7 +400,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_mon",
-          "label": "Пн",
+          "label": "График врача: понедельник",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -407,7 +408,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_thu",
-          "label": "Чт",
+          "label": "График врача: четверг",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -415,7 +416,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_tue",
-          "label": "Вт",
+          "label": "График врача: вторник",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
@@ -423,7 +424,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_fri",
-          "label": "Пт",
+          "label": "График врача: пятница",
           "type": "text",
           "required": false,
           "templateLineStart": 13,
@@ -431,7 +432,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_wed",
-          "label": "Ср",
+          "label": "График врача: среда",
           "type": "text",
           "required": false,
           "templateLineStart": 14,
@@ -439,7 +440,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_sat",
-          "label": "Сб",
+          "label": "График врача: суббота",
           "type": "text",
           "required": false,
           "templateLineStart": 15,
@@ -447,7 +448,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p4_recommendations",
-          "label": "Рекомендации",
+          "label": "Рекомендации врача",
           "type": "text",
           "required": false,
           "templateLineStart": 16,
@@ -455,7 +456,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Заполните данные первого приёма, врача и график его работы по дням недели."
     },
     {
       "pageId": "pregnancy_60_p5",
@@ -512,7 +514,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Данные первого УЗИ: дата, место, врач и ваши эмоции после встречи с малышом."
     },
     {
       "pageId": "pregnancy_60_p7",
@@ -830,7 +833,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p9_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -838,7 +841,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p9_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -883,7 +886,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p10_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -891,7 +894,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p10_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -936,7 +939,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p11_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -944,7 +947,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p11_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -989,7 +992,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p12_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -997,7 +1000,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p12_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1042,7 +1045,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p13_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1050,7 +1053,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p13_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1095,7 +1098,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p14_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1103,7 +1106,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p14_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1148,7 +1151,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p15_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1156,7 +1159,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p15_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1201,7 +1204,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p16_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1209,7 +1212,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p16_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1254,7 +1257,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p17_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1262,7 +1265,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p17_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1319,7 +1322,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p19_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1327,7 +1330,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p19_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1372,7 +1375,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p20_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1380,7 +1383,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p20_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1425,7 +1428,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p21_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1433,7 +1436,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p21_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1478,7 +1481,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p22_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1486,7 +1489,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p22_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1531,7 +1534,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p23_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1539,7 +1542,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p23_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1584,7 +1587,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p24_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1592,7 +1595,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p24_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1637,7 +1640,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p25_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1645,7 +1648,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p25_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1690,7 +1693,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p26_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1698,7 +1701,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p26_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1743,7 +1746,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p27_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1751,7 +1754,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p27_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1796,7 +1799,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p28_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1804,7 +1807,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p28_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1849,7 +1852,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p29_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1857,7 +1860,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p29_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1902,7 +1905,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p30_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1910,7 +1913,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p30_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -1955,7 +1958,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p31_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -1963,7 +1966,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p31_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2008,7 +2011,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p32_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2016,7 +2019,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p32_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2073,7 +2076,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p34_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2081,7 +2084,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p34_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2126,7 +2129,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p35_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2134,7 +2137,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p35_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2179,7 +2182,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p36_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2187,7 +2190,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p36_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2232,7 +2235,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p37_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2240,7 +2243,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p37_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2285,7 +2288,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p38_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2293,7 +2296,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p38_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2338,7 +2341,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p39_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2346,7 +2349,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p39_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2391,7 +2394,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p40_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2399,7 +2402,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p40_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2444,7 +2447,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p41_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2452,7 +2455,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p41_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2497,7 +2500,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p42_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2505,7 +2508,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p42_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2550,7 +2553,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p43_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2558,7 +2561,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p43_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2603,7 +2606,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p44_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2611,7 +2614,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p44_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2656,7 +2659,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p45_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2664,7 +2667,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p45_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2709,7 +2712,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p46_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2717,7 +2720,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p46_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -2762,7 +2765,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p47_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -2770,7 +2773,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_60_p47_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4195,7 +4198,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p5_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4203,7 +4206,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p5_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4248,7 +4251,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p6_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4256,7 +4259,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p6_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4301,7 +4304,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p7_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4309,7 +4312,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p7_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4354,7 +4357,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p8_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4362,7 +4365,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p8_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4407,7 +4410,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p9_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4415,7 +4418,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p9_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4460,7 +4463,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p10_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4468,7 +4471,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p10_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4513,7 +4516,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p11_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4521,7 +4524,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p11_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4566,7 +4569,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p12_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4574,7 +4577,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p12_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4619,7 +4622,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p13_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4627,7 +4630,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p13_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4684,7 +4687,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p15_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4692,7 +4695,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p15_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4737,7 +4740,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p16_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4745,7 +4748,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p16_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4790,7 +4793,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p17_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4798,7 +4801,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p17_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4843,7 +4846,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p18_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4851,7 +4854,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p18_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4896,7 +4899,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p19_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4904,7 +4907,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p19_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -4949,7 +4952,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p20_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -4957,7 +4960,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p20_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5002,7 +5005,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p21_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5010,7 +5013,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p21_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5055,7 +5058,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p22_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5063,7 +5066,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p22_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5108,7 +5111,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p23_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5116,7 +5119,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p23_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5161,7 +5164,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p24_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5169,7 +5172,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p24_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5214,7 +5217,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p25_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5222,7 +5225,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p25_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5267,7 +5270,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p26_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5275,7 +5278,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p26_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5320,7 +5323,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p27_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5328,7 +5331,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p27_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5373,7 +5376,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p28_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5381,7 +5384,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p28_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5438,7 +5441,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p30_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5446,7 +5449,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p30_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5491,7 +5494,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p31_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5499,7 +5502,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p31_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5544,7 +5547,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p32_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5552,7 +5555,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p32_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5597,7 +5600,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p33_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5605,7 +5608,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p33_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5650,7 +5653,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p34_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5658,7 +5661,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p34_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5703,7 +5706,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p35_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5711,7 +5714,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p35_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5756,7 +5759,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p36_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5764,7 +5767,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p36_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5809,7 +5812,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p37_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5817,7 +5820,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p37_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5862,7 +5865,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p38_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5870,7 +5873,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p38_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5915,7 +5918,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p39_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5923,7 +5926,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p39_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -5968,7 +5971,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p40_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -5976,7 +5979,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p40_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -6021,7 +6024,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p41_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -6029,7 +6032,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p41_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -6074,7 +6077,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p42_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -6082,7 +6085,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p42_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -6127,7 +6130,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p43_plans_header",
-          "label": "Планы на неделю:",
+          "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
@@ -6135,7 +6138,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "pregnancy_a5_p43_plans_body",
-          "label": "Планы на неделю:",
+          "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -13384,7 +13387,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_brown_p7_name",
-          "label": "Имя",
+          "label": "Имя мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -13392,7 +13395,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_birthDate",
-          "label": "Дата рождения",
+          "label": "Дата рождения мамы",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -13400,7 +13403,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_phone",
-          "label": "Номер телефона",
+          "label": "Номер телефона мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -13408,7 +13411,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_zodiac",
-          "label": "Знак зодиака",
+          "label": "Знак зодиака мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -13416,7 +13419,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_profession",
-          "label": "Профессия",
+          "label": "Профессия мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -13424,7 +13427,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteFlowers",
-          "label": "Любимые цветы",
+          "label": "Любимые цветы мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
@@ -13432,7 +13435,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteAnimal",
-          "label": "Любимое животное",
+          "label": "Любимое животное мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -13440,7 +13443,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteColor",
-          "label": "Любимый цвет",
+          "label": "Любимый цвет мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -13448,7 +13451,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteSeason",
-          "label": "Любимое время года",
+          "label": "Любимое время года мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -13456,7 +13459,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_hobby",
-          "label": "Хобби",
+          "label": "Хобби мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
@@ -13464,7 +13467,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteDrink",
-          "label": "Любимый напиток",
+          "label": "Любимый напиток мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -13472,7 +13475,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_favoriteDish",
-          "label": "Любимое блюдо",
+          "label": "Любимое блюдо мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -13480,7 +13483,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p7_wishes",
-          "label": "Пожелания хозяйке дневника",
+          "label": "Пожелания мамы хозяйке дневника",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
@@ -13488,7 +13491,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Анкета про маму: контакты, профессия, любимые вещи и пожелания."
     },
     {
       "pageId": "diary_interior_brown_p8",
@@ -13501,7 +13505,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_brown_p8_name",
-          "label": "Имя",
+          "label": "Имя папы",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -13509,7 +13513,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_birthDate",
-          "label": "Дата рождения",
+          "label": "Дата рождения папы",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -13517,7 +13521,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_phone",
-          "label": "Номер телефона",
+          "label": "Номер телефона папы",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -13525,7 +13529,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_zodiac",
-          "label": "Знак зодиака",
+          "label": "Знак зодиака папы",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -13533,7 +13537,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_profession",
-          "label": "Профессия",
+          "label": "Профессия папы",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -13541,7 +13545,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteFlowers",
-          "label": "Любимые цветы",
+          "label": "Любимые цветы папы",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
@@ -13549,7 +13553,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteAnimal",
-          "label": "Любимое животное",
+          "label": "Любимое животное папы",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -13557,7 +13561,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteColor",
-          "label": "Любимый цвет",
+          "label": "Любимый цвет папы",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -13565,7 +13569,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteSeason",
-          "label": "Любимое время года",
+          "label": "Любимое время года папы",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -13573,7 +13577,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_hobby",
-          "label": "Хобби",
+          "label": "Хобби папы",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
@@ -13581,7 +13585,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteDrink",
-          "label": "Любимый напиток",
+          "label": "Любимый напиток папы",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -13589,7 +13593,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_favoriteDish",
-          "label": "Любимое блюдо",
+          "label": "Любимое блюдо папы",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -13597,7 +13601,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p8_wishes",
-          "label": "Пожелания хозяйке дневника",
+          "label": "Пожелания папы хозяйке дневника",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
@@ -13605,7 +13609,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Анкета про папу: контакты, профессия, любимые вещи и пожелания."
     },
     {
       "pageId": "diary_interior_brown_p9",
@@ -17436,7 +17441,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_purple_p6_name",
-          "label": "Имя",
+          "label": "Имя мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -17444,7 +17449,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_birthDate",
-          "label": "Дата рождения",
+          "label": "Дата рождения мамы",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -17452,7 +17457,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_phone",
-          "label": "Номер телефона",
+          "label": "Номер телефона мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -17460,7 +17465,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_zodiac",
-          "label": "Знак зодиака",
+          "label": "Знак зодиака мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -17468,7 +17473,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_profession",
-          "label": "Профессия",
+          "label": "Профессия мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -17476,7 +17481,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteFlowers",
-          "label": "Любимые цветы",
+          "label": "Любимые цветы мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
@@ -17484,7 +17489,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteAnimal",
-          "label": "Любимое животное",
+          "label": "Любимое животное мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -17492,7 +17497,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteColor",
-          "label": "Любимый цвет",
+          "label": "Любимый цвет мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -17500,7 +17505,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteSeason",
-          "label": "Любимое время года",
+          "label": "Любимое время года мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -17508,7 +17513,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_hobby",
-          "label": "Хобби",
+          "label": "Хобби мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
@@ -17516,7 +17521,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteDrink",
-          "label": "Любимый напиток",
+          "label": "Любимый напиток мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -17524,7 +17529,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_favoriteDish",
-          "label": "Любимое блюдо",
+          "label": "Любимое блюдо мамы",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -17532,7 +17537,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p6_wishes",
-          "label": "Пожелания хозяйке дневника",
+          "label": "Пожелания мамы хозяйке дневника",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
@@ -17540,7 +17545,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Анкета про маму: контакты, профессия, любимые вещи и пожелания."
     },
     {
       "pageId": "diary_interior_purple_p7",
@@ -17553,7 +17559,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_purple_p7_name",
-          "label": "Имя",
+          "label": "Имя папы",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -17561,7 +17567,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_birthDate",
-          "label": "Дата рождения",
+          "label": "Дата рождения папы",
           "type": "date",
           "required": false,
           "templateLineStart": 1,
@@ -17569,7 +17575,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_phone",
-          "label": "Номер телефона",
+          "label": "Номер телефона папы",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
@@ -17577,7 +17583,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_zodiac",
-          "label": "Знак зодиака",
+          "label": "Знак зодиака папы",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -17585,7 +17591,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_profession",
-          "label": "Профессия",
+          "label": "Профессия папы",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -17593,7 +17599,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteFlowers",
-          "label": "Любимые цветы",
+          "label": "Любимые цветы папы",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
@@ -17601,7 +17607,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteAnimal",
-          "label": "Любимое животное",
+          "label": "Любимое животное папы",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
@@ -17609,7 +17615,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteColor",
-          "label": "Любимый цвет",
+          "label": "Любимый цвет папы",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
@@ -17617,7 +17623,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteSeason",
-          "label": "Любимое время года",
+          "label": "Любимое время года папы",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
@@ -17625,7 +17631,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_hobby",
-          "label": "Хобби",
+          "label": "Хобби папы",
           "type": "text",
           "required": false,
           "templateLineStart": 9,
@@ -17633,7 +17639,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteDrink",
-          "label": "Любимый напиток",
+          "label": "Любимый напиток папы",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
@@ -17641,7 +17647,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_favoriteDish",
-          "label": "Любимое блюдо",
+          "label": "Любимое блюдо папы",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -17649,7 +17655,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_purple_p7_wishes",
-          "label": "Пожелания хозяйке дневника",
+          "label": "Пожелания папы хозяйке дневника",
           "type": "text",
           "required": false,
           "templateLineStart": 12,
@@ -17657,7 +17663,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true
+      "canAddAfter": true,
+      "formHint": "Анкета про папу: контакты, профессия, любимые вещи и пожелания."
     },
     {
       "pageId": "diary_interior_purple_p8",

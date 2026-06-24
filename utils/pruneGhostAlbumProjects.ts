@@ -14,6 +14,52 @@ const safeParseArray = (raw: string | null): unknown[] => {
   }
 };
 
+const safeParseObject = (raw: string | null): Record<string, unknown> => {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+function hasPageValuesContent(raw: string | null): boolean {
+  const map = safeParseObject(raw);
+  return Object.values(map).some((value) => {
+    if (!value || typeof value !== 'object') return false;
+    const page = value as {
+      fields?: Record<string, string>;
+      photoBlocks?: Record<string, { slots?: Array<string | null> }>;
+      caption?: string;
+      photoCaptions?: Array<string | null>;
+      mapMarkers?: unknown[];
+      freeElements?: unknown[];
+      customFields?: Array<{ value?: string }>;
+    };
+    if (Object.values(page.fields ?? {}).some((text) => String(text ?? '').trim().length > 0)) {
+      return true;
+    }
+    if (
+      Object.values(page.photoBlocks ?? {}).some((block) =>
+        (block.slots ?? []).some((uri) => String(uri ?? '').trim().length > 0),
+      )
+    ) {
+      return true;
+    }
+    if (String(page.caption ?? '').trim().length > 0) return true;
+    if ((page.photoCaptions ?? []).some((text) => String(text ?? '').trim().length > 0)) {
+      return true;
+    }
+    if ((page.mapMarkers ?? []).length > 0 || (page.freeElements ?? []).length > 0) {
+      return true;
+    }
+    return (page.customFields ?? []).some((field) => String(field.value ?? '').trim().length > 0);
+  });
+}
+
 function projectFingerprint(project: Record<string, unknown>): string {
   return [
     String(project.category ?? ''),
@@ -27,11 +73,14 @@ async function scoreProject(project: Record<string, unknown>): Promise<number> {
   if (!id) return -1;
 
   const images = safeParseArray(await AsyncStorage.getItem(`@project_images_${id}`));
+  const hasContent = hasPageValuesContent(
+    await AsyncStorage.getItem(`@project_page_values_${id}`),
+  );
   const introSeen = await hasSeenAlbumIntro(id);
   const pagesCount = typeof project.pagesCount === 'number' ? project.pagesCount : 0;
 
   return (
-    (images.length > 0 ? 10_000 : 0) +
+    (hasContent ? 20_000 : 0) +
     (introSeen ? 5_000 : 0) +
     Math.max(images.length, pagesCount)
   );

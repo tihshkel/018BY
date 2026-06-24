@@ -130,6 +130,7 @@ function DraggableFreeElement({
     borderWidth: selected ? 2 : 0,
     borderColor: colors.primary,
     zIndex: element.zIndex ?? 1,
+    transform: [{ rotate: `${element.rotation ?? 0}deg` }],
   }));
 
   return (
@@ -197,6 +198,24 @@ export function FreePageEditor({
       if (selectedId === id) setSelectedId(null);
     },
     [elements, onChange, selectedId],
+  );
+
+  const rotateSelected = useCallback(
+    (delta: number) => {
+      if (!selectedId) return;
+      const maxRotation = limits.maxRotationDegrees ?? 15;
+      onChange(
+        elements.map((el) =>
+          el.id === selectedId
+            ? {
+                ...el,
+                rotation: clampNorm((el.rotation ?? 0) + delta, -maxRotation, maxRotation),
+              }
+            : el,
+        ),
+      );
+    },
+    [elements, limits.maxRotationDegrees, onChange, selectedId],
   );
 
   const addPhoto = useCallback(async () => {
@@ -279,7 +298,7 @@ export function FreePageEditor({
       <View style={styles.actions}>
         <AppButton
           title={`Добавить фото (${photoCount}/${limits.maxPhotos ?? 4})`}
-          variant="secondary"
+          variant="outline"
           onPress={addPhoto}
           disabled={photoCount >= (limits.maxPhotos ?? 4)}
         />
@@ -298,18 +317,37 @@ export function FreePageEditor({
         />
         <AppButton
           title="Добавить текст"
-          variant="secondary"
+          variant="outline"
           onPress={addText}
           disabled={textCount >= (limits.maxTextBlocks ?? 5) || !draftText.trim()}
         />
       </AppCard>
 
       {selectedId ? (
-        <Pressable onPress={() => removeElement(selectedId)}>
-          <AppText variant="bodySm" style={styles.removeLink}>
-            Удалить выбранный элемент
+        <AppCard style={styles.selectedCard}>
+          <AppText variant="caption" style={styles.hint}>
+            Выбранный элемент
           </AppText>
-        </Pressable>
+          <View style={styles.selectedActions}>
+            <AppButton
+              title="Влево"
+              variant="outline"
+              fullWidth={false}
+              onPress={() => rotateSelected(-5)}
+            />
+            <AppButton
+              title="Вправо"
+              variant="outline"
+              fullWidth={false}
+              onPress={() => rotateSelected(5)}
+            />
+          </View>
+          <Pressable onPress={() => removeElement(selectedId)}>
+            <AppText variant="bodySm" style={styles.removeLink}>
+              Удалить выбранный элемент
+            </AppText>
+          </Pressable>
+        </AppCard>
       ) : null}
     </View>
   );
@@ -360,6 +398,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
     backgroundColor: colors.white,
+  },
+  selectedCard: {
+    padding: spacing.md,
+    gap: spacing.sm,
+    backgroundColor: colors.white,
+  },
+  selectedActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   textInput: {
     borderWidth: 1,

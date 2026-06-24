@@ -8,6 +8,7 @@ import {
 } from '@/constants/default-avatars';
 import { getAccountSyncId } from '@/utils/account-identity';
 import {
+  PROFILE_LOCAL_UPDATED_AT_KEY,
   pushAccountDataToCloud,
   pushCoreKeysToCloud,
   pushCoreOnlyToCloud,
@@ -51,6 +52,7 @@ export async function saveUserName(trimmedName: string): Promise<void> {
   }
 
   await AsyncStorage.setItem(USER_NAME_KEY, name);
+  await AsyncStorage.setItem(PROFILE_LOCAL_UPDATED_AT_KEY, new Date().toISOString());
 
   const code = await getAccountSyncId();
   if (!code) {
@@ -66,6 +68,7 @@ export async function saveUserName(trimmedName: string): Promise<void> {
 
   const corePush = await pushCoreKeysToCloud(['@user_name']);
   if (!corePush.ok) {
+    scheduleSyncToCloud();
     throw new Error(corePush.error ?? 'Не удалось синхронизировать имя в облаке');
   }
 }

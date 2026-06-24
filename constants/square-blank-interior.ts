@@ -2,6 +2,11 @@
 export const SQUARE_BLANK_COVER_IDS = new Set<string>([
   'family_sq_01',
   'family_sq_02',
+  'wedding_sa1',
+  'wedding_sa2',
+  'wedding_sa3',
+  'wedding_sa4',
+  'wedding_sa5',
 ]);
 
 export function usesSquareBlankInterior(coverType?: string | null): boolean {

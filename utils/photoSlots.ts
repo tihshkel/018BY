@@ -35,9 +35,7 @@ function resolveContentRect(params: GetPhotoSlotParams): ContentRect {
 
 function resolveLayoutVariantId(variantId: string): string {
   if (variantId === 'two_stacked') return 'two_photos';
-  if (variantId === 'two_vertical') return 'two_horizontal';
-  if (variantId === 'two_vertical_separate') return 'two_horizontal';
-  if (variantId === 'four_vertical') return 'four_grid';
+  if (variantId === 'two_vertical_separate') return 'two_vertical';
   if (variantId === 'one_horizontal_common') return 'one_horizontal';
   return variantId;
 }

@@ -12,16 +12,24 @@ export type ExportFormatOption = {
 
 export function getExportFormatOptions(
   category: string | null | undefined,
+  lineGuideId?: string | null,
 ): ExportFormatOption[] {
-  const isKids = category === 'kids';
+  const isSquare =
+    category === 'kids' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_birthday_60';
+  const isPortraitBlank = lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
+  const size = isSquare ? '210 × 210 мм' : isPortraitBlank ? '180 × 240 мм' : 'A5 (148 × 210 мм)';
+  const orientation = isSquare ? 'Квадратная' : 'Вертикальная';
+
   return [
     {
       id: 'electronic',
       name: 'Электронная версия',
       type: 'electronic',
       margins: '10 мм',
-      size: isKids ? '210 × 210 мм' : 'A5 (148 × 210 мм)',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
+      size,
+      orientation,
       description: 'Для просмотра на устройстве и отправки близким',
     },
     {
@@ -29,8 +37,8 @@ export function getExportFormatOptions(
       name: 'Твёрдая обложка',
       type: 'hard',
       margins: '15 мм',
-      size: isKids ? '210 × 210 мм' : '180 × 240 мм',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
+      size: isSquare ? '210 × 210 мм' : '180 × 240 мм',
+      orientation,
       description: 'PDF для печати в типографии',
     },
     {
@@ -38,8 +46,8 @@ export function getExportFormatOptions(
       name: 'Мягкая обложка',
       type: 'soft',
       margins: '10 мм',
-      size: isKids ? '210 × 210 мм' : 'A5 (148 × 210 мм)',
-      orientation: isKids ? 'Квадратная' : 'Вертикальная',
+      size,
+      orientation,
       description: 'Компактный формат для печати',
     },
   ];

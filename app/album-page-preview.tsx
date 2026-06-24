@@ -10,8 +10,10 @@ import {
 import { AlbumPreviewPhotoBlockEditor } from "@/components/album/album-preview-photo-block-editor";
 import { NonEditableBanner } from "@/components/album/non-editable-banner";
 import { PageFontPicker } from "@/components/album/page-font-picker";
+import { TemplateWireframePreview } from "@/components/album/template-wireframe-preview";
 import PageRenderer, { type PageRendererRef } from "@/components/page-renderer";
 import { AppButton, AppHeader, AppScreen, AppText } from "@/components/ui";
+import { normalizeAlbumFontId } from "@/constants/album-fonts";
 import {
   colors,
   radii,
@@ -39,6 +41,10 @@ import { persistProjectViewport } from "@/utils/exportViewport";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
+import {
+  getPageFormatForLineGuide,
+  isBlankTemplateLineGuide,
+} from "@/utils/photoPageTemplateManifest";
 
 export default function AlbumPagePreviewScreen() {
   const { id, instanceId, celebration, coverType, interiorType, mode } =
@@ -116,6 +122,10 @@ export default function AlbumPagePreviewScreen() {
     status === "filled" ||
     status === "draft" ||
     status === "continue";
+  const isBlankTemplatePage =
+    Boolean(schema?.templateLibraryId) &&
+    isBlankTemplateLineGuide(schema?.lineGuideId ?? project.lineGuideId);
+  const showBlankTemplateGuide = isBlankTemplatePage && !hasContent && !isFinalPreview;
   const preferDesignLayout = !isFinalPreview && !hasContent;
   const resolvedImageUri = useMemo(
     () =>
@@ -146,7 +156,7 @@ export default function AlbumPagePreviewScreen() {
   }, [resolvedImageUri]);
 
   const imageUri = displayImageUri ?? resolvedImageUri;
-  const selectedFontId = values?.textFontFamily ?? "default";
+  const selectedFontId = normalizeAlbumFontId(values?.textFontFamily);
   const hasTextFields = hasFormTextInput(schema);
   const isLocked =
     schema?.pageType === "non_editable" || status === "locked";
@@ -194,6 +204,7 @@ export default function AlbumPagePreviewScreen() {
       (item) => item.type !== "image" || !item.imageUri,
     );
   }, [annotations, showPhotoBlockEditor]);
+  const calibratedAnnotations = imageUri && !sourceImageSize ? [] : displayAnnotations;
 
   useEffect(() => {
     setReady(false);
@@ -259,6 +270,21 @@ export default function AlbumPagePreviewScreen() {
     } as unknown as Href);
   };
 
+  const handleChangeTemplate = () => {
+    if (!instanceId) return;
+    router.push({
+      pathname: "/album-template-library",
+      params: {
+        id,
+        celebration,
+        coverType,
+        interiorType,
+        instanceId,
+        mode: "replace",
+      },
+    } as unknown as Href);
+  };
+
   const handleLater = () => {
     if (instanceId && hasContent) {
       project.markDraftSaved(instanceId);
@@ -295,8 +321,10 @@ export default function AlbumPagePreviewScreen() {
           ? showPhotoBlockEditor
             ? "Нажмите на блок фото — появится розовая рамка. Перетаскивайте блок или углы для изменения размера"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
-          : preferDesignLayout
-            ? "Пример макета из дизайн-PDF — здесь видно, где текст и фото"
+          : showBlankTemplateGuide
+            ? "Схема страницы: розовые блоки — места для фото, линии — поля для текста"
+            : preferDesignLayout
+              ? "Пример макета из дизайн-PDF — здесь видно, где текст и фото"
             : "Предпросмотр макета — так страница будет выглядеть в книге"}
       </AppText>
 
@@ -328,16 +356,25 @@ export default function AlbumPagePreviewScreen() {
               },
             ]}
           >
-            {imageUri ? (
+            {showBlankTemplateGuide && schema?.templateLibraryId ? (
+              <TemplateWireframePreview
+                templateId={schema.templateLibraryId}
+                format={getPageFormatForLineGuide(schema.lineGuideId ?? project.lineGuideId)}
+                values={values}
+              />
+            ) : imageUri ? (
               <PageRenderer
                 ref={rendererRef}
                 imageUri={imageUri}
-                annotations={displayAnnotations}
+                annotations={calibratedAnnotations}
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
+                sourceWidth={sourceImageSize?.width}
+                sourceHeight={sourceImageSize?.height}
                 lineGuideId={project.lineGuideId}
                 backgroundColor={colors.white}
                 onReady={() => setReady(true)}
+                onSourceSize={setSourceImageSize}
                 onImageError={() => {
                   if (baseImageUri && displayImageUri !== baseImageUri) {
                     setDisplayImageUri(baseImageUri);
@@ -362,7 +399,7 @@ export default function AlbumPagePreviewScreen() {
                 onGroupTransformChange={photoEditor.handleGroupTransformChange}
               />
             ) : null}
-            {!ready && imageUri ? (
+            {!showBlankTemplateGuide && !ready && imageUri ? (
               <View style={styles.loadingOverlay}>
                 <ActivityIndicator color={colors.primary} />
               </View>
@@ -443,6 +480,13 @@ export default function AlbumPagePreviewScreen() {
         variant="outline"
         onPress={handleLater}
       />
+      {isBlankTemplatePage ? (
+        <AppButton
+          title="Сменить шаблон"
+          variant="ghost"
+          onPress={handleChangeTemplate}
+        />
+      ) : null}
     </View>
   );
 

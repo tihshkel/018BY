@@ -5,6 +5,11 @@ import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
+import {
+  getWeddingCoverBySku,
+  getWeddingCoverPickerTitle,
+  WEDDING_COVER_DESIGNS,
+} from '@/utils/weddingCoverDesigns';
 
 type CoverDesignEntry = { id: string; sku: string; title: string };
 
@@ -15,6 +20,7 @@ for (const design of [
   ...KIDS_COVER_DESIGNS,
   ...HOLIDAY_COVER_DESIGNS,
   ...FAMILY_COVER_DESIGNS,
+  ...WEDDING_COVER_DESIGNS,
 ]) {
   COVER_DESIGN_BY_ID[design.id] = design;
 }
@@ -24,6 +30,7 @@ const CATEGORY_DEFAULT_FALLBACK: Record<string, string> = {
   kids: 'Фотоальбом от 0 до 1 года',
   holidays: 'Праздничный альбом',
   family: 'Семейный альбом',
+  wedding: 'Свадебный альбом',
   diary: 'Личный дневник',
 };
 
@@ -50,6 +57,13 @@ export function getCoverSelectTitleBySku(sku: string, celebration: string): stri
     return design?.title?.trim() || CATEGORY_DEFAULT_FALLBACK[celebration] || '';
   }
 
+  if (celebration === 'wedding') {
+    const weddingDesign = getWeddingCoverBySku(sku);
+    if (weddingDesign) {
+      return getWeddingCoverPickerTitle(weddingDesign);
+    }
+  }
+
   const design = Object.values(COVER_DESIGN_BY_ID).find((entry) => entry.sku === sku);
   const fallback = getReadableDesignFallback(design, celebration);
   return getGiftDisplayTitle(sku, fallback);
@@ -68,8 +82,12 @@ export function getCoverSelectTitle(coverType: string, celebration: string): str
     );
   }
 
+  if (celebration === 'wedding' && design && 'format' in design) {
+    return getWeddingCoverPickerTitle(design as (typeof WEDDING_COVER_DESIGNS)[number]);
+  }
+
   const sku = design?.sku ?? getCoverSku(coverType, celebration);
-  if (sku && celebration !== 'holidays' && celebration !== 'family') {
+  if (sku && celebration !== 'holidays' && celebration !== 'family' && celebration !== 'wedding') {
     return getGiftDisplayTitle(sku, fallback);
   }
 

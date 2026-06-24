@@ -6,6 +6,7 @@ import { getDiaryCoverById } from './diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from './familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from './holidayCoverDesigns';
 import { githubRawFileUrl } from './githubRawAssets';
+import { getWeddingCoverById } from './weddingCoverDesigns';
 
 const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
 
@@ -1249,6 +1250,16 @@ export async function getExportCoverPages(
     return {
       firstPage,
       closingPage: pickSingleClosingPage(lastPages),
+    };
+  }
+
+  if (normalizedCategory === 'wedding' || albumId.startsWith('wedding_')) {
+    const design = getWeddingCoverById(albumId);
+    if (!design) return { firstPage: null, closingPage: null };
+
+    return {
+      firstPage: await loadAssetModuleUri(design.firstPage),
+      closingPage: await loadAssetModuleUri(design.lastPage),
     };
   }
 

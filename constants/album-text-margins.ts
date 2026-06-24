@@ -29,7 +29,11 @@ export function getAlbumTextMargins(lineGuideId: string): AlbumTextMargins {
 }
 
 /** Альбомы без линованной сетки — свободный ввод текста */
-export const BLANK_LINE_GUIDE_IDS = new Set(['family_blank', 'holidays_blank']);
+export const BLANK_LINE_GUIDE_IDS = new Set([
+  'family_blank',
+  'family_blank_21x21',
+  'holidays_blank',
+]);
 
 export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   if (!lineGuideId) return false;

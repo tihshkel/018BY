@@ -31,6 +31,8 @@ export function getExportPageDimensions(
   const isKids = category === 'kids';
   const isSquareBlank =
     lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60';
+  const isPortraitBlank =
+    lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
 
   if (isKids || isSquareBlank) {
     return {
@@ -39,6 +41,17 @@ export function getExportPageDimensions(
       margin: A5_MARGIN_PT,
       contentWidth: SQUARE_PAGE_PT - A5_MARGIN_PT * 2,
       contentHeight: SQUARE_PAGE_PT - A5_MARGIN_PT * 2,
+    };
+  }
+
+  if (isPortraitBlank) {
+    const margin = formatType === 'hard' ? HARD_COVER_MARGIN_PT : A5_MARGIN_PT;
+    return {
+      pageWidth: HARD_COVER_WIDTH_PT,
+      pageHeight: HARD_COVER_HEIGHT_PT,
+      margin,
+      contentWidth: HARD_COVER_WIDTH_PT - margin * 2,
+      contentHeight: HARD_COVER_HEIGHT_PT - margin * 2,
     };
   }
 

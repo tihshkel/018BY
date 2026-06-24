@@ -13,7 +13,8 @@ type ResolvePagePreviewBackgroundParams = {
 };
 
 /**
- * Picks preview background: designer PDF (empty visit) → variant PNG → base page PNG.
+ * Picks preview background. Empty pages can show design/variant examples, but filled pages
+ * use the base page PNG so text/photo coordinates stay in the same calibrated system.
  */
 export function resolvePagePreviewBackgroundUri(
   params: ResolvePagePreviewBackgroundParams,
@@ -52,14 +53,13 @@ export function resolvePagePreviewBackgroundUri(
     );
   }
 
-  if (variantId) {
-    const variantUri = resolveVariantPreviewBackgroundUri({
-      lineGuideId,
-      sourcePageNumber,
-      variantId,
-    });
-    if (variantUri) return variantUri;
-  }
+  if (baseImageUri) return baseImageUri;
 
-  return baseImageUri ?? null;
+  return variantId
+    ? resolveVariantPreviewBackgroundUri({
+        lineGuideId,
+        sourcePageNumber,
+        variantId,
+      })
+    : null;
 }

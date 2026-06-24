@@ -14,6 +14,7 @@ import {
   ensurePageUrisCachedForExport,
   ensureRemoteAlbumPageCachedByIndex,
   ensureSinglePageUriCachedForExport,
+  getAlbumPageCount,
   getAlbumImageUris,
   getBlankInteriorPageUri,
   resolveLineGuideId,
@@ -557,6 +558,7 @@ export default function ExportPdfScreen() {
       let savedImages: string | null = null;
       let projectCoverType: string | null = null; // ID выбранной обложки (например, 'dfa_5', 'pregnancy_60')
       let projectInteriorType: string | null = null;
+      let exportSampleSourceSize: { width: number; height: number } | undefined;
 
       // Если есть projectId, пытаемся загрузить данные проекта
       if (projectId) {
@@ -612,6 +614,16 @@ export default function ExportPdfScreen() {
             projectCategory ?? undefined,
           );
           const blankPageUri = await getBlankInteriorPageUri(lineGuideId);
+          if (
+            blankPageUri &&
+            (lineGuideId === 'family_blank' ||
+              lineGuideId === 'family_blank_21x21' ||
+              lineGuideId === 'holidays_blank')
+          ) {
+            const count = images.length > 0 ? images.length : getAlbumPageCount(lineGuideId);
+            images = Array(count).fill(blankPageUri);
+            await AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(images));
+          }
           const instances = await loadPageInstances(
             (k) => AsyncStorage.getItem(k),
             projectId,
@@ -666,6 +678,7 @@ export default function ExportPdfScreen() {
           const sampleSize = sampleInstance
             ? sourceSizesByImageIndex.get(sampleInstance.imageIndex)
             : undefined;
+          exportSampleSourceSize = sampleSize;
 
           const pagesViewportResolved = await resolveProjectViewportForExport(
             projectId,
@@ -700,8 +713,8 @@ export default function ExportPdfScreen() {
       if (projectId) {
         const resolvedViewport = await resolveProjectViewportForExport(
           projectId,
-          undefined,
-          undefined,
+          exportSampleSourceSize?.width,
+          exportSampleSourceSize?.height,
           windowWidth,
         );
         pagesViewport = resolvedViewport;

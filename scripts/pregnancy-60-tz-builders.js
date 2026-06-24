@@ -60,16 +60,19 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 3:
       return tzOverride({
         title: 'Будущий папа',
+        formHint: 'Анкета про папу малыша: личные данные, работа, увлечения и ожидания.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, FUTURE_DAD_FIELDS),
       });
     case 4:
       return tzOverride({
         title: 'Постановка на учёт',
+        formHint: 'Заполните данные первого приёма, врача и график его работы по дням недели.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE4_FIELDS),
       });
     case 6:
       return tzOverride({
         title: 'Первое УЗИ',
+        formHint: 'Данные первого УЗИ: дата, место, врач и ваши эмоции после встречи с малышом.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE6_FIELDS),
       });
     case 7:

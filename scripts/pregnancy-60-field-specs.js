@@ -5,8 +5,8 @@
 
 const WEEKLY_PAGE_FIELDS = [
   ['date', 'Дата', 'date', 1],
-  ['plans_header', 'Планы на неделю:', 'text', 1],
-  ['plans_body', 'Планы на неделю:', 'text', 3],
+  ['plans_header', 'Главные планы на неделю', 'text', 1],
+  ['plans_body', 'Подробные заметки и дела на неделю', 'text', 3],
   ['belly', 'Обхват животика:', 'text', 1],
   ['feelings', 'Мои ощущения, чувства, мысли', 'text', 3],
 ];
@@ -44,16 +44,16 @@ const ABOUT_ME_FIELDS = [
 ];
 
 const FUTURE_DAD_FIELDS = [
-  ['name', 'Имя', 'text', 1],
-  ['birth_date', 'Дата рождения', 'date', 1],
-  ['eye_color', 'Цвет глаз', 'text', 1],
-  ['hair_color', 'Цвет волос', 'text', 1],
-  ['education', 'Образование', 'text', 1],
-  ['workplace', 'Место работы', 'text', 1],
-  ['position', 'Должность', 'text', 1],
-  ['hobby', 'Хобби', 'text', 1],
-  ['want_child', 'Когда понял, что хочет ребенка', 'text', 2],
-  ['want_count', 'Хотел бы иметь', 'text', 1],
+  ['name', 'Имя папы', 'text', 1],
+  ['birth_date', 'Дата рождения папы', 'date', 1],
+  ['eye_color', 'Цвет глаз папы', 'text', 1],
+  ['hair_color', 'Цвет волос папы', 'text', 1],
+  ['education', 'Образование папы', 'text', 1],
+  ['workplace', 'Место работы папы', 'text', 1],
+  ['position', 'Должность папы', 'text', 1],
+  ['hobby', 'Хобби папы', 'text', 1],
+  ['want_child', 'Когда папа понял, что хочет ребенка', 'text', 2],
+  ['want_count', 'Сколько детей папа хотел бы иметь', 'text', 1],
 ];
 
 const PAGE4_FIELDS = [
@@ -61,16 +61,16 @@ const PAGE4_FIELDS = [
   ['term', 'Акушерский срок', 'text', 1],
   ['weight', 'Вес', 'number', 1],
   ['wellbeing', 'Моё самочувствие', 'text', 3],
-  ['fio', 'ФИО', 'text', 1],
-  ['cabinet', 'Кабинет', 'text', 1],
-  ['phone', 'Номер телефона', 'text', 2],
-  ['mon', 'Пн', 'text', 1],
-  ['thu', 'Чт', 'text', 1],
-  ['tue', 'Вт', 'text', 1],
-  ['fri', 'Пт', 'text', 1],
-  ['wed', 'Ср', 'text', 1],
-  ['sat', 'Сб', 'text', 1],
-  ['recommendations', 'Рекомендации', 'text', 3],
+  ['fio', 'ФИО врача / акушерки', 'text', 1],
+  ['cabinet', 'Кабинет врача', 'text', 1],
+  ['phone', 'Телефон врача или регистратуры', 'text', 2],
+  ['mon', 'График врача: понедельник', 'text', 1],
+  ['thu', 'График врача: четверг', 'text', 1],
+  ['tue', 'График врача: вторник', 'text', 1],
+  ['fri', 'График врача: пятница', 'text', 1],
+  ['wed', 'График врача: среда', 'text', 1],
+  ['sat', 'График врача: суббота', 'text', 1],
+  ['recommendations', 'Рекомендации врача', 'text', 3],
 ];
 
 const PAGE6_FIELDS = [

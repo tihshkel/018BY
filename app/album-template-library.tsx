@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppHeader, AppScreen, AppText } from '@/components/ui';
 import { TemplateWireframePreview } from '@/components/album/template-wireframe-preview';
@@ -14,12 +14,14 @@ import {
 import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 export default function AlbumTemplateLibraryScreen() {
-  const { id, celebration, coverType, interiorType, afterIndex } = useLocalSearchParams<{
+  const { id, celebration, coverType, interiorType, afterIndex, instanceId, mode } = useLocalSearchParams<{
     id?: string;
     celebration?: string;
     coverType?: string;
     interiorType?: string;
     afterIndex?: string;
+    instanceId?: string;
+    mode?: string;
   }>();
 
   const project = useAlbumProject({
@@ -41,6 +43,37 @@ export default function AlbumTemplateLibraryScreen() {
   };
 
   const handleSelect = async (templateId: string, title: string) => {
+    if (mode === 'replace' && instanceId) {
+      Alert.alert(
+        'Сменить шаблон?',
+        'Фото и текст на этой странице будут сброшены, чтобы новый макет не потерял данные неожиданно.',
+        [
+          { text: 'Отмена', style: 'cancel' },
+          {
+            text: 'Сменить',
+            style: 'destructive',
+            onPress: () => {
+              void (async () => {
+                const changed = await project.changePageTemplate(instanceId, templateId, title);
+                if (!changed) return;
+                router.replace({
+                  pathname: '/album-page-form',
+                  params: {
+                    id: project.projectId,
+                    instanceId,
+                    celebration,
+                    coverType,
+                    interiorType,
+                  },
+                } as unknown as Href);
+              })();
+            },
+          },
+        ],
+      );
+      return;
+    }
+
     const sourcePageIndex = 0;
     await project.addPage({
       insertAfterIndex: insertAfter,
@@ -65,7 +98,7 @@ export default function AlbumTemplateLibraryScreen() {
   return (
     <AppScreen scroll tabletShell contentMaxWidth={PICKER_CONTENT_MAX_WIDTH} contentContainerStyle={styles.container}>
       <AppHeader
-        title="Выберите шаблон"
+        title={mode === 'replace' ? 'Сменить шаблон' : 'Выберите шаблон'}
         onBack={() => navigateToAlbumPages(albumFlowParams)}
       />
 

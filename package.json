@@ -31,8 +31,11 @@
     "audit:line-slots": "node ./scripts/audit-line-slots.js",
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
+    "verify:designed-albums": "npm run verify:line-slots && node ./scripts/export-photo-pages-manifest.js && node ./scripts/generate-birthday-48-tz-manifest.js && node ./scripts/verify-field-labels.js && node ./scripts/verify-photo-flows.js && node ./scripts/verify-export-matrix.js && node ./scripts/verify-export-parity.js && node ./scripts/verify-photo-parity.js && node ./scripts/verify-tz-compliance.js && node ./scripts/diary-full-page-audit.js",
+    "test:e2e:designed-albums": "npx playwright test e2e/playwright/designed-albums-export.spec.ts",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
+    "verify:blank-templates": "node ./scripts/verify-blank-template-compliance.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
     "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js"
   },

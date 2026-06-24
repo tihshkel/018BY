@@ -2,23 +2,29 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState, type RefObject } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
+import { BlankPageThumbnail } from '@/components/album/blank-page-thumbnail';
 import { PageListItem } from '@/components/album/page-list-item';
 import { AppButton, AppCenterModal, AppInput, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { PageInstance, PageStatus } from '@/types/album-page-schema';
+import type { AlbumPageSchema, PageInstance, PageStatus, PageValues } from '@/types/album-page-schema';
 import type { SectionProgress } from '@/utils/albumProgress';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 
 const VISIBLE_PAGE_LIMIT = 6;
 
 type SectionPageRow = {
   instance: PageInstance;
   title: string;
+  subtitle?: string;
   status: PageStatus;
   thumbnailUri?: string;
+  schema?: AlbumPageSchema;
+  pageValues?: PageValues;
   canShowMenu: boolean;
   canDuplicate: boolean;
   canDeleteCopy: boolean;
   canReorder: boolean;
+  canChangeTemplate?: boolean;
   globalIndex: number;
 };
 
@@ -32,6 +38,7 @@ type AlbumSectionAccordionProps = {
   onDuplicate?: (instanceId: string) => void;
   onDeleteCopy?: (instanceId: string, title: string) => void;
   onRename?: (instanceId: string, title: string) => void;
+  onChangeTemplate?: (instanceId: string) => void;
   onMoveUp?: (instanceId: string) => void;
   onMoveDown?: (instanceId: string) => void;
   onReorderPage?: (instanceId: string, toIndex: number) => void;
@@ -54,6 +61,7 @@ export function AlbumSectionAccordion({
   onDuplicate,
   onDeleteCopy,
   onRename,
+  onChangeTemplate,
   onMoveUp,
   onMoveDown,
   onReorderPage,
@@ -95,6 +103,12 @@ export function AlbumSectionAccordion({
           setRenameValue(row.title);
           setRenameModal({ instanceId: row.instance.instanceId, title: row.title });
         },
+      });
+    }
+    if (onChangeTemplate && row.canChangeTemplate) {
+      actions.push({
+        text: 'Сменить шаблон',
+        onPress: () => onChangeTemplate(row.instance.instanceId),
       });
     }
     if (onMoveUp && row.canReorder) {
@@ -173,10 +187,29 @@ export function AlbumSectionAccordion({
               <PageListItem
                 pageNumber={row.instance.order}
                 title={row.title}
+                subtitle={row.subtitle}
                 status={row.status}
                 thumbnailUri={row.thumbnailUri}
+                thumbnailNode={
+                  row.schema &&
+                  row.pageValues &&
+                  isBlankTemplateLineGuide(row.schema.lineGuideId) ? (
+                    <BlankPageThumbnail
+                      schema={row.schema}
+                      values={row.pageValues}
+                      status={row.status}
+                      imageUri={row.thumbnailUri}
+                    />
+                  ) : undefined
+                }
                 onPress={() => onOpenPage(row.instance.instanceId)}
                 onMenuPress={row.canShowMenu ? () => openMenu(row) : undefined}
+                onChangeTemplate={
+                  row.canChangeTemplate && onChangeTemplate
+                    ? () => onChangeTemplate(row.instance.instanceId)
+                    : undefined
+                }
+                canChangeTemplate={row.canChangeTemplate}
                 showChevron
                 compact={usePageGrid}
                 canReorder={row.canReorder}

@@ -274,7 +274,7 @@
   },
   "40": {
     "title": "Мои путешествия",
-    "pageType": "structured",
+    "pageType": "travel_map_page",
     "editable": true,
     "canDuplicate": false,
     "hasPhoto": false

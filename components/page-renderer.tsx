@@ -21,6 +21,7 @@ interface PageRendererProps {
   sourceHeight?: number;
   onReady?: () => void;
   onImageError?: () => void;
+  onSourceSize?: (size: { width: number; height: number }) => void;
   captureScale?: number;
   captureFormat?: CaptureFormat;
   captureQuality?: number;
@@ -42,6 +43,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     sourceHeight: sourceHeightProp,
     onReady,
     onImageError,
+    onSourceSize,
     captureScale = 1.35,
     captureFormat = 'jpg',
     captureQuality = 0.92,
@@ -165,8 +167,10 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
             const w = event.source?.width;
             const h = event.source?.height;
             if (w && h) {
-              setSourceSize({ width: w, height: h });
-              setPageSourceSize(imageUri, { width: w, height: h });
+              const nextSourceSize = { width: w, height: h };
+              setSourceSize(nextSourceSize);
+              setPageSourceSize(imageUri, nextSourceSize);
+              onSourceSize?.(nextSourceSize);
             }
             setIsImageLoaded(true);
           }}

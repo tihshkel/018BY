@@ -153,7 +153,13 @@ export default function SelectCelebrationScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
       // Для беременности, детей и праздников переходим к выбору обложки
-      if (selectedCelebration === 'pregnancy' || selectedCelebration === 'kids' || selectedCelebration === 'holidays' || selectedCelebration === 'family') {
+      if (
+        selectedCelebration === 'pregnancy' ||
+        selectedCelebration === 'kids' ||
+        selectedCelebration === 'holidays' ||
+        selectedCelebration === 'family' ||
+        selectedCelebration === 'wedding'
+      ) {
         router.push({
           pathname: '/select-cover',
           params: { celebration: selectedCelebration }

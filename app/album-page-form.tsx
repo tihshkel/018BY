@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AlbumPageFillForm } from '@/components/album/album-page-fill-form';
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
+import { BlankPageEditPreview } from '@/components/album/blank-page-edit-preview';
 import { AppButton, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
@@ -12,7 +13,9 @@ import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
 import { usesUnifiedPhotoEditor } from '@/utils/albumPageNavigation';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { createEmptyPageValues } from '@/utils/pageStorage';
+import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 
 export default function AlbumPageFormScreen() {
   const { id, instanceId, celebration, coverType, interiorType } =
@@ -30,7 +33,7 @@ export default function AlbumPageFormScreen() {
     coverType,
     interiorType,
   });
-  const { shellStyle } = useAlbumFormLayout();
+  const { layout, shellStyle } = useAlbumFormLayout();
 
   const albumFlowParams: AlbumFlowParams = {
     id,
@@ -95,6 +98,77 @@ export default function AlbumPageFormScreen() {
 
   const fields = schema.fields ?? [];
   const unifiedEditor = usesUnifiedPhotoEditor(schema);
+  const isBlankTemplatePage = isBlankTemplateLineGuide(schema.lineGuideId);
+  const useSplitLayout = isBlankTemplatePage && layout.isTablet && layout.isLandscape;
+  const pageImageUri = resolveInstancePageImageUri(project.images, instance);
+  const previewMaxWidth = useSplitLayout
+    ? Math.min(460, layout.contentMaxWidth * 0.46)
+    : Math.min(420, layout.contentMaxWidth);
+
+  const editorBlock = unifiedEditor ? (
+    <AlbumPageUnifiedEditor
+      schema={schema}
+      pageValues={pageValues}
+      lineGuideId={project.lineGuideId}
+      onFieldChange={handleFieldChange}
+      onCaptionChange={(text) =>
+        photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+      }
+      onPhotoCaptionChange={(slotIndex, text) =>
+        photoEditor.updatePageValues((prev) => {
+          const next = [...(prev.photoCaptions ?? [])];
+          next[slotIndex] = text;
+          return { ...prev, photoCaptions: next };
+        })
+      }
+      onSelectVariant={photoEditor.handleSelectVariant}
+      onPickPhoto={photoEditor.handlePickPhoto}
+      onSlotTransformChange={photoEditor.handleSlotTransformChange}
+      onGroupTransformChange={photoEditor.handleGroupTransformChange}
+      onRemovePhoto={photoEditor.handleRemovePhoto}
+      onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
+      onFreeElementsChange={(elements) =>
+        photoEditor.updatePageValues((prev) => ({ ...prev, freeElements: elements }))
+      }
+      onCustomFieldsChange={(fields) =>
+        photoEditor.updatePageValues((prev) => ({ ...prev, customFields: fields }))
+      }
+      allowCustomFieldCrud={
+        Boolean(instance.addedByUser) &&
+        schema.pageType === 'birthday_free_page' &&
+        schema.sourcePageNumber >= 7
+      }
+      ensureMediaLibraryPermission={ensureMediaLibraryPermission}
+      showCaption={photoEditor.showCaption}
+      showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+    />
+  ) : (
+    <AlbumPageFillForm
+      schema={schema}
+      pageValues={pageValues}
+      lineGuideId={project.lineGuideId}
+      onFieldChange={handleFieldChange}
+      onCaptionChange={(text) =>
+        photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+      }
+      onPhotoCaptionChange={(slotIndex, text) =>
+        photoEditor.updatePageValues((prev) => {
+          const next = [...(prev.photoCaptions ?? [])];
+          next[slotIndex] = text;
+          return { ...prev, photoCaptions: next };
+        })
+      }
+      onSelectVariant={photoEditor.handleSelectVariant}
+      onAddPhoto={photoEditor.handlePickPhoto}
+      onReplacePhoto={photoEditor.handlePickPhoto}
+      onRemovePhoto={photoEditor.handleRemovePhoto}
+      onMapMarkersChange={(markers) =>
+        photoEditor.updatePageValues((prev) => ({ ...prev, mapMarkers: markers }))
+      }
+      showCaption={photoEditor.showCaption}
+      showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+    />
+  );
 
   return (
     <AppScreen
@@ -113,72 +187,24 @@ export default function AlbumPageFormScreen() {
       </AppText>
 
       <AppText variant="bodySm" style={styles.editHint}>
-        Заполните нужные поля и добавьте фото. Можно оставить часть пустой — результат увидите на следующем шаге.
+        {schema.formHint ??
+          'Заполните нужные поля и добавьте фото. Можно оставить часть пустой — результат увидите на следующем шаге.'}
       </AppText>
 
-      {unifiedEditor ? (
-        <AlbumPageUnifiedEditor
-          schema={schema}
-          pageValues={pageValues}
-          lineGuideId={project.lineGuideId}
-          onFieldChange={handleFieldChange}
-          onCaptionChange={(text) =>
-            photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
-          }
-          onPhotoCaptionChange={(slotIndex, text) =>
-            photoEditor.updatePageValues((prev) => {
-              const next = [...(prev.photoCaptions ?? [])];
-              next[slotIndex] = text;
-              return { ...prev, photoCaptions: next };
-            })
-          }
-          onSelectVariant={photoEditor.handleSelectVariant}
-          onPickPhoto={photoEditor.handlePickPhoto}
-          onSlotTransformChange={photoEditor.handleSlotTransformChange}
-          onGroupTransformChange={photoEditor.handleGroupTransformChange}
-          onRemovePhoto={photoEditor.handleRemovePhoto}
-          onInitPhotoBlock={photoEditor.handleInitPhotoBlock}
-          onFreeElementsChange={(elements) =>
-            photoEditor.updatePageValues((prev) => ({ ...prev, freeElements: elements }))
-          }
-          onCustomFieldsChange={(fields) =>
-            photoEditor.updatePageValues((prev) => ({ ...prev, customFields: fields }))
-          }
-          allowCustomFieldCrud={
-            Boolean(instance.addedByUser) &&
-            schema.pageType === 'birthday_free_page' &&
-            schema.sourcePageNumber >= 7
-          }
-          ensureMediaLibraryPermission={ensureMediaLibraryPermission}
-          showCaption={photoEditor.showCaption}
-          showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
-        />
+      {isBlankTemplatePage ? (
+        <View style={[styles.editorShell, useSplitLayout && styles.editorShellSplit]}>
+          <View style={useSplitLayout ? styles.previewPane : undefined}>
+            <BlankPageEditPreview
+              schema={schema}
+              pageValues={pageValues}
+              imageUri={pageImageUri}
+              maxWidth={previewMaxWidth}
+            />
+          </View>
+          <View style={useSplitLayout ? styles.formPane : undefined}>{editorBlock}</View>
+        </View>
       ) : (
-        <AlbumPageFillForm
-          schema={schema}
-          pageValues={pageValues}
-          lineGuideId={project.lineGuideId}
-          onFieldChange={handleFieldChange}
-          onCaptionChange={(text) =>
-            photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
-          }
-          onPhotoCaptionChange={(slotIndex, text) =>
-            photoEditor.updatePageValues((prev) => {
-              const next = [...(prev.photoCaptions ?? [])];
-              next[slotIndex] = text;
-              return { ...prev, photoCaptions: next };
-            })
-          }
-          onSelectVariant={photoEditor.handleSelectVariant}
-          onAddPhoto={photoEditor.handlePickPhoto}
-          onReplacePhoto={photoEditor.handlePickPhoto}
-          onRemovePhoto={photoEditor.handleRemovePhoto}
-          onMapMarkersChange={(markers) =>
-            photoEditor.updatePageValues((prev) => ({ ...prev, mapMarkers: markers }))
-          }
-          showCaption={photoEditor.showCaption}
-          showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
-        />
+        editorBlock
       )}
 
       {fields.length === 0 && !unifiedEditor ? (
@@ -214,6 +240,20 @@ const styles = StyleSheet.create({
   editHint: {
     color: colors.textSecondary,
     lineHeight: 20,
+  },
+  editorShell: {
+    gap: spacing.md,
+  },
+  editorShellSplit: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+  },
+  previewPane: {
+    flexShrink: 0,
+  },
+  formPane: {
+    flex: 1,
+    minWidth: 0,
   },
   emptyHint: {
     color: colors.textSecondary,

@@ -30,7 +30,7 @@ import {
 } from "@/constants/design-tokens";
 import { useAlbumProject } from "@/hooks/use-album-project";
 import { useAlbumPageListLayout } from "@/hooks/use-album-editor-layout";
-import type { PageInstance } from "@/types/album-page-schema";
+import type { AlbumPageSchema, PageInstance, PageValues } from "@/types/album-page-schema";
 import {
   buildExportReviewHref,
   navigateToHomeFromAlbum,
@@ -45,20 +45,70 @@ import {
   canShowPageActions,
   openAlbumPage,
 } from "@/utils/albumPageNavigation";
+import { isBlankTemplateLineGuide } from "@/utils/photoPageTemplateManifest";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { computePageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
+import { normalizeRouteParam } from "@/utils/routeParams";
+
+function getAlbumHeroSubtitle(celebration?: string, lineGuideId?: string): string {
+  if (celebration === 'wedding') {
+    return lineGuideId === 'family_blank_21x21'
+      ? 'Соберите свадебный альбом 21×21 см — выберите шаблон для каждой страницы'
+      : 'Соберите свадебный альбом 18×24 см — выберите шаблон для каждой страницы';
+  }
+  if (celebration === 'family' || lineGuideId?.startsWith('family_blank')) {
+    return 'Соберите семейный альбом — выберите шаблон для каждой страницы';
+  }
+  if (celebration === 'holidays' || lineGuideId === 'holidays_blank') {
+    return 'Соберите праздничный альбом — выберите шаблон для каждой страницы';
+  }
+  if (celebration === 'pregnancy') {
+    return 'Сохраняем важные моменты ожидания малыша';
+  }
+  if (celebration === 'kids') {
+    return 'Сохраняем важные моменты первого года жизни';
+  }
+  return 'Заполняйте страницы в удобном темпе';
+}
+
+function getPageSubtitle(
+  instance: PageInstance,
+  schema: AlbumPageSchema | undefined,
+  values: PageValues | undefined,
+): string {
+  const fieldValue = schema?.fields
+    ?.map((field) => values?.fields[field.fieldId]?.trim())
+    .find((value): value is string => Boolean(value));
+  if (fieldValue) return fieldValue;
+
+  const caption = values?.caption?.trim();
+  if (caption) return caption;
+
+  const photoCaption = values?.photoCaptions
+    ?.map((item) => item?.trim())
+    .find((value): value is string => Boolean(value));
+  if (photoCaption) return photoCaption;
+
+  return `Страница ${instance.order}`;
+}
 
 export default function AlbumPagesScreen() {
-  const { id, celebration, coverType, interiorType, eventDate, highlightInstanceId } =
-    useLocalSearchParams<{
-      id?: string;
-      celebration?: string;
-      coverType?: string;
-      interiorType?: string;
-      eventDate?: string;
-      highlightInstanceId?: string;
-    }>();
+  const params = useLocalSearchParams<{
+    id?: string | string[];
+    celebration?: string | string[];
+    coverType?: string | string[];
+    interiorType?: string | string[];
+    eventDate?: string | string[];
+    highlightInstanceId?: string | string[];
+  }>();
+
+  const id = normalizeRouteParam(params.id);
+  const celebration = normalizeRouteParam(params.celebration);
+  const coverType = normalizeRouteParam(params.coverType);
+  const interiorType = normalizeRouteParam(params.interiorType);
+  const eventDate = normalizeRouteParam(params.eventDate);
+  const highlightInstanceId = normalizeRouteParam(params.highlightInstanceId);
 
   const scrollRef = useRef<ScrollView>(null);
   const scrollContentRef = useRef<View>(null);
@@ -199,6 +249,36 @@ export default function AlbumPagesScreen() {
     );
   };
 
+  const handleAddPage = () => {
+    const pathname = isBlankTemplateLineGuide(project.lineGuideId)
+      ? "/album-template-library"
+      : "/album-add-page";
+
+    router.push({
+      pathname,
+      params: {
+        id: project.projectId,
+        celebration,
+        coverType,
+        interiorType,
+      },
+    } as unknown as Href);
+  };
+
+  const handleChangeTemplate = (instanceId: string) => {
+    router.push({
+      pathname: "/album-template-library",
+      params: {
+        id: project.projectId,
+        celebration,
+        coverType,
+        interiorType,
+        instanceId,
+        mode: "replace",
+      },
+    } as unknown as Href);
+  };
+
   const handleDeleteCopy = (instanceId: string, title: string) => {
     Alert.alert("Удалить копию?", `«${title}» будет удалена из альбома.`, [
       { text: "Отмена", style: "cancel" },
@@ -227,6 +307,9 @@ export default function AlbumPagesScreen() {
     return (
       <AppScreen style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <AppText variant="bodySm" style={styles.loadingHint}>
+          Загружаем альбом…
+        </AppText>
       </AppScreen>
     );
   }
@@ -294,7 +377,10 @@ export default function AlbumPagesScreen() {
               {project.meta?.title ?? "Мой фотоальбом"}
             </AppText>
             <AppText variant="caption" style={styles.heroSubtitle}>
-              Сохраняем важные моменты первого года жизни
+              {getAlbumHeroSubtitle(
+                project.meta?.category ?? celebration,
+                project.lineGuideId,
+              )}
             </AppText>
           </View>
         </View>
@@ -333,12 +419,16 @@ export default function AlbumPagesScreen() {
             return {
               instance,
               title: project.getInstanceTitle(instance),
+              subtitle: getPageSubtitle(instance, schema, values),
               status,
               thumbnailUri: resolveInstancePageImageUri(project.images, instance),
+              schema,
+              pageValues: values,
               canShowMenu: canShowPageActions(schema, instance),
               canDuplicate: schema?.canDuplicate ?? false,
               canDeleteCopy: instance.addedByUser,
               canReorder: instance.addedByUser,
+              canChangeTemplate: isBlankTemplateLineGuide(project.lineGuideId),
               globalIndex: project.instances.findIndex(
                 (item) => item.instanceId === instance.instanceId,
               ),
@@ -357,6 +447,7 @@ export default function AlbumPagesScreen() {
               onDuplicate={(instanceId) => void project.duplicatePage(instanceId)}
               onDeleteCopy={handleDeleteCopy}
               onRename={(instanceId, title) => void project.renamePage(instanceId, title)}
+              onChangeTemplate={handleChangeTemplate}
               onMoveUp={(instanceId) => handleMove(instanceId, -1)}
               onMoveDown={(instanceId) => handleMove(instanceId, 1)}
               onReorderPage={handleReorderPage}
@@ -389,17 +480,7 @@ export default function AlbumPagesScreen() {
               styles.secondaryBtn,
               pressed && styles.secondaryBtnPressed,
             ]}
-            onPress={() =>
-              router.push({
-                pathname: "/album-add-page",
-                params: {
-                  id: project.projectId,
-                  celebration,
-                  coverType,
-                  interiorType,
-                },
-              } as unknown as Href)
-            }
+            onPress={handleAddPage}
           >
             <Ionicons name="add" size={20} color={colors.primary} />
             <AppText variant="button" style={styles.secondaryBtnText}>
@@ -432,6 +513,11 @@ const styles = StyleSheet.create({
   centered: {
     alignItems: "center",
     justifyContent: "center",
+    gap: spacing.md,
+  },
+  loadingHint: {
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
   },
   scroll: {
     flex: 1,

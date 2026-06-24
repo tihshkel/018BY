@@ -84,7 +84,17 @@ export async function resolveProjectViewportForExport(
   windowWidth?: number,
 ): Promise<EditorCoordinateViewport> {
   const saved = await loadProjectViewport(projectId);
-  if (saved) return saved;
+  if (saved) {
+    if (sourceWidth && sourceHeight && sourceWidth > 0 && sourceHeight > 0) {
+      const savedAspect = saved.height / saved.width;
+      const sourceAspect = sourceHeight / sourceWidth;
+      if (Math.abs(savedAspect - sourceAspect) < 0.02) {
+        return saved;
+      }
+    } else {
+      return saved;
+    }
+  }
 
   const fallbackWidth = windowWidth ?? 390;
   return resolveEditorCoordinateViewport({

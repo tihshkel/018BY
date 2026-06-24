@@ -1,4 +1,5 @@
 import { PHOTO_LAYOUT_TEMPLATES } from '@/constants/photo-layout-templates';
+import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 
 export type CollageSlotFrame = {
   slotIndex: number;
@@ -53,6 +54,54 @@ export function getCollageSlotFrames(
   if (slotCount >= 4) return FALLBACK_FOUR.slice(0, slotCount);
 
   return FALLBACK_TWO.slice(0, slotCount);
+}
+
+export function getPageCalibratedCollageSlotFrames(params: {
+  lineGuideId?: string;
+  sourcePageNumber?: number;
+  variantId: string;
+  slotCount: number;
+  templateLibraryId?: string;
+}): CollageSlotFrame[] | null {
+  const { lineGuideId, sourcePageNumber, variantId, slotCount, templateLibraryId } = params;
+  if (!lineGuideId || !sourcePageNumber || slotCount <= 0) return null;
+
+  const slots = Array.from({ length: slotCount }, (_, slotIndex) => {
+    const slot = getNormalizedPhotoSlot(
+      lineGuideId,
+      sourcePageNumber,
+      variantId,
+      slotIndex,
+      templateLibraryId,
+    );
+    if (!slot) return null;
+    const width = slot.width;
+    const height = slot.height;
+    return {
+      slotIndex,
+      left: slot.x,
+      top: slot.y - height / 2,
+      width,
+      height,
+    };
+  }).filter((slot): slot is NonNullable<typeof slot> => Boolean(slot));
+
+  if (slots.length !== slotCount) return null;
+
+  const minLeft = Math.min(...slots.map((slot) => slot.left));
+  const minTop = Math.min(...slots.map((slot) => slot.top));
+  const maxRight = Math.max(...slots.map((slot) => slot.left + slot.width));
+  const maxBottom = Math.max(...slots.map((slot) => slot.top + slot.height));
+  const unionWidth = Math.max(0.001, maxRight - minLeft);
+  const unionHeight = Math.max(0.001, maxBottom - minTop);
+
+  return slots.map((slot) => ({
+    slotIndex: slot.slotIndex,
+    leftPercent: ((slot.left - minLeft) / unionWidth) * 100,
+    topPercent: ((slot.top - minTop) / unionHeight) * 100,
+    widthPercent: (slot.width / unionWidth) * 100,
+    heightPercent: (slot.height / unionHeight) * 100,
+  }));
 }
 
 export function getCollageAspectRatio(variantId: string, slotCount: number): number {

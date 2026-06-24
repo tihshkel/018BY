@@ -23,6 +23,7 @@ import * as Haptics from 'expo-haptics';
 import { Asset } from 'expo-asset';
 import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
+import { normalizeRouteParam } from '@/utils/routeParams';
 
 interface InteriorOption {
   id: string;
@@ -65,11 +66,14 @@ function getInteriorOptions(celebration: string): InteriorOption[] {
 }
 
 export default function SelectInteriorScreen() {
-  const { celebration, coverType, eventDate } = useLocalSearchParams<{
-    celebration: string;
-    coverType: string;
-    eventDate?: string;
+  const params = useLocalSearchParams<{
+    celebration?: string | string[];
+    coverType?: string | string[];
+    eventDate?: string | string[];
   }>();
+  const celebration = normalizeRouteParam(params.celebration);
+  const coverType = normalizeRouteParam(params.coverType);
+  const eventDate = normalizeRouteParam(params.eventDate);
   const [selectedInterior, setSelectedInterior] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
   

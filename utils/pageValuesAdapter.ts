@@ -1,4 +1,5 @@
 import type { Annotation } from '@/components/pdf-annotations';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
@@ -99,7 +100,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   );
   const profile = getTemplateTypographyProfile(lineGuideId);
   const fontSize = profile.fixedLineFontSize ?? 16;
-  const textFontFamily = values.textFontFamily ?? 'default';
+  const textFontFamily = normalizeAlbumFontId(values.textFontFamily);
   const isBlankTemplate =
     Boolean(schema.templateLibraryId) && isBlankTemplateLineGuide(lineGuideId);
   const annotations: Annotation[] = [];

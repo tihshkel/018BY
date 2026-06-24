@@ -108,6 +108,7 @@ function textBlockToField(
     type: block.type === 'date' ? 'date' : 'text',
     required: block.required ?? false,
     placeholder: TEXT_LABELS[block.id] ?? block.id,
+    maxLength: block.maxLength,
     templateLineStart: index,
     templateLineCount: 1,
   };

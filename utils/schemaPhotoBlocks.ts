@@ -2,9 +2,9 @@ import type { AlbumPageSchema, PhotoBlockSchema } from '@/types/album-page-schem
 import { resolvePhotoPageLayoutsOrUndefined } from '@/utils/resolvePhotoPageLayouts';
 import {
   getPageFormatForLineGuide,
-  getTemplateLayout,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
+import { buildPhotoBlocksFromTemplate } from '@/utils/resolveTemplatePageLayout';
 
 const VARIANT_LABELS: Record<string, string> = {
   one_large: 'Одно большое фото',
@@ -17,7 +17,6 @@ const VARIANT_LABELS: Record<string, string> = {
   three_hero: '3 фото (коллаж)',
   four_grid: 'Четыре фото (коллаж)',
   four_vertical: '4 фото (коллаж)',
-  two_photos: 'Два фото',
 };
 
 function resolvePhotoBlockId(lineGuideId: string): string {
@@ -63,6 +62,12 @@ export function enrichSchemaWithPhotoBlocks(schema: AlbumPageSchema): AlbumPageS
 
   if (!shouldEnrichWithPhotoBlocks(schema)) return schema;
 
+  if (isBlankTemplateLineGuide(schema.lineGuideId) && schema.templateLibraryId) {
+    const format = getPageFormatForLineGuide(schema.lineGuideId);
+    const photoBlocks = buildPhotoBlocksFromTemplate(schema.templateLibraryId, format);
+    return photoBlocks ? { ...schema, photoBlocks } : schema;
+  }
+
   const photoBlocks = buildPhotoBlocksFromPhotoSlots(
     schema.lineGuideId,
     schema.sourcePageNumber,
@@ -96,8 +101,13 @@ function shouldEnrichWithPhotoBlocks(schema: AlbumPageSchema): boolean {
     return false;
   }
 
+  if (isBlankTemplateLineGuide(schema.lineGuideId) && schema.templateLibraryId) {
+    return true;
+  }
+
   const photoPageTypes = new Set([
     'photo',
+    'free',
     'caption_photo_page',
     'event_photo',
     'free_photo_caption',

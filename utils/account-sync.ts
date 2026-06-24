@@ -17,6 +17,8 @@ import {
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
 
 const PROJECT_PREFIX = '@project_';
+const DEFAULT_USER_NAME = 'Пользователь';
+export const PROFILE_LOCAL_UPDATED_AT_KEY = '@profile_local_updated_at';
 
 /** Список id проектов, которые пользователь явно сохранил (кнопка «Сохранить»). В БД отправляются только они. */
 const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
@@ -137,6 +139,43 @@ function splitCoreAndProjects(
   return { core, projects };
 }
 
+function isCustomUserName(name: string | null | undefined): boolean {
+  const trimmed = (name ?? '').trim();
+  return trimmed.length > 0 && trimmed !== DEFAULT_USER_NAME;
+}
+
+async function mergeProfileFieldFromCloud(
+  key: '@user_name' | '@user_avatar',
+  cloudValue: string
+): Promise<void> {
+  const local = await AsyncStorage.getItem(key);
+  const localTrim = local?.trim() ?? '';
+  const cloudTrim = cloudValue.trim();
+
+  if (key === '@user_name') {
+    const localCustom = isCustomUserName(localTrim);
+    const cloudCustom = isCustomUserName(cloudTrim);
+
+    if (localCustom && !cloudCustom) {
+      scheduleSyncToCloud();
+      return;
+    }
+
+    if (localCustom && cloudCustom && localTrim !== cloudTrim) {
+      const localUpdatedAt = await AsyncStorage.getItem(PROFILE_LOCAL_UPDATED_AT_KEY);
+      if (localUpdatedAt) {
+        scheduleSyncToCloud();
+        return;
+      }
+    }
+  } else if (localTrim && !cloudTrim) {
+    scheduleSyncToCloud();
+    return;
+  }
+
+  await AsyncStorage.setItem(key, cloudValue);
+}
+
 /** Заглушка для главного экрана (раньше — после входа по коду). */
 export function setOnSyncComplete(_callback: (() => void) | null): void {}
 
@@ -165,6 +204,8 @@ export async function importAccountData(
       }
       if (key === '@reminders' && accessCode) {
         await setLocalRemindersJsonForSyncId(accessCode, value);
+      } else if (key === '@user_name' || key === '@user_avatar') {
+        await mergeProfileFieldFromCloud(key, value);
       } else if (key === '@user_projects') {
         const localRaw = await AsyncStorage.getItem('@user_projects');
         const localList: { id?: string }[] = (() => {
