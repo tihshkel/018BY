@@ -17,13 +17,7 @@ const iosIcon = path.join(
 );
 const androidRes = path.join(root, 'android/app/src/main/res');
 
-const iosSplashDir = path.join(
-  root,
-  'ios/018BY/Images.xcassets/SplashScreenLogo.imageset'
-);
-
 const BRAND_PINK = { r: 241, g: 148, b: 162, alpha: 1 };
-const WHITE_BG = { r: 255, g: 255, b: 255, alpha: 1 };
 const TRANSPARENT_BG = { r: 0, g: 0, b: 0, alpha: 0 };
 
 const ANDROID_DENSITIES = {
@@ -34,13 +28,6 @@ const ANDROID_DENSITIES = {
   xxxhdpi: 4,
 };
 
-/** Expo splash `imageWidth: 200` → iOS 1x/2x/3x and Android mdpi base 288. */
-const IOS_SPLASH_FILES = {
-  'image.png': 200,
-  'image@2x.png': 400,
-  'image@3x.png': 600,
-};
-const ANDROID_SPLASH_BASE_PX = 288;
 const ANDROID_NOTIFICATION_BASE_PX = 24;
 
 function ensureDir(dir) {
@@ -143,9 +130,7 @@ async function syncIosIcon() {
 }
 
 async function syncIosSplash() {
-  for (const [filename, size] of Object.entries(IOS_SPLASH_FILES)) {
-    await writePng(await logoPipeline(size), path.join(iosSplashDir, filename));
-  }
+  // Splash — только цвет фона, без логотипа (см. ios/018BY/SplashScreen.storyboard).
 }
 
 async function syncAndroidDrawables() {
@@ -153,13 +138,8 @@ async function syncAndroidDrawables() {
 
   for (const [density, scale] of Object.entries(ANDROID_DENSITIES)) {
     const drawableDir = path.join(androidRes, `drawable-${density}`);
-    const splashSize = Math.round(ANDROID_SPLASH_BASE_PX * scale);
     const notificationSize = Math.round(ANDROID_NOTIFICATION_BASE_PX * scale);
 
-    await writePng(
-      await logoPipeline(splashSize),
-      path.join(drawableDir, 'splashscreen_logo.png')
-    );
     await writePng(
       sharp(masterNotification).resize(notificationSize, notificationSize, {
         fit: 'contain',

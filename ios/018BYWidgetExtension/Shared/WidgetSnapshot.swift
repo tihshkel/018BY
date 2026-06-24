@@ -91,12 +91,12 @@ enum WidgetDataStore {
 }
 
 enum WidgetDeepLinks {
-    static let createAlbum = URL(string: "018by://select-celebration")!
-    static let reminders = URL(string: "018by://reminders-list")!
-    static let home = URL(string: "018by://")!
+    static let createAlbum = URL(string: "app018by://select-celebration")!
+    static let reminders = URL(string: "app018by://reminders-list")!
+    static let home = URL(string: "app018by://")!
 
     static func albumPages(project: WidgetProjectItem) -> URL {
-        var components = URLComponents(string: "018by://album-pages")!
+        var components = URLComponents(string: "app018by://album-pages")!
         var query: [URLQueryItem] = [URLQueryItem(name: "id", value: project.id)]
         if let celebration = project.celebration {
             query.append(URLQueryItem(name: "celebration", value: celebration))
@@ -109,7 +109,7 @@ enum WidgetDeepLinks {
     }
 
     static func continueProject(_ item: WidgetContinueItem) -> URL {
-        var components = URLComponents(string: "018by://album-pages")!
+        var components = URLComponents(string: "app018by://album-pages")!
         var query: [URLQueryItem] = [URLQueryItem(name: "id", value: item.projectId)]
         if let celebration = item.celebration {
             query.append(URLQueryItem(name: "celebration", value: celebration))
@@ -122,7 +122,7 @@ enum WidgetDeepLinks {
     }
 
     static func pregnancyProject(_ item: WidgetPregnancyItem) -> URL {
-        var components = URLComponents(string: "018by://album-pages")!
+        var components = URLComponents(string: "app018by://album-pages")!
         components.queryItems = [URLQueryItem(name: "id", value: item.projectId)]
         return components.url ?? home
     }

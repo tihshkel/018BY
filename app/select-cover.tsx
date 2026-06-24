@@ -5,12 +5,12 @@ import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
-import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { FAMILY_COVER_DESIGNS, getFamilyCoverPickerDescription } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS, getHolidayCoverPickerDescription } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import {
-  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerDescription,
   getWeddingCoverPickerTitle,
   WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
@@ -205,7 +205,7 @@ export default function SelectCoverScreen() {
       return HOLIDAY_COVER_DESIGNS.map((design) => ({
         id: design.id,
         title: getCoverSelectTitleBySku(design.sku, 'holidays'),
-        description: 'Праздничный альбом',
+        description: getHolidayCoverPickerDescription(design),
         image: design.image,
         color: gradient[0],
         gradient,
@@ -218,7 +218,7 @@ export default function SelectCoverScreen() {
       return FAMILY_COVER_DESIGNS.map((design) => ({
         id: design.id,
         title: getCoverSelectTitleBySku(design.sku, 'family'),
-        description: 'Семейный альбом',
+        description: getFamilyCoverPickerDescription(design),
         image: design.image,
         color: gradient[0],
         gradient,
@@ -230,7 +230,7 @@ export default function SelectCoverScreen() {
       return WEDDING_COVER_DESIGNS.map((design) => ({
         id: design.id,
         title: getWeddingCoverPickerTitle(design),
-        description: getWeddingCoverFormatLabel(design.format),
+        description: getWeddingCoverPickerDescription(design),
         image: design.image,
         color: gradient[0],
         gradient,

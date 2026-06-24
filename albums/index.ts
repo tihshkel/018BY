@@ -1,6 +1,6 @@
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
 import {
-  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerDescription,
   getWeddingCoverPickerTitle,
   WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
@@ -591,7 +591,7 @@ export const albumTemplates: AlbumTemplate[] = [
   ...WEDDING_COVER_DESIGNS.map((design) => ({
     id: design.id,
     name: getWeddingCoverPickerTitle(design),
-    description: getWeddingCoverFormatLabel(design.format),
+    description: getWeddingCoverPickerDescription(design),
     category: 'wedding' as const,
     pages: 20,
     thumbnailPath: design.image,

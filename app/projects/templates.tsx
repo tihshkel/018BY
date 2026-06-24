@@ -1,12 +1,12 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
-import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
-import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { FAMILY_COVER_DESIGNS, getFamilyCoverPickerDescription } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS, getHolidayCoverPickerDescription } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
 import {
-  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerDescription,
   getWeddingCoverPickerTitle,
   WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
@@ -247,7 +247,7 @@ export default function ProjectTemplatesScreen() {
       return HOLIDAY_COVER_DESIGNS.map((d) => ({
         id: d.id,
         name: getCoverSelectTitleBySku(d.sku, 'holidays'),
-        description: 'Праздничный альбом',
+        description: getHolidayCoverPickerDescription(d),
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
     }
@@ -260,7 +260,7 @@ export default function ProjectTemplatesScreen() {
       return FAMILY_COVER_DESIGNS.map((d) => ({
         id: d.id,
         name: getCoverSelectTitleBySku(d.sku, 'family'),
-        description: 'Семейный альбом',
+        description: getFamilyCoverPickerDescription(d),
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
     }
@@ -272,7 +272,7 @@ export default function ProjectTemplatesScreen() {
       return WEDDING_COVER_DESIGNS.map((d) => ({
         id: d.id,
         name: getWeddingCoverPickerTitle(d),
-        description: getWeddingCoverFormatLabel(d.format),
+        description: getWeddingCoverPickerDescription(d),
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
     }
