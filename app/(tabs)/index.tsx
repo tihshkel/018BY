@@ -189,11 +189,7 @@ export default function HomeScreen() {
   };
 
   const handleProjectPress = (project: UserProject) => {
-    if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      void navigateToPdfAlbum(project);
-    } else {
-      router.push(`/edit-project?id=${project.id}`);
-    }
+    void navigateToPdfAlbum(project);
   };
 
   const handleMyStories = () => {
@@ -212,11 +208,7 @@ export default function HomeScreen() {
   const handleEditProject = () => {
     if (selectedProjectForAction) {
       setShowActionModal(false);
-      if (selectedProjectForAction.isReadyMadeAlbum || selectedProjectForAction.hasPdfTemplate) {
-        void navigateToPdfAlbum(selectedProjectForAction);
-      } else {
-        router.push(`/edit-project?id=${selectedProjectForAction.id}`);
-      }
+      void navigateToPdfAlbum(selectedProjectForAction);
     }
   };
 

@@ -7,36 +7,36 @@
           "fieldId": "kids_48_p3_mother_guess",
           "option": "Мальчик",
           "fillColor": "#89CFF0",
-          "cx": 0.2352,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.2355,
+          "cy": 0.8535,
+          "diameter": 0.0809
         },
         {
           "id": "mother_girl",
           "fieldId": "kids_48_p3_mother_guess",
           "option": "Девочка",
           "fillColor": "#F194A2",
-          "cx": 0.3445,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.3447,
+          "cy": 0.8535,
+          "diameter": 0.0808
         },
         {
           "id": "father_boy",
           "fieldId": "kids_48_p3_father_guess",
           "option": "Мальчик",
           "fillColor": "#89CFF0",
-          "cx": 0.6732,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.6735,
+          "cy": 0.8535,
+          "diameter": 0.0809
         },
         {
           "id": "father_girl",
           "fieldId": "kids_48_p3_father_guess",
           "option": "Девочка",
           "fillColor": "#F194A2",
-          "cx": 0.7808,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.7811,
+          "cy": 0.8535,
+          "diameter": 0.0808
         }
       ]
     },
@@ -45,8 +45,8 @@
         {
           "slotId": "child",
           "branch": "child",
-          "x": 0.4446,
-          "y": 0.181,
+          "x": 0.4451,
+          "y": 0.1805,
           "width": 0.1526,
           "height": 0.1526,
           "shape": "circle"
@@ -54,8 +54,8 @@
         {
           "slotId": "mother_great_grandmother",
           "branch": "mother",
-          "x": 0.2072,
-          "y": 0.2959,
+          "x": 0.2077,
+          "y": 0.2954,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -63,8 +63,8 @@
         {
           "slotId": "mother_great_grandfather",
           "branch": "mother",
-          "x": 0.3737,
-          "y": 0.4159,
+          "x": 0.3742,
+          "y": 0.4154,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -72,8 +72,8 @@
         {
           "slotId": "mother_grandmother",
           "branch": "mother",
-          "x": 0.1816,
-          "y": 0.5015,
+          "x": 0.1821,
+          "y": 0.501,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -81,8 +81,8 @@
         {
           "slotId": "mother_grandfather",
           "branch": "mother",
-          "x": 0.3844,
-          "y": 0.6419,
+          "x": 0.385,
+          "y": 0.6414,
           "width": 0.1478,
           "height": 0.1478,
           "shape": "circle"
@@ -90,8 +90,8 @@
         {
           "slotId": "father_great_grandmother",
           "branch": "father",
-          "x": 0.6697,
-          "y": 0.2143,
+          "x": 0.6703,
+          "y": 0.2138,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -99,8 +99,8 @@
         {
           "slotId": "father_great_grandfather",
           "branch": "father",
-          "x": 0.8431,
-          "y": 0.3285,
+          "x": 0.8437,
+          "y": 0.328,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -108,8 +108,8 @@
         {
           "slotId": "father_grandmother",
           "branch": "father",
-          "x": 0.6543,
-          "y": 0.4128,
+          "x": 0.6548,
+          "y": 0.4123,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -117,8 +117,8 @@
         {
           "slotId": "father_grandfather",
           "branch": "father",
-          "x": 0.8268,
-          "y": 0.5514,
+          "x": 0.8273,
+          "y": 0.5509,
           "width": 0.1573,
           "height": 0.1573,
           "shape": "circle"
@@ -126,8 +126,8 @@
         {
           "slotId": "extra_01",
           "branch": "mother",
-          "x": 0.2197,
-          "y": 0.7248,
+          "x": 0.2202,
+          "y": 0.7243,
           "width": 0.1357,
           "height": 0.1357,
           "shape": "circle"
@@ -135,8 +135,8 @@
         {
           "slotId": "extra_02",
           "branch": "mother",
-          "x": 0.3506,
-          "y": 0.856,
+          "x": 0.3511,
+          "y": 0.8555,
           "width": 0.1255,
           "height": 0.1255,
           "shape": "circle"
@@ -144,8 +144,8 @@
         {
           "slotId": "extra_03",
           "branch": "father",
-          "x": 0.612,
-          "y": 0.6081,
+          "x": 0.6125,
+          "y": 0.6076,
           "width": 0.1552,
           "height": 0.1552,
           "shape": "circle"
@@ -153,8 +153,8 @@
         {
           "slotId": "extra_04",
           "branch": "father",
-          "x": 0.7586,
-          "y": 0.7081,
+          "x": 0.7591,
+          "y": 0.7076,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -162,8 +162,8 @@
         {
           "slotId": "extra_05",
           "branch": "father",
-          "x": 0.6777,
-          "y": 0.8449,
+          "x": 0.6782,
+          "y": 0.8444,
           "width": 0.1478,
           "height": 0.1478,
           "shape": "circle"
@@ -171,8 +171,8 @@
         {
           "slotId": "extra_06",
           "branch": "child",
-          "x": 0.5125,
-          "y": 0.7762,
+          "x": 0.513,
+          "y": 0.7757,
           "width": 0.1429,
           "height": 0.1429,
           "shape": "circle"
@@ -185,8 +185,8 @@
             {
               "slotId": "child",
               "branch": "child",
-              "x": 0.4446,
-              "y": 0.181,
+              "x": 0.4451,
+              "y": 0.1805,
               "width": 0.1526,
               "height": 0.1526,
               "shape": "circle"
@@ -194,8 +194,8 @@
             {
               "slotId": "mother_great_grandmother",
               "branch": "mother",
-              "x": 0.2072,
-              "y": 0.2959,
+              "x": 0.2077,
+              "y": 0.2954,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -203,8 +203,8 @@
             {
               "slotId": "mother_great_grandfather",
               "branch": "mother",
-              "x": 0.3737,
-              "y": 0.4159,
+              "x": 0.3742,
+              "y": 0.4154,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -212,8 +212,8 @@
             {
               "slotId": "mother_grandmother",
               "branch": "mother",
-              "x": 0.1816,
-              "y": 0.5015,
+              "x": 0.1821,
+              "y": 0.501,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -221,8 +221,8 @@
             {
               "slotId": "mother_grandfather",
               "branch": "mother",
-              "x": 0.3844,
-              "y": 0.6419,
+              "x": 0.385,
+              "y": 0.6414,
               "width": 0.1478,
               "height": 0.1478,
               "shape": "circle"
@@ -230,8 +230,8 @@
             {
               "slotId": "father_great_grandmother",
               "branch": "father",
-              "x": 0.6697,
-              "y": 0.2143,
+              "x": 0.6703,
+              "y": 0.2138,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -239,8 +239,8 @@
             {
               "slotId": "father_great_grandfather",
               "branch": "father",
-              "x": 0.8431,
-              "y": 0.3285,
+              "x": 0.8437,
+              "y": 0.328,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -248,8 +248,8 @@
             {
               "slotId": "father_grandmother",
               "branch": "father",
-              "x": 0.6543,
-              "y": 0.4128,
+              "x": 0.6548,
+              "y": 0.4123,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -257,8 +257,8 @@
             {
               "slotId": "father_grandfather",
               "branch": "father",
-              "x": 0.8268,
-              "y": 0.5514,
+              "x": 0.8273,
+              "y": 0.5509,
               "width": 0.1573,
               "height": 0.1573,
               "shape": "circle"
@@ -266,8 +266,8 @@
             {
               "slotId": "extra_01",
               "branch": "mother",
-              "x": 0.2197,
-              "y": 0.7248,
+              "x": 0.2202,
+              "y": 0.7243,
               "width": 0.1357,
               "height": 0.1357,
               "shape": "circle"
@@ -275,8 +275,8 @@
             {
               "slotId": "extra_02",
               "branch": "mother",
-              "x": 0.3506,
-              "y": 0.856,
+              "x": 0.3511,
+              "y": 0.8555,
               "width": 0.1255,
               "height": 0.1255,
               "shape": "circle"
@@ -284,8 +284,8 @@
             {
               "slotId": "extra_03",
               "branch": "father",
-              "x": 0.612,
-              "y": 0.6081,
+              "x": 0.6125,
+              "y": 0.6076,
               "width": 0.1552,
               "height": 0.1552,
               "shape": "circle"
@@ -293,8 +293,8 @@
             {
               "slotId": "extra_04",
               "branch": "father",
-              "x": 0.7586,
-              "y": 0.7081,
+              "x": 0.7591,
+              "y": 0.7076,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -302,8 +302,8 @@
             {
               "slotId": "extra_05",
               "branch": "father",
-              "x": 0.6777,
-              "y": 0.8449,
+              "x": 0.6782,
+              "y": 0.8444,
               "width": 0.1478,
               "height": 0.1478,
               "shape": "circle"
@@ -311,13 +311,129 @@
             {
               "slotId": "extra_06",
               "branch": "child",
-              "x": 0.5125,
-              "y": 0.7762,
+              "x": 0.513,
+              "y": 0.7757,
               "width": 0.1429,
               "height": 0.1429,
               "shape": "circle"
             }
           ]
+        }
+      ]
+    }
+  },
+  "pregnancy_a5": {
+    "44": {
+      "optionFills": [
+        {
+          "id": "gender_boy",
+          "fieldId": "pregnancy_a5_p44_baby_gender",
+          "option": "Мальчик",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.355,
+          "y": 0.438,
+          "width": 0.07,
+          "height": 0.042
+        },
+        {
+          "id": "gender_girl",
+          "fieldId": "pregnancy_a5_p44_baby_gender",
+          "option": "Девочка",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.44,
+          "y": 0.438,
+          "width": 0.07,
+          "height": 0.042
+        },
+        {
+          "id": "stimulation_yes",
+          "fieldId": "pregnancy_a5_p44_stimulation",
+          "option": "Да",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.755,
+          "y": 0.438,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "stimulation_no",
+          "fieldId": "pregnancy_a5_p44_stimulation",
+          "option": "Нет",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.835,
+          "y": 0.438,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "tears_yes",
+          "fieldId": "pregnancy_a5_p44_tears",
+          "option": "Да",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.755,
+          "y": 0.468,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "tears_no",
+          "fieldId": "pregnancy_a5_p44_tears",
+          "option": "Нет",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.835,
+          "y": 0.468,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "cord_yes",
+          "fieldId": "pregnancy_a5_p44_cord",
+          "option": "Да",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.755,
+          "y": 0.498,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "cord_no",
+          "fieldId": "pregnancy_a5_p44_cord",
+          "option": "Нет",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.835,
+          "y": 0.498,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "delivery_natural",
+          "fieldId": "pregnancy_a5_p44_delivery_type",
+          "option": "Ер",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.755,
+          "y": 0.528,
+          "width": 0.055,
+          "height": 0.032
+        },
+        {
+          "id": "delivery_csection",
+          "fieldId": "pregnancy_a5_p44_delivery_type",
+          "option": "Кс",
+          "fillColor": "#8B5A3C",
+          "shape": "rect",
+          "x": 0.835,
+          "y": 0.528,
+          "width": 0.055,
+          "height": 0.032
         }
       ]
     }

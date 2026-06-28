@@ -223,10 +223,37 @@ def derive_pregnancy_a5_from_60(pregnancy_60: dict[str, dict]) -> dict[str, dict
     return pages
 
 
+PREGNANCY_60_PHOTO_OVERRIDES: dict[str, dict] = {
+    "6": {
+        "variants": [
+            {
+                "variantId": "one_horizontal",
+                "slots": [
+                    {
+                        "x": 0.125,
+                        "y": 0.732,
+                        "width": 0.75,
+                        "height": 0.22,
+                        "aspectRatio": [4, 3],
+                    }
+                ],
+            }
+        ]
+    },
+}
+
+
+def apply_pregnancy_60_overrides(pages: dict[str, dict]) -> None:
+    for page_key, layout in PREGNANCY_60_PHOTO_OVERRIDES.items():
+        pages[page_key] = layout
+
+
 def main() -> None:
     result: dict[str, dict] = {}
     for config in ALBUMS:
         album_pages = extract_album(config)
+        if config["album_id"] == "pregnancy_60":
+            apply_pregnancy_60_overrides(album_pages)
         result[config["album_id"]] = album_pages
         print(f"{config['album_id']}: {len(album_pages)} pages with photo placeholder")
 

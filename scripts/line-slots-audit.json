@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-24T20:33:01.611Z",
+  "generatedAt": "2026-06-26T16:16:09.148Z",
   "albums": [
     {
       "albumId": "pregnancy_60",
@@ -872,7 +872,7 @@
     {
       "albumId": "kids_48",
       "pageCount": 48,
-      "emptyPages": 17,
+      "emptyPages": 16,
       "issuePages": 0,
       "pages": [
         {
@@ -1035,14 +1035,15 @@
         },
         {
           "page": "21",
-          "slotCount": 0,
+          "slotCount": 2,
+          "overrideUsed": false,
           "issues": [],
           "ok": true,
-          "empty": true
+          "empty": false
         },
         {
           "page": "22",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1050,7 +1051,7 @@
         },
         {
           "page": "23",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1058,7 +1059,7 @@
         },
         {
           "page": "24",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1066,7 +1067,7 @@
         },
         {
           "page": "25",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1074,7 +1075,7 @@
         },
         {
           "page": "26",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1082,7 +1083,7 @@
         },
         {
           "page": "27",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1090,7 +1091,7 @@
         },
         {
           "page": "28",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1098,7 +1099,7 @@
         },
         {
           "page": "29",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1106,7 +1107,7 @@
         },
         {
           "page": "30",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1114,7 +1115,7 @@
         },
         {
           "page": "31",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1122,7 +1123,7 @@
         },
         {
           "page": "32",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,
@@ -1130,7 +1131,7 @@
         },
         {
           "page": "33",
-          "slotCount": 2,
+          "slotCount": 3,
           "overrideUsed": false,
           "issues": [],
           "ok": true,

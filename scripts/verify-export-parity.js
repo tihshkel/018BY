@@ -55,8 +55,18 @@ const viewportSource = read('utils/exportViewport.ts');
 
 assert(
   pdfAnnotationsSource.includes('getTemplateLineTextTop') &&
-    exportTextSource.includes('getTemplateLineTextTop'),
-  'preview and pdf export share template line vertical placement',
+    exportTextSource.includes('getTemplateLinePdfBaselineY'),
+  'preview uses text top; pdf export derives baseline from text top + cap height',
+);
+assert(
+  exportPdfSource.includes('buildExportPageAnnotations') &&
+    exportPdfSource.includes('resolveExportPageSourceSize'),
+  'pdf export rebuilds page annotations with resolved source dimensions',
+);
+assert(
+  read('utils/exportPdfImageAnnotations.ts').includes('mapped.x + mapped.width / 2') &&
+    read('utils/exportPdfImageAnnotations.ts').includes('mapped.y + mapped.height / 2'),
+  'pdf circle fills use ellipse center (pdf-lib), not bbox corner',
 );
 assert(
   pdfAnnotationsSource.includes('distributeTextWithinContinuationGroup') &&
@@ -81,6 +91,11 @@ assert(
 assert(
   viewportSource.includes('Math.abs(savedAspect - sourceAspect) < 0.02'),
   'export viewport rejects saved aspect ratios that drift from source page',
+);
+assert(
+  viewportSource.includes('getDefaultPageAspectRatio') &&
+    viewportSource.includes("lineGuideId === 'kids_48'"),
+  'export viewport defaults kids_48 pages to square aspect',
 );
 assert(
   textLineSource.includes('getLineSlotsForPage') &&

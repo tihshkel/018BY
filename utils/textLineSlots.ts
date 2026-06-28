@@ -1,4 +1,12 @@
-import { getAlbumTextMargins, isBlankLineGuideAlbum } from '@/constants/album-text-margins';
+import {
+  getAlbumTextMargins,
+  getKidsMonthAnswerLineLayout,
+  getKidsMonthAnswerStrokeY,
+  getKidsMonthAnswerWritableBounds,
+  isBlankLineGuideAlbum,
+  isKidsMonthPage,
+  KIDS_MONTH_LINE_BAND_HEIGHT,
+} from '@/constants/album-text-margins';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import {
@@ -26,7 +34,8 @@ export type TextLineSlot = {
   /** Нормализованный центр слота по Y (0–1), для типографики */
   normY?: number;
   /** Нормализованная высота слота (0–1), для типографики */
-  normHeight?: number;
+  /** norm.y = штрих линии; полоса лежит над линией (как diary_interior) */
+  lineStrokeAtBottom?: boolean;
 };
 
 export type GetLineSlotsParams = {
@@ -799,13 +808,51 @@ function refineBrownParentQuestionnaireRowNorm(
   return { ...norm, x, width };
 }
 
+/** В PDF norm.y — штрих; полоса «Я люблю/умею» лежит над линией. */
+function getKidsMonthAnswerSlotTopNormY(norm: NormalizedLineSlot): number {
+  return norm.y - norm.height;
+}
+
+function refineKidsMonthLineSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (slotIndex < 1) {
+    return { ...norm, continuationGroup: slotIndex };
+  }
+
+  const layout = getKidsMonthAnswerLineLayout(page);
+  const strokeY = getKidsMonthAnswerStrokeY(page, slotIndex) ?? norm.y;
+  const writable =
+    getKidsMonthAnswerWritableBounds(page, slotIndex) ?? {
+      x: layout.canX,
+      width: layout.canWidth,
+    };
+
+  return {
+    ...norm,
+    x: writable.x,
+    width: writable.width,
+    y: strokeY,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    continuationGroup: slotIndex,
+    inputKind: 'line',
+  };
+}
+
 /** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
 function refineNormalizedSlotForTextLayout(
   lineGuideId: string,
   page: number,
   norm: NormalizedLineSlot,
-  allNorms: readonly NormalizedLineSlot[] = []
+  allNorms: readonly NormalizedLineSlot[] = [],
+  slotIndex = 0,
 ): NormalizedLineSlot {
+  if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
+    return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
+  }
+
   if (!lineGuideId?.startsWith('diary_interior_')) {
     return norm;
   }
@@ -888,22 +935,104 @@ function refineNormalizedSlotForTextLayout(
   return { ...refined, x, width };
 }
 
+const PREGNANCY_LINE_GAP_NORM = 4 / 210;
+const PREGNANCY_STANDARD_LINE_HEIGHT = 0.038;
+
+function slotsInGroupTooClose(slots: NormalizedLineSlot[]): boolean {
+  for (let i = 0; i < slots.length - 1; i += 1) {
+    const bottom = slots[i].y + slots[i].height / 2;
+    const nextTop = slots[i + 1].y - slots[i + 1].height / 2;
+    if (nextTop < bottom - 0.002) return true;
+  }
+  return false;
+}
+
+/** OCR иногда ставит строки одной группы слишком близко (p4 «Постановка на учёт»). */
+function refineDenseContinuationGroupSpacing(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (lineGuideId !== 'pregnancy_60' && lineGuideId !== 'pregnancy_a5') {
+    return [...norms];
+  }
+
+  const result = norms.map((slot) => ({ ...slot }));
+  const groupIndices = new Map<number, number[]>();
+
+  result.forEach((slot, index) => {
+    const groupId = slot.continuationGroup ?? index + 1;
+    const list = groupIndices.get(groupId) ?? [];
+    list.push(index);
+    groupIndices.set(groupId, list);
+  });
+
+  for (const indices of groupIndices.values()) {
+    if (indices.length < 2) continue;
+
+    const groupSlots = indices.map((index) => result[index]);
+    if (!slotsInGroupTooClose(groupSlots)) continue;
+
+    const firstIdx = indices[0];
+    const lastIdx = indices[indices.length - 1];
+    const startY = result[firstIdx].y;
+    const nextIdx = lastIdx + 1;
+    const endY =
+      nextIdx < result.length
+        ? result[nextIdx].y - result[nextIdx].height / 2 - PREGNANCY_LINE_GAP_NORM
+        : result[lastIdx].y;
+
+    if (endY <= startY + PREGNANCY_STANDARD_LINE_HEIGHT) continue;
+
+    const uniformHeight = Math.min(
+      PREGNANCY_STANDARD_LINE_HEIGHT,
+      ...groupSlots.map((slot) => slot.height),
+    );
+
+    indices.forEach((index, position) => {
+      const t = indices.length === 1 ? 0 : position / (indices.length - 1);
+      result[index] = {
+        ...result[index],
+        y: startY + t * (endY - startY),
+        height: uniformHeight,
+      };
+    });
+  }
+
+  return result;
+}
+
 export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
   if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
     return [];
   }
 
-  const normalized = getNormalizedSlotsForPage(lineGuideId, page);
+  const normalized = refineDenseContinuationGroupSpacing(
+    lineGuideId,
+    page,
+    getNormalizedSlotsForPage(lineGuideId, page),
+  );
   if (!normalized.length) return [];
 
   const rect = resolveContentRectForPage(params);
 
   return normalized.map((norm, index) => {
-    const layoutNorm = refineNormalizedSlotForTextLayout(lineGuideId, page, norm, normalized);
-    const topNormY = isDiaryInteriorLineGuide(lineGuideId)
-      ? getDiarySlotTopNormY(layoutNorm)
-      : layoutNorm.y - layoutNorm.height / 2;
+    const layoutNorm = refineNormalizedSlotForTextLayout(
+      lineGuideId,
+      page,
+      norm,
+      normalized,
+      index,
+    );
+    const topNormY =
+      isDiaryInteriorLineGuide(lineGuideId)
+        ? getDiarySlotTopNormY(layoutNorm)
+        : lineGuideId === 'kids_48' &&
+            isKidsMonthPage(page) &&
+            index >= 1
+          ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+          : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -911,6 +1040,9 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       layoutNorm.height,
       rect
     );
+
+    const lineStrokeAtBottom =
+      lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1;
 
     return {
       index,
@@ -920,10 +1052,11 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       width: mapped.width,
       lineHeight: mapped.height,
       hasLabel: norm.hasLabel ?? true,
-      continuationGroup: norm.continuationGroup ?? index + 1,
-      inputKind: norm.inputKind,
-      normY: norm.y,
-      normHeight: norm.height,
+      continuationGroup: layoutNorm.continuationGroup ?? norm.continuationGroup ?? index + 1,
+      inputKind: layoutNorm.inputKind ?? norm.inputKind,
+      normY: layoutNorm.y,
+      normHeight: layoutNorm.height,
+      lineStrokeAtBottom,
     };
   });
 }

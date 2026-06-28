@@ -23,11 +23,17 @@ import {
   getTemplateLayout,
 } from '@/utils/photoPageTemplateManifest';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
+import {
+  buildAlbumPhotoStorageKey,
+  persistAlbumPhotoUri,
+} from '@/utils/persistAlbumPhoto';
 
 type FreePageEditorProps = {
   schema: AlbumPageSchema;
   elements: FreePageElement[];
   lineGuideId: string;
+  projectId?: string;
+  instanceId?: string;
   onChange: (elements: FreePageElement[]) => void;
   ensureMediaLibraryPermission: () => Promise<boolean>;
 };
@@ -154,6 +160,8 @@ export function FreePageEditor({
   schema,
   elements,
   lineGuideId,
+  projectId,
+  instanceId,
   onChange,
   ensureMediaLibraryPermission,
 }: FreePageEditorProps) {
@@ -220,15 +228,27 @@ export function FreePageEditor({
 
   const addPhoto = useCallback(async () => {
     if (photoCount >= (limits.maxPhotos ?? 4)) return;
-    const uri = await pickPhotoFromLibrary({ ensurePermission: ensureMediaLibraryPermission });
-    if (!uri) return;
+    const pickedUri = await pickPhotoFromLibrary({ ensurePermission: ensureMediaLibraryPermission });
+    if (!pickedUri) return;
+    const elementId = createId('free');
+    const uri =
+      projectId && instanceId
+        ? await persistAlbumPhotoUri(
+            pickedUri,
+            buildAlbumPhotoStorageKey({
+              projectId,
+              instanceId,
+              freeElementId: elementId,
+            }),
+          )
+        : pickedUri;
     const next: FreePageElement = {
-      id: createId('free'),
+      id: elementId,
       type: 'image',
-      x: safeRect.x + 0.05 * photoCount,
-      y: safeRect.y + 0.05 * photoCount,
-      w: 0.28,
-      h: 0.28,
+      x: safeRect.x + (safeRect.w - 0.52) / 2 + 0.05 * photoCount,
+      y: safeRect.y + (safeRect.h - 0.52) / 2 + 0.05 * photoCount,
+      w: 0.52,
+      h: 0.52,
       zIndex: elements.length + 1,
       content: uri,
     };
@@ -237,11 +257,15 @@ export function FreePageEditor({
   }, [
     elements,
     ensureMediaLibraryPermission,
+    instanceId,
     limits.maxPhotos,
     onChange,
     photoCount,
+    projectId,
     safeRect.x,
     safeRect.y,
+    safeRect.w,
+    safeRect.h,
   ]);
 
   const addText = useCallback(() => {

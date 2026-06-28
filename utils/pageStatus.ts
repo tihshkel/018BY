@@ -152,6 +152,26 @@ function meetsBirthdayFilledRule(values: PageValues, schema: AlbumPageSchema): b
   return false;
 }
 
+function meetsFamilyTreeFilledRule(values: PageValues, schema: AlbumPageSchema): boolean {
+  if (schema.pageType !== 'family_tree') return false;
+
+  let photoRequired = 0;
+  let photoFilled = 0;
+  for (const block of schema.photoBlocks ?? []) {
+    const blockValues = values.photoBlocks[block.blockId];
+    const variant =
+      block.variants.find((v) => v.variantId === blockValues?.variantId) ?? block.variants[0];
+    if (!variant) continue;
+    photoRequired += variant.slots;
+    for (let i = 0; i < variant.slots; i += 1) {
+      if (hasText(blockValues?.slots[i])) photoFilled += 1;
+    }
+  }
+
+  // Подписи на семейном дереве необязательны — достаточно всех фото в кругах.
+  return photoRequired > 0 && photoFilled === photoRequired;
+}
+
 export function computePageStatus(schema: AlbumPageSchema, values?: PageValues | null): PageStatus {
   if (values?.excludedFromExport) {
     return 'excluded';
@@ -189,6 +209,10 @@ export function computePageStatus(schema: AlbumPageSchema, values?: PageValues |
   }
 
   if (meetsBirthdayFilledRule(values, schema)) {
+    return 'filled';
+  }
+
+  if (meetsFamilyTreeFilledRule(values, schema)) {
     return 'filled';
   }
 
@@ -263,7 +287,7 @@ export function getMissingPageItems(
   const missing: string[] = [];
 
   for (const field of schema.fields ?? []) {
-    if (!hasText(values?.fields[field.fieldId])) {
+    if (field.required && !hasText(values?.fields[field.fieldId])) {
       missing.push(field.label || 'Текстовое поле');
     }
   }

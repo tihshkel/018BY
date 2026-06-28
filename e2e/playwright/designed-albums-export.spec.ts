@@ -43,8 +43,8 @@ const SCENARIOS: DesignedAlbumScenario[] = [
       interiorType: 'kids_48',
     },
     totalPages: 48,
-    pagesToPreview: [1, 5, 10],
-    pageToFill: 3,
+    pagesToPreview: [1, 5, 7, 10],
+    pageToFill: 1,
   },
   {
     name: 'birthday 48',

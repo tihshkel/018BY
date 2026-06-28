@@ -38,6 +38,7 @@ import {
   savePageValuesMap,
 } from '@/utils/pageStorage';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
+import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
@@ -206,6 +207,10 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     [effectiveProjectId, persistAll]
   );
 
+  const skipSnapshotEchoRef = useRef(false);
+  const snapshotPublishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const statusRefreshTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
   const publishSnapshot = useCallback(
     (
       nextValues: Record<string, PageValues>,
@@ -213,13 +218,33 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       nextImages: string[] = images
     ) => {
       if (!effectiveProjectId) return;
+      skipSnapshotEchoRef.current = true;
       patchAlbumProjectSnapshot(effectiveProjectId, {
         pageValuesMap: nextValues,
         instances: nextInstances,
         images: nextImages,
       });
+      skipSnapshotEchoRef.current = false;
     },
     [effectiveProjectId, instances, images]
+  );
+
+  const scheduleSnapshotPublish = useCallback(
+    (
+      nextValues: Record<string, PageValues>,
+      nextInstances: PageInstance[] = instances,
+      nextImages: string[] = images
+    ) => {
+      if (!effectiveProjectId) return;
+      if (snapshotPublishTimerRef.current) {
+        clearTimeout(snapshotPublishTimerRef.current);
+      }
+      snapshotPublishTimerRef.current = setTimeout(() => {
+        snapshotPublishTimerRef.current = null;
+        publishSnapshot(nextValues, nextInstances, nextImages);
+      }, 250);
+    },
+    [effectiveProjectId, instances, images, publishSnapshot]
   );
 
   const reloadProjectData = useCallback(async () => {
@@ -266,11 +291,24 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     if (!effectiveProjectId) return;
 
     return subscribeAlbumProjectSnapshot(effectiveProjectId, (snapshot) => {
+      if (skipSnapshotEchoRef.current) return;
       setPageValuesMap(snapshot.pageValuesMap);
       setInstances(snapshot.instances);
       setImages(snapshot.images);
     });
   }, [effectiveProjectId]);
+
+  useEffect(() => {
+    return () => {
+      if (snapshotPublishTimerRef.current) {
+        clearTimeout(snapshotPublishTimerRef.current);
+      }
+      for (const timer of statusRefreshTimersRef.current.values()) {
+        clearTimeout(timer);
+      }
+      statusRefreshTimersRef.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     const pid = effectiveProjectId;
@@ -283,21 +321,52 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
   const updatePageValues = useCallback(
     (instanceId: string, updater: (prev: PageValues) => PageValues) => {
+      const instance = instances.find((i) => i.instanceId === instanceId);
+      const schema = instance ? getSchemaForInstance(instance, lineGuideId) : undefined;
+      let mergedForEffects: Record<string, PageValues> | null = null;
+
       setPageValuesMap((prev) => {
-        const instance = instances.find((i) => i.instanceId === instanceId);
-        const schema = instance ? getSchemaForInstance(instance, lineGuideId) : undefined;
         const current = prev[instanceId] ?? { fields: {}, photoBlocks: {}, status: 'empty', updatedAt: new Date().toISOString() };
-        let next = updater(current);
-        if (schema) {
-          next = refreshPageValuesStatus(schema, next);
-        }
+        const next = {
+          ...updater(current),
+          updatedAt: new Date().toISOString(),
+        };
         const merged = { ...prev, [instanceId]: next };
-        scheduleSave(images, instances, merged);
-        publishSnapshot(merged, instances, images);
+        mergedForEffects = merged;
         return merged;
       });
+
+      if (mergedForEffects) {
+        scheduleSave(images, instances, mergedForEffects);
+        scheduleSnapshotPublish(mergedForEffects, instances, images);
+      }
+
+      if (schema) {
+        const existingTimer = statusRefreshTimersRef.current.get(instanceId);
+        if (existingTimer) clearTimeout(existingTimer);
+        statusRefreshTimersRef.current.set(
+          instanceId,
+          setTimeout(() => {
+            statusRefreshTimersRef.current.delete(instanceId);
+            let statusMerged: Record<string, PageValues> | null = null;
+            setPageValuesMap((prev) => {
+              const current = prev[instanceId];
+              if (!current) return prev;
+              const refreshed = refreshPageValuesStatus(schema, current);
+              if (refreshed.status === current.status) return prev;
+              const merged = { ...prev, [instanceId]: refreshed };
+              statusMerged = merged;
+              return merged;
+            });
+            if (statusMerged) {
+              scheduleSave(images, instances, statusMerged);
+              scheduleSnapshotPublish(statusMerged, instances, images);
+            }
+          }, 600)
+        );
+      }
     },
-    [instances, images, lineGuideId, scheduleSave, publishSnapshot]
+    [instances, images, lineGuideId, scheduleSave, scheduleSnapshotPublish]
   );
 
   const savePageValuesNow = useCallback(
@@ -645,11 +714,29 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               ? memorySnapshotAfterLoad.images
               : imageUris;
 
+          let finalValues = mergedValues;
+          const sanitizedPhotos = await sanitizePageValuesMapPhotos(projectId, mergedValues);
+          if (sanitizedPhotos.changed) {
+            finalValues = { ...sanitizedPhotos.pageValuesMap };
+            for (const instance of mergedInstances) {
+              const schema = getSchemaForInstance(instance, lgId);
+              const current = finalValues[instance.instanceId];
+              if (schema && current) {
+                finalValues[instance.instanceId] = refreshPageValuesStatus(schema, current);
+              }
+            }
+            await savePageValuesMap(
+              (k, v) => AsyncStorage.setItem(k, v),
+              projectId,
+              finalValues,
+            );
+          }
+
           setInstances(mergedInstances);
-          setPageValuesMap(mergedValues);
+          setPageValuesMap(finalValues);
           setImages(mergedImages);
           publishAlbumProjectSnapshot(projectId, {
-            pageValuesMap: mergedValues,
+            pageValuesMap: finalValues,
             instances: mergedInstances,
             images: mergedImages,
           });

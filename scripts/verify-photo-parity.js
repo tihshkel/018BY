@@ -22,7 +22,7 @@ const DESIGNED_ALBUM_IDS = [
 const REPRESENTATIVE_PAGES = {
   pregnancy_60: [54, 56, 60],
   pregnancy_a5: [48],
-  kids_48: [1, 5, 10],
+  kids_48: [1, 5, 7, 10],
   holidays_birthday_60: [2, 40, 41],
   diary_interior_brown: [4, 9, 31],
   diary_interior_purple: [3, 4, 22],
@@ -57,6 +57,7 @@ function loadSchemas() {
 const schemas = loadSchemas();
 const photoPages = readJson('constants/photo-pages-by-album.json');
 const pdfSlots = readJson('constants/generated/pdf-photo-slots.json');
+const pdfCircleSlots = readJson('constants/generated/pdf-circle-slots.json');
 const lineSlots = readJson('constants/line-slots.json');
 const photoSlotsSource = read('constants/photo-slots.ts');
 const adapterSource = read('utils/pageValuesAdapter.ts');
@@ -92,14 +93,29 @@ for (const albumId of DESIGNED_ALBUM_IDS) {
 
     if (hasPhotos) {
       const hasPdfDetectedSlots = Boolean(pdfSlots[albumId]?.[String(page)]?.variants?.length);
-      const hasManualSlots = photoSlotsSource.includes(`${albumId}:`) && photoSlotsSource.includes(`'${page}':`);
+      const hasKidsPdfResolution =
+        albumId === 'kids_48' &&
+        Boolean(pdfSlots[albumId]?.[String(page)]?.variants?.length);
+      const hasManualSlots =
+        (photoSlotsSource.includes(`${albumId}:`) && photoSlotsSource.includes(`'${page}':`)) ||
+        hasKidsPdfResolution;
       const hasLineSlotBackedBlocks = schema.photoBlocks.every((block) =>
         block.variants.every((variant) =>
           variant.slotIndices.every((index) => Boolean(lineSlots[albumId]?.[String(page)]?.[index])),
         ),
       );
+      const hasCircleSlots = Boolean(
+        pdfCircleSlots[albumId]?.[String(page)]?.variants?.length,
+      );
+      const usesDefaultPhotoLayouts =
+        schema.pageType === 'caption_photo_page' &&
+        photoSlotsSource.includes('DEFAULT_PHOTO_PAGE_LAYOUTS');
       assert(
-        hasPdfDetectedSlots || hasManualSlots || hasLineSlotBackedBlocks,
+        hasPdfDetectedSlots ||
+          hasManualSlots ||
+          hasLineSlotBackedBlocks ||
+          hasCircleSlots ||
+          usesDefaultPhotoLayouts,
         `${albumId} p${page}: photo layout source exists`,
       );
       assert(

@@ -16,6 +16,7 @@ const {
   buildShoppingListFields,
   buildTodoListFields,
   buildBirthStoryFields,
+  buildAlreadyMomFields,
   isPregnancy60WeeklyPage,
   getPregnancy60WeekNumber,
   LETTER_TO_BABY_FIELDS,
@@ -108,7 +109,7 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
       return tzOverride({
         title: 'Уже мама',
         pageType: 'structured',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
+        fields: buildAlreadyMomFields(lineGuideId, pageNumber, slots),
       });
     case 5:
       return buildPregnancyStaticPage('Триместры');
@@ -119,13 +120,16 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 33:
       return buildPregnancyStaticPage('3 триместр');
     case 48:
+      return buildPregnancyStaticPage('Сумка маме');
     case 49:
+      return buildPregnancyStaticPage('Сумки малышу');
+    case 55:
       return tzOverride({
+        title: 'Памятные моменты',
         pageType: 'photo',
+        editable: true,
         fields: [],
       });
-    case 55:
-      return buildPregnancyStaticPage('Памятные моменты');
     case 56:
     case 57:
     case 58:

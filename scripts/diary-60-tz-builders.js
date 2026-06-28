@@ -3,7 +3,7 @@
  * Used by generate-page-schemas.js
  */
 
-const { FULL_PHOTO_BLOCK } = require('./photo-block-presets-data');
+const { DESIGNED_ALBUM_PHOTO_BLOCK } = require('./photo-block-presets-data');
 const {
   USER_QUESTIONNAIRE_FIELDS,
   PARENT_MOM_FIELDS,
@@ -249,7 +249,7 @@ function buildPhotoPage(pageNumber, slots, lineGuideId, tzEntry) {
     pageType: 'photo',
     editable: true,
     fields: [],
-    photoBlocks: [FULL_PHOTO_BLOCK],
+    photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
     canDuplicate: tzEntry.canDuplicate ?? false,
   };
 }

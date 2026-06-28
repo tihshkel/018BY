@@ -10,6 +10,7 @@ const root = path.join(__dirname, '..');
 const outFile = path.join(root, 'constants/generated/preview-asset-registry.ts');
 
 const SCAN_DIRS = [
+  'assets/photo-layout-previews',
   'assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/design_previews',
   'assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/preview_variants',
   'assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/design_previews',

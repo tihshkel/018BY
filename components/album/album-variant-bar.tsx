@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { LayoutPreviewThumbnail } from '@/components/album/layout-preview-thumbnail';
 import { AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing, surfaces } from '@/constants/design-tokens';
 import { getCollageAspectRatio, getCollageSlotFrames } from '@/utils/photoSlotGridLayout';
@@ -60,6 +61,21 @@ function VariantLayoutPreview({
   );
 }
 
+function VariantThumbnailPreview({
+  item,
+  selected,
+}: {
+  item: VariantPreviewThumbnail;
+  selected: boolean;
+}) {
+  const imageUri = selected && item.selectedUri ? item.selectedUri : item.uri;
+  if (imageUri) {
+    return <LayoutPreviewThumbnail variantId={item.variantId} uri={imageUri} />;
+  }
+
+  return <VariantLayoutPreview variantId={item.variantId} selected={selected} />;
+}
+
 export function AlbumVariantBar({
   thumbnails,
   selectedVariantId,
@@ -89,7 +105,7 @@ export function AlbumVariantBar({
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={item.label}
           >
-            <VariantLayoutPreview variantId={item.variantId} selected={isSelected} />
+            <VariantThumbnailPreview item={item} selected={isSelected} />
             <AppText
               variant="caption"
               style={[styles.segmentLabel, isSelected && styles.segmentLabelSelected]}
@@ -153,11 +169,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     borderRadius: radii.md,
-    gap: 8,
+    gap: 6,
     minWidth: 0,
+    overflow: 'visible',
   },
   segmentScroll: {
     flex: 0,
@@ -186,7 +203,7 @@ const styles = StyleSheet.create({
   },
   previewBox: {
     width: '100%',
-    maxWidth: 72,
+    maxWidth: 84,
     position: 'relative',
     borderRadius: radii.sm,
     overflow: 'hidden',

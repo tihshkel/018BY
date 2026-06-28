@@ -783,16 +783,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p7_name_17",
-          "label": "Имя 17",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 32,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p7_name_forms_17",
-          "label": "Формы имени 17",
+          "fieldId": "pregnancy_60_p7_chosen_name",
+          "label": "Выбранное имя",
           "type": "text",
           "required": false,
           "templateLineStart": 32,
@@ -832,11 +824,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p9_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p9_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -844,8 +844,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p9_belly",
@@ -885,11 +885,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p10_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p10_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -897,8 +905,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p10_belly",
@@ -938,11 +946,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p11_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p11_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -950,8 +966,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p11_belly",
@@ -991,11 +1007,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p12_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p12_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1003,8 +1027,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p12_belly",
@@ -1044,11 +1068,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p13_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p13_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1056,8 +1088,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p13_belly",
@@ -1097,11 +1129,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p14_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p14_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1109,8 +1149,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p14_belly",
@@ -1150,11 +1190,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p15_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p15_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1162,8 +1210,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p15_belly",
@@ -1203,11 +1251,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p16_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p16_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1215,8 +1271,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p16_belly",
@@ -1256,11 +1312,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p17_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p17_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1268,8 +1332,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p17_belly",
@@ -1321,11 +1385,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p19_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p19_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1333,8 +1405,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p19_belly",
@@ -1374,11 +1446,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p20_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p20_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1386,8 +1466,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p20_belly",
@@ -1427,11 +1507,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p21_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p21_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1439,8 +1527,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p21_belly",
@@ -1480,11 +1568,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p22_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p22_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1492,8 +1588,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p22_belly",
@@ -1533,11 +1629,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p23_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p23_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1545,8 +1649,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p23_belly",
@@ -1586,11 +1690,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p24_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p24_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1598,8 +1710,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p24_belly",
@@ -1639,11 +1751,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p25_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p25_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1651,8 +1771,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p25_belly",
@@ -1692,11 +1812,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p26_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p26_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1704,8 +1832,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p26_belly",
@@ -1745,11 +1873,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p27_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p27_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1757,8 +1893,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p27_belly",
@@ -1798,11 +1934,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p28_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p28_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1810,8 +1954,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p28_belly",
@@ -1851,11 +1995,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p29_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p29_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1863,8 +2015,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p29_belly",
@@ -1904,11 +2056,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p30_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p30_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1916,8 +2076,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p30_belly",
@@ -1957,11 +2117,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p31_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p31_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -1969,8 +2137,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p31_belly",
@@ -2010,11 +2178,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p32_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p32_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2022,8 +2198,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p32_belly",
@@ -2075,11 +2251,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p34_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p34_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2087,8 +2271,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p34_belly",
@@ -2128,11 +2312,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p35_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p35_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2140,8 +2332,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p35_belly",
@@ -2181,11 +2373,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p36_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p36_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2193,8 +2393,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p36_belly",
@@ -2234,11 +2434,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p37_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p37_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2246,8 +2454,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p37_belly",
@@ -2287,11 +2495,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p38_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p38_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2299,8 +2515,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p38_belly",
@@ -2340,11 +2556,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p39_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p39_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2352,8 +2576,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p39_belly",
@@ -2393,11 +2617,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p40_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p40_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2405,8 +2637,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p40_belly",
@@ -2446,11 +2678,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p41_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p41_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2458,8 +2698,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p41_belly",
@@ -2499,11 +2739,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p42_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p42_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2511,8 +2759,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p42_belly",
@@ -2552,11 +2800,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p43_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p43_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2564,8 +2820,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p43_belly",
@@ -2605,11 +2861,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p44_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p44_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2617,8 +2881,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p44_belly",
@@ -2658,11 +2922,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p45_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p45_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2670,8 +2942,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p45_belly",
@@ -2711,11 +2983,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p46_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p46_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2723,8 +3003,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p46_belly",
@@ -2764,11 +3044,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p47_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p47_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -2776,8 +3064,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p47_belly",
@@ -2802,116 +3090,24 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p48",
       "title": "Сумка маме",
-      "pageType": "photo",
+      "pageType": "non_editable",
       "order": 48,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 48,
       "fields": [],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_photos",
-              "label": "Два фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
-              "slotIndices": [
-                0,
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
     {
       "pageId": "pregnancy_60_p49",
       "title": "Сумки малышу",
-      "pageType": "photo",
+      "pageType": "non_editable",
       "order": 49,
-      "editable": true,
+      "editable": false,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 49,
       "fields": [],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_large",
-              "label": "Одно большое фото",
-              "slots": 1,
-              "slotIndices": [
-                0
-              ]
-            },
-            {
-              "variantId": "two_photos",
-              "label": "Два фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
-              "variantId": "three_hero",
-              "label": "Три фото",
-              "slots": 3,
-              "slotIndices": [
-                0,
-                1,
-                2
-              ]
-            },
-            {
-              "variantId": "four_grid",
-              "label": "Четыре фото",
-              "slots": 4,
-              "slotIndices": [
-                0,
-                1,
-                2,
-                3
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -3597,8 +3793,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 2
+          "templateLineStart": 6,
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3615,7 +3811,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -3625,7 +3821,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -3635,7 +3831,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -3653,12 +3849,58 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_60_p55",
       "title": "Памятные моменты",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 55,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "pregnancy_60",
       "sourcePageNumber": 55,
       "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -3685,7 +3927,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -3695,7 +3937,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -3705,7 +3947,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -3744,7 +3986,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -3754,7 +3996,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -3764,7 +4006,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -3803,7 +4045,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -3813,7 +4055,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -3823,7 +4065,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -3862,7 +4104,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -3872,7 +4114,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -3882,7 +4124,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -4197,11 +4439,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p5_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p5_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4209,8 +4459,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p5_belly",
@@ -4250,11 +4500,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p6_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p6_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4262,8 +4520,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p6_belly",
@@ -4303,11 +4561,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p7_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p7_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4315,8 +4581,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p7_belly",
@@ -4356,11 +4622,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p8_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p8_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4368,8 +4642,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p8_belly",
@@ -4409,11 +4683,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p9_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p9_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4421,8 +4703,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p9_belly",
@@ -4462,11 +4744,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p10_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p10_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4474,8 +4764,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p10_belly",
@@ -4515,11 +4805,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p11_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p11_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4527,8 +4825,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p11_belly",
@@ -4568,11 +4866,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p12_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p12_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4580,8 +4886,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p12_belly",
@@ -4621,11 +4927,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p13_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p13_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4633,8 +4947,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p13_belly",
@@ -4686,11 +5000,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p15_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p15_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4698,8 +5020,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p15_belly",
@@ -4739,11 +5061,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p16_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p16_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4751,8 +5081,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p16_belly",
@@ -4792,11 +5122,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p17_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p17_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4804,8 +5142,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p17_belly",
@@ -4845,11 +5183,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p18_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p18_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4857,8 +5203,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p18_belly",
@@ -4898,11 +5244,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p19_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p19_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4910,8 +5264,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p19_belly",
@@ -4951,11 +5305,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p20_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p20_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -4963,8 +5325,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p20_belly",
@@ -5004,11 +5366,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p21_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p21_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5016,8 +5386,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p21_belly",
@@ -5057,11 +5427,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p22_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p22_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5069,8 +5447,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p22_belly",
@@ -5110,11 +5488,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p23_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p23_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5122,8 +5508,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p23_belly",
@@ -5163,11 +5549,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p24_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p24_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5175,8 +5569,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p24_belly",
@@ -5216,11 +5610,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p25_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p25_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5228,8 +5630,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p25_belly",
@@ -5269,11 +5671,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p26_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p26_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5281,8 +5691,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p26_belly",
@@ -5322,11 +5732,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p27_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p27_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5334,8 +5752,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p27_belly",
@@ -5375,11 +5793,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p28_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p28_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5387,8 +5813,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p28_belly",
@@ -5440,11 +5866,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p30_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p30_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5452,8 +5886,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p30_belly",
@@ -5493,11 +5927,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p31_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p31_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5505,8 +5947,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p31_belly",
@@ -5546,11 +5988,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p32_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p32_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5558,8 +6008,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p32_belly",
@@ -5599,11 +6049,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p33_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p33_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5611,8 +6069,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p33_belly",
@@ -5652,11 +6110,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p34_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p34_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5664,8 +6130,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p34_belly",
@@ -5705,11 +6171,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p35_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p35_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5717,8 +6191,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p35_belly",
@@ -5758,11 +6232,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p36_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p36_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5770,8 +6252,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p36_belly",
@@ -5811,11 +6293,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p37_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p37_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5823,8 +6313,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p37_belly",
@@ -5864,11 +6354,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p38_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p38_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5876,8 +6374,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p38_belly",
@@ -5917,11 +6415,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p39_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p39_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5929,8 +6435,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p39_belly",
@@ -5970,11 +6476,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p40_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p40_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -5982,8 +6496,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p40_belly",
@@ -6023,11 +6537,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p41_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p41_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -6035,8 +6557,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p41_belly",
@@ -6076,11 +6598,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p42_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p42_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -6088,8 +6618,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p42_belly",
@@ -6129,11 +6659,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p43_weight",
+          "label": "Вес",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p43_plans_header",
           "label": "Главные планы на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -6141,8 +6679,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Подробные заметки и дела на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 3
+          "templateLineStart": 3,
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_a5_p43_belly",
@@ -6219,22 +6757,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "date",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 1
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "pregnancy_a5_p44_baby_gender",
+          "label": "Пол",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Мальчик",
+            "Девочка"
+          ]
         },
         {
           "fieldId": "pregnancy_a5_p44_baby_weight",
           "label": "Вес",
           "type": "number",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p44_baby_gender",
-          "label": "Пол",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -6242,7 +6784,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рост",
           "type": "number",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -6250,7 +6792,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "День недели",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -6258,24 +6800,56 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Время",
           "type": "time",
           "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p44_delivery_type",
-          "label": "Естественные роды / Кесарево",
-          "type": "text",
-          "required": false,
           "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p44_stimulation",
+          "label": "Стимуляция",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
+        },
+        {
+          "fieldId": "pregnancy_a5_p44_tears",
+          "label": "Разрывы",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
+        },
+        {
           "fieldId": "pregnancy_a5_p44_cord",
           "label": "Обвитие",
-          "type": "text",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 12,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
+        },
+        {
+          "fieldId": "pregnancy_a5_p44_delivery_type",
+          "label": "Естественные роды / Кесарево",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Ер",
+            "Кс"
+          ]
         },
         {
           "fieldId": "pregnancy_a5_p44_condition",
@@ -6307,7 +6881,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 16,
-          "templateLineCount": 1
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6380,8 +6954,54 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 2
+          "templateLineStart": 6,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -6389,7 +7009,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p47",
-      "title": "46 неделя",
+      "title": "Памятные моменты",
       "pageType": "non_editable",
       "order": 47,
       "editable": false,
@@ -6401,7 +7021,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     },
     {
       "pageId": "pregnancy_a5_p48",
-      "title": "Для фото",
+      "title": "Памятные моменты",
       "pageType": "photo",
       "order": 48,
       "editable": true,
@@ -6422,7 +7042,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -6432,7 +7052,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -6442,7 +7062,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -6454,7 +7074,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         }
       ],
-      "canDuplicate": true,
+      "canDuplicate": false,
       "canAddAfter": true,
       "captionEnabled": true
     }
@@ -6819,29 +7439,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -6850,7 +7461,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -6859,8 +7470,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -6888,29 +7499,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -6919,7 +7521,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -6928,8 +7530,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -6966,29 +7568,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -6997,7 +7590,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7006,8 +7599,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7044,29 +7637,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7075,7 +7659,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7084,8 +7668,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7288,22 +7872,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                21
-              ]
-            }
-          ]
-        }
-      ],
+      "photoBlocks": [],
       "canDuplicate": false,
       "canAddAfter": true,
       "captionEnabled": false,
@@ -7563,7 +8132,72 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 13,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p13_achievement_date",
+          "label": "(ДАТА)",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_holds_head",
+          "label": "Держу голову",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_rolls_over",
+          "label": "Переворачиваюсь на животик",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_crawls",
+          "label": "Ползаю",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_sits_alone",
+          "label": "Сижу самостоятельно",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_stands_with_support",
+          "label": "Стою у опоры",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "kids_48_p13_first_steps",
+          "label": "Первые шаги",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p13_first_word",
+          "label": "Первое слово (какое?)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -7605,29 +8239,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7636,7 +8261,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7645,8 +8270,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7674,29 +8299,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7705,7 +8321,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7714,8 +8330,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7743,29 +8359,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7774,7 +8381,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7783,8 +8390,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7812,29 +8419,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7843,7 +8441,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7852,8 +8450,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7881,29 +8479,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7912,7 +8501,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7921,8 +8510,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -7950,29 +8539,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -7981,7 +8561,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -7990,8 +8570,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8028,29 +8608,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8059,7 +8630,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8068,8 +8639,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8156,43 +8727,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p22_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8201,7 +8763,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8210,8 +8772,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8242,43 +8804,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p23_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8287,7 +8840,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8296,8 +8849,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8328,43 +8881,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p24_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8373,7 +8917,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8382,8 +8926,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8414,43 +8958,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p25_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8459,7 +8994,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8468,8 +9003,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8500,43 +9035,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p26_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8545,7 +9071,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8554,8 +9080,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8586,43 +9112,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p27_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8631,7 +9148,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8640,8 +9157,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8672,43 +9189,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p28_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8717,7 +9225,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8726,8 +9234,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8758,43 +9266,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p29_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8803,7 +9302,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8812,8 +9311,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8844,43 +9343,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p30_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8889,7 +9379,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8898,8 +9388,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -8930,43 +9420,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p31_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -8975,7 +9456,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -8984,8 +9465,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9016,43 +9497,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p32_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9061,7 +9533,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9070,8 +9542,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9102,43 +9574,34 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Я люблю",
           "type": "text",
           "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineStart": 1,
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p33_i_can",
           "label": "Я умею",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9147,7 +9610,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9156,8 +9619,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9185,29 +9648,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9216,7 +9670,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9225,8 +9679,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9263,29 +9717,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9294,7 +9739,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9303,8 +9748,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9332,29 +9777,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9363,7 +9799,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9372,8 +9808,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9401,29 +9837,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9432,7 +9859,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9441,8 +9868,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9470,29 +9897,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9501,7 +9919,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9510,8 +9928,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9539,29 +9957,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9570,7 +9979,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9579,8 +9988,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9608,29 +10017,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9639,7 +10039,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9648,8 +10048,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9686,29 +10086,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9717,7 +10108,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9726,8 +10117,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9755,29 +10146,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9786,7 +10168,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9795,8 +10177,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9824,29 +10206,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9855,7 +10228,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9864,8 +10237,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9893,29 +10266,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9924,7 +10288,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -9933,8 +10297,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -9962,29 +10326,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -9993,7 +10348,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10002,8 +10357,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10031,29 +10386,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10062,7 +10408,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10071,8 +10417,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10100,29 +10446,20 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [],
       "photoBlocks": [
         {
-          "blockId": "event_photos",
+          "blockId": "main_photo",
           "label": "Фото для страницы",
           "variants": [
             {
-              "variantId": "one_horizontal",
-              "label": "1 горизонтальное фото",
+              "variantId": "one_large",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
               ]
             },
             {
-              "variantId": "two_horizontal",
-              "label": "2 горизонтальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
+              "label": "Два фото",
               "slots": 2,
               "slotIndices": [
                 0,
@@ -10131,7 +10468,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "3 фото (коллаж)",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10140,8 +10477,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "four_vertical",
-              "label": "4 фото (коллаж)",
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10252,8 +10589,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       ],
       "photoBlocks": [
         {
-          "blockId": "main_photo",
-          "label": "Горизонтальная фотография",
+          "blockId": "event_photos",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_horizontal",
@@ -10261,6 +10598,45 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_horizontal",
+              "label": "2 горизонтальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "2 вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "3 фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_vertical",
+              "label": "4 фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10293,7 +10669,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10303,7 +10679,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10313,7 +10689,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10386,14 +10762,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10427,7 +10833,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10437,7 +10843,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10447,7 +10853,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10518,14 +10924,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10559,7 +10995,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10569,7 +11005,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10579,7 +11015,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10643,14 +11079,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10684,7 +11150,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10694,7 +11160,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10704,7 +11170,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10768,14 +11234,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10809,7 +11305,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10819,7 +11315,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10829,7 +11325,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -10893,14 +11389,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -10934,7 +11460,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -10944,7 +11470,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -10954,7 +11480,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11018,14 +11544,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11059,7 +11615,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11069,7 +11625,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11079,7 +11635,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11143,14 +11699,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11184,7 +11770,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11194,7 +11780,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11204,7 +11790,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11268,14 +11854,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11309,7 +11925,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11319,7 +11935,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11329,7 +11945,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11393,14 +12009,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11434,7 +12080,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11444,7 +12090,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11454,7 +12100,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11518,14 +12164,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11559,7 +12235,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11569,7 +12245,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11579,7 +12255,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11643,14 +12319,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11684,7 +12390,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11694,7 +12400,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11704,7 +12410,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11768,14 +12474,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11809,7 +12545,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11819,7 +12555,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11829,7 +12565,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -11893,14 +12629,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -11934,7 +12700,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -11944,7 +12710,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -11954,7 +12720,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12018,14 +12784,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -12059,7 +12855,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12069,7 +12865,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12079,7 +12875,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12143,14 +12939,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -12184,7 +13010,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12194,7 +13020,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12204,7 +13030,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12268,14 +13094,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -12309,7 +13165,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12319,7 +13175,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12329,7 +13185,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12393,14 +13249,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -12434,7 +13320,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12444,7 +13330,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12454,7 +13340,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12518,14 +13404,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "photoBlocks": [
         {
           "blockId": "main_photo",
-          "label": "Главное фото",
+          "label": "Фото для страницы",
           "variants": [
             {
               "variantId": "one_large",
-              "label": "Одно фото",
+              "label": "Одно большое фото",
               "slots": 1,
               "slotIndices": [
                 0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
               ]
             }
           ]
@@ -12559,7 +13475,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12569,7 +13485,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12579,7 +13495,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12675,7 +13591,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12685,7 +13601,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12695,7 +13611,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12735,7 +13651,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12745,7 +13661,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12755,7 +13671,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12795,7 +13711,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12805,7 +13721,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12815,7 +13731,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12855,7 +13771,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12865,7 +13781,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12875,7 +13791,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12915,7 +13831,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12925,7 +13841,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12935,7 +13851,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -12975,7 +13891,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -12985,7 +13901,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -12995,7 +13911,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -13035,7 +13951,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -13045,7 +13961,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -13055,7 +13971,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -13175,7 +14091,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -13185,7 +14101,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -13195,7 +14111,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -13635,7 +14551,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -13645,7 +14561,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -13655,7 +14571,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -14197,7 +15113,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -14207,7 +15123,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -14217,7 +15133,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,
@@ -17286,7 +18202,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_photos",
+              "variantId": "two_vertical",
               "label": "Два фото",
               "slots": 2,
               "slotIndices": [
@@ -17296,7 +18212,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "three_hero",
-              "label": "Три фото",
+              "label": "Три фото (коллаж)",
               "slots": 3,
               "slotIndices": [
                 0,
@@ -17306,7 +18222,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             },
             {
               "variantId": "four_grid",
-              "label": "Четыре фото",
+              "label": "Четыре фото (коллаж)",
               "slots": 4,
               "slotIndices": [
                 0,

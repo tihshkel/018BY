@@ -33,11 +33,13 @@ import {
 } from "@/utils/variantPreview";
 import {
   hasFormTextInput,
+  isPhotoOnlySchema,
   resolveFormPathname,
   usesUnifiedPhotoEditor,
 } from "@/utils/albumPageNavigation";
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
-import { persistProjectViewport } from "@/utils/exportViewport";
+import { resolvePhotoBlockSafeZoneViewportRect } from "@/utils/photoBlockSafeZone";
+import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
@@ -60,7 +62,9 @@ export default function AlbumPagePreviewScreen() {
   const isFinalPreview = mode === "final";
   const rendererRef = useRef<PageRendererRef>(null);
   const [ready, setReady] = useState(false);
-  const [imageAspectRatio, setImageAspectRatio] = useState(1.414);
+  const [imageAspectRatio, setImageAspectRatio] = useState(() =>
+    getDefaultPageAspectRatio({ lineGuideId: interiorType === "kids_48" ? "kids_48" : undefined }),
+  );
   const [sourceImageSize, setSourceImageSize] = useState<{
     width: number;
     height: number;
@@ -186,6 +190,31 @@ export default function AlbumPagePreviewScreen() {
     hasFilledPhotos &&
     !isCircleTreeBlock;
 
+  const photoSafeBounds = useMemo(() => {
+    if (!showPhotoBlockEditor || !instance || !schema) return null;
+    return resolvePhotoBlockSafeZoneViewportRect({
+      lineGuideId: schema.lineGuideId ?? project.lineGuideId,
+      sourcePageNumber: instance.sourcePageNumber ?? schema.sourcePageNumber,
+      variantId: primaryVariantId,
+      coordinateWidth: previewLayout.coordinateWidth,
+      coordinateHeight: previewLayout.coordinateHeight,
+      sourceWidth: sourceImageSize?.width,
+      sourceHeight: sourceImageSize?.height,
+      templateLibraryId: schema.templateLibraryId,
+      photoOnlyPage: isPhotoOnlySchema(schema),
+    });
+  }, [
+    instance,
+    previewLayout.coordinateHeight,
+    previewLayout.coordinateWidth,
+    primaryVariantId,
+    project.lineGuideId,
+    schema,
+    showPhotoBlockEditor,
+    sourceImageSize?.height,
+    sourceImageSize?.width,
+  ]);
+
   const annotations = usePageAnnotationsForLayout({
     instance,
     schema,
@@ -210,9 +239,11 @@ export default function AlbumPagePreviewScreen() {
     setReady(false);
   }, [instanceId, annotations.length, selectedFontId]);
 
+  const resolvedLineGuideId = schema?.lineGuideId ?? project.lineGuideId ?? interiorType;
+
   useEffect(() => {
     if (!imageUri) {
-      setImageAspectRatio(1.414);
+      setImageAspectRatio(getDefaultPageAspectRatio({ lineGuideId: resolvedLineGuideId }));
       setSourceImageSize(null);
       return;
     }
@@ -227,7 +258,11 @@ export default function AlbumPagePreviewScreen() {
       },
       () => {
         if (!cancelled) {
-          setImageAspectRatio(1.414);
+          setImageAspectRatio(
+            getDefaultPageAspectRatio({
+              lineGuideId: resolvedLineGuideId,
+            }),
+          );
           setSourceImageSize(null);
         }
       },
@@ -236,7 +271,7 @@ export default function AlbumPagePreviewScreen() {
     return () => {
       cancelled = true;
     };
-  }, [imageUri]);
+  }, [imageUri, resolvedLineGuideId]);
 
   useEffect(() => {
     if (!id || previewLayout.coordinateWidth <= 0 || previewLayout.coordinateHeight <= 0) {
@@ -319,7 +354,7 @@ export default function AlbumPagePreviewScreen() {
       <AppText variant="bodySm" style={styles.previewHint}>
         {isFinalPreview
           ? showPhotoBlockEditor
-            ? "Нажмите на блок фото — появится розовая рамка. Перетаскивайте блок или углы для изменения размера"
+            ? "Нажмите на фото — появится рамка. Перетаскивайте, ущипните для масштаба; фото остаётся в рамке PDF"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
           : showBlankTemplateGuide
             ? "Схема страницы: розовые блоки — места для фото, линии — поля для текста"
@@ -380,23 +415,26 @@ export default function AlbumPagePreviewScreen() {
                     setDisplayImageUri(baseImageUri);
                   }
                 }}
-              />
-            ) : null}
-            {showPhotoBlockEditor && instance ? (
-              <AlbumPreviewPhotoBlockEditor
-                lineGuideId={schema.lineGuideId ?? project.lineGuideId}
-                sourcePageNumber={
-                  instance.sourcePageNumber ?? schema.sourcePageNumber
+                middleLayer={
+                  showPhotoBlockEditor && instance ? (
+                    <AlbumPreviewPhotoBlockEditor
+                      lineGuideId={schema.lineGuideId ?? project.lineGuideId}
+                      sourcePageNumber={
+                        instance.sourcePageNumber ?? schema.sourcePageNumber
+                      }
+                      variantId={primaryVariantId}
+                      slotUris={primarySlotUris}
+                      templateLibraryId={schema.templateLibraryId}
+                      groupTransform={values?.photoGroupTransform}
+                      safeBounds={photoSafeBounds}
+                      coordinateWidth={previewLayout.coordinateWidth}
+                      coordinateHeight={previewLayout.coordinateHeight}
+                      sourceWidth={sourceImageSize?.width}
+                      sourceHeight={sourceImageSize?.height}
+                      onGroupTransformChange={photoEditor.handleGroupTransformChange}
+                    />
+                  ) : null
                 }
-                variantId={primaryVariantId}
-                slotUris={primarySlotUris}
-                templateLibraryId={schema.templateLibraryId}
-                groupTransform={values?.photoGroupTransform}
-                coordinateWidth={previewLayout.coordinateWidth}
-                coordinateHeight={previewLayout.coordinateHeight}
-                sourceWidth={sourceImageSize?.width}
-                sourceHeight={sourceImageSize?.height}
-                onGroupTransformChange={photoEditor.handleGroupTransformChange}
               />
             ) : null}
             {!showBlankTemplateGuide && !ready && imageUri ? (

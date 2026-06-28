@@ -3,6 +3,7 @@
  */
 
 const {
+  DESIGNED_ALBUM_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,
   PARENTS_PHOTO_BLOCK,
   SINGLE_HORIZONTAL_PHOTO_BLOCK,
@@ -122,21 +123,23 @@ function buildGrowthFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildMonthPageFields(lineGuideId, pageNumber, slots) {
+  const loveLineStart = slots?.length >= 3 ? 1 : 0;
+  const canLineStart = slots?.length >= 3 ? 2 : Math.max(1, (slots?.length ?? 2) - 1);
   return [
     {
       fieldId: `${lineGuideId}_p${pageNumber}_i_love`,
       label: 'Я люблю',
       type: 'text',
       required: false,
-      templateLineStart: 0,
-      templateLineCount: Math.min(2, slots?.length ?? 2),
+      templateLineStart: loveLineStart,
+      templateLineCount: 1,
     },
     {
       fieldId: `${lineGuideId}_p${pageNumber}_i_can`,
       label: 'Я умею',
       type: 'text',
       required: false,
-      templateLineStart: Math.min(2, Math.max(0, (slots?.length ?? 2) - 1)),
+      templateLineStart: canLineStart,
       templateLineCount: 1,
     },
   ];
@@ -257,6 +260,29 @@ function buildCaptionField(lineGuideId, pageNumber) {
   }];
 }
 
+function buildAchievementsFields(lineGuideId, pageNumber, slots) {
+  const milestones = [
+    ['achievement_date', '(ДАТА)', 'date', 0, 1],
+    ['holds_head', 'Держу голову', 'text', 1, 1],
+    ['rolls_over', 'Переворачиваюсь на животик', 'text', 2, 1],
+    ['crawls', 'Ползаю', 'text', 3, 1],
+    ['sits_alone', 'Сижу самостоятельно', 'text', 4, 1],
+    ['stands_with_support', 'Стою у опоры', 'text', 5, 2],
+    ['first_steps', 'Первые шаги', 'text', 7, 1],
+    ['first_word', 'Первое слово (какое?)', 'text', 8, 1],
+  ];
+
+  const maxSlot = Math.max(0, (slots?.length ?? 9) - 1);
+  return milestones.map(([id, label, type, start, lineCount]) => ({
+    fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
+    label,
+    type,
+    required: false,
+    templateLineStart: Math.min(start, maxSlot),
+    templateLineCount: Math.min(lineCount, Math.max(1, (slots?.length ?? 9) - start)),
+  }));
+}
+
 function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
   if (!tzEntry) return null;
 
@@ -284,6 +310,7 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       break;
     case 10:
       fields = buildTeethFields(lineGuideId, pageNumber, slots);
+      photoBlocks = [];
       break;
     case 11:
       fields = buildGrowthFields(lineGuideId, pageNumber, slots);
@@ -293,12 +320,12 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       photoBlocks = [SINGLE_HORIZONTAL_PHOTO_BLOCK];
       break;
     case 13:
-      fields = [];
+      fields = buildAchievementsFields(lineGuideId, pageNumber, slots);
       photoBlocks = [PARENTS_PHOTO_BLOCK];
       break;
     case 20:
       fields = buildDateField(lineGuideId, pageNumber, 'Дата крещения', 0);
-      photoBlocks = [EVENT_PHOTO_BLOCK];
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 21:
       fields = buildGodparentsFields(lineGuideId, pageNumber);
@@ -307,16 +334,16 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
     default:
       if (pageType === 'month_page') {
         fields = buildMonthPageFields(lineGuideId, pageNumber, slots);
-        photoBlocks = [EVENT_PHOTO_BLOCK];
+        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'event_photo' || pageType === 'baptism_page') {
         fields = tzEntry.hasDate ? buildDateField(lineGuideId, pageNumber, 'Дата', 0) : [];
-        photoBlocks = [EVENT_PHOTO_BLOCK];
+        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'free_photo_caption') {
         fields = buildCaptionField(lineGuideId, pageNumber);
-        photoBlocks = [EVENT_PHOTO_BLOCK];
+        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'caption_photo_page') {
         fields = [];
-        photoBlocks = [EVENT_PHOTO_BLOCK];
+        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'non_editable') {
         fields = [];
       }
@@ -345,5 +372,6 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
 
 module.exports = {
   applyKids48TzManifest,
+  DESIGNED_ALBUM_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,
 };

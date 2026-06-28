@@ -311,6 +311,34 @@ function verifyPregnancyA5() {
   assert(byPage['20'].title === '20-я неделя', 'pregnancy A5 p20 week 20');
   assert(byPage['43'].title === '42-я неделя', 'pregnancy A5 p43 week 42');
 
+  const p5 = byPage['5'];
+  const belly = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_belly'));
+  const feelings = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_feelings'));
+  assert(belly?.templateLineStart === 5, 'pregnancy A5 p5 belly slot 5');
+  assert(feelings?.templateLineStart === 6, 'pregnancy A5 p5 feelings slot 6');
+
+  const p44 = byPage['44'];
+  assert(
+    (p44.fields ?? []).some((f) => f.type === 'radio' && f.fieldId.endsWith('_stimulation')),
+    'pregnancy A5 p44 stimulation radio',
+  );
+  assert(
+    (p44.fields ?? []).some((f) => f.fieldId.endsWith('_baby_weight') && f.templateLineStart === 8),
+    'pregnancy A5 p44 baby_weight slot 8',
+  );
+
+  const p46 = byPage['46'];
+  const wishes = (p46.fields ?? []).find((f) => f.fieldId.endsWith('_wishes'));
+  assert(wishes?.templateLineStart === 6, 'pregnancy A5 p46 wishes slot 6');
+  assert(wishes?.templateLineCount === 3, 'pregnancy A5 p46 wishes count 3');
+
+  const p48 = byPage['48'];
+  assert(p48.pageType === 'photo', 'pregnancy A5 p48 is photo');
+  assert(p48.title === 'Памятные моменты', 'pregnancy A5 p48 title');
+  assert(p48.editable === true, 'pregnancy A5 p48 editable');
+
+  assert(byPage['47'].title === 'Памятные моменты', 'pregnancy A5 p47 static title');
+
   const pdfSlots = loadJson('constants/generated/pdf-photo-slots.json');
   assert(
     Object.keys(pdfSlots.pregnancy_a5 ?? {}).length > 0,

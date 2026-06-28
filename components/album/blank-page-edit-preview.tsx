@@ -5,6 +5,7 @@ import PageRenderer from '@/components/page-renderer';
 import { TemplateWireframePreview } from '@/components/album/template-wireframe-preview';
 import { AppText } from '@/components/ui';
 import { colors, radii, spacing } from '@/constants/design-tokens';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import {
   getPageFormatForLineGuide,
@@ -36,6 +37,7 @@ export function BlankPageEditPreview({
   const aspect = PAGE_ASPECT[pageFormat] ?? PAGE_ASPECT['18x24'];
   const width = Math.max(240, Math.min(maxWidth, 420));
   const height = width / aspect;
+  const debouncedPageValues = useDebouncedValue(pageValues, 300);
 
   const annotations = useMemo(
     () =>
@@ -43,13 +45,13 @@ export function BlankPageEditPreview({
         lineGuideId: schema.lineGuideId,
         pageNumber: schema.sourcePageNumber,
         schema,
-        values: pageValues,
+        values: debouncedPageValues,
         viewportWidth: width,
         viewportHeight: height,
         sourceWidth: sourceSize?.width,
         sourceHeight: sourceSize?.height,
       }),
-    [height, pageValues, schema, sourceSize?.height, sourceSize?.width, width],
+    [debouncedPageValues, height, schema, sourceSize?.height, sourceSize?.width, width],
   );
 
   if (!isBlankTemplateLineGuide(schema.lineGuideId)) return null;

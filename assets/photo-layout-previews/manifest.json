@@ -1,0 +1,18 @@
+{
+  "one_large": {
+    "default": "assets/photo-layout-previews/one_large.png",
+    "selected": "assets/photo-layout-previews/one_large_selected.png"
+  },
+  "two_vertical": {
+    "default": "assets/photo-layout-previews/two_vertical.png",
+    "selected": "assets/photo-layout-previews/two_vertical_selected.png"
+  },
+  "three_hero": {
+    "default": "assets/photo-layout-previews/three_hero.png",
+    "selected": "assets/photo-layout-previews/three_hero_selected.png"
+  },
+  "four_grid": {
+    "default": "assets/photo-layout-previews/four_grid.png",
+    "selected": "assets/photo-layout-previews/four_grid_selected.png"
+  }
+}

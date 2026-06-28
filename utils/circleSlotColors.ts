@@ -25,16 +25,31 @@ export function mapCircleSlotToViewport(
   return mapSourceNormToViewport(leftNormX, topNormY, diameter, diameter, contentRect);
 }
 
+/** Gender fills: slight bleed so color covers the full ring on the design PNG. */
+const GENDER_FILL_DIAMETER_BLEED = 1.06;
+
 export function mapGenderFillToViewport(
   cx: number,
   cy: number,
   diameter: number,
   contentRect: ContentRect,
 ): { x: number; y: number; width: number; height: number } {
+  const fillDiameter = diameter * GENDER_FILL_DIAMETER_BLEED;
   return mapCircleSlotToViewport(
-    { x: cx, y: cy, width: diameter, height: diameter },
+    { x: cx, y: cy, width: fillDiameter, height: fillDiameter },
     contentRect,
   );
+}
+
+/** Normalized top-left rect (PDF slot coords) → viewport pixels. */
+export function mapRectFillToViewport(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  contentRect: ContentRect,
+): { x: number; y: number; width: number; height: number } {
+  return mapSourceNormToViewport(x, y, width, height, contentRect);
 }
 
 export function buildContentRect(

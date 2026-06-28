@@ -6,6 +6,7 @@ import {
   isProjectDeleted,
   loadDeletedProjectIds,
 } from './deleted-project-ids';
+import { filterOutLegacyFreeformProjects } from './legacyFreeformProject';
 import { getStoredPushToken } from './pushToken';
 import {
   getAccountDataFromSupabase,
@@ -226,11 +227,11 @@ export async function importAccountData(
           }
         })();
         const byId = new Map<string, any>();
-        for (const p of filterProjectsByDeleted(cloudList, deletedIds)) {
+        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(cloudList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
           if (id) byId.set(id, p);
         }
-        for (const p of filterProjectsByDeleted(localList, deletedIds)) {
+        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(localList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
           if (id && !byId.has(id)) byId.set(id, p);
         }
@@ -547,7 +548,9 @@ async function pushAccountDataToCloudOnce(
     for (const pid of projectIds) {
       if (!byId.has(pid)) byId.set(pid, { id: pid });
     }
-    core['@user_projects'] = JSON.stringify(Array.from(byId.values()));
+    core['@user_projects'] = JSON.stringify(
+      filterOutLegacyFreeformProjects(Array.from(byId.values())),
+    );
   }
 
   const userName = (core['@user_name'] ?? data['@user_name'] ?? '').trim() || 'Пользователь';
@@ -837,7 +840,7 @@ export async function pullLatestFromCloud(): Promise<boolean> {
           builtList.push({ id: projectId, title: 'Проект', category: '', albumId: '', createdAt: new Date().toISOString(), isReadyMadeAlbum: true, hasPdfTemplate: true });
         }
       }
-      cloudData['@user_projects'] = JSON.stringify(builtList);
+      cloudData['@user_projects'] = JSON.stringify(filterOutLegacyFreeformProjects(builtList));
       if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from user_project_data, count=', builtList.length);
     }
 
@@ -847,7 +850,9 @@ export async function pullLatestFromCloud(): Promise<boolean> {
         try {
           const list = JSON.parse(cloudData['@user_projects']);
           if (Array.isArray(list)) {
-            cloudData['@user_projects'] = JSON.stringify(filterProjectsByDeleted(list, deletedIds));
+            cloudData['@user_projects'] = JSON.stringify(
+              filterOutLegacyFreeformProjects(filterProjectsByDeleted(list, deletedIds)),
+            );
           }
         } catch {
           // ignore

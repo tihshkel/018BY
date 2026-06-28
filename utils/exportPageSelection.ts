@@ -6,6 +6,14 @@ import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
+export type ExportPageBundle = {
+  instance: PageInstance;
+  schema: AlbumPageSchema;
+  values: PageValues;
+  imageUri: string;
+  sourceSize?: { width: number; height: number };
+};
+
 export type ExportPageRow = {
   instanceId: string;
   title: string;
@@ -172,6 +180,34 @@ export function buildElectronicExportFileName(childName?: string): string {
   return `Фотоальбом_${safeName}_${datePart}_${timePart}.pdf`;
 }
 
+export function buildExportPageAnnotations(params: {
+  lineGuideId: string;
+  schema: AlbumPageSchema;
+  values: PageValues;
+  exportPageNumber: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  sourceWidth?: number;
+  sourceHeight?: number;
+}): Annotation[] {
+  const resolvedSchema = enrichSchemaWithPhotoBlocks(params.schema);
+  const pageAnnotations = pageValuesToAnnotations({
+    lineGuideId: params.lineGuideId,
+    pageNumber: params.schema.sourcePageNumber,
+    schema: resolvedSchema,
+    values: params.values,
+    viewportWidth: params.viewportWidth,
+    viewportHeight: params.viewportHeight,
+    sourceWidth: params.sourceWidth,
+    sourceHeight: params.sourceHeight,
+  });
+
+  return pageAnnotations.map((annotation) => ({
+    ...annotation,
+    page: params.exportPageNumber,
+  }));
+}
+
 export function filterProjectDataForExport(params: {
   instances: PageInstance[];
   images: string[];
@@ -186,6 +222,7 @@ export function filterProjectDataForExport(params: {
 }): {
   images: string[];
   annotations: Annotation[];
+  pages: ExportPageBundle[];
 } {
   const {
     instances,
@@ -204,6 +241,7 @@ export function filterProjectDataForExport(params: {
 
   const filteredImages: string[] = [];
   const filteredAnnotations: Annotation[] = [];
+  const pages: ExportPageBundle[] = [];
 
   for (const instance of filteredInstances) {
     const schema = getSchema(instance);
@@ -218,26 +256,29 @@ export function filterProjectDataForExport(params: {
     const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
     const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
 
-    const pageAnnotations = pageValuesToAnnotations({
-      lineGuideId,
-      pageNumber: schema.sourcePageNumber,
+    pages.push({
+      instance,
       schema: resolvedSchema,
       values,
-      viewportWidth,
-      viewportHeight,
-      sourceWidth: sourceSize?.width,
-      sourceHeight: sourceSize?.height,
+      imageUri,
+      sourceSize,
     });
 
     filteredAnnotations.push(
-      ...pageAnnotations.map((annotation) => ({
-        ...annotation,
-        page: targetPageNumber,
-      })),
+      ...buildExportPageAnnotations({
+        lineGuideId,
+        schema: resolvedSchema,
+        values,
+        exportPageNumber: targetPageNumber,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth: sourceSize?.width,
+        sourceHeight: sourceSize?.height,
+      }),
     );
   }
 
-  return { images: filteredImages, annotations: filteredAnnotations };
+  return { images: filteredImages, annotations: filteredAnnotations, pages };
 }
 
 export function readChildNameFromProject(

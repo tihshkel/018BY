@@ -19,6 +19,7 @@ import {
   normalizePhotoSlotTransform,
   applyPhotoSlotTransform,
 } from '@/utils/photoSlotTransform';
+import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
 
@@ -153,7 +154,16 @@ function PhotoSlotFilled({
       }}
     >
       <Animated.View style={[styles.imageInner, imageStyle]}>
-        <Image source={{ uri }} style={styles.image} contentFit="cover" />
+        <Image
+          source={{ uri }}
+          style={styles.image}
+          contentFit="cover"
+          onError={() => {
+            if (!isRemotePhotoUri(uri)) {
+              onRemovePhoto?.();
+            }
+          }}
+        />
       </Animated.View>
     </Animated.View>
   );

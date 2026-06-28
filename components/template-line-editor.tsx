@@ -2,7 +2,7 @@ import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinContinuationGroup,
   getActiveEditSlotIndex,
-  getTemplateLineAscenderPadding,
+  getTemplateLineRowInsets,
   getTemplateLineTextTop,
   getTemplateLineTypography,
   getWishSlotInputKind,
@@ -37,7 +37,7 @@ type TemplateLineEditorProps = {
  * Редактор строк макета: TextInput на активной строке (последняя с текстом), остальное — Text.
  * В TextInput — только текущая строка (iOS иначе сжимает длинный value в одну линию).
  */
-export function TemplateLineEditor({
+export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   slot,
   groupSlots,
   allSlots,
@@ -126,11 +126,13 @@ export function TemplateLineEditor({
         );
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const isInputSlot = lineSlot.index === activeInputSlotIndex;
-        const ascenderPadding = getTemplateLineAscenderPadding(
+        const wishInputKind = getWishSlotInputKind(lineSlot, lineGuideId);
+        const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+          lineSlot,
           lineTypography.fontSize,
-          getWishSlotInputKind(lineSlot, lineGuideId)
+          wishInputKind,
+          lineGuideId
         );
-        const inputTopInset = ascenderPadding;
 
         return (
           <View
@@ -139,9 +141,9 @@ export function TemplateLineEditor({
               styles.host,
               {
                 left: lineSlot.x,
-                top: textTop - inputTopInset,
+                top: textTop - viewportTopInset,
                 width: lineSlot.width,
-                height: lineTypography.inputHeight + inputTopInset,
+                height: lineTypography.inputHeight + viewportTopInset,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}
@@ -158,7 +160,7 @@ export function TemplateLineEditor({
                     fontFamily: fontFamilyStyle,
                     lineHeight: lineTypography.lineHeight,
                     height: lineTypography.lineHeight,
-                    top: inputTopInset,
+                    top: textTopInset,
                     width: lineSlot.width,
                     textAlign,
                   },
@@ -190,7 +192,7 @@ export function TemplateLineEditor({
                     fontSize: lineTypography.fontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: lineTypography.lineHeight,
-                    top: inputTopInset,
+                    top: textTopInset,
                     width: lineSlot.width,
                     textAlign,
                   },
@@ -206,7 +208,7 @@ export function TemplateLineEditor({
       })}
     </>
   );
-}
+});
 
 const styles = StyleSheet.create({
   host: {

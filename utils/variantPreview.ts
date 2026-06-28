@@ -1,44 +1,67 @@
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
+import { hasSparsePhotoConfig, usesBlankPagePhotoFallback } from '@/constants/sparse-photo-album-config';
 import { resolvePreviewAssetUri } from '@/utils/previewAssetUri';
 
 export type VariantPreviewThumbnail = {
   variantId: string;
   label: string;
   uri: string;
+  selectedUri?: string;
 };
 
-type VariantManifest = Record<string, Record<string, string>>;
+type GlobalVariantManifestEntry = {
+  default: string;
+  selected: string;
+};
 
-const pregnancy60PreviewVariantsManifest = require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/preview_variants/pregnancy_60_variants_manifest.json') as VariantManifest;
+type GlobalVariantManifest = Record<string, GlobalVariantManifestEntry>;
 
-const kids48PreviewVariantsManifest = require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/kids_48_variants_manifest.json') as VariantManifest;
+type LegacyPageManifest = Record<string, Record<string, string>>;
 
-const MANIFESTS: Record<string, VariantManifest> = {
+const globalLayoutPreviewManifest = require('../assets/photo-layout-previews/manifest.json') as GlobalVariantManifest;
+
+const pregnancy60PreviewVariantsManifest = require('../assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр/preview_variants/pregnancy_60_variants_manifest.json') as LegacyPageManifest;
+
+const kids48PreviewVariantsManifest = require('../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/kids_48_variants_manifest.json') as LegacyPageManifest;
+
+const LEGACY_MANIFESTS: Record<string, LegacyPageManifest> = {
   pregnancy_60: pregnancy60PreviewVariantsManifest,
   kids_48: kids48PreviewVariantsManifest,
 };
 
-const PREGNANCY_VARIANT_ALIASES: Record<string, string> = {
+/** Maps saved / legacy variant IDs to the unified standard IDs. */
+export const DESIGNED_ALBUM_VARIANT_ALIASES: Record<string, string> = {
+  two_photos: 'two_vertical',
+  two_horizontal: 'two_vertical',
+  two_vertical_separate: 'two_vertical',
   one_horizontal: 'one_large',
   one_horizontal_common: 'one_large',
-  two_horizontal: 'two_photos',
-  two_vertical: 'two_photos',
-  two_vertical_separate: 'two_photos',
   four_vertical: 'four_grid',
 };
 
-const KIDS_48_VARIANT_ALIASES: Record<string, string> = {
-  two_vertical: 'two_horizontal',
-  two_vertical_separate: 'two_horizontal',
-  one_horizontal_common: 'one_horizontal',
-};
+export function normalizeDesignedAlbumVariantId(variantId: string): string {
+  return DESIGNED_ALBUM_VARIANT_ALIASES[variantId] ?? variantId;
+}
+
+/** PNG-превью стандартных раскладок (assets/photo-layout-previews). */
+export function resolveGlobalLayoutPreviewUri(
+  variantId: string,
+  selected = false,
+): string | null {
+  const key = normalizeDesignedAlbumVariantId(variantId);
+  const entry = globalLayoutPreviewManifest[key];
+  if (!entry) return null;
+  const path = selected ? entry.selected : entry.default;
+  return path ? resolveManifestPath(path) : null;
+}
+
+function usesGlobalLayoutPreviews(lineGuideId: string): boolean {
+  return hasSparsePhotoConfig(lineGuideId) && !usesBlankPagePhotoFallback(lineGuideId);
+}
 
 function manifestVariantKey(lineGuideId: string, variantId: string): string {
-  if (lineGuideId === 'pregnancy_60') {
-    return PREGNANCY_VARIANT_ALIASES[variantId] ?? variantId;
-  }
-  if (lineGuideId === 'kids_48') {
-    return KIDS_48_VARIANT_ALIASES[variantId] ?? variantId;
+  if (usesGlobalLayoutPreviews(lineGuideId)) {
+    return normalizeDesignedAlbumVariantId(variantId);
   }
   return variantId;
 }
@@ -62,6 +85,10 @@ export function resolvePhotoBlockVariant(
   const direct = variants.find((v) => v.variantId === requestedVariantId);
   if (direct) return direct;
 
+  const normalizedId = normalizeDesignedAlbumVariantId(requestedVariantId);
+  const byNormalized = variants.find((v) => v.variantId === normalizedId);
+  if (byNormalized) return byNormalized;
+
   if (lineGuideId) {
     const requestedKey = manifestVariantKey(lineGuideId, requestedVariantId);
     const byKey = variants.find(
@@ -77,15 +104,18 @@ function resolveManifestPath(relativePath: string): string {
   return resolvePreviewAssetUri(relativePath);
 }
 
-export function getVariantPreviewManifest(lineGuideId: string): VariantManifest | null {
-  return MANIFESTS[lineGuideId] ?? null;
+export function getVariantPreviewManifest(lineGuideId: string): LegacyPageManifest | null {
+  return LEGACY_MANIFESTS[lineGuideId] ?? null;
 }
 
 export function hasVariantPreviewManifest(
   lineGuideId: string,
-  sourcePageNumber: number
+  sourcePageNumber: number,
 ): boolean {
-  const manifest = MANIFESTS[lineGuideId];
+  if (usesGlobalLayoutPreviews(lineGuideId)) {
+    return Object.keys(globalLayoutPreviewManifest).length > 0;
+  }
+  const manifest = LEGACY_MANIFESTS[lineGuideId];
   if (!manifest) return false;
   const entry = manifest[String(sourcePageNumber)];
   return !!entry && Object.keys(entry).length > 0;
@@ -98,7 +128,14 @@ export function resolveVariantPreviewBackgroundUri(params: {
 }): string | null {
   const { lineGuideId, sourcePageNumber, variantId } = params;
   if (!lineGuideId || !sourcePageNumber || sourcePageNumber < 1) return null;
-  const manifest = MANIFESTS[lineGuideId];
+
+  if (usesGlobalLayoutPreviews(lineGuideId) && variantId) {
+    const key = manifestVariantKey(lineGuideId, variantId);
+    const entry = globalLayoutPreviewManifest[key];
+    if (entry?.default) return resolveManifestPath(entry.default);
+  }
+
+  const manifest = LEGACY_MANIFESTS[lineGuideId];
   if (!manifest) return null;
 
   const pageEntry = manifest[String(sourcePageNumber)];
@@ -118,12 +155,17 @@ export function resolveVariantPreviewBackgroundUri(params: {
 export function getDefaultVariantIdForPage(
   lineGuideId: string,
   sourcePageNumber: number,
-  photoBlock?: PhotoBlockSchema
+  photoBlock?: PhotoBlockSchema,
 ): string | null {
-  const manifest = MANIFESTS[lineGuideId]?.[String(sourcePageNumber)];
+  const schemaVariant = photoBlock?.variants[0]?.variantId;
+  if (usesGlobalLayoutPreviews(lineGuideId)) {
+    if (schemaVariant) return schemaVariant;
+    return photoBlock?.variants[0]?.variantId ?? 'one_large';
+  }
+
+  const manifest = LEGACY_MANIFESTS[lineGuideId]?.[String(sourcePageNumber)];
   if (!manifest) return photoBlock?.variants[0]?.variantId ?? null;
 
-  const schemaVariant = photoBlock?.variants[0]?.variantId;
   if (schemaVariant) {
     const key = manifestVariantKey(lineGuideId, schemaVariant);
     if (manifest[key]) return schemaVariant;
@@ -144,9 +186,27 @@ export function getVariantPreviewThumbnails(params: {
   photoBlock?: PhotoBlockSchema;
 }): VariantPreviewThumbnail[] {
   const { lineGuideId, sourcePageNumber, photoBlock } = params;
-  const pageEntry = MANIFESTS[lineGuideId]?.[String(sourcePageNumber)];
   const variants = photoBlock?.variants ?? [];
   const labelById = Object.fromEntries(variants.map((v) => [v.variantId, v.label]));
+
+  if (usesGlobalLayoutPreviews(lineGuideId)) {
+    return variants
+      .map((variant) => {
+        const key = manifestVariantKey(lineGuideId, variant.variantId);
+        const entry = globalLayoutPreviewManifest[key];
+        if (!entry) return null;
+
+        return {
+          variantId: variant.variantId,
+          label: variant.label ?? labelById[variant.variantId] ?? key,
+          uri: resolveManifestPath(entry.default),
+          selectedUri: resolveManifestPath(entry.selected),
+        };
+      })
+      .filter((item): item is VariantPreviewThumbnail => item != null);
+  }
+
+  const pageEntry = LEGACY_MANIFESTS[lineGuideId]?.[String(sourcePageNumber)];
 
   if (pageEntry && Object.keys(pageEntry).length > 0) {
     return Object.entries(pageEntry)

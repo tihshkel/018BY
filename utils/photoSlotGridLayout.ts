@@ -56,13 +56,56 @@ export function getCollageSlotFrames(
   return FALLBACK_TWO.slice(0, slotCount);
 }
 
-export function getPageCalibratedCollageSlotFrames(params: {
+type NormalizedSlotRect = {
+  slotIndex: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+function unionBBoxAspectRatio(
+  slots: Array<{ left: number; top: number; width: number; height: number }>,
+): number {
+  const minLeft = Math.min(...slots.map((slot) => slot.left));
+  const minTop = Math.min(...slots.map((slot) => slot.top));
+  const maxRight = Math.max(...slots.map((slot) => slot.left + slot.width));
+  const maxBottom = Math.max(...slots.map((slot) => slot.top + slot.height));
+  const unionWidth = Math.max(0.001, maxRight - minLeft);
+  const unionHeight = Math.max(0.001, maxBottom - minTop);
+  return unionWidth / unionHeight;
+}
+
+function toCollageSlotFrames(
+  slots: NormalizedSlotRect[],
+  unionWidth: number,
+  unionHeight: number,
+): CollageSlotFrame[] {
+  const minLeft = Math.min(...slots.map((slot) => slot.left));
+  const minTop = Math.min(...slots.map((slot) => slot.top));
+
+  return slots.map((slot) => ({
+    slotIndex: slot.slotIndex,
+    leftPercent: ((slot.left - minLeft) / unionWidth) * 100,
+    topPercent: ((slot.top - minTop) / unionHeight) * 100,
+    widthPercent: (slot.width / unionWidth) * 100,
+    heightPercent: (slot.height / unionHeight) * 100,
+  }));
+}
+
+export type PageCalibratedCollageLayout = {
+  frames: CollageSlotFrame[];
+  /** width / height of the union bbox in normalized page coordinates */
+  aspectRatio: number;
+};
+
+export function getPageCalibratedCollageLayout(params: {
   lineGuideId?: string;
   sourcePageNumber?: number;
   variantId: string;
   slotCount: number;
   templateLibraryId?: string;
-}): CollageSlotFrame[] | null {
+}): PageCalibratedCollageLayout | null {
   const { lineGuideId, sourcePageNumber, variantId, slotCount, templateLibraryId } = params;
   if (!lineGuideId || !sourcePageNumber || slotCount <= 0) return null;
 
@@ -84,7 +127,7 @@ export function getPageCalibratedCollageSlotFrames(params: {
       width,
       height,
     };
-  }).filter((slot): slot is NonNullable<typeof slot> => Boolean(slot));
+  }).filter((slot): slot is NormalizedSlotRect => Boolean(slot));
 
   if (slots.length !== slotCount) return null;
 
@@ -95,16 +138,36 @@ export function getPageCalibratedCollageSlotFrames(params: {
   const unionWidth = Math.max(0.001, maxRight - minLeft);
   const unionHeight = Math.max(0.001, maxBottom - minTop);
 
-  return slots.map((slot) => ({
-    slotIndex: slot.slotIndex,
-    leftPercent: ((slot.left - minLeft) / unionWidth) * 100,
-    topPercent: ((slot.top - minTop) / unionHeight) * 100,
-    widthPercent: (slot.width / unionWidth) * 100,
-    heightPercent: (slot.height / unionHeight) * 100,
-  }));
+  return {
+    frames: toCollageSlotFrames(slots, unionWidth, unionHeight),
+    aspectRatio: unionWidth / unionHeight,
+  };
+}
+
+export function getPageCalibratedCollageSlotFrames(params: {
+  lineGuideId?: string;
+  sourcePageNumber?: number;
+  variantId: string;
+  slotCount: number;
+  templateLibraryId?: string;
+}): CollageSlotFrame[] | null {
+  return getPageCalibratedCollageLayout(params)?.frames ?? null;
 }
 
 export function getCollageAspectRatio(variantId: string, slotCount: number): number {
+  const templateId = resolveTemplateId(variantId);
+  const template = PHOTO_LAYOUT_TEMPLATES[templateId];
+  if (template && slotCount > 0) {
+    const slots = template.slots.slice(0, slotCount).map((slot, slotIndex) => ({
+      slotIndex,
+      left: slot.x,
+      top: slot.y,
+      width: slot.width,
+      height: slot.height,
+    }));
+    return unionBBoxAspectRatio(slots);
+  }
+
   if (slotCount <= 1) return 4 / 3;
   if (variantId.includes('vertical') || variantId === 'four_vertical') return 3 / 4;
   if (variantId === 'three_hero') return 3 / 4;

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, memo, useCallback } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppDateField } from '@/components/ui/app-date-field';
@@ -152,15 +152,17 @@ function TypedFormField({
   );
 }
 
-function AlbumFormField({
+const AlbumFormField = memo(function AlbumFormField({
   field,
   value,
-  onChange,
+  fieldId,
+  onFieldChange,
   characterLimit,
 }: {
   field: AlbumPageField;
   value: string;
-  onChange: (value: string) => void;
+  fieldId: string;
+  onFieldChange: (fieldId: string, value: string) => void;
   characterLimit?: number;
 }) {
   const fieldRef = useRef<View>(null);
@@ -169,6 +171,11 @@ function AlbumFormField({
   const handleInputFocus = () => {
     scrollToField?.(fieldRef);
   };
+
+  const onChange = useCallback(
+    (text: string) => onFieldChange(fieldId, text),
+    [fieldId, onFieldChange]
+  );
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
@@ -199,7 +206,7 @@ function AlbumFormField({
       )}
     </View>
   );
-}
+});
 
 export function PageFormFields({
   fields,
@@ -238,8 +245,9 @@ export function PageFormFields({
           <AlbumFormField
             key={field.fieldId}
             field={field}
+            fieldId={field.fieldId}
             value={value}
-            onChange={(text) => onChange(field.fieldId, text)}
+            onFieldChange={onChange}
             characterLimit={characterLimit}
           />
         );

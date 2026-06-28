@@ -26,6 +26,8 @@ interface PageRendererProps {
   captureFormat?: CaptureFormat;
   captureQuality?: number;
   backgroundColor?: string;
+  /** Средний слой между фоном и текстом (например, фото в финальном предпросмотре). */
+  middleLayer?: React.ReactNode;
 }
 
 /**
@@ -48,6 +50,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     captureFormat = 'jpg',
     captureQuality = 0.92,
     backgroundColor = 'transparent',
+    middleLayer,
   }, ref) => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const renderWidth = width ?? windowWidth;
@@ -180,22 +183,30 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           }}
         />
 
+        {isImageLoaded && middleLayer ? (
+          <View style={styles.middleLayer} pointerEvents="box-none">
+            {middleLayer}
+          </View>
+        ) : null}
+
         {isImageLoaded && (
-          <PdfAnnotations
-            annotations={annotations}
-            onAnnotationAdd={() => {}}
-            onAnnotationUpdate={() => {}}
-            onAnnotationDelete={() => {}}
-            isEditing={false}
-            currentTool={null}
-            zoomLevel={1}
-            viewportWidth={renderWidth}
-            viewportHeight={renderHeight}
-            sourceWidth={sourceWidth}
-            sourceHeight={sourceHeight}
-            lineGuideId={lineGuideId}
-            onImageAnnotationLoad={handleAnnotationImageLoad}
-          />
+          <View style={styles.annotationsLayer} pointerEvents="box-none">
+            <PdfAnnotations
+              annotations={annotations}
+              onAnnotationAdd={() => {}}
+              onAnnotationUpdate={() => {}}
+              onAnnotationDelete={() => {}}
+              isEditing={false}
+              currentTool={null}
+              zoomLevel={1}
+              viewportWidth={renderWidth}
+              viewportHeight={renderHeight}
+              sourceWidth={sourceWidth}
+              sourceHeight={sourceHeight}
+              lineGuideId={lineGuideId}
+              onImageAnnotationLoad={handleAnnotationImageLoad}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -216,6 +227,14 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  middleLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+  },
+  annotationsLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 3,
   },
 });
 

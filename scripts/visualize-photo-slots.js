@@ -17,6 +17,24 @@ const ALBUM_FOLDERS = [
   { albumId: 'holidays_blank', folder: 'Блок ПРАЗДНИКИ 20 стр' },
 ];
 
+function parseEventPagesRange(block) {
+  const arrayFromMatch = block.match(
+    /eventPages\(Array\.from\(\{ length: (\d+) \}[^)]+\+\s*(\d+)\)/,
+  );
+  if (arrayFromMatch) {
+    const count = Number(arrayFromMatch[1]);
+    const start = Number(arrayFromMatch[2]);
+    return Array.from({ length: count }, (_, index) => String(index + start));
+  }
+
+  const eventMatch = block.match(/eventPages\(\[([\d,\s]+)\]/);
+  if (eventMatch) {
+    return eventMatch[1].split(',').map((n) => n.trim()).filter(Boolean);
+  }
+
+  return [];
+}
+
 function loadPhotoSlotsTs(projectRoot) {
   const file = path.join(projectRoot, 'constants', 'photo-slots.ts');
   const source = fs.readFileSync(file, 'utf8');
@@ -28,10 +46,7 @@ function loadPhotoSlotsTs(projectRoot) {
     const pages = new Set();
 
     for (const m of block.matchAll(/'(\d+)':/g)) pages.add(m[1]);
-    const eventMatch = block.match(/eventPages\(\[([\d,\s]+)\]/);
-    if (eventMatch) {
-      eventMatch[1].split(',').forEach((n) => pages.add(n.trim()));
-    }
+    for (const pageKey of parseEventPagesRange(block)) pages.add(pageKey);
     const blankMatch = block.match(/blankAlbumPages\((\d+)\)/);
     if (blankMatch) {
       const count = Number(blankMatch[1]);
@@ -49,9 +64,11 @@ function parseVariantSlots(source, albumId, pageKey) {
   const albumRe = new RegExp(`${albumId}:\\s*\\{([\\s\\S]*?)\\n  \\}`, 'm');
   const albumBlock = source.match(albumRe)?.[1] ?? '';
 
-  if (albumBlock.includes('...eventPages([') && !albumBlock.includes(`'${pageKey}':`)) {
-    const eventMatch = albumBlock.match(/eventPages\(\[([\d,\s]+)\]/);
-    if (eventMatch?.[1].split(',').map((n) => n.trim()).includes(pageKey)) {
+  if (
+    (albumBlock.includes('...eventPages([') || albumBlock.includes('...eventPages(Array.from')) &&
+    !albumBlock.includes(`'${pageKey}':`)
+  ) {
+    if (parseEventPagesRange(albumBlock).includes(pageKey)) {
       return parseVariantsFromHelper(source, 'EVENT_PHOTO_TEMPLATES');
     }
   }

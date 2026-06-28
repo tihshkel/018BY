@@ -45,9 +45,9 @@
           "slots": [
             {
               "x": 0.125,
-              "y": 0.772,
+              "y": 0.732,
               "width": 0.75,
-              "height": 0.375,
+              "height": 0.22,
               "aspectRatio": [
                 4,
                 3
@@ -2643,6 +2643,25 @@
               "aspectRatio": [
                 4,
                 3
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "46": {
+      "variants": [
+        {
+          "variantId": "one_horizontal",
+          "slots": [
+            {
+              "x": 0.3056,
+              "y": 0.3917,
+              "width": 0.3889,
+              "height": 0.4375,
+              "aspectRatio": [
+                3,
+                4
               ]
             }
           ]

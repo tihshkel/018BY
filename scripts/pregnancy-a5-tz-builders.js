@@ -6,21 +6,22 @@ const {
   WEEKLY_PAGE_FIELDS,
   PAGE1_FIELDS,
   ABOUT_ME_FIELDS,
-  BIRTH_QUESTIONNAIRE_A5,
-  ALREADY_MOM_FIELDS,
   buildFieldsFromSpec,
   buildBirthStoryFields,
+  buildBirthQuestionnaireA5Fields,
+  buildAlreadyMomFields,
   isPregnancyA5WeeklyPage,
   getPregnancyA5WeekNumber,
 } = require('./pregnancy-60-field-specs');
 const { tzOverride, buildPregnancyStaticPage } = require('./pregnancy-60-tz-builders');
+const { DESIGNED_ALBUM_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const PREGNANCY_A5_STATIC_PAGES = {
   2: 'Триместры беременности',
   4: '1 триместр',
   14: '2 триместр',
   29: '3 триместр',
-  47: '46 неделя',
+  47: 'Памятные моменты',
 };
 
 function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
@@ -51,7 +52,7 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
     case 44:
       return tzOverride({
         title: 'Анкета родов',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, BIRTH_QUESTIONNAIRE_A5),
+        fields: buildBirthQuestionnaireA5Fields(lineGuideId, pageNumber, slots),
       });
     case 45:
       return tzOverride({
@@ -61,10 +62,16 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
     case 46:
       return tzOverride({
         title: 'Уже мама',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
+        fields: buildAlreadyMomFields(lineGuideId, pageNumber, slots),
+        photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       });
     case 48:
-      return tzOverride({ fields: [] });
+      return tzOverride({
+        title: 'Памятные моменты',
+        pageType: 'photo',
+        editable: true,
+        fields: [],
+      });
     default:
       return null;
   }

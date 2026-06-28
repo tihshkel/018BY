@@ -107,7 +107,6 @@ export default function RootLayout() {
               />
               <Stack.Screen name="new-project" />
               <Stack.Screen name="select-album" />
-              <Stack.Screen name="edit-project" />
               <Stack.Screen name="edit-album" />
               <Stack.Screen name="album-pages" />
               <Stack.Screen name="album-page-preview" />

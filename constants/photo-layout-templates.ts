@@ -2,6 +2,8 @@
  * Reusable photo collage layouts normalized to a safe zone (0–1).
  * x, y = top-left corner of slot; width, height = slot size.
  * Transformed to page coordinates via buildPageLayouts().
+ *
+ * All multi-photo templates share one 2-column grid (same margins, column width, gaps).
  */
 
 export type TemplatePhotoSlot = {
@@ -18,7 +20,17 @@ export type PhotoLayoutTemplate = {
 };
 
 const GAP = 0.03;
-const MARGIN_X = 0.02;
+const MARGIN_X = 0.04;
+const MARGIN_Y = 0.04;
+
+const FULL_WIDTH = 1 - MARGIN_X * 2;
+const COL_WIDTH = (FULL_WIDTH - GAP) / 2;
+const COL_X_LEFT = MARGIN_X;
+const COL_X_RIGHT = MARGIN_X + COL_WIDTH + GAP;
+
+const STACK_ROW_HEIGHT = (1 - MARGIN_Y * 2 - GAP) / 2;
+const GRID_ROW_HEIGHT = (1 - MARGIN_Y * 2 - GAP) / 2;
+const THREE_EQUAL_ROW_HEIGHT = (1 - MARGIN_Y * 2 - GAP * 2) / 3;
 
 function slot(
   x: number,
@@ -30,24 +42,39 @@ function slot(
   return { x, y, width, height, aspectRatio };
 }
 
+function rowY(rowIndex: number, rowHeight: number): number {
+  return MARGIN_Y + rowIndex * (rowHeight + GAP);
+}
+
+/** Shared grid metrics for collage templates (safe-zone relative). */
+export const COLLAGE_GRID = {
+  gap: GAP,
+  marginX: MARGIN_X,
+  marginY: MARGIN_Y,
+  fullWidth: FULL_WIDTH,
+  colWidth: COL_WIDTH,
+  colXLeft: COL_X_LEFT,
+  colXRight: COL_X_RIGHT,
+};
+
 /** 1 hero photo centered in safe zone */
 export const TEMPLATE_ONE_LARGE: PhotoLayoutTemplate = {
   variantId: 'one_large',
-  slots: [slot(MARGIN_X, 0.08, 1 - MARGIN_X * 2, 0.84, [4, 3])],
+  slots: [slot(MARGIN_X, 0.08, FULL_WIDTH, 0.84, [4, 3])],
 };
 
-/** Alias for event pages */
+/** Alias for event pages — tall 4:3 band (not ultra-narrow strip) */
 export const TEMPLATE_ONE_HORIZONTAL: PhotoLayoutTemplate = {
   variantId: 'one_horizontal',
-  slots: [slot(MARGIN_X, 0.1, 1 - MARGIN_X * 2, 0.8, [4, 3])],
+  slots: [slot(MARGIN_X, 0.03, FULL_WIDTH, 0.92, [4, 3])],
 };
 
 /** 2 horizontal strips stacked */
 export const TEMPLATE_TWO_STACKED: PhotoLayoutTemplate = {
   variantId: 'two_stacked',
   slots: [
-    slot(MARGIN_X, 0.04, 1 - MARGIN_X * 2, 0.44, [4, 3]),
-    slot(MARGIN_X, 0.52, 1 - MARGIN_X * 2, 0.44, [4, 3]),
+    slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+    slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
   ],
 };
 
@@ -57,63 +84,99 @@ export const TEMPLATE_TWO_PHOTOS: PhotoLayoutTemplate = {
   slots: TEMPLATE_TWO_STACKED.slots,
 };
 
-/** 2 horizontal strips with gap (event TZ) */
+/** 2 horizontal strips stacked (event TZ) */
 export const TEMPLATE_TWO_HORIZONTAL: PhotoLayoutTemplate = {
   variantId: 'two_horizontal',
+  slots: TEMPLATE_TWO_STACKED.slots,
+};
+
+/** Kids event pages: tall stacked pair (~4:3 per cell) */
+export const TEMPLATE_KIDS_TWO_STACKED: PhotoLayoutTemplate = {
+  variantId: 'kids_two_stacked',
   slots: [
-    slot(MARGIN_X, 0.06, 1 - MARGIN_X * 2, 0.42, [4, 3]),
-    slot(MARGIN_X, 0.52, 1 - MARGIN_X * 2, 0.42, [4, 3]),
+    slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+    slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
   ],
 };
 
-/** 2 vertical columns */
+/** 2 vertical columns on shared grid */
 export const TEMPLATE_TWO_VERTICAL: PhotoLayoutTemplate = {
   variantId: 'two_vertical',
   slots: [
-    slot(0.02, 0.08, 0.46, 0.84, [3, 4]),
-    slot(0.52, 0.08, 0.46, 0.84, [3, 4]),
+    slot(COL_X_LEFT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [3, 4]),
+    slot(COL_X_RIGHT, MARGIN_Y, COL_WIDTH, 1 - MARGIN_Y * 2, [3, 4]),
   ],
 };
 
-/** 1 large top + 2 small bottom (magazine collage) */
+/** Full-width top row + 2 square cells on bottom grid row (1:1), внутри safe zone */
+function buildThreeHeroSlots(safeZone: SafeZone): TemplatePhotoSlot[] {
+  const idealSquareH = (COL_WIDTH * safeZone.width) / safeZone.height;
+  const stackHeight = 1 - MARGIN_Y * 2;
+  const topBandOffset = 0.025;
+  const minTopH = 0.42;
+
+  let bottomH = Math.min(idealSquareH, stackHeight - GAP - minTopH - topBandOffset);
+  let topH = stackHeight - GAP - bottomH - topBandOffset;
+
+  if (topH < minTopH) {
+    topH = minTopH;
+    bottomH = Math.min(idealSquareH, stackHeight - GAP - topH - topBandOffset);
+  }
+
+  bottomH = Math.min(bottomH, 1 - MARGIN_Y - (MARGIN_Y + topBandOffset + topH + GAP));
+  topH = Math.max(minTopH, stackHeight - GAP - bottomH - topBandOffset);
+
+  const topY = MARGIN_Y + topBandOffset;
+  const bottomY = topY + topH + GAP;
+  const colW =
+    bottomH >= idealSquareH - 0.001
+      ? COL_WIDTH
+      : (bottomH * safeZone.height) / safeZone.width;
+  const pairWidth = colW * 2 + GAP;
+  const colLeft = MARGIN_X + Math.max(0, (FULL_WIDTH - pairWidth) / 2);
+
+  return [
+    slot(colLeft, topY, pairWidth, topH, [4, 3]),
+    slot(colLeft, bottomY, colW, bottomH, [1, 1]),
+    slot(colLeft + colW + GAP, bottomY, colW, bottomH, [1, 1]),
+  ];
+}
+
+/** Static fallback for grid previews (EVENT safe zone proportions). */
 export const TEMPLATE_THREE_HERO: PhotoLayoutTemplate = {
   variantId: 'three_hero',
-  slots: [
-    slot(MARGIN_X, 0.02, 1 - MARGIN_X * 2, 0.52, [4, 3]),
-    slot(MARGIN_X, 0.58, 0.46, 0.38, [3, 4]),
-    slot(0.52, 0.58, 0.46, 0.38, [3, 4]),
-  ],
+  slots: buildThreeHeroSlots({ x: 0, y: 0, width: 0.84, height: 0.6 }),
 };
 
-/** 3 equal horizontal strips */
+/** 3 equal horizontal bands on full-width columns */
 export const TEMPLATE_THREE_EQUAL: PhotoLayoutTemplate = {
   variantId: 'three_equal',
   slots: [
-    slot(MARGIN_X, 0.02, 1 - MARGIN_X * 2, 0.28, [4, 3]),
-    slot(MARGIN_X, 0.34, 1 - MARGIN_X * 2, 0.28, [4, 3]),
-    slot(MARGIN_X, 0.66, 1 - MARGIN_X * 2, 0.28, [4, 3]),
+    slot(MARGIN_X, rowY(0, THREE_EQUAL_ROW_HEIGHT), FULL_WIDTH, THREE_EQUAL_ROW_HEIGHT, [4, 3]),
+    slot(MARGIN_X, rowY(1, THREE_EQUAL_ROW_HEIGHT), FULL_WIDTH, THREE_EQUAL_ROW_HEIGHT, [4, 3]),
+    slot(MARGIN_X, rowY(2, THREE_EQUAL_ROW_HEIGHT), FULL_WIDTH, THREE_EQUAL_ROW_HEIGHT, [4, 3]),
   ],
 };
 
-/** 2×2 symmetric grid */
+/** 2×2 grid — 4:3 cells */
 export const TEMPLATE_FOUR_GRID: PhotoLayoutTemplate = {
   variantId: 'four_grid',
   slots: [
-    slot(0.02, 0.02, 0.46, 0.46, [1, 1]),
-    slot(0.52, 0.02, 0.46, 0.46, [1, 1]),
-    slot(0.02, 0.52, 0.46, 0.46, [1, 1]),
-    slot(0.52, 0.52, 0.46, 0.46, [1, 1]),
+    slot(COL_X_LEFT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
+    slot(COL_X_RIGHT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
+    slot(COL_X_LEFT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
+    slot(COL_X_RIGHT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
   ],
 };
 
-/** 2×2 vertical-oriented cells (kids TZ) */
+/** 2×2 — portrait-friendly cells on same grid */
 export const TEMPLATE_FOUR_VERTICAL: PhotoLayoutTemplate = {
   variantId: 'four_vertical',
   slots: [
-    slot(0.02, 0.02, 0.46, 0.46, [3, 4]),
-    slot(0.52, 0.02, 0.46, 0.46, [3, 4]),
-    slot(0.02, 0.52, 0.46, 0.46, [3, 4]),
-    slot(0.52, 0.52, 0.46, 0.46, [3, 4]),
+    slot(COL_X_LEFT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [3, 4]),
+    slot(COL_X_RIGHT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [3, 4]),
+    slot(COL_X_LEFT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [3, 4]),
+    slot(COL_X_RIGHT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [3, 4]),
   ],
 };
 
@@ -138,6 +201,7 @@ export const PHOTO_LAYOUT_TEMPLATES: Record<string, PhotoLayoutTemplate> = {
   two_stacked: TEMPLATE_TWO_STACKED,
   two_photos: TEMPLATE_TWO_PHOTOS,
   two_horizontal: TEMPLATE_TWO_HORIZONTAL,
+  kids_two_stacked: TEMPLATE_KIDS_TWO_STACKED,
   two_vertical: TEMPLATE_TWO_VERTICAL,
   three_hero: TEMPLATE_THREE_HERO,
   three_equal: TEMPLATE_THREE_EQUAL,
@@ -163,14 +227,22 @@ export function buildVariantLayoutFromTemplate(
   height: number;
   aspectRatio?: [number, number];
 }> } {
-  const slots = template.slots.map((s) => {
+  const templateSlots =
+    template.variantId === 'three_hero' ? buildThreeHeroSlots(safeZone) : template.slots;
+
+  const slots = templateSlots.map((s) => {
     const absX = safeZone.x + s.x * safeZone.width;
-    const absW = s.width * safeZone.width;
-    const absH = s.height * safeZone.height;
+    let absW = s.width * safeZone.width;
+    const isSquare = s.aspectRatio?.[0] === 1 && s.aspectRatio?.[1] === 1;
+    let absH = isSquare ? Math.min(absW, s.height * safeZone.height) : s.height * safeZone.height;
+    if (isSquare) {
+      absW = absH;
+    }
     const topY = safeZone.y + s.y * safeZone.height;
     const centerY = topY + absH / 2;
+    const colOffsetX = isSquare ? (s.width * safeZone.width - absW) / 2 : 0;
     return {
-      x: absX,
+      x: absX + colOffsetX,
       y: centerY,
       width: absW,
       height: absH,
@@ -191,3 +263,11 @@ export function buildPageLayoutsFromTemplates(
     .map((t) => buildVariantLayoutFromTemplate(t, safeZone));
   return { variants };
 }
+
+/** Unified collage templates for all designed albums. */
+export const STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS = [
+  'one_large',
+  'two_vertical',
+  'three_hero',
+  'four_grid',
+] as const;

@@ -110,6 +110,8 @@ export default function AlbumPageFormScreen() {
       schema={schema}
       pageValues={pageValues}
       lineGuideId={project.lineGuideId}
+      projectId={project.projectId}
+      instanceId={instanceId}
       onFieldChange={handleFieldChange}
       onCaptionChange={(text) =>
         photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))

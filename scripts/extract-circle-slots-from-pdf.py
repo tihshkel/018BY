@@ -3,13 +3,14 @@
 
 Outputs constants/generated/pdf-circle-slots.json
 
+Uses the same combined PDF as page PNGs and line-slots (not per-page exports).
+
   .venv/bin/python3 scripts/extract-circle-slots-from-pdf.py
 """
 
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -17,8 +18,7 @@ import fitz
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_PATH = ROOT / "constants/generated/pdf-circle-slots.json"
-SOURCE_DIR = ROOT / "in albums/pdf new"
-PAGE_REGEX = re.compile(r"Сва_(\d+)\.pdf$", re.IGNORECASE)
+COMBINED_PDF = ROOT / "in albums" / "Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf"
 
 FAMILY_TREE_NAMED_SLOTS: list[tuple[str, str]] = [
     ("child", "child"),
@@ -32,44 +32,77 @@ FAMILY_TREE_NAMED_SLOTS: list[tuple[str, str]] = [
     ("father_grandfather", "father"),
 ]
 
-GENDER_FILLS = [
-    {
-        "id": "mother_boy",
-        "fieldId": "kids_48_p3_mother_guess",
-        "option": "Мальчик",
-        "fillColor": "#89CFF0",
-        "cx": 0.2352,
-        "cy": 0.8543,
-        "diameter": 0.0714,
-    },
-    {
-        "id": "mother_girl",
-        "fieldId": "kids_48_p3_mother_guess",
-        "option": "Девочка",
-        "fillColor": "#F194A2",
-        "cx": 0.3445,
-        "cy": 0.8543,
-        "diameter": 0.0714,
-    },
-    {
-        "id": "father_boy",
-        "fieldId": "kids_48_p3_father_guess",
-        "option": "Мальчик",
-        "fillColor": "#89CFF0",
-        "cx": 0.6732,
-        "cy": 0.8543,
-        "diameter": 0.0714,
-    },
-    {
-        "id": "father_girl",
-        "fieldId": "kids_48_p3_father_guess",
-        "option": "Девочка",
-        "fillColor": "#F194A2",
-        "cx": 0.7808,
-        "cy": 0.8543,
-        "diameter": 0.0714,
-    },
+GENDER_FILL_SPECS = [
+    ("mother_boy", "kids_48_p3_mother_guess", "Мальчик", "#89CFF0"),
+    ("mother_girl", "kids_48_p3_mother_guess", "Девочка", "#F194A2"),
+    ("father_boy", "kids_48_p3_father_guess", "Мальчик", "#89CFF0"),
+    ("father_girl", "kids_48_p3_father_guess", "Девочка", "#F194A2"),
 ]
+
+# Slight bleed so the fill fully covers the yellow ring on the design PNG.
+GENDER_FILL_BLEED = 1.08
+
+
+def is_yellow_ring_pixel(r: int, g: int, b: int) -> bool:
+    return r > 180 and g > 120 and b < 130
+
+
+def detect_gender_circles_from_pixmap(page: fitz.Page) -> list[dict]:
+    """Calibrate gender fills from rendered page (matches design PNG rings)."""
+    scale = 2100 / page.rect.width
+    pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale))
+    w, h = pix.width, pix.height
+    samples = pix.samples
+
+    vector_circles = detect_circle_candidates(page, min_y=0.72, max_y=0.96)
+    if len(vector_circles) < 4:
+        raise RuntimeError(f"Expected 4 gender circles on page 3, found {len(vector_circles)}")
+
+    ordered_hints = sorted(vector_circles, key=lambda item: item[0])[:4]
+    fills: list[dict] = []
+
+    for (spec, hint) in zip(GENDER_FILL_SPECS, ordered_hints, strict=True):
+        fill_id, field_id, option, fill_color = spec
+        tcx = hint[0]
+        pts: list[tuple[float, float]] = []
+
+        for y in range(int(h * 0.78), int(h * 0.93)):
+            for x in range(w):
+                i = (y * w + x) * 3
+                r, g, b = samples[i], samples[i + 1], samples[i + 2]
+                if not is_yellow_ring_pixel(r, g, b):
+                    continue
+                nx, ny = x / w, y / h
+                if abs(nx - tcx) > 0.055:
+                    continue
+                pts.append((nx, ny))
+
+        if len(pts) >= 20:
+            cx = sum(p[0] for p in pts) / len(pts)
+            cy = sum(p[1] for p in pts) / len(pts)
+            max_r = max(((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 for p in pts)
+            diameter = 2 * max_r * GENDER_FILL_BLEED
+        else:
+            cx, cy, diameter = hint
+            diameter *= GENDER_FILL_BLEED
+
+        fills.append(
+            {
+                "id": fill_id,
+                "fieldId": field_id,
+                "option": option,
+                "fillColor": fill_color,
+                "cx": round(cx, 4),
+                "cy": round(cy, 4),
+                "diameter": round(diameter, 4),
+            }
+        )
+
+    return fills
+
+
+def detect_gender_circles(page: fitz.Page) -> list[dict]:
+    return detect_gender_circles_from_pixmap(page)
 
 
 def is_peach_fill(color: tuple[float, ...] | None) -> bool:
@@ -78,17 +111,43 @@ def is_peach_fill(color: tuple[float, ...] | None) -> bool:
     return color[0] > 0.95 and color[1] > 0.65 and color[2] > 0.35
 
 
-def is_peach_stroke(color: tuple[float, ...] | None) -> bool:
-    if color is None or len(color) < 3:
-        return False
-    return color[0] > 0.95 and color[1] > 0.65 and color[2] > 0.35
+def detect_circle_candidates(page: fitz.Page, *, min_y: float, max_y: float) -> list[tuple[float, float, float]]:
+    pw = page.rect.width
+    ph = page.rect.height
+    candidates: list[tuple[float, float, float]] = []
+
+    for drawing in page.get_drawings():
+        rect_raw = drawing.get("rect")
+        if not rect_raw:
+            continue
+        rect = fitz.Rect(rect_raw)
+        norm_w = rect.width / pw
+        norm_h = rect.height / ph
+        if norm_w < 0.04 or norm_h < 0.04:
+            continue
+        if abs(norm_w - norm_h) / max(norm_w, norm_h) > 0.25:
+            continue
+
+        cx = (rect.x0 + rect.x1) / 2 / pw
+        cy = (rect.y0 + rect.y1) / 2 / ph
+        if cy < min_y or cy > max_y:
+            continue
+        diameter = (norm_w + norm_h) / 2
+        candidates.append((cx, cy, diameter))
+
+    unique: list[tuple[float, float, float]] = []
+    for cx, cy, diameter in sorted(candidates, key=lambda item: (item[1], item[0])):
+        if any(abs(cx - u[0]) < 0.008 and abs(cy - u[1]) < 0.008 for u in unique):
+            continue
+        unique.append((cx, cy, diameter))
+
+    return unique
 
 
 def detect_family_tree_circles(page: fitz.Page) -> list[dict]:
     pw = page.rect.width
     ph = page.rect.height
-    candidates: list[tuple[float, float, float]] = []
-
+    peach: list[tuple[float, float, float]] = []
     for drawing in page.get_drawings():
         rect_raw = drawing.get("rect")
         if not rect_raw:
@@ -110,16 +169,17 @@ def detect_family_tree_circles(page: fitz.Page) -> list[dict]:
         cx = (rect.x0 + rect.x1) / 2 / pw
         cy = (rect.y0 + rect.y1) / 2 / ph
         diameter = (norm_w + norm_h) / 2
-        candidates.append((cx, cy, diameter))
+        peach.append((cx, cy, diameter))
 
-    # Deduplicate near-identical positions
     unique: list[tuple[float, float, float]] = []
-    for cx, cy, diameter in sorted(candidates, key=lambda item: (item[1], item[0])):
+    for cx, cy, diameter in sorted(peach, key=lambda item: (item[1], item[0])):
         if any(abs(cx - u[0]) < 0.008 and abs(cy - u[1]) < 0.008 for u in unique):
             continue
         unique.append((cx, cy, diameter))
 
-    # Assign slot ids by tree geometry: child on top, left branch = mother, right = father
+    if not unique:
+        raise RuntimeError("No family-tree peach circles detected on page 5")
+
     child = min(unique, key=lambda item: item[1])
     remaining = [item for item in unique if item is not child]
     mother_branch = sorted([item for item in remaining if item[0] < 0.45], key=lambda item: item[1])
@@ -159,31 +219,27 @@ def detect_family_tree_circles(page: fitz.Page) -> list[dict]:
     return slots
 
 
-def open_page(page_no: int) -> fitz.Page | None:
-    if not SOURCE_DIR.exists():
-        return None
-    for pdf_path in SOURCE_DIR.glob("*.pdf"):
-        match = PAGE_REGEX.search(pdf_path.name)
-        if not match or int(match.group(1)) != page_no:
-            continue
-        doc = fitz.open(pdf_path)
-        page = doc[0]
-        return page
-    return None
+def open_combined_page(page_no: int) -> fitz.Page:
+    if not COMBINED_PDF.exists():
+        raise FileNotFoundError(f"Missing combined kids PDF: {COMBINED_PDF}")
+    doc = fitz.open(COMBINED_PDF)
+    if page_no < 1 or page_no > doc.page_count:
+        raise IndexError(f"Page {page_no} out of range (1..{doc.page_count})")
+    return doc[page_no - 1]
 
 
 def main() -> None:
-    page5 = open_page(5)
-    if page5 is None:
-        print("Missing kids_48 page 5 PDF", file=sys.stderr)
-        sys.exit(1)
+    page3 = open_combined_page(3)
+    page5 = open_combined_page(5)
 
+    gender_fills = detect_gender_circles(page3)
     tree_slots = detect_family_tree_circles(page5)
+    print(f"kids_48 p3: {len(gender_fills)} gender fill targets")
     print(f"kids_48 p5: {len(tree_slots)} circle photo slots")
 
     result = {
         "kids_48": {
-            "3": {"genderFills": GENDER_FILLS},
+            "3": {"genderFills": gender_fills},
             "5": {
                 "slots": tree_slots,
                 "variants": [

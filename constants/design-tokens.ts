@@ -9,6 +9,7 @@ export const colors = {
   genderBoy: '#89CFF0',
   genderGirl: '#F194A2',
   genderChild: '#F5C896',
+  pregnancyFormFill: '#8B5A3C',
   primaryLight: '#F5A8B3',
   primaryPressed: '#D97F8D',
   primarySurface: '#FDF0F2',

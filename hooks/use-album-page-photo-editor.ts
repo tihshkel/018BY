@@ -4,6 +4,10 @@ import { useMediaLibraryPermission } from '@/components/media-library-permission
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import type { useAlbumProject } from '@/hooks/use-album-project';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
+import {
+  buildAlbumPhotoStorageKey,
+  persistAlbumPhotoUri,
+} from '@/utils/persistAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
@@ -91,13 +95,27 @@ export function useAlbumPagePhotoEditor({
       });
       if (!uri) return;
 
+      const projectId = project.projectId;
+      const persistentUri =
+        projectId && instanceId
+          ? await persistAlbumPhotoUri(
+              uri,
+              buildAlbumPhotoStorageKey({
+                projectId,
+                instanceId,
+                blockId,
+                slotIndex,
+              }),
+            )
+          : uri;
+
       updateBlock(blockId, (prev) => {
         const slots = [...prev.slots];
-        slots[slotIndex] = uri;
+        slots[slotIndex] = persistentUri;
         return { ...prev, slots };
       });
     },
-    [blocks, ensureMediaLibraryPermission, photoBlocks, updateBlock],
+    [blocks, ensureMediaLibraryPermission, instanceId, photoBlocks, project.projectId, updateBlock],
   );
 
   const handleRemovePhoto = useCallback(

@@ -9,9 +9,7 @@ import {
   distributeTextWithinContinuationGroup,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
-  getTemplateLineAscenderPadding,
-  getTemplateLineTextTop,
-  getTemplateLineTypography,
+  getTemplateLinePdfBaselineY,
   truncateTextToSlotWidth,
   type TextWidthMeasure,
 } from '@/utils/templateLineText';
@@ -84,6 +82,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     ann.fontSize || 16
   );
 
+  const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
+
   const pdfImageRect: ContentRect = {
     offsetX,
     offsetY,
@@ -100,7 +100,58 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     ? (text) => font.widthOfTextAtSize(text, scaledFontSize) / scaleX
     : undefined;
 
-  const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
+  const drawSegmentAtSlot = (slotIndex: number, content: string): void => {
+    const slot = slots[slotIndex];
+    if (!slot || !content) return;
+
+    const truncated = truncateTextToSlotWidth(
+      content,
+      slot,
+      effectiveFontSize,
+      lineGuideId,
+      fontId,
+      measureTextWidth,
+    );
+    if (!truncated) return;
+
+    const relX = slot.x - editorContentRect.offsetX;
+    const viewportBaseline = getTemplateLinePdfBaselineY(
+      slot,
+      effectiveFontSize,
+      lineGuideId,
+    );
+    const relBaseline = viewportBaseline - editorContentRect.offsetY;
+
+    const scaledX = pdfImageRect.offsetX + relX * scaleX;
+    const scaledY =
+      pdfImageRect.offsetY + pdfImageRect.height - relBaseline * scaleY;
+
+    let drawX = scaledX;
+    if (font && textAlign !== 'left') {
+      const textWidth = font.widthOfTextAtSize(truncated, scaledFontSize);
+      const slotWidth = slot.width * scaleX;
+      if (textAlign === 'center') {
+        drawX = scaledX + (slotWidth - textWidth) / 2;
+      } else if (textAlign === 'right') {
+        drawX = scaledX + slotWidth - textWidth;
+      }
+    }
+
+    page.drawText(truncated, {
+      x: drawX,
+      y: scaledY,
+      size: scaledFontSize,
+      color,
+      font,
+    });
+  };
+
+  // Legacy split segments: draw only on their slot (not at group head).
+  if (startSlotIndex !== ann.templateLineStart) {
+    drawSegmentAtSlot(ann.templateLineStart, ann.content);
+    return true;
+  }
+
   const { segments } = distributeTextWithinContinuationGroup({
     text: ann.content,
     startSlotIndex,
@@ -113,58 +164,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   for (const segment of segments) {
     if (!segment.content) continue;
-
-    const slot = slots[segment.slotIndex];
-    if (!slot) break;
-
-    const content = truncateTextToSlotWidth(
-      segment.content,
-      slot,
-      effectiveFontSize,
-      lineGuideId,
-      fontId,
-      measureTextWidth
-    );
-    if (!content) continue;
-
-    const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
-    const inputKind = slot.inputKind ?? 'line';
-    const rowTypography = getTemplateLineTypography(
-      effectiveFontSize,
-      slot.lineHeight,
-      inputKind,
-      lineGuideId,
-    );
-    const ascenderPadding = getTemplateLineAscenderPadding(
-      rowTypography.fontSize,
-      inputKind,
-    );
-    const relX = slot.x - editorContentRect.offsetX;
-    const viewportBaseline = textTop + ascenderPadding + rowTypography.fontSize;
-    const relBaseline = viewportBaseline - editorContentRect.offsetY;
-
-    const scaledX = pdfImageRect.offsetX + relX * scaleX;
-    const scaledY =
-      pdfImageRect.offsetY + pdfImageRect.height - relBaseline * scaleY;
-
-    let drawX = scaledX;
-    if (font && textAlign !== 'left') {
-      const textWidth = font.widthOfTextAtSize(content, scaledFontSize);
-      const slotWidth = slot.width * scaleX;
-      if (textAlign === 'center') {
-        drawX = scaledX + (slotWidth - textWidth) / 2;
-      } else if (textAlign === 'right') {
-        drawX = scaledX + slotWidth - textWidth;
-      }
-    }
-
-    page.drawText(content, {
-      x: drawX,
-      y: scaledY,
-      size: scaledFontSize,
-      color,
-      font,
-    });
+    drawSegmentAtSlot(segment.slotIndex, segment.content);
   }
 
   return true;

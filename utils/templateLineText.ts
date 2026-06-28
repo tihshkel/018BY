@@ -1,4 +1,8 @@
-import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
+import {
+  getTemplateTypographyProfile,
+  KIDS_MONTH_LINE_FONT_OFFSET,
+  TEMPLATE_LINE_STROKE_CLEARANCE_RATIO,
+} from '@/constants/album-text-margins';
 import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import type { TextLineSlot } from '@/utils/textLineSlots';
 
@@ -197,6 +201,27 @@ export function getTemplateLineAscenderPadding(
   return Math.ceil(fontSize * (inputKind === 'block' ? 0.34 : 0.28));
 }
 
+export function usesKidsMonthStrokeBaselineLayout(
+  slot: Pick<TextLineSlot, 'lineStrokeAtBottom'>,
+  lineGuideId?: string
+): boolean {
+  return lineGuideId === 'kids_48' && Boolean(slot.lineStrokeAtBottom);
+}
+
+/** Viewport/text insets для строки макета (month pages — baseline прямо на штрихе). */
+export function getTemplateLineRowInsets(
+  slot: Pick<TextLineSlot, 'lineStrokeAtBottom'>,
+  fontSize: number,
+  inputKind: 'line' | 'block',
+  lineGuideId?: string
+): { viewportTopInset: number; textTopInset: number } {
+  if (usesKidsMonthStrokeBaselineLayout(slot, lineGuideId)) {
+    return { viewportTopInset: 0, textTopInset: 0 };
+  }
+  const ascenderPadding = getTemplateLineAscenderPadding(fontSize, inputKind);
+  return { viewportTopInset: ascenderPadding, textTopInset: ascenderPadding };
+}
+
 export function getEffectiveTemplateFontSize(
   lineGuideId: string | undefined,
   slot: Pick<TextLineSlot, 'lineHeight' | 'inputKind'> | undefined,
@@ -224,7 +249,12 @@ export function getTemplateLineTypography(
   const isBirthdayLetterLine =
     lineGuideId === 'holidays_birthday_60' && inputKind === 'line';
 
-  const lineTextLineHeight = isBirthdayLetterLine
+  const isKidsMonthAnswerLine =
+    lineGuideId === 'kids_48' &&
+    inputKind === 'line' &&
+    lineHeight <= fittedSize * 1.15;
+
+  const lineTextLineHeight = isBirthdayLetterLine || isKidsMonthAnswerLine
     ? fittedSize
     : isDiaryBlock
       ? fittedSize * 1.08
@@ -272,6 +302,10 @@ function resolveTemplateTextVerticalRatios(
       slot.normY <= 0.75
     ) {
       return { centerRatio: 1, fontOffsetRatio: 0.98 };
+    }
+
+    if (lineGuideId === 'kids_48') {
+      return { centerRatio: 0.5, fontOffsetRatio: 0.86 };
     }
 
     if (
@@ -394,8 +428,23 @@ export function getTemplateBlockTextInsets(
   return { left: 0, width: slot.width };
 }
 
+/** Высота заглавных глифов от top до baseline (RN ≈ PDF для sans). */
+const TEMPLATE_LINE_CAP_HEIGHT_RATIO = 0.85;
+
+function applyTemplateLineStrokeClearance(
+  top: number,
+  fittedSize: number,
+  inputKind: 'line' | 'block',
+): number {
+  if (inputKind !== 'line') return top;
+  return top - fittedSize * TEMPLATE_LINE_STROKE_CLEARANCE_RATIO;
+}
+
 export function getTemplateLineTextTop(
-  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page'>,
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page' | 'lineStrokeAtBottom'
+  >,
   fontSize: number,
   lineGuideId?: string
 ): number {
@@ -406,6 +455,7 @@ export function getTemplateLineTextTop(
     inputKind,
     lineGuideId
   );
+  let top: number;
 
   if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
     const isBrownPeachDreamsPage =
@@ -418,8 +468,8 @@ export function getTemplateLineTextTop(
         'line',
         lineGuideId
       );
-      return lineY - lineFitted * 1.05;
-    }
+      top = lineY - lineFitted * 1.05;
+    } else {
     const isPeachCellField =
       inputKind === 'block' &&
       slot.normY != null &&
@@ -430,8 +480,8 @@ export function getTemplateLineTextTop(
         slot,
         lineGuideId
       );
-      return slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
-    }
+      top = slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+    } else {
 
     // norm.y из PDF = штрих подчёркивания; нижний край слота совпадает с линией
     const lineY = slot.y + slot.lineHeight;
@@ -447,36 +497,101 @@ export function getTemplateLineTextTop(
       slot.normY <= 0.62;
 
     if (isPurpleCoverField || isBrownCoverField) {
-      return lineY - fittedSize * 0.98;
-    }
-    if (isBrownWishSlot(slot, lineGuideId)) {
+      top = lineY - fittedSize * 0.98;
+    } else if (isBrownWishSlot(slot, lineGuideId)) {
       const lineFitted = fitFontSizeToSlot(
         fontSize,
         slot.lineHeight,
         'line',
         lineGuideId
       );
-      return lineY - lineFitted * 0.98;
-    }
-    if (isBrownCareerAnswerSlot(slot, lineGuideId)) {
+      top = lineY - lineFitted * 0.98;
+    } else if (isBrownCareerAnswerSlot(slot, lineGuideId)) {
       const lineFitted = fitFontSizeToSlot(
         fontSize,
         slot.lineHeight,
         'line',
         lineGuideId
       );
-      return lineY - lineFitted * 0.98;
-    }
-    if (
+      top = lineY - lineFitted * 0.98;
+    } else if (
       slot.normY != null &&
       slot.normY >= 0.25 &&
       slot.normY <= 0.78 &&
       inputKind === 'line'
     ) {
-      return lineY - fittedSize * 0.92;
-    }
+      top = lineY - fittedSize * 0.92;
+    } else {
     const fontOffsetRatio = inputKind === 'block' ? 0.96 : 0.98;
-    return lineY - fittedSize * fontOffsetRatio;
+    top = lineY - fittedSize * fontOffsetRatio;
+    }
+    }
+    }
+  } else if (
+    lineGuideId === 'holidays_birthday_60' &&
+    slot.page === 48 &&
+    inputKind === 'line'
+  ) {
+    const lineY = slot.y + slot.lineHeight;
+    top = lineY - fittedSize * 0.98;
+  } else if (lineGuideId === 'kids_48' && inputKind === 'line' && slot.lineStrokeAtBottom) {
+    const lineY = slot.y + slot.lineHeight;
+    const lineFitted = fitFontSizeToSlot(
+      fontSize,
+      slot.lineHeight,
+      'line',
+      lineGuideId
+    );
+    top = lineY - lineFitted * KIDS_MONTH_LINE_FONT_OFFSET;
+  } else if (lineGuideId === 'kids_48' && inputKind === 'line') {
+    const lineY = slot.y + slot.lineHeight / 2;
+    const lineFitted = fitFontSizeToSlot(
+      fontSize,
+      slot.lineHeight,
+      'line',
+      lineGuideId
+    );
+    const profile = getTemplateTypographyProfile(lineGuideId);
+    top = lineY - lineFitted * profile.lineFontOffsetRatio;
+  } else {
+    const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
+
+    if (inputKind === 'block') {
+      top = slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+    } else {
+      const lineY = slot.y + slot.lineHeight * centerRatio;
+      top = lineY - fittedSize * fontOffsetRatio;
+    }
+  }
+
+  return applyTemplateLineStrokeClearance(top, fittedSize, inputKind);
+}
+
+/** Y штриха подчёркивания в viewport px. */
+export function getTemplateLineStrokeY(
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page' | 'lineStrokeAtBottom'
+  >,
+  _fontSize: number,
+  lineGuideId?: string,
+): number {
+  const inputKind = slot.inputKind ?? 'line';
+
+  if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
+    const isBrownPeachDreamsPage =
+      lineGuideId === 'diary_interior_brown' && slot.page === 15;
+    if (isBrownPeachDreamsPage && inputKind === 'line') {
+      return slot.y + slot.lineHeight;
+    }
+    const isPeachCellField =
+      inputKind === 'block' &&
+      slot.normY != null &&
+      slot.normY >= 0.74 &&
+      slot.normY <= 0.93;
+    if (!isPeachCellField) {
+      return slot.y + slot.lineHeight;
+    }
   }
 
   if (
@@ -484,18 +599,58 @@ export function getTemplateLineTextTop(
     slot.page === 48 &&
     inputKind === 'line'
   ) {
-    const lineY = slot.y + slot.lineHeight;
-    return lineY - fittedSize * 0.98;
+    return slot.y + slot.lineHeight;
   }
 
-  const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
-
-  if (inputKind === 'block') {
-    return slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+  if (lineGuideId === 'kids_48' && inputKind === 'line' && slot.lineStrokeAtBottom) {
+    return slot.y + slot.lineHeight;
   }
 
-  const lineY = slot.y + slot.lineHeight * centerRatio;
-  return lineY - fittedSize * fontOffsetRatio;
+  const { centerRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
+  return slot.y + slot.lineHeight * centerRatio;
+}
+
+/** @deprecated Use getTemplateLineStrokeY — имя сохранено для совместимости. */
+export function getTemplateLineBaselineY(
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page' | 'lineStrokeAtBottom'
+  >,
+  fontSize: number,
+  lineGuideId?: string,
+): number {
+  return getTemplateLineStrokeY(slot, fontSize, lineGuideId);
+}
+
+/** Зазор между низом глифов и штрихом линии в PDF (доля fontSize) — для block-полей. */
+const PDF_BLOCK_STROKE_CLEARANCE_RATIO = 0.04;
+
+/**
+ * Baseline для pdf-lib drawText в viewport px — совпадает с предпросмотром.
+ */
+export function getTemplateLinePdfBaselineY(
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page' | 'lineStrokeAtBottom'
+  >,
+  fontSize: number,
+  lineGuideId?: string,
+): number {
+  const inputKind = slot.inputKind ?? 'line';
+  const fittedSize = fitFontSizeToSlot(
+    fontSize,
+    slot.lineHeight,
+    inputKind,
+    lineGuideId,
+  );
+  const textTop = getTemplateLineTextTop(slot, fontSize, lineGuideId);
+
+  if (inputKind === 'line') {
+    return textTop + fittedSize * TEMPLATE_LINE_CAP_HEIGHT_RATIO;
+  }
+
+  const strokeY = getTemplateLineStrokeY(slot, fontSize, lineGuideId);
+  return strokeY - fittedSize * PDF_BLOCK_STROKE_CLEARANCE_RATIO;
 }
 
 function consumeOneLineForSlot(

@@ -586,7 +586,7 @@ export function getAlbumImages(albumId: string): any[] {
     case 'pregnancy_a5':
       return [pregnancyA5Preview];
     case 'kids_48':
-      return blankPageArray(48);
+      return blankPageArray(48, true);
     case 'holidays_blank':
       return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':

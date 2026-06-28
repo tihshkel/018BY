@@ -34,15 +34,23 @@ function resolveContentRect(params: GetPhotoSlotParams): ContentRect {
 }
 
 function resolveLayoutVariantId(variantId: string): string {
-  if (variantId === 'two_stacked') return 'two_photos';
+  if (variantId === 'two_stacked') return 'two_vertical';
+  if (variantId === 'two_photos') return 'two_vertical';
+  if (variantId === 'two_horizontal') return 'two_vertical';
   if (variantId === 'two_vertical_separate') return 'two_vertical';
-  if (variantId === 'one_horizontal_common') return 'one_horizontal';
+  if (variantId === 'one_horizontal_common') return 'one_large';
+  if (variantId === 'one_horizontal') return 'one_large';
+  if (variantId === 'four_vertical') return 'four_grid';
   return variantId;
 }
 
 const STRUCTURED_VARIANT_ALIASES: Record<string, string[]> = {
   one_horizontal: ['one_horizontal', 'one_large', 'template'],
   one_large: ['one_large', 'one_horizontal', 'template'],
+  two_photos: ['two_photos', 'two_vertical', 'two_horizontal'],
+  two_vertical: ['two_vertical', 'two_photos', 'two_horizontal'],
+  four_vertical: ['four_vertical', 'four_grid'],
+  four_grid: ['four_grid', 'four_vertical'],
 };
 
 function resolvePageLayoutVariant(

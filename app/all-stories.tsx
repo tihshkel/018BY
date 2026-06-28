@@ -71,16 +71,12 @@ export default function AllStoriesScreen() {
   );
 
   const openProject = async (project: UserProject) => {
-    if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      const entry = await resolveAlbumEntryPath(project.id);
-      router.push(
-        entry === 'album-intro'
-          ? buildAlbumIntroHref({ id: project.id })
-          : buildAlbumPagesHref({ id: project.id })
-      );
-    } else {
-      router.push(`/edit-project?id=${project.id}`);
-    }
+    const entry = await resolveAlbumEntryPath(project.id);
+    router.push(
+      entry === 'album-intro'
+        ? buildAlbumIntroHref({ id: project.id })
+        : buildAlbumPagesHref({ id: project.id })
+    );
   };
 
   const handleLongPress = (project: UserProject) => {

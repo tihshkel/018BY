@@ -2,7 +2,7 @@
  * TZ builders for holidays_birthday_60 — 48-page 21×21 «Дни рождения» album.
  */
 
-const { FULL_PHOTO_BLOCK } = require('./photo-block-presets-data');
+const { DESIGNED_ALBUM_PHOTO_BLOCK, EVENT_PHOTO_BLOCK } = require('./photo-block-presets-data');
 const {
   OWNER_FIELDS,
   HELLO_WORLD_FIELDS,
@@ -22,31 +22,7 @@ const {
   isYearMainPage,
 } = require('./birthday-48-field-specs');
 
-const HELLO_PHOTO_BLOCK = {
-  blockId: 'main_photo',
-  label: 'Горизонтальная фотография',
-  variants: [
-    {
-      variantId: 'one_horizontal',
-      label: '1 горизонтальное фото',
-      slots: 1,
-      slotIndices: [0],
-    },
-  ],
-};
-
-const SINGLE_AGE_PHOTO_BLOCK = {
-  blockId: 'main_photo',
-  label: 'Главное фото',
-  variants: [
-    {
-      variantId: 'one_large',
-      label: 'Одно фото',
-      slots: 1,
-      slotIndices: [0],
-    },
-  ],
-};
+const HELLO_PHOTO_BLOCK = EVENT_PHOTO_BLOCK;
 
 function tzOverride(partial) {
   return {
@@ -70,7 +46,7 @@ function buildBirthdayFreePage(pageNumber, lineGuideId) {
     templateLibraryId: 'CaptionGalleryTemplate',
     fields: [],
     customFieldDefs: getFreeCustomFieldDefs(pageNumber),
-    photoBlocks: [FULL_PHOTO_BLOCK],
+    photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
     captionEnabled: true,
     canDuplicate: true,
     canAddAfter: true,
@@ -107,7 +83,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
         pageType: 'structured',
         templateLibraryId: 'SinglePhotoTemplate',
         fields: buildAgeMainFields(lineGuideId, pageNumber, slots, AGE_ONE_YEAR_FIELDS),
-        photoBlocks: [SINGLE_AGE_PHOTO_BLOCK],
+        photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
         captionEnabled: true,
         canDuplicate: false,
         canAddAfter: false,
@@ -144,7 +120,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
       pageType: 'structured',
       templateLibraryId: 'SinglePhotoTemplate',
       fields: buildAgeMainFields(lineGuideId, pageNumber, slots, YEAR_MAIN_FIELDS),
-      photoBlocks: [SINGLE_AGE_PHOTO_BLOCK],
+      photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       captionEnabled: true,
       canDuplicate: false,
       canAddAfter: false,
@@ -161,7 +137,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
       pageType: 'caption_photo_page',
       templateLibraryId: 'CaptionGalleryTemplate',
       fields: [],
-      photoBlocks: [FULL_PHOTO_BLOCK],
+      photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       captionEnabled: true,
       canDuplicate: true,
       canAddAfter: true,

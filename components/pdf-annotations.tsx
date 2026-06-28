@@ -29,7 +29,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import { distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import {
   findNextEmptyFieldTarget,
   findPreviousFieldTarget,
@@ -42,7 +42,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     Animated,
@@ -179,24 +179,50 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     [sourceWidth, sourceHeight, viewportWidth, viewportHeight]
   );
 
-  const getSlotsForPage = (pageNumber: number) => {
-    const resolvedParams = resolveSlotParams?.(pageNumber);
-    if (resolvedParams) {
-      return getLineSlotsForPage(resolvedParams);
-    }
+  const slotsCacheRef = useRef<{ key: string; byPage: Map<number, ReturnType<typeof getLineSlotsForPage>> }>({
+    key: '',
+    byPage: new Map(),
+  });
 
-    if (!lineGuideId || lineSlotsContext.viewportWidth <= 0 || lineSlotsContext.viewportHeight <= 0) {
-      return [];
-    }
-    return getLineSlotsForPage({
-      lineGuideId,
-      page: pageNumber,
-      viewportWidth: lineSlotsContext.viewportWidth,
-      viewportHeight: lineSlotsContext.viewportHeight,
-      sourceWidth: lineSlotsContext.sourceWidth,
-      sourceHeight: lineSlotsContext.sourceHeight,
-    });
-  };
+  const getSlotsForPage = useCallback(
+    (pageNumber: number) => {
+      const resolvedParams = resolveSlotParams?.(pageNumber);
+      const cacheKey = resolvedParams
+        ? `params:${pageNumber}:${resolvedParams.lineGuideId}:${resolvedParams.viewportWidth}:${resolvedParams.viewportHeight}:${resolvedParams.sourceWidth ?? 0}:${resolvedParams.sourceHeight ?? 0}`
+        : `ctx:${lineGuideId}:${pageNumber}:${lineSlotsContext.viewportWidth}:${lineSlotsContext.viewportHeight}:${lineSlotsContext.sourceWidth ?? 0}:${lineSlotsContext.sourceHeight ?? 0}`;
+
+      if (slotsCacheRef.current.key !== cacheKey) {
+        slotsCacheRef.current = { key: cacheKey, byPage: new Map() };
+      }
+
+      const cached = slotsCacheRef.current.byPage.get(pageNumber);
+      if (cached) return cached;
+
+      let slots: ReturnType<typeof getLineSlotsForPage>;
+      if (resolvedParams) {
+        slots = getLineSlotsForPage(resolvedParams);
+      } else if (
+        !lineGuideId ||
+        lineSlotsContext.viewportWidth <= 0 ||
+        lineSlotsContext.viewportHeight <= 0
+      ) {
+        slots = [];
+      } else {
+        slots = getLineSlotsForPage({
+          lineGuideId,
+          page: pageNumber,
+          viewportWidth: lineSlotsContext.viewportWidth,
+          viewportHeight: lineSlotsContext.viewportHeight,
+          sourceWidth: lineSlotsContext.sourceWidth,
+          sourceHeight: lineSlotsContext.sourceHeight,
+        });
+      }
+
+      slotsCacheRef.current.byPage.set(pageNumber, slots);
+      return slots;
+    },
+    [lineGuideId, lineSlotsContext, resolveSlotParams]
+  );
 
   const usesAlbumWideFieldNavigation = (totalPages ?? 0) > 1 && !!resolveSlotParams;
 
@@ -1195,26 +1221,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const annotation = annotations.find(ann => ann.id === editingAnnotation);
       if (annotation && annotation.type === 'text') {
         if (isTemplateLineAnnotation(annotation)) {
-          const pageNumber = getPageNumber(annotation);
-          if (pageNumber != null && typeof annotation.templateLineStart === 'number') {
-            const slots = getSlotsForPage(pageNumber);
-            const { startSlotIndex } = getContinuationGroupSlots(slots, annotation.templateLineStart);
-            const startSlot = slots[startSlotIndex] ?? slots[annotation.templateLineStart];
-            const effectiveFontSize = getEffectiveTemplateFontSize(
-              lineGuideId,
-              startSlot,
-              annotation.fontSize || 16
-            );
-            const clamped = clampTextToContinuationGroup({
-              text,
-              startSlotIndex,
-              slots,
-              fontSize: effectiveFontSize,
-              lineGuideId,
-            });
-            setEditingText(clamped);
-            return;
-          }
           setEditingText(text);
           return;
         }
@@ -2470,9 +2476,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
-              const ascenderPadding = getTemplateLineAscenderPadding(
+              const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
+              const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+                row.lineSlot,
                 rowTypography.fontSize,
-                getWishSlotInputKind(row.lineSlot, lineGuideId)
+                wishInputKind,
+                lineGuideId
               );
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
@@ -2481,9 +2490,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   style={{
                     position: 'absolute',
                     left: row.lineSlot.x,
-                    top: rowTop - ascenderPadding,
+                    top: rowTop - viewportTopInset,
                     width: row.lineSlot.width,
-                    height: rowTypography.lineHeight + ascenderPadding,
+                    height: rowTypography.lineHeight + viewportTopInset,
                     overflow: 'visible',
                     zIndex: annotation.zIndex,
                   }}
@@ -2495,7 +2504,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       styles.templateLineText,
                       {
                         position: 'absolute',
-                        top: ascenderPadding,
+                        top: textTopInset,
                         left: textInsets.left,
                         width: textInsets.width,
                         color: currentColor,

@@ -11,9 +11,6 @@ import {
   layoutAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
-import {
-  distributeTextWithinFieldLines,
-} from '@/utils/templateLineText';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
@@ -26,8 +23,9 @@ import {
 import {
   getBranchFillColor,
   mapGenderFillToViewport,
+  mapRectFillToViewport,
 } from '@/utils/circleSlotColors';
-import { getGenderFillTargets } from '@/utils/pdfCircleSlots';
+import { getOptionFillTargets } from '@/utils/pdfCircleSlots';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { TRAVEL_MAP_COLORS } from '@/constants/travel-world-map';
@@ -116,36 +114,21 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     const startSlot = slots[field.templateLineStart];
     if (!startSlot) continue;
 
-    const distributed = distributeTextWithinFieldLines({
-      text,
-      startSlotIndex: field.templateLineStart,
-      lineCount: field.templateLineCount,
-      slots,
+    const layout = layoutAnnotationFromSlot(startSlot);
+    annotations.push({
+      id: createId('ann'),
+      type: 'text',
+      page: schema.sourcePageNumber,
+      content: text,
       fontSize,
-      lineGuideId,
-      fontId: textFontFamily,
+      fontFamily: textFontFamily,
+      color: '#3D3D3D',
+      zIndex: zIndex++,
+      templateLineStart: field.templateLineStart,
+      templateLineCount: 1,
+      sourcePageNumber: schema.sourcePageNumber,
+      ...layout,
     });
-
-    for (const segment of distributed.segments) {
-      if (!segment.content) continue;
-      const slot = slots[segment.slotIndex];
-      if (!slot) continue;
-      const layout = layoutAnnotationFromSlot(slot);
-      annotations.push({
-        id: createId('ann'),
-        type: 'text',
-        page: schema.sourcePageNumber,
-        content: segment.content,
-        fontSize,
-        fontFamily: textFontFamily,
-        color: '#3D3D3D',
-        zIndex: zIndex++,
-        templateLineStart: segment.slotIndex,
-        templateLineCount: 1,
-        sourcePageNumber: schema.sourcePageNumber,
-        ...layout,
-      });
-    }
   }
 
   if (schema.pageType === 'birthday_free_page') {
@@ -161,31 +144,19 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (remainingSlots === 0) break;
 
       const lineCount = Math.min(preferredLines, remainingSlots);
-      const distributed = distributeTextWithinFieldLines({
-        text,
-        startSlotIndex: slotCursor,
-        lineCount,
-        slots,
-        fontSize,
-        lineGuideId,
-        fontId: textFontFamily,
-      });
-
-      for (const segment of distributed.segments) {
-        if (!segment.content) continue;
-        const slot = slots[segment.slotIndex];
-        if (!slot) continue;
-        const layout = layoutAnnotationFromSlot(slot);
+      const startSlot = slots[slotCursor];
+      if (startSlot) {
+        const layout = layoutAnnotationFromSlot(startSlot);
         annotations.push({
           id: createId('ann'),
           type: 'text',
           page: schema.sourcePageNumber,
-          content: segment.content,
+          content: text,
           fontSize,
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           zIndex: zIndex++,
-          templateLineStart: segment.slotIndex,
+          templateLineStart: slotCursor,
           templateLineCount: 1,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
@@ -196,17 +167,26 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  const genderTargets = getGenderFillTargets(lineGuideId, schema.sourcePageNumber);
-  for (const target of genderTargets) {
+  const optionFillTargets = getOptionFillTargets(lineGuideId, schema.sourcePageNumber);
+  for (const target of optionFillTargets) {
     const selected = values.fields[target.fieldId]?.trim();
     if (selected !== target.option) continue;
 
-    const rect = mapGenderFillToViewport(
-      target.cx,
-      target.cy,
-      target.diameter,
-      editorContentRect,
-    );
+    const rect =
+      'shape' in target && target.shape === 'rect'
+        ? mapRectFillToViewport(
+            target.x,
+            target.y,
+            target.width,
+            target.height,
+            editorContentRect,
+          )
+        : mapGenderFillToViewport(
+            target.cx,
+            target.cy,
+            target.diameter,
+            editorContentRect,
+          );
 
     annotations.push({
       id: createId('ann'),
@@ -217,7 +197,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       width: rect.width,
       height: rect.height,
       fillColor: target.fillColor,
-      clipShape: 'circle',
+      clipShape: 'shape' in target && target.shape === 'rect' ? undefined : 'circle',
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
     });
@@ -253,6 +233,79 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (!variant) continue;
 
     const isCircleTree = block.layoutKind === 'circle_tree';
+    const isGridCollage = !isCircleTree && variant.slots > 1;
+
+    if (isGridCollage) {
+      for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
+        const uri = blockValues.slots[slotIndex];
+        const normalizedSlot = getNormalizedPhotoSlot(
+          lineGuideId,
+          schema.sourcePageNumber,
+          variant.variantId,
+          slotIndex,
+          schema.templateLibraryId,
+        );
+        const clipShape = normalizedSlot?.shape === 'circle' ? 'circle' : undefined;
+
+        const photoRect = getPhotoSlotViewportRect({
+          lineGuideId,
+          page: schema.sourcePageNumber,
+          variantId: variant.variantId,
+          slotIndex,
+          viewportWidth,
+          viewportHeight,
+          sourceWidth,
+          sourceHeight,
+          contentRect: editorContentRect,
+          templateLibraryId: schema.templateLibraryId,
+        });
+
+        if (!photoRect) continue;
+
+        const transformKey = photoSlotTransformKey(block.blockId, slotIndex);
+        const slotTransform = values.photoSlotTransforms?.[transformKey];
+        let rect = photoRect;
+        if (slotTransform) {
+          rect = applyPhotoSlotTransform(rect, slotTransform);
+        }
+
+        if (!uri && clipShape) {
+          annotations.push({
+            id: createId('ann'),
+            type: 'image',
+            page: schema.sourcePageNumber,
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            fillColor: getBranchFillColor(normalizedSlot?.branch),
+            clipShape: 'circle',
+            sourcePageNumber: schema.sourcePageNumber,
+            zIndex: zIndex++,
+          });
+          continue;
+        }
+
+        if (!uri) continue;
+
+        annotations.push({
+          id: createId('ann'),
+          type: 'image',
+          page: schema.sourcePageNumber,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          imageUri: uri,
+          imageContentFit: 'cover',
+          clipShape,
+          sourcePageNumber: schema.sourcePageNumber,
+          zIndex: zIndex++,
+        });
+      }
+
+      continue;
+    }
 
     const blockLayout = isCircleTree
       ? null

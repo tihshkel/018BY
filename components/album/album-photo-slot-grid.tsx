@@ -8,7 +8,7 @@ import type { PhotoBlockSchema, PhotoSlotTransform } from '@/types/album-page-sc
 import {
   getCollageAspectRatio,
   getCollageSlotFrames,
-  getPageCalibratedCollageSlotFrames,
+  getPageCalibratedCollageLayout,
 } from '@/utils/photoSlotGridLayout';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
@@ -49,22 +49,22 @@ export function AlbumPhotoSlotGrid({
   const slotCount = variant?.slots ?? slotUris.length;
   const filledCount = slotUris.filter(Boolean).length;
 
-  const frames = useMemo(
+  const collageLayout = useMemo(
     () =>
-      getPageCalibratedCollageSlotFrames({
+      getPageCalibratedCollageLayout({
         lineGuideId,
         sourcePageNumber,
         variantId: selectedVariantId,
         slotCount,
         templateLibraryId,
-      }) ?? getCollageSlotFrames(selectedVariantId, slotCount),
+      }),
     [lineGuideId, selectedVariantId, slotCount, sourcePageNumber, templateLibraryId],
   );
 
-  const collageAspect = useMemo(
-    () => getCollageAspectRatio(selectedVariantId, slotCount),
-    [selectedVariantId, slotCount],
-  );
+  const frames = collageLayout?.frames ?? getCollageSlotFrames(selectedVariantId, slotCount);
+
+  const collageAspect =
+    collageLayout?.aspectRatio ?? getCollageAspectRatio(selectedVariantId, slotCount);
 
   if (!variant) return null;
 

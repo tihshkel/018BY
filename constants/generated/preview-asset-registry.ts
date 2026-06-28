@@ -345,6 +345,14 @@ const PREVIEW_ASSET_MODULES: Record<string, number> = {
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_three_hero.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_three_hero.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_two_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_two_horizontal.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_two_vertical.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_047_two_vertical.png"),
+  "assets/photo-layout-previews/four_grid_selected.png": require("../../assets/photo-layout-previews/four_grid_selected.png"),
+  "assets/photo-layout-previews/four_grid.png": require("../../assets/photo-layout-previews/four_grid.png"),
+  "assets/photo-layout-previews/one_large_selected.png": require("../../assets/photo-layout-previews/one_large_selected.png"),
+  "assets/photo-layout-previews/one_large.png": require("../../assets/photo-layout-previews/one_large.png"),
+  "assets/photo-layout-previews/three_hero_selected.png": require("../../assets/photo-layout-previews/three_hero_selected.png"),
+  "assets/photo-layout-previews/three_hero.png": require("../../assets/photo-layout-previews/three_hero.png"),
+  "assets/photo-layout-previews/two_vertical_selected.png": require("../../assets/photo-layout-previews/two_vertical_selected.png"),
+  "assets/photo-layout-previews/two_vertical.png": require("../../assets/photo-layout-previews/two_vertical.png"),
 };
 
 /** Instant file:// URI from Metro bundle (dev / local builds). */
@@ -356,4 +364,4 @@ export function resolveBundledPreviewUri(relativePath: string): string | null {
   return resolved?.uri ?? null;
 }
 
-export const PREVIEW_ASSET_COUNT = 342;
+export const PREVIEW_ASSET_COUNT = 350;

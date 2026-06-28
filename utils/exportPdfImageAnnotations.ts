@@ -93,10 +93,12 @@ export async function drawImageAnnotationsOnPdfPage(
     if (!ann.imageUri && ann.fillColor) {
       try {
         if (ann.clipShape === 'circle') {
+          const centerX = mapped.x + mapped.width / 2;
+          const centerY = mapped.y + mapped.height / 2;
           pushCircleClip(params.page, mapped);
           params.page.drawEllipse({
-            x: mapped.x,
-            y: mapped.y,
+            x: centerX,
+            y: centerY,
             xScale: mapped.width / 2,
             yScale: mapped.height / 2,
             color: hexToRgb(ann.fillColor),

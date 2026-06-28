@@ -189,10 +189,23 @@ export function buildSchemaFromTemplate(params: {
 export function getTemplatePhotoLayouts(
   templateLibraryId: string | undefined,
   lineGuideId: string,
+  page?: number,
 ): PhotoPageLayouts | undefined {
-  if (!templateLibraryId || !isBlankTemplateLineGuide(lineGuideId)) return undefined;
+  const usesTemplateLayouts =
+    isBlankTemplateLineGuide(lineGuideId) || lineGuideId === 'holidays_birthday_60';
+  if (!templateLibraryId || !usesTemplateLayouts) return undefined;
+
   const format = getPageFormatForLineGuide(lineGuideId);
-  return buildPhotoPageLayoutsFromTemplate(templateLibraryId, format);
+  const layouts = buildPhotoPageLayoutsFromTemplate(templateLibraryId, format);
+  if (!layouts?.variants?.length) return undefined;
+
+  if (lineGuideId === 'holidays_birthday_60' && page !== undefined) {
+    const { expandCollageVariantsWithSparse } =
+      require('@/utils/sparseTextPhotoSafeZone') as typeof import('@/utils/sparseTextPhotoSafeZone');
+    return expandCollageVariantsWithSparse(layouts, lineGuideId, page);
+  }
+
+  return layouts;
 }
 
 export function getTextBlockRect(

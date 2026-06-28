@@ -8,6 +8,7 @@ import {
   resolveInteriorAlbumId,
   resolveLineGuideId,
 } from '@/utils/albumImages';
+import { isLegacyFreeformProject, pruneLegacyFreeformProjects } from '@/utils/legacyFreeformProject';
 import { pruneGhostAlbumProjects } from '@/utils/pruneGhostAlbumProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -70,7 +71,7 @@ const countPhotoAnnotations = (items: unknown[]): number => {
 function hasValidReadyMadeMeta(project: Record<string, unknown>): boolean {
   const id = String(project?.id ?? '').trim();
   if (!id) return false;
-  if (!project?.isReadyMadeAlbum && !project?.hasPdfTemplate) return true;
+  if (isLegacyFreeformProject(project)) return false;
 
   const category = String(project.category ?? '').trim();
   const rawInterior = String(project.interiorType ?? project.albumId ?? '').trim();
@@ -209,6 +210,12 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
 
 /** Все проекты пользователя из AsyncStorage, новые первыми */
 export async function loadUserProjects(): Promise<UserProject[]> {
+  try {
+    await pruneLegacyFreeformProjects();
+  } catch (error) {
+    console.warn('[loadUserProjects] prune legacy freeform projects failed', error);
+  }
+
   try {
     await pruneGhostAlbumProjects();
   } catch (error) {
