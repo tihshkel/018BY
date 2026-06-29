@@ -50,7 +50,8 @@ export default function AlbumPagePhotosScreen() {
     instanceId,
     schema,
     pageValues,
-    project,
+    projectId: project.projectId,
+    commitPagePatch: project.updatePageValues,
   });
 
   const handleSave = async () => {

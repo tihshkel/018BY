@@ -1,0 +1,574 @@
+{
+  "summary": {
+    "albumId": "diary_interior_purple",
+    "pageCount": 40,
+    "photoPages": 1,
+    "pagesOk": 1,
+    "pagesWarn": 0,
+    "pagesFail": 0
+  },
+  "pages": [
+    {
+      "page": 1,
+      "title": "Этот дневник принадлежит",
+      "pageType": "structured",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 2,
+      "title": "Привет! Давай знакомиться!",
+      "pageType": "non_editable",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 3,
+      "title": "Правила этого дневника",
+      "pageType": "structured",
+      "lineSlotCount": 1,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 4,
+      "title": "Твое фото",
+      "pageType": "photo",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈114×17 мм, 80–97 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 5,
+      "title": "Твоя анкета",
+      "pageType": "structured",
+      "lineSlotCount": 15,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 6,
+      "title": "Анкета для мамы",
+      "pageType": "structured",
+      "lineSlotCount": 17,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 7,
+      "title": "Анкета для папы",
+      "pageType": "structured",
+      "lineSlotCount": 17,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 8,
+      "title": "Хобби",
+      "pageType": "structured",
+      "lineSlotCount": 16,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 9,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 10,
+      "title": "Твои питомцы",
+      "pageType": "structured",
+      "lineSlotCount": 11,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 11,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 12,
+      "title": "Социальные сети",
+      "pageType": "structured",
+      "lineSlotCount": 12,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 13,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 14,
+      "title": "Твое настроение",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 15,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 16,
+      "title": "Одежда и стиль",
+      "pageType": "structured",
+      "lineSlotCount": 11,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 17,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 18,
+      "title": "Первая любовь",
+      "pageType": "structured",
+      "lineSlotCount": 14,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 19,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 20,
+      "title": "Самое заветное желание",
+      "pageType": "non_editable",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 21,
+      "title": "Место для конверта",
+      "pageType": "non_editable",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 22,
+      "title": "Школьная жизнь",
+      "pageType": "structured",
+      "lineSlotCount": 12,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 23,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 24,
+      "title": "Расписание недели: понедельник и вторник",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 25,
+      "title": "Расписание недели: среда и четверг",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 26,
+      "title": "Расписание недели: пятница и суббота",
+      "pageType": "structured",
+      "lineSlotCount": 11,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 27,
+      "title": "Расписание: воскресенье",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 28,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 22,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 29,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 20,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 30,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 21,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Основная часть"
+    },
+    {
+      "page": 31,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 19,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 32,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 19,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 33,
+      "title": "Анкета для друзей",
+      "pageType": "structured",
+      "lineSlotCount": 20,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 34,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 35,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 36,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 37,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 38,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 39,
+      "title": "Твой день",
+      "pageType": "structured",
+      "lineSlotCount": 13,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    },
+    {
+      "page": 40,
+      "title": "История продолжается",
+      "pageType": "non_editable",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Завершение"
+    }
+  ]
+}

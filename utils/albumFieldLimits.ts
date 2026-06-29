@@ -1,6 +1,10 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageField } from '@/types/album-page-schema';
 import {
+  getMeasurementDigitLimit,
+  sanitizeMeasurementInput,
+} from '@/utils/albumMeasurementFields';
+import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
@@ -65,10 +69,7 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
 
   if (params.sourcePageNumber === 40) {
     if (params.field.fieldId.endsWith('_favorite_travel_memory')) {
-      return 220;
-    }
-    if (params.field.fieldId.endsWith('_favorite_travel_memory_line2')) {
-      return 180;
+      return 400;
     }
   }
 
@@ -80,6 +81,11 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
 }
 
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
+  const measurementLimit = getMeasurementDigitLimit(params.field);
+  if (measurementLimit != null) {
+    return measurementLimit;
+  }
+
   const birthdayLimit = getBirthdayFieldLimit(params);
   if (birthdayLimit != null) {
     return birthdayLimit;
@@ -113,6 +119,12 @@ export function clampFieldInput(
   text: string,
   limit?: number
 ): string {
+  const measurementLimit = getMeasurementDigitLimit(field);
+  if (measurementLimit != null) {
+    const effectiveLimit = limit ?? measurementLimit;
+    return sanitizeMeasurementInput(text, Math.min(measurementLimit, effectiveLimit));
+  }
+
   const sanitized = sanitizeFieldInput(field.type, text);
   if (limit == null) return sanitized;
   return sanitized.slice(0, limit);

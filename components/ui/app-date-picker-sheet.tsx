@@ -1,10 +1,11 @@
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
 import { AppBottomSheet } from '@/components/ui/app-bottom-sheet';
 import { AppButton } from '@/components/ui/app-button';
 import { colors, radii, spacing } from '@/constants/design-tokens';
+import { clampDateToBounds } from '@/utils/albumDateFormat';
 
 export type AppDatePickerMode = 'date' | 'datetime' | 'time';
 
@@ -34,10 +35,19 @@ export function AppDatePickerSheet({
 
   useEffect(() => {
     if (visible) {
-      setDraft(value);
+      setDraft(clampDateToBounds(value, minimumDate, maximumDate));
       setAndroidStep('date');
     }
-  }, [visible, value]);
+  }, [visible, value, minimumDate, maximumDate]);
+
+  const safeValue = useMemo(
+    () => clampDateToBounds(value, minimumDate, maximumDate),
+    [value, minimumDate, maximumDate],
+  );
+  const safeDraft = useMemo(
+    () => clampDateToBounds(draft, minimumDate, maximumDate),
+    [draft, minimumDate, maximumDate],
+  );
 
   const handleChange = (event: DateTimePickerEvent, date?: Date) => {
     if (event.type === 'dismissed') {
@@ -88,7 +98,7 @@ export function AppDatePickerSheet({
     const isTime = mode === 'time';
     return (
       <DateTimePicker
-        value={value}
+        value={safeValue}
         mode={isTime ? 'time' : 'date'}
         display={isTime ? 'default' : 'calendar'}
         {...(!isTime ? { minimumDate, maximumDate } : {})}
@@ -102,7 +112,7 @@ export function AppDatePickerSheet({
       return (
         <DateTimePicker
           key="android-date"
-          value={draft}
+          value={safeDraft}
           mode="date"
           display="default"
           minimumDate={minimumDate}
@@ -114,7 +124,7 @@ export function AppDatePickerSheet({
     return (
       <DateTimePicker
         key="android-time"
-        value={draft}
+        value={safeDraft}
         mode="time"
         display="default"
         onChange={handleChange}
@@ -134,7 +144,7 @@ export function AppDatePickerSheet({
     >
       <View style={styles.pickerWrap}>
         <DateTimePicker
-          value={draft}
+          value={safeDraft}
           mode={mode === 'datetime' ? 'datetime' : mode === 'time' ? 'time' : 'date'}
           display={mode === 'date' ? 'inline' : 'spinner'}
           minimumDate={minimumDate}
@@ -165,6 +175,11 @@ export function AppInlineDatePicker({
   maximumDate,
   visible = true,
 }: AppInlineDatePickerProps) {
+  const safeValue = useMemo(
+    () => clampDateToBounds(value, minimumDate, maximumDate),
+    [value, minimumDate, maximumDate],
+  );
+
   if (!visible) return null;
 
   const handleChange = (event: DateTimePickerEvent, date?: Date) => {
@@ -182,7 +197,7 @@ export function AppInlineDatePicker({
     return (
       <View style={styles.inlineContainer}>
         <DateTimePicker
-          value={value}
+          value={safeValue}
           mode="date"
           display="default"
           minimumDate={minimumDate}
@@ -196,7 +211,7 @@ export function AppInlineDatePicker({
   return (
     <View style={styles.inlineContainer}>
       <DateTimePicker
-        value={value}
+        value={safeValue}
         mode="date"
         display="inline"
         minimumDate={minimumDate}

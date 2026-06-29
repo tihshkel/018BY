@@ -257,7 +257,10 @@ export async function getAccountDataForSync(): Promise<Record<string, string>> {
 }
 
 const SYNC_AFTER_MS = 2500;
+/** Debounced cloud sync while actively editing album pages (reduces I/O during typing). */
+const ALBUM_EDIT_SYNC_AFTER_MS = 12_000;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let albumEditSyncTimer: ReturnType<typeof setTimeout> | null = null;
 let supabaseNotConfiguredAlertShown = false;
 
 /** Ошибка «Supabase не настроен» (нет .env у разработчика) — не показывать длинный текст каждый раз */
@@ -290,6 +293,15 @@ export function scheduleSyncToCloud(): void {
       console.warn('[AccountSync] scheduled sync failed:', e)
     );
   }, SYNC_AFTER_MS);
+}
+
+/** Cloud sync with longer debounce during album page editing. */
+export function scheduleDeferredAlbumCloudSync(): void {
+  if (albumEditSyncTimer) clearTimeout(albumEditSyncTimer);
+  albumEditSyncTimer = setTimeout(() => {
+    albumEditSyncTimer = null;
+    scheduleSyncToCloud();
+  }, ALBUM_EDIT_SYNC_AFTER_MS);
 }
 
 /**

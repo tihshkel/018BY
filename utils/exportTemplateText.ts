@@ -6,7 +6,7 @@ import {
   type ContentRect,
 } from '@/utils/imageContentRect';
 import {
-  distributeTextWithinContinuationGroup,
+  distributeTextForTemplateAnnotation,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
   getTemplateLinePdfBaselineY,
@@ -152,14 +152,14 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     return true;
   }
 
-  const { segments } = distributeTextWithinContinuationGroup({
+  const { segments } = distributeTextForTemplateAnnotation({
     text: ann.content,
-    startSlotIndex,
+    startSlotIndex: ann.templateLineStart,
     slots,
     fontSize: effectiveFontSize,
     lineGuideId,
     fontId,
-    measureTextWidth,
+    lineCount: ann.templateLineCount ?? 1,
   });
 
   for (const segment of segments) {

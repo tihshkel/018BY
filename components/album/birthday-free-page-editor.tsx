@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppButton, AppCard, AppText } from '@/components/ui';
@@ -29,6 +29,27 @@ function getDefForField(
   return defs?.find((def) => def.id === fieldId);
 }
 
+function resolveEditorFields(
+  customFields: BirthdayCustomFieldValue[],
+  defs: BirthdayCustomFieldDef[] | undefined,
+  allowFieldCrud: boolean,
+): BirthdayCustomFieldValue[] {
+  const base = customFields.length > 0 ? customFields : buildDefaultCustomFields(defs);
+  if (allowFieldCrud || !defs?.length) {
+    return base;
+  }
+
+  return base.map((field) => {
+    const def = getDefForField(defs, field.id);
+    if (!def) return field;
+    return {
+      ...field,
+      label: def.defaultLabel,
+      fieldType: def.fieldType,
+    };
+  });
+}
+
 export function BirthdayFreePageEditor({
   schema,
   customFields,
@@ -36,15 +57,24 @@ export function BirthdayFreePageEditor({
   allowFieldCrud = false,
 }: BirthdayFreePageEditorProps) {
   const defs = schema.customFieldDefs;
-  const fields = customFields.length > 0 ? customFields : buildDefaultCustomFields(defs);
+  const fields = useMemo(
+    () => resolveEditorFields(customFields, defs, allowFieldCrud),
+    [allowFieldCrud, customFields, defs],
+  );
 
   const updateField = useCallback(
     (fieldId: string, patch: Partial<BirthdayCustomFieldValue>) => {
+      const nextPatch = { ...patch };
+      if (!allowFieldCrud) {
+        delete nextPatch.label;
+        delete nextPatch.fieldType;
+      }
+
       onChange(
-        fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field)),
+        fields.map((field) => (field.id === fieldId ? { ...field, ...nextPatch } : field)),
       );
     },
-    [fields, onChange],
+    [allowFieldCrud, fields, onChange],
   );
 
   const addField = useCallback(() => {
@@ -66,58 +96,72 @@ export function BirthdayFreePageEditor({
         Текстовые поля
       </AppText>
       <AppText variant="caption" style={styles.hint}>
-        Название и значение каждого поля можно изменить под вашу историю.
+        {allowFieldCrud
+          ? 'Название и значение каждого поля можно изменить под вашу историю.'
+          : 'Введите значения — они появятся на странице альбома.'}
       </AppText>
 
-      {fields.map((field, index) => {
+      {fields.map((field) => {
         const def = getDefForField(defs, field.id);
         const labelLimit = def?.maxLabelLength ?? 40;
         const valueLimit = def?.maxValueLength ?? (field.fieldType === 'long_text' ? 300 : 120);
+        const displayLabel = def?.defaultLabel ?? field.label;
 
         return (
           <View key={field.id} style={styles.fieldBlock}>
-            <View style={styles.fieldHeader}>
-              <AppText variant="caption" style={styles.fieldIndex}>
-                {def?.defaultLabel ?? `Поле ${index + 1}`}
-              </AppText>
-              {allowFieldCrud && fields.length > 1 ? (
-                <Pressable onPress={() => removeField(field.id)} hitSlop={8}>
-                  <AppText variant="caption" style={styles.removeLink}>
-                    Удалить
+            {allowFieldCrud ? (
+              <>
+                <View style={styles.fieldHeader}>
+                  <AppText variant="caption" style={styles.fieldIndex}>
+                    {displayLabel || 'Новое поле'}
                   </AppText>
-                </Pressable>
-              ) : null}
-            </View>
+                  {fields.length > 1 ? (
+                    <Pressable onPress={() => removeField(field.id)} hitSlop={8}>
+                      <AppText variant="caption" style={styles.removeLink}>
+                        Удалить
+                      </AppText>
+                    </Pressable>
+                  ) : null}
+                </View>
 
-            <AppText variant="caption" style={styles.inputLabel}>
-              Название поля
-            </AppText>
-            <TextInput
-              style={styles.input}
-              value={field.label}
-              onChangeText={(text) =>
-                updateField(field.id, { label: clampCustomFieldLabel(text, labelLimit) })
-              }
-              placeholder={def?.defaultLabel ?? 'Название поля'}
-              placeholderTextColor={colors.textSecondary}
-              maxLength={labelLimit}
-            />
+                <AppText variant="caption" style={styles.inputLabel}>
+                  Название поля
+                </AppText>
+                <TextInput
+                  style={styles.input}
+                  value={field.label}
+                  onChangeText={(text) =>
+                    updateField(field.id, { label: clampCustomFieldLabel(text, labelLimit) })
+                  }
+                  placeholder={def?.defaultLabel ?? 'Название поля'}
+                  placeholderTextColor={colors.textSecondary}
+                  maxLength={labelLimit}
+                />
+              </>
+            ) : (
+              <AppText variant="caption" style={styles.fixedLabel}>
+                {displayLabel}
+              </AppText>
+            )}
 
-            <AppText variant="caption" style={styles.inputLabel}>
-              Значение
-            </AppText>
+            {allowFieldCrud ? (
+              <AppText variant="caption" style={styles.inputLabel}>
+                Значение
+              </AppText>
+            ) : null}
             <TextInput
               style={[styles.input, field.fieldType === 'long_text' && styles.inputMultiline]}
               value={field.value}
               onChangeText={(text) =>
                 updateField(field.id, {
-                  value: clampCustomFieldValue(text, field.fieldType),
+                  value: clampCustomFieldValue(text, field.fieldType, valueLimit),
                 })
               }
               placeholder="Введите текст"
               placeholderTextColor={colors.textSecondary}
               multiline={field.fieldType === 'long_text'}
               maxLength={valueLimit}
+              accessibilityLabel={displayLabel}
             />
             <AppText variant="caption" style={styles.counter}>
               {field.value.length} / {valueLimit}
@@ -162,6 +206,11 @@ const styles = StyleSheet.create({
   },
   fieldIndex: {
     color: colors.textSecondary,
+  },
+  fixedLabel: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    marginBottom: spacing.xs,
   },
   removeLink: {
     color: colors.error,

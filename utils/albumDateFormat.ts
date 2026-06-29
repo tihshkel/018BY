@@ -20,3 +20,25 @@ export function parseAlbumDate(value: string | undefined | null): Date | null {
 
   return null;
 }
+
+/** iOS UIDatePicker crashes if value is outside minimumDate/maximumDate. */
+export function clampDateToBounds(
+  date: Date,
+  minimumDate?: Date,
+  maximumDate?: Date,
+): Date {
+  if (!Number.isFinite(date.getTime())) {
+    const fallback = minimumDate ?? maximumDate ?? new Date();
+    return new Date(fallback.getTime());
+  }
+
+  let time = date.getTime();
+  if (minimumDate && Number.isFinite(minimumDate.getTime()) && time < minimumDate.getTime()) {
+    time = minimumDate.getTime();
+  }
+  if (maximumDate && Number.isFinite(maximumDate.getTime()) && time > maximumDate.getTime()) {
+    time = maximumDate.getTime();
+  }
+
+  return new Date(time);
+}

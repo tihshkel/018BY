@@ -91,7 +91,6 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
   }),
   diary_interior_purple: config({
     eventSafe: EVENT_PHOTO_SAFE,
-    pageSizeMm: 148,
     gapMm: 3,
   }),
   family_blank: config({

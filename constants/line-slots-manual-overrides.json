@@ -432,9 +432,9 @@
   "diary_interior_brown": {
     "3": [
       {
-        "x": 0.12,
-        "y": 0.848,
-        "width": 0.36,
+        "x": 0.09,
+        "y": 0.7644,
+        "width": 0.3126,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
@@ -445,9 +445,9 @@
   "diary_interior_purple": {
     "3": [
       {
-        "x": 0.12,
-        "y": 0.848,
-        "width": 0.36,
+        "x": 0.09,
+        "y": 0.219,
+        "width": 0.3126,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",

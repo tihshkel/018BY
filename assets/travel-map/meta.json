@@ -1,0 +1,25 @@
+{
+  "sourcePdf": "in albums/pdf new/БЃеЃ_210е210_Сва_40.pdf",
+  "pageSize": [
+    595.2755737304688,
+    595.2755737304688
+  ],
+  "boundsPdf": [
+    26.257132873535156,
+    15.664381103515625,
+    577.3253713989258,
+    575.0318469238281
+  ],
+  "boundsNorm": {
+    "x": 0.0441,
+    "y": 0.0263,
+    "width": 0.9257,
+    "height": 0.9397
+  },
+  "viewBox": [
+    1000,
+    1000
+  ],
+  "regionCount": 50,
+  "note": "PDF does not contain one path per country. For full country picker, add designer SVG or aligned world-atlas dataset."
+}

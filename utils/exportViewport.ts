@@ -21,6 +21,12 @@ export function getDefaultPageAspectRatio(params?: {
     return 1;
   }
   if (
+    params?.lineGuideId === 'diary_interior_brown' ||
+    params?.lineGuideId === 'diary_interior_purple'
+  ) {
+    return 240 / 180;
+  }
+  if (
     params?.sourceWidth &&
     params?.sourceHeight &&
     params.sourceWidth > 0 &&

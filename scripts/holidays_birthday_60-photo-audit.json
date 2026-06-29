@@ -1,0 +1,774 @@
+{
+  "summary": {
+    "albumId": "holidays_birthday_60",
+    "pageCount": 48,
+    "photoPages": 45,
+    "pagesOk": 45,
+    "pagesWarn": 0,
+    "pagesFail": 0
+  },
+  "pages": [
+    {
+      "page": 1,
+      "title": "Этот альбом принадлежит",
+      "pageType": "structured",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 2,
+      "title": "Привет, мир!",
+      "pageType": "structured",
+      "lineSlotCount": 6,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×99 мм, 77–175 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 3,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 2,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×144 мм, 30–174 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 4,
+      "title": "Мне 1 годик",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 5,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×125 мм, 29–154 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 6,
+      "title": "Мне 2 года!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 7,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 8,
+      "title": "Мне 3 года!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 9,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 10,
+      "title": "Мне 4 года!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Начало"
+    },
+    {
+      "page": 11,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 12,
+      "title": "Мне 5 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 13,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 14,
+      "title": "Мне 6 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 15,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 16,
+      "title": "Мне 7 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 17,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 18,
+      "title": "Мне 8 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 19,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 20,
+      "title": "Мне 9 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 21,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 22,
+      "title": "Мне 10 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 23,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 24,
+      "title": "Мне 11 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 25,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 26,
+      "title": "Мне 12 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 27,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 28,
+      "title": "Мне 13 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 29,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 30,
+      "title": "Мне 14 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 31,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 32,
+      "title": "Мне 15 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 33,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 34,
+      "title": "Мне 16 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 35,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 36,
+      "title": "Мне 17 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 37,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 38,
+      "title": "Мне 18 лет!",
+      "pageType": "structured",
+      "lineSlotCount": 4,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×55 мм, 123–178 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 39,
+      "title": "Свободная страница",
+      "pageType": "birthday_free_page",
+      "lineSlotCount": 3,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈162×129 мм, 29–159 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Годы жизни"
+    },
+    {
+      "page": 40,
+      "title": "Мои путешествия",
+      "pageType": "travel_map_page",
+      "lineSlotCount": 6,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 41,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 42,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 43,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 44,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 45,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 46,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 47,
+      "title": "Свободная фотостраница",
+      "pageType": "caption_photo_page",
+      "lineSlotCount": 0,
+      "photo": {
+        "hasPhoto": true,
+        "variantCount": 5,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_horizontal"
+      },
+      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    },
+    {
+      "page": 48,
+      "title": "Письмо во взрослую жизнь",
+      "pageType": "text_page",
+      "lineSlotCount": 12,
+      "photo": {
+        "hasPhoto": false,
+        "variantCount": 0
+      },
+      "photoDescription": "—",
+      "layoutIssues": [],
+      "status": "ok",
+      "section": "Путешествия и финал"
+    }
+  ]
+}

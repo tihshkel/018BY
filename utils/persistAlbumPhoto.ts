@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
 import type { FreePageElement, PageValues } from '@/types/album-page-schema';
+import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
 
 const ALBUM_PHOTOS_DIR = `${FileSystem.documentDirectory}album-photos/`;
 
@@ -82,6 +83,17 @@ export async function persistAlbumPhotoUri(
 
   try {
     await FileSystem.copyAsync({ from: sourceUri, to: destPath });
+    const normalizedUri = await normalizePhotoOrientation(destUri);
+    if (normalizedUri !== destUri) {
+      try {
+        await FileSystem.copyAsync({
+          from: normalizedUri,
+          to: destPath,
+        });
+      } catch {
+        return normalizedUri;
+      }
+    }
     return destUri;
   } catch (error) {
     console.warn('[persistAlbumPhotoUri] copy failed, keeping source URI', error);

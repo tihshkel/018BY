@@ -83,6 +83,9 @@ function constrainPhotoBlocksToFeasibleLayouts(schema: AlbumPageSchema): AlbumPa
       return allowedIds.has(variant.variantId) || allowedIds.has(normalized);
     });
     if (filtered.length === 0) {
+      if (schema.pageType === 'timeline_page' && schema.templateLibraryId) {
+        return block;
+      }
       const fallback = buildPhotoBlockFromLayouts(schema.lineGuideId, layouts);
       return { ...block, variants: fallback.variants };
     }

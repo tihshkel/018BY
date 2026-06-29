@@ -850,7 +850,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p9_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -911,7 +911,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p10_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -972,7 +972,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p11_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1033,7 +1033,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p12_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1094,7 +1094,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p13_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1155,7 +1155,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p14_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1216,7 +1216,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p15_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1277,7 +1277,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p16_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1338,7 +1338,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p17_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1411,7 +1411,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p19_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1472,7 +1472,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p20_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1533,7 +1533,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p21_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1594,7 +1594,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p22_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1655,7 +1655,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p23_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1716,7 +1716,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p24_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1777,7 +1777,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p25_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1838,7 +1838,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p26_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1899,7 +1899,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p27_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -1960,7 +1960,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p28_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2021,7 +2021,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p29_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2082,7 +2082,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p30_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2143,7 +2143,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p31_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2204,7 +2204,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p32_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2277,7 +2277,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p34_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2338,7 +2338,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p35_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2399,7 +2399,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p36_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2460,7 +2460,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p37_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2521,7 +2521,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p38_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2582,7 +2582,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p39_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2643,7 +2643,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p40_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2704,7 +2704,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p41_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2765,7 +2765,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p42_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2826,7 +2826,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p43_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2887,7 +2887,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p44_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -2948,7 +2948,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p45_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -3009,7 +3009,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p46_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -3070,7 +3070,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_60_p47_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4465,7 +4465,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p5_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4526,7 +4526,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p6_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4587,7 +4587,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p7_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4648,7 +4648,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p8_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4709,7 +4709,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p9_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4770,7 +4770,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p10_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4831,7 +4831,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p11_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4892,7 +4892,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p12_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -4953,7 +4953,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p13_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5026,7 +5026,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p15_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5087,7 +5087,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p16_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5148,7 +5148,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p17_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5209,7 +5209,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p18_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5270,7 +5270,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p19_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5331,7 +5331,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p20_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5392,7 +5392,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p21_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5453,7 +5453,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p22_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5514,7 +5514,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p23_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5575,7 +5575,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p24_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5636,7 +5636,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p25_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5697,7 +5697,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p26_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5758,7 +5758,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p27_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5819,7 +5819,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p28_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5892,7 +5892,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p30_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -5953,7 +5953,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p31_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6014,7 +6014,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p32_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6075,7 +6075,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p33_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6136,7 +6136,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p34_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6197,7 +6197,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p35_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6258,7 +6258,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p36_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6319,7 +6319,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p37_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6380,7 +6380,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p38_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6441,7 +6441,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p39_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6502,7 +6502,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p40_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6563,7 +6563,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p41_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6624,7 +6624,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p42_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6685,7 +6685,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         {
           "fieldId": "pregnancy_a5_p43_belly",
           "label": "Обхват животика:",
-          "type": "text",
+          "type": "number",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
@@ -6720,11 +6720,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p44_weight_before",
+          "label": "Вес до беременности",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_a5_p44_weight_gain",
+          "label": "Прибавка веса",
+          "type": "number",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p44_due_date",
           "label": "ПДР",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -6732,7 +6748,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата родов",
           "type": "date",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -6740,7 +6756,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Срок беременности на момент родов (нед.)",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -6748,7 +6764,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Роддом",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -6756,8 +6772,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата поступления в дородовое отделение",
           "type": "date",
           "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineStart": 7,
+          "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_a5_p44_baby_gender",
@@ -6804,6 +6820,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p44_delivery_type",
+          "label": "Естественные роды / Кесарево",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p44_stimulation",
           "label": "Стимуляция",
           "type": "radio",
@@ -6840,18 +6864,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           ]
         },
         {
-          "fieldId": "pregnancy_a5_p44_delivery_type",
-          "label": "Естественные роды / Кесарево",
-          "type": "radio",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1,
-          "options": [
-            "Ер",
-            "Кс"
-          ]
-        },
-        {
           "fieldId": "pregnancy_a5_p44_condition",
           "label": "Общее состояние",
           "type": "text",
@@ -6882,6 +6894,42 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 16,
           "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                8,
+                9,
+                10,
+                12
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -7010,12 +7058,58 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
     {
       "pageId": "pregnancy_a5_p47",
       "title": "Памятные моменты",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "order": 47,
-      "editable": false,
+      "editable": true,
       "lineGuideId": "pregnancy_a5",
       "sourcePageNumber": 47,
       "fields": [],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_large",
+              "label": "Одно большое фото",
+              "slots": 1,
+              "slotIndices": [
+                0
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два фото",
+              "slots": 2,
+              "slotIndices": [
+                0,
+                1
+              ]
+            },
+            {
+              "variantId": "three_hero",
+              "label": "Три фото (коллаж)",
+              "slots": 3,
+              "slotIndices": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "variantId": "four_grid",
+              "label": "Четыре фото (коллаж)",
+              "slots": 4,
+              "slotIndices": [
+                0,
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        }
+      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -10654,7 +10748,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 3,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p3_field_1",
+          "label": "Цвет волос",
+          "type": "text",
+          "required": false,
+          "maxLength": 40,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "holidays_birthday_60_p3_field_2",
+          "label": "Цвет глаз",
+          "type": "text",
+          "required": false,
+          "maxLength": 40,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -10704,22 +10817,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Цвет волос",
-          "fieldType": "short_text",
-          "maxLabelLength": 24,
-          "maxValueLength": 40
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Цвет глаз",
-          "fieldType": "short_text",
-          "maxLabelLength": 24,
-          "maxValueLength": 40
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -10818,7 +10915,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 5,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p5_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p5_field_3",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -10868,29 +10984,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Дополнительное поле",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_3",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -10980,7 +11073,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 7,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p7_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p7_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11030,22 +11142,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11135,7 +11231,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 9,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p9_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p9_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11185,22 +11300,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11290,7 +11389,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 11,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p11_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p11_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11340,22 +11458,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11445,7 +11547,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 13,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p13_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p13_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11495,22 +11616,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11600,7 +11705,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 15,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p15_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p15_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11650,22 +11774,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11755,7 +11863,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 17,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p17_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p17_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11805,22 +11932,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -11910,7 +12021,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 19,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p19_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p19_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -11960,22 +12090,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12065,7 +12179,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 21,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p21_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p21_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12115,22 +12248,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12220,7 +12337,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 23,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p23_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p23_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12270,22 +12406,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12375,7 +12495,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 25,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p25_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p25_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12425,22 +12564,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12530,7 +12653,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 27,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p27_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p27_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12580,22 +12722,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12685,7 +12811,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 29,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p29_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p29_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12735,22 +12880,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12840,7 +12969,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 31,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p31_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p31_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -12890,22 +13038,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -12995,7 +13127,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 33,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p33_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p33_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -13045,22 +13196,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -13150,7 +13285,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 35,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p35_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p35_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -13200,22 +13354,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -13305,7 +13443,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 37,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p37_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p37_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -13355,22 +13512,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -13460,7 +13601,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "holidays_birthday_60",
       "sourcePageNumber": 39,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "holidays_birthday_60_p39_field_1",
+          "label": "Как прошёл этот день",
+          "type": "text",
+          "required": false,
+          "maxLength": 300,
+          "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "holidays_birthday_60_p39_field_2",
+          "label": "Мои подарки",
+          "type": "text",
+          "required": false,
+          "maxLength": 120,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -13510,22 +13670,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "canDuplicate": true,
       "canAddAfter": true,
       "templateLibraryId": "CaptionGalleryTemplate",
-      "customFieldDefs": [
-        {
-          "id": "field_1",
-          "defaultLabel": "Как прошёл этот день",
-          "fieldType": "long_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 300
-        },
-        {
-          "id": "field_2",
-          "defaultLabel": "Мои подарки",
-          "fieldType": "short_text",
-          "maxLabelLength": 40,
-          "maxValueLength": 120
-        }
-      ],
       "captionEnabled": true
     },
     {
@@ -13553,15 +13697,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "placeholder": "Например: море, горы и поездка на поезде",
           "templateLineStart": 1,
-          "templateLineCount": 3
-        },
-        {
-          "fieldId": "holidays_birthday_60_p40_favorite_travel_memory_line2",
-          "label": "Дополнительная строка",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 2
+          "templateLineCount": 5
         }
       ],
       "canDuplicate": false,
@@ -14791,84 +14927,100 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 13,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p13_mainHobby",
-          "label": "Моё главное хобби",
+          "fieldId": "diary_interior_brown_p13_hobbiesStory",
+          "label": "Расскажи о своих хобби",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_sport",
-          "label": "Любимый вид спорта",
+          "fieldId": "diary_interior_brown_p13_favoriteSports",
+          "label": "Какими видами спорта тебе нравится заниматься?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_creative",
-          "label": "Творческое занятие",
+          "fieldId": "diary_interior_brown_p13_aloneActivity",
+          "label": "Что ты больше всего любишь делать, когда остаёшься одна?",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_club",
-          "label": "Кружок / секция",
+          "fieldId": "diary_interior_brown_p13_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_favoriteBook",
-          "label": "Любимая книга",
+          "fieldId": "diary_interior_brown_p13_favoriteSeries",
+          "label": "Самый интересный сериал",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_favoriteMovie",
-          "label": "Любимый фильм",
+          "fieldId": "diary_interior_brown_p13_favoriteToy",
+          "label": "Любимая игрушка",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_favoriteMusic",
-          "label": "Любимая музыка",
+          "fieldId": "diary_interior_brown_p13_favoriteBoardGame",
+          "label": "Любимая настольная игра",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_dreamSkill",
-          "label": "Чему хочу научиться",
+          "fieldId": "diary_interior_brown_p13_likesSinging",
+          "label": "Ты любишь петь?",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_freeTime",
-          "label": "Чем занимаюсь в свободное время",
+          "fieldId": "diary_interior_brown_p13_favoriteBook",
+          "label": "Самая интересная книга",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p13_proudOf",
-          "label": "Чем горжусь",
+          "fieldId": "diary_interior_brown_p13_favoriteWriter",
+          "label": "Любимый писатель (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p13_favoriteMusic",
+          "label": "Какая музыка тебе больше всего нравится",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p13_favoriteCompany",
+          "label": "С кем тебе нравится проводить время?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -15742,27 +15894,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 31,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p31_schoolName",
-          "label": "Название школы",
+          "fieldId": "diary_interior_brown_p31_likesStudying",
+          "label": "Тебе нравится учиться? Почему?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_className",
-          "label": "Класс",
+          "fieldId": "diary_interior_brown_p31_favoriteSubject",
+          "label": "Любимый предмет в школе",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p31_favoriteSubject",
-          "label": "Любимый предмет",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -15770,56 +15914,48 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый учитель",
           "type": "text",
           "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p31_classSize",
+          "label": "Сколько человек в твоём классе?",
+          "type": "text",
+          "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_bestClassmate",
-          "label": "Лучший одноклассник",
+          "fieldId": "diary_interior_brown_p31_classmateFriends",
+          "label": "С кем из одноклассников дружишь?",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_bestClassmateGirl",
-          "label": "Лучшая одноклассница",
+          "fieldId": "diary_interior_brown_p31_schoolEvents",
+          "label": "Какие школьные мероприятия тебе нравятся?",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p31_achievements",
-          "label": "Мои достижения",
+          "fieldId": "diary_interior_brown_p31_recessActivity",
+          "label": "Чем лучше всего ты занимаешься на перемене?",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
-          "templateLineCount": 2
-        },
-        {
-          "fieldId": "diary_interior_brown_p31_dreamProfession",
-          "label": "Кем хочу стать",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 8,
           "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p31_afterSchool",
-          "label": "Чем занимаюсь после школы",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 9,
-          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p31_schoolMemory",
-          "label": "Школьное воспоминание",
+          "label": "Расскажи о самом интересном событии из твоей школьной жизни",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
-          "templateLineCount": 1
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -16102,11 +16238,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_brown_p35_d1_l7",
+          "label": "Среда: урок 7",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p35_d2_l1",
           "label": "Четверг: урок 1",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -16114,7 +16258,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -16122,7 +16266,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 3",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -16130,7 +16274,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 4",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -16138,7 +16282,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 5",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -16146,7 +16290,15 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 6",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p35_d2_l7",
+          "label": "Четверг: урок 7",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
           "templateLineCount": 1
         }
       ],
@@ -16554,8 +16706,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p39_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p39_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -16695,8 +16847,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p40_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p40_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -16836,8 +16988,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p41_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p41_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -16977,8 +17129,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p42_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p42_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -17118,8 +17270,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p43_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p43_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -17259,8 +17411,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p44_favoriteMusician",
-          "label": "Любимый музыкант",
+          "fieldId": "diary_interior_brown_p44_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -18140,6 +18292,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p1_owner_phone",
+          "label": "Номер телефона",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -18592,84 +18752,100 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 8,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p8_mainHobby",
-          "label": "Моё главное хобби",
+          "fieldId": "diary_interior_purple_p8_hobbiesStory",
+          "label": "Расскажи о своих хобби",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_sport",
-          "label": "Любимый вид спорта",
+          "fieldId": "diary_interior_purple_p8_favoriteSports",
+          "label": "Какими видами спорта тебе нравится заниматься?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_creative",
-          "label": "Творческое занятие",
+          "fieldId": "diary_interior_purple_p8_aloneActivity",
+          "label": "Что ты больше всего любишь делать, когда остаёшься одна?",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_club",
-          "label": "Кружок / секция",
+          "fieldId": "diary_interior_purple_p8_favoriteCartoon",
+          "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_favoriteBook",
-          "label": "Любимая книга",
+          "fieldId": "diary_interior_purple_p8_favoriteSeries",
+          "label": "Самый интересный сериал",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_favoriteMovie",
-          "label": "Любимый фильм",
+          "fieldId": "diary_interior_purple_p8_favoriteToy",
+          "label": "Любимая игрушка",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_favoriteMusic",
-          "label": "Любимая музыка",
+          "fieldId": "diary_interior_purple_p8_favoriteBoardGame",
+          "label": "Любимая настольная игра",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_dreamSkill",
-          "label": "Чему хочу научиться",
+          "fieldId": "diary_interior_purple_p8_likesSinging",
+          "label": "Ты любишь петь?",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_freeTime",
-          "label": "Чем занимаюсь в свободное время",
+          "fieldId": "diary_interior_purple_p8_favoriteBook",
+          "label": "Самая интересная книга",
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p8_proudOf",
-          "label": "Чем горжусь",
+          "fieldId": "diary_interior_purple_p8_favoriteWriter",
+          "label": "Любимый писатель (если есть)",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p8_favoriteMusic",
+          "label": "Какая музыка тебе больше всего нравится",
           "type": "text",
           "required": false,
           "templateLineStart": 10,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p8_favoriteCompany",
+          "label": "С кем тебе нравится проводить время?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -18697,7 +18873,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -18713,7 +18889,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -18721,7 +18897,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -18811,7 +18987,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -18827,7 +19003,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -18835,7 +19011,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -18925,7 +19101,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -18941,7 +19117,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -18949,7 +19125,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -19031,7 +19207,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -19047,7 +19223,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -19055,7 +19231,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -19153,7 +19329,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -19169,7 +19345,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -19177,7 +19353,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -19267,7 +19443,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -19283,7 +19459,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -19291,7 +19467,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -19334,27 +19510,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 22,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p22_schoolName",
-          "label": "Название школы",
+          "fieldId": "diary_interior_purple_p22_likesStudying",
+          "label": "Тебе нравится учиться? Почему?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p22_className",
-          "label": "Класс",
+          "fieldId": "diary_interior_purple_p22_favoriteSubject",
+          "label": "Любимый предмет в школе",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p22_favoriteSubject",
-          "label": "Любимый предмет",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -19362,56 +19530,48 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый учитель",
           "type": "text",
           "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p22_classSize",
+          "label": "Сколько человек в твоём классе?",
+          "type": "text",
+          "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p22_bestClassmate",
-          "label": "Лучший одноклассник",
+          "fieldId": "diary_interior_purple_p22_classmateFriends",
+          "label": "С кем из одноклассников дружишь?",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p22_bestClassmateGirl",
-          "label": "Лучшая одноклассница",
+          "fieldId": "diary_interior_purple_p22_schoolEvents",
+          "label": "Какие школьные мероприятия тебе нравятся?",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p22_achievements",
-          "label": "Мои достижения",
+          "fieldId": "diary_interior_purple_p22_recessActivity",
+          "label": "Чем лучше всего ты занимаешься на перемене?",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
-          "templateLineCount": 2
-        },
-        {
-          "fieldId": "diary_interior_purple_p22_dreamProfession",
-          "label": "Кем хочу стать",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 8,
           "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p22_afterSchool",
-          "label": "Чем занимаюсь после школы",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 9,
-          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p22_schoolMemory",
-          "label": "Школьное воспоминание",
+          "label": "Расскажи о самом интересном событии из твоей школьной жизни",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
-          "templateLineCount": 1
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -19439,7 +19599,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -19455,7 +19615,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -19463,7 +19623,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -19876,8 +20036,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p28_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p28_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -19892,11 +20052,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p28_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p28_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -19904,7 +20072,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -19912,7 +20080,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -19920,7 +20088,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -19928,7 +20096,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -19936,7 +20104,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -19944,7 +20112,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -19952,7 +20120,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -19960,7 +20128,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -19968,8 +20136,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p28_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p28_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p28_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20017,8 +20209,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p29_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p29_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -20033,11 +20225,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p29_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p29_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -20045,7 +20245,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -20053,7 +20253,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -20061,7 +20261,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -20069,7 +20269,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -20077,7 +20277,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -20085,7 +20285,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -20093,7 +20293,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -20101,7 +20301,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -20109,8 +20309,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p29_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p29_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p29_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20158,8 +20382,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p30_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p30_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -20174,11 +20398,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p30_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p30_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -20186,7 +20418,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -20194,7 +20426,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -20202,7 +20434,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -20210,7 +20442,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -20218,7 +20450,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -20226,7 +20458,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -20234,7 +20466,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -20242,7 +20474,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -20250,8 +20482,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p30_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p30_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p30_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20299,8 +20555,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p31_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p31_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -20315,11 +20571,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p31_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p31_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -20327,7 +20591,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -20335,7 +20599,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -20343,7 +20607,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -20351,7 +20615,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -20359,7 +20623,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -20367,7 +20631,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -20375,7 +20639,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -20383,7 +20647,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -20391,8 +20655,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p31_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p31_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p31_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20440,8 +20728,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p32_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p32_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -20456,11 +20744,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p32_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p32_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -20468,7 +20764,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -20476,7 +20772,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -20484,7 +20780,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -20492,7 +20788,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -20500,7 +20796,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -20508,7 +20804,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -20516,7 +20812,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -20524,7 +20820,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -20532,8 +20828,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p32_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p32_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p32_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20581,8 +20901,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p33_favoriteColor",
-          "label": "Любимый цвет",
+          "fieldId": "diary_interior_purple_p33_favoriteSeason",
+          "label": "Любимое время года",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
@@ -20597,11 +20917,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p33_favoriteColor",
+          "label": "Любимый цвет",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p33_favoriteFlower",
           "label": "Любимый цветок",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -20609,7 +20937,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимое животное",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -20617,7 +20945,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Хобби",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -20625,7 +20953,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая еда",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -20633,7 +20961,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый фильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -20641,7 +20969,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый музыкант",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -20649,7 +20977,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -20657,7 +20985,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучшая подруга",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -20665,7 +20993,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Лучший друг",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -20673,8 +21001,32 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания хозяйке анкеты",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 2
+          "templateLineStart": 16,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p33_instagram",
+          "label": "Instagram",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 17,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p33_vk",
+          "label": "ВКонтакте",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 18,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p33_tiktok",
+          "label": "TikTok",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 19,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": true,
@@ -20702,7 +21054,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20718,7 +21070,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20726,7 +21078,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -20755,7 +21107,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20771,7 +21123,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20779,7 +21131,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -20808,7 +21160,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20824,7 +21176,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20832,7 +21184,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -20861,7 +21213,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20877,7 +21229,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20885,7 +21237,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -20914,7 +21266,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20930,7 +21282,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20938,7 +21290,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],
@@ -20967,7 +21319,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 5
         },
         {
@@ -20983,7 +21335,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
             "😄",
             "🥰"
           ],
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -20991,7 +21343,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 4
         }
       ],

@@ -21,7 +21,6 @@ const PREGNANCY_A5_STATIC_PAGES = {
   4: '1 триместр',
   14: '2 триместр',
   29: '3 триместр',
-  47: 'Памятные моменты',
 };
 
 function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
@@ -52,6 +51,7 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
     case 44:
       return tzOverride({
         title: 'Анкета родов',
+        pageType: 'structured',
         fields: buildBirthQuestionnaireA5Fields(lineGuideId, pageNumber, slots),
       });
     case 45:
@@ -65,6 +65,7 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
         fields: buildAlreadyMomFields(lineGuideId, pageNumber, slots),
         photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       });
+    case 47:
     case 48:
       return tzOverride({
         title: 'Памятные моменты',

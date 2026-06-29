@@ -105,29 +105,39 @@ export function getPageCalibratedCollageLayout(params: {
   variantId: string;
   slotCount: number;
   templateLibraryId?: string;
+  /** Индексы слотов в манифесте шаблона (для timeline и частичных сеток). */
+  slotIndices?: number[];
 }): PageCalibratedCollageLayout | null {
-  const { lineGuideId, sourcePageNumber, variantId, slotCount, templateLibraryId } = params;
+  const { lineGuideId, sourcePageNumber, variantId, slotCount, templateLibraryId, slotIndices } =
+    params;
   if (!lineGuideId || !sourcePageNumber || slotCount <= 0) return null;
 
-  const slots = Array.from({ length: slotCount }, (_, slotIndex) => {
-    const slot = getNormalizedPhotoSlot(
-      lineGuideId,
-      sourcePageNumber,
-      variantId,
-      slotIndex,
-      templateLibraryId,
-    );
-    if (!slot) return null;
-    const width = slot.width;
-    const height = slot.height;
-    return {
-      slotIndex,
-      left: slot.x,
-      top: slot.y - height / 2,
-      width,
-      height,
-    };
-  }).filter((slot): slot is NormalizedSlotRect => Boolean(slot));
+  const resolvedIndices =
+    slotIndices && slotIndices.length === slotCount
+      ? slotIndices
+      : Array.from({ length: slotCount }, (_, slotIndex) => slotIndex);
+
+  const slots = resolvedIndices
+    .map((templateSlotIndex, frameIndex) => {
+      const slot = getNormalizedPhotoSlot(
+        lineGuideId,
+        sourcePageNumber,
+        variantId,
+        templateSlotIndex,
+        templateLibraryId,
+      );
+      if (!slot) return null;
+      const width = slot.width;
+      const height = slot.height;
+      return {
+        slotIndex: frameIndex,
+        left: slot.x,
+        top: slot.y - height / 2,
+        width,
+        height,
+      };
+    })
+    .filter((slot): slot is NormalizedSlotRect => Boolean(slot));
 
   if (slots.length !== slotCount) return null;
 
@@ -150,6 +160,7 @@ export function getPageCalibratedCollageSlotFrames(params: {
   variantId: string;
   slotCount: number;
   templateLibraryId?: string;
+  slotIndices?: number[];
 }): CollageSlotFrame[] | null {
   return getPageCalibratedCollageLayout(params)?.frames ?? null;
 }

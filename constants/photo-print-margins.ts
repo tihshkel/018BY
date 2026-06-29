@@ -23,11 +23,8 @@ export type AlbumPageSizeMm = {
 
 /** Физический размер страницы альбома в мм (для нормализованных полей). */
 export function getAlbumPageSizeMm(lineGuideId: string): AlbumPageSizeMm {
-  if (lineGuideId === 'diary_interior_brown') {
+  if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
     return { widthMm: 180, heightMm: 240 };
-  }
-  if (lineGuideId === 'diary_interior_purple') {
-    return { widthMm: 148, heightMm: 210 };
   }
   if (lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank') {
     return { widthMm: 180, heightMm: 240 };

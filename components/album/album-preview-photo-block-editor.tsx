@@ -8,7 +8,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import { colors, radii } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   photoSlot: {
     position: 'absolute',
     overflow: 'hidden',
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
   },
   photo: {
     width: '100%',
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderWidth: 2,
     borderColor: colors.primary,
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     zIndex: 4,
   },
   handleHit: {

@@ -51,16 +51,18 @@ const PARENT_DAD_FIELDS = [
 ];
 
 const HOBBY_FIELDS = [
-  ['mainHobby', 'Моё главное хобби', 'text', 1],
-  ['sport', 'Любимый вид спорта', 'text', 1],
-  ['creative', 'Творческое занятие', 'text', 1],
-  ['club', 'Кружок / секция', 'text', 1],
-  ['favoriteBook', 'Любимая книга', 'text', 1],
-  ['favoriteMovie', 'Любимый фильм', 'text', 1],
-  ['favoriteMusic', 'Любимая музыка', 'text', 1],
-  ['dreamSkill', 'Чему хочу научиться', 'text', 1],
-  ['freeTime', 'Чем занимаюсь в свободное время', 'text', 2],
-  ['proudOf', 'Чем горжусь', 'text', 2],
+  ['hobbiesStory', 'Расскажи о своих хобби', 'text', 1],
+  ['favoriteSports', 'Какими видами спорта тебе нравится заниматься?', 'text', 1],
+  ['aloneActivity', 'Что ты больше всего любишь делать, когда остаёшься одна?', 'text', 1],
+  ['favoriteCartoon', 'Любимый мультфильм', 'text', 1],
+  ['favoriteSeries', 'Самый интересный сериал', 'text', 1],
+  ['favoriteToy', 'Любимая игрушка', 'text', 1],
+  ['favoriteBoardGame', 'Любимая настольная игра', 'text', 1],
+  ['likesSinging', 'Ты любишь петь?', 'text', 1],
+  ['favoriteBook', 'Самая интересная книга', 'text', 1],
+  ['favoriteWriter', 'Любимый писатель (если есть)', 'text', 1],
+  ['favoriteMusic', 'Какая музыка тебе больше всего нравится', 'text', 1],
+  ['favoriteCompany', 'С кем тебе нравится проводить время?', 'text', 1],
 ];
 
 const PETS_FIELDS = [
@@ -79,6 +81,34 @@ const SOCIAL_NETWORKS_FIELDS = [
   ['tiktok', 'TikTok', 'text', 1],
   ['telegram', 'Telegram', 'text', 1],
   ['other', 'Другие соцсети', 'text', 1],
+];
+
+/** Соцсети внизу «Анкеты для друзей» (фиолетовый A5). */
+const FRIEND_SOCIAL_FIELDS = [
+  ['instagram', 'Instagram', 'text', 1],
+  ['vk', 'ВКонтакте', 'text', 1],
+  ['tiktok', 'TikTok', 'text', 1],
+];
+
+/** Анкета для друзей — макет фиолетового A5 (стр. 28–33). */
+const PURPLE_FRIEND_FIELDS = [
+  ['name', 'Имя', 'text', 1],
+  ['birthDate', 'Дата рождения', 'date', 1],
+  ['zodiac', 'Знак зодиака', 'text', 1],
+  ['phone', 'Номер телефона', 'text', 1],
+  ['favoriteSeason', 'Любимое время года', 'text', 1],
+  ['pet', 'Питомец (если есть)', 'text', 1],
+  ['favoriteColor', 'Любимый цвет', 'text', 1],
+  ['favoriteFlower', 'Любимый цветок', 'text', 1],
+  ['favoriteAnimal', 'Любимое животное', 'text', 1],
+  ['hobby', 'Хобби', 'text', 1],
+  ['favoriteFood', 'Любимая еда', 'text', 1],
+  ['favoriteMovie', 'Любимый фильм', 'text', 1],
+  ['favoriteMusician', 'Любимый музыкант', 'text', 1],
+  ['favoriteBook', 'Любимая книга', 'text', 1],
+  ['bestGirlfriend', 'Лучшая подруга', 'text', 1],
+  ['bestFriend', 'Лучший друг', 'text', 1],
+  ['wishes', 'Пожелания хозяйке анкеты', 'text', 2],
 ];
 
 const MOOD_FIELDS = [
@@ -109,16 +139,14 @@ const FIRST_LOVE_FIELDS = [
 ];
 
 const SCHOOL_LIFE_FIELDS = [
-  ['schoolName', 'Название школы', 'text', 1],
-  ['className', 'Класс', 'text', 1],
-  ['favoriteSubject', 'Любимый предмет', 'text', 1],
+  ['likesStudying', 'Тебе нравится учиться? Почему?', 'text', 1],
+  ['favoriteSubject', 'Любимый предмет в школе', 'text', 1],
   ['favoriteTeacher', 'Любимый учитель', 'text', 1],
-  ['bestClassmate', 'Лучший одноклассник', 'text', 1],
-  ['bestClassmateGirl', 'Лучшая одноклассница', 'text', 1],
-  ['achievements', 'Мои достижения', 'text', 2],
-  ['dreamProfession', 'Кем хочу стать', 'text', 1],
-  ['afterSchool', 'Чем занимаюсь после школы', 'text', 2],
-  ['schoolMemory', 'Школьное воспоминание', 'text', 1],
+  ['classSize', 'Сколько человек в твоём классе?', 'text', 1],
+  ['classmateFriends', 'С кем из одноклассников дружишь?', 'text', 1],
+  ['schoolEvents', 'Какие школьные мероприятия тебе нравятся?', 'text', 1],
+  ['recessActivity', 'Чем лучше всего ты занимаешься на перемене?', 'text', 1],
+  ['schoolMemory', 'Расскажи о самом интересном событии из твоей школьной жизни', 'text', 2],
 ];
 
 const SUNDAY_SCHEDULE_FIELDS = [
@@ -198,6 +226,8 @@ module.exports = {
   HOBBY_FIELDS,
   PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
+  FRIEND_SOCIAL_FIELDS,
+  PURPLE_FRIEND_FIELDS,
   MOOD_FIELDS,
   STYLE_FIELDS,
   FIRST_LOVE_FIELDS,

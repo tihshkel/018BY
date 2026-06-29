@@ -60,8 +60,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   const fontFamilyStyle = fontFamily !== 'default' ? fontFamily : undefined;
 
   const slotsToRender = groupSlots.length > 0 ? groupSlots : [slot];
-  const startSlot = slotsToRender[0] ?? slot;
-  const startSlotIndex = startSlot.index;
+  const startSlotIndex = slot.index;
 
   const { segments, segmentBySlotIndex } = useMemo(() => {
     const distributed = distributeTextWithinContinuationGroup({
@@ -71,6 +70,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
       fontSize,
       lineGuideId,
       fontId,
+      slotCount: slotsToRender.length,
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {

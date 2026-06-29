@@ -85,8 +85,16 @@ assert(
   'pdf export preserves sourcePageNumber when looking up slots',
 );
 assert(
-  exportPdfSource.includes('const usePageRenderer = hasImageAnnotations'),
+  exportPdfSource.includes('shouldUsePageRendererForExport'),
   'PageRenderer path is limited to pages with image annotations',
+);
+assert(
+  read('utils/exportPdfImageAnnotations.ts').includes('pushRectClip'),
+  'pdf export clips rectangular cover photos',
+);
+assert(
+  read('utils/pageValuesAdapter.ts').includes('imageSlotTransform'),
+  'pageValuesAdapter passes imageSlotTransform separately from slot rect',
 );
 assert(
   viewportSource.includes('Math.abs(savedAspect - sourceAspect) < 0.02'),

@@ -20,9 +20,15 @@ export function mapCircleSlotToViewport(
   contentRect: ContentRect,
 ): { x: number; y: number; width: number; height: number } {
   const diameter = Math.max(slot.width, slot.height);
-  const topNormY = slot.y - diameter / 2;
-  const leftNormX = slot.x - diameter / 2;
-  return mapSourceNormToViewport(leftNormX, topNormY, diameter, diameter, contentRect);
+  const size = diameter * contentRect.width;
+  const centerX = contentRect.offsetX + slot.x * contentRect.width;
+  const centerY = contentRect.offsetY + slot.y * contentRect.height;
+  return {
+    x: centerX - size / 2,
+    y: centerY - size / 2,
+    width: size,
+    height: size,
+  };
 }
 
 /** Gender fills: slight bleed so color covers the full ring on the design PNG. */
@@ -33,8 +39,9 @@ export function mapGenderFillToViewport(
   cy: number,
   diameter: number,
   contentRect: ContentRect,
+  diameterBleed = GENDER_FILL_DIAMETER_BLEED,
 ): { x: number; y: number; width: number; height: number } {
-  const fillDiameter = diameter * GENDER_FILL_DIAMETER_BLEED;
+  const fillDiameter = diameter * diameterBleed;
   return mapCircleSlotToViewport(
     { x: cx, y: cy, width: fillDiameter, height: fillDiameter },
     contentRect,

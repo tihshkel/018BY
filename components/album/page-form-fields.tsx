@@ -12,10 +12,8 @@ import {
   countFieldCharacters,
   getFieldCharacterLimit,
 } from '@/utils/albumFieldLimits';
-import {
-  getFieldKeyboardType,
-  getFieldMaxLength,
-} from '@/utils/albumFieldInput';
+import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
+import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
@@ -122,7 +120,7 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
-function TypedFormField({
+const TypedFormField = memo(function TypedFormField({
   field,
   value,
   onChange,
@@ -139,18 +137,22 @@ function TypedFormField({
         onChangeText={(text) => handleTypedInput(field, text, onChange, characterLimit)}
         placeholder={field.placeholder ?? field.label}
         placeholderTextColor={colors.placeholder}
-        keyboardType={getFieldKeyboardType(field.type)}
+        keyboardType={getFieldKeyboardTypeForField(field)}
         maxLength={characterLimit}
         multiline={isMultiline}
         textAlignVertical={isMultiline ? 'top' : 'center'}
-        inputMode={field.type === 'number' || field.type === 'time' ? 'numeric' : 'text'}
+        inputMode={
+          getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
+            ? 'numeric'
+            : 'text'
+        }
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
       />
       <FieldCharacterCounter value={value} limit={characterLimit} />
     </View>
   );
-}
+});
 
 const AlbumFormField = memo(function AlbumFormField({
   field,
@@ -208,7 +210,7 @@ const AlbumFormField = memo(function AlbumFormField({
   );
 });
 
-export function PageFormFields({
+export const PageFormFields = memo(function PageFormFields({
   fields,
   values,
   onChange,
@@ -254,7 +256,7 @@ export function PageFormFields({
       })}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   section: {

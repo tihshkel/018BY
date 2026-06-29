@@ -40,6 +40,9 @@ import {
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { resolvePhotoBlockSafeZoneViewportRect } from "@/utils/photoBlockSafeZone";
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
+import {
+  getBlankInteriorPageUri,
+} from "@/utils/albumImages";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
@@ -94,6 +97,7 @@ export default function AlbumPagePreviewScreen() {
   );
 
   const schema = instance ? project.getSchemaForInstance(instance) : undefined;
+  const resolvedLineGuideId = schema?.lineGuideId ?? project.lineGuideId ?? interiorType;
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
   const baseImageUri = instance
@@ -111,14 +115,14 @@ export default function AlbumPagePreviewScreen() {
     if (selectedVariantId) return selectedVariantId;
     if (!schema || !instance) return null;
     return getDefaultVariantIdForPage(
-      schema.lineGuideId ?? project.lineGuideId,
+      resolvedLineGuideId,
       instance.sourcePageNumber ?? schema.sourcePageNumber,
       primaryPhotoBlock,
     );
   }, [
     instance,
     primaryPhotoBlock,
-    project.lineGuideId,
+    resolvedLineGuideId,
     schema,
     selectedVariantId,
   ]);
@@ -126,15 +130,27 @@ export default function AlbumPagePreviewScreen() {
     status === "filled" ||
     status === "draft" ||
     status === "continue";
+  const hasPhotoContent = useMemo(
+    () =>
+      Object.values(values?.photoBlocks ?? {}).some((block) =>
+        block?.slots?.some((slot) => typeof slot === "string" && slot.length > 0),
+      ),
+    [values?.photoBlocks],
+  );
   const isBlankTemplatePage =
     Boolean(schema?.templateLibraryId) &&
-    isBlankTemplateLineGuide(schema?.lineGuideId ?? project.lineGuideId);
+    isBlankTemplateLineGuide(resolvedLineGuideId);
   const showBlankTemplateGuide = isBlankTemplatePage && !hasContent && !isFinalPreview;
+  const showTemplateWireframe =
+    isBlankTemplatePage &&
+    Boolean(schema?.templateLibraryId) &&
+    !isFinalPreview &&
+    (showBlankTemplateGuide || !hasPhotoContent);
   const preferDesignLayout = !isFinalPreview && !hasContent;
   const resolvedImageUri = useMemo(
     () =>
       resolvePagePreviewBackgroundUri({
-        lineGuideId: schema?.lineGuideId ?? project.lineGuideId,
+        lineGuideId: resolvedLineGuideId,
         sourcePageNumber: instance?.sourcePageNumber ?? schema?.sourcePageNumber,
         baseImageUri,
         variantId: effectiveVariantId,
@@ -146,12 +162,15 @@ export default function AlbumPagePreviewScreen() {
       instance?.sourcePageNumber,
       preferDesignLayout,
       project.lineGuideId,
-      schema?.lineGuideId,
+      resolvedLineGuideId,
       schema?.sourcePageNumber,
     ],
   );
   const [displayImageUri, setDisplayImageUri] = useState<string | undefined>(
     resolvedImageUri ?? undefined,
+  );
+  const [blankPageFallbackUri, setBlankPageFallbackUri] = useState<string | null>(
+    null,
   );
 
   useEffect(() => {
@@ -159,7 +178,34 @@ export default function AlbumPagePreviewScreen() {
     setReady(false);
   }, [resolvedImageUri]);
 
-  const imageUri = displayImageUri ?? resolvedImageUri;
+  useEffect(() => {
+    let cancelled = false;
+
+    if (resolvedImageUri || !isBlankTemplatePage) {
+      setBlankPageFallbackUri(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    getBlankInteriorPageUri(resolvedLineGuideId)
+      .then((uri) => {
+        if (!cancelled) {
+          setBlankPageFallbackUri(uri);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setBlankPageFallbackUri(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isBlankTemplatePage, resolvedImageUri, resolvedLineGuideId]);
+
+  const imageUri = displayImageUri ?? resolvedImageUri ?? blankPageFallbackUri ?? undefined;
   const selectedFontId = normalizeAlbumFontId(values?.textFontFamily);
   const hasTextFields = hasFormTextInput(schema);
   const isLocked =
@@ -169,7 +215,8 @@ export default function AlbumPagePreviewScreen() {
     instanceId,
     schema,
     pageValues: values ?? createEmptyPageValues(),
-    project,
+    projectId: project.projectId,
+    commitPagePatch: project.updatePageValues,
   });
 
   const primaryBlockValues = primaryPhotoBlock
@@ -183,17 +230,23 @@ export default function AlbumPagePreviewScreen() {
   const primarySlotUris = primaryBlockValues?.slots ?? [];
   const hasFilledPhotos = primarySlotUris.some(Boolean);
   const isCircleTreeBlock = primaryPhotoBlock?.layoutKind === "circle_tree";
-  const showPhotoBlockEditor =
+  const primaryVariant =
+    primaryPhotoBlock?.variants.find((item) => item.variantId === primaryVariantId) ??
+    primaryPhotoBlock?.variants[0];
+  const isMultiSlotCollage = (primaryVariant?.slots ?? 0) > 1;
+  const shouldMaskPdfPhotoPlaceholder =
     isFinalPreview &&
     !isLocked &&
     primaryPhotoBlock != null &&
     hasFilledPhotos &&
-    !isCircleTreeBlock;
+    !isCircleTreeBlock &&
+    !isMultiSlotCollage;
+  const showPhotoBlockEditor = shouldMaskPdfPhotoPlaceholder;
 
   const photoSafeBounds = useMemo(() => {
-    if (!showPhotoBlockEditor || !instance || !schema) return null;
+    if (!shouldMaskPdfPhotoPlaceholder || !instance || !schema) return null;
     return resolvePhotoBlockSafeZoneViewportRect({
-      lineGuideId: schema.lineGuideId ?? project.lineGuideId,
+      lineGuideId: resolvedLineGuideId,
       sourcePageNumber: instance.sourcePageNumber ?? schema.sourcePageNumber,
       variantId: primaryVariantId,
       coordinateWidth: previewLayout.coordinateWidth,
@@ -208,9 +261,10 @@ export default function AlbumPagePreviewScreen() {
     previewLayout.coordinateHeight,
     previewLayout.coordinateWidth,
     primaryVariantId,
-    project.lineGuideId,
+    resolvedLineGuideId,
     schema,
     showPhotoBlockEditor,
+    shouldMaskPdfPhotoPlaceholder,
     sourceImageSize?.height,
     sourceImageSize?.width,
   ]);
@@ -219,11 +273,12 @@ export default function AlbumPagePreviewScreen() {
     instance,
     schema,
     values,
-    lineGuideId: project.lineGuideId,
+    lineGuideId: resolvedLineGuideId,
     viewportWidth: previewLayout.coordinateWidth,
     viewportHeight: previewLayout.coordinateHeight,
     sourceWidth: sourceImageSize?.width,
     sourceHeight: sourceImageSize?.height,
+    debounceMs: 0,
   });
 
   const displayAnnotations = useMemo(() => {
@@ -233,13 +288,17 @@ export default function AlbumPagePreviewScreen() {
       (item) => item.type !== "image" || !item.imageUri,
     );
   }, [annotations, showPhotoBlockEditor]);
-  const calibratedAnnotations = imageUri && !sourceImageSize ? [] : displayAnnotations;
 
   useEffect(() => {
     setReady(false);
-  }, [instanceId, annotations.length, selectedFontId]);
+  }, [instanceId, imageUri]);
 
-  const resolvedLineGuideId = schema?.lineGuideId ?? project.lineGuideId ?? interiorType;
+  const handleSourceSize = (size: { width: number; height: number }) => {
+    setSourceImageSize(size);
+    if (size.width > 0 && size.height > 0) {
+      setImageAspectRatio(size.height / size.width);
+    }
+  };
 
   useEffect(() => {
     if (!imageUri) {
@@ -345,7 +404,7 @@ export default function AlbumPagePreviewScreen() {
   };
 
   const fontPicker =
-    !isLocked && hasTextFields && isFinalPreview ? (
+    !isLocked && isFinalPreview && (hasTextFields || schema.captionEnabled) ? (
       <PageFontPicker value={selectedFontId} onChange={handleFontChange} />
     ) : null;
 
@@ -356,8 +415,8 @@ export default function AlbumPagePreviewScreen() {
           ? showPhotoBlockEditor
             ? "Нажмите на фото — появится рамка. Перетаскивайте, ущипните для масштаба; фото остаётся в рамке PDF"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
-          : showBlankTemplateGuide
-            ? "Схема страницы: розовые блоки — места для фото, линии — поля для текста"
+          : showTemplateWireframe
+            ? "Схема страницы: серые блоки — места для фото, линии — поля для текста"
             : preferDesignLayout
               ? "Пример макета из дизайн-PDF — здесь видно, где текст и фото"
             : "Предпросмотр макета — так страница будет выглядеть в книге"}
@@ -391,34 +450,45 @@ export default function AlbumPagePreviewScreen() {
               },
             ]}
           >
-            {showBlankTemplateGuide && schema?.templateLibraryId ? (
+            {showTemplateWireframe ? (
               <TemplateWireframePreview
-                templateId={schema.templateLibraryId}
-                format={getPageFormatForLineGuide(schema.lineGuideId ?? project.lineGuideId)}
+                templateId={schema.templateLibraryId!}
+                format={getPageFormatForLineGuide(resolvedLineGuideId)}
                 values={values}
               />
             ) : imageUri ? (
               <PageRenderer
                 ref={rendererRef}
                 imageUri={imageUri}
-                annotations={calibratedAnnotations}
+                annotations={displayAnnotations}
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
                 sourceWidth={sourceImageSize?.width}
                 sourceHeight={sourceImageSize?.height}
-                lineGuideId={project.lineGuideId}
+                lineGuideId={resolvedLineGuideId}
+                sourcePageNumber={instance.sourcePageNumber ?? schema.sourcePageNumber}
+                waitForAnnotationImages={false}
                 backgroundColor={colors.white}
+                readOnly
                 onReady={() => setReady(true)}
-                onSourceSize={setSourceImageSize}
+                onSourceSize={handleSourceSize}
                 onImageError={() => {
                   if (baseImageUri && displayImageUri !== baseImageUri) {
                     setDisplayImageUri(baseImageUri);
+                    return;
+                  }
+                  if (
+                    isBlankTemplatePage &&
+                    blankPageFallbackUri &&
+                    imageUri !== blankPageFallbackUri
+                  ) {
+                    setDisplayImageUri(blankPageFallbackUri);
                   }
                 }}
                 middleLayer={
                   showPhotoBlockEditor && instance ? (
                     <AlbumPreviewPhotoBlockEditor
-                      lineGuideId={schema.lineGuideId ?? project.lineGuideId}
+                      lineGuideId={resolvedLineGuideId}
                       sourcePageNumber={
                         instance.sourcePageNumber ?? schema.sourcePageNumber
                       }
@@ -436,8 +506,15 @@ export default function AlbumPagePreviewScreen() {
                   ) : null
                 }
               />
-            ) : null}
-            {!showBlankTemplateGuide && !ready && imageUri ? (
+            ) : (
+              <View style={styles.previewUnavailable}>
+                <ActivityIndicator color={colors.primary} />
+                <AppText variant="caption" style={styles.previewUnavailableText}>
+                  Загрузка макета страницы…
+                </AppText>
+              </View>
+            )}
+            {!showTemplateWireframe && !ready && imageUri ? (
               <View style={styles.loadingOverlay}>
                 <ActivityIndicator color={colors.primary} />
               </View>
@@ -644,6 +721,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.6)",
+  },
+  previewUnavailable: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  previewUnavailableText: {
+    color: colors.textSecondary,
+    textAlign: "center",
   },
   actions: {
     gap: spacing.sm,

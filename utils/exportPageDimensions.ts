@@ -17,6 +17,30 @@ export const KIDS_PAGE_PT = SQUARE_PAGE_PT;
 
 export type ExportFormatType = 'electronic' | 'hard' | 'soft';
 
+export const DIARY_BROWN_LINE_GUIDE = 'diary_interior_brown';
+export const DIARY_PURPLE_LINE_GUIDE = 'diary_interior_purple';
+
+export function isDiaryBrownLineGuide(lineGuideId?: string | null): boolean {
+  return lineGuideId === DIARY_BROWN_LINE_GUIDE;
+}
+
+export function isDiaryPurpleLineGuide(lineGuideId?: string | null): boolean {
+  return lineGuideId === DIARY_PURPLE_LINE_GUIDE;
+}
+
+/** Коричневый и фиолетовый дневники — блок 180×240 мм (не A5). */
+export function isDiaryPortraitLineGuide(lineGuideId?: string | null): boolean {
+  return isDiaryBrownLineGuide(lineGuideId) || isDiaryPurpleLineGuide(lineGuideId);
+}
+
+/** Электронный экспорт дневников — full-bleed 180×240 без полей. */
+export function shouldUseFullBleedDiaryExport(
+  formatType: ExportFormatType,
+  lineGuideId?: string | null,
+): boolean {
+  return formatType === 'electronic' && isDiaryPortraitLineGuide(lineGuideId);
+}
+
 export function getExportPageDimensions(
   formatType: ExportFormatType,
   category: string | null | undefined,
@@ -33,6 +57,23 @@ export function getExportPageDimensions(
     lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60';
   const isPortraitBlank =
     lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
+  const isDiaryPortrait = isDiaryPortraitLineGuide(lineGuideId);
+
+  if (isDiaryPortrait) {
+    const margin =
+      formatType === 'electronic'
+        ? 0
+        : formatType === 'hard'
+          ? HARD_COVER_MARGIN_PT
+          : A5_MARGIN_PT;
+    return {
+      pageWidth: HARD_COVER_WIDTH_PT,
+      pageHeight: HARD_COVER_HEIGHT_PT,
+      margin,
+      contentWidth: HARD_COVER_WIDTH_PT - margin * 2,
+      contentHeight: HARD_COVER_HEIGHT_PT - margin * 2,
+    };
+  }
 
   if (isKids || isSquareBlank) {
     return {
@@ -76,14 +117,14 @@ export function getExportPageDimensions(
 }
 
 /**
- * Электронная версия: лист A5, но растр ~72 DPI + сильное JPEG.
- * На экране читаемо; для печати (нужно ~300 DPI) — недостаточно.
+ * Электронная версия: лист A5, растр ~72 DPI + умеренное JPEG-сжатие.
+ * На экране читаемо; для печати (нужно ~300 DPI) — выберите печатный формат.
  */
 export const ELECTRONIC_EXPORT_DPI = 72;
-export const ELECTRONIC_JPEG_QUALITY_PAGE = 0.55;
-export const ELECTRONIC_JPEG_QUALITY_COVER = 0.6;
-export const ELECTRONIC_CAPTURE_SCALE = 1;
-export const ELECTRONIC_CAPTURE_QUALITY = 0.65;
+export const ELECTRONIC_JPEG_QUALITY_PAGE = 0.8;
+export const ELECTRONIC_JPEG_QUALITY_COVER = 0.72;
+export const ELECTRONIC_CAPTURE_SCALE = 1.5;
+export const ELECTRONIC_CAPTURE_QUALITY = 0.82;
 
 /** Длинная сторона области страницы в пикселях при заданном DPI */
 export function exportLongSidePx(

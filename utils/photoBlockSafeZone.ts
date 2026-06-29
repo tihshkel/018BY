@@ -1,10 +1,11 @@
 import type { ViewportRect } from '@/utils/photoBlockLayout';
 import { getPhotoOnlyPageBounds } from '@/constants/photo-print-margins';
+import { isPregnancyWeeklyMiddlePage } from '@/constants/sparse-photo-album-config';
 import { getContentRect, mapSourceNormToViewport, type ContentRect } from '@/utils/imageContentRect';
 import { getPdfPhotoPageLayouts } from '@/utils/pdfPhotoSlots';
 import { resolvePhotoPageLayouts } from '@/utils/resolvePhotoPageLayouts';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
-import { slotToSafeZone } from '@/utils/sparseTextPhotoSafeZone';
+import { resolveSparsePhotoSafeZone, slotToSafeZone } from '@/utils/sparseTextPhotoSafeZone';
 
 type ResolvePhotoBlockSafeZoneParams = {
   lineGuideId: string;
@@ -69,7 +70,9 @@ export function resolvePhotoBlockSafeZoneViewportRect(
   const pdf = getPdfPhotoPageLayouts(params.lineGuideId, params.sourcePageNumber);
   const primarySlot = pdf?.variants?.[0]?.slots?.[0];
   if (primarySlot) {
-    const safeZone = slotToSafeZone(primarySlot);
+    const safeZone = isPregnancyWeeklyMiddlePage(params.lineGuideId, params.sourcePageNumber)
+      ? resolveSparsePhotoSafeZone(params.lineGuideId, params.sourcePageNumber, primarySlot)
+      : slotToSafeZone(primarySlot);
     return mapSourceNormToViewport(
       safeZone.x,
       safeZone.y,

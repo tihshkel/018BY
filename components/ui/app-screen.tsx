@@ -52,6 +52,16 @@ export interface AppScreenProps {
 }
 
 const KEYBOARD_SCROLL_DELAY_MS = Platform.OS === 'ios' ? 100 : 50;
+const KEYBOARD_SCROLL_RETRY_MS = Platform.OS === 'ios' ? 280 : 180;
+
+function scheduleScrollToField(
+  performScroll: (field: View | null) => void,
+  field: View | null,
+) {
+  if (!field) return;
+  setTimeout(() => performScroll(field), KEYBOARD_SCROLL_DELAY_MS);
+  setTimeout(() => performScroll(field), KEYBOARD_SCROLL_RETRY_MS);
+}
 
 export function AppScreen({
   children,
@@ -79,23 +89,23 @@ export function AppScreen({
     if (!field || !scrollRef.current || keyboardHeightRef.current <= 0) return;
 
     field.measureInWindow((_x, y, _width, height) => {
-      const visibleBottom = windowHeight - keyboardHeightRef.current - spacing.md;
+      const visibleBottom = windowHeight - keyboardHeightRef.current - spacing.lg;
       const fieldBottom = y + height;
 
       if (fieldBottom <= visibleBottom) return;
 
-      const delta = fieldBottom - visibleBottom + spacing.md;
+      const delta = fieldBottom - visibleBottom + spacing.lg;
       scrollRef.current?.scrollTo({
         y: scrollOffsetRef.current + delta,
         animated: true,
       });
     });
-  }, []);
+  }, [windowHeight]);
 
   const scrollToField = useCallback((fieldRef: RefObject<View | null>) => {
     pendingFieldRef.current = fieldRef.current;
     if (keyboardHeightRef.current > 0) {
-      setTimeout(() => performScrollToField(fieldRef.current), KEYBOARD_SCROLL_DELAY_MS);
+      scheduleScrollToField(performScrollToField, fieldRef.current);
     }
   }, [performScrollToField]);
 
@@ -108,10 +118,7 @@ export function AppScreen({
     const showSub = Keyboard.addListener(showEvent, (event) => {
       keyboardHeightRef.current = event.endCoordinates.height;
       if (pendingFieldRef.current) {
-        setTimeout(
-          () => performScrollToField(pendingFieldRef.current),
-          KEYBOARD_SCROLL_DELAY_MS,
-        );
+        scheduleScrollToField(performScrollToField, pendingFieldRef.current);
       }
     });
     const hideSub = Keyboard.addListener(hideEvent, () => {

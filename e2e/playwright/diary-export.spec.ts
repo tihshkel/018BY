@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { PDFDocument } from 'pdf-lib';
 import { expect, test, type Page } from '@playwright/test';
 
 const ROOT = path.join(__dirname, '../..');
@@ -49,6 +50,91 @@ async function goBackToAlbumPages(page: Page) {
     return;
   }
   await page.goBack();
+}
+
+async function fillPageWithLongText(
+  page: Page,
+  pageNumber: number,
+  totalPages: number,
+  longText: string,
+) {
+  await page.getByTestId(`page-card-${pageNumber}`).click();
+  await page.getByRole('button', { name: 'Заполнить страницу' }).click();
+  await expect(page.getByTestId('form-save')).toBeVisible({ timeout: 20_000 });
+
+  const firstInput = page.locator('input, textarea').first();
+  await expect(firstInput).toBeVisible();
+  await firstInput.fill(longText);
+
+  await page.getByTestId('form-save').click();
+  await expect(page.getByText(new RegExp(`Страница ${pageNumber} из ${totalPages}`))).toBeVisible({
+    timeout: 30_000,
+  });
+
+  await page.screenshot({
+    path: path.join(
+      RESULTS_DIR,
+      'screenshots',
+      `brown-p${String(pageNumber).padStart(2, '0')}-long-text.png`,
+    ),
+    fullPage: true,
+  });
+
+  await goBackToAlbumPages(page);
+}
+
+async function fillMyDayMood(page: Page, pageNumber: number, totalPages: number) {
+  await page.getByTestId(`page-card-${pageNumber}`).click();
+  await page.getByRole('button', { name: 'Заполнить страницу' }).click();
+  await expect(page.getByTestId('form-save')).toBeVisible({ timeout: 20_000 });
+
+  const moodOption = page.getByText('🙂', { exact: true });
+  await expect(moodOption).toBeVisible();
+  await moodOption.click();
+
+  await page.getByTestId('form-save').click();
+  await expect(page.getByText(new RegExp(`Страница ${pageNumber} из ${totalPages}`))).toBeVisible({
+    timeout: 30_000,
+  });
+
+  await page.screenshot({
+    path: path.join(
+      RESULTS_DIR,
+      'screenshots',
+      `brown-p${String(pageNumber).padStart(2, '0')}-mood.png`,
+    ),
+    fullPage: true,
+  });
+
+  await goBackToAlbumPages(page);
+}
+
+async function fillPageSmoke(page: Page, pageNumber: number, totalPages: number) {
+  await page.getByTestId(`page-card-${pageNumber}`).click();
+  await page.getByRole('button', { name: 'Заполнить страницу' }).click();
+  await expect(page.getByTestId('form-save')).toBeVisible({ timeout: 20_000 });
+
+  const count = await page.locator('input, textarea').count();
+  expect(count).toBeGreaterThan(0);
+  if (pageNumber === 3) {
+    expect(count).toBe(1);
+  }
+
+  await page.getByTestId('form-save').click();
+  await expect(page.getByText(new RegExp(`Страница ${pageNumber} из ${totalPages}`))).toBeVisible();
+  await goBackToAlbumPages(page);
+}
+
+async function assertBrownDiaryPdfDimensions(pdfPath: string) {
+  const bytes = fs.readFileSync(pdfPath);
+  const doc = await PDFDocument.load(bytes);
+  const pagesToCheck = Math.min(doc.getPageCount(), 5);
+
+  for (let i = 0; i < pagesToCheck; i += 1) {
+    const { width, height } = doc.getPage(i).getSize();
+    expect(width, `page ${i + 1} width`).toBeCloseTo(510, 0);
+    expect(height, `page ${i + 1} height`).toBeCloseTo(680, 0);
+  }
 }
 
 async function previewAllPages(
@@ -136,6 +222,8 @@ test.describe.configure({ mode: 'serial' });
 
 test('static audit: all brown/purple pages pass slot-field check', () => {
   execSync('node scripts/diary-full-page-audit.js', { cwd: ROOT, stdio: 'inherit' });
+  execSync('npm run audit:diary-field-semantic:fail', { cwd: ROOT, stdio: 'inherit' });
+  execSync('npm run audit:diary-brown-text-baseline:fail', { cwd: ROOT, stdio: 'inherit' });
   expect(fs.existsSync(path.join(RESULTS_DIR, 'audit-report.json'))).toBeTruthy();
 });
 
@@ -145,24 +233,21 @@ test('brown diary: preview 60 pages + fill smoke + export smoke', async ({ page 
   await createDiary(page, 'diary_interior_brown', 'из 60 страниц');
   const preview = await previewAllPages(page, 'brown', 60);
 
-  for (const pageNumber of [3, 7]) {
-    await page.getByTestId(`page-card-${pageNumber}`).click();
-    await page.getByRole('button', { name: 'Заполнить страницу' }).click();
-    await expect(page.getByTestId('form-save')).toBeVisible({ timeout: 20_000 });
+  for (const pageNumber of [3, 6, 7, 16, 31]) {
+    await fillPageSmoke(page, pageNumber, 60);
+  }
 
-    const count = await page.locator('input, textarea').count();
-    expect(count).toBeGreaterThan(0);
-    if (pageNumber === 3) {
-      expect(count).toBe(1);
-    }
+  await fillMyDayMood(page, 16, 60);
 
-    await page.getByTestId('form-save').click();
-    await expect(page.getByText(new RegExp(`Страница ${pageNumber} из 60`))).toBeVisible();
-    await goBackToAlbumPages(page);
+  const longText =
+    'Это длинный тестовый текст для проверки переноса слов на линии макета коричневого дневника без обрезания посередине.';
+  for (const pageNumber of [6, 13, 31]) {
+    await fillPageWithLongText(page, pageNumber, 60, longText);
   }
 
   let exportStatus: 'ok' | 'failed' = 'failed';
   let exportError: string | undefined;
+  let pdfDimensionsOk = false;
   try {
     await page.getByTestId('album-export-button').click();
     await expect(page.getByTestId('export-format-electronic')).toBeVisible({ timeout: 30_000 });
@@ -171,6 +256,19 @@ test('brown diary: preview 60 pages + fill smoke + export smoke', async ({ page 
     await expect(
       page.getByTestId('export-done-home').or(page.getByText('Электронная версия')),
     ).toBeVisible({ timeout: 300_000 });
+    await expect(page.getByText('Книга готова')).toBeVisible({ timeout: 60_000 });
+
+    const downloadPromise = page.waitForEvent('download', { timeout: 120_000 });
+    const openButton = page.getByRole('button', { name: 'Открыть' });
+    await expect(openButton).toBeVisible({ timeout: 30_000 });
+    await openButton.click();
+
+    const download = await downloadPromise;
+    const pdfPath = path.join(RESULTS_DIR, 'brown-electronic.pdf');
+    await download.saveAs(pdfPath);
+    await assertBrownDiaryPdfDimensions(pdfPath);
+    pdfDimensionsOk = true;
+
     await page.screenshot({
       path: path.join(RESULTS_DIR, 'brown-export-done.png'),
       fullPage: true,
@@ -193,12 +291,15 @@ test('brown diary: preview 60 pages + fill smoke + export smoke', async ({ page 
       failureCount: preview.failures.length,
       failures: preview.failures,
     },
-    brownFillPages: [3, 7],
-    brownExport: { status: exportStatus, error: exportError },
+    brownFillPages: [3, 6, 7, 16, 31],
+    brownMoodPage: 16,
+    brownLongTextPages: [6, 13, 31],
+    brownExport: { status: exportStatus, pdfDimensionsOk, error: exportError },
   });
 
   expect(preview.failures, JSON.stringify(preview.failures, null, 2)).toEqual([]);
   expect(exportStatus, exportError).toBe('ok');
+  expect(pdfDimensionsOk).toBe(true);
 });
 
 test('purple diary: preview 40 pages + fill page 3', async ({ page }) => {

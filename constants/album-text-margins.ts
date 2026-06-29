@@ -40,6 +40,9 @@ export const KIDS_MONTH_LINE_X_INSET = 0.008;
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
+/** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
+export const DIARY_LINE_FONT_OFFSET = 0.86;
+
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).
  * Применяется к полям inputKind=line в preview и PDF.
@@ -187,7 +190,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.8,
+    lineFontOffsetRatio: 0.96,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -217,20 +220,20 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.5,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.98,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
-    blockFontOffsetRatio: 0.92,
-    blockMaxFontSize: 17,
+    blockFontOffsetRatio: 0.86,
+    blockMaxFontSize: 16,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.5,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.98,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
-    blockFontOffsetRatio: 0.92,
-    blockMaxFontSize: 17,
+    blockFontOffsetRatio: 0.86,
+    blockMaxFontSize: 16,
   },
 };
 

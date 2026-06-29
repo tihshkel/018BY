@@ -20,7 +20,7 @@ type TimelinePageEditorProps = {
   onRemovePhoto: (slotIndex: number) => void;
 };
 
-export function TimelinePageEditor({
+export const TimelinePageEditor = React.memo(function TimelinePageEditor({
   schema,
   pageValues,
   lineGuideId,
@@ -65,6 +65,9 @@ export function TimelinePageEditor({
 
             <AlbumPhotoSlotGrid
               embedded
+              lineGuideId={lineGuideId}
+              sourcePageNumber={schema.sourcePageNumber}
+              templateLibraryId={schema.templateLibraryId}
               block={{
                 ...block,
                 variants: [{ ...variant, slots: 1, slotIndices: [index] }],
@@ -91,7 +94,7 @@ export function TimelinePageEditor({
       })}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

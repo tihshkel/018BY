@@ -6,6 +6,7 @@ import {
 import { buildPageLayoutsFromTemplates } from '@/constants/photo-layout-templates';
 import {
   hasSparsePhotoConfig,
+  isPregnancyWeeklyMiddlePage,
   prefersManualPhotoLayout,
   prefersPdfPinnedPhotoLayout,
   shouldSkipSparsePhotoExpansion,
@@ -90,9 +91,11 @@ function resolveDesignedAlbumLayouts(
   }
 
   if (pdf?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
-    const standard = buildStandardDesignedAlbumLayouts(pdf);
-    if (standard) return finalizeLayouts(standard, lineGuideId, page);
-    return finalizeLayouts(pdf, lineGuideId, page);
+    if (!isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+      const standard = buildStandardDesignedAlbumLayouts(pdf);
+      if (standard) return finalizeLayouts(standard, lineGuideId, page);
+      return finalizeLayouts(pdf, lineGuideId, page);
+    }
   }
 
   if (pdf?.variants?.length) {

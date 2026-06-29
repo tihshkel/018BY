@@ -3,6 +3,7 @@ import {
   getKidsMonthAnswerLineLayout,
   getKidsMonthAnswerStrokeY,
   getKidsMonthAnswerWritableBounds,
+  getTemplateTypographyProfile,
   isBlankLineGuideAlbum,
   isKidsMonthPage,
   KIDS_MONTH_LINE_BAND_HEIGHT,
@@ -13,13 +14,17 @@ import {
   LINE_SLOTS,
   type NormalizedLineSlot,
 } from '@/constants/line-slots';
-import type { Annotation } from '@/components/pdf-annotations';
+import type { Annotation } from '@/types/annotation';
 import {
   getContentRect,
   mapSourceNormToViewport,
   type ContentRect,
 } from '@/utils/imageContentRect';
 import { wrapTextToLines } from '@/utils/textWrap';
+import {
+  getTemplateLineTextTop,
+  getTemplateLineTypography,
+} from '@/utils/templateLineText';
 
 export type TextLineSlot = {
   index: number;
@@ -34,8 +39,11 @@ export type TextLineSlot = {
   /** Нормализованный центр слота по Y (0–1), для типографики */
   normY?: number;
   /** Нормализованная высота слота (0–1), для типографики */
+  normHeight?: number;
   /** norm.y = штрих линии; полоса лежит над линией (как diary_interior) */
   lineStrokeAtBottom?: boolean;
+  /** Y слота = верх полосы (калибровка «Вес» / «Обхват» на неделях pregnancy_60). */
+  textAnchorTop?: boolean;
 };
 
 export type GetLineSlotsParams = {
@@ -71,6 +79,8 @@ function getNormalizedSlotsForPage(
         !isBrownDaySpreadTitleSpuriousSlot(lineGuideId, page, slot) &&
         !isPurpleDaySpreadTitleSpuriousSlot(lineGuideId, page, slot) &&
         !isBrownPeachBottomTitleSpuriousSlot(lineGuideId, page, slot) &&
+        !isBrownGirlProfileSpuriousSlot(lineGuideId, page, slot) &&
+        !isPurpleGirlProfileSpuriousSlot(lineGuideId, page, slot) &&
         !isBrownPage24FooterSpuriousSlot(lineGuideId, page, slot) &&
         !(
           lineGuideId === 'diary_interior_brown' &&
@@ -139,6 +149,36 @@ function getDiarySlotTopNormY(norm: NormalizedLineSlot): number {
   return norm.y - norm.height;
 }
 
+/** Стр. 6 «Твоя анкета»: лишние линии над первым вопросом и peach-блоки внизу. */
+function isBrownGirlProfileSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot,
+): boolean {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 6 || slot.hasLabel) {
+    return false;
+  }
+  if (slot.y < 0.22) {
+    return true;
+  }
+  return slot.y > 0.85;
+}
+
+/** Стр. 5 «Твоя анкета» (фиолетовый): декоративные линии слева и подвал. */
+function isPurpleGirlProfileSpuriousSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot,
+): boolean {
+  if (lineGuideId !== 'diary_interior_purple' || page !== 5 || slot.hasLabel) {
+    return false;
+  }
+  if (slot.y < 0.28) {
+    return true;
+  }
+  return slot.y > 0.85;
+}
+
 /** Стр. 15: слот на заголовке «САМОЕ СОКРОВЕННОЕ». */
 function isBrownPeachBottomTitleSpuriousSlot(
   lineGuideId: string,
@@ -173,21 +213,13 @@ function isBrownPage16PeachTitleSpuriousSlot(
   );
 }
 
-/** Стр. 31: ложная широкая линия на тексте «Сколько человек в классе?». */
+/** Стр. 31: ложная широкая линия на тексте «Сколько человек в классе?» — отключено для макета 09.06.26. */
 function isBrownPage31ClassQuestionSpuriousSlot(
   lineGuideId: string,
   page: number,
   slot: NormalizedLineSlot
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 31 || slot.hasLabel) {
-    return false;
-  }
-  return (
-    slot.y >= 0.548 &&
-    slot.y <= 0.562 &&
-    slot.x < 0.35 &&
-    slot.width >= 0.55
-  );
+  return false;
 }
 
 const BROWN_JOURNAL_TEMPLATE_PAGES = new Set([
@@ -200,6 +232,7 @@ const PURPLE_JOURNAL_TEMPLATE_PAGES = new Set([
 ]);
 
 const PURPLE_DAY_SPREAD_PAGES = new Set([24, 25, 26, 27]);
+const PURPLE_FRIEND_QUESTIONNAIRE_PAGES = new Set([28, 29, 30, 31, 32, 33]);
 
 function getDiaryCareerQuestionPage(lineGuideId: string): number {
   return lineGuideId === 'diary_interior_purple' ? 5 : 6;
@@ -369,6 +402,23 @@ function refineBrownDaySpreadIllustrationNorm(
   return { ...norm, width: targetWidth };
 }
 
+/** Анкета для друзей: Instagram / VK / TikTok — ответ справа от подписи. */
+function refinePurpleFriendSocialRowNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (!PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page) || norm.hasLabel) return norm;
+  if (norm.y < 0.76 || norm.y > 0.94) return norm;
+
+  const minAnswerLeft = 0.28;
+  if (norm.x >= minAnswerLeft || norm.width <= 0.45) return norm;
+
+  const right = norm.x + norm.width;
+  const x = minAnswerLeft;
+  const width = Math.max(0.15, Math.min(right - x, 0.98 - x));
+  return { ...norm, x, width };
+}
+
 /** Стр. 17: ложный слот на строке вопроса «Ты любишь животных?». */
 function isBrownPage17QuestionRowSpuriousSlot(
   lineGuideId: string,
@@ -511,7 +561,10 @@ function refinePurplePage5LabeledRowNorm(
   norm: NormalizedLineSlot
 ): NormalizedLineSlot {
   if (page !== 5 || norm.hasLabel) return norm;
-  return applyLabeledRowMinX(norm, [{ minY: 0.728, maxY: 0.758, minX: 0.52 }]);
+  return applyLabeledRowMinX(norm, [
+    { minY: 0.478, maxY: 0.508, minX: 0.52 },
+    { minY: 0.728, maxY: 0.758, minX: 0.52 },
+  ]);
 }
 
 function refinePurplePage16LabeledRowNorm(
@@ -795,7 +848,8 @@ function refineBrownParentQuestionnaireRowNorm(
   const isParentPage =
     (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8)) ||
     (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7));
-  if (!isParentPage) return norm;
+  const isGirlProfilePage = lineGuideId === 'diary_interior_brown' && page === 6;
+  if (!isParentPage && !isGirlProfilePage) return norm;
   if (norm.inputKind === 'block') return norm;
   if (norm.y < 0.22 || norm.y > 0.82) return norm;
 
@@ -876,6 +930,7 @@ function refineNormalizedSlotForTextLayout(
     refined = refinePurplePage5LabeledRowNorm(page, refined);
     refined = refinePurplePage16LabeledRowNorm(page, refined);
     refined = refinePurplePage22LabeledRowNorm(page, refined);
+    refined = refinePurpleFriendSocialRowNorm(page, refined);
   }
 
   if (isBrownPage13SportQuestionTailNorm(lineGuideId, page, refined)) {
@@ -937,6 +992,138 @@ function refineNormalizedSlotForTextLayout(
 
 const PREGNANCY_LINE_GAP_NORM = 4 / 210;
 const PREGNANCY_STANDARD_LINE_HEIGHT = 0.038;
+
+type PregnancyWeeklyCalib = {
+  pageWidth: number;
+  pageHeight: number;
+  boxRight: number;
+  lineHeightNorm: number;
+  weight: { valueX: number; topY: number };
+  belly: { valueX: number; topY: number };
+};
+
+/** PNG 300 DPI — калибровка «Вес» / «Обхват животика» на недельных стр. pregnancy_60 и pregnancy_a5. */
+const PREGNANCY_WEEKLY_CALIB: Readonly<
+  Record<'pregnancy_60' | 'pregnancy_a5', PregnancyWeeklyCalib>
+> = {
+  pregnancy_60: {
+    pageWidth: 2126,
+    pageHeight: 2835,
+    boxRight: 2126,
+    lineHeightNorm: 0.032,
+    weight: { valueX: 1419, topY: 542 },
+    belly: { valueX: 1809, topY: 672 },
+  },
+  pregnancy_a5: {
+    pageWidth: 1796,
+    pageHeight: 2528,
+    boxRight: 1673,
+    lineHeightNorm: 0.038,
+    weight: { valueX: 1210, topY: 514 },
+    belly: { valueX: 1527, topY: 618 },
+  },
+};
+
+function isPregnancyA5WeeklyPage(page: number): boolean {
+  return (
+    (page >= 5 && page <= 13) ||
+    (page >= 15 && page <= 28) ||
+    (page >= 30 && page <= 43)
+  );
+}
+
+/** Недельные страницы беременности (60 стр. и A5). */
+export function isPregnancyWeeklyStructuredPage(
+  lineGuideId: string | undefined,
+  page: number,
+): boolean {
+  if (lineGuideId === 'pregnancy_60') return isPregnancy60WeeklyPage(page);
+  if (lineGuideId === 'pregnancy_a5') return isPregnancyA5WeeklyPage(page);
+  return false;
+}
+
+function getPregnancyWeeklyCalib(
+  lineGuideId: string,
+  page: number,
+): PregnancyWeeklyCalib | null {
+  if (lineGuideId === 'pregnancy_60' && isPregnancy60WeeklyPage(page)) {
+    return PREGNANCY_WEEKLY_CALIB.pregnancy_60;
+  }
+  if (lineGuideId === 'pregnancy_a5' && isPregnancyA5WeeklyPage(page)) {
+    return PREGNANCY_WEEKLY_CALIB.pregnancy_a5;
+  }
+  return null;
+}
+
+export function isPregnancy60WeeklyValueSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'textAnchorTop'>,
+): boolean {
+  return (
+    (lineGuideId === 'pregnancy_60' &&
+      isPregnancy60WeeklyPage(slot.page) &&
+      (slot.index === 1 || slot.index === 5)) ||
+    (lineGuideId === 'pregnancy_a5' &&
+      isPregnancyA5WeeklyPage(slot.page) &&
+      (slot.index === 1 || slot.index === 5))
+  );
+}
+
+function isPregnancy60WeeklyPage(page: number): boolean {
+  return (
+    (page >= 9 && page <= 17) ||
+    (page >= 19 && page <= 32) ||
+    (page >= 34 && page <= 47)
+  );
+}
+
+function formatSlotNorm(value: number): number {
+  return Math.round(value * 100000) / 100000;
+}
+
+/** Слоты 1 (Вес) и 5 (Обхват животика) — значения в розовом блоке справа. */
+function refinePregnancy60WeeklyWeightBellySlots(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  const calib = getPregnancyWeeklyCalib(lineGuideId, page);
+  if (!calib || norms.length < 6) {
+    return [...norms];
+  }
+
+  const { pageWidth, pageHeight, boxRight, lineHeightNorm, weight, belly } = calib;
+  const result = norms.map((slot) => ({ ...slot }));
+
+  const weightX = formatSlotNorm(weight.valueX / pageWidth);
+  const bellyX = formatSlotNorm(belly.valueX / pageWidth);
+  const weightTopY = formatSlotNorm(weight.topY / pageHeight);
+  const bellyTopY = formatSlotNorm(belly.topY / pageHeight);
+
+  result[1] = {
+    ...result[1],
+    x: weightX,
+    y: weightTopY,
+    width: formatSlotNorm(Math.max(0.05, (boxRight - weight.valueX) / pageWidth)),
+    height: lineHeightNorm,
+    hasLabel: false,
+    inputKind: 'block',
+    textAnchorTop: true,
+  };
+
+  result[5] = {
+    ...result[5],
+    x: bellyX,
+    y: bellyTopY,
+    width: formatSlotNorm(Math.max(0.05, (boxRight - belly.valueX) / pageWidth)),
+    height: lineHeightNorm,
+    hasLabel: false,
+    inputKind: 'block',
+    textAnchorTop: true,
+  };
+
+  return result;
+}
 
 function slotsInGroupTooClose(slots: NormalizedLineSlot[]): boolean {
   for (let i = 0; i < slots.length - 1; i += 1) {
@@ -1002,22 +1189,52 @@ function refineDenseContinuationGroupSpacing(
   return result;
 }
 
+const lineSlotsResultCache = new Map<string, TextLineSlot[]>();
+
+function lineSlotsCacheKey(params: GetLineSlotsParams): string {
+  const rect = params.contentRect;
+  return [
+    params.lineGuideId,
+    params.page,
+    params.viewportWidth,
+    params.viewportHeight,
+    params.sourceWidth ?? 0,
+    params.sourceHeight ?? 0,
+    rect?.offsetX ?? '',
+    rect?.offsetY ?? '',
+    rect?.width ?? '',
+    rect?.height ?? '',
+  ].join('|');
+}
+
 export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
+  const cacheKey = lineSlotsCacheKey(params);
+  const cached = lineSlotsResultCache.get(cacheKey);
+  if (cached) return cached;
+
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
   if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
+    lineSlotsResultCache.set(cacheKey, []);
     return [];
   }
 
-  const normalized = refineDenseContinuationGroupSpacing(
+  const normalized = refinePregnancy60WeeklyWeightBellySlots(
     lineGuideId,
     page,
-    getNormalizedSlotsForPage(lineGuideId, page),
+    refineDenseContinuationGroupSpacing(
+      lineGuideId,
+      page,
+      getNormalizedSlotsForPage(lineGuideId, page),
+    ),
   );
-  if (!normalized.length) return [];
+  if (!normalized.length) {
+    lineSlotsResultCache.set(cacheKey, []);
+    return [];
+  }
 
   const rect = resolveContentRectForPage(params);
 
-  return normalized.map((norm, index) => {
+  const slots = normalized.map((norm, index) => {
     const layoutNorm = refineNormalizedSlotForTextLayout(
       lineGuideId,
       page,
@@ -1025,6 +1242,17 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       normalized,
       index,
     );
+    const isWeeklyValueSlot =
+      (lineGuideId === 'pregnancy_60' &&
+        isPregnancy60WeeklyPage(page) &&
+        (index === 1 || index === 5)) ||
+      (lineGuideId === 'pregnancy_a5' &&
+        isPregnancyA5WeeklyPage(page) &&
+        (index === 1 || index === 5));
+    const anchorTop =
+      isWeeklyValueSlot ||
+      layoutNorm.textAnchorTop === true ||
+      layoutNorm.lineStrokeAtBottom === true;
     const topNormY =
       isDiaryInteriorLineGuide(lineGuideId)
         ? getDiarySlotTopNormY(layoutNorm)
@@ -1032,7 +1260,9 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
             isKidsMonthPage(page) &&
             index >= 1
           ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : layoutNorm.y - layoutNorm.height / 2;
+          : anchorTop
+            ? layoutNorm.y
+            : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -1042,7 +1272,9 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     );
 
     const lineStrokeAtBottom =
-      lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1;
+      layoutNorm.lineStrokeAtBottom === true ||
+      (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1) ||
+      isDiaryInteriorLineGuide(lineGuideId);
 
     return {
       index,
@@ -1054,11 +1286,15 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       hasLabel: norm.hasLabel ?? true,
       continuationGroup: layoutNorm.continuationGroup ?? norm.continuationGroup ?? index + 1,
       inputKind: layoutNorm.inputKind ?? norm.inputKind,
-      normY: layoutNorm.y,
+      normY: anchorTop ? layoutNorm.y + layoutNorm.height / 2 : layoutNorm.y,
       normHeight: layoutNorm.height,
       lineStrokeAtBottom,
+      textAnchorTop: anchorTop,
     };
   });
+
+  lineSlotsResultCache.set(cacheKey, slots);
+  return slots;
 }
 
 export type LineSlotGroupBounds = {
@@ -1345,6 +1581,69 @@ export function layoutAnnotationFromSlot(slot: TextLineSlot): Pick<
     height: slot.lineHeight,
     templateLineStart: slot.index,
     templateLineCount: 1,
+  };
+}
+
+/** Text overlay aligned to the printed rule (preview/export parity with PdfAnnotations). */
+export function layoutTextAnnotationFromSlot(
+  slot: TextLineSlot,
+  fontSize: number,
+  lineGuideId?: string,
+  textContent?: string,
+): Pick<
+  Annotation,
+  'x' | 'y' | 'width' | 'height' | 'templateLineStart' | 'templateLineCount' | 'fontSize'
+> {
+  const layout = layoutAnnotationFromSlot(slot);
+  const inputKind = slot.inputKind ?? 'line';
+  const textTop = getTemplateLineTextTop(slot, fontSize, lineGuideId);
+  const typography = getTemplateLineTypography(
+    fontSize,
+    slot.lineHeight,
+    inputKind,
+    lineGuideId,
+  );
+  let effectiveFontSize = typography.fontSize;
+  if (
+    isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
+    textContent &&
+    slot.width > 0
+  ) {
+    const profile = getTemplateTypographyProfile(lineGuideId);
+    const charWidth = effectiveFontSize * profile.charWidthRatio;
+    const neededWidth = textContent.length * charWidth;
+    if (neededWidth > slot.width) {
+      effectiveFontSize = Math.max(
+        9,
+        Math.floor(effectiveFontSize * (slot.width / neededWidth)),
+      );
+    }
+  } else if (
+    textContent &&
+    slot.width > 0 &&
+    (lineGuideId === 'diary_interior_purple' || lineGuideId === 'diary_interior_brown')
+  ) {
+    const profile = getTemplateTypographyProfile(lineGuideId);
+    const charWidth = effectiveFontSize * profile.charWidthRatio;
+    const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.98);
+    const neededWidth = textContent.length * charWidth;
+    if (neededWidth > slackWidth) {
+      effectiveFontSize = Math.max(
+        11,
+        Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
+      );
+    }
+  }
+  const rowHeight = Math.max(
+    typography.lineHeight,
+    effectiveFontSize * 1.05,
+    slot.lineHeight,
+  );
+  return {
+    ...layout,
+    y: textTop,
+    height: rowHeight,
+    fontSize: effectiveFontSize,
   };
 }
 

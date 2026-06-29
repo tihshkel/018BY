@@ -47,7 +47,7 @@ type AlbumPageUnifiedEditorProps = {
   showPerPhotoCaptions: boolean;
 };
 
-export function AlbumPageUnifiedEditor({
+export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor({
   schema,
   pageValues,
   lineGuideId,
@@ -159,15 +159,26 @@ export function AlbumPageUnifiedEditor({
       );
     }
 
-    if (resolvedSchema.pageType === 'birthday_free_page' && onCustomFieldsChange) {
-      return (
-        <BirthdayFreePageEditor
-          schema={resolvedSchema}
-          customFields={pageValues.customFields ?? []}
-          onChange={onCustomFieldsChange}
-          allowFieldCrud={allowCustomFieldCrud}
-        />
-      );
+    if (resolvedSchema.pageType === 'birthday_free_page') {
+      if (fields.length > 0) {
+        return (
+          <PageFormFields
+            {...formProps}
+            sectionTitle="Текстовые поля"
+          />
+        );
+      }
+      if (onCustomFieldsChange) {
+        return (
+          <BirthdayFreePageEditor
+            schema={resolvedSchema}
+            customFields={pageValues.customFields ?? []}
+            onChange={onCustomFieldsChange}
+            allowFieldCrud={allowCustomFieldCrud}
+          />
+        );
+      }
+      return null;
     }
 
     if (resolvedSchema.pageType === 'free_page' && onFreeElementsChange && ensureMediaLibraryPermission) {
@@ -317,7 +328,7 @@ export function AlbumPageUnifiedEditor({
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

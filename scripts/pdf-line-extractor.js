@@ -4034,7 +4034,7 @@ function injectPurplePage16MissingColorComboRow(slots, options = {}) {
 function injectBrownFriendQuestionnaireSocialLines(slots, options = {}) {
   if (!isPurpleAlbum(options) || !slots.length) return;
   const page = options.pageNumber;
-  if (page !== 28 && page !== 30) return;
+  if (page < 28 || page > 33) return;
 
   const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
   const band = slots[0]?.height ?? 0.033;

@@ -9,7 +9,7 @@ export const colors = {
   genderBoy: '#89CFF0',
   genderGirl: '#F194A2',
   genderChild: '#F5C896',
-  pregnancyFormFill: '#8B5A3C',
+  pregnancyFormFill: '#E8C4A8',
   primaryLight: '#F5A8B3',
   primaryPressed: '#D97F8D',
   primarySurface: '#FDF0F2',
@@ -36,6 +36,19 @@ export const surfaces = {
   sheet: '#FFFFFF',
 } as const;
 
+/** Нейтральная палитра wireframe-превью шаблонов (без розового фона). */
+export const templateWireframe = {
+  canvas: '#F5F5F5',
+  page: '#FFFFFF',
+  photoFill: '#EBEBEB',
+  photoBorder: '#D8D8D8',
+  textLine: '#E0E0E0',
+  textLineStrong: '#CBCBCB',
+  icon: '#9E9E9E',
+  dashedBorder: '#CCCCCC',
+  dashedFill: 'rgba(255,255,255,0.6)',
+} as const;
+
 export const motion = {
   fast: 150,
   normal: 250,
@@ -57,11 +70,15 @@ export const spacing = {
 } as const;
 
 export const radii = {
+  xs: 6,
   sm: 12,
   md: 16,
   lg: 20,
   xl: 24,
 } as const;
+
+/** Скругление углов фото в пустых альбомах (редактор, превью, PDF). */
+export const BLANK_ALBUM_PHOTO_RADIUS = radii.xs;
 
 type FontWeight = TextStyle['fontWeight'];
 

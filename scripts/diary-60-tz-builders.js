@@ -11,6 +11,8 @@ const {
   HOBBY_FIELDS,
   PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
+  FRIEND_SOCIAL_FIELDS,
+  PURPLE_FRIEND_FIELDS,
   MOOD_FIELDS,
   STYLE_FIELDS,
   FIRST_LOVE_FIELDS,
@@ -71,12 +73,39 @@ const FRIEND_FIELDS = [
   ['hobby', 'Хобби', 'text', 1],
   ['favoriteFood', 'Любимая еда', 'text', 1],
   ['favoriteMovie', 'Любимый фильм', 'text', 1],
-  ['favoriteMusician', 'Любимый музыкант', 'text', 1],
+  ['favoriteCartoon', 'Любимый мультфильм', 'text', 1],
   ['favoriteBook', 'Любимая книга', 'text', 1],
   ['bestGirlfriend', 'Лучшая подруга', 'text', 1],
   ['bestFriend', 'Лучший друг', 'text', 1],
   ['wishes', 'Пожелания хозяйке анкеты', 'text', 2],
 ];
+
+const PURPLE_FRIEND_QUESTIONNAIRE_PAGES = new Set([28, 29, 30, 31, 32, 33]);
+
+function countSpecLines(spec) {
+  return spec.reduce((sum, [, , , count]) => sum + count, 0);
+}
+
+function friendFieldsSpecForPage(lineGuideId, pageNumber, slots) {
+  if (
+    lineGuideId !== 'diary_interior_purple' ||
+    !PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(pageNumber)
+  ) {
+    return FRIEND_FIELDS;
+  }
+
+  const baseWithSingleWish = PURPLE_FRIEND_FIELDS.map(([id, label, type, count]) =>
+    id === 'wishes' ? [id, label, type, 1] : [id, label, type, count],
+  );
+  const baseLines = countSpecLines(baseWithSingleWish);
+  const slotCount = slots?.length ?? 0;
+
+  if (slotCount - baseLines >= FRIEND_SOCIAL_FIELDS.length) {
+    return [...baseWithSingleWish, ...FRIEND_SOCIAL_FIELDS];
+  }
+
+  return PURPLE_FRIEND_FIELDS;
+}
 
 const FOOD_FIELDS = [
   ['favoriteFood', 'Перечисли самую вкусную для тебя еду', 'text', 1],
@@ -110,7 +139,7 @@ function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset =
 }
 
 function buildDiaryOwnerFields(lineGuideId, pageNumber, slots) {
-  return [
+  const fields = [
     buildField(
       lineGuideId,
       pageNumber,
@@ -122,10 +151,61 @@ function buildDiaryOwnerFields(lineGuideId, pageNumber, slots) {
       slots
     ),
   ];
+  if ((slots?.length ?? 0) >= 2) {
+    fields.push(
+      buildField(
+        lineGuideId,
+        pageNumber,
+        'owner_phone',
+        'Номер телефона',
+        'text',
+        1,
+        1,
+        slots
+      )
+    );
+  }
+  return fields;
 }
 
 function buildMyDayFields(lineGuideId, pageNumber, slots) {
   const maxLines = slots?.length ?? 12;
+
+  if (lineGuideId === 'diary_interior_purple') {
+    return [
+      buildField(lineGuideId, pageNumber, 'date', 'Дата', 'date', 0, 1, slots),
+      buildField(
+        lineGuideId,
+        pageNumber,
+        'day_story',
+        'Как прошёл сегодняшний день',
+        'text',
+        0,
+        Math.min(5, Math.max(1, maxLines)),
+        slots,
+      ),
+      {
+        fieldId: `${lineGuideId}_p${pageNumber}_mood`,
+        label: 'Настроение',
+        type: 'radio',
+        required: false,
+        options: MOOD_OPTIONS,
+        templateLineStart: Math.min(5, maxLines - 1),
+        templateLineCount: 1,
+      },
+      buildField(
+        lineGuideId,
+        pageNumber,
+        'things_that_made_smile',
+        'Вещи, которые заставили сегодня улыбаться',
+        'text',
+        Math.min(6, maxLines - 1),
+        Math.min(4, Math.max(1, maxLines - 6)),
+        slots,
+      ),
+    ];
+  }
+
   return [
     buildField(lineGuideId, pageNumber, 'date', 'Дата', 'date', 0, 1, slots),
     buildField(
@@ -174,6 +254,7 @@ function buildFreePhotoNotes(pageNumber, slots, lineGuideId, tzEntry) {
 }
 
 function buildFriendQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
+  const spec = friendFieldsSpecForPage(lineGuideId, pageNumber, slots);
   return {
     replaceFields: true,
     replacePhotoBlocks: true,
@@ -181,7 +262,7 @@ function buildFriendQuestionnaire(pageNumber, slots, lineGuideId, tzEntry) {
     title: tzEntry.title,
     pageType: 'structured',
     editable: true,
-    fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, FRIEND_FIELDS),
+    fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec),
     canDuplicate: true,
   };
 }

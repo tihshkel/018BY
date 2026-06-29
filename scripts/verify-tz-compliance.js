@@ -230,7 +230,7 @@ function verifyBirthday48() {
   assert((p48.fields ?? []).some((f) => f.fieldId.endsWith('_letter_text')), 'birthday p48 letter field');
 
   const p40 = byPage['40'];
-  assert((p40.fields ?? []).length >= 3, 'birthday p40 travel fields (>=3)');
+  assert((p40.fields ?? []).length >= 2, 'birthday p40 travel fields (countries + memory)');
 
   require('./verify-birthday-48-asset-map.js');
 }
@@ -300,7 +300,7 @@ function verifyPregnancyA5() {
 
   assert(schemas.length === 48, 'pregnancy_a5 schemas has 48 pages');
 
-  for (const page of [2, 4, 14, 29, 47]) {
+  for (const page of [2, 4, 14, 29]) {
     const schema = byPage[String(page)];
     assert(schema.pageType === 'non_editable', `pregnancy A5 p${page} is non_editable static`);
     assert(schema.editable === false, `pregnancy A5 p${page} editable=false`);
@@ -332,12 +332,16 @@ function verifyPregnancyA5() {
   assert(wishes?.templateLineStart === 6, 'pregnancy A5 p46 wishes slot 6');
   assert(wishes?.templateLineCount === 3, 'pregnancy A5 p46 wishes count 3');
 
+  const p47 = byPage['47'];
+  assert(p47.pageType === 'photo', 'pregnancy A5 p47 is photo');
+  assert(p47.title === 'Памятные моменты', 'pregnancy A5 p47 title');
+  assert(p47.editable === true, 'pregnancy A5 p47 editable');
+  assert((p47.photoBlocks?.length ?? 0) > 0, 'pregnancy A5 p47 has photo blocks');
+
   const p48 = byPage['48'];
   assert(p48.pageType === 'photo', 'pregnancy A5 p48 is photo');
   assert(p48.title === 'Памятные моменты', 'pregnancy A5 p48 title');
   assert(p48.editable === true, 'pregnancy A5 p48 editable');
-
-  assert(byPage['47'].title === 'Памятные моменты', 'pregnancy A5 p47 static title');
 
   const pdfSlots = loadJson('constants/generated/pdf-photo-slots.json');
   assert(

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppText } from '@/components/ui';
-import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import {
   clampPhotoOffset,
@@ -311,7 +311,7 @@ export function PhotoSlotGestureLayer({
 const styles = StyleSheet.create({
   filledWrap: {
     flex: 1,
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     overflow: 'hidden',
     backgroundColor: colors.white,
     borderWidth: 1,
@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
   imageClip: {
     flex: 1,
     overflow: 'hidden',
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     backgroundColor: colors.primarySurface,
     position: 'relative',
   },
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
   },
   emptySlot: {
     flex: 1,
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: colors.border,

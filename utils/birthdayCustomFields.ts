@@ -78,7 +78,8 @@ export function clampCustomFieldLabel(label: string, maxLength = 40): string {
 export function clampCustomFieldValue(
   value: string,
   fieldType: BirthdayCustomFieldValue['fieldType'],
+  maxLength?: number,
 ): string {
-  const maxLength = fieldType === 'long_text' ? 300 : 120;
-  return value.slice(0, maxLength);
+  const fallback = fieldType === 'long_text' ? 300 : 120;
+  return value.slice(0, maxLength ?? fallback);
 }

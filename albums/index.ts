@@ -71,7 +71,7 @@ export const albumTemplates: AlbumTemplate[] = [
     name: 'Дневник беременности А5 в мягкой обложке',
     description: 'Дневник беременности А5 в мягкой обложке',
     category: 'pregnancy',
-    pages: 60,
+    pages: 48,
     pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
     thumbnailPath: require('../assets/images/albums/DB1_п.png'),
     hasPdfTemplate: true,

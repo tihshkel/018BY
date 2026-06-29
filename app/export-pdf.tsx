@@ -20,7 +20,11 @@ import {
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
-import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
+import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
+import {
+  flushAlbumProjectPersist,
+  hasPendingAlbumProjectPersist,
+} from '@/utils/albumProjectPersist';
 import {
   getExportFormatOptions,
   type ExportFormatType,
@@ -37,11 +41,12 @@ import {
 import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from '@/utils/exportViewport';
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
-import { loadPageInstances, loadPageValuesMap } from '@/utils/pageStorage';
+import { loadPageInstances, loadPageValuesMapMerged } from '@/utils/pageStorage';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
 } from '@/utils/imageContentRect';
+import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { drawImageAnnotationsOnPdfPage } from '@/utils/exportPdfImageAnnotations';
 import {
   getCachedPageSourceSize,
@@ -59,6 +64,7 @@ import {
   getElectronicJpegQuality,
   getElectronicRasterMaxSide,
   getExportPageDimensions,
+  shouldUseFullBleedDiaryExport,
 } from '@/utils/exportPageDimensions';
 import { preloadFontsForPdf } from '@/utils/fontLoader';
 import {
@@ -168,6 +174,9 @@ function drawTextAnnotationOnPdfPage(params: {
     sourceHeight
   );
 
+  const text = ann.content ?? '';
+  if (!text.trim()) return;
+
   const mapped = mapViewportAnnotationToPdf({
     x: ann.x,
     y: ann.y,
@@ -180,27 +189,40 @@ function drawTextAnnotationOnPdfPage(params: {
     pdfImageHeight: actualImageHeight,
   });
 
-  const scaledFontSize = (ann.fontSize || 16) * (mapped.height / (ann.height || 20));
-  const text = ann.content ?? '';
-  const textAlign = ann.textAlign ?? 'left';
-  let drawX = mapped.x;
-
-  if (font && textAlign !== 'left') {
-    const textWidth = font.widthOfTextAtSize(text, scaledFontSize);
-    if (textAlign === 'center') {
-      drawX = mapped.x + (mapped.width - textWidth) / 2;
-    } else if (textAlign === 'right') {
-      drawX = mapped.x + mapped.width - textWidth;
-    }
-  }
-
-  page.drawText(text, {
-    x: drawX,
-    y: mapped.y,
-    size: scaledFontSize,
-    color,
-    font,
+  const viewportBoxHeight = ann.height || 20;
+  const scaledBoxHeight = mapped.height;
+  const fitted = fitTextToTemplateBlock({
+    text,
+    boxWidth: ann.width || mapped.width,
+    boxHeight: viewportBoxHeight,
+    fontId: ann.fontFamily,
+    preferredFontSize: ann.fontSize || 16,
   });
+  const scaledFontSize = fitted.fontSize * (scaledBoxHeight / viewportBoxHeight);
+  const textAlign = ann.textAlign ?? 'left';
+  const lineHeight = scaledFontSize * 1.15;
+  let lineBaselineY = mapped.y + mapped.height - scaledFontSize * 0.85;
+
+  for (const line of fitted.lines) {
+    let drawX = mapped.x;
+    if (font && textAlign !== 'left') {
+      const textWidth = font.widthOfTextAtSize(line, scaledFontSize);
+      if (textAlign === 'center') {
+        drawX = mapped.x + (mapped.width - textWidth) / 2;
+      } else if (textAlign === 'right') {
+        drawX = mapped.x + mapped.width - textWidth;
+      }
+    }
+
+    page.drawText(line, {
+      x: drawX,
+      y: lineBaselineY,
+      size: scaledFontSize,
+      color,
+      font,
+    });
+    lineBaselineY -= lineHeight;
+  }
 }
 
 /** ViewShot через PageRenderer — только free-form / travel; designed-альбомы быстрее через pdf-lib. */
@@ -309,8 +331,11 @@ interface FormatOption {
   description: string;
 }
 
-function getFormatOptions(category: string | null): FormatOption[] {
-  return getExportFormatOptions(category);
+function getFormatOptions(
+  category: string | null,
+  lineGuideId?: string | null,
+): FormatOption[] {
+  return getExportFormatOptions(category, lineGuideId);
 }
 
 type ExportPart = 'full' | 'interior' | 'first-last' | 'cover';
@@ -400,11 +425,15 @@ export default function ExportPdfScreen() {
   const electronicFileName = params.fileName as string | undefined;
   
   const [projectCat, setProjectCat] = useState<string | null>(null);
+  const [projectLineGuideId, setProjectLineGuideId] = useState<string | null>(null);
   const [projectTitleForExport, setProjectTitleForExport] = useState<string | null>(null);
 
   // Используем celebration из URL как fallback, пока категория не загружена из проекта
   const effectiveCategory = projectCat ?? (celebrationParam === 'holiday' ? 'holidays' : celebrationParam) ?? null;
-  const formatOptions = React.useMemo(() => getFormatOptions(effectiveCategory), [effectiveCategory]);
+  const formatOptions = React.useMemo(
+    () => getFormatOptions(effectiveCategory, projectLineGuideId),
+    [effectiveCategory, projectLineGuideId],
+  );
 
   const [selectedFormat, setSelectedFormat] = useState<FormatOption | null>(null);
   const [paywallVisible, setPaywallVisible] = useState(false);
@@ -515,6 +544,12 @@ export default function ExportPdfScreen() {
             if (project.category) {
               setProjectCat(project.category);
             }
+            const interior = project.interiorType ?? project.albumId;
+            if (interior) {
+              setProjectLineGuideId(
+                resolveLineGuideId(interior, project.category ?? celebrationParam),
+              );
+            }
           } catch {}
         }
       });
@@ -597,6 +632,10 @@ export default function ExportPdfScreen() {
 
       // Если есть projectId, пытаемся загрузить данные проекта
       if (projectId) {
+        if (hasPendingAlbumProjectPersist(projectId)) {
+          setGenerationStatus('Сохранение изменений…');
+          await flushAlbumProjectPersist(projectId);
+        }
         const projectData = await AsyncStorage.getItem(`@project_${projectId}`);
         if (projectData) {
           const project = JSON.parse(projectData);
@@ -664,9 +703,10 @@ export default function ExportPdfScreen() {
             (k) => AsyncStorage.getItem(k),
             projectId,
           );
-          const pageValuesMap = await loadPageValuesMap(
+          const pageValuesMap = await loadPageValuesMapMerged(
             (k) => AsyncStorage.getItem(k),
             projectId,
+            instances.map((item) => item.instanceId),
           );
 
           const getSchema = (instance: PageInstance) =>
@@ -939,6 +979,10 @@ export default function ExportPdfScreen() {
         contentWidth,
         contentHeight,
       } = getExportPageDimensions(formatToUse.type, projectCategory, exportLineGuideId);
+      const useFullBleedInterior = shouldUseFullBleedDiaryExport(
+        formatToUse.type,
+        exportLineGuideId,
+      );
 
       const withTimeout = async <T,>(params: {
         label: string;
@@ -1566,10 +1610,11 @@ export default function ExportPdfScreen() {
         const results = await Promise.all(
           batch.map(async (uri) => {
             try {
+              const normalizedUri = await normalizePhotoOrientation(uri);
               return await withTimeout({
                 label: `load annotation image`,
                 timeoutMs: 20000,
-                task: async () => loadImageAsBytes(uri),
+                task: async () => loadImageAsBytes(normalizedUri),
               });
             } catch {
               return null;
@@ -2039,9 +2084,11 @@ export default function ExportPdfScreen() {
 
           if (pageSnapshotUri) {
             try {
-              // снапшот уже jpeg (PageRenderer), но дополнительно прогоняем через оптимизацию+кэш
-              const optimizedSnapshotUri = await optimizeImageForExport(pageSnapshotUri, 'page', isLargeDoc);
-              const snapshotBytes = await loadImageAsBytes(optimizedSnapshotUri);
+              const snapshotUriForEmbed =
+                isElectronicExport
+                  ? pageSnapshotUri
+                  : await optimizeImageForExport(pageSnapshotUri, 'page', isLargeDoc);
+              const snapshotBytes = await loadImageAsBytes(snapshotUriForEmbed);
               if (snapshotBytes) {
                 const page = pdfDoc.addPage([pageWidth, pageHeight]);
                 const embeddedSnapshot = await withTimeout({
@@ -2055,8 +2102,10 @@ export default function ExportPdfScreen() {
                 const contentAspectRatio = contentWidth / contentHeight;
 
                 // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
-                const isFirstOrLastPageSnapshot = (formatToUse.type === 'electronic' || formatToUse.type === 'soft') && 
-                                                  (pageIndex === 0 || pageIndex === images.length - 1);
+                const isFirstOrLastPageSnapshot =
+                  useFullBleedInterior ||
+                  ((formatToUse.type === 'electronic' || formatToUse.type === 'soft') &&
+                    (pageIndex === 0 || pageIndex === images.length - 1));
 
                 let snapshotWidth = contentWidth;
                 let snapshotHeight = contentHeight;
@@ -2180,8 +2229,10 @@ export default function ExportPdfScreen() {
           pageAnnotations = buildPageAnnotations(sourceWidth, sourceHeight);
           
           // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
-          const isFirstOrLastPage = (formatToUse.type === 'electronic' || formatToUse.type === 'soft') && 
-                                    (pageIndex === 0 || pageIndex === images.length - 1);
+          const isFirstOrLastPage =
+            useFullBleedInterior ||
+            ((formatToUse.type === 'electronic' || formatToUse.type === 'soft') &&
+              (pageIndex === 0 || pageIndex === images.length - 1));
           
           // Вычисляем реальные размеры изображения на странице (как в редакторе)
           let actualImageWidth = contentWidth;
@@ -2244,6 +2295,7 @@ export default function ExportPdfScreen() {
             pdfImageY: offsetY,
             pdfImageWidth: actualImageWidth,
             pdfImageHeight: actualImageHeight,
+            lineGuideId: exportLineGuideId,
           });
           
           for (const ann of sortedAnnotations) {
@@ -3027,6 +3079,7 @@ export default function ExportPdfScreen() {
               captureFormat="jpg"
               captureScale={captureSettingsRef.current.scale}
               captureQuality={captureSettingsRef.current.quality}
+              readOnly
               onReady={() => setPageRendererReady(true)}
             />
           </View>

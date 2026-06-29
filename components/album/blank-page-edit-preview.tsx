@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import PageRenderer from '@/components/page-renderer';
@@ -6,6 +6,7 @@ import { TemplateWireframePreview } from '@/components/album/template-wireframe-
 import { AppText } from '@/components/ui';
 import { colors, radii, spacing } from '@/constants/design-tokens';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import {
   getPageFormatForLineGuide,
@@ -18,6 +19,8 @@ type BlankPageEditPreviewProps = {
   pageValues: PageValues;
   imageUri?: string;
   maxWidth: number;
+  /** На планшете допускаем чуть больший предпросмотр. */
+  isTablet?: boolean;
 };
 
 const PAGE_ASPECT: Record<string, number> = {
@@ -25,40 +28,60 @@ const PAGE_ASPECT: Record<string, number> = {
   '21x21': 1,
 };
 
-export function BlankPageEditPreview({
+const PREVIEW_DEBOUNCE_MS = 500;
+
+export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
   schema,
   pageValues,
   imageUri,
   maxWidth,
+  isTablet = false,
 }: BlankPageEditPreviewProps) {
+  useDevRenderCount('BlankPageEditPreview');
+
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(null);
 
   const pageFormat = getPageFormatForLineGuide(schema.lineGuideId);
   const aspect = PAGE_ASPECT[pageFormat] ?? PAGE_ASPECT['18x24'];
-  const width = Math.max(240, Math.min(maxWidth, 420));
+  const widthCap = isTablet ? 520 : 420;
+  const width = Math.max(240, Math.min(maxWidth, widthCap));
   const height = width / aspect;
-  const debouncedPageValues = useDebouncedValue(pageValues, 300);
+  const debouncedPageValues = useDebouncedValue(pageValues, PREVIEW_DEBOUNCE_MS);
+
+  const hasPhotoContent = useMemo(
+    () =>
+      Object.values(pageValues.photoBlocks ?? {}).some((block) =>
+        block.slots.some((slot) => typeof slot === 'string' && slot.length > 0),
+      ),
+    [pageValues.photoBlocks],
+  );
 
   const annotations = useMemo(
     () =>
-      pageValuesToAnnotations({
-        lineGuideId: schema.lineGuideId,
-        pageNumber: schema.sourcePageNumber,
-        schema,
-        values: debouncedPageValues,
-        viewportWidth: width,
-        viewportHeight: height,
-        sourceWidth: sourceSize?.width,
-        sourceHeight: sourceSize?.height,
-      }),
-    [debouncedPageValues, height, schema, sourceSize?.height, sourceSize?.width, width],
+      hasPhotoContent
+        ? pageValuesToAnnotations({
+            lineGuideId: schema.lineGuideId,
+            pageNumber: schema.sourcePageNumber,
+            schema,
+            values: debouncedPageValues,
+            viewportWidth: width,
+            viewportHeight: height,
+            sourceWidth: sourceSize?.width,
+            sourceHeight: sourceSize?.height,
+          })
+        : [],
+    [
+      debouncedPageValues,
+      hasPhotoContent,
+      height,
+      schema,
+      sourceSize?.height,
+      sourceSize?.width,
+      width,
+    ],
   );
 
   if (!isBlankTemplateLineGuide(schema.lineGuideId)) return null;
-
-  const hasPhotoContent = Object.values(pageValues.photoBlocks ?? {}).some((block) =>
-    block.slots.some((slot) => typeof slot === 'string' && slot.length > 0),
-  );
 
   return (
     <View style={styles.card}>
@@ -75,7 +98,7 @@ export function BlankPageEditPreview({
           <TemplateWireframePreview
             templateId={schema.templateLibraryId ?? 'SinglePhotoTemplate'}
             format={pageFormat}
-            values={pageValues}
+            values={debouncedPageValues}
           />
         ) : (
           <PageRenderer
@@ -92,11 +115,11 @@ export function BlankPageEditPreview({
         )}
       </View>
       <AppText variant="caption" style={styles.hint}>
-        Нажмите на фото-слоты или поля ниже, изменения сразу появятся здесь.
+        Предпросмотр обновляется с небольшой задержкой, пока вы печатаете.
       </AppText>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

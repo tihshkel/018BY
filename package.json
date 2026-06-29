@@ -1,7 +1,7 @@
 {
   "name": "018by",
   "main": "expo-router/entry",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -37,14 +37,25 @@
     "audit:birthday-photo": "node ./scripts/audit-album-photo-pages.js --album=holidays_birthday_60",
     "audit:diary-photo": "node ./scripts/audit-album-photo-pages.js --album=diary_interior_brown && node ./scripts/audit-album-photo-pages.js --album=diary_interior_purple",
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
+    "verify:diary-field-slots": "node ./scripts/verify-diary-field-slot-map.js",
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
-    "verify:designed-albums": "npm run verify:line-slots && node ./scripts/export-photo-pages-manifest.js && node ./scripts/generate-birthday-48-tz-manifest.js && node ./scripts/verify-field-labels.js && node ./scripts/verify-photo-flows.js && node ./scripts/verify-export-matrix.js && node ./scripts/verify-export-parity.js && node ./scripts/verify-photo-parity.js && node ./scripts/verify-tz-compliance.js && node ./scripts/diary-full-page-audit.js && node ./scripts/audit-kids-48-pages.js --fail && node ./scripts/audit-album-photo-pages.js --fail",
+    "verify:designed-albums": "npm run verify:line-slots && node ./scripts/export-photo-pages-manifest.js && node ./scripts/generate-birthday-48-tz-manifest.js && node ./scripts/verify-field-labels.js && node ./scripts/verify-photo-flows.js && node ./scripts/verify-export-matrix.js && node ./scripts/verify-export-parity.js && node ./scripts/verify-photo-parity.js && node ./scripts/verify-tz-compliance.js && node ./scripts/verify-diary-field-slot-map.js && npm run audit:diary-field-semantic:fail && node ./scripts/diary-full-page-audit.js && npm run audit:diary-brown-text-baseline:fail && node ./scripts/audit-kids-48-pages.js --fail && node ./scripts/audit-album-photo-pages.js --fail",
     "test:e2e:designed-albums": "npx playwright test e2e/playwright/designed-albums-export.spec.ts",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
     "verify:blank-templates": "node ./scripts/verify-blank-template-compliance.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
-    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js"
+    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
+    "refresh:diary-interiors": "npm run convert:diary-interior-pdfs && npm run generate:diary-interior-assets && node ./scripts/build-diary-brown-slot-overrides.js && node ./scripts/build-diary-purple-slot-overrides.js && npm run generate:line-slots",
+    "audit:diary-brown-text-baseline": "node ./scripts/render-diary-brown-text-baseline-audit.js",
+    "audit:diary-brown-text-baseline:fail": "FAIL_ON_DRIFT=1 node ./scripts/render-diary-brown-text-baseline-audit.js",
+    "audit:diary-field-semantic": "node ./scripts/audit-diary-field-semantic-map.js",
+    "audit:diary-field-semantic:fail": "FAIL_ON_ERROR=1 node ./scripts/audit-diary-field-semantic-map.js",
+    "audit:diary-stroke-alignment": ".venv/bin/python3 ./scripts/audit-diary-stroke-alignment.py",
+    "audit:diary-stroke-alignment:fail": "FAIL_ON_ERROR=1 .venv/bin/python3 ./scripts/audit-diary-stroke-alignment.py",
+    "audit:diary-font-size-parity": "node ./scripts/audit-diary-font-size-parity.js",
+    "audit:diary-font-size-parity:fail": "FAIL_ON_ERROR=1 node ./scripts/audit-diary-font-size-parity.js",
+    "audit:diary-all": "npm run audit:diary-brown-text-baseline:fail && npm run audit:diary-field-semantic:fail && npm run audit:diary-stroke-alignment:fail && npm run audit:diary-font-size-parity:fail && ALBUM_ID=diary_interior_brown node ./scripts/verify-diary-field-slot-map.js && ALBUM_ID=diary_interior_purple node ./scripts/verify-diary-field-slot-map.js && node ./scripts/diary-full-page-audit.js"
   },
   "dependencies": {
     "@bittingz/expo-widgets": "^3.0.2",

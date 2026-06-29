@@ -57,3 +57,8 @@ export function subscribeAlbumProjectSnapshot(
     listeners.get(projectId)?.delete(listener);
   };
 }
+
+export function clearAlbumProjectSnapshot(projectId: string): void {
+  snapshots.delete(projectId);
+  listeners.delete(projectId);
+}

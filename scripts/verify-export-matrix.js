@@ -114,6 +114,18 @@ assert(
   dimensionsSource.includes("formatType === 'hard'"),
   'exportPageDimensions: hard cover branch',
 );
+assert(
+  (dimensionsSource.includes('isDiaryBrownLineGuide') ||
+    dimensionsSource.includes('isDiaryPortraitLineGuide')) &&
+    dimensionsSource.includes('shouldUseFullBleedDiaryExport'),
+  'exportPageDimensions: diary full-bleed helpers',
+);
+assert(
+  (dimensionsSource.includes('isDiaryBrown') ||
+    dimensionsSource.includes('isDiaryPortrait')) &&
+    dimensionsSource.includes("formatType === 'electronic'"),
+  'exportPageDimensions: diary electronic branch',
+);
 
 const lineSlots = readJson('constants/line-slots.json');
 const samplePages = {

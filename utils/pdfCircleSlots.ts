@@ -5,6 +5,8 @@ type CircleFillTarget = {
   fieldId: string;
   option: string;
   fillColor: string;
+  fillOpacity?: number;
+  diameterBleed?: number;
   cx: number;
   cy: number;
   diameter: number;
@@ -15,6 +17,7 @@ type RectFillTarget = {
   fieldId: string;
   option: string;
   fillColor: string;
+  fillOpacity?: number;
   shape: 'rect';
   x: number;
   y: number;

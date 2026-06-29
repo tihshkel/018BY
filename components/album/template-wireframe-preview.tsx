@@ -2,7 +2,13 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { colors, radii, sansFont } from '@/constants/design-tokens';
+import {
+  BLANK_ALBUM_PHOTO_RADIUS,
+  colors,
+  radii,
+  sansFont,
+  templateWireframe,
+} from '@/constants/design-tokens';
 import type { PageFormat, PageValues } from '@/types/album-page-schema';
 import { getTemplateLayout } from '@/utils/photoPageTemplateManifest';
 
@@ -15,14 +21,16 @@ type TemplateWireframePreviewProps = {
 function getFieldPreviewValue(values: PageValues | undefined, blockId: string): string | undefined {
   if (!values?.fields) return undefined;
   const direct = values.fields[blockId] ?? values.fields[`_${blockId}`];
-  if (direct) return direct;
-  const match = Object.entries(values.fields).find(([fieldId, value]) =>
-    fieldId.endsWith(blockId) && value.trim().length > 0,
+  if (direct?.trim()) return direct;
+  const suffix = `_${blockId}`;
+  const match = Object.entries(values.fields).find(
+    ([fieldId, value]) =>
+      (fieldId === blockId || fieldId.endsWith(suffix)) && value.trim().length > 0,
   );
   return match?.[1];
 }
 
-export function TemplateWireframePreview({
+export const TemplateWireframePreview = React.memo(function TemplateWireframePreview({
   templateId,
   format,
   values,
@@ -38,15 +46,14 @@ export function TemplateWireframePreview({
     );
   }
 
-  const photoSlots =
-    layout.photoSlots ??
-    layout.events?.map((event) => event.photo) ??
-    [];
+  const photoSlots = layout.photoSlots ?? [];
+  const timelineEvents = layout.events ?? [];
 
   return (
     <View style={styles.canvas}>
       <View style={[styles.frame, { aspectRatio: aspect }]}>
         <View style={styles.pageWash} />
+
         {layout.freeCanvas ? (
           <View
             style={[
@@ -76,51 +83,87 @@ export function TemplateWireframePreview({
               },
             ]}
           >
-            <Ionicons name="image-outline" size={14} color={colors.primary} />
+            <Ionicons name="image-outline" size={14} color={templateWireframe.icon} />
           </View>
         ))}
 
-        {(layout.textBlocks ?? []).map((block) => {
-          const fieldValue = getFieldPreviewValue(values, block.id);
-          const captionValue =
-            block.type === 'caption'
-              ? values?.caption ?? values?.photoCaptions?.[Number(block.id.replace(/\D/g, '')) - 1]
-              : undefined;
-          const textValue = fieldValue || captionValue;
-
-          return (
+        {timelineEvents.map((event) => (
+          <React.Fragment key={event.id}>
             <View
-              key={block.id}
               style={[
                 styles.box,
-                styles.text,
+                styles.photo,
                 {
-                  left: `${block.x * 100}%`,
-                  top: `${block.y * 100}%`,
-                  width: `${block.w * 100}%`,
-                  height: `${block.h * 100}%`,
+                  left: `${event.photo.x * 100}%`,
+                  top: `${event.photo.y * 100}%`,
+                  width: `${event.photo.w * 100}%`,
+                  height: `${event.photo.h * 100}%`,
                 },
               ]}
             >
-              {textValue ? (
-                <Text numberOfLines={block.type === 'longText' ? 3 : 1} style={styles.textValue}>
-                  {textValue.trim()}
-                </Text>
-              ) : (
-                <View style={styles.textLines}>
-                  <View style={[styles.textLine, block.type === 'title' && styles.titleLine]} />
-                  {block.type === 'longText' ? (
-                    <>
-                      <View style={styles.textLine} />
-                      <View style={[styles.textLine, styles.shortLine]} />
-                    </>
-                  ) : null}
-                </View>
-              )}
+              <Ionicons name="image-outline" size={14} color={templateWireframe.icon} />
             </View>
-          );
-        })}
+            {renderTextWireframe(event.date, values)}
+            {renderTextWireframe(event.description, values)}
+          </React.Fragment>
+        ))}
+
+        {(layout.textBlocks ?? []).map((block) => renderTextWireframe(block, values))}
       </View>
+    </View>
+  );
+});
+
+function renderTextWireframe(
+  block: {
+    id: string;
+    type: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  },
+  values?: PageValues,
+) {
+  const fieldValue = getFieldPreviewValue(values, block.id);
+  const captionValue =
+    block.type === 'caption'
+      ? values?.caption ?? values?.photoCaptions?.[Number(block.id.replace(/\D/g, '')) - 1]
+      : undefined;
+  const textValue = fieldValue || captionValue;
+  const isLongText = block.type === 'longText';
+  const isTitle = block.type === 'title';
+  const isDate = block.type === 'date';
+
+  return (
+    <View
+      key={block.id}
+      style={[
+        styles.box,
+        styles.text,
+        {
+          left: `${block.x * 100}%`,
+          top: `${block.y * 100}%`,
+          width: `${block.w * 100}%`,
+          height: `${block.h * 100}%`,
+        },
+      ]}
+    >
+      {textValue ? (
+        <Text numberOfLines={isLongText ? 3 : 1} style={styles.textValue}>
+          {textValue.trim()}
+        </Text>
+      ) : (
+        <View style={styles.textLines}>
+          <View style={[styles.textLine, (isTitle || isDate) && styles.titleLine]} />
+          {isLongText ? (
+            <>
+              <View style={styles.textLine} />
+              <View style={[styles.textLine, styles.shortLine]} />
+            </>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }
@@ -128,16 +171,16 @@ export function TemplateWireframePreview({
 const styles = StyleSheet.create({
   canvas: {
     alignItems: 'center',
-    backgroundColor: colors.primarySurface,
+    backgroundColor: templateWireframe.canvas,
     height: '100%',
     justifyContent: 'center',
     overflow: 'hidden',
     width: '100%',
   },
   frame: {
-    backgroundColor: colors.white,
-    borderRadius: radii.sm,
-    borderColor: 'rgba(241, 148, 162, 0.22)',
+    backgroundColor: templateWireframe.page,
+    borderColor: colors.border,
+    borderRadius: radii.xs,
     borderWidth: StyleSheet.hairlineWidth,
     height: '92%',
     overflow: 'hidden',
@@ -146,18 +189,19 @@ const styles = StyleSheet.create({
   },
   pageWash: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#FFFDFC',
+    backgroundColor: templateWireframe.page,
   },
   box: {
     alignItems: 'center',
     justifyContent: 'center',
     position: 'absolute',
-    borderRadius: 6,
+    borderRadius: 4,
   },
   photo: {
-    backgroundColor: '#F7EEF0',
-    borderColor: 'rgba(241, 148, 162, 0.34)',
+    backgroundColor: templateWireframe.photoFill,
+    borderColor: templateWireframe.photoBorder,
     borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
   },
   text: {
     alignItems: 'stretch',
@@ -166,24 +210,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   dashed: {
-    borderWidth: 1,
+    backgroundColor: templateWireframe.dashedFill,
+    borderColor: templateWireframe.dashedBorder,
     borderStyle: 'dashed',
-    borderColor: 'rgba(241, 148, 162, 0.45)',
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    borderWidth: 1,
   },
   textLines: {
     gap: 3,
     width: '100%',
   },
   textLine: {
-    backgroundColor: '#E8DDE0',
+    backgroundColor: templateWireframe.textLine,
     borderRadius: 999,
     height: 3,
     width: '100%',
   },
   titleLine: {
-    backgroundColor: colors.primary,
-    opacity: 0.45,
+    backgroundColor: templateWireframe.textLineStrong,
   },
   shortLine: {
     width: '68%',
@@ -200,9 +243,9 @@ const styles = StyleSheet.create({
 function createPreviewShadow() {
   return {
     shadowColor: colors.textPrimary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1,
   };
 }

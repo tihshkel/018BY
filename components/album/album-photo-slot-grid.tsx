@@ -31,7 +31,7 @@ type AlbumPhotoSlotGridProps = {
   embedded?: boolean;
 };
 
-export function AlbumPhotoSlotGrid({
+export const AlbumPhotoSlotGrid = React.memo(function AlbumPhotoSlotGrid({
   block,
   selectedVariantId,
   slotUris,
@@ -47,6 +47,10 @@ export function AlbumPhotoSlotGrid({
   const variant =
     block.variants.find((item) => item.variantId === selectedVariantId) ?? block.variants[0];
   const slotCount = variant?.slots ?? slotUris.length;
+  const layoutSlotIndices =
+    variant?.slotIndices && variant.slotIndices.length === slotCount
+      ? variant.slotIndices
+      : undefined;
   const filledCount = slotUris.filter(Boolean).length;
 
   const collageLayout = useMemo(
@@ -57,8 +61,9 @@ export function AlbumPhotoSlotGrid({
         variantId: selectedVariantId,
         slotCount,
         templateLibraryId,
+        slotIndices: layoutSlotIndices,
       }),
-    [lineGuideId, selectedVariantId, slotCount, sourcePageNumber, templateLibraryId],
+    [layoutSlotIndices, lineGuideId, selectedVariantId, slotCount, sourcePageNumber, templateLibraryId],
   );
 
   const frames = collageLayout?.frames ?? getCollageSlotFrames(selectedVariantId, slotCount);
@@ -130,7 +135,7 @@ export function AlbumPhotoSlotGrid({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   section: {
