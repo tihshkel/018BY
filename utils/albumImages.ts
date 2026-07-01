@@ -427,6 +427,18 @@ export const BLANK_INTERIOR_PAGE_HEIGHT = 2835;
 export const BLANK_SQUARE_PAGE_WIDTH = 2480;
 export const BLANK_SQUARE_PAGE_HEIGHT = 2480;
 
+/** Aspect ratio for blank interior preview/export (portrait 18×24 or square 21×21). */
+export function getBlankInteriorPageAspect(lineGuideId?: string | null): number {
+  if (lineGuideId === 'family_blank_21x21') {
+    return BLANK_SQUARE_PAGE_WIDTH / BLANK_SQUARE_PAGE_HEIGHT;
+  }
+  return BLANK_INTERIOR_PAGE_WIDTH / BLANK_INTERIOR_PAGE_HEIGHT;
+}
+
+export function isSquareBlankLineGuide(lineGuideId?: string | null): boolean {
+  return lineGuideId === 'family_blank_21x21';
+}
+
 /** Меняем при замене blank_interior_page.png, чтобы сбросить кеш expo-image */
 export const BLANK_INTERIOR_CACHE_REVISION = 'white-v3-2126x2835';
 const HOLIDAY_BLANK_PAGE_COUNT = 20;

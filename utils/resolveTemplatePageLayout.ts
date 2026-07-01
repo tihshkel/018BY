@@ -19,14 +19,30 @@ import {
 
 const TEXT_LABELS: Record<string, string> = {
   caption1: 'Подпись',
-  caption2: 'Подпись 2',
-  caption3: 'Подпись 3',
-  caption4: 'Подпись 4',
+  caption2: 'Подпись к фото 2',
+  caption3: 'Подпись к фото 3',
+  caption4: 'Подпись к фото 4',
   title: 'Заголовок',
   story: 'История',
   body: 'Текст',
   signature: 'Подпись',
+  event1_date: 'Дата события 1',
+  event1_description: 'Описание события 1',
+  event2_date: 'Дата события 2',
+  event2_description: 'Описание события 2',
+  event3_date: 'Дата события 3',
+  event3_description: 'Описание события 3',
 };
+
+function resolveTextBlockLabel(blockId: string): string {
+  if (TEXT_LABELS[blockId]) return TEXT_LABELS[blockId];
+  if (blockId.endsWith('_date')) return 'Дата';
+  if (blockId.endsWith('_description')) return 'Описание';
+  if (blockId.startsWith('caption')) return 'Подпись';
+  if (blockId === 'title') return 'Заголовок';
+  if (blockId === 'story' || blockId === 'body') return 'Текст';
+  return 'Текст';
+}
 
 function slotToNormalized(slot: TemplatePhotoSlotDef) {
   const topY = slot.y;
@@ -113,10 +129,10 @@ function textBlockToField(
   const lineCount = textBlockLineCount(block);
   return {
     fieldId: `${schemaPageId}_${block.id}`,
-    label: TEXT_LABELS[block.id] ?? block.id,
+    label: resolveTextBlockLabel(block.id),
     type: block.type === 'date' ? 'date' : 'text',
     required: block.required ?? false,
-    placeholder: TEXT_LABELS[block.id] ?? block.id,
+    placeholder: resolveTextBlockLabel(block.id),
     maxLength: block.maxLength,
     templateLineStart: index,
     templateLineCount: lineCount,

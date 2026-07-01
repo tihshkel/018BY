@@ -13,10 +13,11 @@ import {
   MonthPageForm,
   TeethForm,
 } from '@/components/album/editors/special-page-forms';
-import { PageFormFields } from '@/components/album/page-form-fields';
+import { PageFormFields, TextFieldStyleToolbar } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import type { AlbumPageSchema, BirthdayCustomFieldValue, FieldTextStyle, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import { isSquareBlankLineGuide } from '@/utils/albumImages';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
 
@@ -25,6 +26,8 @@ type AlbumPageUnifiedEditorProps = {
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
+  onCaptionStyleChange?: (patch: Partial<FieldTextStyle>) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -52,6 +55,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   pageValues,
   lineGuideId,
   onFieldChange,
+  onFieldStyleChange,
+  onCaptionStyleChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -131,10 +136,13 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   );
 
   const fields = resolvedSchema.fields ?? [];
+  const showTextStyleToolbar = isSquareBlankLineGuide(lineGuideId);
   const formProps = {
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
+    fieldTextStyles: pageValues.fieldTextStyles,
+    onFieldStyleChange,
     lineGuideId,
     sourcePageNumber: resolvedSchema.sourcePageNumber,
   };
@@ -300,6 +308,13 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                 <AppText variant="caption" style={styles.captionLabel}>
                   Подпись к фото {slotIndex + 1}
                 </AppText>
+                {showTextStyleToolbar && onFieldStyleChange ? (
+                  <TextFieldStyleToolbar
+                    style={pageValues.fieldTextStyles?.[`caption${slotIndex + 1}`]}
+                    defaultAlign="center"
+                    onChange={(patch) => onFieldStyleChange(`caption${slotIndex + 1}`, patch)}
+                  />
+                ) : null}
                 <TextInput
                   style={styles.captionInput}
                   value={pageValues.photoCaptions?.[slotIndex] ?? ''}
@@ -317,6 +332,13 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
           </AppText>
+          {showTextStyleToolbar && onCaptionStyleChange ? (
+            <TextFieldStyleToolbar
+              style={pageValues.captionTextStyle}
+              defaultAlign="center"
+              onChange={onCaptionStyleChange}
+            />
+          ) : null}
           <TextInput
             style={styles.captionInput}
             value={pageValues.caption ?? ''}

@@ -17,6 +17,9 @@ export function getDefaultPageAspectRatio(params?: {
   sourceWidth?: number;
   sourceHeight?: number;
 }): number {
+  if (params?.lineGuideId === 'family_blank_21x21') {
+    return 1;
+  }
   if (params?.lineGuideId === 'kids_48') {
     return 1;
   }

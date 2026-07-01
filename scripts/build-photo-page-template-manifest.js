@@ -132,107 +132,134 @@ function scale1000(v) {
   return Math.round(v) / 1000;
 }
 
+/** 21×21 cm page — 15 mm margin on all sides (customer TZ). */
+const PAGE21_MM = 210;
+const MARGIN21_MM = 15;
+const INNER21_MM = PAGE21_MM - MARGIN21_MM * 2;
+
+function n21(mm) {
+  return mm / PAGE21_MM;
+}
+
+function slot21(id, xMm, yMm, wMm, hMm, required = true) {
+  return slot(id, n21(xMm), n21(yMm), n21(wMm), n21(hMm), required);
+}
+
+function text21(id, type, xMm, yMm, wMm, hMm, maxLength, required = false) {
+  return text(id, type, n21(xMm), n21(yMm), n21(wMm), n21(hMm), maxLength, required);
+}
+
 function from21(slots, texts, extra = {}) {
   return {
-    photoSlots: (slots ?? []).map((s) =>
-      slot(s.id, scale1000(s.frame.x), scale1000(s.frame.y), scale1000(s.frame.w), scale1000(s.frame.h), s.required !== false),
-    ),
-    textBlocks: (texts ?? []).map((t) =>
-      text(t.id, t.type, scale1000(t.frame.x), scale1000(t.frame.y), scale1000(t.frame.w), scale1000(t.frame.h), t.maxLength ?? 120, t.required === true),
-    ),
+    photoSlots: slots ?? [],
+    textBlocks: texts ?? [],
     ...extra,
+  };
+}
+
+function event21(id, photoYmm, dateYmm, descYmm, photoHmm = 38) {
+  const photoWmm = 58;
+  return {
+    id,
+    photo: slot21(`${id}_photo`, MARGIN21_MM, photoYmm, photoWmm, photoHmm, false),
+    date: text21(`${id}_date`, 'date', MARGIN21_MM + photoWmm + 4, dateYmm, INNER21_MM - photoWmm - 4, 8, 30),
+    description: text21(
+      `${id}_description`,
+      'longText',
+      MARGIN21_MM + photoWmm + 4,
+      descYmm,
+      INNER21_MM - photoWmm - 4,
+      photoHmm - 4,
+      200,
+    ),
   };
 }
 
 const LAYOUTS_21X21 = {
   SinglePhotoTemplate: from21(
-    [{ id: 'photo1', required: true, frame: { x: 90, y: 100, w: 820, h: 700 } }],
-    [{ id: 'caption1', type: 'caption', maxLength: 120, frame: { x: 140, y: 830, w: 720, h: 60 } }],
+    [slot21('photo1', MARGIN21_MM, 12, INNER21_MM, 148)],
+    [text21('caption1', 'caption', MARGIN21_MM, 168, INNER21_MM, 22, 120)],
     { minFilledRule: { minPhotos: 1 }, pageType: 'photo' },
   ),
   PhotoStoryTemplate: from21(
-    [{ id: 'photo1', required: true, frame: { x: 90, y: 90, w: 820, h: 480 } }],
+    [slot21('photo1', MARGIN21_MM, 12, INNER21_MM, 88)],
     [
-      { id: 'title', type: 'title', maxLength: 80, frame: { x: 90, y: 610, w: 820, h: 60 } },
-      { id: 'story', type: 'longText', maxLength: 700, frame: { x: 90, y: 690, w: 820, h: 220 } },
+      text21('title', 'title', MARGIN21_MM, 106, INNER21_MM, 14, 80),
+      text21('story', 'longText', MARGIN21_MM, 123, INNER21_MM, 67, 700),
     ],
     { minFilledRule: { minPhotos: 1 }, pageType: 'free' },
   ),
   TwoVerticalPhotosTemplate: from21(
     [
-      { id: 'photo1', frame: { x: 90, y: 120, w: 390, h: 640 } },
-      { id: 'photo2', frame: { x: 520, y: 120, w: 390, h: 640 } },
+      slot21('photo1', MARGIN21_MM, 12, 86, 148),
+      slot21('photo2', MARGIN21_MM + 94, 12, 86, 148),
     ],
     [
-      { id: 'caption1', type: 'caption', maxLength: 80, frame: { x: 90, y: 790, w: 390, h: 60 } },
-      { id: 'caption2', type: 'caption', maxLength: 80, frame: { x: 520, y: 790, w: 390, h: 60 } },
+      text21('caption1', 'caption', MARGIN21_MM, 166, 86, 18, 80),
+      text21('caption2', 'caption', MARGIN21_MM + 94, 166, 86, 18, 80),
     ],
     { minFilledRule: { minPhotos: 2 }, pageType: 'photo' },
   ),
   TwoHorizontalPhotosTemplate: from21(
     [
-      { id: 'photo1', frame: { x: 90, y: 100, w: 820, h: 330 } },
-      { id: 'photo2', frame: { x: 90, y: 510, w: 820, h: 330 } },
+      slot21('photo1', MARGIN21_MM, 12, INNER21_MM, 72),
+      slot21('photo2', MARGIN21_MM, 92, INNER21_MM, 72),
     ],
     [
-      { id: 'caption1', type: 'caption', maxLength: 90, frame: { x: 120, y: 445, w: 760, h: 45 } },
-      { id: 'caption2', type: 'caption', maxLength: 90, frame: { x: 120, y: 855, w: 760, h: 45 } },
+      text21('caption1', 'caption', MARGIN21_MM, 84, INNER21_MM, 10, 90),
+      text21('caption2', 'caption', MARGIN21_MM, 164, INNER21_MM, 10, 90),
     ],
     { minFilledRule: { minPhotos: 2 }, pageType: 'photo' },
   ),
   ThreePhotosTemplate: from21(
     [
-      { id: 'photo1', frame: { x: 90, y: 90, w: 820, h: 420 } },
-      { id: 'photo2', frame: { x: 90, y: 550, w: 390, h: 260 } },
-      { id: 'photo3', frame: { x: 520, y: 550, w: 390, h: 260 } },
+      slot21('photo1', MARGIN21_MM, 12, INNER21_MM, 92),
+      slot21('photo2', MARGIN21_MM, 112, 86, 58),
+      slot21('photo3', MARGIN21_MM + 94, 112, 86, 58),
     ],
-    [{ id: 'caption1', type: 'caption', maxLength: 120, frame: { x: 120, y: 845, w: 760, h: 55 } }],
+    [text21('caption1', 'caption', MARGIN21_MM, 176, INNER21_MM, 12, 120)],
     { minFilledRule: { minPhotos: 1 }, pageType: 'photo' },
   ),
   FourPhotosTemplate: from21(
     [
-      { id: 'photo1', frame: { x: 90, y: 100, w: 390, h: 330 } },
-      { id: 'photo2', frame: { x: 520, y: 100, w: 390, h: 330 } },
-      { id: 'photo3', frame: { x: 90, y: 470, w: 390, h: 330 } },
-      { id: 'photo4', frame: { x: 520, y: 470, w: 390, h: 330 } },
+      slot21('photo1', MARGIN21_MM, 12, 86, 72),
+      slot21('photo2', MARGIN21_MM + 94, 12, 86, 72),
+      slot21('photo3', MARGIN21_MM, 92, 86, 72),
+      slot21('photo4', MARGIN21_MM + 94, 92, 86, 72),
     ],
-    [{ id: 'caption1', type: 'caption', maxLength: 120, frame: { x: 120, y: 840, w: 760, h: 55 } }],
+    [text21('caption1', 'caption', MARGIN21_MM, 170, INNER21_MM, 14, 120)],
     { minFilledRule: { minPhotos: 1 }, pageType: 'photo' },
   ),
   CaptionGalleryTemplate: from21(
     [
-      { id: 'photo1', frame: { x: 90, y: 90, w: 370, h: 250 } },
-      { id: 'photo2', frame: { x: 540, y: 90, w: 370, h: 250 } },
-      { id: 'photo3', frame: { x: 90, y: 450, w: 370, h: 250 } },
-      { id: 'photo4', frame: { x: 540, y: 450, w: 370, h: 250 } },
+      slot21('photo1', MARGIN21_MM, 12, 86, 58),
+      slot21('photo2', MARGIN21_MM + 94, 12, 86, 58),
+      slot21('photo3', MARGIN21_MM, 88, 86, 58),
+      slot21('photo4', MARGIN21_MM + 94, 88, 86, 58),
     ],
     [
-      { id: 'caption1', type: 'caption', maxLength: 70, frame: { x: 90, y: 355, w: 370, h: 50 } },
-      { id: 'caption2', type: 'caption', maxLength: 70, frame: { x: 540, y: 355, w: 370, h: 50 } },
-      { id: 'caption3', type: 'caption', maxLength: 70, frame: { x: 90, y: 715, w: 370, h: 50 } },
-      { id: 'caption4', type: 'caption', maxLength: 70, frame: { x: 540, y: 715, w: 370, h: 50 } },
+      text21('caption1', 'caption', MARGIN21_MM, 72, 86, 12, 70),
+      text21('caption2', 'caption', MARGIN21_MM + 94, 72, 86, 12, 70),
+      text21('caption3', 'caption', MARGIN21_MM, 148, 86, 12, 70),
+      text21('caption4', 'caption', MARGIN21_MM + 94, 148, 86, 12, 70),
     ],
     { minFilledRule: { minPhotos: 1 }, pageType: 'caption_photo_page', perPhotoCaptions: true },
   ),
   TimelineTemplate: {
-    events: [
-      event('event1', 0.09, 0.09, 0.09, 0.18),
-      event('event2', 0.39, 0.39, 0.39, 0.18),
-      event('event3', 0.69, 0.69, 0.69, 0.18),
-    ],
+    events: [event21('event1', 12, 14, 16), event21('event2', 72, 74, 76), event21('event3', 132, 134, 136)],
     minFilledRule: { minTimelineEvents: 1 },
     pageType: 'timeline_page',
   },
   TextPageTemplate: from21(
     [],
     [
-      { id: 'title', type: 'title', maxLength: 90, frame: { x: 90, y: 100, w: 820, h: 90 } },
-      { id: 'body', type: 'longText', maxLength: 1800, frame: { x: 120, y: 230, w: 760, h: 600 } },
+      text21('title', 'title', MARGIN21_MM, 12, INNER21_MM, 18, 90),
+      text21('body', 'longText', MARGIN21_MM, 34, INNER21_MM, 156, 1800),
     ],
     { minFilledRule: { minTextFields: 1 }, pageType: 'text_page' },
   ),
   FreePageTemplate: {
-    freeCanvas: { x: 0.06, y: 0.06, w: 0.88, h: 0.88 },
+    freeCanvas: { x: n21(MARGIN21_MM), y: n21(MARGIN21_MM), w: n21(INNER21_MM), h: n21(INNER21_MM) },
     limits: { maxPhotos: 4, maxTextBlocks: 5, maxRotationDegrees: 15 },
     minFilledRule: { minAnyContent: true },
     pageType: 'free_page',

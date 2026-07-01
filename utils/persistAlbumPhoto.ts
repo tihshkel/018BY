@@ -103,19 +103,37 @@ export async function persistAlbumPhotoUri(
   }
 }
 
+async function findManagedPhotoByKey(relativeKey: string): Promise<string | null> {
+  const base = sanitizeStorageKey(relativeKey);
+  for (const ext of ['jpg', 'png', 'heic'] as const) {
+    const candidate = normalizeFileUri(`${ALBUM_PHOTOS_DIR}${base}.${ext}`);
+    if (await photoUriExists(candidate)) return candidate;
+  }
+  return null;
+}
+
 async function resolveStoredPhotoUri(
   uri: string,
   relativeKey: string,
 ): Promise<string | null> {
-  if (isManagedAlbumPhotoUri(uri) || isRemotePhotoUri(uri)) {
+  if (isRemotePhotoUri(uri)) {
     return (await photoUriExists(uri)) ? uri : null;
   }
 
-  if (!(await photoUriExists(uri))) {
-    return null;
+  if (isManagedAlbumPhotoUri(uri)) {
+    if (await photoUriExists(uri)) return uri;
+    const fallback = await findManagedPhotoByKey(relativeKey);
+    return fallback;
   }
 
-  return persistAlbumPhotoUri(uri, relativeKey);
+  if (await photoUriExists(uri)) {
+    return persistAlbumPhotoUri(uri, relativeKey);
+  }
+
+  const fallback = await findManagedPhotoByKey(relativeKey);
+  if (fallback) return fallback;
+
+  return uri;
 }
 
 export type SanitizePageValuesPhotosParams = {
@@ -146,6 +164,10 @@ export async function sanitizePageValuesPhotos({
         uri,
         buildAlbumPhotoStorageKey({ projectId, instanceId, blockId, slotIndex }),
       );
+
+      if (!resolved) {
+        continue;
+      }
 
       if (resolved !== uri) {
         slots[slotIndex] = resolved;
@@ -179,7 +201,7 @@ export async function sanitizePageValuesPhotos({
       );
 
       if (!resolved) {
-        changed = true;
+        nextElements.push(element);
         continue;
       }
 

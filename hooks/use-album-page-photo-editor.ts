@@ -9,6 +9,8 @@ import {
   persistAlbumPhotoUri,
 } from '@/utils/persistAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
+import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
+import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
@@ -92,14 +94,6 @@ export function useAlbumPagePhotoEditor({
 
       const uri = await pickPhotoFromLibrary({
         ensurePermission: ensureMediaLibraryPermission,
-        aspect: resolvedSchema
-          ? getSlotAspectRatio({
-              lineGuideId: resolvedSchema.lineGuideId,
-              page: resolvedSchema.sourcePageNumber,
-              variantId,
-              slotIndex,
-            })
-          : undefined,
       });
       if (!uri) return;
 
@@ -116,13 +110,46 @@ export function useAlbumPagePhotoEditor({
             )
           : uri;
 
+      const slotAspect = resolvedSchema
+        ? getSlotAspectRatio({
+            lineGuideId: resolvedSchema.lineGuideId,
+            page: resolvedSchema.sourcePageNumber,
+            variantId,
+            slotIndex,
+          })
+        : undefined;
+      const imageSize = await resolvePageSourceSize(persistentUri);
+      const initialTransform = buildInitialPhotoSlotTransform({
+        slotAspect,
+        imageWidth: imageSize?.width,
+        imageHeight: imageSize?.height,
+      });
+      const transformKey = photoSlotTransformKey(blockId, slotIndex);
+
       updateBlock(blockId, (prev) => {
         const slots = [...prev.slots];
         slots[slotIndex] = persistentUri;
         return { ...prev, slots };
       });
+
+      updatePageValues((prev) => ({
+        ...prev,
+        photoSlotTransforms: {
+          ...prev.photoSlotTransforms,
+          [transformKey]: initialTransform,
+        },
+      }));
     },
-    [blocks, ensureMediaLibraryPermission, instanceId, photoBlocks, projectId, updateBlock],
+    [
+      blocks,
+      ensureMediaLibraryPermission,
+      instanceId,
+      photoBlocks,
+      projectId,
+      resolvedSchema,
+      updateBlock,
+      updatePageValues,
+    ],
   );
 
   const handleRemovePhoto = useCallback(

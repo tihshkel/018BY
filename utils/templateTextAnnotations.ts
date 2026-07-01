@@ -54,11 +54,25 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   const layout = getTemplateLayout(schema.templateLibraryId, format);
   if (!layout) return { annotations, zIndex };
 
-  const pushText = (text: string, fieldIdSuffix: string) => {
+  const pushText = (
+    text: string,
+    fieldIdSuffix: string,
+    styleKey?: string,
+    defaultAlign: 'left' | 'center' | 'right' = 'left',
+  ) => {
     const block = getTextBlockRect(schema.templateLibraryId!, format, fieldIdSuffix);
     if (!block) return;
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
-    const preferredFontSize = estimateTemplateFontSize(block.h, viewportHeight) || fontSize;
+    const fieldStyle = styleKey ? values.fieldTextStyles?.[styleKey] : undefined;
+    const captionStyle =
+      fieldIdSuffix.includes('caption') && !styleKey ? values.captionTextStyle : undefined;
+    const textAlign =
+      fieldStyle?.textAlign ?? captionStyle?.textAlign ?? defaultAlign;
+    const preferredFontSize =
+      fieldStyle?.fontSize ??
+      captionStyle?.fontSize ??
+      estimateTemplateFontSize(block.h, viewportHeight) ||
+      fontSize;
     const fitted = fitTextToTemplateBlock({
       text,
       boxWidth: rect.width,
@@ -72,9 +86,10 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
       type: 'text',
       page: schema.sourcePageNumber,
       content: fitted.lines.join('\n'),
-      fontSize: fitted.fontSize,
+      fontSize: fieldStyle?.fontSize ?? captionStyle?.fontSize ?? fitted.fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
+      textAlign,
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       x: rect.x,
@@ -87,7 +102,10 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   for (const field of schema.fields ?? []) {
     const text = values.fields[field.fieldId];
     if (!hasText(text)) continue;
-    pushText(text!, field.fieldId);
+    const defaultAlign = field.fieldId.endsWith('_title') || field.label === 'Заголовок'
+      ? 'center'
+      : 'left';
+    pushText(text!, field.fieldId, field.fieldId, defaultAlign);
   }
 
   const captionBlocks =
@@ -96,28 +114,33 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
     captionBlocks.length === 1 && !layout.perPhotoCaptions && hasText(values.caption);
 
   if (useSingleCaption && values.caption) {
-    pushText(values.caption, `_${captionBlocks[0]!.id}`);
+    pushText(values.caption, `_${captionBlocks[0]!.id}`, undefined, 'center');
   }
 
   if (layout.perPhotoCaptions && values.photoCaptions?.length) {
     for (let i = 0; i < values.photoCaptions.length; i += 1) {
       const text = values.photoCaptions[i];
       if (!hasText(text)) continue;
-      pushText(text!, `_caption${i + 1}`);
+      pushText(text!, `_caption${i + 1}`, `caption${i + 1}`, 'center');
     }
   }
 
   for (const element of values.freeElements ?? []) {
     if (element.type === 'text' && hasText(element.content)) {
       const rect = mapTemplateFrameToViewport(element, editorContentRect);
+      const elementStyle = values.fieldTextStyles?.[`free_${element.id}`];
       annotations.push({
         id: stableAnnotationId('free-text', lineGuideId, schema.sourcePageNumber, element.id),
         type: 'text',
         page: schema.sourcePageNumber,
         content: element.content!.trim(),
-        fontSize: estimateTemplateFontSize(element.h, viewportHeight) || fontSize,
+        fontSize:
+          elementStyle?.fontSize ??
+          estimateTemplateFontSize(element.h, viewportHeight) ||
+          fontSize,
         fontFamily: textFontFamily,
         color: '#3D3D3D',
+        textAlign: elementStyle?.textAlign ?? 'left',
         zIndex: zIndex++,
         sourcePageNumber: schema.sourcePageNumber,
         x: rect.x,
@@ -171,15 +194,27 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
     if (!block) continue;
 
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
+    const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
+    const preferredFontSize =
+      fieldStyle?.fontSize ?? estimateTemplateFontSize(block.h, viewportHeight) || fontSize;
+    const fitted = fitTextToTemplateBlock({
+      text: text!.trim(),
+      boxWidth: rect.width,
+      boxHeight: rect.height,
+      fontId: textFontFamily,
+      preferredFontSize,
+    });
+    if (fitted.lines.length === 0) continue;
+
     annotations.push({
       id: stableAnnotationId('template-caption', lineGuideId, schema.sourcePageNumber, block.id, i),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: text!.trim(),
-      fontSize: estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      content: fitted.lines.join('\n'),
+      fontSize: fieldStyle?.fontSize ?? fitted.fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
-      textAlign: 'center',
+      textAlign: fieldStyle?.textAlign ?? 'center',
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       x: rect.x,
@@ -220,6 +255,7 @@ export function appendBlankTemplateFreeImageAnnotations(params: {
       height: rect.height,
       imageUri: element.content!,
       imageContentFit: 'cover',
+      imageSlotTransform: element.crop,
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
     });

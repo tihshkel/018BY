@@ -1,5 +1,6 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplateById } from '@/albums';
+import { usesSquareBlankInterior } from '@/constants/square-blank-interior';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
 import { getCoverPdfForExport } from '@/utils/coverPdfMapping';
@@ -88,6 +89,7 @@ export default function CoverViewer({
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const editorViewportWidth = getEditorPageViewportWidth(windowWidth);
   const isTabletEditor = isTabletDevice(windowWidth);
+  const isSquareCover = usesSquareBlankInterior(coverType ?? albumId);
 
   const [lastTextStyle, setLastTextStyle] = useState<{ color?: string; fontSize?: number; fontFamily?: string } | null>(null);
 
@@ -459,8 +461,8 @@ export default function CoverViewer({
               >
                 <Image
                   source={{ uri: imageUri }}
-                  style={styles.coverImage}
-                  contentFit="contain"
+                  style={[styles.coverImage, isSquareCover && styles.coverImageSquare]}
+                  contentFit={isSquareCover ? 'cover' : 'contain'}
                   transition={200}
                 />
                 
@@ -531,6 +533,9 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: '100%',
+  },
+  coverImageSquare: {
+    backgroundColor: colors.background,
   },
   pageIndicator: {
     position: 'absolute',

@@ -15,6 +15,7 @@ import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import {
   clampPhotoOffset,
   clampPhotoScale,
+  clampPhotoScaleBetween,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
   applyPhotoSlotTransform,
@@ -69,6 +70,11 @@ function PhotoSlotFilled({
   const offsetY = useSharedValue(transform.offsetY || 0);
   const slotWidth = useSharedValue(120);
   const slotHeight = useSharedValue(120);
+  const minCoverScale = useSharedValue(1);
+
+  useEffect(() => {
+    minCoverScale.value = Math.max(1, transform.scale || 1);
+  }, [minCoverScale, transform.scale, uri]);
 
   useEffect(() => {
     const next = normalizePhotoSlotTransform(transform);
@@ -110,8 +116,14 @@ function PhotoSlotFilled({
 
   const pinchGesture = Gesture.Pinch()
     .enabled(gesturesEnabled !== false)
+    .onBegin(() => {
+      savedScale.value = scale.value;
+    })
     .onUpdate((event) => {
-      scale.value = clampPhotoScale(savedScale.value * event.scale);
+      scale.value = clampPhotoScaleBetween(
+        savedScale.value * event.scale,
+        minCoverScale.value,
+      );
     })
     .onEnd(() => {
       savedScale.value = scale.value;

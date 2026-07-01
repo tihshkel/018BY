@@ -15,8 +15,8 @@ import {
 import { launchPhotoLibrary } from '@/utils/launchPhotoLibrary';
 import {
   BLANK_INTERIOR_CACHE_REVISION,
-  BLANK_INTERIOR_PAGE_HEIGHT,
-  BLANK_INTERIOR_PAGE_WIDTH,
+  getBlankInteriorPageAspect,
+  isSquareBlankLineGuide,
 } from '@/utils/albumImages';
 import { isLineSlotDebugEnabled } from '@/constants/line-slot-debug';
 import { LineGuideDevOverlay } from '@/components/line-guide-dev-overlay';
@@ -286,7 +286,7 @@ export default function ImageViewer({
 
   const blankPageLayout = useMemo(() => {
     if (!isBlankInteriorAlbum) return null;
-    const aspect = BLANK_INTERIOR_PAGE_WIDTH / BLANK_INTERIOR_PAGE_HEIGHT;
+    const aspect = getBlankInteriorPageAspect(lineGuideId);
     let width = editorViewportWidth * 0.9;
     let height = width / aspect;
     const maxHeight = containerHeight * 0.9;
@@ -294,8 +294,8 @@ export default function ImageViewer({
       height = maxHeight;
       width = height * aspect;
     }
-    return { width, height };
-  }, [isBlankInteriorAlbum, containerHeight, editorViewportWidth]);
+    return { width, height, square: isSquareBlankLineGuide(lineGuideId) };
+  }, [isBlankInteriorAlbum, containerHeight, editorViewportWidth, lineGuideId]);
 
   const annotationsByPage = useMemo(() => {
     const map = new Map<number, Annotation[]>();
@@ -862,7 +862,13 @@ export default function ImageViewer({
                       pointerEvents="box-none"
                     >
                       {isBlankInteriorAlbum && blankPageLayout ? (
-                        <View style={[styles.blankPageFrame, blankPageLayout]} pointerEvents="none">
+                        <View
+                          style={[
+                            blankPageLayout.square ? styles.blankPageFrameSquare : styles.blankPageFrame,
+                            { width: blankPageLayout.width, height: blankPageLayout.height },
+                          ]}
+                          pointerEvents="none"
+                        >
                           <Image
                             source={{ uri: imageUri }}
                             style={styles.blankPageImage}
@@ -1071,6 +1077,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 6,
+  },
+  blankPageFrameSquare: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    overflow: 'hidden',
   },
   blankPageImage: {
     width: '100%',

@@ -5,7 +5,8 @@ import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
 import { useAppScreenScrollToField } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageField } from '@/types/album-page-schema';
+import type { AlbumPageField, FieldTextStyle } from '@/types/album-page-schema';
+import { isSquareBlankLineGuide } from '@/utils/albumImages';
 import { parseAlbumDate } from '@/utils/albumDateFormat';
 import {
   clampFieldInput,
@@ -19,10 +20,70 @@ type PageFormFieldsProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
   onChange: (fieldId: string, value: string) => void;
+  fieldTextStyles?: Record<string, FieldTextStyle>;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   sectionTitle?: string;
   lineGuideId: string;
   sourcePageNumber: number;
 };
+
+const MIN_FIELD_FONT_SIZE = 10;
+const MAX_FIELD_FONT_SIZE = 28;
+
+export function TextFieldStyleToolbar({
+  style,
+  defaultAlign,
+  onChange,
+}: {
+  style?: FieldTextStyle;
+  defaultAlign: 'left' | 'center' | 'right';
+  onChange: (patch: Partial<FieldTextStyle>) => void;
+}) {
+  const textAlign = style?.textAlign ?? defaultAlign;
+  const fontSize = style?.fontSize ?? 14;
+
+  return (
+    <View style={styles.toolbar}>
+      <View style={styles.alignGroup}>
+        {(['left', 'center', 'right'] as const).map((align) => {
+          const selected = textAlign === align;
+          const label = align === 'left' ? 'Слева' : align === 'center' ? 'Центр' : 'Справа';
+          return (
+            <Pressable
+              key={align}
+              onPress={() => onChange({ textAlign: align })}
+              style={[styles.alignButton, selected && styles.alignButtonSelected]}
+              accessibilityLabel={`Выравнивание: ${label}`}
+            >
+              <AppText variant="caption" style={selected ? styles.alignLabelSelected : styles.alignLabel}>
+                {label}
+              </AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.fontSizeGroup}>
+        <Pressable
+          onPress={() => onChange({ fontSize: Math.max(MIN_FIELD_FONT_SIZE, fontSize - 1) })}
+          style={styles.fontSizeButton}
+          accessibilityLabel="Уменьшить шрифт"
+        >
+          <AppText variant="caption">A−</AppText>
+        </Pressable>
+        <AppText variant="caption" style={styles.fontSizeValue}>
+          {fontSize} pt
+        </AppText>
+        <Pressable
+          onPress={() => onChange({ fontSize: Math.min(MAX_FIELD_FONT_SIZE, fontSize + 1) })}
+          style={styles.fontSizeButton}
+          accessibilityLabel="Увеличить шрифт"
+        >
+          <AppText variant="caption">A+</AppText>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
 type TypedFormFieldProps = {
   field: AlbumPageField;
@@ -160,12 +221,18 @@ const AlbumFormField = memo(function AlbumFormField({
   fieldId,
   onFieldChange,
   characterLimit,
+  fieldStyle,
+  onFieldStyleChange,
+  showTextStyleToolbar,
 }: {
   field: AlbumPageField;
   value: string;
   fieldId: string;
   onFieldChange: (fieldId: string, value: string) => void;
   characterLimit?: number;
+  fieldStyle?: FieldTextStyle;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
+  showTextStyleToolbar?: boolean;
 }) {
   const fieldRef = useRef<View>(null);
   const scrollToField = useAppScreenScrollToField();
@@ -179,11 +246,26 @@ const AlbumFormField = memo(function AlbumFormField({
     [fieldId, onFieldChange]
   );
 
+  const defaultAlign =
+    field.fieldId.endsWith('_title') || field.label === 'Заголовок' ? 'center' : 'left';
+  const showToolbar =
+    showTextStyleToolbar &&
+    onFieldStyleChange &&
+    field.type !== 'date' &&
+    field.type !== 'radio';
+
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
       <AppText variant="caption" style={styles.label}>
         {field.label}
       </AppText>
+      {showToolbar ? (
+        <TextFieldStyleToolbar
+          style={fieldStyle}
+          defaultAlign={defaultAlign}
+          onChange={(patch) => onFieldStyleChange(fieldId, patch)}
+        />
+      ) : null}
       {field.type === 'date' ? (
         <View>
           <DateFormField
@@ -214,10 +296,13 @@ export const PageFormFields = memo(function PageFormFields({
   fields,
   values,
   onChange,
+  fieldTextStyles,
+  onFieldStyleChange,
   sectionTitle,
   lineGuideId,
   sourcePageNumber,
 }: PageFormFieldsProps) {
+  const showTextStyleToolbar = isSquareBlankLineGuide(lineGuideId);
   const fieldLimits = useMemo(() => {
     const limits: Record<string, number | undefined> = {};
     for (const field of fields) {
@@ -251,6 +336,9 @@ export const PageFormFields = memo(function PageFormFields({
             value={value}
             onFieldChange={onChange}
             characterLimit={characterLimit}
+            fieldStyle={fieldTextStyles?.[field.fieldId]}
+            onFieldStyleChange={onFieldStyleChange}
+            showTextStyleToolbar={showTextStyleToolbar}
           />
         );
       })}
@@ -327,5 +415,52 @@ const styles = StyleSheet.create({
   radioDotSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  alignGroup: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  alignButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  alignButtonSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySurface,
+  },
+  alignLabel: {
+    color: colors.textSecondary,
+  },
+  alignLabelSelected: {
+    color: colors.primary,
+    fontFamily: sansFont('semibold'),
+  },
+  fontSizeGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fontSizeButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fontSizeValue: {
+    color: colors.textSecondary,
+    minWidth: 44,
+    textAlign: 'center',
   },
 });

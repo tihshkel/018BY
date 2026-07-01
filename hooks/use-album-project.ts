@@ -22,6 +22,7 @@ import {
   getSchemaForInstance,
 } from '@/utils/albumProjectInit';
 import { migrateBirthdayPageValuesMap } from '@/utils/migrateBirthdayPageValues';
+import { migrateBlankAlbumPhotosMap } from '@/utils/migrateBlankAlbumPhotos';
 import { migrateProjectToPageValues } from '@/utils/migrateToPageValues';
 import {
   buildAnnotationsForProject,
@@ -733,6 +734,28 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           );
           if (birthdayMigrated.changed) {
             finalValues = birthdayMigrated.pageValuesMap;
+            for (const instance of mergedInstances) {
+              const schema = getSchemaForInstance(instance, lgId);
+              const current = finalValues[instance.instanceId];
+              if (schema && current) {
+                finalValues[instance.instanceId] = refreshPageValuesStatus(schema, current);
+              }
+            }
+            await savePageValuesMap(
+              (k, v) => AsyncStorage.setItem(k, v),
+              projectId,
+              finalValues,
+            );
+          }
+
+          const blankMigrated = await migrateBlankAlbumPhotosMap(
+            projectId,
+            mergedInstances,
+            finalValues,
+            lgId,
+          );
+          if (blankMigrated.changed) {
+            finalValues = blankMigrated.pageValuesMap;
             for (const instance of mergedInstances) {
               const schema = getSchemaForInstance(instance, lgId);
               const current = finalValues[instance.instanceId];

@@ -10,6 +10,11 @@ export const MIN_PHOTO_SCALE = 0.6;
 export const MAX_PHOTO_SCALE = 3.5;
 export const MAX_PHOTO_OFFSET = 1.2;
 
+export function clampPhotoScaleBetween(scale: number, minScale: number, maxScale = MAX_PHOTO_SCALE): number {
+  'worklet';
+  return Math.min(maxScale, Math.max(minScale, scale));
+}
+
 export function photoSlotTransformKey(blockId: string, slotIndex: number): string {
   return `${blockId}_${slotIndex}`;
 }

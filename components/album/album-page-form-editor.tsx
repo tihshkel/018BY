@@ -23,7 +23,7 @@ import { useDeferredRecord, useDeferredText } from '@/hooks/use-deferred-record'
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import type { useStableAlbumProjectActions } from '@/hooks/use-stable-album-project-actions';
-import type { PageInstance, PageValues } from '@/types/album-page-schema';
+import type { FieldTextStyle, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { AlbumPageSchema } from '@/types/album-page-schema';
 import { hasFormTextInput, usesUnifiedPhotoEditor } from '@/utils/albumPageNavigation';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -214,6 +214,35 @@ export const AlbumPageFormEditor = forwardRef<
     [setDraftPhotoCaption],
   );
 
+  const handleFieldStyleChange = useCallback(
+    (fieldId: string, patch: Partial<FieldTextStyle>) => {
+      projectActions.commitPagePatch(instanceId, (prev) => ({
+        ...prev,
+        fieldTextStyles: {
+          ...prev.fieldTextStyles,
+          [fieldId]: {
+            ...prev.fieldTextStyles?.[fieldId],
+            ...patch,
+          },
+        },
+      }));
+    },
+    [instanceId, projectActions],
+  );
+
+  const handleCaptionStyleChange = useCallback(
+    (patch: Partial<FieldTextStyle>) => {
+      projectActions.commitPagePatch(instanceId, (prev) => ({
+        ...prev,
+        captionTextStyle: {
+          ...prev.captionTextStyle,
+          ...patch,
+        },
+      }));
+    },
+    [instanceId, projectActions],
+  );
+
   const handleFreeElementsChange = useCallback(
     (elements: PageValues['freeElements']) => {
       replaceDraftFreeElements(elements ?? []);
@@ -287,6 +316,8 @@ export const AlbumPageFormEditor = forwardRef<
       projectId={projectId}
       instanceId={instanceId}
       onFieldChange={handleFieldChange}
+      onFieldStyleChange={handleFieldStyleChange}
+      onCaptionStyleChange={handleCaptionStyleChange}
       onCaptionChange={handleCaptionChange}
       onPhotoCaptionChange={handlePhotoCaptionChange}
       onSelectVariant={photoEditor.handleSelectVariant}

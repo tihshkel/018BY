@@ -150,6 +150,10 @@ export interface PageValues {
   photoGroupTransform?: PhotoSlotTransform;
   /** ID шрифта из AVAILABLE_FONTS для всего текста страницы */
   textFontFamily?: string;
+  /** Per-field alignment and font size (blank templates). */
+  fieldTextStyles?: Record<string, FieldTextStyle>;
+  /** Caption / single-caption alignment and size. */
+  captionTextStyle?: FieldTextStyle;
   status: PageStatus;
   updatedAt: string;
   excludedFromExport?: boolean;
@@ -194,6 +198,11 @@ export type PhotoSlotTransform = {
   scale: number;
   offsetX: number;
   offsetY: number;
+};
+
+export type FieldTextStyle = {
+  textAlign?: 'left' | 'center' | 'right';
+  fontSize?: number;
 };
 
 export const PAGE_SCHEMA_VERSION = '2.0.0';

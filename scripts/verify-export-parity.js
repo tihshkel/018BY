@@ -106,9 +106,25 @@ assert(
   'export viewport defaults kids_48 pages to square aspect',
 );
 assert(
-  textLineSource.includes('getLineSlotsForPage') &&
-    textLineSource.includes('mapSourceNormToViewport'),
-  'line slots are mapped from normalized source coordinates into viewport',
+  viewportSource.includes("lineGuideId === 'family_blank_21x21'"),
+  'export viewport uses square aspect for family_blank_21x21',
+);
+assert(
+  read('components/image-viewer.tsx').includes('getBlankInteriorPageAspect'),
+  'image viewer uses blank interior aspect helper',
+);
+assert(
+  read('utils/templateTextAnnotations.ts').includes('fieldTextStyles') &&
+    read('utils/templateTextAnnotations.ts').includes('textAlign'),
+  'blank template text annotations respect field text styles',
+);
+assert(
+  read('utils/migrateBlankAlbumPhotos.ts').includes('migrateBlankAlbumPhotosMap'),
+  'blank album photo migration runs before sanitize',
+);
+assert(
+  read('hooks/use-album-project.ts').includes('migrateBlankAlbumPhotosMap'),
+  'album project load invokes blank photo migration',
 );
 
 for (const albumId of DESIGNED_ALBUM_IDS) {

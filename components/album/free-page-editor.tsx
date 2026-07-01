@@ -16,8 +16,17 @@ import { Image } from 'expo-image';
 
 import { AppButton, AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, FreePageElement } from '@/types/album-page-schema';
+import type { AlbumPageSchema, FreePageElement, PhotoSlotTransform } from '@/types/album-page-schema';
 import { createId } from '@/utils/id';
+import {
+  applyPhotoSlotTransform,
+  clampPhotoOffset,
+  clampPhotoScaleBetween,
+  DEFAULT_PHOTO_SLOT_TRANSFORM,
+  normalizePhotoSlotTransform,
+} from '@/utils/photoSlotTransform';
+import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
+import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -56,6 +65,115 @@ type DraggableElementProps = {
   onChange: (next: FreePageElement) => void;
 };
 
+function FreeImageCropLayer({
+  uri,
+  crop,
+  selected,
+  onCropChange,
+}: {
+  uri: string;
+  crop: PhotoSlotTransform;
+  selected: boolean;
+  onCropChange: (crop: PhotoSlotTransform) => void;
+}) {
+  const savedScale = useSharedValue(crop.scale || 1);
+  const savedOffsetX = useSharedValue(crop.offsetX || 0);
+  const savedOffsetY = useSharedValue(crop.offsetY || 0);
+  const scale = useSharedValue(crop.scale || 1);
+  const offsetX = useSharedValue(crop.offsetX || 0);
+  const offsetY = useSharedValue(crop.offsetY || 0);
+  const slotWidth = useSharedValue(120);
+  const slotHeight = useSharedValue(120);
+  const minCoverScale = useSharedValue(1);
+
+  useEffect(() => {
+    const next = normalizePhotoSlotTransform(crop);
+    savedScale.value = next.scale;
+    savedOffsetX.value = next.offsetX;
+    savedOffsetY.value = next.offsetY;
+    scale.value = next.scale;
+    offsetX.value = next.offsetX;
+    offsetY.value = next.offsetY;
+    minCoverScale.value = Math.max(1, next.scale);
+  }, [crop, minCoverScale, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale]);
+
+  const commitCrop = useCallback(() => {
+    onCropChange(
+      normalizePhotoSlotTransform({
+        scale: scale.value,
+        offsetX: offsetX.value,
+        offsetY: offsetY.value,
+      }),
+    );
+  }, [onCropChange, offsetX, offsetY, scale]);
+
+  const panGesture = Gesture.Pan()
+    .enabled(selected)
+    .onUpdate((event) => {
+      const width = Math.max(slotWidth.value, 1);
+      const height = Math.max(slotHeight.value, 1);
+      offsetX.value = clampPhotoOffset(savedOffsetX.value + event.translationX / width);
+      offsetY.value = clampPhotoOffset(savedOffsetY.value + event.translationY / height);
+    })
+    .onEnd(() => {
+      savedOffsetX.value = offsetX.value;
+      savedOffsetY.value = offsetY.value;
+      runOnJS(commitCrop)();
+    });
+
+  const pinchGesture = Gesture.Pinch()
+    .enabled(selected)
+    .onBegin(() => {
+      savedScale.value = scale.value;
+    })
+    .onUpdate((event) => {
+      scale.value = clampPhotoScaleBetween(savedScale.value * event.scale, minCoverScale.value);
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      runOnJS(commitCrop)();
+    });
+
+  const composed = Gesture.Simultaneous(panGesture, pinchGesture);
+
+  const imageStyle = useAnimatedStyle(() => {
+    const rect = applyPhotoSlotTransform(
+      { x: 0, y: 0, width: slotWidth.value, height: slotHeight.value },
+      {
+        scale: scale.value,
+        offsetX: offsetX.value,
+        offsetY: offsetY.value,
+      },
+    );
+    return {
+      position: 'absolute',
+      left: rect.x,
+      top: rect.y,
+      width: rect.width,
+      height: rect.height,
+    };
+  });
+
+  const content = (
+    <View
+      style={styles.imageClip}
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        if (width > 0 && height > 0) {
+          slotWidth.value = width;
+          slotHeight.value = height;
+        }
+      }}
+    >
+      <Animated.View style={imageStyle}>
+        <Image source={{ uri }} style={styles.fill} contentFit="cover" />
+      </Animated.View>
+    </View>
+  );
+
+  return selected ? <GestureDetector gesture={composed}>{content}</GestureDetector> : content;
+}
+
 function DraggableFreeElement({
   element,
   canvas,
@@ -86,7 +204,18 @@ function DraggableFreeElement({
     });
   }, [element, onChange, savedH, savedW, savedX, savedY]);
 
+  const commitCrop = useCallback(
+    (crop: PhotoSlotTransform) => {
+      onChange({ ...element, crop });
+    },
+    [element, onChange],
+  );
+
+  const isImage = element.type === 'image' && Boolean(element.content);
+  const frameGesturesEnabled = !selected || !isImage;
+
   const panGesture = Gesture.Pan()
+    .enabled(frameGesturesEnabled)
     .onBegin(() => {
       runOnJS(onSelect)();
     })
@@ -109,16 +238,41 @@ function DraggableFreeElement({
     });
 
   const pinchGesture = Gesture.Pinch()
+    .enabled(frameGesturesEnabled)
+    .onBegin(() => {
+      savedW.value = element.w;
+      savedH.value = element.h;
+    })
     .onUpdate((event) => {
       savedW.value = clampNorm(
-        element.w * event.scale,
+        savedW.value * event.scale,
         0.08,
         Math.min(safeRect.w, safeRect.h),
       );
       savedH.value = clampNorm(
-        element.h * event.scale,
+        savedH.value * event.scale,
         0.08,
         Math.min(safeRect.w, safeRect.h),
+      );
+    })
+    .onEnd(() => {
+      runOnJS(commit)();
+    });
+
+  const framePanGesture = Gesture.Pan()
+    .enabled(selected && isImage)
+    .onUpdate((event) => {
+      const dx = event.translationX / Math.max(canvas.width, 1);
+      const dy = event.translationY / Math.max(canvas.height, 1);
+      savedX.value = clampNorm(
+        savedX.value + dx,
+        safeRect.x,
+        safeRect.x + safeRect.w - savedW.value,
+      );
+      savedY.value = clampNorm(
+        savedY.value + dy,
+        safeRect.y,
+        safeRect.y + safeRect.h - savedH.value,
       );
     })
     .onEnd(() => {
@@ -142,8 +296,24 @@ function DraggableFreeElement({
   return (
     <GestureDetector gesture={composed}>
       <Animated.View style={style}>
-        {element.type === 'image' && element.content ? (
-          <Image source={{ uri: element.content }} style={styles.fill} contentFit="cover" />
+        {isImage && element.content ? (
+          <>
+            {selected ? (
+              <GestureDetector gesture={framePanGesture}>
+                <View style={styles.frameDragHandle}>
+                  <AppText variant="caption" style={styles.frameDragLabel}>
+                    Переместить рамку
+                  </AppText>
+                </View>
+              </GestureDetector>
+            ) : null}
+            <FreeImageCropLayer
+              uri={element.content}
+              crop={element.crop ?? DEFAULT_PHOTO_SLOT_TRANSFORM}
+              selected={selected}
+              onCropChange={commitCrop}
+            />
+          </>
         ) : (
           <View style={styles.textPreview}>
             <AppText variant="caption" numberOfLines={3}>
@@ -242,6 +412,12 @@ export function FreePageEditor({
             }),
           )
         : pickedUri;
+    const imageSize = await resolvePageSourceSize(uri);
+    const initialCrop = buildInitialPhotoSlotTransform({
+      slotAspect: [1, 1],
+      imageWidth: imageSize?.width,
+      imageHeight: imageSize?.height,
+    });
     const next: FreePageElement = {
       id: elementId,
       type: 'image',
@@ -251,6 +427,7 @@ export function FreePageEditor({
       h: 0.52,
       zIndex: elements.length + 1,
       content: uri,
+      crop: initialCrop,
     };
     onChange([...elements, next]);
     setSelectedId(next.id);
@@ -407,6 +584,25 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: radii.sm,
+  },
+  imageClip: {
+    flex: 1,
+    overflow: 'hidden',
+    borderRadius: radii.sm,
+  },
+  frameDragHandle: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 2,
+    backgroundColor: 'rgba(241,148,162,0.92)',
+    paddingVertical: 2,
+    alignItems: 'center',
+  },
+  frameDragLabel: {
+    color: colors.white,
+    fontSize: 10,
   },
   textPreview: {
     flex: 1,
