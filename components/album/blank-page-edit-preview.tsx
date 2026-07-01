@@ -12,7 +12,9 @@ import {
   getPageFormatForLineGuide,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
+import { isBlankEditPreviewReady } from '@/utils/pageStatus';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
+import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
 type BlankPageEditPreviewProps = {
   schema: AlbumPageSchema;
@@ -48,21 +50,25 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
   const height = width / aspect;
   const debouncedPageValues = useDebouncedValue(pageValues, PREVIEW_DEBOUNCE_MS);
 
-  const hasPhotoContent = useMemo(
-    () =>
-      Object.values(pageValues.photoBlocks ?? {}).some((block) =>
-        block.slots.some((slot) => typeof slot === 'string' && slot.length > 0),
-      ),
-    [pageValues.photoBlocks],
+  const resolvedSchema = useMemo(() => enrichSchemaWithPhotoBlocks(schema), [schema]);
+
+  const previewReady = useMemo(
+    () => isBlankEditPreviewReady(pageValues, resolvedSchema),
+    [pageValues, resolvedSchema],
+  );
+
+  const debouncedPreviewReady = useMemo(
+    () => isBlankEditPreviewReady(debouncedPageValues, resolvedSchema),
+    [debouncedPageValues, resolvedSchema],
   );
 
   const annotations = useMemo(
     () =>
-      hasPhotoContent
+      debouncedPreviewReady
         ? pageValuesToAnnotations({
-            lineGuideId: schema.lineGuideId,
-            pageNumber: schema.sourcePageNumber,
-            schema,
+            lineGuideId: resolvedSchema.lineGuideId,
+            pageNumber: resolvedSchema.sourcePageNumber,
+            schema: resolvedSchema,
             values: debouncedPageValues,
             viewportWidth: width,
             viewportHeight: height,
@@ -72,16 +78,28 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
         : [],
     [
       debouncedPageValues,
-      hasPhotoContent,
+      debouncedPreviewReady,
       height,
-      schema,
+      resolvedSchema,
       sourceSize?.height,
       sourceSize?.width,
       width,
     ],
   );
 
-  if (!isBlankTemplateLineGuide(schema.lineGuideId)) return null;
+  const handleSourceSize = useCallback((size: { width: number; height: number }) => {
+    setSourceSize(size);
+  }, []);
+
+  const showLivePreview = Boolean(imageUri && debouncedPreviewReady);
+
+  const hint = !previewReady
+    ? resolvedSchema.pageType === 'free_page'
+      ? 'Добавьте хотя бы одно фото — тогда появится предпросмотр.'
+      : 'Загрузите все фото для страницы — тогда появится предпросмотр.'
+    : 'Предпросмотр обновляется с небольшой задержкой, пока вы печатаете.';
+
+  if (!isBlankTemplateLineGuide(resolvedSchema.lineGuideId)) return null;
 
   return (
     <View style={styles.card}>
@@ -94,28 +112,31 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
         </AppText>
       </View>
       <View style={[styles.pageShadow, { width, height }]}>
-        {!imageUri || !hasPhotoContent ? (
-          <TemplateWireframePreview
-            templateId={schema.templateLibraryId ?? 'SinglePhotoTemplate'}
-            format={pageFormat}
-            values={debouncedPageValues}
-          />
-        ) : (
+        {showLivePreview ? (
           <PageRenderer
-            imageUri={imageUri}
+            imageUri={imageUri!}
             annotations={annotations}
             width={width}
             height={height}
             sourceWidth={sourceSize?.width}
             sourceHeight={sourceSize?.height}
-            lineGuideId={schema.lineGuideId}
+            lineGuideId={resolvedSchema.lineGuideId}
+            sourcePageNumber={resolvedSchema.sourcePageNumber}
             backgroundColor={colors.white}
-            onSourceSize={setSourceSize}
+            readOnly
+            waitForAnnotationImages={false}
+            onSourceSize={handleSourceSize}
+          />
+        ) : (
+          <TemplateWireframePreview
+            templateId={resolvedSchema.templateLibraryId ?? 'SinglePhotoTemplate'}
+            format={pageFormat}
+            values={debouncedPageValues}
           />
         )}
       </View>
       <AppText variant="caption" style={styles.hint}>
-        Предпросмотр обновляется с небольшой задержкой, пока вы печатаете.
+        {hint}
       </AppText>
     </View>
   );

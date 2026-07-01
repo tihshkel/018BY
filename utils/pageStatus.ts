@@ -326,3 +326,42 @@ export function getMissingPageItems(
 
   return missing;
 }
+
+/** True when blank template edit preview can render filled PageRenderer (all template photos present). */
+export function isBlankEditPreviewReady(
+  values: PageValues,
+  schema: AlbumPageSchema,
+): boolean {
+  if (!schema.templateLibraryId || !isBlankTemplateLineGuide(schema.lineGuideId)) {
+    return false;
+  }
+
+  if (schema.pageType === 'free_page') {
+    return (values.freeElements ?? []).some(
+      (el) => el.type === 'image' && hasText(el.content),
+    );
+  }
+
+  let photoRequired = 0;
+  let photoFilled = 0;
+  for (const block of schema.photoBlocks ?? []) {
+    const blockValues = values.photoBlocks[block.blockId];
+    const variant =
+      block.variants.find((v) => v.variantId === blockValues?.variantId) ?? block.variants[0];
+    if (!variant) continue;
+    photoRequired += variant.slots;
+    for (let i = 0; i < variant.slots; i += 1) {
+      if (hasText(blockValues?.slots[i] ?? null)) photoFilled += 1;
+    }
+  }
+
+  if (photoRequired > 0) {
+    return photoFilled === photoRequired;
+  }
+
+  if (schema.pageType === 'text_page') {
+    return (schema.fields ?? []).some((field) => hasText(values.fields[field.fieldId]));
+  }
+
+  return hasAnyUserContent(values, schema);
+}

@@ -23,6 +23,7 @@ import { createId } from '@/utils/id';
 import {
   applyPhotoSlotTransform,
 } from '@/utils/photoSlotTransform';
+import { getCachedPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   AVAILABLE_FONTS,
   getAlbumFontFamilyName,
@@ -2820,6 +2821,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     style={[
                       styles.slotTransformInner,
                       (() => {
+                        const cached = annotation.imageUri
+                          ? getCachedPageSourceSize(annotation.imageUri)
+                          : null;
+                        const imageAspect =
+                          cached && cached.width > 0 && cached.height > 0
+                            ? cached.width / cached.height
+                            : undefined;
                         const inner = applyPhotoSlotTransform(
                           {
                             x: 0,
@@ -2828,6 +2836,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                             height: annotation.height,
                           },
                           annotation.imageSlotTransform,
+                          imageAspect,
                         );
                         return {
                           left: inner.x,

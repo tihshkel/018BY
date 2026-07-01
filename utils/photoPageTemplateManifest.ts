@@ -88,6 +88,17 @@ export function getTemplateLayout(
   return manifest.templates[resolved]?.[format];
 }
 
+/** Подписи редактируются только в «Большое фото» и «Фото + подписи». */
+export function isTemplateCaptionEditable(
+  templateId: string,
+  layout?: TemplateLayoutDef | null,
+): boolean {
+  if (layout?.perPhotoCaptions) return true;
+  const resolved = resolvePhotoPageTemplateId(templateId);
+  if (resolved !== 'SinglePhotoTemplate') return false;
+  return Boolean(layout?.textBlocks?.some((block) => block.type === 'caption'));
+}
+
 export function getPageFormatForLineGuide(lineGuideId: string): PageFormat {
   if (lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60') {
     return '21x21';

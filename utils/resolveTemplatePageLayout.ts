@@ -10,6 +10,7 @@ import {
   getTemplateLayout,
   getTemplateMeta,
   isBlankTemplateLineGuide,
+  isTemplateCaptionEditable,
   resolvePhotoPageTemplateId,
   type PhotoPageTemplateId,
   type TemplateLayoutDef,
@@ -151,11 +152,15 @@ export function buildFieldsFromTemplate(
   let index = 0;
 
   const captionBlocks = layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+  const captionsEditable = isTemplateCaptionEditable(templateId, layout);
   const useSingleCaptionValue =
-    captionBlocks.length === 1 && !layout.perPhotoCaptions;
+    captionsEditable &&
+    captionBlocks.length === 1 &&
+    !layout.perPhotoCaptions;
 
   for (const block of layout.textBlocks ?? []) {
     if (block.type === 'caption') {
+      if (!captionsEditable) continue;
       if (layout.perPhotoCaptions) continue;
       if (useSingleCaptionValue) continue;
     }
@@ -204,11 +209,7 @@ export function buildSchemaFromTemplate(params: {
     canDuplicate: true,
     canAddAfter: true,
     templateLibraryId: resolvedId,
-    captionEnabled: Boolean(
-      layout?.perPhotoCaptions ||
-        (layout?.textBlocks?.filter((b) => b.type === 'caption').length === 1 &&
-          !layout?.perPhotoCaptions),
-    ),
+    captionEnabled: isTemplateCaptionEditable(resolvedId, layout),
     fields: fields.length ? fields : undefined,
     photoBlocks,
   };

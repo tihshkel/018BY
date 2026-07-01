@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, memo, useCallback } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
@@ -30,6 +31,16 @@ type PageFormFieldsProps = {
 const MIN_FIELD_FONT_SIZE = 10;
 const MAX_FIELD_FONT_SIZE = 28;
 
+const ALIGN_OPTIONS: {
+  id: 'left' | 'center' | 'right';
+  icon: 'format-align-left' | 'format-align-center' | 'format-align-right';
+  label: string;
+}[] = [
+  { id: 'left', icon: 'format-align-left', label: 'По левому краю' },
+  { id: 'center', icon: 'format-align-center', label: 'По центру' },
+  { id: 'right', icon: 'format-align-right', label: 'По правому краю' },
+];
+
 export function TextFieldStyleToolbar({
   style,
   defaultAlign,
@@ -45,19 +56,21 @@ export function TextFieldStyleToolbar({
   return (
     <View style={styles.toolbar}>
       <View style={styles.alignGroup}>
-        {(['left', 'center', 'right'] as const).map((align) => {
-          const selected = textAlign === align;
-          const label = align === 'left' ? 'Слева' : align === 'center' ? 'Центр' : 'Справа';
+        {ALIGN_OPTIONS.map((option) => {
+          const selected = textAlign === option.id;
           return (
             <Pressable
-              key={align}
-              onPress={() => onChange({ textAlign: align })}
+              key={option.id}
+              onPress={() => onChange({ textAlign: option.id })}
               style={[styles.alignButton, selected && styles.alignButtonSelected]}
-              accessibilityLabel={`Выравнивание: ${label}`}
+              accessibilityLabel={option.label}
+              accessibilityState={{ selected }}
             >
-              <AppText variant="caption" style={selected ? styles.alignLabelSelected : styles.alignLabel}>
-                {label}
-              </AppText>
+              <MaterialIcons
+                name={option.icon}
+                size={20}
+                color={selected ? colors.primary : colors.textSecondary}
+              />
             </Pressable>
           );
         })}
@@ -429,22 +442,18 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   alignButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: radii.sm,
     borderWidth: 1,
     borderColor: colors.border,
+    backgroundColor: colors.white,
   },
   alignButtonSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primarySurface,
-  },
-  alignLabel: {
-    color: colors.textSecondary,
-  },
-  alignLabelSelected: {
-    color: colors.primary,
-    fontFamily: sansFont('semibold'),
   },
   fontSizeGroup: {
     flexDirection: 'row',

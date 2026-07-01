@@ -6,6 +6,7 @@ import {
   getPageFormatForLineGuide,
   getTemplateLayout,
   isBlankTemplateLineGuide,
+  isTemplateCaptionEditable,
 } from '@/utils/photoPageTemplateManifest';
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
@@ -71,8 +72,7 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
     const preferredFontSize =
       fieldStyle?.fontSize ??
       captionStyle?.fontSize ??
-      estimateTemplateFontSize(block.h, viewportHeight) ||
-      fontSize;
+      (estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
     const fitted = fitTextToTemplateBlock({
       text,
       boxWidth: rect.width,
@@ -110,14 +110,18 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
 
   const captionBlocks =
     layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+  const captionsEditable = isTemplateCaptionEditable(schema.templateLibraryId, layout);
   const useSingleCaption =
-    captionBlocks.length === 1 && !layout.perPhotoCaptions && hasText(values.caption);
+    captionsEditable &&
+    captionBlocks.length === 1 &&
+    !layout.perPhotoCaptions &&
+    hasText(values.caption);
 
   if (useSingleCaption && values.caption) {
     pushText(values.caption, `_${captionBlocks[0]!.id}`, undefined, 'center');
   }
 
-  if (layout.perPhotoCaptions && values.photoCaptions?.length) {
+  if (layout.perPhotoCaptions && captionsEditable && values.photoCaptions?.length) {
     for (let i = 0; i < values.photoCaptions.length; i += 1) {
       const text = values.photoCaptions[i];
       if (!hasText(text)) continue;
@@ -136,8 +140,7 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
         content: element.content!.trim(),
         fontSize:
           elementStyle?.fontSize ??
-          estimateTemplateFontSize(element.h, viewportHeight) ||
-          fontSize,
+          (estimateTemplateFontSize(element.h, viewportHeight) || fontSize),
         fontFamily: textFontFamily,
         color: '#3D3D3D',
         textAlign: elementStyle?.textAlign ?? 'left',
@@ -196,7 +199,8 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
     const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
     const preferredFontSize =
-      fieldStyle?.fontSize ?? estimateTemplateFontSize(block.h, viewportHeight) || fontSize;
+      fieldStyle?.fontSize ??
+      (estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
     const fitted = fitTextToTemplateBlock({
       text: text!.trim(),
       boxWidth: rect.width,

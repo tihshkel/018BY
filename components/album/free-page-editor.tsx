@@ -20,10 +20,12 @@ import type { AlbumPageSchema, FreePageElement, PhotoSlotTransform } from '@/typ
 import { createId } from '@/utils/id';
 import {
   applyPhotoSlotTransform,
-  clampPhotoOffset,
+  clampAspectAwarePhotoOffset,
   clampPhotoScaleBetween,
+  computePhotoContainScaleWorklet,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
-  normalizePhotoSlotTransform,
+  MAX_PHOTO_SCALE,
+  normalizePhotoSlotTransformWithMin,
 } from '@/utils/photoSlotTransform';
 import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
@@ -84,36 +86,73 @@ function FreeImageCropLayer({
   const offsetY = useSharedValue(crop.offsetY || 0);
   const slotWidth = useSharedValue(120);
   const slotHeight = useSharedValue(120);
-  const minCoverScale = useSharedValue(1);
+  const imageAspect = useSharedValue(1);
+  const minPhotoScale = useSharedValue(1);
 
   useEffect(() => {
-    const next = normalizePhotoSlotTransform(crop);
+    let cancelled = false;
+    resolvePageSourceSize(uri).then((size) => {
+      if (cancelled || !size?.width || !size?.height) return;
+      const aspect = size.width / size.height;
+      imageAspect.value = aspect;
+      minPhotoScale.value = computePhotoContainScaleWorklet(
+        slotWidth.value,
+        slotHeight.value,
+        aspect,
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageAspect, minPhotoScale, slotHeight, slotWidth, uri]);
+
+  useEffect(() => {
+    const minScale = minPhotoScale.value;
+    const next = normalizePhotoSlotTransformWithMin(crop, minScale);
     savedScale.value = next.scale;
     savedOffsetX.value = next.offsetX;
     savedOffsetY.value = next.offsetY;
     scale.value = next.scale;
     offsetX.value = next.offsetX;
     offsetY.value = next.offsetY;
-    minCoverScale.value = Math.max(1, next.scale);
-  }, [crop, minCoverScale, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale]);
+  }, [crop, minPhotoScale, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale]);
 
   const commitCrop = useCallback(() => {
-    onCropChange(
-      normalizePhotoSlotTransform({
-        scale: scale.value,
-        offsetX: offsetX.value,
-        offsetY: offsetY.value,
-      }),
+    const clamped = clampAspectAwarePhotoOffset(
+      slotWidth.value,
+      slotHeight.value,
+      imageAspect.value,
+      scale.value,
+      offsetX.value,
+      offsetY.value,
     );
-  }, [onCropChange, offsetX, offsetY, scale]);
+    onCropChange(
+      normalizePhotoSlotTransformWithMin(
+        {
+          scale: scale.value,
+          offsetX: clamped.offsetX,
+          offsetY: clamped.offsetY,
+        },
+        minPhotoScale.value,
+      ),
+    );
+  }, [imageAspect, minPhotoScale, onCropChange, offsetX, offsetY, scale, slotHeight, slotWidth]);
 
   const panGesture = Gesture.Pan()
     .enabled(selected)
     .onUpdate((event) => {
       const width = Math.max(slotWidth.value, 1);
       const height = Math.max(slotHeight.value, 1);
-      offsetX.value = clampPhotoOffset(savedOffsetX.value + event.translationX / width);
-      offsetY.value = clampPhotoOffset(savedOffsetY.value + event.translationY / height);
+      const next = clampAspectAwarePhotoOffset(
+        width,
+        height,
+        imageAspect.value,
+        scale.value,
+        savedOffsetX.value + event.translationX / width,
+        savedOffsetY.value + event.translationY / height,
+      );
+      offsetX.value = next.offsetX;
+      offsetY.value = next.offsetY;
     })
     .onEnd(() => {
       savedOffsetX.value = offsetX.value;
@@ -127,7 +166,11 @@ function FreeImageCropLayer({
       savedScale.value = scale.value;
     })
     .onUpdate((event) => {
-      scale.value = clampPhotoScaleBetween(savedScale.value * event.scale, minCoverScale.value);
+      scale.value = clampPhotoScaleBetween(
+        savedScale.value * event.scale,
+        minPhotoScale.value,
+        MAX_PHOTO_SCALE,
+      );
     })
     .onEnd(() => {
       savedScale.value = scale.value;
@@ -144,6 +187,7 @@ function FreeImageCropLayer({
         offsetX: offsetX.value,
         offsetY: offsetY.value,
       },
+      imageAspect.value,
     );
     return {
       position: 'absolute',
@@ -162,6 +206,13 @@ function FreeImageCropLayer({
         if (width > 0 && height > 0) {
           slotWidth.value = width;
           slotHeight.value = height;
+          if (imageAspect.value > 0) {
+            minPhotoScale.value = computePhotoContainScaleWorklet(
+              width,
+              height,
+              imageAspect.value,
+            );
+          }
         }
       }}
     >
@@ -589,6 +640,7 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     borderRadius: radii.sm,
+    backgroundColor: colors.white,
   },
   frameDragHandle: {
     position: 'absolute',

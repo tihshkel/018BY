@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
@@ -12,6 +12,10 @@ import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVar
 import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import {
+  getPageFormatForLineGuide,
+  getTemplateLayout,
+} from '@/utils/photoPageTemplateManifest';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
 import {
@@ -43,9 +47,16 @@ export function useAlbumPagePhotoEditor({
   const photoBlocks = pageValues.photoBlocks;
 
   const showCaption = resolvedSchema?.captionEnabled === true;
-  const showPerPhotoCaptions =
-    resolvedSchema?.pageType === 'caption_photo_page' ||
-    resolvedSchema?.pageType === 'birthday_free_page';
+  const showPerPhotoCaptions = useMemo(() => {
+    if (!resolvedSchema) return false;
+    if (resolvedSchema.pageType === 'birthday_free_page') return true;
+    if (!resolvedSchema.captionEnabled || !resolvedSchema.templateLibraryId) {
+      return false;
+    }
+    const format = getPageFormatForLineGuide(resolvedSchema.lineGuideId);
+    const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
+    return Boolean(layout?.perPhotoCaptions);
+  }, [resolvedSchema]);
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {

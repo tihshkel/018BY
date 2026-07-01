@@ -7,6 +7,7 @@ import type { Annotation } from '@/components/pdf-annotations';
 import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
+import { getCachedPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
   layoutTextAnnotationFromSlot,
@@ -321,11 +322,20 @@ function ReadOnlyPageAnnotationsInner({
           onImageAnnotationError?.(annotation.imageUri!);
         };
 
+        const cachedSize = annotation.imageUri
+          ? getCachedPageSourceSize(annotation.imageUri)
+          : null;
+        const imageAspect =
+          cachedSize && cachedSize.width > 0 && cachedSize.height > 0
+            ? cachedSize.width / cachedSize.height
+            : undefined;
+
         const innerStyle = annotation.imageSlotTransform
           ? (() => {
               const inner = applyPhotoSlotTransform(
                 { x: 0, y: 0, width: annotation.width, height: annotation.height },
                 annotation.imageSlotTransform,
+                imageAspect,
               );
               return {
                 left: inner.x,

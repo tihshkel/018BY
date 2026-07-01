@@ -2,6 +2,7 @@ import type { PageTemplateLibraryItem } from '@/types/album-page-schema';
 import {
   getTemplateLayout,
   getTemplateMeta,
+  isTemplateCaptionEditable,
   PHOTO_PAGE_TEMPLATE_IDS,
   resolvePhotoPageTemplateId,
   type PhotoPageTemplateId,
@@ -10,11 +11,7 @@ import {
 function buildLibraryItem(id: PhotoPageTemplateId): PageTemplateLibraryItem {
   const meta = getTemplateMeta(id)!;
   const layout18 = getTemplateLayout(id, '18x24')!;
-  const hasCaption = Boolean(
-    layout18.perPhotoCaptions ||
-      layout18.textBlocks?.some((b) => b.type === 'caption') ||
-      layout18.events?.length,
-  );
+  const hasCaption = isTemplateCaptionEditable(id, layout18);
   const hasTextBlock = Boolean(
     layout18.textBlocks?.some((b) => b.type === 'title' || b.type === 'longText') ||
       layout18.pageType === 'text_page' ||

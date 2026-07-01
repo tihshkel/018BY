@@ -73,11 +73,101 @@ function applyPhotoSlotTransformRaw(
   return { x, y, width, height };
 }
 
+function computePhotoCoverSizeWorklet(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+): { width: number; height: number } {
+  'worklet';
+  if (slotWidth <= 0 || slotHeight <= 0 || imageAspect <= 0) {
+    return { width: slotWidth, height: slotHeight };
+  }
+  const slotAspect = slotWidth / slotHeight;
+  if (imageAspect > slotAspect) {
+    const height = slotHeight;
+    return { width: height * imageAspect, height };
+  }
+  const width = slotWidth;
+  return { width, height: width / imageAspect };
+}
+
+export function computePhotoContainScaleWorklet(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+): number {
+  'worklet';
+  const cover = computePhotoCoverSizeWorklet(slotWidth, slotHeight, imageAspect);
+  if (cover.width <= 0 || cover.height <= 0) return 1;
+  return Math.min(slotWidth / cover.width, slotHeight / cover.height);
+}
+
+export function applyAspectAwarePhotoSlotTransform(
+  rect: { x: number; y: number; width: number; height: number },
+  transform: PhotoSlotTransform | null | undefined,
+  imageAspect: number,
+): { x: number; y: number; width: number; height: number } {
+  'worklet';
+  const slotW = rect.width;
+  const slotH = rect.height;
+  const scale = transform?.scale ?? 1;
+  const cover = computePhotoCoverSizeWorklet(slotW, slotH, imageAspect);
+  const width = cover.width * scale;
+  const height = cover.height * scale;
+  const offsetX = (transform?.offsetX ?? 0) * slotW;
+  const offsetY = (transform?.offsetY ?? 0) * slotH;
+  return {
+    x: rect.x + (slotW - width) / 2 + offsetX,
+    y: rect.y + (slotH - height) / 2 + offsetY,
+    width,
+    height,
+  };
+}
+
+export function clampAspectAwarePhotoOffset(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+  scale: number,
+  offsetX: number,
+  offsetY: number,
+): { offsetX: number; offsetY: number } {
+  'worklet';
+  const cover = computePhotoCoverSizeWorklet(slotWidth, slotHeight, imageAspect);
+  const imgW = cover.width * scale;
+  const imgH = cover.height * scale;
+  const maxOffX = imgW > slotWidth ? (imgW - slotWidth) / (2 * slotWidth) : 0;
+  const maxOffY = imgH > slotHeight ? (imgH - slotHeight) / (2 * slotHeight) : 0;
+  return {
+    offsetX: Math.min(maxOffX, Math.max(-maxOffX, offsetX)),
+    offsetY: Math.min(maxOffY, Math.max(-maxOffY, offsetY)),
+  };
+}
+
+export function normalizePhotoSlotTransformWithMin(
+  transform: PhotoSlotTransform | null | undefined,
+  minScale: number,
+): PhotoSlotTransform {
+  'worklet';
+  if (!transform) {
+    return { scale: Math.max(minScale, 1), offsetX: 0, offsetY: 0 };
+  }
+  return {
+    scale: clampPhotoScaleBetween(transform.scale || 1, minScale),
+    offsetX: transform.offsetX ?? 0,
+    offsetY: transform.offsetY ?? 0,
+  };
+}
+
 export function applyPhotoSlotTransform(
   rect: { x: number; y: number; width: number; height: number },
   transform?: PhotoSlotTransform | null,
+  imageAspect?: number,
 ): { x: number; y: number; width: number; height: number } {
   'worklet';
+  if (imageAspect && imageAspect > 0) {
+    return applyAspectAwarePhotoSlotTransform(rect, transform, imageAspect);
+  }
   return applyPhotoSlotTransformRaw(rect, normalizePhotoSlotTransform(transform));
 }
 

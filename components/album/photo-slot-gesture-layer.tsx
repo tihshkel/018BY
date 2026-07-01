@@ -13,13 +13,15 @@ import { AppText } from '@/components/ui';
 import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import {
-  clampPhotoOffset,
-  clampPhotoScale,
-  clampPhotoScaleBetween,
-  DEFAULT_PHOTO_SLOT_TRANSFORM,
-  normalizePhotoSlotTransform,
   applyPhotoSlotTransform,
+  clampAspectAwarePhotoOffset,
+  clampPhotoScaleBetween,
+  computePhotoContainScaleWorklet,
+  DEFAULT_PHOTO_SLOT_TRANSFORM,
+  MAX_PHOTO_SCALE,
+  normalizePhotoSlotTransformWithMin,
 } from '@/utils/photoSlotTransform';
+import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
@@ -70,43 +72,84 @@ function PhotoSlotFilled({
   const offsetY = useSharedValue(transform.offsetY || 0);
   const slotWidth = useSharedValue(120);
   const slotHeight = useSharedValue(120);
-  const minCoverScale = useSharedValue(1);
+  const imageAspect = useSharedValue(1);
+  const minPhotoScale = useSharedValue(1);
 
   useEffect(() => {
-    minCoverScale.value = Math.max(1, transform.scale || 1);
-  }, [minCoverScale, transform.scale, uri]);
+    let cancelled = false;
+    resolvePageSourceSize(uri).then((size) => {
+      if (cancelled || !size?.width || !size?.height) return;
+      const aspect = size.width / size.height;
+      imageAspect.value = aspect;
+      minPhotoScale.value = computePhotoContainScaleWorklet(
+        slotWidth.value,
+        slotHeight.value,
+        aspect,
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [imageAspect, minPhotoScale, slotHeight, slotWidth, uri]);
 
   useEffect(() => {
-    const next = normalizePhotoSlotTransform(transform);
+    if (slotWidth.value > 0 && slotHeight.value > 0 && imageAspect.value > 0) {
+      minPhotoScale.value = computePhotoContainScaleWorklet(
+        slotWidth.value,
+        slotHeight.value,
+        imageAspect.value,
+      );
+    }
+  }, [imageAspect, minPhotoScale, slotHeight, slotWidth, transform.scale]);
+
+  useEffect(() => {
+    const minScale = minPhotoScale.value;
+    const next = normalizePhotoSlotTransformWithMin(transform, minScale);
     savedScale.value = next.scale;
     savedOffsetX.value = next.offsetX;
     savedOffsetY.value = next.offsetY;
     scale.value = next.scale;
     offsetX.value = next.offsetX;
     offsetY.value = next.offsetY;
-  }, [transform, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale]);
+  }, [transform, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale, minPhotoScale]);
 
   const commitTransform = useCallback(() => {
-    onTransformChange(
-      normalizePhotoSlotTransform({
-        scale: scale.value,
-        offsetX: offsetX.value,
-        offsetY: offsetY.value,
-      }),
+    const minScale = minPhotoScale.value;
+    const clamped = clampAspectAwarePhotoOffset(
+      slotWidth.value,
+      slotHeight.value,
+      imageAspect.value,
+      scale.value,
+      offsetX.value,
+      offsetY.value,
     );
-  }, [onTransformChange, offsetX, offsetY, scale]);
+    onTransformChange(
+      normalizePhotoSlotTransformWithMin(
+        {
+          scale: scale.value,
+          offsetX: clamped.offsetX,
+          offsetY: clamped.offsetY,
+        },
+        minScale,
+      ),
+    );
+  }, [imageAspect, minPhotoScale, onTransformChange, offsetX, offsetY, scale, slotHeight, slotWidth]);
 
   const panGesture = Gesture.Pan()
     .enabled(gesturesEnabled !== false)
     .onUpdate((event) => {
       const width = Math.max(slotWidth.value, 1);
       const height = Math.max(slotHeight.value, 1);
-      offsetX.value = clampPhotoOffset(
+      const next = clampAspectAwarePhotoOffset(
+        width,
+        height,
+        imageAspect.value,
+        scale.value,
         savedOffsetX.value + event.translationX / width,
-      );
-      offsetY.value = clampPhotoOffset(
         savedOffsetY.value + event.translationY / height,
       );
+      offsetX.value = next.offsetX;
+      offsetY.value = next.offsetY;
     })
     .onEnd(() => {
       savedOffsetX.value = offsetX.value;
@@ -122,7 +165,8 @@ function PhotoSlotFilled({
     .onUpdate((event) => {
       scale.value = clampPhotoScaleBetween(
         savedScale.value * event.scale,
-        minCoverScale.value,
+        minPhotoScale.value,
+        MAX_PHOTO_SCALE,
       );
     })
     .onEnd(() => {
@@ -140,6 +184,7 @@ function PhotoSlotFilled({
         offsetX: offsetX.value,
         offsetY: offsetY.value,
       },
+      imageAspect.value,
     );
 
     return {
@@ -162,6 +207,13 @@ function PhotoSlotFilled({
         if (width > 0 && height > 0) {
           slotWidth.value = width;
           slotHeight.value = height;
+          if (imageAspect.value > 0) {
+            minPhotoScale.value = computePhotoContainScaleWorklet(
+              width,
+              height,
+              imageAspect.value,
+            );
+          }
         }
       }}
     >
@@ -337,7 +389,7 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
-    backgroundColor: colors.primarySurface,
+    backgroundColor: colors.white,
     position: 'relative',
   },
   imageInner: {
