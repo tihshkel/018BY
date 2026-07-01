@@ -4,14 +4,18 @@ import {
   appendBezierCurve,
   clip,
   endPath,
+  lineTo,
   moveTo,
   popGraphicsState,
   pushGraphicsState,
   rgb,
 } from 'pdf-lib';
 
+import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import { getContentRect, mapViewportAnnotationToPdf } from '@/utils/imageContentRect';
 import { computeObjectFitCover } from '@/utils/imageCoverDraw';
+import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 
 const ELLIPSE_KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
 
@@ -20,6 +24,63 @@ function hexToRgb(hex: string) {
   const g = parseInt(hex.substring(3, 5), 16) / 255;
   const b = parseInt(hex.substring(5, 7), 16) / 255;
   return rgb(r, g, b);
+}
+
+function pushRectClip(page: PDFPage, mapped: { x: number; y: number; width: number; height: number }) {
+  const x = mapped.x;
+  const y = mapped.y;
+  const xe = x + mapped.width;
+  const ye = y + mapped.height;
+
+  page.pushOperators(
+    pushGraphicsState(),
+    moveTo(x, y),
+    lineTo(xe, y),
+    lineTo(xe, ye),
+    lineTo(x, ye),
+    clip(),
+    endPath(),
+  );
+}
+
+function pushRoundedRectClip(
+  page: PDFPage,
+  mapped: { x: number; y: number; width: number; height: number },
+  radius: number,
+) {
+  const width = mapped.width;
+  const height = mapped.height;
+  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+  if (r <= 0) {
+    pushRectClip(page, mapped);
+    return;
+  }
+
+  const x = mapped.x;
+  const y = mapped.y;
+  const k = r * ELLIPSE_KAPPA;
+
+  page.pushOperators(
+    pushGraphicsState(),
+    moveTo(x + r, y),
+    lineTo(x + width - r, y),
+    appendBezierCurve(x + width - r + k, y, x + width, y + r - k, x + width, y + r),
+    lineTo(x + width, y + height - r),
+    appendBezierCurve(
+      x + width,
+      y + height - r + k,
+      x + width - r + k,
+      y + height,
+      x + width - r,
+      y + height,
+    ),
+    lineTo(x + r, y + height),
+    appendBezierCurve(x + r - k, y + height, x, y + height - r + k, x, y + height - r),
+    lineTo(x, y + r),
+    appendBezierCurve(x, y + r - k, x + r - k, y, x + r, y),
+    clip(),
+    endPath(),
+  );
 }
 
 function pushCircleClip(page: PDFPage, mapped: { x: number; y: number; width: number; height: number }) {
@@ -52,8 +113,6 @@ type DrawImageAnnotationsParams = {
   pageAnnotations: Annotation[];
   annotationImageMap: Map<string, Uint8Array | null>;
   embeddedImagesCache: Map<string, unknown>;
-  /** Уникальный ключ кэша встраивания — отдельный XObject на каждую страницу PDF. */
-  embedCacheScope: string;
   pagesViewport: { width: number; height: number };
   sourceWidth: number;
   sourceHeight: number;
@@ -61,6 +120,7 @@ type DrawImageAnnotationsParams = {
   pdfImageY: number;
   pdfImageWidth: number;
   pdfImageHeight: number;
+  lineGuideId?: string | null;
 };
 
 export async function drawImageAnnotationsOnPdfPage(
@@ -72,6 +132,8 @@ export async function drawImageAnnotationsOnPdfPage(
 
   if (imageAnnotations.length === 0) return;
 
+  const useBlankAlbumPhotoRadius = isBlankTemplateLineGuide(params.lineGuideId ?? '');
+
   const editorContentRect = getContentRect(
     params.pagesViewport.width,
     params.pagesViewport.height,
@@ -80,11 +142,44 @@ export async function drawImageAnnotationsOnPdfPage(
   );
 
   for (const ann of imageAnnotations) {
-    const mapped = mapViewportAnnotationToPdf({
+    const slotViewport = {
       x: ann.x,
       y: ann.y,
       width: ann.width,
       height: ann.height,
+    };
+
+    let drawViewport = slotViewport;
+    if (ann.imageSlotTransform) {
+      const inner = applyPhotoSlotTransform(
+        { x: 0, y: 0, width: slotViewport.width, height: slotViewport.height },
+        ann.imageSlotTransform,
+      );
+      drawViewport = {
+        x: slotViewport.x + inner.x,
+        y: slotViewport.y + inner.y,
+        width: inner.width,
+        height: inner.height,
+      };
+    }
+
+    const clipMapped = mapViewportAnnotationToPdf({
+      x: slotViewport.x,
+      y: slotViewport.y,
+      width: slotViewport.width,
+      height: slotViewport.height,
+      editorContentRect,
+      pdfImageX: params.pdfImageX,
+      pdfImageY: params.pdfImageY,
+      pdfImageWidth: params.pdfImageWidth,
+      pdfImageHeight: params.pdfImageHeight,
+    });
+
+    const mapped = mapViewportAnnotationToPdf({
+      x: drawViewport.x,
+      y: drawViewport.y,
+      width: drawViewport.width,
+      height: drawViewport.height,
       editorContentRect,
       pdfImageX: params.pdfImageX,
       pdfImageY: params.pdfImageY,
@@ -95,15 +190,16 @@ export async function drawImageAnnotationsOnPdfPage(
     if (!ann.imageUri && ann.fillColor) {
       try {
         if (ann.clipShape === 'circle') {
+          const centerX = mapped.x + mapped.width / 2;
+          const centerY = mapped.y + mapped.height / 2;
           pushCircleClip(params.page, mapped);
-          const cx = mapped.x + mapped.width / 2;
-          const cy = mapped.y + mapped.height / 2;
           params.page.drawEllipse({
-            x: cx,
-            y: cy,
+            x: centerX,
+            y: centerY,
             xScale: mapped.width / 2,
             yScale: mapped.height / 2,
             color: hexToRgb(ann.fillColor),
+            opacity: ann.fillOpacity ?? 1,
             borderWidth: 0,
           });
           params.page.pushOperators(popGraphicsState());
@@ -114,6 +210,7 @@ export async function drawImageAnnotationsOnPdfPage(
             width: mapped.width,
             height: mapped.height,
             color: hexToRgb(ann.fillColor),
+            opacity: ann.fillOpacity ?? 1,
             borderWidth: 0,
           });
         }
@@ -143,20 +240,30 @@ export async function drawImageAnnotationsOnPdfPage(
     }
 
     try {
-      const embedCacheKey = `${params.embedCacheScope}:${ann.imageUri}`;
-      let embeddedAnnImage = params.embeddedImagesCache.get(embedCacheKey);
+      let embeddedAnnImage = params.embeddedImagesCache.get(ann.imageUri);
       if (!embeddedAnnImage) {
         const isJpg = annImageBytes[0] === 0xff && annImageBytes[1] === 0xd8;
         embeddedAnnImage = isJpg
           ? await params.pdfDoc.embedJpg(annImageBytes)
           : await params.pdfDoc.embedPng(annImageBytes);
-        params.embeddedImagesCache.set(embedCacheKey, embeddedAnnImage);
+        params.embeddedImagesCache.set(ann.imageUri, embeddedAnnImage);
       }
 
       const embedded = embeddedAnnImage as Awaited<ReturnType<PDFDocument['embedJpg']>>;
 
+      const needsRectClip = ann.clipShape !== 'circle' && ann.imageContentFit === 'cover';
+
       if (ann.clipShape === 'circle') {
-        pushCircleClip(params.page, mapped);
+        pushCircleClip(params.page, clipMapped);
+      } else if (needsRectClip) {
+        if (useBlankAlbumPhotoRadius) {
+          const pdfRadius =
+            BLANK_ALBUM_PHOTO_RADIUS *
+            (clipMapped.height / Math.max(slotViewport.height, 1));
+          pushRoundedRectClip(params.page, clipMapped, pdfRadius);
+        } else {
+          pushRectClip(params.page, clipMapped);
+        }
       }
 
       if (ann.imageContentFit === 'cover') {
@@ -183,7 +290,7 @@ export async function drawImageAnnotationsOnPdfPage(
         });
       }
 
-      if (ann.clipShape === 'circle') {
+      if (ann.clipShape === 'circle' || needsRectClip) {
         params.page.pushOperators(popGraphicsState());
       }
     } catch {

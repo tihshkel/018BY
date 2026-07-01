@@ -10,7 +10,7 @@ env:
     id: onboarding-next
 - tapOn:
     id: onboarding-start
-- openLink: 018by://name-input
+- openLink: app018by://name-input
 - tapOn:
     id: name-input-field
 - inputText: ${E2E_USER_NAME}

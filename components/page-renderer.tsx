@@ -3,6 +3,7 @@ import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
 import PdfAnnotations, { type Annotation } from './pdf-annotations';
+import { ReadOnlyPageAnnotations } from './read-only-page-annotations';
 import { setPageSourceSize } from '@/utils/pageSourceDimensions';
 
 export interface PageRendererRef {
@@ -21,10 +22,19 @@ interface PageRendererProps {
   sourceHeight?: number;
   onReady?: () => void;
   onImageError?: () => void;
+  onSourceSize?: (size: { width: number; height: number }) => void;
   captureScale?: number;
   captureFormat?: CaptureFormat;
   captureQuality?: number;
   backgroundColor?: string;
+  /** Use lightweight read-only annotations (preview/export) instead of full PdfAnnotations. */
+  readOnly?: boolean;
+  /** Номер страницы в PDF для калибровки line-slots (designed-альбомы). */
+  sourcePageNumber?: number;
+  /** Ждать загрузки фото в аннотациях перед onReady (экспорт). Для экрана превью — false. */
+  waitForAnnotationImages?: boolean;
+  /** Средний слой между фоном и текстом (например, фото в финальном предпросмотре). */
+  middleLayer?: React.ReactNode;
 }
 
 /**
@@ -42,10 +52,15 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     sourceHeight: sourceHeightProp,
     onReady,
     onImageError,
+    onSourceSize,
     captureScale = 1.35,
     captureFormat = 'jpg',
     captureQuality = 0.92,
     backgroundColor = 'transparent',
+    readOnly = false,
+    sourcePageNumber: sourcePageNumberProp,
+    waitForAnnotationImages = true,
+    middleLayer,
   }, ref) => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const renderWidth = width ?? windowWidth;
@@ -69,13 +84,38 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
 
   const sourceWidth = sourceSize?.width ?? sourceWidthProp;
   const sourceHeight = sourceSize?.height ?? sourceHeightProp;
+  const onReadyRef = useRef(onReady);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  useEffect(() => {
+    setIsImageLoaded(false);
+    setLoadedAnnotationImageUris(new Set());
+    setSourceSize(
+      sourceWidthProp && sourceHeightProp
+        ? { width: sourceWidthProp, height: sourceHeightProp }
+        : null,
+    );
+  }, [imageUri]);
+
+  useEffect(() => {
+    if (!sourceWidthProp || !sourceHeightProp) return;
+    setSourceSize({ width: sourceWidthProp, height: sourceHeightProp });
+  }, [sourceWidthProp, sourceHeightProp]);
 
   useEffect(() => {
     setLoadedAnnotationImageUris(new Set());
   }, [imageUri, pendingAnnotationImageUris.join('|')]);
 
   useEffect(() => {
-    if (!isImageLoaded || !onReady) return;
+    if (!isImageLoaded || waitForAnnotationImages) return;
+    onReadyRef.current?.();
+  }, [imageUri, isImageLoaded, waitForAnnotationImages]);
+
+  useEffect(() => {
+    if (!isImageLoaded || !waitForAnnotationImages) return;
 
     const annotationImagesReady =
       pendingAnnotationImageUris.length === 0 ||
@@ -85,12 +125,35 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
 
     const settleMs = pendingAnnotationImageUris.length > 0 ? 400 : 150;
 
+    let cancelled = false;
     const timer = setTimeout(() => {
-      onReady();
+      if (!cancelled) {
+        onReadyRef.current?.();
+      }
     }, settleMs);
 
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [
+    imageUri,
+    isImageLoaded,
+    loadedAnnotationImageUris,
+    pendingAnnotationImageUris,
+    waitForAnnotationImages,
+  ]);
+
+  useEffect(() => {
+    if (!isImageLoaded || !waitForAnnotationImages) return;
+
+    const timeoutMs = pendingAnnotationImageUris.length > 0 ? 5000 : 2500;
+    const timer = setTimeout(() => {
+      onReadyRef.current?.();
+    }, timeoutMs);
+
     return () => clearTimeout(timer);
-  }, [isImageLoaded, loadedAnnotationImageUris, pendingAnnotationImageUris, onReady]);
+  }, [imageUri, isImageLoaded, pendingAnnotationImageUris.length, waitForAnnotationImages]);
 
   const handleAnnotationImageLoad = React.useCallback((uri: string) => {
     setLoadedAnnotationImageUris((prev) => {
@@ -100,6 +163,13 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
       return next;
     });
   }, []);
+
+  const markAnnotationImageSettled = React.useCallback(
+    (uri: string) => {
+      handleAnnotationImageLoad(uri);
+    },
+    [handleAnnotationImageLoad],
+  );
 
   const capture = async (): Promise<string | null> => {
     if (!viewRef.current || !isImageLoaded) {
@@ -160,13 +230,15 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           fadeDuration={0}
           cachePolicy="disk"
           priority="high"
-          allowDownscaling={false}
+          allowDownscaling
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;
             if (w && h) {
-              setSourceSize({ width: w, height: h });
-              setPageSourceSize(imageUri, { width: w, height: h });
+              const nextSourceSize = { width: w, height: h };
+              setSourceSize(nextSourceSize);
+              setPageSourceSize(imageUri, nextSourceSize);
+              onSourceSize?.(nextSourceSize);
             }
             setIsImageLoaded(true);
           }}
@@ -176,22 +248,51 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           }}
         />
 
+        {isImageLoaded && middleLayer ? (
+          <View style={styles.middleLayer} pointerEvents="box-none">
+            {middleLayer}
+          </View>
+        ) : null}
+
         {isImageLoaded && (
-          <PdfAnnotations
-            annotations={annotations}
-            onAnnotationAdd={() => {}}
-            onAnnotationUpdate={() => {}}
-            onAnnotationDelete={() => {}}
-            isEditing={false}
-            currentTool={null}
-            zoomLevel={1}
-            viewportWidth={renderWidth}
-            viewportHeight={renderHeight}
-            sourceWidth={sourceWidth}
-            sourceHeight={sourceHeight}
-            lineGuideId={lineGuideId}
-            onImageAnnotationLoad={handleAnnotationImageLoad}
-          />
+          <View style={styles.annotationsLayer} pointerEvents="box-none">
+            {readOnly ? (
+              <ReadOnlyPageAnnotations
+                annotations={annotations}
+                lineGuideId={lineGuideId}
+                sourcePageNumber={
+                  sourcePageNumberProp ??
+                  (typeof annotations[0]?.sourcePageNumber === 'number'
+                    ? annotations[0].sourcePageNumber
+                    : typeof annotations[0]?.page === 'number'
+                      ? annotations[0].page
+                      : undefined)
+                }
+                viewportWidth={renderWidth}
+                viewportHeight={renderHeight}
+                sourceWidth={sourceWidth}
+                sourceHeight={sourceHeight}
+                onImageAnnotationLoad={markAnnotationImageSettled}
+                onImageAnnotationError={markAnnotationImageSettled}
+              />
+            ) : (
+              <PdfAnnotations
+                annotations={annotations}
+                onAnnotationAdd={() => {}}
+                onAnnotationUpdate={() => {}}
+                onAnnotationDelete={() => {}}
+                isEditing={false}
+                currentTool={null}
+                zoomLevel={1}
+                viewportWidth={renderWidth}
+                viewportHeight={renderHeight}
+                sourceWidth={sourceWidth}
+                sourceHeight={sourceHeight}
+                lineGuideId={lineGuideId}
+                onImageAnnotationLoad={handleAnnotationImageLoad}
+              />
+            )}
+          </View>
         )}
       </View>
     </View>
@@ -212,6 +313,14 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  middleLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+  },
+  annotationsLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 3,
   },
 });
 

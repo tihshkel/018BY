@@ -90,7 +90,6 @@ async function loadRemoteAlbumPageUri(
     if (info.exists) {
       return normalizeFileUri(localPath);
     }
-    // Просмотр: не блокируем UI скачиванием — URL открывается сразу, кеш в фоне.
     return remotePageUrl(folderPath, fileName);
   }
   const uri = await downloadRemotePageToCache(folderPath, fileName);
@@ -190,10 +189,9 @@ async function warmRemoteAlbumCache(
 }
 
 /**
- * Быстрый список страниц для просмотра: уже закешированные страницы отдаются с диска,
- * остальные сразу открываются по URL, а кеширование запускается в фоне.
- *
- * Это нужно, чтобы альбом открывался моментально (без ожидания скачивания всех 60 страниц).
+ * Быстрый список страниц для просмотра: сразу отдаём URL с GitHub,
+ * без ожидания проверки кеша каждой из 48–60 страниц.
+ * Локальный кеш прогревается в фоне.
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
@@ -206,9 +204,7 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
     return remotePageUrl(spec.folderPath, fileName);
   });
 
-  void ensureRemoteAlbumCacheDir().then(() => {
-    warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
-  });
+  warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
 
   return uris;
 }
@@ -359,29 +355,6 @@ export async function ensureAlbumPagesCachedForExport(
     });
 }
 
-/** Номер страницы шаблона из URI (page_008.png → 8) для слотов line-guides. */
-export function resolveSlotPageNumber(
-  imageUri: string | undefined | null,
-  fallbackPage: number,
-): number {
-  if (!imageUri || typeof imageUri !== 'string') return fallbackPage;
-
-  let decoded = imageUri;
-  try {
-    decoded = decodeURIComponent(imageUri);
-  } catch {
-    /* use raw */
-  }
-
-  const match = decoded.match(/page_(\d{1,3})\.(png|jpe?g|webp)/i);
-  if (match) {
-    const parsed = parseInt(match[1], 10);
-    if (parsed > 0) return parsed;
-  }
-
-  return fallbackPage;
-}
-
 export async function getAlbumImageUris(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
   if (spec) {
@@ -424,8 +397,9 @@ export async function getAlbumImageUris(albumId: string): Promise<string[]> {
     const assetPromises = images.map(async (image) => {
       try {
         const asset = Asset.fromModule(image);
-        await asset.downloadAsync();
-        return asset.localUri || asset.uri;
+        const immediateUri = asset.localUri || asset.uri;
+        asset.downloadAsync().catch(() => {});
+        return immediateUri;
       } catch (error) {
         console.warn('Ошибка загрузки изображения:', error);
         return null;
@@ -469,6 +443,10 @@ export function isFamilyCoverAlbumId(albumId: string | null | undefined): boolea
   return !!albumId && albumId.startsWith('family_sdfa');
 }
 
+export function isWeddingCoverAlbumId(albumId: string | null | undefined): boolean {
+  return !!albumId && (albumId.startsWith('wedding_sva') || albumId.startsWith('wedding_sa'));
+}
+
 /** Альбомы с одним пустым листом для добавления страниц (семья, праздники blank) */
 export function isBlankInteriorAlbum(
   albumId: string | null | undefined,
@@ -503,7 +481,19 @@ export function resolveInteriorAlbumId(
   albumId: string | null | undefined,
   category?: string | null
 ): string {
+  if (albumId === 'family_blank_21x21') return 'family_blank_21x21';
+  if (albumId === 'family_blank') return 'family_blank';
+
+  if (category === 'pregnancy') {
+    if (albumId === 'pregnancy_a5') return 'pregnancy_a5';
+    return 'pregnancy_60';
+  }
+
   if (category === 'family') {
+    if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
+    return 'family_blank';
+  }
+  if (category === 'wedding') {
     if (usesSquareBlankInterior(albumId)) return 'family_blank_21x21';
     return 'family_blank';
   }
@@ -514,10 +504,11 @@ export function resolveInteriorAlbumId(
     return '';
   }
 
-  if (albumId === 'family_blank_21x21' || usesSquareBlankInterior(albumId)) {
+  if (usesSquareBlankInterior(albumId)) {
     return 'family_blank_21x21';
   }
-  if (albumId === 'family_blank' || isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (isFamilyCoverAlbumId(albumId)) return 'family_blank';
+  if (isWeddingCoverAlbumId(albumId)) return 'family_blank';
   if (albumId.startsWith('dfa_') || albumId.startsWith('kids_')) return 'kids_48';
   if (albumId.startsWith('holiday_')) {
     if (albumId === 'holiday_dfa34' || albumId === 'holiday_dfa35') return 'holidays_birthday_60';
@@ -538,12 +529,7 @@ export const TEMPLATE_LINE_GUIDE_IDS = new Set([
 ]);
 
 function isPregnancyA5LineGuide(albumId: string): boolean {
-  return (
-    albumId === 'pregnancy_a5' ||
-    albumId.includes('a5') ||
-    albumId.includes('_soft') ||
-    albumId.includes('_п')
-  );
+  return albumId === 'pregnancy_a5' || albumId.includes('a5');
 }
 
 /**
@@ -600,7 +586,7 @@ export function getAlbumImages(albumId: string): any[] {
     case 'pregnancy_a5':
       return [pregnancyA5Preview];
     case 'kids_48':
-      return blankPageArray(48);
+      return blankPageArray(48, true);
     case 'holidays_blank':
       return blankPageArray(HOLIDAY_BLANK_PAGE_COUNT);
     case 'holidays_birthday_60':

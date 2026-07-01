@@ -23,11 +23,17 @@ import {
   getTemplateLayout,
 } from '@/utils/photoPageTemplateManifest';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
+import {
+  buildAlbumPhotoStorageKey,
+  persistAlbumPhotoUri,
+} from '@/utils/persistAlbumPhoto';
 
 type FreePageEditorProps = {
   schema: AlbumPageSchema;
   elements: FreePageElement[];
   lineGuideId: string;
+  projectId?: string;
+  instanceId?: string;
   onChange: (elements: FreePageElement[]) => void;
   ensureMediaLibraryPermission: () => Promise<boolean>;
 };
@@ -130,6 +136,7 @@ function DraggableFreeElement({
     borderWidth: selected ? 2 : 0,
     borderColor: colors.primary,
     zIndex: element.zIndex ?? 1,
+    transform: [{ rotate: `${element.rotation ?? 0}deg` }],
   }));
 
   return (
@@ -153,6 +160,8 @@ export function FreePageEditor({
   schema,
   elements,
   lineGuideId,
+  projectId,
+  instanceId,
   onChange,
   ensureMediaLibraryPermission,
 }: FreePageEditorProps) {
@@ -199,17 +208,47 @@ export function FreePageEditor({
     [elements, onChange, selectedId],
   );
 
+  const rotateSelected = useCallback(
+    (delta: number) => {
+      if (!selectedId) return;
+      const maxRotation = limits.maxRotationDegrees ?? 15;
+      onChange(
+        elements.map((el) =>
+          el.id === selectedId
+            ? {
+                ...el,
+                rotation: clampNorm((el.rotation ?? 0) + delta, -maxRotation, maxRotation),
+              }
+            : el,
+        ),
+      );
+    },
+    [elements, limits.maxRotationDegrees, onChange, selectedId],
+  );
+
   const addPhoto = useCallback(async () => {
     if (photoCount >= (limits.maxPhotos ?? 4)) return;
-    const uri = await pickPhotoFromLibrary({ ensurePermission: ensureMediaLibraryPermission });
-    if (!uri) return;
+    const pickedUri = await pickPhotoFromLibrary({ ensurePermission: ensureMediaLibraryPermission });
+    if (!pickedUri) return;
+    const elementId = createId('free');
+    const uri =
+      projectId && instanceId
+        ? await persistAlbumPhotoUri(
+            pickedUri,
+            buildAlbumPhotoStorageKey({
+              projectId,
+              instanceId,
+              freeElementId: elementId,
+            }),
+          )
+        : pickedUri;
     const next: FreePageElement = {
-      id: createId('free'),
+      id: elementId,
       type: 'image',
-      x: safeRect.x + 0.05 * photoCount,
-      y: safeRect.y + 0.05 * photoCount,
-      w: 0.28,
-      h: 0.28,
+      x: safeRect.x + (safeRect.w - 0.52) / 2 + 0.05 * photoCount,
+      y: safeRect.y + (safeRect.h - 0.52) / 2 + 0.05 * photoCount,
+      w: 0.52,
+      h: 0.52,
       zIndex: elements.length + 1,
       content: uri,
     };
@@ -218,11 +257,15 @@ export function FreePageEditor({
   }, [
     elements,
     ensureMediaLibraryPermission,
+    instanceId,
     limits.maxPhotos,
     onChange,
     photoCount,
+    projectId,
     safeRect.x,
     safeRect.y,
+    safeRect.w,
+    safeRect.h,
   ]);
 
   const addText = useCallback(() => {
@@ -279,7 +322,7 @@ export function FreePageEditor({
       <View style={styles.actions}>
         <AppButton
           title={`Добавить фото (${photoCount}/${limits.maxPhotos ?? 4})`}
-          variant="secondary"
+          variant="outline"
           onPress={addPhoto}
           disabled={photoCount >= (limits.maxPhotos ?? 4)}
         />
@@ -298,18 +341,37 @@ export function FreePageEditor({
         />
         <AppButton
           title="Добавить текст"
-          variant="secondary"
+          variant="outline"
           onPress={addText}
           disabled={textCount >= (limits.maxTextBlocks ?? 5) || !draftText.trim()}
         />
       </AppCard>
 
       {selectedId ? (
-        <Pressable onPress={() => removeElement(selectedId)}>
-          <AppText variant="bodySm" style={styles.removeLink}>
-            Удалить выбранный элемент
+        <AppCard style={styles.selectedCard}>
+          <AppText variant="caption" style={styles.hint}>
+            Выбранный элемент
           </AppText>
-        </Pressable>
+          <View style={styles.selectedActions}>
+            <AppButton
+              title="Влево"
+              variant="outline"
+              fullWidth={false}
+              onPress={() => rotateSelected(-5)}
+            />
+            <AppButton
+              title="Вправо"
+              variant="outline"
+              fullWidth={false}
+              onPress={() => rotateSelected(5)}
+            />
+          </View>
+          <Pressable onPress={() => removeElement(selectedId)}>
+            <AppText variant="bodySm" style={styles.removeLink}>
+              Удалить выбранный элемент
+            </AppText>
+          </Pressable>
+        </AppCard>
       ) : null}
     </View>
   );
@@ -360,6 +422,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
     backgroundColor: colors.white,
+  },
+  selectedCard: {
+    padding: spacing.md,
+    gap: spacing.sm,
+    backgroundColor: colors.white,
+  },
+  selectedActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   textInput: {
     borderWidth: 1,

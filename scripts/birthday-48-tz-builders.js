@@ -2,7 +2,7 @@
  * TZ builders for holidays_birthday_60 — 48-page 21×21 «Дни рождения» album.
  */
 
-const { FULL_PHOTO_BLOCK } = require('./photo-block-presets-data');
+const { DESIGNED_ALBUM_PHOTO_BLOCK, EVENT_PHOTO_BLOCK } = require('./photo-block-presets-data');
 const {
   OWNER_FIELDS,
   HELLO_WORLD_FIELDS,
@@ -14,6 +14,7 @@ const {
   FREE_PAGE_5_CUSTOM_FIELD_DEFS,
   YEAR_FREE_CUSTOM_FIELD_DEFS,
   buildFieldsFromSpec,
+  buildBirthdayFreeFieldsFromDefs,
   buildOwnerFields,
   buildAgeMainFields,
   getBirthday48PageTitle,
@@ -22,31 +23,7 @@ const {
   isYearMainPage,
 } = require('./birthday-48-field-specs');
 
-const HELLO_PHOTO_BLOCK = {
-  blockId: 'main_photo',
-  label: 'Горизонтальная фотография',
-  variants: [
-    {
-      variantId: 'one_horizontal',
-      label: '1 горизонтальное фото',
-      slots: 1,
-      slotIndices: [0],
-    },
-  ],
-};
-
-const SINGLE_AGE_PHOTO_BLOCK = {
-  blockId: 'main_photo',
-  label: 'Главное фото',
-  variants: [
-    {
-      variantId: 'one_large',
-      label: 'Одно фото',
-      slots: 1,
-      slotIndices: [0],
-    },
-  ],
-};
+const HELLO_PHOTO_BLOCK = EVENT_PHOTO_BLOCK;
 
 function tzOverride(partial) {
   return {
@@ -63,14 +40,14 @@ function getFreeCustomFieldDefs(pageNumber) {
   return YEAR_FREE_CUSTOM_FIELD_DEFS;
 }
 
-function buildBirthdayFreePage(pageNumber, lineGuideId) {
+function buildBirthdayFreePage(pageNumber, lineGuideId, slots = []) {
+  const customFieldDefs = getFreeCustomFieldDefs(pageNumber);
   return tzOverride({
     title: getBirthday48PageTitle(pageNumber),
     pageType: 'birthday_free_page',
     templateLibraryId: 'CaptionGalleryTemplate',
-    fields: [],
-    customFieldDefs: getFreeCustomFieldDefs(pageNumber),
-    photoBlocks: [FULL_PHOTO_BLOCK],
+    fields: buildBirthdayFreeFieldsFromDefs(lineGuideId, pageNumber, slots, customFieldDefs),
+    photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
     captionEnabled: true,
     canDuplicate: true,
     canAddAfter: true,
@@ -100,20 +77,20 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
         canAddAfter: false,
       });
     case 3:
-      return buildBirthdayFreePage(pageNumber, lineGuideId);
+      return buildBirthdayFreePage(pageNumber, lineGuideId, slots);
     case 4:
       return tzOverride({
         title: 'Мне 1 годик',
         pageType: 'structured',
         templateLibraryId: 'SinglePhotoTemplate',
         fields: buildAgeMainFields(lineGuideId, pageNumber, slots, AGE_ONE_YEAR_FIELDS),
-        photoBlocks: [SINGLE_AGE_PHOTO_BLOCK],
+        photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
         captionEnabled: true,
         canDuplicate: false,
         canAddAfter: false,
       });
     case 5:
-      return buildBirthdayFreePage(pageNumber, lineGuideId);
+      return buildBirthdayFreePage(pageNumber, lineGuideId, slots);
     case 40:
       return tzOverride({
         title: 'Мои путешествия',
@@ -144,7 +121,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
       pageType: 'structured',
       templateLibraryId: 'SinglePhotoTemplate',
       fields: buildAgeMainFields(lineGuideId, pageNumber, slots, YEAR_MAIN_FIELDS),
-      photoBlocks: [SINGLE_AGE_PHOTO_BLOCK],
+      photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       captionEnabled: true,
       canDuplicate: false,
       canAddAfter: false,
@@ -152,7 +129,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
   }
 
   if (isBirthdayFreePage(pageNumber)) {
-    return buildBirthdayFreePage(pageNumber, lineGuideId);
+    return buildBirthdayFreePage(pageNumber, lineGuideId, slots);
   }
 
   if (isTravelPhotoPage(pageNumber)) {
@@ -161,7 +138,7 @@ function applyBirthday48PageFields(pageNumber, lineGuideId, slots = []) {
       pageType: 'caption_photo_page',
       templateLibraryId: 'CaptionGalleryTemplate',
       fields: [],
-      photoBlocks: [FULL_PHOTO_BLOCK],
+      photoBlocks: [DESIGNED_ALBUM_PHOTO_BLOCK],
       captionEnabled: true,
       canDuplicate: true,
       canAddAfter: true,

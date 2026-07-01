@@ -1,6 +1,7 @@
 import type { KeyboardTypeOptions } from 'react-native';
 
-import type { FieldType } from '@/types/album-page-schema';
+import type { AlbumPageField, FieldType } from '@/types/album-page-schema';
+import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
 export function sanitizeDateInput(text: string): string {
   const digits = text.replace(/\D/g, '').slice(0, 8);
@@ -70,4 +71,11 @@ export function getFieldKeyboardType(type: FieldType): KeyboardTypeOptions {
     default:
       return 'default';
   }
+}
+
+export function getFieldKeyboardTypeForField(field: AlbumPageField): KeyboardTypeOptions {
+  if (getMeasurementDigitLimit(field) != null) {
+    return 'number-pad';
+  }
+  return getFieldKeyboardType(field.type);
 }

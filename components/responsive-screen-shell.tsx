@@ -1,7 +1,6 @@
 import React from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
-import { spacing } from '@/constants/design-tokens';
 import {
   getTabletContentShell,
   getTabletSectionWrap,
@@ -23,7 +22,13 @@ export function ResponsiveScreenShell({
   const layout = useResponsiveLayout(maxContentWidth);
   const shellStyle =
     getTabletContentShell(layout) ??
-    getTabletSectionWrap(layout, { phonePadding: spacing.lg, tabletPadding: 0 });
+    getTabletSectionWrap(layout, { phonePadding: 0, tabletPadding: 0 });
 
-  return <View style={[{ flex: 1 }, shellStyle, style]}>{children}</View>;
+  return <View style={[shellStyle, styles.root, style]}>{children}</View>;
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

@@ -16,6 +16,7 @@ const {
   buildShoppingListFields,
   buildTodoListFields,
   buildBirthStoryFields,
+  buildAlreadyMomFields,
   isPregnancy60WeeklyPage,
   getPregnancy60WeekNumber,
   LETTER_TO_BABY_FIELDS,
@@ -60,16 +61,19 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 3:
       return tzOverride({
         title: 'Будущий папа',
+        formHint: 'Анкета про папу малыша: личные данные, работа, увлечения и ожидания.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, FUTURE_DAD_FIELDS),
       });
     case 4:
       return tzOverride({
         title: 'Постановка на учёт',
+        formHint: 'Заполните данные первого приёма, врача и график его работы по дням недели.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE4_FIELDS),
       });
     case 6:
       return tzOverride({
         title: 'Первое УЗИ',
+        formHint: 'Данные первого УЗИ: дата, место, врач и ваши эмоции после встречи с малышом.',
         fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, PAGE6_FIELDS),
       });
     case 7:
@@ -105,7 +109,7 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
       return tzOverride({
         title: 'Уже мама',
         pageType: 'structured',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, ALREADY_MOM_FIELDS),
+        fields: buildAlreadyMomFields(lineGuideId, pageNumber, slots),
       });
     case 5:
       return buildPregnancyStaticPage('Триместры');
@@ -116,13 +120,16 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     case 33:
       return buildPregnancyStaticPage('3 триместр');
     case 48:
+      return buildPregnancyStaticPage('Сумка маме');
     case 49:
+      return buildPregnancyStaticPage('Сумки малышу');
+    case 55:
       return tzOverride({
+        title: 'Памятные моменты',
         pageType: 'photo',
+        editable: true,
         fields: [],
       });
-    case 55:
-      return buildPregnancyStaticPage('Памятные моменты');
     case 56:
     case 57:
     case 58:

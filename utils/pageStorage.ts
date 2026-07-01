@@ -62,6 +62,51 @@ export async function savePageValuesMap(
   await setItem(getPageValuesKey(projectId), JSON.stringify(values));
 }
 
+export function getPageValueEntryKey(projectId: string, instanceId: string): string {
+  return `@project_pv_${projectId}_${instanceId}`;
+}
+
+export async function savePageValueEntry(
+  setItem: (key: string, value: string) => Promise<void>,
+  projectId: string,
+  instanceId: string,
+  values: PageValues,
+): Promise<void> {
+  await setItem(getPageValueEntryKey(projectId, instanceId), JSON.stringify(values));
+}
+
+/** Merges per-page entries over the monolithic map (newer updatedAt wins). */
+export async function loadPageValuesMapMerged(
+  getItem: (key: string) => Promise<string | null>,
+  projectId: string,
+  instanceIds: string[],
+): Promise<Record<string, PageValues>> {
+  const base = await loadPageValuesMap(getItem, projectId);
+  if (instanceIds.length === 0) return base;
+
+  const merged = { ...base };
+  await Promise.all(
+    instanceIds.map(async (instanceId) => {
+      const raw = await getItem(getPageValueEntryKey(projectId, instanceId));
+      if (!raw) return;
+      try {
+        const entry = JSON.parse(raw) as PageValues;
+        const existing = merged[instanceId];
+        if (
+          !existing ||
+          !existing.updatedAt ||
+          (entry.updatedAt && entry.updatedAt >= existing.updatedAt)
+        ) {
+          merged[instanceId] = entry;
+        }
+      } catch {
+        // ignore corrupt entry
+      }
+    }),
+  );
+  return merged;
+}
+
 export function createEmptyPageValues(): PageValues {
   return {
     fields: {},

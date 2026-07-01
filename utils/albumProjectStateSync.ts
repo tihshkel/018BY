@@ -9,18 +9,6 @@ export type AlbumProjectSnapshot = {
 const snapshots = new Map<string, AlbumProjectSnapshot>();
 const listeners = new Map<string, Set<(snapshot: AlbumProjectSnapshot) => void>>();
 
-function notifyAlbumProjectSnapshotListeners(
-  projectId: string,
-  snapshot: AlbumProjectSnapshot,
-): void {
-  const projectListeners = listeners.get(projectId);
-  if (!projectListeners?.size) return;
-
-  queueMicrotask(() => {
-    projectListeners.forEach((listener) => listener(snapshot));
-  });
-}
-
 export function getAlbumProjectSnapshot(projectId: string): AlbumProjectSnapshot | undefined {
   return snapshots.get(projectId);
 }
@@ -30,7 +18,7 @@ export function publishAlbumProjectSnapshot(
   snapshot: AlbumProjectSnapshot
 ): void {
   snapshots.set(projectId, snapshot);
-  notifyAlbumProjectSnapshotListeners(projectId, snapshot);
+  listeners.get(projectId)?.forEach((listener) => listener(snapshot));
 }
 
 export function patchAlbumProjectSnapshot(
@@ -62,10 +50,15 @@ export function subscribeAlbumProjectSnapshot(
 
   const existing = snapshots.get(projectId);
   if (existing) {
-    queueMicrotask(() => listener(existing));
+    listener(existing);
   }
 
   return () => {
     listeners.get(projectId)?.delete(listener);
   };
+}
+
+export function clearAlbumProjectSnapshot(projectId: string): void {
+  snapshots.delete(projectId);
+  listeners.delete(projectId);
 }

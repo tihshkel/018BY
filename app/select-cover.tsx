@@ -5,10 +5,15 @@ import { OPEN_NOTIFICATIONS_INBOX_DATA } from '@/utils/notifications';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
-import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { FAMILY_COVER_DESIGNS, getFamilyCoverPickerDescription } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS, getHolidayCoverPickerDescription } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
+import {
+  getWeddingCoverPickerDescription,
+  getWeddingCoverPickerTitle,
+  WEDDING_COVER_DESIGNS,
+} from '@/utils/weddingCoverDesigns';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
@@ -39,7 +44,6 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatRouteEventDate } from '@/utils/routeParams';
 import {
   getGridColumnCount,
   getGridColumnWrapperStyle,
@@ -201,7 +205,7 @@ export default function SelectCoverScreen() {
       return HOLIDAY_COVER_DESIGNS.map((design) => ({
         id: design.id,
         title: getCoverSelectTitleBySku(design.sku, 'holidays'),
-        description: 'Праздничный альбом',
+        description: getHolidayCoverPickerDescription(design),
         image: design.image,
         color: gradient[0],
         gradient,
@@ -214,7 +218,19 @@ export default function SelectCoverScreen() {
       return FAMILY_COVER_DESIGNS.map((design) => ({
         id: design.id,
         title: getCoverSelectTitleBySku(design.sku, 'family'),
-        description: 'Семейный альбом',
+        description: getFamilyCoverPickerDescription(design),
+        image: design.image,
+        color: gradient[0],
+        gradient,
+      }));
+    }
+
+    if (celebration === 'wedding') {
+      const gradient = categoryGradients.wedding;
+      return WEDDING_COVER_DESIGNS.map((design) => ({
+        id: design.id,
+        title: getWeddingCoverPickerTitle(design),
+        description: getWeddingCoverPickerDescription(design),
         image: design.image,
         color: gradient[0],
         gradient,
@@ -593,7 +609,7 @@ export default function SelectCoverScreen() {
 
     console.log('[Select Cover] Cover selected:', coverId, 'Celebration:', celebration, 'Type:', typeof celebration);
 
-    // Для беременности и детей показываем модальное окно выбора даты
+    // Дата нужна только для альбомов, где она влияет на напоминания и контент.
     if (celebration === 'pregnancy' || celebration === 'kids') {
       console.log('[Select Cover] Showing date modal for:', celebration);
       setSelectedCoverId(coverId);
@@ -620,7 +636,7 @@ export default function SelectCoverScreen() {
     setIsSavingDate(true);
 
     const coverId = selectedCoverId;
-    const eventDateParam = formatRouteEventDate(dueDate);
+    const eventDateIso = dueDate.toISOString();
 
     try {
       await withTimeout(scheduleReminder(dueDate, celebration), 8_000, 'save-reminder');
@@ -636,7 +652,7 @@ export default function SelectCoverScreen() {
       params: {
         celebration,
         coverType: coverId,
-        eventDate: eventDateParam,
+        eventDate: eventDateIso,
       },
     });
 

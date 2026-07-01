@@ -78,6 +78,7 @@ export function AlbumDateSheet({
     >
       <View style={styles.pickerWrap}>
         <AppInlineDatePicker
+          visible={visible}
           value={value}
           onChange={onChange}
           minimumDate={minimumDate}

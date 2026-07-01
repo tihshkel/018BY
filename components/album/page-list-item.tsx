@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import React, { useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import React, { useCallback, useRef, useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, View, type GestureResponderEvent } from "react-native";
 import Swipeable, { type SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, {
   useAnimatedStyle,
@@ -24,9 +24,13 @@ type PageListItemProps = {
   status: PageStatus;
   pageNumber?: number;
   thumbnailUri?: string;
+  thumbnailNode?: ReactNode;
+  subtitle?: string;
   onPress: () => void;
   onDelete?: () => void;
   onMenuPress?: () => void;
+  onChangeTemplate?: () => void;
+  canChangeTemplate?: boolean;
   canDelete?: boolean;
   showChevron?: boolean;
   compact?: boolean;
@@ -44,8 +48,12 @@ function PageCard({
   status,
   pageNumber,
   thumbnailUri,
+  thumbnailNode,
+  subtitle,
   onPress,
   onMenuPress,
+  onChangeTemplate,
+  canChangeTemplate,
   showChevron,
   compact = false,
   canReorder = false,
@@ -57,8 +65,12 @@ function PageCard({
   status: PageStatus;
   pageNumber?: number;
   thumbnailUri?: string;
+  thumbnailNode?: ReactNode;
+  subtitle?: string;
   onPress: () => void;
   onMenuPress?: () => void;
+  onChangeTemplate?: () => void;
+  canChangeTemplate?: boolean;
   showChevron?: boolean;
   compact?: boolean;
   canReorder?: boolean;
@@ -66,6 +78,11 @@ function PageCard({
   isDragging?: boolean;
   isHighlighted?: boolean;
 }) {
+  const handleChangeTemplatePress = (event: GestureResponderEvent) => {
+    event.stopPropagation();
+    onChangeTemplate?.();
+  };
+
   return (
     <Pressable
       testID={pageNumber != null ? `page-card-${pageNumber}` : undefined}
@@ -82,15 +99,10 @@ function PageCard({
       {dragHandle}
 
       <View style={[styles.thumbnailWrap, compact && styles.thumbnailWrapCompact]}>
-        {thumbnailUri ? (
-          <Image
-            source={{ uri: thumbnailUri }}
-            style={styles.thumbnail}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            recyclingKey={thumbnailUri}
-            transition={0}
-          />
+        {thumbnailNode ? (
+          thumbnailNode
+        ) : thumbnailUri ? (
+          <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} contentFit="cover" />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Ionicons name="image-outline" size={28} color={colors.tabInactive} />
@@ -107,12 +119,32 @@ function PageCard({
         <AppText variant="body" numberOfLines={2} style={styles.title}>
           {title}
         </AppText>
+        {subtitle ? (
+          <AppText variant="caption" numberOfLines={1} style={styles.subtitle}>
+            {subtitle}
+          </AppText>
+        ) : null}
         {canReorder ? (
           <AppText variant="caption" style={styles.reorderHint}>
             Зажмите ≡ и перетащите
           </AppText>
         ) : null}
         <PageStatusBadge status={status} />
+        {canChangeTemplate && onChangeTemplate ? (
+          <Pressable
+            onPress={handleChangeTemplatePress}
+            hitSlop={6}
+            style={({ pressed }) => [
+              styles.changeTemplateBtn,
+              pressed && styles.changeTemplateBtnPressed,
+            ]}
+          >
+            <Ionicons name="sparkles-outline" size={14} color={colors.primary} />
+            <AppText variant="caption" style={styles.changeTemplateText}>
+              Сменить шаблон
+            </AppText>
+          </Pressable>
+        ) : null}
       </View>
 
       <View style={[styles.trailing, compact && styles.trailingCompact]}>
@@ -140,9 +172,13 @@ export function PageListItem({
   status,
   pageNumber,
   thumbnailUri,
+  thumbnailNode,
+  subtitle,
   onPress,
   onDelete,
   onMenuPress,
+  onChangeTemplate,
+  canChangeTemplate = false,
   canDelete = true,
   showChevron = false,
   compact = false,
@@ -184,22 +220,11 @@ export function PageListItem({
     [itemIndex, itemsCount, translateY],
   );
 
-  const handleDragEnd = useCallback((finalTranslationY?: number) => {
-    if (finalTranslationY == null) {
-      translateY.value = withSpring(0);
-    }
+  const handleDragEnd = useCallback(() => {
+    translateY.value = withSpring(0);
     setIsDragging(false);
     if (itemIndex != null && onReorder) {
-      const target =
-        finalTranslationY != null
-          ? Math.max(
-              0,
-              Math.min(
-                itemsCount - 1,
-                Math.round(itemIndex + finalTranslationY / PAGE_LIST_ROW_HEIGHT),
-              ),
-            )
-          : hoverIndexRef.current;
+      const target = hoverIndexRef.current;
       if (target !== itemIndex) {
         onReorder(target);
       }
@@ -211,7 +236,6 @@ export function PageListItem({
       <PageDragHandle
         disabled={reorderDisabled}
         active={isDragging}
-        dragTranslateY={translateY}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
@@ -224,8 +248,12 @@ export function PageListItem({
       status={status}
       pageNumber={pageNumber}
       thumbnailUri={thumbnailUri}
+          thumbnailNode={thumbnailNode}
+          subtitle={subtitle}
       onPress={onPress}
       onMenuPress={onMenuPress}
+      onChangeTemplate={onChangeTemplate}
+      canChangeTemplate={canChangeTemplate}
       showChevron={showChevron}
       compact={compact}
       canReorder={canReorder}
@@ -359,7 +387,29 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 20,
   },
+  subtitle: {
+    color: colors.textSecondary,
+  },
   reorderHint: {
+    color: colors.primary,
+    fontFamily: sansFont("medium"),
+  },
+  changeTemplateBtn: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderColor: colors.primaryLight,
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  changeTemplateBtnPressed: {
+    opacity: 0.75,
+  },
+  changeTemplateText: {
     color: colors.primary,
     fontFamily: sansFont("medium"),
   },

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Annotation } from '@/components/pdf-annotations';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
 
@@ -14,6 +15,8 @@ type UsePageAnnotationsForLayoutParams = {
   viewportHeight: number;
   sourceWidth?: number;
   sourceHeight?: number;
+  /** Debounce values before heavy annotation build (ms). 0 = immediate. */
+  debounceMs?: number;
 };
 
 export function usePageAnnotationsForLayout({
@@ -25,9 +28,13 @@ export function usePageAnnotationsForLayout({
   viewportHeight,
   sourceWidth,
   sourceHeight,
+  debounceMs = 0,
 }: UsePageAnnotationsForLayoutParams): Annotation[] {
+  const debouncedValues = useDebouncedValue(values, debounceMs);
+
   return useMemo(() => {
-    if (!instance || !schema || !values || viewportWidth <= 0 || viewportHeight <= 0) {
+    const resolvedValues = debounceMs > 0 ? debouncedValues : values;
+    if (!instance || !schema || !resolvedValues || viewportWidth <= 0 || viewportHeight <= 0) {
       return [];
     }
 
@@ -35,15 +42,17 @@ export function usePageAnnotationsForLayout({
 
     return pageValuesToAnnotations({
       lineGuideId,
-      pageNumber: schema.sourcePageNumber,
+      pageNumber: instance.sourcePageNumber ?? schema.sourcePageNumber,
       schema: resolvedSchema,
-      values,
+      values: resolvedValues,
       viewportWidth,
       viewportHeight,
       sourceWidth,
       sourceHeight,
     });
   }, [
+    debounceMs,
+    debouncedValues,
     instance,
     lineGuideId,
     schema,

@@ -8,17 +8,17 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import { colors, radii } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import { getContentRect } from '@/utils/imageContentRect';
 import {
   computePhotoBlockLayout,
-  resolvePhotoBlockRect,
   type PhotoBlockLayout,
+  type ViewportRect,
 } from '@/utils/photoBlockLayout';
 import {
   applyPhotoSlotTransform,
-  clampPhotoOffset,
-  clampPhotoScale,
+  clampPhotoBlockTransform,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
 } from '@/utils/photoSlotTransform';
@@ -30,6 +30,7 @@ type AlbumPreviewPhotoBlockEditorProps = {
   slotUris: (string | null)[];
   templateLibraryId?: string;
   groupTransform?: PhotoSlotTransform;
+  safeBounds?: ViewportRect | null;
   coordinateWidth: number;
   coordinateHeight: number;
   sourceWidth?: number;
@@ -78,6 +79,7 @@ export function AlbumPreviewPhotoBlockEditor({
   slotUris,
   templateLibraryId,
   groupTransform = DEFAULT_PHOTO_SLOT_TRANSFORM,
+  safeBounds,
   coordinateWidth,
   coordinateHeight,
   sourceWidth,
@@ -85,6 +87,17 @@ export function AlbumPreviewPhotoBlockEditor({
   onGroupTransformChange,
 }: AlbumPreviewPhotoBlockEditorProps) {
   const [selected, setSelected] = useState(false);
+
+  const contentRect = useMemo(
+    () =>
+      getContentRect(
+        coordinateWidth,
+        coordinateHeight,
+        sourceWidth ?? coordinateWidth,
+        sourceHeight ?? coordinateHeight,
+      ),
+    [coordinateHeight, coordinateWidth, sourceHeight, sourceWidth],
+  );
 
   const layout = useMemo(
     () =>
@@ -97,9 +110,11 @@ export function AlbumPreviewPhotoBlockEditor({
         viewportHeight: coordinateHeight,
         sourceWidth,
         sourceHeight,
+        contentRect,
         templateLibraryId,
       }),
     [
+      contentRect,
       coordinateHeight,
       coordinateWidth,
       lineGuideId,
@@ -114,6 +129,16 @@ export function AlbumPreviewPhotoBlockEditor({
 
   const baseBlock = layout?.baseBlock;
 
+  const applyClampedTransform = useCallback(
+    (next: PhotoSlotTransform) => {
+      if (!baseBlock) return next;
+      const bounds =
+        safeBounds && safeBounds.width > 0 && safeBounds.height > 0 ? safeBounds : null;
+      return clampPhotoBlockTransform(baseBlock, next, bounds);
+    },
+    [baseBlock, safeBounds],
+  );
+
   const savedScale = useSharedValue(groupTransform.scale ?? 1);
   const savedOffsetX = useSharedValue(groupTransform.offsetX ?? 0);
   const savedOffsetY = useSharedValue(groupTransform.offsetY ?? 0);
@@ -121,8 +146,38 @@ export function AlbumPreviewPhotoBlockEditor({
   const offsetX = useSharedValue(groupTransform.offsetX ?? 0);
   const offsetY = useSharedValue(groupTransform.offsetY ?? 0);
 
+  const baseX = useSharedValue(0);
+  const baseY = useSharedValue(0);
+  const baseW = useSharedValue(1);
+  const baseH = useSharedValue(1);
+  const safeX = useSharedValue(0);
+  const safeY = useSharedValue(0);
+  const safeW = useSharedValue(0);
+  const safeH = useSharedValue(0);
+  const hasSafeBounds = useSharedValue(false);
+
   useEffect(() => {
-    const next = normalizePhotoSlotTransform(groupTransform);
+    if (!baseBlock) return;
+    baseX.value = baseBlock.x;
+    baseY.value = baseBlock.y;
+    baseW.value = baseBlock.width;
+    baseH.value = baseBlock.height;
+  }, [baseBlock, baseH, baseW, baseX, baseY]);
+
+  useEffect(() => {
+    if (safeBounds && safeBounds.width > 0 && safeBounds.height > 0) {
+      hasSafeBounds.value = true;
+      safeX.value = safeBounds.x;
+      safeY.value = safeBounds.y;
+      safeW.value = safeBounds.width;
+      safeH.value = safeBounds.height;
+      return;
+    }
+    hasSafeBounds.value = false;
+  }, [hasSafeBounds, safeBounds, safeH, safeW, safeX, safeY]);
+
+  useEffect(() => {
+    const next = applyClampedTransform(normalizePhotoSlotTransform(groupTransform));
     savedScale.value = next.scale;
     savedOffsetX.value = next.offsetX;
     savedOffsetY.value = next.offsetY;
@@ -130,6 +185,7 @@ export function AlbumPreviewPhotoBlockEditor({
     offsetX.value = next.offsetX;
     offsetY.value = next.offsetY;
   }, [
+    applyClampedTransform,
     groupTransform,
     offsetX,
     offsetY,
@@ -154,20 +210,127 @@ export function AlbumPreviewPhotoBlockEditor({
       Gesture.Pan()
         .enabled(selected)
         .onUpdate((event) => {
-          if (!baseBlock) return;
-          offsetX.value = clampPhotoOffset(
-            savedOffsetX.value + event.translationX / Math.max(baseBlock.width, 1),
+          const block = {
+            x: baseX.value,
+            y: baseY.value,
+            width: baseW.value,
+            height: baseH.value,
+          };
+          const bounds = hasSafeBounds.value
+            ? { x: safeX.value, y: safeY.value, width: safeW.value, height: safeH.value }
+            : null;
+          const clamped = clampPhotoBlockTransform(
+            block,
+            {
+              scale: savedScale.value,
+              offsetX: savedOffsetX.value + event.translationX / Math.max(block.width, 1),
+              offsetY: savedOffsetY.value + event.translationY / Math.max(block.height, 1),
+            },
+            bounds,
           );
-          offsetY.value = clampPhotoOffset(
-            savedOffsetY.value + event.translationY / Math.max(baseBlock.height, 1),
-          );
+          scale.value = clamped.scale;
+          offsetX.value = clamped.offsetX;
+          offsetY.value = clamped.offsetY;
         })
         .onEnd(() => {
+          savedScale.value = scale.value;
           savedOffsetX.value = offsetX.value;
           savedOffsetY.value = offsetY.value;
           runOnJS(commitTransform)();
         }),
-    [baseBlock, commitTransform, offsetX, offsetY, savedOffsetX, savedOffsetY, selected],
+    [
+      baseH,
+      baseW,
+      baseX,
+      baseY,
+      commitTransform,
+      hasSafeBounds,
+      offsetX,
+      offsetY,
+      safeH,
+      safeW,
+      safeX,
+      safeY,
+      savedOffsetX,
+      savedOffsetY,
+      savedScale,
+      scale,
+      selected,
+    ],
+  );
+
+  const pinchGesture = useMemo(
+    () =>
+      Gesture.Pinch()
+        .enabled(selected)
+        .onUpdate((event) => {
+          const block = {
+            x: baseX.value,
+            y: baseY.value,
+            width: baseW.value,
+            height: baseH.value,
+          };
+          const bounds = hasSafeBounds.value
+            ? { x: safeX.value, y: safeY.value, width: safeW.value, height: safeH.value }
+            : null;
+          const clamped = clampPhotoBlockTransform(
+            block,
+            {
+              scale: savedScale.value * event.scale,
+              offsetX: savedOffsetX.value,
+              offsetY: savedOffsetY.value,
+            },
+            bounds,
+          );
+          scale.value = clamped.scale;
+          offsetX.value = clamped.offsetX;
+          offsetY.value = clamped.offsetY;
+        })
+        .onEnd(() => {
+          savedScale.value = scale.value;
+          savedOffsetX.value = offsetX.value;
+          savedOffsetY.value = offsetY.value;
+          runOnJS(commitTransform)();
+        }),
+    [
+      baseH,
+      baseW,
+      baseX,
+      baseY,
+      commitTransform,
+      hasSafeBounds,
+      offsetX,
+      offsetY,
+      safeH,
+      safeW,
+      safeX,
+      safeY,
+      savedOffsetX,
+      savedOffsetY,
+      savedScale,
+      scale,
+      selected,
+    ],
+  );
+
+  const blockGesture = useMemo(
+    () => Gesture.Simultaneous(panGesture, pinchGesture),
+    [panGesture, pinchGesture],
+  );
+
+  const selectBlockGesture = useMemo(
+    () =>
+      Gesture.Tap()
+        .enabled(!selected)
+        .onEnd(() => {
+          runOnJS(setSelected)(true);
+        }),
+    [selected],
+  );
+
+  const idleBlockGesture = useMemo(
+    () => Gesture.Simultaneous(selectBlockGesture, blockGesture),
+    [blockGesture, selectBlockGesture],
   );
 
   const cornerGestures = useMemo(() => {
@@ -181,31 +344,76 @@ export function AlbumPreviewPhotoBlockEditor({
         acc[corner] = Gesture.Pan()
           .enabled(selected)
           .onUpdate((event) => {
+            const block = {
+              x: baseX.value,
+              y: baseY.value,
+              width: baseW.value,
+              height: baseH.value,
+            };
+            const bounds = hasSafeBounds.value
+              ? { x: safeX.value, y: safeY.value, width: safeW.value, height: safeH.value }
+              : null;
             const delta =
               (event.translationX * sign.x + event.translationY * sign.y) /
-              Math.max(baseBlock.width, baseBlock.height, 1);
-            scale.value = clampPhotoScale(savedScale.value * (1 + delta * 0.85));
+              Math.max(block.width, block.height, 1);
+            const clamped = clampPhotoBlockTransform(
+              block,
+              {
+                scale: savedScale.value * (1 + delta * 0.85),
+                offsetX: savedOffsetX.value,
+                offsetY: savedOffsetY.value,
+              },
+              bounds,
+            );
+            scale.value = clamped.scale;
+            offsetX.value = clamped.offsetX;
+            offsetY.value = clamped.offsetY;
           })
           .onEnd(() => {
             savedScale.value = scale.value;
+            savedOffsetX.value = offsetX.value;
+            savedOffsetY.value = offsetY.value;
             runOnJS(commitTransform)();
           });
         return acc;
       },
       {} as Record<CornerId, ReturnType<typeof Gesture.Pan>>,
     );
-  }, [baseBlock, commitTransform, savedScale, scale, selected]);
+  }, [
+    baseBlock,
+    baseH,
+    baseW,
+    baseX,
+    baseY,
+    commitTransform,
+    hasSafeBounds,
+    offsetX,
+    offsetY,
+    safeH,
+    safeW,
+    safeX,
+    safeY,
+    savedOffsetX,
+    savedOffsetY,
+    savedScale,
+    scale,
+    selected,
+  ]);
 
   const animatedBlockStyle = useAnimatedStyle(() => {
-    if (!baseBlock) {
-      return { opacity: 0 };
-    }
-
-    const rect = applyPhotoSlotTransform(baseBlock, {
-      scale: scale.value,
-      offsetX: offsetX.value,
-      offsetY: offsetY.value,
-    });
+    const rect = applyPhotoSlotTransform(
+      {
+        x: baseX.value,
+        y: baseY.value,
+        width: baseW.value,
+        height: baseH.value,
+      },
+      {
+        scale: scale.value,
+        offsetX: offsetX.value,
+        offsetY: offsetY.value,
+      },
+    );
 
     return {
       position: 'absolute',
@@ -214,12 +422,7 @@ export function AlbumPreviewPhotoBlockEditor({
       width: rect.width,
       height: rect.height,
     };
-  }, [baseBlock]);
-
-  const tapRect = useMemo(() => {
-    if (!layout) return null;
-    return resolvePhotoBlockRect(layout.baseBlock, groupTransform);
-  }, [groupTransform, layout]);
+  });
 
   if (!layout || !baseBlock) return null;
 
@@ -233,26 +436,14 @@ export function AlbumPreviewPhotoBlockEditor({
         />
       ) : null}
 
-      {!selected && tapRect ? (
-        <Pressable
-          style={[
-            styles.tapTarget,
-            {
-              left: tapRect.x,
-              top: tapRect.y,
-              width: tapRect.width,
-              height: tapRect.height,
-            },
-          ]}
-          onPress={() => setSelected(true)}
-          testID="preview-photo-block-select"
-          accessibilityRole="button"
-          accessibilityLabel="Выбрать блок фото"
-        />
-      ) : null}
-
-      <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.block, animatedBlockStyle]}>
+      <GestureDetector gesture={idleBlockGesture}>
+        <Animated.View
+          style={[styles.block, animatedBlockStyle]}
+          pointerEvents={selected ? 'auto' : 'box-only'}
+          testID={!selected ? 'preview-photo-block-select' : undefined}
+          accessibilityRole={!selected ? 'button' : undefined}
+          accessibilityLabel={!selected ? 'Выбрать блок фото' : undefined}
+        >
           <BlockPhotos layout={layout} />
 
           {selected ? (
@@ -306,15 +497,10 @@ function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
 const styles = StyleSheet.create({
   wrap: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 6,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
-  },
-  tapTarget: {
-    position: 'absolute',
-    zIndex: 2,
   },
   block: {
     zIndex: 3,
@@ -323,7 +509,7 @@ const styles = StyleSheet.create({
   photoSlot: {
     position: 'absolute',
     overflow: 'hidden',
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
   },
   photo: {
     width: '100%',
@@ -333,7 +519,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderWidth: 2,
     borderColor: colors.primary,
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     zIndex: 4,
   },
   handleHit: {

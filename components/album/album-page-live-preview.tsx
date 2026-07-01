@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AlbumPreviewPhotoOverlay } from '@/components/album/album-preview-photo-overlay';
 import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
@@ -38,28 +38,18 @@ export function AlbumPageLivePreview({
 
   useEffect(() => {
     setReady(false);
-  }, [imageUri, annotations.length]);
-
-  useEffect(() => {
-    if (!imageUri) {
-      setImageAspectRatio(1.414);
-      return;
-    }
-    let cancelled = false;
-    Image.getSize(
-      imageUri,
-      (width, height) => {
-        if (cancelled || width <= 0 || height <= 0) return;
-        setImageAspectRatio(height / width);
-      },
-      () => {
-        if (!cancelled) setImageAspectRatio(1.414);
-      }
-    );
-    return () => {
-      cancelled = true;
-    };
   }, [imageUri]);
+
+  const handleSourceSize = useCallback((size: { width: number; height: number }) => {
+    if (size.width > 0 && size.height > 0) {
+      setImageAspectRatio(size.height / size.width);
+      setReady(true);
+    }
+  }, []);
+
+  const handlePageReady = useCallback(() => {
+    setReady(true);
+  }, []);
 
   const previewBlock = useMemo(
     () => (
@@ -100,7 +90,10 @@ export function AlbumPageLivePreview({
                 height={previewLayout.coordinateHeight}
                 lineGuideId={lineGuideId}
                 backgroundColor={colors.white}
-                onReady={() => setReady(true)}
+                readOnly
+                waitForAnnotationImages={false}
+                onReady={handlePageReady}
+                onSourceSize={handleSourceSize}
               />
             ) : null}
             {photoOverlay && imageUri && ready ? (

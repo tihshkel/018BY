@@ -1,4 +1,5 @@
 import { getCoverSku } from './coverSkuMapping';
+import { getWeddingCoverById, getWeddingCoverBySku } from './weddingCoverDesigns';
 
 /**
  * Определяет формат имени файла для разных категорий обложек
@@ -34,6 +35,10 @@ export function getCoverExportPdfFileName(
     return null;
   }
 
+  if (category === 'wedding' && coverType === 'hard') {
+    return getWeddingCoverBySku(coverSku)?.hardCoverPdfPath ?? null;
+  }
+
   const suffix = getCoverFileNameSuffix(coverSku, coverType, category || undefined);
   return `${coverSku}_${suffix}.pdf`;
 }
@@ -50,6 +55,10 @@ export function getCoverExportPdfFileNameFromCoverType(
   category: string | null | undefined,
   coverTypeFormat: 'hard' | 'soft' = 'hard'
 ): string | null {
+  if (category === 'wedding' && coverTypeFormat === 'hard') {
+    return getWeddingCoverById(coverType)?.hardCoverPdfPath ?? null;
+  }
+
   const sku = getCoverSku(coverType, category);
   if (!sku) {
     return null;

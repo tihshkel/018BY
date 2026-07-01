@@ -27,6 +27,7 @@ export function usesUnifiedPhotoEditor(schema: AlbumPageSchema | undefined): boo
 export function hasFormTextInput(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;
   if ((schema.fields?.length ?? 0) > 0) return true;
+  if (schema.captionEnabled) return true;
   if (
     schema.pageType === 'birthday_free_page' &&
     (schema.customFieldDefs?.length ?? 0) > 0

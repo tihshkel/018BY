@@ -1,5 +1,5 @@
-import React, { useMemo, useRef } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import React, { useMemo, useRef, memo, useCallback } from 'react';
+import { Platform, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
@@ -8,14 +8,16 @@ import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageField } from '@/types/album-page-schema';
 import { parseAlbumDate } from '@/utils/albumDateFormat';
 import {
+  getDefaultPageAspectRatio,
+  resolveEditorCoordinateViewport,
+} from '@/utils/exportViewport';
+import {
   clampFieldInput,
   countFieldCharacters,
   getFieldCharacterLimit,
 } from '@/utils/albumFieldLimits';
-import {
-  getFieldKeyboardType,
-  getFieldMaxLength,
-} from '@/utils/albumFieldInput';
+import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
+import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
@@ -32,6 +34,12 @@ type TypedFormFieldProps = {
   onChange: (value: string) => void;
   characterLimit?: number;
   onInputFocus?: () => void;
+  layoutClamp?: {
+    lineGuideId: string;
+    sourcePageNumber: number;
+    viewportWidth: number;
+    viewportHeight: number;
+  };
 };
 
 function FieldCharacterCounter({
@@ -65,9 +73,15 @@ function handleTypedInput(
   field: AlbumPageField,
   text: string,
   onChange: (value: string) => void,
-  characterLimit?: number
+  characterLimit?: number,
+  layout?: {
+    lineGuideId: string;
+    sourcePageNumber: number;
+    viewportWidth: number;
+    viewportHeight: number;
+  },
 ) {
-  onChange(clampFieldInput(field, text, characterLimit));
+  onChange(clampFieldInput(field, text, characterLimit, layout));
 }
 
 const MIN_ALBUM_DATE = new Date(1920, 0, 1);
@@ -122,49 +136,65 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
-function TypedFormField({
+const TypedFormField = memo(function TypedFormField({
   field,
   value,
   onChange,
   characterLimit,
   onInputFocus,
+  layoutClamp,
 }: TypedFormFieldProps) {
   const isMultiline = field.templateLineCount > 1;
+  const multilineMinHeight = 24 * field.templateLineCount + 24;
 
   return (
     <View>
       <TextInput
-        style={[styles.input, isMultiline && styles.inputMultiline]}
+        style={[
+          styles.input,
+          isMultiline && styles.inputMultiline,
+          isMultiline && { minHeight: multilineMinHeight },
+          isMultiline && Platform.OS === 'android' && styles.inputMultilineAndroid,
+        ]}
         value={value}
-        onChangeText={(text) => handleTypedInput(field, text, onChange, characterLimit)}
+        onChangeText={(text) =>
+          handleTypedInput(field, text, onChange, characterLimit, layoutClamp)
+        }
         placeholder={field.placeholder ?? field.label}
         placeholderTextColor={colors.placeholder}
-        keyboardType={getFieldKeyboardType(field.type)}
+        keyboardType={getFieldKeyboardTypeForField(field)}
         maxLength={characterLimit}
         multiline={isMultiline}
+        scrollEnabled={isMultiline}
         textAlignVertical={isMultiline ? 'top' : 'center'}
-        inputMode={field.type === 'number' || field.type === 'time' ? 'numeric' : 'text'}
+        textBreakStrategy={isMultiline ? 'simple' : undefined}
+        inputMode={
+          getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
+            ? 'numeric'
+            : 'text'
+        }
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
-        {...(Platform.OS === 'android'
-          ? { includeFontPadding: false }
-          : null)}
       />
       <FieldCharacterCounter value={value} limit={characterLimit} />
     </View>
   );
-}
+});
 
-function AlbumFormField({
+const AlbumFormField = memo(function AlbumFormField({
   field,
   value,
-  onChange,
+  fieldId,
+  onFieldChange,
   characterLimit,
+  layoutClamp,
 }: {
   field: AlbumPageField;
   value: string;
-  onChange: (value: string) => void;
+  fieldId: string;
+  onFieldChange: (fieldId: string, value: string) => void;
   characterLimit?: number;
+  layoutClamp?: TypedFormFieldProps['layoutClamp'];
 }) {
   const fieldRef = useRef<View>(null);
   const scrollToField = useAppScreenScrollToField();
@@ -172,6 +202,11 @@ function AlbumFormField({
   const handleInputFocus = () => {
     scrollToField?.(fieldRef);
   };
+
+  const onChange = useCallback(
+    (text: string) => onFieldChange(fieldId, text),
+    [fieldId, onFieldChange]
+  );
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
@@ -198,13 +233,14 @@ function AlbumFormField({
           onChange={onChange}
           characterLimit={characterLimit}
           onInputFocus={handleInputFocus}
+          layoutClamp={layoutClamp}
         />
       )}
     </View>
   );
-}
+});
 
-export function PageFormFields({
+export const PageFormFields = memo(function PageFormFields({
   fields,
   values,
   onChange,
@@ -212,6 +248,18 @@ export function PageFormFields({
   lineGuideId,
   sourcePageNumber,
 }: PageFormFieldsProps) {
+  const { width: windowWidth } = useWindowDimensions();
+
+  const coordinateViewport = useMemo(
+    () =>
+      resolveEditorCoordinateViewport({
+        windowWidth,
+        lineGuideId,
+        imageAspectRatio: getDefaultPageAspectRatio({ lineGuideId }),
+      }),
+    [lineGuideId, windowWidth],
+  );
+
   const fieldLimits = useMemo(() => {
     const limits: Record<string, number | undefined> = {};
     for (const field of fields) {
@@ -219,10 +267,22 @@ export function PageFormFields({
         field,
         lineGuideId,
         sourcePageNumber,
+        viewportWidth: coordinateViewport.width,
+        viewportHeight: coordinateViewport.height,
       });
     }
     return limits;
-  }, [fields, lineGuideId, sourcePageNumber]);
+  }, [coordinateViewport.height, coordinateViewport.width, fields, lineGuideId, sourcePageNumber]);
+
+  const layoutClamp = useMemo(
+    () => ({
+      lineGuideId,
+      sourcePageNumber,
+      viewportWidth: coordinateViewport.width,
+      viewportHeight: coordinateViewport.height,
+    }),
+    [coordinateViewport.height, coordinateViewport.width, lineGuideId, sourcePageNumber],
+  );
 
   if (fields.length === 0) return null;
 
@@ -241,15 +301,17 @@ export function PageFormFields({
           <AlbumFormField
             key={field.fieldId}
             field={field}
+            fieldId={field.fieldId}
             value={value}
-            onChange={(text) => onChange(field.fieldId, text)}
+            onFieldChange={onChange}
             characterLimit={characterLimit}
+            layoutClamp={layoutClamp}
           />
         );
       })}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   section: {
@@ -283,6 +345,9 @@ const styles = StyleSheet.create({
   inputMultiline: {
     minHeight: 88,
     paddingTop: 12,
+  },
+  inputMultilineAndroid: {
+    includeFontPadding: false,
   },
   counter: {
     alignSelf: 'flex-end',

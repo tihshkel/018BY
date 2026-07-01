@@ -53,17 +53,103 @@ export function isNonDefaultPhotoSlotTransform(
   );
 }
 
+function applyPhotoSlotTransformRaw(
+  rect: { x: number; y: number; width: number; height: number },
+  transform: PhotoSlotTransform,
+): { x: number; y: number; width: number; height: number } {
+  'worklet';
+  const scale = transform.scale ?? 1;
+  const width = rect.width * scale;
+  const height = rect.height * scale;
+  const offsetX = (transform.offsetX ?? 0) * rect.width;
+  const offsetY = (transform.offsetY ?? 0) * rect.height;
+  const x = rect.x + (rect.width - width) / 2 + offsetX;
+  const y = rect.y + (rect.height - height) / 2 + offsetY;
+  return { x, y, width, height };
+}
+
 export function applyPhotoSlotTransform(
   rect: { x: number; y: number; width: number; height: number },
   transform?: PhotoSlotTransform | null,
 ): { x: number; y: number; width: number; height: number } {
   'worklet';
-  const normalized = normalizePhotoSlotTransform(transform);
-  const width = rect.width * normalized.scale;
-  const height = rect.height * normalized.scale;
-  const offsetX = normalized.offsetX * rect.width;
-  const offsetY = normalized.offsetY * rect.height;
-  const x = rect.x + (rect.width - width) / 2 + offsetX;
-  const y = rect.y + (rect.height - height) / 2 + offsetY;
-  return { x, y, width, height };
+  return applyPhotoSlotTransformRaw(rect, normalizePhotoSlotTransform(transform));
+}
+
+type ViewportBounds = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+/** Keeps transformed block inside safeBounds; falls back to generic clamps when bounds absent. */
+export function clampPhotoBlockTransform(
+  baseBlock: ViewportBounds,
+  transform: PhotoSlotTransform,
+  safeBounds: ViewportBounds | null | undefined,
+): PhotoSlotTransform {
+  'worklet';
+  let scale = clampPhotoScale(transform.scale ?? 1);
+  let offsetX = transform.offsetX ?? 0;
+  let offsetY = transform.offsetY ?? 0;
+
+  if (!safeBounds || safeBounds.width <= 0 || safeBounds.height <= 0) {
+    return {
+      scale,
+      offsetX: clampPhotoOffset(offsetX),
+      offsetY: clampPhotoOffset(offsetY),
+    };
+  }
+
+  const maxScale = Math.min(
+    safeBounds.width / Math.max(baseBlock.width, 1),
+    safeBounds.height / Math.max(baseBlock.height, 1),
+    MAX_PHOTO_SCALE,
+  );
+  scale = Math.max(MIN_PHOTO_SCALE, Math.min(scale, maxScale));
+
+  const fitOffsets = () => {
+    const rect = applyPhotoSlotTransformRaw(baseBlock, { scale, offsetX, offsetY });
+
+    if (rect.width > safeBounds.width) {
+      scale = Math.max(
+        MIN_PHOTO_SCALE,
+        Math.min(scale, safeBounds.width / Math.max(baseBlock.width, 1)),
+      );
+    }
+    if (rect.height > safeBounds.height) {
+      scale = Math.max(
+        MIN_PHOTO_SCALE,
+        Math.min(scale, safeBounds.height / Math.max(baseBlock.height, 1)),
+      );
+    }
+
+    const fitted = applyPhotoSlotTransformRaw(baseBlock, { scale, offsetX, offsetY });
+
+    if (fitted.x < safeBounds.x) {
+      offsetX += (safeBounds.x - fitted.x) / Math.max(baseBlock.width, 1);
+    }
+    if (fitted.y < safeBounds.y) {
+      offsetY += (safeBounds.y - fitted.y) / Math.max(baseBlock.height, 1);
+    }
+
+    const adjusted = applyPhotoSlotTransformRaw(baseBlock, { scale, offsetX, offsetY });
+
+    if (adjusted.x + adjusted.width > safeBounds.x + safeBounds.width) {
+      offsetX +=
+        (safeBounds.x + safeBounds.width - (adjusted.x + adjusted.width)) /
+        Math.max(baseBlock.width, 1);
+    }
+    if (adjusted.y + adjusted.height > safeBounds.y + safeBounds.height) {
+      offsetY +=
+        (safeBounds.y + safeBounds.height - (adjusted.y + adjusted.height)) /
+        Math.max(baseBlock.height, 1);
+    }
+  };
+
+  fitOffsets();
+  fitOffsets();
+
+  return { scale, offsetX, offsetY };
 }

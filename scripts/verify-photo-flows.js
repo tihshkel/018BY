@@ -89,10 +89,10 @@ assert(templatesSource.includes('buildPageLayoutsFromTemplates'), 'photo-layout-
 // --- 2. Photo slot coverage ---
 const photoSlotsSource = readFile('constants/photo-slots.ts');
 assert(
-  ['56', '57', '58', '59'].every(
-    (p) =>
-      photoSlotsSource.includes(`'${p}':`) && photoSlotsSource.includes(`variantId: 'one_large'`),
-  ),
+  photoSlotsSource.includes('const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59]') &&
+    photoSlotsSource.includes('function pregnancyMemoryPhotoLayouts') &&
+    photoSlotsSource.includes('PREGNANCY_MEMORY_PHOTO_SAFE') &&
+    photoSlotsSource.includes('FULL_PHOTO_TEMPLATES'),
   'pregnancy_60: photo-slots 56–59 with calibrated variants',
 );
 assert(photoSlotsSource.includes('three_hero'), 'photo-slots: three_hero template');
@@ -137,9 +137,9 @@ assert(
   'pdf-annotations: cover/fill switch',
 );
 
-const exportSource = readFile('app/export-pdf.tsx');
-assert(exportSource.includes('computeObjectFitCover'), 'export-pdf: cover crop');
-assert(exportSource.includes("ann.imageContentFit === 'cover'"), 'export-pdf: cover branch');
+const exportImageSource = readFile('utils/exportPdfImageAnnotations.ts');
+assert(exportImageSource.includes('computeObjectFitCover'), 'export-pdf: cover crop');
+assert(exportImageSource.includes("ann.imageContentFit === 'cover'"), 'export-pdf: cover branch');
 
 // --- 5. Presets ---
 const presetsSource = readFile('constants/photo-block-presets.ts');
@@ -208,6 +208,34 @@ assert(
   ),
   'AlbumPreviewPhotoBlockEditor: testID for maestro',
 );
+assert(
+  !readFile('components/album/album-preview-photo-block-editor.tsx').includes('useGridCollage'),
+  'AlbumPreviewPhotoBlockEditor: no static grid bypass for multi-photo',
+);
+assert(
+  readFile('components/album/album-preview-photo-block-editor.tsx').includes('safeBounds'),
+  'AlbumPreviewPhotoBlockEditor: safeBounds prop',
+);
+assert(
+  readFile('components/album/album-preview-photo-block-editor.tsx').includes('Gesture.Pinch'),
+  'AlbumPreviewPhotoBlockEditor: pinch gesture',
+);
+assert(
+  readFile('utils/photoSlotTransform.ts').includes('clampPhotoBlockTransform'),
+  'photoSlotTransform: bounds-aware clamp',
+);
+assert(
+  readFile('utils/photoBlockSafeZone.ts').includes('resolvePhotoBlockSafeZoneViewportRect'),
+  'photoBlockSafeZone: viewport safe rect',
+);
+assert(
+  readFile('utils/photoBlockSafeZone.ts').includes('photoOnlyPage'),
+  'photoBlockSafeZone: photo-only full page margin',
+);
+assert(
+  readFile('constants/photo-print-margins.ts').includes('PHOTO_ONLY_PAGE_MARGIN_MM'),
+  'photo-print-margins: 2cm photo-only margin',
+);
 
 // --- 11. photo-pages-by-album.json sync ---
 const photoPagesManifest = loadJson('constants/photo-pages-by-album.json');
@@ -246,6 +274,59 @@ assert(
   fs.existsSync(path.join(projectRoot, 'scripts/visualize-photo-slots.js')),
   'visualize-photo-slots.js exists',
 );
+
+// --- 13. kids_48 calibration ---
+assert(
+  pdfSlots.kids_48?.['1']?.variants?.[0]?.slots?.[0]?.height > 0.2,
+  'kids_48 pdf page 1 slot height plausible',
+);
+assert(
+  readFile('utils/resolvePhotoPageLayouts.ts').includes('resolveKidsPhotoPageLayouts'),
+  'resolvePhotoPageLayouts: kids PDF-first photo resolution',
+);
+assert(
+  readFile('utils/sparseTextPhotoSafeZone.ts').includes('expandDesignedAlbumCollageVariants'),
+  'sparseTextPhotoSafeZone: expands event variants inside sparse safe zones',
+);
+assert(
+  readFile('constants/sparse-photo-album-config.ts').includes('SPARSE_PHOTO_ALBUM_CONFIG'),
+  'sparse-photo-album-config: cross-album sparse photo configs',
+);
+assert(
+  photoSlotsSource.includes('kids_48: {}') || photoSlotsSource.includes('kids_48: {\n  }'),
+  'kids_48 photo-slots: no blanket event spread',
+);
+assert(
+  readFile('utils/resolvePhotoPageLayouts.ts').includes('manualLayoutsArePlausible'),
+  'resolvePhotoPageLayouts: guards implausible manual multi-variant slots',
+);
+assert(
+  readFile('utils/variantPreview.ts').includes("four_vertical: 'four_grid'"),
+  'variantPreview: kids four_vertical alias',
+);
+assert(
+  readFile('utils/exportViewport.ts').includes('getDefaultPageAspectRatio'),
+  'exportViewport: square default aspect helper',
+);
+assert(
+  readFile('utils/albumImages.ts').includes('blankPageArray(48, true)'),
+  'albumImages: kids_48 square blank fallback',
+);
+
+const kidsSchemas = extractAlbumSchemas(schemasSource, 'kids_48');
+for (const schema of kidsSchemas) {
+  if (!Array.isArray(schema.photoBlocks) || schema.photoBlocks.length === 0) continue;
+  for (const block of schema.photoBlocks) {
+    for (const variant of block.variants) {
+      if (variant.variantId === 'four_vertical') {
+        assert(
+          photoSlotsSource.includes('four_vertical'),
+          `kids_48 p${schema.sourcePageNumber}: four_vertical template available`,
+        );
+      }
+    }
+  }
+}
 
 console.log('\n---');
 if (failed > 0) {

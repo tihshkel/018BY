@@ -25,10 +25,10 @@ import {
     Alert,
     FlatList,
     Pressable,
+    ScrollView,
     StyleSheet,
     View,
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import { router, useFocusEffect, type Href } from 'expo-router';
 import Animated, {
     useAnimatedStyle,
@@ -76,7 +76,7 @@ export default function HomeScreen() {
     projects.length > HOME_PROJECTS_PREVIEW_LIMIT
       ? projects.slice(0, HOME_PROJECTS_PREVIEW_LIMIT)
       : projects;
-  const showAllStoriesLink = projects.length >= HOME_PROJECTS_PREVIEW_LIMIT;
+  const showAllStoriesLink = projects.length > HOME_PROJECTS_PREVIEW_LIMIT;
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -189,11 +189,7 @@ export default function HomeScreen() {
   };
 
   const handleProjectPress = (project: UserProject) => {
-    if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      void navigateToPdfAlbum(project);
-    } else {
-      router.push(`/edit-project?id=${project.id}`);
-    }
+    void navigateToPdfAlbum(project);
   };
 
   const handleMyStories = () => {
@@ -212,11 +208,7 @@ export default function HomeScreen() {
   const handleEditProject = () => {
     if (selectedProjectForAction) {
       setShowActionModal(false);
-      if (selectedProjectForAction.isReadyMadeAlbum || selectedProjectForAction.hasPdfTemplate) {
-        void navigateToPdfAlbum(selectedProjectForAction);
-      } else {
-        router.push(`/edit-project?id=${selectedProjectForAction.id}`);
-      }
+      void navigateToPdfAlbum(selectedProjectForAction);
     }
   };
 
@@ -417,8 +409,6 @@ export default function HomeScreen() {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  nestedScrollEnabled
-                  keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.projectsScroll}
                   snapToInterval={phoneCardWidth + spacing.md}
                   decelerationRate="fast"

@@ -3,12 +3,12 @@
 """
 Конвертирует PDF дневников в PNG page_XXX.png.
 
-Источники (поштучные макеты):
+Источник по умолчанию (единый block PDF, сплошные линии):
+  in albums/09.06.26_*.pdf
+
+Опционально (--per-page) — поштучные PDF из:
   in albums/ЛД А5/           → 40 стр. → Блок фиолетовый_180х240_print
   in albums/ЛД 180х240/      → 60 стр. → Блок коричневый _180х240_print
-
-Legacy fallback (единый block PDF):
-  in albums/09.06.26_*.pdf
 
 После конвертации: npm run generate:diary-interior-assets
 """
@@ -197,9 +197,9 @@ def main() -> None:
         help="Какой блок конвертировать",
     )
     parser.add_argument(
-        "--legacy",
+        "--per-page",
         action="store_true",
-        help="Использовать legacy block PDF вместо поштучных папок",
+        help="Использовать поштучные PDF из ЛД 180х240 / ЛД А5 вместо 09.06.26 block PDF",
     )
     args = parser.parse_args()
 
@@ -212,14 +212,14 @@ def main() -> None:
         print(f"Ошибка: нет папки {in_albums}")
         sys.exit(1)
 
-    blocks = PER_PAGE_BLOCKS if not args.legacy else LEGACY_BLOCKS
+    blocks = PER_PAGE_BLOCKS if args.per_page else LEGACY_BLOCKS
     if args.block == "brown":
         blocks = [b for b in blocks if b["key"] == "brown"]
     elif args.block == "purple":
         blocks = [b for b in blocks if b["key"] == "purple"]
 
     print("=" * 60)
-    mode = "legacy block PDF" if args.legacy else "per-page PDF folders"
+    mode = "per-page PDF folders" if args.per_page else "09.06.26 block PDF"
     print(f"Конвертация блоков дневников ({mode})")
     print("=" * 60)
 
@@ -228,7 +228,7 @@ def main() -> None:
         print("-" * 60)
         out_diary = diary_cover / spec["folder"]
 
-        if args.legacy:
+        if not args.per_page:
             pdf_path = find_pdf_in_dir(in_albums, spec["pdf"])
             if not pdf_path:
                 print(f"✗ Не найден PDF: {spec['pdf']}")
@@ -250,7 +250,7 @@ def main() -> None:
             ok += 1
             if args.also_assets_pdfs:
                 out_assets = assets_pdfs / spec["folder"]
-                if args.legacy:
+                if not args.per_page:
                     extract_pdf_pages(pdf_path, out_assets, dpi=args.dpi)
                 else:
                     convert_per_page_folder(

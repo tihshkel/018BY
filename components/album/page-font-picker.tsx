@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AVAILABLE_FONTS, getAlbumFontFamilyName, normalizeAlbumFontId } from "@/constants/album-fonts";
 import { AppText } from "@/components/ui/app-text";
-import { colors, radii, sansFont, spacing } from "@/constants/design-tokens";
+import { colors, radii, spacing } from "@/constants/design-tokens";
 
 type PageFontPickerProps = {
   value: string;
@@ -11,7 +11,7 @@ type PageFontPickerProps = {
 };
 
 function getPreviewFontFamily(fontId: string): string | undefined {
-  return getAlbumFontFamilyName(fontId) ?? sansFont("regular");
+  return getAlbumFontFamilyName(fontId);
 }
 
 export function PageFontPicker({ value, onChange }: PageFontPickerProps) {
@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: colors.primaryPressed,
-    fontFamily: sansFont("semibold"),
     fontWeight: "600",
   },
 });

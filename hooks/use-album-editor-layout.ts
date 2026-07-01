@@ -21,10 +21,23 @@ function getAlbumShellStyle(layout: ReturnType<typeof useResponsiveLayout>) {
   return getTabletContentShell(layout) ?? getTabletSectionWrap(layout, spacing.md);
 }
 
-export function useAlbumFormLayout() {
-  const layout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
+export function useAlbumFormLayout(options?: { preferWideTabletLandscape?: boolean }) {
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+  const isTablet = isTabletLayout(width);
+  const preferWide =
+    Boolean(options?.preferWideTabletLandscape) && isTablet && isLandscape;
+  const contentMaxWidth = preferWide ? PICKER_CONTENT_MAX_WIDTH : FORM_MODAL_MAX_WIDTH;
+  const layout = useResponsiveLayout(contentMaxWidth);
 
-  return { layout, shellStyle: getAlbumShellStyle(layout) };
+  return {
+    layout,
+    shellStyle: getAlbumShellStyle(layout),
+    /** iPad/Android tablet landscape — достаточно места для split preview + form. */
+    useTabletLandscapeShell: isTablet && isLandscape,
+    /** Split View / узкое окно на iPad — как телефон по ширине колонки. */
+    isCompactTablet: layout.isCompactTablet,
+  };
 }
 
 export function useAlbumPageListLayout() {

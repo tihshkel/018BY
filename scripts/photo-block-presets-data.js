@@ -3,6 +3,18 @@
  * Keep in sync with constants/photo-block-presets.ts
  */
 
+const DESIGNED_ALBUM_PHOTO_BLOCK = {
+  blockId: 'main_photo',
+  label: 'Фото для страницы',
+  variants: [
+    { variantId: 'one_large', label: 'Одно большое фото', slots: 1, slotIndices: [0] },
+    { variantId: 'two_vertical', label: 'Два фото', slots: 2, slotIndices: [0, 1] },
+    { variantId: 'three_hero', label: 'Три фото (коллаж)', slots: 3, slotIndices: [0, 1, 2] },
+    { variantId: 'four_grid', label: 'Четыре фото (коллаж)', slots: 4, slotIndices: [0, 1, 2, 3] },
+  ],
+};
+
+/** @deprecated Use DESIGNED_ALBUM_PHOTO_BLOCK */
 const FULL_PHOTO_BLOCK = {
   blockId: 'main_photo',
   label: 'Фото для страницы',
@@ -14,8 +26,9 @@ const FULL_PHOTO_BLOCK = {
   ],
 };
 
-const PREGNANCY_PHOTO_BLOCK = FULL_PHOTO_BLOCK;
+const PREGNANCY_PHOTO_BLOCK = DESIGNED_ALBUM_PHOTO_BLOCK;
 
+/** @deprecated Use DESIGNED_ALBUM_PHOTO_BLOCK on designed album pages */
 const EVENT_PHOTO_BLOCK = {
   blockId: 'event_photos',
   label: 'Фото для страницы',
@@ -55,6 +68,7 @@ const GODPARENTS_PHOTO_BLOCK = {
 };
 
 module.exports = {
+  DESIGNED_ALBUM_PHOTO_BLOCK,
   FULL_PHOTO_BLOCK,
   PREGNANCY_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,

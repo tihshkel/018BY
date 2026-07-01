@@ -2,8 +2,12 @@ import { useCallback } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
-import type { useAlbumProject } from '@/hooks/use-album-project';
+import { flushAlbumProjectPersist } from '@/utils/albumProjectPersist';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
+import {
+  buildAlbumPhotoStorageKey,
+  persistAlbumPhotoUri,
+} from '@/utils/persistAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
@@ -13,20 +17,23 @@ import {
   photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
 
-type AlbumProject = ReturnType<typeof useAlbumProject>;
-
 type UseAlbumPagePhotoEditorParams = {
   instanceId?: string;
   schema: AlbumPageSchema | undefined;
   pageValues: PageValues;
-  project: AlbumProject;
+  projectId: string;
+  commitPagePatch: (
+    instanceId: string,
+    updater: (prev: PageValues) => PageValues,
+  ) => void;
 };
 
 export function useAlbumPagePhotoEditor({
   instanceId,
   schema,
   pageValues,
-  project,
+  projectId,
+  commitPagePatch,
 }: UseAlbumPagePhotoEditorParams) {
   const { ensureMediaLibraryPermission } = useMediaLibraryPermission();
   const resolvedSchema = schema ? enrichSchemaWithPhotoBlocks(schema) : undefined;
@@ -41,9 +48,9 @@ export function useAlbumPagePhotoEditor({
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {
       if (!instanceId) return;
-      project.updatePageValues(instanceId, updater);
+      commitPagePatch(instanceId, updater);
     },
-    [instanceId, project],
+    [commitPagePatch, instanceId],
   );
 
   const updateBlock = useCallback(
@@ -78,6 +85,11 @@ export function useAlbumPagePhotoEditor({
       const variantId =
         blockValues?.variantId ?? block?.variants[0]?.variantId ?? 'default';
 
+      const pid = projectId;
+      if (pid) {
+        await flushAlbumProjectPersist(pid);
+      }
+
       const uri = await pickPhotoFromLibrary({
         ensurePermission: ensureMediaLibraryPermission,
         aspect: resolvedSchema
@@ -91,13 +103,26 @@ export function useAlbumPagePhotoEditor({
       });
       if (!uri) return;
 
+      const persistentUri =
+        pid && instanceId
+          ? await persistAlbumPhotoUri(
+              uri,
+              buildAlbumPhotoStorageKey({
+                projectId: pid,
+                instanceId,
+                blockId,
+                slotIndex,
+              }),
+            )
+          : uri;
+
       updateBlock(blockId, (prev) => {
         const slots = [...prev.slots];
-        slots[slotIndex] = uri;
+        slots[slotIndex] = persistentUri;
         return { ...prev, slots };
       });
     },
-    [blocks, ensureMediaLibraryPermission, photoBlocks, updateBlock],
+    [blocks, ensureMediaLibraryPermission, instanceId, photoBlocks, projectId, updateBlock],
   );
 
   const handleRemovePhoto = useCallback(

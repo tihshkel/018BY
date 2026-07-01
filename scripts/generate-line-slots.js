@@ -3,6 +3,10 @@ const fs = require('fs');
 const path = require('path');
 const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides');
 const { applyDiaryLineSlotOverrides } = require('./diary-line-slot-overrides');
+const { filterPregnancyA5LineSlots } = require('./pregnancy-a5-line-slot-filters');
+const { applyPregnancyA5Page44LineSlotOverrides } = require('./pregnancy-a5-page44-line-slot-overrides');
+const { PREGNANCY_A5_PAGE44_OPTION_FILLS } = require('./pregnancy-a5-page44-option-fills');
+const { buildDiaryMoodOptionFillsManifest } = require('./diary-mood-option-fills');
 const { PNG } = require('pngjs');
 
 function clamp(value, min, max) {
@@ -476,6 +480,12 @@ const DASHED_FORM_PDF = {
   minRowGapNorm: 0.018,
 };
 
+/** Дневники 09.06.26 — сплошные линии (без merge пунктира). */
+const DIARY_SOLID_FORM_PDF = {
+  ...DASHED_FORM_PDF,
+  mergeDashedRows: false,
+};
+
 /** Исходные PDF-макеты (векторные линии точнее PNG-скана). */
 const PDF_SOURCES = {
   pregnancy_60: path.join('in albums', 'Блок БЕРЕМЕННОСТЬ 60 стр.pdf'),
@@ -486,11 +496,14 @@ const PDF_SOURCES = {
   diary_interior_purple: path.join('in albums', '09.06.26_Блок фиолетовый_180х240_print.pdf'),
 };
 
-/** Поштучные PDF-макеты (предпочтительный источник для дневников). */
+/** Поштучные PDF-макеты (для дневников — только при USE_PER_PAGE_DIARY_PDF=1). */
 const PER_PAGE_PDF_FOLDERS = {
+  pregnancy_a5: 'беременность A5',
   diary_interior_brown: 'ЛД 180х240',
   diary_interior_purple: 'ЛД А5',
 };
+
+const DIARY_INTERIOR_ALBUMS = new Set(['diary_interior_brown', 'diary_interior_purple']);
 
 function normalizeFileName(name) {
   return name.normalize('NFC');
@@ -658,7 +671,7 @@ const ALBUM_FOLDERS = [
     margins: { x: 0.12, width: 0.76 },
     pdfOnly: true,
     options: {
-      ...DASHED_FORM_PDF,
+      ...DIARY_SOLID_FORM_PDF,
       diaryBrownFormMode: true,
       diaryQuestionnairePageNumber: 6,
       brownParentQuestionnaireMinPage: 7,
@@ -725,7 +738,7 @@ const ALBUM_FOLDERS = [
     margins: { x: 0.12, width: 0.76 },
     pdfOnly: true,
     options: {
-      ...DASHED_FORM_PDF,
+      ...DIARY_SOLID_FORM_PDF,
       diaryBrownFormMode: true,
       diaryQuestionnairePageNumber: 5,
       diaryQuestionnairePageNumbers: [5, 6, 7],
@@ -1175,11 +1188,15 @@ async function generateForAlbum(projectRoot, spec, overrides) {
   const perPageFolderPath = perPageFolderName
     ? findPerPagePdfFolder(projectRoot, perPageFolderName)
     : null;
-  const usePerPagePdf =
+  const preferPerPagePdf =
     perPageFolderPath &&
     fs.existsSync(perPageFolderPath) &&
-    process.env.USE_PNG_SLOTS !== '1' &&
-    process.env.USE_LEGACY_DIARY_PDF !== '1';
+    process.env.USE_PNG_SLOTS !== '1';
+  const usePerPagePdf =
+    preferPerPagePdf &&
+    (DIARY_INTERIOR_ALBUMS.has(spec.albumId)
+      ? process.env.USE_PER_PAGE_DIARY_PDF === '1'
+      : true);
 
   if (usePerPagePdf) {
     return generateForAlbumFromPerPagePdfs(projectRoot, spec, overrides, perPageFolderPath);
@@ -1243,10 +1260,26 @@ async function main() {
       spec.albumId === 'diary_interior_brown' ||
       spec.albumId === 'diary_interior_purple'
     ) {
-      const trimmed = applyDiaryLineSlotOverrides(albumSlots, albumGuides);
+      const trimmed = applyDiaryLineSlotOverrides(
+        albumSlots,
+        albumGuides,
+        spec.albumId,
+      );
       albumSlots = trimmed.slots;
       albumGuides = trimmed.guides;
       console.log(`[${spec.albumId}] applied diary TZ slot overrides`);
+    }
+
+    if (spec.albumId === 'pregnancy_a5') {
+      const trimmed = filterPregnancyA5LineSlots(albumSlots, albumGuides);
+      albumSlots = trimmed.slots;
+      albumGuides = trimmed.guides;
+      console.log(`[${spec.albumId}] filtered line slots inside photo placeholder`);
+
+      const page44 = applyPregnancyA5Page44LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = page44.slots;
+      albumGuides = page44.guides;
+      console.log(`[${spec.albumId}] applied page 44 birth questionnaire block overrides`);
     }
 
     if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {
@@ -1286,6 +1319,8 @@ async function main() {
       `  hasLabel: boolean;\n` +
       `  continuationGroup: number;\n` +
       `  inputKind?: 'line' | 'block';\n` +
+      `  textAnchorTop?: boolean;\n` +
+      `  lineStrokeAtBottom?: boolean;\n` +
       `};\n\n` +
       `export const LINE_SLOTS = ${JSON.stringify(lineSlots, null, 2)} as const;\n`,
     'utf8'
@@ -1303,6 +1338,28 @@ async function main() {
   const jsonFile = path.join(projectRoot, 'constants', 'line-slots.json');
   fs.writeFileSync(jsonFile, JSON.stringify(lineSlots, null, 2), 'utf8');
   fs.writeFileSync(guidesJsonPath, JSON.stringify(lineGuides, null, 2), 'utf8');
+
+  const circleSlotsFile = path.join(projectRoot, 'constants', 'generated', 'pdf-circle-slots.json');
+  if (fs.existsSync(circleSlotsFile)) {
+    const circleSlots = JSON.parse(fs.readFileSync(circleSlotsFile, 'utf8'));
+    circleSlots.pregnancy_a5 = circleSlots.pregnancy_a5 ?? {};
+    circleSlots.pregnancy_a5['44'] = {
+      ...(circleSlots.pregnancy_a5['44'] ?? {}),
+      optionFills: PREGNANCY_A5_PAGE44_OPTION_FILLS,
+    };
+    const diaryMoodFills = buildDiaryMoodOptionFillsManifest();
+    for (const [albumId, pages] of Object.entries(diaryMoodFills)) {
+      circleSlots[albumId] = circleSlots[albumId] ?? {};
+      for (const [pageKey, pageData] of Object.entries(pages)) {
+        circleSlots[albumId][pageKey] = {
+          ...(circleSlots[albumId][pageKey] ?? {}),
+          ...pageData,
+        };
+      }
+    }
+    fs.writeFileSync(circleSlotsFile, `${JSON.stringify(circleSlots, null, 2)}\n`, 'utf8');
+    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + diary mood fills)');
+  }
 
   console.log('✅ Wrote', path.relative(projectRoot, slotsFile));
   console.log('✅ Wrote', path.relative(projectRoot, jsonFile));

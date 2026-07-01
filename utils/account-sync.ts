@@ -6,17 +6,20 @@ import {
   isProjectDeleted,
   loadDeletedProjectIds,
 } from './deleted-project-ids';
+import { filterOutLegacyFreeformProjects } from './legacyFreeformProject';
 import { getStoredPushToken } from './pushToken';
 import {
-  getAccountFromSupabase,
+  getAccountDataFromSupabase,
   getCoreDataFromSupabase,
   isSupabaseUserIdKey,
   pushCoreDataToSupabase,
-  pushProjectDataToSupabase
+  pushProjectDataToSupabase,
 } from './supabase-account';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
 
 const PROJECT_PREFIX = '@project_';
+const DEFAULT_USER_NAME = 'Пользователь';
+export const PROFILE_LOCAL_UPDATED_AT_KEY = '@profile_local_updated_at';
 
 /** Список id проектов, которые пользователь явно сохранил (кнопка «Сохранить»). В БД отправляются только они. */
 const PROJECTS_SYNCED_TO_CLOUD_KEY = '@projects_synced_to_cloud';
@@ -137,6 +140,43 @@ function splitCoreAndProjects(
   return { core, projects };
 }
 
+function isCustomUserName(name: string | null | undefined): boolean {
+  const trimmed = (name ?? '').trim();
+  return trimmed.length > 0 && trimmed !== DEFAULT_USER_NAME;
+}
+
+async function mergeProfileFieldFromCloud(
+  key: '@user_name' | '@user_avatar',
+  cloudValue: string
+): Promise<void> {
+  const local = await AsyncStorage.getItem(key);
+  const localTrim = local?.trim() ?? '';
+  const cloudTrim = cloudValue.trim();
+
+  if (key === '@user_name') {
+    const localCustom = isCustomUserName(localTrim);
+    const cloudCustom = isCustomUserName(cloudTrim);
+
+    if (localCustom && !cloudCustom) {
+      scheduleSyncToCloud();
+      return;
+    }
+
+    if (localCustom && cloudCustom && localTrim !== cloudTrim) {
+      const localUpdatedAt = await AsyncStorage.getItem(PROFILE_LOCAL_UPDATED_AT_KEY);
+      if (localUpdatedAt) {
+        scheduleSyncToCloud();
+        return;
+      }
+    }
+  } else if (localTrim && !cloudTrim) {
+    scheduleSyncToCloud();
+    return;
+  }
+
+  await AsyncStorage.setItem(key, cloudValue);
+}
+
 /** Заглушка для главного экрана (раньше — после входа по коду). */
 export function setOnSyncComplete(_callback: (() => void) | null): void {}
 
@@ -153,18 +193,6 @@ export async function importAccountData(
 ): Promise<void> {
   try {
     const deletedIds = await loadDeletedProjectIds();
-    let profileUserName: string | null | undefined;
-    const resolveProfileUserName = async (): Promise<string | null> => {
-      if (profileUserName !== undefined) return profileUserName;
-      if (!accessCode || !isSupabaseUserIdKey(accessCode)) {
-        profileUserName = null;
-        return profileUserName;
-      }
-      const profile = await getAccountFromSupabase(accessCode);
-      profileUserName = profile?.userName?.trim() ?? null;
-      return profileUserName;
-    };
-
     for (const [key, value] of Object.entries(data)) {
       if (!key || typeof value !== 'string') continue;
       if (key.startsWith(PROJECT_PREFIX)) {
@@ -177,17 +205,8 @@ export async function importAccountData(
       }
       if (key === '@reminders' && accessCode) {
         await setLocalRemindersJsonForSyncId(accessCode, value);
-      } else if (key === '@user_name') {
-        const localRaw = await AsyncStorage.getItem('@user_name');
-        const localTrim = localRaw?.trim() ?? '';
-        const cloudTrim = value.trim();
-        if (localTrim && localTrim !== cloudTrim) {
-          const profileName = await resolveProfileUserName();
-          if (profileName === localTrim) {
-            continue;
-          }
-        }
-        await AsyncStorage.setItem(key, value);
+      } else if (key === '@user_name' || key === '@user_avatar') {
+        await mergeProfileFieldFromCloud(key, value);
       } else if (key === '@user_projects') {
         const localRaw = await AsyncStorage.getItem('@user_projects');
         const localList: { id?: string }[] = (() => {
@@ -207,12 +226,12 @@ export async function importAccountData(
             return [];
           }
         })();
-        const byId = new Map<string, { id?: string }>();
-        for (const p of filterProjectsByDeleted(localList, deletedIds)) {
+        const byId = new Map<string, any>();
+        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(cloudList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
           if (id) byId.set(id, p);
         }
-        for (const p of filterProjectsByDeleted(cloudList, deletedIds)) {
+        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(localList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
           if (id && !byId.has(id)) byId.set(id, p);
         }
@@ -238,7 +257,10 @@ export async function getAccountDataForSync(): Promise<Record<string, string>> {
 }
 
 const SYNC_AFTER_MS = 2500;
+/** Debounced cloud sync while actively editing album pages (reduces I/O during typing). */
+const ALBUM_EDIT_SYNC_AFTER_MS = 12_000;
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
+let albumEditSyncTimer: ReturnType<typeof setTimeout> | null = null;
 let supabaseNotConfiguredAlertShown = false;
 
 /** Ошибка «Supabase не настроен» (нет .env у разработчика) — не показывать длинный текст каждый раз */
@@ -271,6 +293,15 @@ export function scheduleSyncToCloud(): void {
       console.warn('[AccountSync] scheduled sync failed:', e)
     );
   }, SYNC_AFTER_MS);
+}
+
+/** Cloud sync with longer debounce during album page editing. */
+export function scheduleDeferredAlbumCloudSync(): void {
+  if (albumEditSyncTimer) clearTimeout(albumEditSyncTimer);
+  albumEditSyncTimer = setTimeout(() => {
+    albumEditSyncTimer = null;
+    scheduleSyncToCloud();
+  }, ALBUM_EDIT_SYNC_AFTER_MS);
 }
 
 /**
@@ -491,7 +522,19 @@ async function pushAccountDataToCloudOnce(
 
   // --- Если пушим проекты, мержим @user_projects с облаком ---
   if (syncingProjects) {
-    const deletedIds = await loadDeletedProjectIds();
+    // Получаем облачный список проектов
+    const cloudUserProjects: { id?: string }[] = (() => {
+      try {
+        const raw = cloudCore?.['@user_projects'];
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        }
+      } catch {}
+      return [];
+    })();
+
+    // Получаем локальный список
     const localUserProjects: { id?: string }[] = (() => {
       try {
         const raw = userProjectsRaw;
@@ -503,18 +546,23 @@ async function pushAccountDataToCloudOnce(
       return [];
     })();
 
-    // Локальный список — источник правды: удалённые на устройстве не возвращаем из облака.
-    const byId = new Map<string, { id?: string }>();
-    for (const p of filterProjectsByDeleted(localUserProjects, deletedIds)) {
+    // Мержим: облако + локальные записи по пушимым проектам
+    const byId = new Map<string, any>();
+    for (const p of cloudUserProjects) {
       const pid = p?.id != null ? String(p.id) : '';
       if (pid) byId.set(pid, p);
     }
-    for (const pid of projectIds) {
-      if (!byId.has(pid) && !deletedIds.has(pid)) {
-        byId.set(pid, { id: pid });
-      }
+    for (const p of localUserProjects) {
+      const pid = p?.id != null ? String(p.id) : '';
+      if (pid && projectIds.has(pid)) byId.set(pid, p); // обновляем только пушимые
     }
-    core['@user_projects'] = JSON.stringify(Array.from(byId.values()));
+    // Гарантируем что все пушимые id есть в списке
+    for (const pid of projectIds) {
+      if (!byId.has(pid)) byId.set(pid, { id: pid });
+    }
+    core['@user_projects'] = JSON.stringify(
+      filterOutLegacyFreeformProjects(Array.from(byId.values())),
+    );
   }
 
   const userName = (core['@user_name'] ?? data['@user_name'] ?? '').trim() || 'Пользователь';
@@ -804,7 +852,7 @@ export async function pullLatestFromCloud(): Promise<boolean> {
           builtList.push({ id: projectId, title: 'Проект', category: '', albumId: '', createdAt: new Date().toISOString(), isReadyMadeAlbum: true, hasPdfTemplate: true });
         }
       }
-      cloudData['@user_projects'] = JSON.stringify(builtList);
+      cloudData['@user_projects'] = JSON.stringify(filterOutLegacyFreeformProjects(builtList));
       if (__DEV__) console.log('[AccountSync] pullLatestFromCloud: built @user_projects from user_project_data, count=', builtList.length);
     }
 
@@ -814,7 +862,9 @@ export async function pullLatestFromCloud(): Promise<boolean> {
         try {
           const list = JSON.parse(cloudData['@user_projects']);
           if (Array.isArray(list)) {
-            cloudData['@user_projects'] = JSON.stringify(filterProjectsByDeleted(list, deletedIds));
+            cloudData['@user_projects'] = JSON.stringify(
+              filterOutLegacyFreeformProjects(filterProjectsByDeleted(list, deletedIds)),
+            );
           }
         } catch {
           // ignore

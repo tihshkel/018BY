@@ -2,10 +2,72 @@ import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { getPregnancyCoverPdf } from './coverPdfMapping';
 import { getCoverForExport } from './coverMapping';
+import { getDiaryCoverById } from './diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from './familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS } from './holidayCoverDesigns';
 import { githubRawFileUrl } from './githubRawAssets';
+import { getWeddingCoverById } from './weddingCoverDesigns';
 
 const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
+
+/** Стандартизированные last_page.png для A5 беременности (albums/pregnant/A5/DBn/last_page.png). */
+const PREGNANCY_A5_LAST_PAGE_MODULES: Record<string, any> = {
+  DB1: (() => {
+    try { return require('@/albums/pregnant/A5/DB1/last_page.png'); } catch { return null; }
+  })(),
+  DB2: (() => {
+    try { return require('@/albums/pregnant/A5/DB2/last_page.png'); } catch { return null; }
+  })(),
+  DB3: (() => {
+    try { return require('@/albums/pregnant/A5/DB3/last_page.png'); } catch { return null; }
+  })(),
+  DB4: (() => {
+    try { return require('@/albums/pregnant/A5/DB4/last_page.png'); } catch { return null; }
+  })(),
+  DB5: (() => {
+    try { return require('@/albums/pregnant/A5/DB5/last_page.png'); } catch { return null; }
+  })(),
+  DB6: (() => {
+    try { return require('@/albums/pregnant/A5/DB6/last_page.png'); } catch { return null; }
+  })(),
+};
+
+const DIARY_LAST_PAGE_MODULES: Record<string, any> = {
+  DD1: (() => { try { return require('@/albums/diary/DD1/last_page.png'); } catch { return null; } })(),
+  DD2: (() => { try { return require('@/albums/diary/DD2/last_page.png'); } catch { return null; } })(),
+  DD3: (() => { try { return require('@/albums/diary/DD3/last_page.png'); } catch { return null; } })(),
+  DD4: (() => { try { return require('@/albums/diary/DD4/last_page.png'); } catch { return null; } })(),
+  DD5: (() => { try { return require('@/albums/diary/DD5/last_page.png'); } catch { return null; } })(),
+  DD6: (() => { try { return require('@/albums/diary/DD6/last_page.png'); } catch { return null; } })(),
+  DD7: (() => { try { return require('@/albums/diary/DD7/last_page.png'); } catch { return null; } })(),
+  DD8: (() => { try { return require('@/albums/diary/DD8/last_page.png'); } catch { return null; } })(),
+  DD9: (() => { try { return require('@/albums/diary/DD9/last_page.png'); } catch { return null; } })(),
+  DD10: (() => { try { return require('@/albums/diary/DD10/last_page.png'); } catch { return null; } })(),
+  DD11: (() => { try { return require('@/albums/diary/DD11/last_page.png'); } catch { return null; } })(),
+  DD12: (() => { try { return require('@/albums/diary/DD12/last_page.png'); } catch { return null; } })(),
+  DD13: (() => { try { return require('@/albums/diary/DD13/last_page.png'); } catch { return null; } })(),
+  DD14: (() => { try { return require('@/albums/diary/DD14/last_page.png'); } catch { return null; } })(),
+  DD15: (() => { try { return require('@/albums/diary/DD15/last_page.png'); } catch { return null; } })(),
+  DD16: (() => { try { return require('@/albums/diary/DD16/last_page.png'); } catch { return null; } })(),
+  DD17: (() => { try { return require('@/albums/diary/DD17/last_page.png'); } catch { return null; } })(),
+  DD18: (() => { try { return require('@/albums/diary/DD18/last_page.png'); } catch { return null; } })(),
+  DD20: (() => { try { return require('@/albums/diary/DD20/last_page.png'); } catch { return null; } })(),
+  DD21: (() => { try { return require('@/albums/diary/DD21/last_page.png'); } catch { return null; } })(),
+};
+
+async function loadAssetModuleUri(module: any): Promise<string | null> {
+  if (!module) {
+    return null;
+  }
+  try {
+    const asset = Asset.fromModule(module);
+    await asset.downloadAsync();
+    return asset.localUri || asset.uri || null;
+  } catch (error) {
+    console.warn('[First/Last Pages] Не удалось загрузить asset:', error);
+    return null;
+  }
+}
 
 /** Декоративная финальная страница (форзац) для A5 / электронной версии. */
 const PREGNANCY_A5_CLOSING_PAGE_MODULES: Record<string, any | Record<string, any>> = {
@@ -58,9 +120,18 @@ const PREGNANCY_A5_CLOSING_PAGE_URLS: Record<string, string | Record<string, str
   },
 };
 
-function resolvePregnancyA5ClosingPageSuffix(dbNumber: string, albumId: string | null): string {
+function resolvePregnancyA5ClosingPageSuffix(
+  dbNumber: string,
+  albumId: string | null,
+  formatType: 'hard' | 'soft'
+): string {
   if (dbNumber !== 'DB3' && dbNumber !== 'DB5') {
     return '001';
+  }
+
+  // A5 / электронная версия всегда использует вариант 003, независимо от id обложки
+  if (formatType === 'soft') {
+    return '003';
   }
 
   const normalizedId = (albumId || '').toLowerCase();
@@ -71,41 +142,57 @@ function resolvePregnancyA5ClosingPageSuffix(dbNumber: string, albumId: string |
   return '002';
 }
 
-function resolvePregnancyA5ClosingPageModule(dbNumber: string, albumId: string | null): any | null {
+function resolvePregnancyA5ClosingPageModule(
+  dbNumber: string,
+  albumId: string | null,
+  formatType: 'hard' | 'soft'
+): any | null {
   const entry = PREGNANCY_A5_CLOSING_PAGE_MODULES[dbNumber];
   if (!entry) {
     return null;
   }
 
   if (typeof entry === 'object' && entry !== null && '002' in entry) {
-    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId);
+    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId, formatType);
     return entry[suffix] ?? entry['002'] ?? null;
   }
 
   return entry;
 }
 
-function resolvePregnancyA5ClosingPageUrl(dbNumber: string, albumId: string | null): string | null {
+function resolvePregnancyA5ClosingPageUrl(
+  dbNumber: string,
+  albumId: string | null,
+  formatType: 'hard' | 'soft'
+): string | null {
   const entry = PREGNANCY_A5_CLOSING_PAGE_URLS[dbNumber];
   if (!entry) {
     return null;
   }
 
   if (typeof entry === 'object') {
-    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId);
+    const suffix = resolvePregnancyA5ClosingPageSuffix(dbNumber, albumId, formatType);
     return entry[suffix] ?? entry['002'] ?? null;
   }
 
   return entry;
 }
 
-async function loadPregnancyA5ClosingPageUri(albumId: string | null): Promise<string | null> {
+async function loadPregnancyA5ClosingPageUri(
+  albumId: string | null,
+  formatType: 'hard' | 'soft' = 'soft'
+): Promise<string | null> {
   const dbNumber = getPregnancyCoverPdf(albumId);
   if (!dbNumber) {
     return null;
   }
 
-  const closingModule = resolvePregnancyA5ClosingPageModule(dbNumber, albumId);
+  const standardizedLastPage = await loadAssetModuleUri(PREGNANCY_A5_LAST_PAGE_MODULES[dbNumber]);
+  if (standardizedLastPage) {
+    return standardizedLastPage;
+  }
+
+  const closingModule = resolvePregnancyA5ClosingPageModule(dbNumber, albumId, formatType);
   if (closingModule) {
     try {
       const asset = Asset.fromModule(closingModule);
@@ -116,7 +203,7 @@ async function loadPregnancyA5ClosingPageUri(albumId: string | null): Promise<st
     }
   }
 
-  const closingUrl = resolvePregnancyA5ClosingPageUrl(dbNumber, albumId);
+  const closingUrl = resolvePregnancyA5ClosingPageUrl(dbNumber, albumId, formatType);
   if (!closingUrl) {
     return null;
   }
@@ -899,10 +986,7 @@ export async function getKidsFirstLastPages(
     return { firstPage: null, lastPage: null };
   }
 
-  const mapping =
-    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber] ||
-    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toUpperCase()] ||
-    KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber.toLowerCase()];
+  const mapping = KIDS_FIRST_LAST_PAGES_MAPPING[dfaNumber];
   if (!mapping || (!mapping.firstPage && !mapping.lastPage)) {
     console.warn(`[First/Last Pages] Не найдены страницы для DFA: ${dfaNumber}`);
     return { firstPage: null, lastPage: null };
@@ -1021,15 +1105,23 @@ export async function getPregnancyFirstLastPagesForExport(
   const remotePages = await getPregnancyFirstLastPagesFromGitHub(albumId, formatType);
 
   const firstPage = localPages.firstPage || remotePages.firstPage;
-  let lastPages = remotePages.lastPages.length > 0 ? remotePages.lastPages : localPages.lastPages;
 
+  // A5 / электронная версия: в конец PDF добавляется одна декоративная страница (форзац last_str).
+  // Страницы из «последняя стр» не дублируем — они совпадают с форзацом и давали 2 одинаковых листа.
   if (formatType === 'soft') {
-    const closingUri = await loadPregnancyA5ClosingPageUri(albumId);
-    if (closingUri && !lastPages.includes(closingUri)) {
-      lastPages = [...lastPages, closingUri];
+    const closingUri = await loadPregnancyA5ClosingPageUri(albumId, 'soft');
+    if (closingUri) {
+      return { firstPage, lastPages: [closingUri] };
     }
+
+    const fallback =
+      remotePages.lastPages.length > 0 ? remotePages.lastPages : localPages.lastPages;
+    const singleLast = fallback.length > 0 ? [fallback[fallback.length - 1]] : [];
+    return { firstPage, lastPages: singleLast };
   }
 
+  const lastPages =
+    remotePages.lastPages.length > 0 ? remotePages.lastPages : localPages.lastPages;
   return { firstPage, lastPages };
 }
 
@@ -1089,6 +1181,118 @@ export async function getPregnancyFirstLastPagesFromGitHub(
   }
 }
 
+export type ExportCoverPages = {
+  firstPage: string | null;
+  closingPage: string | null;
+};
+
+function pickSingleClosingPage(candidates: string[]): string | null {
+  if (candidates.length === 0) {
+    return null;
+  }
+  const unique = [...new Set(candidates.filter(Boolean))];
+  return unique[unique.length - 1] ?? null;
+}
+
+export function isSameExportImageUri(a: string | null, b: string | null): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const normalize = (uri: string) => {
+    const fileName = uri.split('/').pop() ?? uri;
+    return fileName.replace(/^file:\/\//, '').toLowerCase();
+  };
+  return normalize(a) === normalize(b);
+}
+
+/**
+ * Первая и одна финальная страница для экспорта A5 / электронной версии.
+ * У каждого альбома своя closingPage; дубликаты из маппинга не добавляются.
+ */
+export async function getExportCoverPages(
+  albumId: string | null,
+  category: string | null | undefined,
+  formatType: 'hard' | 'soft' | 'electronic'
+): Promise<ExportCoverPages> {
+  if (!albumId) {
+    return { firstPage: null, closingPage: null };
+  }
+
+  const coverFormat = formatType === 'hard' ? 'hard' : 'soft';
+  const normalizedCategory = category ?? undefined;
+
+  if (normalizedCategory === 'pregnancy' || albumId.startsWith('pregnancy_')) {
+    const { firstPage, lastPages } = await getPregnancyFirstLastPagesForExport(
+      albumId,
+      coverFormat
+    );
+    return {
+      firstPage,
+      closingPage: pickSingleClosingPage(lastPages),
+    };
+  }
+
+  if (normalizedCategory === 'kids' || albumId.startsWith('dfa_')) {
+    const { firstPage, lastPage } = await getKidsFirstLastPages(albumId, coverFormat);
+    return { firstPage, closingPage: lastPage };
+  }
+
+  if (
+    normalizedCategory === 'family' ||
+    normalizedCategory === 'holidays' ||
+    normalizedCategory === 'holiday' ||
+    albumId.startsWith('family_') ||
+    albumId.startsWith('holiday_')
+  ) {
+    const { firstPage, lastPages } = await getFamilyOrHolidayFirstLastPages(
+      albumId,
+      normalizedCategory
+    );
+    return {
+      firstPage,
+      closingPage: pickSingleClosingPage(lastPages),
+    };
+  }
+
+  if (normalizedCategory === 'wedding' || albumId.startsWith('wedding_')) {
+    const design = getWeddingCoverById(albumId);
+    if (!design) return { firstPage: null, closingPage: null };
+
+    return {
+      firstPage: await loadAssetModuleUri(design.firstPage),
+      closingPage: await loadAssetModuleUri(design.lastPage),
+    };
+  }
+
+  if (normalizedCategory === 'diary' || albumId.startsWith('diary_dd')) {
+    let firstPage: string | null = null;
+    const firstPageImage = getCoverForExport(albumId, normalizedCategory);
+    if (firstPageImage) {
+      firstPage = await loadAssetModuleUri(firstPageImage);
+    }
+
+    const diaryCover = getDiaryCoverById(albumId);
+    const closingPage = diaryCover
+      ? await loadAssetModuleUri(DIARY_LAST_PAGE_MODULES[diaryCover.sku])
+      : null;
+
+    return { firstPage, closingPage };
+  }
+
+  let firstPage: string | null = null;
+  const firstPageImage = getCoverForExport(albumId, normalizedCategory);
+  if (firstPageImage) {
+    try {
+      const asset = Asset.fromModule(firstPageImage);
+      await asset.downloadAsync();
+      firstPage = asset.localUri || asset.uri;
+    } catch (error) {
+      console.warn(`[Export Cover Pages] Не удалось загрузить первую страницу для ${albumId}:`, error);
+    }
+  }
+
+  return { firstPage, closingPage: null };
+}
+
 export async function getFamilyOrHolidayFirstLastPages(
   albumId: string | null,
   category?: string
@@ -1117,15 +1321,23 @@ export async function getFamilyOrHolidayFirstLastPages(
     if (category === 'family' || albumId.startsWith('family_')) {
       const design = FAMILY_COVER_DESIGNS.find(d => d.id === albumId);
       if (design && 'lastPage' in design && design.lastPage) {
-        try {
-          const asset = Asset.fromModule(design.lastPage);
-          await asset.downloadAsync();
-          const uri = asset.localUri || asset.uri;
-          if (uri) {
-            result.lastPages.push(uri);
-          }
-        } catch (error) {
-          console.warn(`[First/Last Pages] Ошибка загрузки последней страницы для ${albumId}:`, error);
+        const uri = await loadAssetModuleUri(design.lastPage);
+        if (uri) {
+          result.lastPages.push(uri);
+        }
+      }
+    }
+
+    if (
+      category === 'holidays' ||
+      category === 'holiday' ||
+      albumId.startsWith('holiday_')
+    ) {
+      const design = HOLIDAY_COVER_DESIGNS.find(d => d.id === albumId);
+      if (design && 'lastPage' in design && design.lastPage) {
+        const uri = await loadAssetModuleUri(design.lastPage);
+        if (uri) {
+          result.lastPages.push(uri);
         }
       }
     }
@@ -1134,77 +1346,4 @@ export async function getFamilyOrHolidayFirstLastPages(
   }
 
   return result;
-}
-
-function normalizeExportImageKey(uri: string): string {
-  try {
-    const decoded = decodeURIComponent(uri);
-    const withoutScheme = decoded.replace(/^file:\/\//i, '');
-    const base = withoutScheme.split(/[/\\]/).pop() ?? withoutScheme;
-    return base.toLowerCase().replace(/\.(png|jpe?g|webp)$/i, '');
-  } catch {
-    return uri.toLowerCase();
-  }
-}
-
-/** Сравнение URI обложек (file:// vs cache path) по имени файла. */
-export function isSameExportImageUri(
-  a: string | null | undefined,
-  b: string | null | undefined,
-): boolean {
-  if (!a || !b) return false;
-  const ka = normalizeExportImageKey(a);
-  const kb = normalizeExportImageKey(b);
-  return ka.length > 0 && ka === kb;
-}
-
-function pickPregnancyClosingPage(lastPages: string[]): string | null {
-  if (lastPages.length === 0) return null;
-  const formzaц = lastPages.find((uri) => /last_str_/i.test(uri));
-  return formzaц ?? lastPages[lastPages.length - 1] ?? null;
-}
-
-/**
- * Первая и финальная декоративные страницы для soft/electronic PDF.
- * electronic использует soft-ассеты (A5) + форзац last_str_*.
- */
-export async function getExportCoverPages(
-  albumId: string | null,
-  category: string | null | undefined,
-  formatType: 'hard' | 'soft' | 'electronic',
-): Promise<{ firstPage: string | null; closingPage: string | null }> {
-  if (!albumId || formatType === 'hard') {
-    return { firstPage: null, closingPage: null };
-  }
-
-  const coverFormat: 'hard' | 'soft' =
-    formatType === 'soft' || formatType === 'electronic' ? 'soft' : 'hard';
-
-  if (category === 'kids') {
-    const { firstPage, lastPage } = await getKidsFirstLastPages(albumId, coverFormat);
-    return { firstPage, closingPage: lastPage };
-  }
-
-  if (category === 'pregnancy') {
-    const { firstPage, lastPages } =
-      coverFormat === 'soft'
-        ? await getPregnancyFirstLastPagesForExport(albumId, 'soft')
-        : await getPregnancyFirstLastPagesFromGitHub(albumId, coverFormat);
-
-    return {
-      firstPage,
-      closingPage: pickPregnancyClosingPage(lastPages),
-    };
-  }
-
-  if (category === 'family' || category === 'holidays' || category === 'holiday') {
-    const { firstPage, lastPages } = await getFamilyOrHolidayFirstLastPages(albumId, category);
-    return {
-      firstPage,
-      closingPage: lastPages.length > 0 ? lastPages[lastPages.length - 1] : null,
-    };
-  }
-
-  // diary и blank-альбомы: null → export-pdf возьмёт первую/последнюю из внутрянки
-  return { firstPage: null, closingPage: null };
 }

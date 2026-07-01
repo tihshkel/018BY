@@ -1,33 +1,32 @@
+import { clampFieldInput, getFieldCharacterLimit } from '@/utils/albumFieldLimits';
 import type { Annotation } from '@/components/pdf-annotations';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
-import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
+import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
-import { createId } from '@/utils/id';
+import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
-import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
   getLineSlotsForPage,
   layoutAnnotationFromSlot,
+  layoutTextAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
-import {
-  distributeTextWithinFieldLines,
-} from '@/utils/templateLineText';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
 import {
-  applyPhotoSlotTransform,
   isNonDefaultPhotoSlotTransform,
   photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
 import {
   getBranchFillColor,
   mapGenderFillToViewport,
+  mapRectFillToViewport,
 } from '@/utils/circleSlotColors';
-import { getGenderFillTargets } from '@/utils/pdfCircleSlots';
+import { getOptionFillTargets } from '@/utils/pdfCircleSlots';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { TRAVEL_MAP_COLORS } from '@/constants/travel-world-map';
@@ -41,6 +40,48 @@ import {
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 /** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
 const TEXT_ANNOTATION_ZINDEX_BASE = 10_000;
+
+const PURPLE_MY_DAY_PAGES = new Set([
+  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
+]);
+
+function isPurpleMyDayPage(lineGuideId: string, pageNumber: number): boolean {
+  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGES.has(pageNumber);
+}
+
+/** Фиолетовый «Твой день»: дата и текст «За сегодня» идут одним потоком по 5 строкам. */
+function resolvePurpleMyDayFieldText(
+  field: AlbumPageField,
+  schema: AlbumPageSchema,
+  values: PageValues,
+  lineGuideId: string,
+): string | null {
+  if (!isPurpleMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+    return values.fields[field.fieldId]?.trim() || null;
+  }
+
+  if (field.fieldId.endsWith('_date')) {
+    return null;
+  }
+
+  if (field.fieldId.endsWith('_day_story')) {
+    const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
+    const dateText = values.fields[dateFieldId]?.trim() ?? '';
+    const storyText = values.fields[field.fieldId]?.trim() ?? '';
+    if (!dateText && !storyText) return null;
+    if (dateText && storyText) return `${dateText} ${storyText}`;
+    return dateText || storyText;
+  }
+
+  return values.fields[field.fieldId]?.trim() || null;
+}
+
+function slotTransformForAnnotation(
+  transform?: PhotoSlotTransform | null,
+): PhotoSlotTransform | undefined {
+  if (!transform || !isNonDefaultPhotoSlotTransform(transform)) return undefined;
+  return transform;
+}
 
 type AdapterParams = {
   lineGuideId: string;
@@ -100,7 +141,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   );
   const profile = getTemplateTypographyProfile(lineGuideId);
   const fontSize = profile.fixedLineFontSize ?? 16;
-  const textFontFamily = values.textFontFamily ?? 'default';
+  const textFontFamily = normalizeAlbumFontId(values.textFontFamily);
   const isBlankTemplate =
     Boolean(schema.templateLibraryId) && isBlankTemplateLineGuide(lineGuideId);
   const annotations: Annotation[] = [];
@@ -110,45 +151,45 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (field.type === 'radio') continue;
     if (isBlankTemplate) continue;
 
-    const text = values.fields[field.fieldId]?.trim();
+    const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
+    if (!rawText) continue;
+
+    const characterLimit = getFieldCharacterLimit({
+      field,
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      viewportWidth,
+      viewportHeight,
+    });
+    const text = clampFieldInput(field, rawText, characterLimit, {
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      viewportWidth,
+      viewportHeight,
+    });
     if (!text) continue;
 
     const startSlot = slots[field.templateLineStart];
     if (!startSlot) continue;
 
-    const distributed = distributeTextWithinFieldLines({
-      text,
-      startSlotIndex: field.templateLineStart,
-      lineCount: field.templateLineCount,
-      slots,
+    const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId);
+    annotations.push({
+      id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
+      type: 'text',
+      page: schema.sourcePageNumber,
+      content: text,
       fontSize,
-      lineGuideId,
-      fontId: textFontFamily,
+      fontFamily: textFontFamily,
+      color: '#3D3D3D',
+      zIndex: zIndex++,
+      sourcePageNumber: schema.sourcePageNumber,
+      ...layout,
+      templateLineStart: field.templateLineStart,
+      templateLineCount: field.templateLineCount ?? 1,
     });
-
-    for (const segment of distributed.segments) {
-      if (!segment.content) continue;
-      const slot = slots[segment.slotIndex];
-      if (!slot) continue;
-      const layout = layoutAnnotationFromSlot(slot);
-      annotations.push({
-        id: createId('ann'),
-        type: 'text',
-        page: schema.sourcePageNumber,
-        content: segment.content,
-        fontSize,
-        fontFamily: textFontFamily,
-        color: '#3D3D3D',
-        zIndex: zIndex++,
-        templateLineStart: segment.slotIndex,
-        templateLineCount: 1,
-        sourcePageNumber: schema.sourcePageNumber,
-        ...layout,
-      });
-    }
   }
 
-  if (schema.pageType === 'birthday_free_page') {
+  if (schema.pageType === 'birthday_free_page' && !(schema.fields?.length)) {
     const customFields = resolveCustomFields(schema, values);
     let slotCursor = 0;
 
@@ -161,34 +202,22 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (remainingSlots === 0) break;
 
       const lineCount = Math.min(preferredLines, remainingSlots);
-      const distributed = distributeTextWithinFieldLines({
-        text,
-        startSlotIndex: slotCursor,
-        lineCount,
-        slots,
-        fontSize,
-        lineGuideId,
-        fontId: textFontFamily,
-      });
-
-      for (const segment of distributed.segments) {
-        if (!segment.content) continue;
-        const slot = slots[segment.slotIndex];
-        if (!slot) continue;
-        const layout = layoutAnnotationFromSlot(slot);
+      const startSlot = slots[slotCursor];
+      if (startSlot) {
+        const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId);
         annotations.push({
-          id: createId('ann'),
+          id: stableAnnotationId('custom', lineGuideId, schema.sourcePageNumber, field.id),
           type: 'text',
           page: schema.sourcePageNumber,
-          content: segment.content,
+          content: text,
           fontSize,
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           zIndex: zIndex++,
-          templateLineStart: segment.slotIndex,
-          templateLineCount: 1,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
+          templateLineStart: slotCursor,
+          templateLineCount: lineCount,
         });
       }
 
@@ -196,20 +225,30 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  const genderTargets = getGenderFillTargets(lineGuideId, schema.sourcePageNumber);
-  for (const target of genderTargets) {
+  const optionFillTargets = getOptionFillTargets(lineGuideId, schema.sourcePageNumber);
+  for (const target of optionFillTargets) {
     const selected = values.fields[target.fieldId]?.trim();
     if (selected !== target.option) continue;
 
-    const rect = mapGenderFillToViewport(
-      target.cx,
-      target.cy,
-      target.diameter,
-      editorContentRect,
-    );
+    const rect =
+      'shape' in target && target.shape === 'rect'
+        ? mapRectFillToViewport(
+            target.x,
+            target.y,
+            target.width,
+            target.height,
+            editorContentRect,
+          )
+        : mapGenderFillToViewport(
+            target.cx,
+            target.cy,
+            target.diameter,
+            editorContentRect,
+            target.diameterBleed,
+          );
 
     annotations.push({
-      id: createId('ann'),
+      id: stableAnnotationId('fill', lineGuideId, schema.sourcePageNumber, target.fieldId, target.option),
       type: 'image',
       page: schema.sourcePageNumber,
       x: rect.x,
@@ -217,7 +256,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       width: rect.width,
       height: rect.height,
       fillColor: target.fillColor,
-      clipShape: 'circle',
+      fillOpacity: target.fillOpacity,
+      clipShape: 'shape' in target && target.shape === 'rect' ? undefined : 'circle',
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
     });
@@ -227,7 +267,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     for (const marker of values.mapMarkers ?? []) {
       const rect = mapMarkerToViewport(marker, editorContentRect);
       annotations.push({
-        id: createId('ann'),
+        id: stableAnnotationId('map-marker', lineGuideId, schema.sourcePageNumber, marker.id),
         type: 'image',
         page: schema.sourcePageNumber,
         x: rect.x,
@@ -253,6 +293,77 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (!variant) continue;
 
     const isCircleTree = block.layoutKind === 'circle_tree';
+    const isGridCollage = !isCircleTree && variant.slots > 1;
+
+    if (isGridCollage) {
+      for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
+        const uri = blockValues.slots[slotIndex];
+        const normalizedSlot = getNormalizedPhotoSlot(
+          lineGuideId,
+          schema.sourcePageNumber,
+          variant.variantId,
+          slotIndex,
+          schema.templateLibraryId,
+        );
+        const clipShape = normalizedSlot?.shape === 'circle' ? 'circle' : undefined;
+
+        const photoRect = getPhotoSlotViewportRect({
+          lineGuideId,
+          page: schema.sourcePageNumber,
+          variantId: variant.variantId,
+          slotIndex,
+          viewportWidth,
+          viewportHeight,
+          sourceWidth,
+          sourceHeight,
+          contentRect: editorContentRect,
+          templateLibraryId: schema.templateLibraryId,
+        });
+
+        if (!photoRect) continue;
+
+        const transformKey = photoSlotTransformKey(block.blockId, slotIndex);
+        const slotTransform = values.photoSlotTransforms?.[transformKey];
+        const rect = photoRect;
+
+        if (!uri && clipShape) {
+          annotations.push({
+            id: stableAnnotationId('photo-fill', lineGuideId, schema.sourcePageNumber, block.blockId, slotIndex),
+            type: 'image',
+            page: schema.sourcePageNumber,
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            fillColor: getBranchFillColor(normalizedSlot?.branch),
+            clipShape: 'circle',
+            sourcePageNumber: schema.sourcePageNumber,
+            zIndex: zIndex++,
+          });
+          continue;
+        }
+
+        if (!uri) continue;
+
+        annotations.push({
+          id: stableAnnotationId('photo', lineGuideId, schema.sourcePageNumber, block.blockId, slotIndex),
+          type: 'image',
+          page: schema.sourcePageNumber,
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          imageUri: uri,
+          imageContentFit: 'cover',
+          clipShape,
+          imageSlotTransform: slotTransformForAnnotation(slotTransform),
+          sourcePageNumber: schema.sourcePageNumber,
+          zIndex: zIndex++,
+        });
+      }
+
+      continue;
+    }
 
     const blockLayout = isCircleTree
       ? null
@@ -278,10 +389,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       for (const slot of resolvedSlots) {
         const transformKey = photoSlotTransformKey(block.blockId, slot.slotIndex);
         const slotTransform = values.photoSlotTransforms?.[transformKey];
-        let rect = slot.rect;
-        if (slotTransform) {
-          rect = applyPhotoSlotTransform(rect, slotTransform);
-        }
+        const rect = slot.rect;
 
         const normalizedSlot = getNormalizedPhotoSlot(
           lineGuideId,
@@ -294,7 +402,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
         if (!slot.uri && clipShape) {
           annotations.push({
-            id: createId('ann'),
+            id: stableAnnotationId('photo-fill', lineGuideId, schema.sourcePageNumber, block.blockId, slot.slotIndex),
             type: 'image',
             page: schema.sourcePageNumber,
             x: rect.x,
@@ -312,7 +420,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         if (!slot.uri) continue;
 
         annotations.push({
-          id: createId('ann'),
+          id: stableAnnotationId('photo', lineGuideId, schema.sourcePageNumber, block.blockId, slot.slotIndex),
           type: 'image',
           page: schema.sourcePageNumber,
           x: rect.x,
@@ -322,6 +430,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           imageUri: slot.uri,
           imageContentFit: 'cover',
           clipShape,
+          imageSlotTransform: slotTransformForAnnotation(slotTransform),
           sourcePageNumber: schema.sourcePageNumber,
           zIndex: zIndex++,
         });
@@ -357,14 +466,11 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (photoRect) {
         const transformKey = photoSlotTransformKey(block.blockId, i);
         const slotTransform = values.photoSlotTransforms?.[transformKey];
-        let rect = photoRect;
-        if (slotTransform) {
-          rect = applyPhotoSlotTransform(rect, slotTransform);
-        }
+        const rect = photoRect;
 
         if (!uri && clipShape) {
           annotations.push({
-            id: createId('ann'),
+            id: stableAnnotationId('photo-fill', lineGuideId, schema.sourcePageNumber, block.blockId, i),
             type: 'image',
             page: schema.sourcePageNumber,
             x: rect.x,
@@ -382,7 +488,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         if (!uri) continue;
 
         annotations.push({
-          id: createId('ann'),
+          id: stableAnnotationId('photo', lineGuideId, schema.sourcePageNumber, block.blockId, i),
           type: 'image',
           page: schema.sourcePageNumber,
           x: rect.x,
@@ -392,6 +498,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           imageUri: uri,
           imageContentFit: 'cover',
           clipShape,
+          imageSlotTransform: slotTransformForAnnotation(slotTransform),
           sourcePageNumber: schema.sourcePageNumber,
           zIndex: zIndex++,
         });
@@ -406,7 +513,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
       const layout = layoutAnnotationFromSlot(slot);
       annotations.push({
-        id: createId('ann'),
+        id: stableAnnotationId('photo-slot', lineGuideId, schema.sourcePageNumber, block.blockId, slotIndex),
         type: 'image',
         page: schema.sourcePageNumber,
         x: layout.x,
@@ -424,9 +531,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   if (!isBlankTemplate && values.caption?.trim()) {
     const captionSlot = slots.find((s) => s.hasLabel) ?? slots[0];
     if (captionSlot) {
-      const layout = layoutAnnotationFromSlot(captionSlot);
+      const layout = layoutTextAnnotationFromSlot(captionSlot, fontSize, lineGuideId);
       annotations.push({
-        id: createId('ann'),
+        id: stableAnnotationId('caption', lineGuideId, schema.sourcePageNumber),
         type: 'text',
         page: schema.sourcePageNumber,
         content: values.caption.trim(),
@@ -434,10 +541,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
-        templateLineStart: captionSlot.index,
-        templateLineCount: 1,
         sourcePageNumber: schema.sourcePageNumber,
         ...layout,
+        templateLineStart: captionSlot.index,
+        templateLineCount: 1,
       });
     }
   }
@@ -466,9 +573,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         if (!text) continue;
         const slot = labelSlots[i];
         if (!slot) continue;
-        const layout = layoutAnnotationFromSlot(slot);
+        const layout = layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId);
         annotations.push({
-          id: createId('ann'),
+          id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, i),
           type: 'text',
           page: schema.sourcePageNumber,
           content: text,
@@ -476,10 +583,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           zIndex: zIndex++,
-          templateLineStart: slot.index,
-          templateLineCount: 1,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
+          templateLineStart: slot.index,
+          templateLineCount: 1,
         });
       }
     }
@@ -580,7 +687,6 @@ export function buildProjectAnnotationsFromPageValues(params: {
   viewportHeight?: number;
   imageUris?: string[];
   sourceSizesByImageIndex?: Map<number, { width: number; height: number }>;
-  sourceSizesByUri?: Map<string, { width: number; height: number }>;
 }): Annotation[] {
   const {
     instances,
@@ -590,7 +696,6 @@ export function buildProjectAnnotationsFromPageValues(params: {
     viewportHeight,
     imageUris,
     sourceSizesByImageIndex,
-    sourceSizesByUri,
   } = params;
   const all: Annotation[] = [];
 
@@ -600,12 +705,7 @@ export function buildProjectAnnotationsFromPageValues(params: {
     if (!schema || !values) continue;
 
     const pageNumber = schema.sourcePageNumber;
-    const imageUri = imageUris
-      ? resolveInstancePageImageUri(imageUris, instance)
-      : undefined;
-    const sourceSize =
-      (imageUri ? sourceSizesByUri?.get(imageUri) : undefined) ??
-      sourceSizesByImageIndex?.get(instance.imageIndex);
+    const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
     all.push(
       ...pageValuesToAnnotations({
         lineGuideId,
@@ -630,8 +730,7 @@ export function syncPageValuesToAnnotationsStorage(
   viewportWidth?: number,
   viewportHeight?: number,
   imageUris?: string[],
-  sourceSizesByImageIndex?: Map<number, { width: number; height: number }>,
-  sourceSizesByUri?: Map<string, { width: number; height: number }>,
+  sourceSizesByImageIndex?: Map<number, { width: number; height: number }>
 ): Annotation[] {
   return buildProjectAnnotationsFromPageValues({
     instances,
@@ -641,6 +740,5 @@ export function syncPageValuesToAnnotationsStorage(
     viewportHeight,
     imageUris,
     sourceSizesByImageIndex,
-    sourceSizesByUri,
   });
 }

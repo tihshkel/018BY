@@ -27,7 +27,10 @@ export async function downloadExportCoverPdfToCache(fileName: string): Promise<s
       return localPath;
     }
 
-    const remoteUrl = `${GITHUB_REPO_BASE}/${encodeURI(`albums/export/${fileName}`)}`;
+    const repoPath = fileName.startsWith('albums/')
+      ? fileName
+      : `albums/export/${fileName}`;
+    const remoteUrl = `${GITHUB_REPO_BASE}/${encodeURI(repoPath)}`;
     const result = await FileSystem.downloadAsync(remoteUrl, localPath);
     if (result.status === 200) {
       return localPath;

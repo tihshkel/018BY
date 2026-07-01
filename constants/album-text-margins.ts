@@ -28,8 +28,101 @@ export function getAlbumTextMargins(lineGuideId: string): AlbumTextMargins {
   return ALBUM_TEXT_MARGINS[lineGuideId] ?? DEFAULT_MARGINS;
 }
 
+/** «Мне N месяцев» — поля «Я люблю» / «Я умею» (kids_48 p22–p33). */
+export const KIDS_MONTH_PAGE_RANGE = { first: 22, last: 33 } as const;
+
+/** Высота строки как на остальных страницах kids_48 (PDF даёт ~0.053 — слишком широкую полосу). */
+export const KIDS_MONTH_LINE_BAND_HEIGHT = 0.028;
+
+/** Небольшой отступ от левого края PDF-слота (после печатной подписи). */
+export const KIDS_MONTH_LINE_X_INSET = 0.008;
+
+/** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
+export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
+
+/** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
+export const DIARY_LINE_FONT_OFFSET = 0.86;
+
+/** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
+export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 0.85;
+
+/** Компактные поля (дата): штрих через центр слота. */
+export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
+
+/** Обычная строка: штрих у нижнего края полосы. */
+export const PREGNANCY_WEEKLY_STANDARD_LINE_HEIGHT = 0.045;
+
+/** Межстрочный шаг на недельных стр. (норм. Y центров соседних строк, page 9). */
+export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
+
+/**
+ * Доп. зазор между низом текста и штрихом линии (доля fontSize).
+ * Применяется к полям inputKind=line в preview и PDF.
+ */
+export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.06;
+
+export type KidsMonthAnswerLineLayout = {
+  loveX: number;
+  loveWidth: number;
+  canX: number;
+  canWidth: number;
+  loveY: number;
+  canY: number;
+};
+
+/**
+ * PNG-калибровка штриха «Я люблю / Я умею».
+ * «Я ЛЮБЛЮ» длиннее «Я УМЕЮ» — линия ответа начинается правее (p32 PNG).
+ */
+export const KIDS_MONTH_STANDARD_ANSWER_LINES: KidsMonthAnswerLineLayout = {
+  loveX: 0.278,
+  loveWidth: 0.56,
+  canX: 0.262,
+  canWidth: 0.576,
+  loveY: 0.1677,
+  canY: 0.2195,
+};
+
+export const KIDS_MONTH_P33_ANSWER_LINES: KidsMonthAnswerLineLayout = {
+  loveX: 0.281,
+  loveWidth: 0.56,
+  canX: 0.265,
+  canWidth: 0.576,
+  loveY: 0.2559,
+  canY: 0.3078,
+};
+
+export function getKidsMonthAnswerLineLayout(page: number): KidsMonthAnswerLineLayout {
+  return page === 33 ? KIDS_MONTH_P33_ANSWER_LINES : KIDS_MONTH_STANDARD_ANSWER_LINES;
+}
+
+export function getKidsMonthAnswerStrokeY(page: number, slotIndex: number): number | null {
+  const layout = getKidsMonthAnswerLineLayout(page);
+  if (slotIndex === 1) return layout.loveY;
+  if (slotIndex === 2) return layout.canY;
+  return null;
+}
+
+export function getKidsMonthAnswerWritableBounds(
+  page: number,
+  slotIndex: number,
+): { x: number; width: number } | null {
+  const layout = getKidsMonthAnswerLineLayout(page);
+  if (slotIndex === 1) return { x: layout.loveX, width: layout.loveWidth };
+  if (slotIndex === 2) return { x: layout.canX, width: layout.canWidth };
+  return null;
+}
+
+export function isKidsMonthPage(page: number): boolean {
+  return page >= KIDS_MONTH_PAGE_RANGE.first && page <= KIDS_MONTH_PAGE_RANGE.last;
+}
+
 /** Альбомы без линованной сетки — свободный ввод текста */
-export const BLANK_LINE_GUIDE_IDS = new Set(['family_blank', 'holidays_blank']);
+export const BLANK_LINE_GUIDE_IDS = new Set([
+  'family_blank',
+  'family_blank_21x21',
+  'holidays_blank',
+]);
 
 export function isBlankLineGuideAlbum(lineGuideId?: string): boolean {
   if (!lineGuideId) return false;
@@ -109,7 +202,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.8,
+    lineFontOffsetRatio: 0.96,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -119,7 +212,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.82,
+    lineFontOffsetRatio: 0.98,
     blockCenterRatio: 0.56,
     blockFontOffsetRatio: 0.68,
     blockMaxFontSize: 20,
@@ -139,20 +232,20 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.5,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.98,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
-    blockFontOffsetRatio: 0.92,
-    blockMaxFontSize: 17,
+    blockFontOffsetRatio: 0.86,
+    blockMaxFontSize: 16,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.5,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.98,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
-    blockFontOffsetRatio: 0.92,
-    blockMaxFontSize: 17,
+    blockFontOffsetRatio: 0.86,
+    blockMaxFontSize: 16,
   },
 };
 

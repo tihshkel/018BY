@@ -7,36 +7,36 @@
           "fieldId": "kids_48_p3_mother_guess",
           "option": "Мальчик",
           "fillColor": "#89CFF0",
-          "cx": 0.2352,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.2355,
+          "cy": 0.8535,
+          "diameter": 0.0809
         },
         {
           "id": "mother_girl",
           "fieldId": "kids_48_p3_mother_guess",
           "option": "Девочка",
           "fillColor": "#F194A2",
-          "cx": 0.3445,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.3447,
+          "cy": 0.8535,
+          "diameter": 0.0808
         },
         {
           "id": "father_boy",
           "fieldId": "kids_48_p3_father_guess",
           "option": "Мальчик",
           "fillColor": "#89CFF0",
-          "cx": 0.6732,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.6735,
+          "cy": 0.8535,
+          "diameter": 0.0809
         },
         {
           "id": "father_girl",
           "fieldId": "kids_48_p3_father_guess",
           "option": "Девочка",
           "fillColor": "#F194A2",
-          "cx": 0.7808,
-          "cy": 0.8543,
-          "diameter": 0.0714
+          "cx": 0.7811,
+          "cy": 0.8535,
+          "diameter": 0.0808
         }
       ]
     },
@@ -45,8 +45,8 @@
         {
           "slotId": "child",
           "branch": "child",
-          "x": 0.4446,
-          "y": 0.181,
+          "x": 0.4451,
+          "y": 0.1805,
           "width": 0.1526,
           "height": 0.1526,
           "shape": "circle"
@@ -54,8 +54,8 @@
         {
           "slotId": "mother_great_grandmother",
           "branch": "mother",
-          "x": 0.2072,
-          "y": 0.2959,
+          "x": 0.2077,
+          "y": 0.2954,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -63,8 +63,8 @@
         {
           "slotId": "mother_great_grandfather",
           "branch": "mother",
-          "x": 0.3737,
-          "y": 0.4159,
+          "x": 0.3742,
+          "y": 0.4154,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -72,8 +72,8 @@
         {
           "slotId": "mother_grandmother",
           "branch": "mother",
-          "x": 0.1816,
-          "y": 0.5015,
+          "x": 0.1821,
+          "y": 0.501,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -81,8 +81,8 @@
         {
           "slotId": "mother_grandfather",
           "branch": "mother",
-          "x": 0.3844,
-          "y": 0.6419,
+          "x": 0.385,
+          "y": 0.6414,
           "width": 0.1478,
           "height": 0.1478,
           "shape": "circle"
@@ -90,8 +90,8 @@
         {
           "slotId": "father_great_grandmother",
           "branch": "father",
-          "x": 0.6697,
-          "y": 0.2143,
+          "x": 0.6703,
+          "y": 0.2138,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -99,8 +99,8 @@
         {
           "slotId": "father_great_grandfather",
           "branch": "father",
-          "x": 0.8431,
-          "y": 0.3285,
+          "x": 0.8437,
+          "y": 0.328,
           "width": 0.17,
           "height": 0.17,
           "shape": "circle"
@@ -108,8 +108,8 @@
         {
           "slotId": "father_grandmother",
           "branch": "father",
-          "x": 0.6543,
-          "y": 0.4128,
+          "x": 0.6548,
+          "y": 0.4123,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -117,8 +117,8 @@
         {
           "slotId": "father_grandfather",
           "branch": "father",
-          "x": 0.8268,
-          "y": 0.5514,
+          "x": 0.8273,
+          "y": 0.5509,
           "width": 0.1573,
           "height": 0.1573,
           "shape": "circle"
@@ -126,8 +126,8 @@
         {
           "slotId": "extra_01",
           "branch": "mother",
-          "x": 0.2197,
-          "y": 0.7248,
+          "x": 0.2202,
+          "y": 0.7243,
           "width": 0.1357,
           "height": 0.1357,
           "shape": "circle"
@@ -135,8 +135,8 @@
         {
           "slotId": "extra_02",
           "branch": "mother",
-          "x": 0.3506,
-          "y": 0.856,
+          "x": 0.3511,
+          "y": 0.8555,
           "width": 0.1255,
           "height": 0.1255,
           "shape": "circle"
@@ -144,8 +144,8 @@
         {
           "slotId": "extra_03",
           "branch": "father",
-          "x": 0.612,
-          "y": 0.6081,
+          "x": 0.6125,
+          "y": 0.6076,
           "width": 0.1552,
           "height": 0.1552,
           "shape": "circle"
@@ -153,8 +153,8 @@
         {
           "slotId": "extra_04",
           "branch": "father",
-          "x": 0.7586,
-          "y": 0.7081,
+          "x": 0.7591,
+          "y": 0.7076,
           "width": 0.1562,
           "height": 0.1562,
           "shape": "circle"
@@ -162,8 +162,8 @@
         {
           "slotId": "extra_05",
           "branch": "father",
-          "x": 0.6777,
-          "y": 0.8449,
+          "x": 0.6782,
+          "y": 0.8444,
           "width": 0.1478,
           "height": 0.1478,
           "shape": "circle"
@@ -171,8 +171,8 @@
         {
           "slotId": "extra_06",
           "branch": "child",
-          "x": 0.5125,
-          "y": 0.7762,
+          "x": 0.513,
+          "y": 0.7757,
           "width": 0.1429,
           "height": 0.1429,
           "shape": "circle"
@@ -185,8 +185,8 @@
             {
               "slotId": "child",
               "branch": "child",
-              "x": 0.4446,
-              "y": 0.181,
+              "x": 0.4451,
+              "y": 0.1805,
               "width": 0.1526,
               "height": 0.1526,
               "shape": "circle"
@@ -194,8 +194,8 @@
             {
               "slotId": "mother_great_grandmother",
               "branch": "mother",
-              "x": 0.2072,
-              "y": 0.2959,
+              "x": 0.2077,
+              "y": 0.2954,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -203,8 +203,8 @@
             {
               "slotId": "mother_great_grandfather",
               "branch": "mother",
-              "x": 0.3737,
-              "y": 0.4159,
+              "x": 0.3742,
+              "y": 0.4154,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -212,8 +212,8 @@
             {
               "slotId": "mother_grandmother",
               "branch": "mother",
-              "x": 0.1816,
-              "y": 0.5015,
+              "x": 0.1821,
+              "y": 0.501,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -221,8 +221,8 @@
             {
               "slotId": "mother_grandfather",
               "branch": "mother",
-              "x": 0.3844,
-              "y": 0.6419,
+              "x": 0.385,
+              "y": 0.6414,
               "width": 0.1478,
               "height": 0.1478,
               "shape": "circle"
@@ -230,8 +230,8 @@
             {
               "slotId": "father_great_grandmother",
               "branch": "father",
-              "x": 0.6697,
-              "y": 0.2143,
+              "x": 0.6703,
+              "y": 0.2138,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -239,8 +239,8 @@
             {
               "slotId": "father_great_grandfather",
               "branch": "father",
-              "x": 0.8431,
-              "y": 0.3285,
+              "x": 0.8437,
+              "y": 0.328,
               "width": 0.17,
               "height": 0.17,
               "shape": "circle"
@@ -248,8 +248,8 @@
             {
               "slotId": "father_grandmother",
               "branch": "father",
-              "x": 0.6543,
-              "y": 0.4128,
+              "x": 0.6548,
+              "y": 0.4123,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -257,8 +257,8 @@
             {
               "slotId": "father_grandfather",
               "branch": "father",
-              "x": 0.8268,
-              "y": 0.5514,
+              "x": 0.8273,
+              "y": 0.5509,
               "width": 0.1573,
               "height": 0.1573,
               "shape": "circle"
@@ -266,8 +266,8 @@
             {
               "slotId": "extra_01",
               "branch": "mother",
-              "x": 0.2197,
-              "y": 0.7248,
+              "x": 0.2202,
+              "y": 0.7243,
               "width": 0.1357,
               "height": 0.1357,
               "shape": "circle"
@@ -275,8 +275,8 @@
             {
               "slotId": "extra_02",
               "branch": "mother",
-              "x": 0.3506,
-              "y": 0.856,
+              "x": 0.3511,
+              "y": 0.8555,
               "width": 0.1255,
               "height": 0.1255,
               "shape": "circle"
@@ -284,8 +284,8 @@
             {
               "slotId": "extra_03",
               "branch": "father",
-              "x": 0.612,
-              "y": 0.6081,
+              "x": 0.6125,
+              "y": 0.6076,
               "width": 0.1552,
               "height": 0.1552,
               "shape": "circle"
@@ -293,8 +293,8 @@
             {
               "slotId": "extra_04",
               "branch": "father",
-              "x": 0.7586,
-              "y": 0.7081,
+              "x": 0.7591,
+              "y": 0.7076,
               "width": 0.1562,
               "height": 0.1562,
               "shape": "circle"
@@ -302,8 +302,8 @@
             {
               "slotId": "extra_05",
               "branch": "father",
-              "x": 0.6777,
-              "y": 0.8449,
+              "x": 0.6782,
+              "y": 0.8444,
               "width": 0.1478,
               "height": 0.1478,
               "shape": "circle"
@@ -311,13 +311,2281 @@
             {
               "slotId": "extra_06",
               "branch": "child",
-              "x": 0.5125,
-              "y": 0.7762,
+              "x": 0.513,
+              "y": 0.7757,
               "width": 0.1429,
               "height": 0.1429,
               "shape": "circle"
             }
           ]
+        }
+      ]
+    }
+  },
+  "pregnancy_a5": {
+    "44": {
+      "optionFills": [
+        {
+          "id": "gender_boy",
+          "fieldId": "pregnancy_a5_p44_baby_gender",
+          "option": "Мальчик",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.19,
+          "y": 0.4131,
+          "width": 0.0395,
+          "height": 0.028
+        },
+        {
+          "id": "gender_girl",
+          "fieldId": "pregnancy_a5_p44_baby_gender",
+          "option": "Девочка",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.388,
+          "y": 0.4107,
+          "width": 0.0395,
+          "height": 0.028
+        },
+        {
+          "id": "stimulation_yes",
+          "fieldId": "pregnancy_a5_p44_stimulation",
+          "option": "Да",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7224,
+          "y": 0.4122,
+          "width": 0.039,
+          "height": 0.028
+        },
+        {
+          "id": "stimulation_no",
+          "fieldId": "pregnancy_a5_p44_stimulation",
+          "option": "Нет",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.8105,
+          "y": 0.4101,
+          "width": 0.039,
+          "height": 0.028
+        },
+        {
+          "id": "tears_yes",
+          "fieldId": "pregnancy_a5_p44_tears",
+          "option": "Да",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.6724,
+          "y": 0.452,
+          "width": 0.039,
+          "height": 0.028
+        },
+        {
+          "id": "tears_no",
+          "fieldId": "pregnancy_a5_p44_tears",
+          "option": "Нет",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7621,
+          "y": 0.4513,
+          "width": 0.039,
+          "height": 0.028
+        },
+        {
+          "id": "cord_yes",
+          "fieldId": "pregnancy_a5_p44_cord",
+          "option": "Да",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.6704,
+          "y": 0.4961,
+          "width": 0.039,
+          "height": 0.028
+        },
+        {
+          "id": "cord_no",
+          "fieldId": "pregnancy_a5_p44_cord",
+          "option": "Нет",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.764,
+          "y": 0.4954,
+          "width": 0.039,
+          "height": 0.028
+        }
+      ]
+    }
+  },
+  "diary_interior_brown": {
+    "16": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p16_mood_0",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p16_mood_1",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p16_mood_2",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p16_mood_3",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p16_mood_4",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p16_mood_5",
+          "fieldId": "diary_interior_brown_p16_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "20": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p20_mood_0",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p20_mood_1",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p20_mood_2",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p20_mood_3",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p20_mood_4",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p20_mood_5",
+          "fieldId": "diary_interior_brown_p20_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "23": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p23_mood_0",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p23_mood_1",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p23_mood_2",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p23_mood_3",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p23_mood_4",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p23_mood_5",
+          "fieldId": "diary_interior_brown_p23_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "25": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p25_mood_0",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p25_mood_1",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p25_mood_2",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p25_mood_3",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p25_mood_4",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p25_mood_5",
+          "fieldId": "diary_interior_brown_p25_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "28": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p28_mood_0",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p28_mood_1",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p28_mood_2",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p28_mood_3",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p28_mood_4",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p28_mood_5",
+          "fieldId": "diary_interior_brown_p28_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "33": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p33_mood_0",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p33_mood_1",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p33_mood_2",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p33_mood_3",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p33_mood_4",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p33_mood_5",
+          "fieldId": "diary_interior_brown_p33_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "45": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p45_mood_0",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p45_mood_1",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p45_mood_2",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p45_mood_3",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p45_mood_4",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p45_mood_5",
+          "fieldId": "diary_interior_brown_p45_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "46": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p46_mood_0",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p46_mood_1",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p46_mood_2",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p46_mood_3",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p46_mood_4",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p46_mood_5",
+          "fieldId": "diary_interior_brown_p46_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "47": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p47_mood_0",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p47_mood_1",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p47_mood_2",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p47_mood_3",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p47_mood_4",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p47_mood_5",
+          "fieldId": "diary_interior_brown_p47_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "48": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p48_mood_0",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p48_mood_1",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p48_mood_2",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p48_mood_3",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p48_mood_4",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p48_mood_5",
+          "fieldId": "diary_interior_brown_p48_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "49": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p49_mood_0",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p49_mood_1",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p49_mood_2",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p49_mood_3",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p49_mood_4",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p49_mood_5",
+          "fieldId": "diary_interior_brown_p49_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "50": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p50_mood_0",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p50_mood_1",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p50_mood_2",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p50_mood_3",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p50_mood_4",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p50_mood_5",
+          "fieldId": "diary_interior_brown_p50_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "51": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p51_mood_0",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p51_mood_1",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p51_mood_2",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p51_mood_3",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p51_mood_4",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p51_mood_5",
+          "fieldId": "diary_interior_brown_p51_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "52": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p52_mood_0",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p52_mood_1",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p52_mood_2",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p52_mood_3",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p52_mood_4",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p52_mood_5",
+          "fieldId": "diary_interior_brown_p52_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "53": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p53_mood_0",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p53_mood_1",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p53_mood_2",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p53_mood_3",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p53_mood_4",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p53_mood_5",
+          "fieldId": "diary_interior_brown_p53_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "54": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p54_mood_0",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p54_mood_1",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p54_mood_2",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p54_mood_3",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p54_mood_4",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p54_mood_5",
+          "fieldId": "diary_interior_brown_p54_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "55": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p55_mood_0",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p55_mood_1",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p55_mood_2",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p55_mood_3",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p55_mood_4",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p55_mood_5",
+          "fieldId": "diary_interior_brown_p55_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    },
+    "56": {
+      "optionFills": [
+        {
+          "id": "diary_interior_brown_p56_mood_0",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "😢",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3557,
+          "cy": 0.6071,
+          "diameter": 0.0435
+        },
+        {
+          "id": "diary_interior_brown_p56_mood_1",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "😕",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4249,
+          "cy": 0.6083,
+          "diameter": 0.0437
+        },
+        {
+          "id": "diary_interior_brown_p56_mood_2",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "😐",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4928,
+          "cy": 0.6104,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p56_mood_3",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "🙂",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5643,
+          "cy": 0.6086,
+          "diameter": 0.0421
+        },
+        {
+          "id": "diary_interior_brown_p56_mood_4",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "😄",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.6359,
+          "cy": 0.6071,
+          "diameter": 0.0424
+        },
+        {
+          "id": "diary_interior_brown_p56_mood_5",
+          "fieldId": "diary_interior_brown_p56_mood",
+          "option": "🥰",
+          "fillColor": "#E8B4A0",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.7063,
+          "cy": 0.6084,
+          "diameter": 0.0431
+        }
+      ]
+    }
+  },
+  "diary_interior_purple": {
+    "9": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p9_mood_0",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p9_mood_1",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p9_mood_2",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p9_mood_3",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p9_mood_4",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p9_mood_5",
+          "fieldId": "diary_interior_purple_p9_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "11": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p11_mood_0",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p11_mood_1",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p11_mood_2",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p11_mood_3",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p11_mood_4",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p11_mood_5",
+          "fieldId": "diary_interior_purple_p11_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "13": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p13_mood_0",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p13_mood_1",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p13_mood_2",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p13_mood_3",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p13_mood_4",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p13_mood_5",
+          "fieldId": "diary_interior_purple_p13_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "15": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p15_mood_0",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p15_mood_1",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p15_mood_2",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p15_mood_3",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p15_mood_4",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p15_mood_5",
+          "fieldId": "diary_interior_purple_p15_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "17": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p17_mood_0",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p17_mood_1",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p17_mood_2",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p17_mood_3",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p17_mood_4",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p17_mood_5",
+          "fieldId": "diary_interior_purple_p17_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "19": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p19_mood_0",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p19_mood_1",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p19_mood_2",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p19_mood_3",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p19_mood_4",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p19_mood_5",
+          "fieldId": "diary_interior_purple_p19_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "23": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p23_mood_0",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p23_mood_1",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p23_mood_2",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p23_mood_3",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p23_mood_4",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p23_mood_5",
+          "fieldId": "diary_interior_purple_p23_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "34": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p34_mood_0",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p34_mood_1",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p34_mood_2",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p34_mood_3",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p34_mood_4",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p34_mood_5",
+          "fieldId": "diary_interior_purple_p34_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "35": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p35_mood_0",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p35_mood_1",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p35_mood_2",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p35_mood_3",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p35_mood_4",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p35_mood_5",
+          "fieldId": "diary_interior_purple_p35_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "36": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p36_mood_0",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p36_mood_1",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p36_mood_2",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p36_mood_3",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p36_mood_4",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p36_mood_5",
+          "fieldId": "diary_interior_purple_p36_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "37": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p37_mood_0",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p37_mood_1",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p37_mood_2",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p37_mood_3",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p37_mood_4",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p37_mood_5",
+          "fieldId": "diary_interior_purple_p37_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "38": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p38_mood_0",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p38_mood_1",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p38_mood_2",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p38_mood_3",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p38_mood_4",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p38_mood_5",
+          "fieldId": "diary_interior_purple_p38_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
+        }
+      ]
+    },
+    "39": {
+      "optionFills": [
+        {
+          "id": "diary_interior_purple_p39_mood_0",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "😢",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.265,
+          "cy": 0.61,
+          "diameter": 0.0403
+        },
+        {
+          "id": "diary_interior_purple_p39_mood_1",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "😕",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.329,
+          "cy": 0.611,
+          "diameter": 0.0405
+        },
+        {
+          "id": "diary_interior_purple_p39_mood_2",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "😐",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.3918,
+          "cy": 0.6131,
+          "diameter": 0.039
+        },
+        {
+          "id": "diary_interior_purple_p39_mood_3",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "🙂",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.4579,
+          "cy": 0.6113,
+          "diameter": 0.0391
+        },
+        {
+          "id": "diary_interior_purple_p39_mood_4",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "😄",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5241,
+          "cy": 0.6099,
+          "diameter": 0.0393
+        },
+        {
+          "id": "diary_interior_purple_p39_mood_5",
+          "fieldId": "diary_interior_purple_p39_mood",
+          "option": "🥰",
+          "fillColor": "#D4B8E8",
+          "fillOpacity": 0.5,
+          "diameterBleed": 1,
+          "cx": 0.5892,
+          "cy": 0.6112,
+          "diameter": 0.04
         }
       ]
     }

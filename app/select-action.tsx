@@ -4,15 +4,16 @@ import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { getCoverSelectTitle } from '@/utils/coverSelectTitle';
-import {
-  formatRouteEventDate,
-  parseRouteEventDate,
-  resolveRouteParam,
-} from '@/utils/routeParams';
 import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
+import {
+  getWeddingCoverById,
+  getWeddingCoverFormatLabel,
+  getWeddingCoverPickerTitle,
+} from '@/utils/weddingCoverDesigns';
+import { normalizeRouteParam } from '@/utils/routeParams';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
@@ -36,14 +37,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 export default function SelectActionScreen() {
-  const rawParams = useLocalSearchParams<{
-    celebration: string | string[];
-    coverType: string | string[];
+  const params = useLocalSearchParams<{
+    celebration?: string | string[];
+    coverType?: string | string[];
     eventDate?: string | string[];
   }>();
-  const celebration = resolveRouteParam(rawParams.celebration);
-  const coverType = resolveRouteParam(rawParams.coverType);
-  const eventDate = parseRouteEventDate(rawParams.eventDate);
+  const celebration = normalizeRouteParam(params.celebration);
+  const coverType = normalizeRouteParam(params.coverType);
+  const eventDate = normalizeRouteParam(params.eventDate);
   const containerOpacity = useSharedValue(0);
 
   React.useEffect(() => {
@@ -62,10 +63,14 @@ export default function SelectActionScreen() {
   const familyCover = coverType && celebration === 'family'
     ? FAMILY_COVER_DESIGNS.find(d => d.id === coverType) ?? null
     : null;
+  const weddingCover = coverType && celebration === 'wedding'
+    ? getWeddingCoverById(coverType)
+    : null;
   const isPregnancy = celebration === 'pregnancy';
   const isDiary = celebration === 'diary';
   const isHoliday = celebration === 'holidays';
   const isFamily = celebration === 'family';
+  const isWedding = celebration === 'wedding';
   const isKids = celebration === 'kids';
   const pregnancyDesign =
     coverType && isPregnancy ? PREGNANCY_COVER_DESIGNS.find((d) => d.id === coverType) ?? null : null;
@@ -79,19 +84,23 @@ export default function SelectActionScreen() {
       ? getCoverSelectTitle(coverType, celebration)
       : isFamily && familyCover
         ? familyCover.title
-        : isHoliday && holidayCover
-          ? holidayCover.title
-          : isDiary && diaryCover
-            ? diaryCover.name
-            : albumTemplate?.name ?? '';
+        : isWedding && weddingCover
+          ? getWeddingCoverPickerTitle(weddingCover)
+          : isHoliday && holidayCover
+            ? holidayCover.title
+            : isDiary && diaryCover
+              ? diaryCover.name
+              : albumTemplate?.name ?? '';
   const coverDescription =
     isFamily && familyCover
       ? 'Семейный альбом'
-      : isHoliday && holidayCover
-        ? 'Праздничный альбом'
-        : isDiary && diaryCover
-          ? 'Личный дневник для записи мыслей и воспоминаний'
-          : albumTemplate?.description ?? 'Дизайн обложки';
+      : isWedding && weddingCover
+        ? getWeddingCoverFormatLabel(weddingCover.format)
+        : isHoliday && holidayCover
+          ? 'Праздничный альбом'
+          : isDiary && diaryCover
+            ? 'Личный дневник для записи мыслей и воспоминаний'
+            : albumTemplate?.description ?? 'Дизайн обложки';
   const hasSelection = Boolean(coverType && celebration);
 
   const handleEdit = () => {
@@ -107,7 +116,7 @@ export default function SelectActionScreen() {
       };
       // Передаем дату события, если она есть
       if (eventDate) {
-        params.eventDate = formatRouteEventDate(new Date(eventDate));
+        params.eventDate = eventDate;
       }
       router.push({
         pathname: '/select-interior',
@@ -140,14 +149,19 @@ export default function SelectActionScreen() {
       if (celebration === 'family') {
         params.interiorType = 'family_blank';
       }
+
+      if (celebration === 'wedding') {
+        params.interiorType =
+          weddingCover?.format === '21x21' ? 'family_blank_21x21' : 'family_blank';
+      }
       
       // Передаем дату события, если она есть
       if (eventDate) {
-        params.eventDate = formatRouteEventDate(new Date(eventDate));
+        params.eventDate = eventDate;
       }
       
       router.push({
-        pathname: '/album-intro',
+        pathname: '/album-pages',
         params,
       } as unknown as Href);
     }
@@ -177,6 +191,8 @@ export default function SelectActionScreen() {
         familyCover.image as any,
         familyCover.sku
       );
+    } else if (isWedding && weddingCover) {
+      wbLink = weddingCover.link;
     } else if (pregnancyDesign || holidayDesign || familyDesign || isKids) {
       wbLink = getWildberriesLink(coverName, coverImage ?? undefined, coverType ?? undefined);
     } else if (albumTemplate) {
@@ -226,7 +242,10 @@ export default function SelectActionScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
-        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH} style={styles.shell}>
+        <ResponsiveScreenShell
+          maxContentWidth={PICKER_CONTENT_MAX_WIDTH}
+          style={styles.shell}
+        >
         {/* Заголовок с кнопкой назад */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -247,7 +266,7 @@ export default function SelectActionScreen() {
         </View>
 
         {/* Показываем выбранную обложку и кнопки действий */}
-        {hasSelection && (
+        {hasSelection ? (
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -256,9 +275,17 @@ export default function SelectActionScreen() {
             {/* Карточка с выбранной обложкой */}
             <View style={styles.coverCard}>
               <View style={styles.coverImageContainer}>
-                {coverImage && (
+                {(coverImage ?? weddingCover?.image ?? familyCover?.image ?? holidayCover?.image ?? pregnancyDesign?.image ?? diaryCover?.image ?? albumTemplate?.thumbnailPath) && (
                   <Image
-                    source={coverImage}
+                    source={
+                      (coverImage ??
+                        weddingCover?.image ??
+                        familyCover?.image ??
+                        holidayCover?.image ??
+                        pregnancyDesign?.image ??
+                        diaryCover?.image ??
+                        albumTemplate?.thumbnailPath) as React.ComponentProps<typeof Image>['source']
+                    }
                     style={styles.coverImage}
                     contentFit="cover"
                     priority="high"
@@ -319,6 +346,13 @@ export default function SelectActionScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="alert-circle-outline" size={40} color={colors.tabInactive} />
+            <Text style={styles.emptyStateText}>
+              Не удалось загрузить выбранную обложку. Вернитесь назад и выберите альбом ещё раз.
+            </Text>
+          </View>
         )}
         </ResponsiveScreenShell>
       </Animated.View>
@@ -511,6 +545,24 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  emptyStateText: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'sans-serif-light',
+      default: 'sans-serif',
+    }),
   },
 });
 

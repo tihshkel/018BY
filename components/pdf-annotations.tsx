@@ -1,4 +1,4 @@
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getTemplateTextLineMetrics, snapYToNearestTemplateLine } from '@/utils/lineGuides';
 import { getTextFieldsForPage, getTextFieldPosition } from '@/constants/text-field-coordinates';
 import type { EditorTool } from '@/constants/album-text-margins';
@@ -12,14 +12,18 @@ import {
   EDITOR_PICKER_COLORS,
 } from '@/components/editor/editor-style-picker-sheet';
 import {
-  distributeTextAcrossSlots,
   findAnnotationForContinuationGroup,
   findAnnotationForSlot,
   getLineSlotsForPage,
+  getPregnancyWeeklyFieldStartIndex,
   hasLineGuides,
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
+import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { createId } from '@/utils/id';
+import {
+  applyPhotoSlotTransform,
+} from '@/utils/photoSlotTransform';
 import {
   AVAILABLE_FONTS,
   getAlbumFontFamilyName,
@@ -29,7 +33,9 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { clampTextToContinuationGroup, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineAscenderPadding, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
   findNextEmptyFieldTarget,
   findPreviousFieldTarget,
@@ -42,7 +48,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Alert,
     Animated,
@@ -61,37 +67,9 @@ import {
 
 const FLOATING_TEXT_MIN_CARD_WIDTH = 260;
 
-export interface Annotation {
-  id: string;
-  type: 'text' | 'image' | 'drawing';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  content?: string;
-  imageUri?: string;
-  color?: string;
-  fontSize?: number;
-  fontFamily?: string; // ID шрифта из AVAILABLE_FONTS
-  zIndex: number;
-  page?: number | string;
-  /** Индекс первой строки шаблона (LINE_GUIDES) на странице */
-  templateLineStart?: number;
-  /** Сколько строк шаблона занимает блок */
-  templateLineCount?: number;
-  /** Номер страницы в LINE_SLOTS / LINE_GUIDES (не индекс в PDF после фильтра) */
-  sourcePageNumber?: number;
-  /** Горизонтальное выравнивание текста в блоке */
-  textAlign?: 'left' | 'center' | 'right';
-  /** Режим вписывания фото: cover для album auto-placement, fill для legacy редактора */
-  imageContentFit?: 'cover' | 'fill';
-  /** Круглый клип для семейного дерева / gender-fill */
-  clipShape?: 'circle';
-  /** Заливка круга без фото (gender-fill или пустой слот дерева) */
-  fillColor?: string;
-}
+import type { Annotation, AnnotationTextAlign } from '@/types/annotation';
 
-export type AnnotationTextAlign = 'left' | 'center' | 'right';
+export type { Annotation, AnnotationTextAlign } from '@/types/annotation';
 
 export interface PdfAnnotationsRef {
   closeEditing: () => void;
@@ -179,24 +157,50 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     [sourceWidth, sourceHeight, viewportWidth, viewportHeight]
   );
 
-  const getSlotsForPage = (pageNumber: number) => {
-    const resolvedParams = resolveSlotParams?.(pageNumber);
-    if (resolvedParams) {
-      return getLineSlotsForPage(resolvedParams);
-    }
+  const slotsCacheRef = useRef<{ key: string; byPage: Map<number, ReturnType<typeof getLineSlotsForPage>> }>({
+    key: '',
+    byPage: new Map(),
+  });
 
-    if (!lineGuideId || lineSlotsContext.viewportWidth <= 0 || lineSlotsContext.viewportHeight <= 0) {
-      return [];
-    }
-    return getLineSlotsForPage({
-      lineGuideId,
-      page: pageNumber,
-      viewportWidth: lineSlotsContext.viewportWidth,
-      viewportHeight: lineSlotsContext.viewportHeight,
-      sourceWidth: lineSlotsContext.sourceWidth,
-      sourceHeight: lineSlotsContext.sourceHeight,
-    });
-  };
+  const getSlotsForPage = useCallback(
+    (pageNumber: number) => {
+      const resolvedParams = resolveSlotParams?.(pageNumber);
+      const cacheKey = resolvedParams
+        ? `params:${pageNumber}:${resolvedParams.lineGuideId}:${resolvedParams.viewportWidth}:${resolvedParams.viewportHeight}:${resolvedParams.sourceWidth ?? 0}:${resolvedParams.sourceHeight ?? 0}`
+        : `ctx:${lineGuideId}:${pageNumber}:${lineSlotsContext.viewportWidth}:${lineSlotsContext.viewportHeight}:${lineSlotsContext.sourceWidth ?? 0}:${lineSlotsContext.sourceHeight ?? 0}`;
+
+      if (slotsCacheRef.current.key !== cacheKey) {
+        slotsCacheRef.current = { key: cacheKey, byPage: new Map() };
+      }
+
+      const cached = slotsCacheRef.current.byPage.get(pageNumber);
+      if (cached) return cached;
+
+      let slots: ReturnType<typeof getLineSlotsForPage>;
+      if (resolvedParams) {
+        slots = getLineSlotsForPage(resolvedParams);
+      } else if (
+        !lineGuideId ||
+        lineSlotsContext.viewportWidth <= 0 ||
+        lineSlotsContext.viewportHeight <= 0
+      ) {
+        slots = [];
+      } else {
+        slots = getLineSlotsForPage({
+          lineGuideId,
+          page: pageNumber,
+          viewportWidth: lineSlotsContext.viewportWidth,
+          viewportHeight: lineSlotsContext.viewportHeight,
+          sourceWidth: lineSlotsContext.sourceWidth,
+          sourceHeight: lineSlotsContext.sourceHeight,
+        });
+      }
+
+      slotsCacheRef.current.byPage.set(pageNumber, slots);
+      return slots;
+    },
+    [lineGuideId, lineSlotsContext, resolveSlotParams]
+  );
 
   const usesAlbumWideFieldNavigation = (totalPages ?? 0) > 1 && !!resolveSlotParams;
 
@@ -217,11 +221,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         })
       : y;
 
-  const isTemplateLineAnnotation = (ann: Annotation) =>
+  /** Любое поле макета со слотом (1 или несколько строк). */
+  const isTemplateFieldAnnotation = (ann: Annotation) =>
     !!lineGuideId &&
     hasLineGuides(lineGuideId) &&
-    typeof ann.templateLineStart === 'number' &&
-    (ann.templateLineCount ?? 1) === 1;
+    typeof ann.templateLineStart === 'number';
+
+  /** Одна строка в continuation group (после split при сохранении). */
+  const isSingleLineTemplateSlotAnnotation = (ann: Annotation) =>
+    isTemplateFieldAnnotation(ann) && (ann.templateLineCount ?? 1) === 1;
+
+  const isTemplateLineAnnotation = isTemplateFieldAnnotation;
 
   const getPageNumber = (ann: Annotation): number | null => {
     if (typeof ann.page === 'number') return ann.page;
@@ -252,16 +262,17 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     lastSelectedFontIdRef.current = null;
     let text = annotation.content || '';
 
-    if (isTemplateLineAnnotation(annotation) && typeof annotation.templateLineStart === 'number') {
+    if (isTemplateFieldAnnotation(annotation) && typeof annotation.templateLineStart === 'number') {
       const pageNumber = getPageNumber(annotation);
       if (pageNumber != null) {
         const slots = getSlotsForPage(pageNumber);
-        const { startSlotIndex } = getContinuationGroupSlots(slots, annotation.templateLineStart);
-        const layoutSlot = slots[startSlotIndex] ?? slots[annotation.templateLineStart];
+        const layoutSlot = slots[annotation.templateLineStart];
         if (layoutSlot) {
           onAnnotationUpdate(annotation.id, layoutAnnotationFromSlot(layoutSlot));
         }
-        text = getMergedTemplateGroupText(annotation, pageNumber, annotation.templateLineStart, slots);
+        if (isSingleLineTemplateSlotAnnotation(annotation)) {
+          text = getMergedTemplateGroupText(annotation, pageNumber, annotation.templateLineStart, slots);
+        }
       }
     }
 
@@ -280,7 +291,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     if (typeof annotation.templateLineStart !== 'number' || !pageNumberForSlots) return false;
 
     const editing = annotations.find((ann) => ann.id === editingAnnotation);
-    if (!editing || !isTemplateLineAnnotation(editing)) return false;
+    if (!editing || !isSingleLineTemplateSlotAnnotation(editing)) return false;
     if (getPageNumber(editing) !== pageNumberForSlots) return false;
     if (templateSlots.length === 0) return false;
 
@@ -305,7 +316,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     if (groupSlots.length <= 1) return false;
 
     const pageAnnotations = annotations.filter(
-      (ann) => getPageNumber(ann) === pageNumberForSlots && isTemplateLineAnnotation(ann)
+      (ann) => getPageNumber(ann) === pageNumberForSlots && isSingleLineTemplateSlotAnnotation(ann)
     );
     const primary = pageAnnotations.find(
       (ann) => (ann.templateLineStart ?? -1) === startSlotIndex
@@ -332,7 +343,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const persistTemplateLineEditing = (): boolean => {
     if (!editingAnnotation) return false;
     const annotation = annotations.find((ann) => ann.id === editingAnnotation);
-    if (!annotation || annotation.type !== 'text' || !isTemplateLineAnnotation(annotation)) {
+    if (!annotation || annotation.type !== 'text' || !isTemplateFieldAnnotation(annotation)) {
       return false;
     }
 
@@ -343,21 +354,23 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
 
     const slots = getSlotsForPage(pageNumber);
-    const { startSlotIndex } = getContinuationGroupSlots(slots, annotation.templateLineStart);
-    const startSlot = slots[startSlotIndex] ?? slots[annotation.templateLineStart];
+    const startSlotIndex = annotation.templateLineStart ?? 0;
+    const startSlot = slots[startSlotIndex];
+    if (!startSlot) return false;
     const effectiveFontSize = getEffectiveTemplateFontSize(
       lineGuideId,
       startSlot,
       annotation.fontSize || 16
     );
     const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
-    const { segments, truncated } = distributeTextWithinContinuationGroup({
+    const { segments, truncated } = distributeTextForTemplateAnnotation({
       text: editingText,
       startSlotIndex,
       slots,
       fontSize: effectiveFontSize,
       lineGuideId,
       fontId: normalizedFontId,
+      lineCount: annotation.templateLineCount ?? 1,
     });
 
     if (truncated) {
@@ -392,16 +405,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       }
     }
 
-    const groupId = slots[startSlotIndex]?.continuationGroup;
-    if (groupId != null) {
-      const usedIndices = new Set(segments.map((s) => s.slotIndex));
-      for (const slot of slots) {
-        if (slot.continuationGroup !== groupId) continue;
-        if (usedIndices.has(slot.index)) continue;
-        const orphan = findAnnotationForSlot(annotations, pageNumber, slot.index);
-        if (orphan && orphan.id !== annotation.id) {
-          onAnnotationUpdate(orphan.id, { content: '' });
-        }
+    const fieldSlotCount = annotation.templateLineCount ?? 1;
+    const usedIndices = new Set(segments.map((s) => s.slotIndex));
+    for (let offset = 0; offset < fieldSlotCount; offset += 1) {
+      const slotIndex = startSlotIndex + offset;
+      if (usedIndices.has(slotIndex)) continue;
+      const orphan = findAnnotationForSlot(annotations, pageNumber, slotIndex);
+      if (orphan && orphan.id !== annotation.id) {
+        onAnnotationUpdate(orphan.id, { content: '' });
       }
     }
 
@@ -1195,26 +1206,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       const annotation = annotations.find(ann => ann.id === editingAnnotation);
       if (annotation && annotation.type === 'text') {
         if (isTemplateLineAnnotation(annotation)) {
-          const pageNumber = getPageNumber(annotation);
-          if (pageNumber != null && typeof annotation.templateLineStart === 'number') {
-            const slots = getSlotsForPage(pageNumber);
-            const { startSlotIndex } = getContinuationGroupSlots(slots, annotation.templateLineStart);
-            const startSlot = slots[startSlotIndex] ?? slots[annotation.templateLineStart];
-            const effectiveFontSize = getEffectiveTemplateFontSize(
-              lineGuideId,
-              startSlot,
-              annotation.fontSize || 16
-            );
-            const clamped = clampTextToContinuationGroup({
-              text,
-              startSlotIndex,
-              slots,
-              fontSize: effectiveFontSize,
-              lineGuideId,
-            });
-            setEditingText(clamped);
-            return;
-          }
           setEditingText(text);
           return;
         }
@@ -1222,48 +1213,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         if (
           typeof annotation.templateLineStart === 'number' &&
           lineGuideId &&
+          hasLineGuides(lineGuideId) &&
           typeof viewportWidth === 'number' &&
-          typeof viewportHeight === 'number' &&
-          (annotation.templateLineCount ?? 1) > 1
+          typeof viewportHeight === 'number'
         ) {
-          const pageNumber = getPageNumber(annotation);
-
-          if (pageNumber) {
-            const slots = getSlotsForPage(pageNumber);
-            const { content, lineCount, truncated } = distributeTextAcrossSlots({
-              text,
-              startSlotIndex: annotation.templateLineStart,
-              slots,
-              fontSize: annotation.fontSize || 16,
-            });
-
-            if (truncated) {
-              Alert.alert(
-                'Конец страницы',
-                'Текст не помещается в оставшиеся строки на этой странице.'
-              );
-            }
-
-            const firstSlot = slots[annotation.templateLineStart];
-            const lastSlot = slots[annotation.templateLineStart + lineCount - 1];
-            const totalHeight =
-              firstSlot && lastSlot
-                ? lastSlot.y - firstSlot.y + lastSlot.lineHeight
-                : annotation.height;
-
-            onAnnotationUpdate(editingAnnotation, {
-              content,
-              templateLineCount: lineCount,
-              width: firstSlot?.width ?? annotation.width,
-              x: firstSlot?.x ?? annotation.x,
-              y: firstSlot?.y ?? annotation.y,
-              height: totalHeight,
-            });
-            if (content !== text) {
-              setEditingText(content);
-            }
-            return;
-          }
+          setEditingText(text);
+          return;
         }
 
         // Проверяем, есть ли определенные координаты текстового поля
@@ -2389,19 +2344,23 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const slot = templateSlots[slotIndex];
         if (!slot) return null;
 
-        const { groupSlots, startSlotIndex } = getContinuationGroupSlots(templateSlots, slotIndex);
-        const startSlot = templateSlots[startSlotIndex] ?? slot;
+        const fieldSlotCount = annotation.templateLineCount ?? 1;
+        const fieldSlots = templateSlots.filter(
+          (lineSlot) =>
+            lineSlot.index >= slotIndex && lineSlot.index < slotIndex + fieldSlotCount,
+        );
+
         const effectiveFontSize = getEffectiveTemplateFontSize(
           lineGuideId,
-          startSlot,
+          slot,
           currentFontSize
         );
         if (isEditingText) {
           return (
             <TemplateLineEditor
               key={annotation.id}
-              slot={startSlot}
-              groupSlots={groupSlots.length > 0 ? groupSlots : [startSlot]}
+              slot={slot}
+              groupSlots={fieldSlots.length > 0 ? fieldSlots : [slot]}
               allSlots={templateSlots}
               value={editingText}
               color={currentColor}
@@ -2419,42 +2378,32 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
-        const mergedDisplayText =
-          pageNumberForSlots != null
-            ? getMergedTemplateGroupText(annotation, pageNumberForSlots, slotIndex, templateSlots)
-            : annotation.content || '';
-        const { segments: displaySegments } = distributeTextWithinContinuationGroup({
-          text: mergedDisplayText,
-          startSlotIndex,
+        const displayText = annotation.content || '';
+        const { segments: displaySegments } = distributeTextForTemplateAnnotation({
+          text: displayText,
+          startSlotIndex: slotIndex,
           slots: templateSlots,
           fontSize: effectiveFontSize,
           lineGuideId,
           fontId: normalizedFontId,
+          lineCount: annotation.templateLineCount ?? 1,
         });
-        const linesToRender =
-          groupSlots.length > 1
-            ? displaySegments
-                .map((segment) => {
-                  const lineSlot = templateSlots[segment.slotIndex];
-                  if (!lineSlot) return null;
-                  return {
-                    slotIndex: segment.slotIndex,
-                    content: segment.content,
-                    lineSlot,
-                  };
-                })
-                .filter((row): row is NonNullable<typeof row> => !!row && !!row.content)
-            : [
-                {
-                  slotIndex,
-                  content:
-                    displaySegments.find((segment) => segment.slotIndex === slotIndex)
-                      ?.content ??
-                    annotation.content ??
-                    '',
-                  lineSlot: slot,
-                },
-              ].filter((row) => row.content);
+        const linesToRender = displaySegments
+          .map((segment) => {
+            const lineSlot = templateSlots[segment.slotIndex];
+            if (!lineSlot || !segment.content) return null;
+            return {
+              slotIndex: segment.slotIndex,
+              content: segment.content,
+              lineSlot,
+            };
+          })
+          .filter((row): row is NonNullable<typeof row> => row != null);
+
+        const fieldStartForLayout =
+          fieldSlotCount > 1
+            ? slotIndex
+            : getPregnancyWeeklyFieldStartIndex(slotIndex, templateSlots);
 
         return (
           <>
@@ -2462,7 +2411,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               const rowTop = getTemplateLineTextTop(
                 row.lineSlot,
                 effectiveFontSize,
-                lineGuideId
+                lineGuideId,
+                templateSlots,
+                fieldStartForLayout,
               );
               const rowTypography = getTemplateLineTypography(
                 effectiveFontSize,
@@ -2470,20 +2421,27 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 getWishSlotInputKind(row.lineSlot, lineGuideId),
                 lineGuideId
               );
-              const ascenderPadding = getTemplateLineAscenderPadding(
+              const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
+              const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+                row.lineSlot,
                 rowTypography.fontSize,
-                getWishSlotInputKind(row.lineSlot, lineGuideId)
+                wishInputKind,
+                lineGuideId
               );
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
+              const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
+              const textLineHeight = usesStrokeBaseline
+                ? rowTypography.fontSize
+                : rowTypography.lineHeight;
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
                   style={{
                     position: 'absolute',
                     left: row.lineSlot.x,
-                    top: rowTop - ascenderPadding,
+                    top: rowTop - viewportTopInset,
                     width: row.lineSlot.width,
-                    height: rowTypography.lineHeight + ascenderPadding,
+                    height: textLineHeight + viewportTopInset,
                     overflow: 'visible',
                     zIndex: annotation.zIndex,
                   }}
@@ -2495,15 +2453,19 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       styles.templateLineText,
                       {
                         position: 'absolute',
-                        top: ascenderPadding,
+                        top: textTopInset,
                         left: textInsets.left,
                         width: textInsets.width,
                         color: currentColor,
                         fontSize: rowTypography.fontSize,
                         fontFamily: currentFontFamily,
-                        lineHeight: rowTypography.lineHeight,
+                        lineHeight: textLineHeight,
                         includeFontPadding: false,
                         textAlign: getTextAlign(annotation),
+                        ...(Platform.OS === 'android' &&
+                          !usesStrokeBaseline && {
+                            textAlignVertical: 'bottom',
+                          }),
                       },
                     ]}
                     numberOfLines={1}
@@ -2531,6 +2493,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             // Высота должна быть динамической для многострочного текста
             // Используем minHeight вместо фиксированной height, чтобы текст мог расширяться
             minHeight: annotation.height || 24,
+            overflow: 'hidden' as const,
             // Используем очень высокий z-index для редактируемого текста, чтобы он был поверх всех страниц
             zIndex: isEditingText ? 99999 : annotation.zIndex,
             transform: [
@@ -2708,30 +2671,40 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       );
                     })
                   ) : (
-                    <Text
-                      style={[
-                        styles.textAnnotation,
-                        {
-                          color: currentColor,
-                          fontSize: alignedFontSize,
-                          fontFamily: currentFontFamily,
-                          maxWidth: annotation.width || 360,
-                          textAlign: getTextAlign(annotation),
-                          lineHeight: alignedFontSize * 1.2,
-                          includeFontPadding: false,
-                        },
-                      ]}
-                      onLayout={(event) => {
-                        const { width, height } = event.nativeEvent.layout;
-                        if (!width || !height) return;
-                        const prev = measuredTextSizesRef.current.get(annotation.id);
-                        if (prev && prev.width === width && prev.height === height) return;
-                        measuredTextSizesRef.current.set(annotation.id, { width, height });
-                        setMeasuredVersion((v) => v + 1);
-                      }}
-                    >
-                      {annotation.content || ''}
-                    </Text>
+                    (() => {
+                      const boxWidth = annotation.width || 360;
+                      const boxHeight = annotation.height || 24;
+                      const fitted = fitTextToTemplateBlock({
+                        text: annotation.content || '',
+                        boxWidth,
+                        boxHeight,
+                        fontId: normalizedFontId,
+                        preferredFontSize: alignedFontSize,
+                      });
+                      const blockLineHeight = fitted.fontSize * 1.15;
+                      return fitted.lines.map((line, lineIndex) => (
+                        <Text
+                          key={`${annotation.id}-block-line-${lineIndex}`}
+                          style={[
+                            styles.textAnnotation,
+                            {
+                              position: 'absolute',
+                              top: lineIndex * blockLineHeight,
+                              left: 0,
+                              width: boxWidth,
+                              color: currentColor,
+                              fontSize: fitted.fontSize,
+                              fontFamily: currentFontFamily,
+                              lineHeight: blockLineHeight,
+                              includeFontPadding: false,
+                              textAlign: getTextAlign(annotation),
+                            },
+                          ]}
+                        >
+                          {line}
+                        </Text>
+                      ));
+                    })()
                   )}
                 </TouchableOpacity>
               </View>
@@ -2777,28 +2750,46 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
 
     if (annotation.type === 'image') {
       const basePos = getDisplayPosition(annotation);
+      const isBlankAlbumPhoto = isBlankTemplateLineGuide(lineGuideId ?? '');
       const isCircle = annotation.clipShape === 'circle';
       const circleRadius = isCircle
         ? Math.min(annotation.width, annotation.height) / 2
         : 0;
-      const circleClipStyle = isCircle
-        ? { borderRadius: circleRadius, overflow: 'hidden' as const }
-        : undefined;
+      const rectPhotoRadius = isBlankAlbumPhoto ? BLANK_ALBUM_PHOTO_RADIUS : radii.sm;
+      const photoCornerRadius = isCircle ? circleRadius : rectPhotoRadius;
+      const photoClipStyle =
+        photoCornerRadius > 0
+          ? { borderRadius: photoCornerRadius, overflow: 'hidden' as const }
+          : undefined;
 
       if (!annotation.imageUri && annotation.fillColor) {
+        const fillSize = isCircle
+          ? Math.min(annotation.width, annotation.height)
+          : null;
+        const fillLeft = isCircle
+          ? basePos.x + (annotation.width - fillSize!) / 2
+          : basePos.x;
+        const fillTop = isCircle
+          ? basePos.y + (annotation.height - fillSize!) / 2
+          : basePos.y;
+        const fillWidth = fillSize ?? annotation.width;
+        const fillHeight = fillSize ?? annotation.height;
+        const fillRadius = isCircle ? fillWidth / 2 : circleRadius;
+
         return (
           <View
             key={annotation.id}
             style={[
               styles.annotation,
               {
-                left: basePos.x,
-                top: basePos.y,
-                width: annotation.width,
-                height: annotation.height,
+                left: fillLeft,
+                top: fillTop,
+                width: fillWidth,
+                height: fillHeight,
                 zIndex: annotation.zIndex,
                 backgroundColor: annotation.fillColor,
-                borderRadius: circleRadius,
+                opacity: annotation.fillOpacity ?? 1,
+                borderRadius: fillRadius,
               },
             ]}
             pointerEvents="none"
@@ -2830,40 +2821,97 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           {/* Основной PanResponder для перетаскивания - всегда в режиме редактирования для выбора при тапе */}
           <View
             {...(isEditing && panResponder ? panResponder.panHandlers : {})}
-            style={[styles.imageContainer, circleClipStyle]}
+            style={[styles.imageContainer, photoClipStyle, isBlankAlbumPhoto && styles.blankAlbumImageContainer]}
             pointerEvents={isEditing ? 'auto' : 'box-none'}
           >
             {annotation.fillColor ? (
               <View
                 style={[
                   styles.imageAnnotation,
-                  circleClipStyle,
+                  photoClipStyle,
                   { backgroundColor: annotation.fillColor },
                 ]}
               />
             ) : null}
             {annotation.imageUri ? (
-              <Image
-                source={{ uri: annotation.imageUri }}
-                style={[
-                  styles.imageAnnotation,
-                  circleClipStyle,
-                  isCircle && styles.circleImageAnnotation,
-                  annotation.fillColor && styles.imageOnFill,
-                ]}
-                contentFit={annotation.imageContentFit ?? 'fill'}
-                priority="high"
-                cachePolicy="disk"
-                transition={0}
-                fadeDuration={0}
-                recyclingKey={annotation.id}
-                contentPosition="center"
-                onLoad={() => {
-                  if (annotation.imageUri) {
-                    onImageAnnotationLoad?.(annotation.imageUri);
-                  }
-                }}
-              />
+              annotation.imageSlotTransform && !isEditing ? (
+                <View style={[styles.slotTransformClip, photoClipStyle]}>
+                  <View
+                    style={[
+                      styles.slotTransformInner,
+                      (() => {
+                        const inner = applyPhotoSlotTransform(
+                          {
+                            x: 0,
+                            y: 0,
+                            width: annotation.width,
+                            height: annotation.height,
+                          },
+                          annotation.imageSlotTransform,
+                        );
+                        return {
+                          left: inner.x,
+                          top: inner.y,
+                          width: inner.width,
+                          height: inner.height,
+                        };
+                      })(),
+                    ]}
+                  >
+                    <Image
+                      source={{ uri: annotation.imageUri }}
+                      style={[
+                        styles.imageAnnotation,
+                        isBlankAlbumPhoto
+                          ? styles.blankAlbumImageAnnotationReadOnly
+                          : styles.imageAnnotationReadOnly,
+                        isCircle && styles.circleImageAnnotation,
+                        annotation.fillColor && styles.imageOnFill,
+                      ]}
+                      contentFit={annotation.imageContentFit ?? 'cover'}
+                      priority="high"
+                      cachePolicy="disk"
+                      transition={0}
+                      fadeDuration={0}
+                      recyclingKey={annotation.id}
+                      contentPosition="center"
+                      allowDownscaling
+                      onLoad={() => {
+                        if (annotation.imageUri) {
+                          onImageAnnotationLoad?.(annotation.imageUri);
+                        }
+                      }}
+                    />
+                  </View>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: annotation.imageUri }}
+                  style={[
+                    styles.imageAnnotation,
+                    photoClipStyle,
+                    isCircle && styles.circleImageAnnotation,
+                    annotation.fillColor && styles.imageOnFill,
+                    !isEditing &&
+                      (isBlankAlbumPhoto
+                        ? styles.blankAlbumImageAnnotationReadOnly
+                        : styles.imageAnnotationReadOnly),
+                  ]}
+                  contentFit={annotation.imageContentFit ?? 'fill'}
+                  priority="high"
+                  cachePolicy="disk"
+                  transition={0}
+                  fadeDuration={0}
+                  recyclingKey={annotation.id}
+                  contentPosition="center"
+                  allowDownscaling
+                  onLoad={() => {
+                    if (annotation.imageUri) {
+                      onImageAnnotationLoad?.(annotation.imageUri);
+                    }
+                  }}
+                />
+              )
             ) : null}
           </View>
           {/* Ручки отображаются только если изображение выбрано, режим редактирования активен, 
@@ -2969,11 +3017,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           currentTool && !editingAnnotation && { pointerEvents: 'box-none' }
         ]}
       >
-        {annotations.map((annotation) => (
-          <React.Fragment key={annotation.id}>
-            {renderAnnotation(annotation)}
-          </React.Fragment>
-        ))}
+        {annotations.map(renderAnnotation)}
       </View>
 
 
@@ -3320,14 +3364,34 @@ const styles = StyleSheet.create({
     height: '100%',
     pointerEvents: 'auto',
     overflow: 'hidden',
-    borderRadius: 12,
+    borderRadius: radii.sm,
+  },
+  blankAlbumImageContainer: {
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
   },
   imageAnnotation: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
+    borderRadius: radii.sm,
     borderWidth: 2,
     borderColor: colors.primary,
+  },
+  imageAnnotationReadOnly: {
+    borderWidth: 0,
+    borderRadius: 0,
+  },
+  blankAlbumImageAnnotationReadOnly: {
+    borderWidth: 0,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
+  },
+  slotTransformClip: {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+  },
+  slotTransformInner: {
+    position: 'absolute',
+    overflow: 'hidden',
   },
   imageOnFill: {
     position: 'absolute',

@@ -2517,6 +2517,44 @@ function assignKidsAlbumSlotGroups(slots, options = {}) {
     return normalized;
   }
 
+  if (page === 21) {
+    if (slots.length >= 2) return slots;
+    return [
+      {
+        x: formatFloat(0.22),
+        y: formatFloat(0.18),
+        width: formatFloat(0.56),
+        height: formatFloat(0.04),
+        hasLabel: false,
+        continuationGroup: 1,
+      },
+      {
+        x: formatFloat(0.22),
+        y: formatFloat(0.24),
+        width: formatFloat(0.56),
+        height: formatFloat(0.04),
+        hasLabel: false,
+        continuationGroup: 2,
+      },
+    ];
+  }
+
+  if (page >= 22 && page <= 33) {
+    const hasCanLine = slots.some((slot) => slot.continuationGroup === 2);
+    if (!hasCanLine && slots.length >= 2) {
+      const anchor = slots[slots.length - 1];
+      slots.push({
+        x: formatFloat(anchor.x),
+        y: formatFloat(anchor.y + 0.055),
+        width: formatFloat(anchor.width),
+        height: formatFloat(anchor.height),
+        hasLabel: false,
+        continuationGroup: 2,
+      });
+    }
+    return slots;
+  }
+
   return slots;
 }
 
@@ -3996,7 +4034,7 @@ function injectPurplePage16MissingColorComboRow(slots, options = {}) {
 function injectBrownFriendQuestionnaireSocialLines(slots, options = {}) {
   if (!isPurpleAlbum(options) || !slots.length) return;
   const page = options.pageNumber;
-  if (page !== 28 && page !== 30) return;
+  if (page < 28 || page > 33) return;
 
   const rowGap = options.brownQuestionnaireRowGap ?? 0.042;
   const band = slots[0]?.height ?? 0.033;

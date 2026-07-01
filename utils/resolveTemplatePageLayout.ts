@@ -44,13 +44,14 @@ export function buildPhotoPageLayoutsFromTemplate(
   format: PageFormat,
 ): PhotoPageLayouts | undefined {
   const layout = getTemplateLayout(templateId, format);
-  if (!layout?.photoSlots?.length) return undefined;
+  const photoSlots = layout?.photoSlots ?? layout?.events?.map((event) => event.photo) ?? [];
+  if (!photoSlots.length) return undefined;
 
   return {
     variants: [
       {
         variantId: 'template',
-        slots: layout.photoSlots.map(slotToNormalized),
+        slots: photoSlots.map(slotToNormalized),
       },
     ],
   };
@@ -97,19 +98,28 @@ export function buildPhotoBlocksFromTemplate(
   ];
 }
 
+function textBlockLineCount(block: TemplateTextBlockDef): number {
+  if (block.type === 'longText') {
+    return Math.max(3, Math.min(12, Math.round(block.h / 0.035)));
+  }
+  return 1;
+}
+
 function textBlockToField(
   block: TemplateTextBlockDef,
   schemaPageId: string,
   index: number,
 ): AlbumPageField {
+  const lineCount = textBlockLineCount(block);
   return {
     fieldId: `${schemaPageId}_${block.id}`,
     label: TEXT_LABELS[block.id] ?? block.id,
     type: block.type === 'date' ? 'date' : 'text',
     required: block.required ?? false,
     placeholder: TEXT_LABELS[block.id] ?? block.id,
+    maxLength: block.maxLength,
     templateLineStart: index,
-    templateLineCount: 1,
+    templateLineCount: lineCount,
   };
 }
 
@@ -133,15 +143,18 @@ export function buildFieldsFromTemplate(
       if (layout.perPhotoCaptions) continue;
       if (useSingleCaptionValue) continue;
     }
-    fields.push(textBlockToField(block, schemaPageId, index));
-    index += 1;
+    const field = textBlockToField(block, schemaPageId, index);
+    fields.push(field);
+    index += field.templateLineCount ?? 1;
   }
 
   for (const event of layout.events ?? []) {
-    fields.push(textBlockToField(event.date, schemaPageId, index));
-    index += 1;
-    fields.push(textBlockToField(event.description, schemaPageId, index));
-    index += 1;
+    const dateField = textBlockToField(event.date, schemaPageId, index);
+    fields.push(dateField);
+    index += dateField.templateLineCount ?? 1;
+    const descField = textBlockToField(event.description, schemaPageId, index);
+    fields.push(descField);
+    index += descField.templateLineCount ?? 1;
   }
 
   return fields;
@@ -188,10 +201,23 @@ export function buildSchemaFromTemplate(params: {
 export function getTemplatePhotoLayouts(
   templateLibraryId: string | undefined,
   lineGuideId: string,
+  page?: number,
 ): PhotoPageLayouts | undefined {
-  if (!templateLibraryId || !isBlankTemplateLineGuide(lineGuideId)) return undefined;
+  const usesTemplateLayouts =
+    isBlankTemplateLineGuide(lineGuideId) || lineGuideId === 'holidays_birthday_60';
+  if (!templateLibraryId || !usesTemplateLayouts) return undefined;
+
   const format = getPageFormatForLineGuide(lineGuideId);
-  return buildPhotoPageLayoutsFromTemplate(templateLibraryId, format);
+  const layouts = buildPhotoPageLayoutsFromTemplate(templateLibraryId, format);
+  if (!layouts?.variants?.length) return undefined;
+
+  if (lineGuideId === 'holidays_birthday_60' && page !== undefined) {
+    const { expandCollageVariantsWithSparse } =
+      require('@/utils/sparseTextPhotoSafeZone') as typeof import('@/utils/sparseTextPhotoSafeZone');
+    return expandCollageVariantsWithSparse(layouts, lineGuideId, page);
+  }
+
+  return layouts;
 }
 
 export function getTextBlockRect(

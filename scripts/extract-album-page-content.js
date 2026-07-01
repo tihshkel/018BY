@@ -561,7 +561,14 @@ async function main() {
       ? findPerPagePdfFolder(projectRoot, perPageFolderName)
       : null;
 
-    if (perPageFolderPath && fs.existsSync(perPageFolderPath) && process.env.USE_LEGACY_DIARY_PDF !== '1') {
+    const isDiaryInterior =
+      lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple';
+    const usePerPagePdfs =
+      perPageFolderPath &&
+      fs.existsSync(perPageFolderPath) &&
+      (!isDiaryInterior || process.env.USE_PER_PAGE_DIARY_PDF === '1');
+
+    if (usePerPagePdfs) {
       result[lineGuideId] = await extractAlbumContentFromPerPagePdfs(
         projectRoot,
         lineGuideId,

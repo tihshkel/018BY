@@ -1,6 +1,6 @@
 import type { Annotation } from '@/components/pdf-annotations';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
-import { createId } from '@/utils/id';
+import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import type { ContentRect } from '@/utils/imageContentRect';
 import {
   getPageFormatForLineGuide,
@@ -10,6 +10,7 @@ import {
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
   estimateTemplateFontSize,
+  fitTextToTemplateBlock,
   mapTemplateFrameToViewport,
 } from '@/utils/templateTextLayout';
 
@@ -57,12 +58,21 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
     const block = getTextBlockRect(schema.templateLibraryId!, format, fieldIdSuffix);
     if (!block) return;
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
+    const preferredFontSize = estimateTemplateFontSize(block.h, viewportHeight) || fontSize;
+    const fitted = fitTextToTemplateBlock({
+      text,
+      boxWidth: rect.width,
+      boxHeight: rect.height,
+      fontId: textFontFamily,
+      preferredFontSize,
+    });
+    if (fitted.lines.length === 0) return;
     annotations.push({
-      id: createId('ann'),
+      id: stableAnnotationId('blank-field', lineGuideId, schema.sourcePageNumber, fieldIdSuffix),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: text.trim(),
-      fontSize: estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      content: fitted.lines.join('\n'),
+      fontSize: fitted.fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,
@@ -101,7 +111,7 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
     if (element.type === 'text' && hasText(element.content)) {
       const rect = mapTemplateFrameToViewport(element, editorContentRect);
       annotations.push({
-        id: createId('ann'),
+        id: stableAnnotationId('free-text', lineGuideId, schema.sourcePageNumber, element.id),
         type: 'text',
         page: schema.sourcePageNumber,
         content: element.content!.trim(),
@@ -162,7 +172,7 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
 
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
     annotations.push({
-      id: createId('ann'),
+      id: stableAnnotationId('template-caption', lineGuideId, schema.sourcePageNumber, block.id, i),
       type: 'text',
       page: schema.sourcePageNumber,
       content: text!.trim(),
@@ -201,7 +211,7 @@ export function appendBlankTemplateFreeImageAnnotations(params: {
     if (element.type !== 'image' || !hasText(element.content)) continue;
     const rect = mapTemplateFrameToViewport(element, editorContentRect);
     annotations.push({
-      id: createId('ann'),
+      id: stableAnnotationId('free-image', lineGuideId, schema.sourcePageNumber, element.id),
       type: 'image',
       page: schema.sourcePageNumber,
       x: rect.x,

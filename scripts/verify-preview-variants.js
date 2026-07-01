@@ -113,7 +113,7 @@ assert(
 
 const adapterSource = fs.readFileSync(path.join(root, 'utils/pageValuesAdapter.ts'), 'utf8');
 assert(adapterSource.includes('photoSlotTransforms'), 'pageValuesAdapter: photoSlotTransforms');
-assert(adapterSource.includes('applyPhotoSlotTransform'), 'pageValuesAdapter: apply transform');
+assert(adapterSource.includes('imageSlotTransform'), 'pageValuesAdapter: imageSlotTransform');
 
 if (failed > 0) {
   console.error(`\n${failed} check(s) failed.`);

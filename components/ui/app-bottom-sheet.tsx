@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -39,8 +39,6 @@ export interface AppBottomSheetProps {
   showHandle?: boolean;
   dismissOnBackdrop?: boolean;
   showClose?: boolean;
-  /** Поднимает sheet над клавиатурой (нужно для TextInput на Android). */
-  keyboardAvoiding?: boolean;
 }
 
 export function AppBottomSheet({
@@ -56,16 +54,51 @@ export function AppBottomSheet({
   showHandle = true,
   dismissOnBackdrop = true,
   showClose = true,
-  keyboardAvoiding = false,
 }: AppBottomSheetProps) {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout(FORM_MODAL_MAX_WIDTH);
   const tabletModal = getTabletBottomModalStyles(layout);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const androidKeyboardOffsetRef = useRef(0);
+
+  useEffect(() => {
+    if (!visible) {
+      androidKeyboardOffsetRef.current = 0;
+      setKeyboardOffset(0);
+      return;
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+
+    const showSubscription = Keyboard.addListener(showEvent, (event) => {
+      const height = Math.max(0, Math.round(event.endCoordinates.height));
+
+      if (Platform.OS === 'ios') {
+        Keyboard.scheduleLayoutAnimation(event);
+        setKeyboardOffset(height);
+        return;
+      }
+
+      // Android: при вводе приходит ложный keyboardDidHide → offset сбрасывался и sheet падал.
+      // Держим максимальный offset, пока sheet открыт; сброс только при visible=false.
+      androidKeyboardOffsetRef.current = Math.max(androidKeyboardOffsetRef.current, height);
+      setKeyboardOffset(androidKeyboardOffsetRef.current);
+    });
+
+    const hideSubscription =
+      Platform.OS === 'ios'
+        ? Keyboard.addListener('keyboardWillHide', () => {
+            setKeyboardOffset(0);
+          })
+        : null;
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription?.remove();
+    };
+  }, [visible]);
 
   if (!visible) return null;
-
-  // Android: windowSoftInputMode=adjustResize уже сжимает окно — KAV даёт двойной сдвиг и «прыжки».
-  const keyboardAvoidingEnabled = keyboardAvoiding && Platform.OS === 'ios';
 
   const body = scroll ? (
     <ScrollView
@@ -73,13 +106,14 @@ export function AppBottomSheet({
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      automaticallyAdjustKeyboardInsets={false}
+      nestedScrollEnabled={false}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.body, contentContainerStyle]}>
-      {children}
-    </View>
+    <View style={[styles.body, contentContainerStyle]}>{children}</View>
   );
 
   const sheet = (
@@ -89,7 +123,10 @@ export function AppBottomSheet({
         size === 'large' && styles.sheetLarge,
         layout.isTablet && styles.sheetTablet,
         tabletModal.content,
-        { paddingBottom: Math.max(insets.bottom, spacing.md) },
+        {
+          paddingBottom: Math.max(insets.bottom, spacing.md),
+          marginBottom: keyboardOffset,
+        },
       ]}
     >
       {!layout.isTablet && showHandle ? <View style={styles.handle} /> : null}
@@ -114,11 +151,7 @@ export function AppBottomSheet({
       onRequestClose={dismissOnBackdrop ? onClose : () => {}}
       statusBarTranslucent
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={[styles.overlayRoot, tabletModal.overlay]}
-        enabled={keyboardAvoidingEnabled}
-      >
+      <View style={[styles.overlayRoot, tabletModal.overlay]}>
         <Pressable
           style={styles.backdrop}
           onPress={dismissOnBackdrop ? onClose : undefined}
@@ -127,7 +160,7 @@ export function AppBottomSheet({
         />
 
         {sheet}
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }

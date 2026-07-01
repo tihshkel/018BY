@@ -13,16 +13,21 @@ type CatalogGiftCoverImageProps = {
   item: GiftItem;
   style: StyleProp<ImageStyle>;
   imagePriority?: 'high' | 'normal';
+  /** Фото с Wildberries (card.json), передаётся из родительской карточки. */
+  resolvedImageUrl?: string | null;
 };
 
-/** То же фото, что на вкладке «Каталог»: сначала Wildberries, затем локальная обложка. */
+/** Фото товара: Wildberries CDN → локальная обложка → плейсхолдер. */
 export function CatalogGiftCoverImage({
   item,
   style,
   imagePriority = 'normal',
+  resolvedImageUrl,
 }: CatalogGiftCoverImageProps) {
-  const wbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
+  const staticWbUri = useMemo(() => getWildberriesProductImageUrl(item.link), [item.link]);
   const [wbFailed, setWbFailed] = useState(false);
+
+  const wbUri = resolvedImageUrl ?? staticWbUri;
   const useWb = Boolean(wbUri) && !wbFailed;
 
   if (useWb && wbUri) {
@@ -33,7 +38,8 @@ export function CatalogGiftCoverImage({
         contentFit="contain"
         priority={imagePriority}
         cachePolicy="disk"
-        transition={120}
+        transition={0}
+        fadeDuration={0}
         accessibilityLabel={`Фото товара ${item.title} с Wildberries`}
         recyclingKey={`wb-${item.sku}`}
         onError={() => setWbFailed(true)}

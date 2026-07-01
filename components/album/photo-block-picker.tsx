@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { LayoutPreviewThumbnail } from '@/components/album/layout-preview-thumbnail';
 import { LayoutPreviewIcon } from '@/components/album/photo-layout-preview-icon';
 import { AppButton, AppCard, AppText } from '@/components/ui';
 import { colors, radii, spacing } from '@/constants/design-tokens';
@@ -12,6 +13,7 @@ import {
   countFilledPhotoSlots,
   findFirstEmptyPhotoSlotIndex,
 } from '@/utils/photoVariantAspect';
+import { resolveGlobalLayoutPreviewUri } from '@/utils/variantPreview';
 
 type PhotoBlockPickerProps = {
   block: PhotoBlockSchema;
@@ -62,6 +64,7 @@ export function PhotoBlockPicker({
         >
           {block.variants.map((v) => {
             const isSelected = variant?.variantId === v.variantId;
+            const layoutPreviewUri = resolveGlobalLayoutPreviewUri(v.variantId, isSelected);
             return (
               <Pressable
                 key={v.variantId}
@@ -74,11 +77,15 @@ export function PhotoBlockPicker({
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
               >
-                <LayoutPreviewIcon
-                  variantId={v.variantId}
-                  slots={v.slots}
-                  selected={isSelected}
-                />
+                {layoutPreviewUri ? (
+                  <LayoutPreviewThumbnail variantId={v.variantId} uri={layoutPreviewUri} />
+                ) : (
+                  <LayoutPreviewIcon
+                    variantId={v.variantId}
+                    slots={v.slots}
+                    selected={isSelected}
+                  />
+                )}
                 <AppText
                   variant="caption"
                   style={[styles.chipLabel, isSelected && styles.chipLabelSelected]}

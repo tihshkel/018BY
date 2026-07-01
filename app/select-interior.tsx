@@ -23,11 +23,7 @@ import * as Haptics from 'expo-haptics';
 import { Asset } from 'expo-asset';
 import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
-import {
-  formatRouteEventDate,
-  parseRouteEventDate,
-  resolveRouteParam,
-} from '@/utils/routeParams';
+import { normalizeRouteParam } from '@/utils/routeParams';
 
 interface InteriorOption {
   id: string;
@@ -70,14 +66,14 @@ function getInteriorOptions(celebration: string): InteriorOption[] {
 }
 
 export default function SelectInteriorScreen() {
-  const rawParams = useLocalSearchParams<{
-    celebration: string | string[];
-    coverType: string | string[];
+  const params = useLocalSearchParams<{
+    celebration?: string | string[];
+    coverType?: string | string[];
     eventDate?: string | string[];
   }>();
-  const celebration = resolveRouteParam(rawParams.celebration);
-  const coverType = resolveRouteParam(rawParams.coverType);
-  const eventDate = parseRouteEventDate(rawParams.eventDate);
+  const celebration = normalizeRouteParam(params.celebration);
+  const coverType = normalizeRouteParam(params.coverType);
+  const eventDate = normalizeRouteParam(params.eventDate);
   const [selectedInterior, setSelectedInterior] = useState<string | null>(null);
   const containerOpacity = useSharedValue(0);
   
@@ -144,11 +140,11 @@ export default function SelectInteriorScreen() {
       
       // Передаем дату события, если она есть
       if (eventDate) {
-        params.eventDate = formatRouteEventDate(new Date(eventDate));
+        params.eventDate = eventDate;
       }
       
       router.push({
-        pathname: '/album-intro',
+        pathname: '/album-pages',
         params,
       } as unknown as Href);
     }
@@ -162,7 +158,7 @@ export default function SelectInteriorScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Animated.View style={[styles.content, containerAnimatedStyle]}>
-        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH} style={styles.shell}>
+        <ResponsiveScreenShell maxContentWidth={PICKER_CONTENT_MAX_WIDTH}>
         {/* Заголовок с кнопкой назад */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -280,9 +276,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    flex: 1,
-  },
-  shell: {
     flex: 1,
   },
   header: {

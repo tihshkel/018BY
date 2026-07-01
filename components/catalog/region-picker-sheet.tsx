@@ -8,6 +8,8 @@ import { colors, spacing } from '@/constants/design-tokens';
 export type RegionOption<T extends string = string> = {
   value: T;
   label: string;
+  /** Emoji flag — renders natively on iOS (Apple Color Emoji). */
+  flag?: string;
 };
 
 type RegionPickerSheetProps<T extends string = string> = {
@@ -52,9 +54,16 @@ export function RegionPickerSheet<T extends string = string>({
                 index < options.length - 1 && styles.rowBorder,
               ]}
             >
-              <AppText variant="body" style={isSelected ? styles.selectedText : undefined}>
-                {region.label}
-              </AppText>
+              <View style={styles.rowLeading}>
+                {region.flag ? (
+                  <View style={[styles.flagWrap, isSelected && styles.flagWrapSelected]}>
+                    <AppText style={styles.flag}>{region.flag}</AppText>
+                  </View>
+                ) : null}
+                <AppText variant="body" style={isSelected ? styles.selectedText : undefined}>
+                  {region.label}
+                </AppText>
+              </View>
               {isSelected ? (
                 <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
               ) : null}
@@ -74,9 +83,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: spacing.md,
-    minHeight: 52,
+    minHeight: 56,
+  },
+  rowLeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    paddingRight: spacing.sm,
+  },
+  flagWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySurface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  flagWrapSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.white,
+  },
+  flag: {
+    fontSize: 24,
+    lineHeight: 28,
   },
   rowPressed: {
     backgroundColor: colors.primarySurface,

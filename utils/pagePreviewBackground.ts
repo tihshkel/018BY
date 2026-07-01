@@ -2,6 +2,7 @@ import {
   resolveDesignPreviewUri,
   resolveVariantPreviewBackgroundUri,
 } from '@/utils/albumImages';
+import { hasSparsePhotoConfig, usesBlankPagePhotoFallback } from '@/constants/sparse-photo-album-config';
 
 type ResolvePagePreviewBackgroundParams = {
   lineGuideId?: string | null;
@@ -12,8 +13,14 @@ type ResolvePagePreviewBackgroundParams = {
   preferDesignLayout?: boolean;
 };
 
+/** Global layout chip PNGs (one_large.png etc.) are UI thumbnails, not page backgrounds. */
+function usesGlobalLayoutChipPreviews(lineGuideId: string): boolean {
+  return hasSparsePhotoConfig(lineGuideId) && !usesBlankPagePhotoFallback(lineGuideId);
+}
+
 /**
- * Picks preview background: designer PDF (empty visit) → variant PNG → base page PNG.
+ * Picks preview background. Empty pages show the plain PDF page template (baseImageUri).
+ * Legacy albums may fall back to full-page design/variant PNGs — never layout chip icons.
  */
 export function resolvePagePreviewBackgroundUri(
   params: ResolvePagePreviewBackgroundParams,
@@ -31,7 +38,12 @@ export function resolvePagePreviewBackgroundUri(
   }
 
   if (preferDesignLayout) {
-    if (variantId) {
+    if (baseImageUri) return baseImageUri;
+
+    const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
+    if (designUri) return designUri;
+
+    if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {
       const variantUri = resolveVariantPreviewBackgroundUri({
         lineGuideId,
         sourcePageNumber,
@@ -40,26 +52,18 @@ export function resolvePagePreviewBackgroundUri(
       if (variantUri) return variantUri;
     }
 
-    const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
-    if (designUri) return designUri;
-
-    return (
-      resolveVariantPreviewBackgroundUri({
-        lineGuideId,
-        sourcePageNumber,
-        variantId,
-      }) ?? baseImageUri ?? null
-    );
+    return null;
   }
 
-  if (variantId) {
-    const variantUri = resolveVariantPreviewBackgroundUri({
+  if (baseImageUri) return baseImageUri;
+
+  if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {
+    return resolveVariantPreviewBackgroundUri({
       lineGuideId,
       sourcePageNumber,
       variantId,
     });
-    if (variantUri) return variantUri;
   }
 
-  return baseImageUri ?? null;
+  return null;
 }

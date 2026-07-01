@@ -6,11 +6,20 @@ export function wrapTextToLines(
   text: string,
   width: number,
   fontSize: number,
-  paddingPx = 8
+  paddingPxOrOptions: number | { paddingPx?: number; charWidthRatio?: number } = 8,
 ): string[] {
   if (!text || text.length === 0) return [];
 
-  const charWidth = fontSize * 0.62;
+  const paddingPx =
+    typeof paddingPxOrOptions === 'number'
+      ? paddingPxOrOptions
+      : (paddingPxOrOptions.paddingPx ?? 8);
+  const charWidthRatio =
+    typeof paddingPxOrOptions === 'number'
+      ? 0.62
+      : (paddingPxOrOptions.charWidthRatio ?? 0.62);
+
+  const charWidth = fontSize * charWidthRatio;
   const maxCharsPerLine = Math.floor((width - paddingPx * 2) / charWidth);
   if (maxCharsPerLine <= 0) return [text];
 
@@ -48,4 +57,10 @@ export function wrapTextToLines(
   }
 
   return lines;
+}
+
+/** Сколько строк помещается в блок фиксированной высоты. */
+export function maxLinesForBoxHeight(boxHeight: number, fontSize: number, lineHeightFactor = 1.2): number {
+  if (boxHeight <= 0 || fontSize <= 0) return 1;
+  return Math.max(1, Math.floor(boxHeight / (fontSize * lineHeightFactor)));
 }

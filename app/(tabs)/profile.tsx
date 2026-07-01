@@ -6,15 +6,11 @@ import { ProfileSubscriptionStatusBadge } from '@/components/profile-subscriptio
 import { AppCard, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { getAndroidPlayStoreUrl, getIosAppStoreUrl } from '@/constants/app-store';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
-import {
-  resolveAvatarImageSource,
-  toPresetAvatarStorageValue,
-} from '@/constants/default-avatars';
+import { resolveAvatarImageSource } from '@/constants/default-avatars';
 import { useExportSubscription } from '@/contexts/export-subscription-context';
 import { signOutFromAccount } from '@/utils/auth-session';
 import {
   ensureDefaultAvatar,
-  getStoredUserAvatar,
   saveGalleryUserAvatar,
   savePresetUserAvatar,
   saveUserName,
@@ -124,13 +120,13 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!isInitialMount.current && !isNameEditVisible) {
+      if (!isInitialMount.current) {
         loadUserData();
       }
       if (isIapEnabled) {
         refresh();
       }
-    }, [isIapEnabled, refresh, isNameEditVisible])
+    }, [isIapEnabled, refresh])
   );
 
   const loadUserData = async () => {
@@ -140,7 +136,7 @@ export default function ProfileScreen() {
       const dataMap = new Map(results);
       const name = dataMap.get('@user_name');
       const storedAvatar = dataMap.get('@user_avatar') ?? avatar;
-      if (name) setUserName(name);
+      setUserName(name?.trim() || '');
       if (storedAvatar) setAvatarUri(storedAvatar);
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -171,26 +167,23 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSelectPresetAvatar = (presetId: string) => {
+  const handleSelectPresetAvatar = async (presetId: string) => {
     if (isSavingAvatar) return;
 
-    const stored = toPresetAvatarStorageValue(presetId);
-    setAvatarUri(stored);
-    setIsAvatarPickerVisible(false);
-    if (Platform.OS === 'ios') {
-      Haptics.selectionAsync();
-    }
-
-    void (async () => {
-      try {
-        await savePresetUserAvatar(presetId);
-      } catch (error) {
-        console.error('Error saving preset avatar:', error);
-        const previous = await getStoredUserAvatar();
-        setAvatarUri(previous);
-        Alert.alert('Ошибка', 'Не удалось сохранить аватар');
+    setIsSavingAvatar(true);
+    try {
+      const stored = await savePresetUserAvatar(presetId);
+      setAvatarUri(stored);
+      setIsAvatarPickerVisible(false);
+      if (Platform.OS === 'ios') {
+        Haptics.selectionAsync();
       }
-    })();
+    } catch (error) {
+      console.error('Error saving preset avatar:', error);
+      Alert.alert('Ошибка', 'Не удалось сохранить аватар');
+    } finally {
+      setIsSavingAvatar(false);
+    }
   };
 
   const handlePickAvatarFromGallery = async () => {
@@ -308,14 +301,19 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert(
       'Выйти из аккаунта',
-      'Вы выйдете из текущего аккаунта. Локальные проекты на этом устройстве будут удалены.',
+      'Вы выйдете из текущего аккаунта. Локальные проекты на этом устройстве будут удалены. Куда перейти дальше?',
       [
         { text: 'Отмена', style: 'cancel' },
         {
-          text: 'Выйти',
-          style: 'destructive',
+          text: 'Войти',
           onPress: () => {
             void completeSignOut('login');
+          },
+        },
+        {
+          text: 'Регистрация',
+          onPress: () => {
+            void completeSignOut('register');
           },
         },
       ]

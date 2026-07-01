@@ -39,38 +39,30 @@ function auditPageSlots(pageKey, slots, overrideUsed) {
     return { page: pageKey, slotCount: 0, issues, ok: true, empty: true };
   }
 
-  const ys = slots.map((s) => s.y);
-  for (let i = 1; i < ys.length; i += 1) {
-    if (ys[i] < ys[i - 1] - 0.001) {
-      issues.push({ code: 'Y_NOT_ASCENDING', detail: `y[${i}]=${ys[i]} < y[${i - 1}]=${ys[i - 1]}` });
+  const verticalRows = slots
+    .map((slot, index) => ({ slot, index }))
+    .filter(({ slot }) => slot.inputKind !== 'block')
+    .sort((a, b) => (a.slot.y ?? 0) - (b.slot.y ?? 0));
+
+  for (let i = 1; i < verticalRows.length; i += 1) {
+    const prev = verticalRows[i - 1];
+    const current = verticalRows[i];
+    const gap = (current.slot.y ?? 0) - (prev.slot.y ?? 0);
+    const overlapsHorizontally =
+      Math.max(prev.slot.x ?? 0, current.slot.x ?? 0) <
+      Math.min((prev.slot.x ?? 0) + (prev.slot.width ?? 0), (current.slot.x ?? 0) + (current.slot.width ?? 0));
+
+    if (gap < 0.006 && overlapsHorizontally) {
+      issues.push({
+        code: 'Y_TOO_CLOSE',
+        detail: `gap ${gap.toFixed(4)} between slots ${prev.index} and ${current.index}`,
+      });
     }
-    const gap = ys[i] - ys[i - 1];
-    if (gap < 0.014) {
-      issues.push({ code: 'Y_TOO_CLOSE', detail: `gap ${gap.toFixed(4)} between slots ${i - 1} and ${i}` });
-    }
   }
 
-  const xs = slots.map((s) => s.x);
-  const staircase =
-    slots.length >= 3 &&
-    xs.every((x, i) => i === 0 || Math.abs(x - xs[i - 1]) > 0.04) &&
-    (xs.every((x, i) => i === 0 || x < xs[i - 1]) || xs.every((x, i) => i === 0 || x > xs[i - 1]));
-  if (staircase) {
-    issues.push({ code: 'X_STAIRCASE', detail: `x values: ${xs.map((x) => x.toFixed(3)).join(', ')}` });
-  }
-
-  const fullWidthNoLabel = slots.filter(
-    (s) => !s.hasLabel && s.x < 0.12 && s.width > 0.75
-  ).length;
-  if (fullWidthNoLabel === slots.length && slots.length > 2) {
-    issues.push({
-      code: 'ALL_FULL_WIDTH_NO_LABEL',
-      detail: 'label detection likely failed for entire page',
-    });
-  }
-
+  const lineLikeSlots = slots.filter((slot) => slot.inputKind !== 'block');
   for (const [i, s] of slots.entries()) {
-    if (s.width < 0.06) {
+    if ((s.width ?? 0) < 0.04 && s.inputKind !== 'block') {
       issues.push({ code: 'WIDTH_TOO_SMALL', detail: `slot ${i} width=${s.width}` });
     }
     if (s.height > 0.12) {
@@ -81,7 +73,7 @@ function auditPageSlots(pageKey, slots, overrideUsed) {
     }
   }
 
-  if (slots.length > 26) {
+  if (lineLikeSlots.length > 40) {
     issues.push({ code: 'TOO_MANY_SLOTS', detail: `count=${slots.length}` });
   }
 

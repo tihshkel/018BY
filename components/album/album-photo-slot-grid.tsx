@@ -5,7 +5,11 @@ import { PhotoSlotGestureLayer } from '@/components/album/photo-slot-gesture-lay
 import { AppText } from '@/components/ui';
 import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoBlockSchema, PhotoSlotTransform } from '@/types/album-page-schema';
-import { getCollageAspectRatio, getCollageSlotFrames } from '@/utils/photoSlotGridLayout';
+import {
+  getCollageAspectRatio,
+  getCollageSlotFrames,
+  getPageCalibratedCollageLayout,
+} from '@/utils/photoSlotGridLayout';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
@@ -17,6 +21,9 @@ type AlbumPhotoSlotGridProps = {
   slotUris: (string | null)[];
   slotTransforms: Record<string, PhotoSlotTransform>;
   groupTransform?: PhotoSlotTransform;
+  lineGuideId?: string;
+  sourcePageNumber?: number;
+  templateLibraryId?: string;
   onPickPhoto: (slotIndex: number) => void;
   onRemovePhoto?: (slotIndex: number) => void;
   onSlotTransformChange: (slotIndex: number, transform: PhotoSlotTransform) => void;
@@ -24,11 +31,14 @@ type AlbumPhotoSlotGridProps = {
   embedded?: boolean;
 };
 
-export function AlbumPhotoSlotGrid({
+export const AlbumPhotoSlotGrid = React.memo(function AlbumPhotoSlotGrid({
   block,
   selectedVariantId,
   slotUris,
   slotTransforms,
+  lineGuideId,
+  sourcePageNumber,
+  templateLibraryId,
   onPickPhoto,
   onRemovePhoto,
   onSlotTransformChange,
@@ -37,17 +47,29 @@ export function AlbumPhotoSlotGrid({
   const variant =
     block.variants.find((item) => item.variantId === selectedVariantId) ?? block.variants[0];
   const slotCount = variant?.slots ?? slotUris.length;
+  const layoutSlotIndices =
+    variant?.slotIndices && variant.slotIndices.length === slotCount
+      ? variant.slotIndices
+      : undefined;
   const filledCount = slotUris.filter(Boolean).length;
 
-  const frames = useMemo(
-    () => getCollageSlotFrames(selectedVariantId, slotCount),
-    [selectedVariantId, slotCount],
+  const collageLayout = useMemo(
+    () =>
+      getPageCalibratedCollageLayout({
+        lineGuideId,
+        sourcePageNumber,
+        variantId: selectedVariantId,
+        slotCount,
+        templateLibraryId,
+        slotIndices: layoutSlotIndices,
+      }),
+    [layoutSlotIndices, lineGuideId, selectedVariantId, slotCount, sourcePageNumber, templateLibraryId],
   );
 
-  const collageAspect = useMemo(
-    () => getCollageAspectRatio(selectedVariantId, slotCount),
-    [selectedVariantId, slotCount],
-  );
+  const frames = collageLayout?.frames ?? getCollageSlotFrames(selectedVariantId, slotCount);
+
+  const collageAspect =
+    collageLayout?.aspectRatio ?? getCollageAspectRatio(selectedVariantId, slotCount);
 
   if (!variant) return null;
 
@@ -113,7 +135,7 @@ export function AlbumPhotoSlotGrid({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   section: {

@@ -140,7 +140,7 @@ function verifyPurpleA5() {
     assert((byPage[String(page)].fields?.length ?? 0) >= 16, `purple p${page} friend fields (>=16)`);
   }
 
-  for (const page of [2, 3, 20, 21, 40]) {
+  for (const page of [2, 20, 21, 40]) {
     const schema = byPage[String(page)];
     assert(schema.pageType === 'non_editable', `purple p${page} is non_editable static`);
     assert(schema.editable === false, `purple p${page} editable=false`);
@@ -230,7 +230,7 @@ function verifyBirthday48() {
   assert((p48.fields ?? []).some((f) => f.fieldId.endsWith('_letter_text')), 'birthday p48 letter field');
 
   const p40 = byPage['40'];
-  assert((p40.fields ?? []).length >= 3, 'birthday p40 travel fields (>=3)');
+  assert((p40.fields ?? []).length >= 2, 'birthday p40 travel fields (countries + memory)');
 
   require('./verify-birthday-48-asset-map.js');
 }
@@ -300,7 +300,7 @@ function verifyPregnancyA5() {
 
   assert(schemas.length === 48, 'pregnancy_a5 schemas has 48 pages');
 
-  for (const page of [2, 4, 14, 29, 47]) {
+  for (const page of [2, 4, 14, 29]) {
     const schema = byPage[String(page)];
     assert(schema.pageType === 'non_editable', `pregnancy A5 p${page} is non_editable static`);
     assert(schema.editable === false, `pregnancy A5 p${page} editable=false`);
@@ -310,6 +310,38 @@ function verifyPregnancyA5() {
   assert(byPage['5'].title === '6-я неделя', 'pregnancy A5 p5 week 6');
   assert(byPage['20'].title === '20-я неделя', 'pregnancy A5 p20 week 20');
   assert(byPage['43'].title === '42-я неделя', 'pregnancy A5 p43 week 42');
+
+  const p5 = byPage['5'];
+  const belly = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_belly'));
+  const feelings = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_feelings'));
+  assert(belly?.templateLineStart === 5, 'pregnancy A5 p5 belly slot 5');
+  assert(feelings?.templateLineStart === 6, 'pregnancy A5 p5 feelings slot 6');
+
+  const p44 = byPage['44'];
+  assert(
+    (p44.fields ?? []).some((f) => f.type === 'radio' && f.fieldId.endsWith('_stimulation')),
+    'pregnancy A5 p44 stimulation radio',
+  );
+  assert(
+    (p44.fields ?? []).some((f) => f.fieldId.endsWith('_baby_weight') && f.templateLineStart === 8),
+    'pregnancy A5 p44 baby_weight slot 8',
+  );
+
+  const p46 = byPage['46'];
+  const wishes = (p46.fields ?? []).find((f) => f.fieldId.endsWith('_wishes'));
+  assert(wishes?.templateLineStart === 6, 'pregnancy A5 p46 wishes slot 6');
+  assert(wishes?.templateLineCount === 3, 'pregnancy A5 p46 wishes count 3');
+
+  const p47 = byPage['47'];
+  assert(p47.pageType === 'photo', 'pregnancy A5 p47 is photo');
+  assert(p47.title === 'Памятные моменты', 'pregnancy A5 p47 title');
+  assert(p47.editable === true, 'pregnancy A5 p47 editable');
+  assert((p47.photoBlocks?.length ?? 0) > 0, 'pregnancy A5 p47 has photo blocks');
+
+  const p48 = byPage['48'];
+  assert(p48.pageType === 'photo', 'pregnancy A5 p48 is photo');
+  assert(p48.title === 'Памятные моменты', 'pregnancy A5 p48 title');
+  assert(p48.editable === true, 'pregnancy A5 p48 editable');
 
   const pdfSlots = loadJson('constants/generated/pdf-photo-slots.json');
   assert(

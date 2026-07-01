@@ -24,13 +24,13 @@ import { buildAlbumIntroHref, buildAlbumPagesHref } from '@/utils/albumNavigatio
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  FlatList,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlatList as GestureFlatList } from 'react-native-gesture-handler';
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -71,16 +71,12 @@ export default function AllStoriesScreen() {
   );
 
   const openProject = async (project: UserProject) => {
-    if (project.isReadyMadeAlbum || project.hasPdfTemplate) {
-      const entry = await resolveAlbumEntryPath(project.id);
-      router.push(
-        entry === 'album-intro'
-          ? buildAlbumIntroHref({ id: project.id })
-          : buildAlbumPagesHref({ id: project.id })
-      );
-    } else {
-      router.push(`/edit-project?id=${project.id}`);
-    }
+    const entry = await resolveAlbumEntryPath(project.id);
+    router.push(
+      entry === 'album-intro'
+        ? buildAlbumIntroHref({ id: project.id })
+        : buildAlbumPagesHref({ id: project.id })
+    );
   };
 
   const handleLongPress = (project: UserProject) => {
@@ -187,7 +183,7 @@ export default function AllStoriesScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <GestureFlatList
+          <FlatList
             data={projects}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}

@@ -2,8 +2,13 @@ import { getAlbumTemplateById } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { getPregnancyCoverPdf } from '@/utils/coverPdfMapping';
 import { getGiftDisplayTitle, getGiftItemByAlbumName } from '@/utils/albumGiftMapping';
-import { filterProjectsByDeleted, loadDeletedProjectIds, markProjectAsDeleted } from '@/utils/deleted-project-ids';
-import { getAlbumPageCount, resolveInteriorAlbumId } from '@/utils/albumImages';
+import { filterProjectsByDeleted, loadDeletedProjectIds } from '@/utils/deleted-project-ids';
+import {
+  getAlbumPageCount,
+  resolveInteriorAlbumId,
+  resolveLineGuideId,
+} from '@/utils/albumImages';
+import { isLegacyFreeformProject, pruneLegacyFreeformProjects } from '@/utils/legacyFreeformProject';
 import { pruneGhostAlbumProjects } from '@/utils/pruneGhostAlbumProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -62,6 +67,25 @@ const countPhotoAnnotations = (items: unknown[]): number => {
       ((ann as { imageUri: string }).imageUri?.length ?? 0) > 0
   ).length;
 };
+
+function hasValidReadyMadeMeta(project: Record<string, unknown>): boolean {
+  const id = String(project?.id ?? '').trim();
+  if (!id) return false;
+  if (isLegacyFreeformProject(project)) return false;
+
+  const category = String(project.category ?? '').trim();
+  const rawInterior = String(project.interiorType ?? project.albumId ?? '').trim();
+  const interiorId = resolveInteriorAlbumId(rawInterior, category);
+  const lineGuideId = resolveLineGuideId(interiorId, category);
+
+  if (category === 'diary') return lineGuideId.startsWith('diary_interior_');
+  if (category === 'pregnancy') return lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5';
+  if (category === 'kids') return lineGuideId === 'kids_48';
+  if (category === 'holidays') return Boolean(interiorId);
+  if (category === 'family') return Boolean(interiorId);
+
+  return getAlbumPageCount(interiorId) > 0;
+}
 
 function resolveGiftSku(params: {
   albumId: string | null;
@@ -184,66 +208,12 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
   };
 }
 
-async function purgeStaleUserProjectEntries(): Promise<number> {
-  const raw = await AsyncStorage.getItem('@user_projects');
-  if (!raw) return 0;
-
-  let list: Record<string, unknown>[];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return 0;
-    list = parsed as Record<string, unknown>[];
-  } catch {
-    return 0;
-  }
-
-  const deletedIds = await loadDeletedProjectIds();
-  const kept: Record<string, unknown>[] = [];
-  let removed = 0;
-
-  for (const project of list) {
-    const id = project?.id != null ? String(project.id) : '';
-    if (!id || deletedIds.has(id)) {
-      removed += 1;
-      continue;
-    }
-
-    const [meta, imagesRaw] = await AsyncStorage.multiGet([
-      `@project_${id}`,
-      `@project_images_${id}`,
-    ]);
-    const hasMeta = !!meta[1];
-    const hasImages = safeParseArray(imagesRaw[1]).length > 0;
-
-    if (!hasMeta && !hasImages) {
-      removed += 1;
-      await markProjectAsDeleted(id);
-      await AsyncStorage.multiRemove([
-        `@project_${id}`,
-        `@project_images_${id}`,
-        `@project_page_instances_${id}`,
-        `@project_page_values_${id}`,
-        `@project_annotations_${id}`,
-      ]);
-      continue;
-    }
-
-    kept.push(project);
-  }
-
-  if (removed > 0) {
-    await AsyncStorage.setItem('@user_projects', JSON.stringify(kept));
-  }
-
-  return removed;
-}
-
 /** Все проекты пользователя из AsyncStorage, новые первыми */
 export async function loadUserProjects(): Promise<UserProject[]> {
   try {
-    await purgeStaleUserProjectEntries();
+    await pruneLegacyFreeformProjects();
   } catch (error) {
-    console.warn('[loadUserProjects] purge stale projects failed', error);
+    console.warn('[loadUserProjects] prune legacy freeform projects failed', error);
   }
 
   try {
@@ -262,7 +232,7 @@ export async function loadUserProjects(): Promise<UserProject[]> {
   const visibleProjects = filterProjectsByDeleted(
     parsedProjects as Array<{ id?: string }>,
     deletedIds
-  );
+  ).filter((project) => hasValidReadyMadeMeta(project as Record<string, unknown>));
   if (visibleProjects.length === 0) return [];
 
   const formatted = await Promise.all(

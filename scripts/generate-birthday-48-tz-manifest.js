@@ -55,7 +55,7 @@ function pageEntry(pageNumber) {
   if (pageNumber === 40) {
     return {
       title,
-      pageType: 'structured',
+      pageType: 'travel_map_page',
       editable: true,
       canDuplicate: false,
       hasPhoto: false,

@@ -1,5 +1,6 @@
 import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
 import { extractDFANumber } from '@/utils/albumFirstLastPages';
+import { getWeddingCoverById } from '@/utils/weddingCoverDesigns';
 
 /**
  * Маппинг ID альбомов беременности к SKU из каталога (DB1-DB6)
@@ -61,6 +62,10 @@ export function getCoverSku(coverType: string | null | undefined, category: stri
       return `DB${dbMatch[1]}`;
     }
     return null;
+  }
+
+  if (category === 'wedding') {
+    return getWeddingCoverById(coverType)?.sku ?? null;
   }
 
   return null;

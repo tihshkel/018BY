@@ -1,6 +1,10 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageField } from '@/types/album-page-schema';
 import {
+  getMeasurementDigitLimit,
+  sanitizeMeasurementInput,
+} from '@/utils/albumMeasurementFields';
+import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
@@ -12,6 +16,13 @@ const FIELD_LIMIT_PROBE = 'n'.repeat(500);
 
 type FieldLimitParams = {
   field: AlbumPageField;
+  lineGuideId: string;
+  sourcePageNumber: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
+};
+
+type FieldClampLayoutParams = {
   lineGuideId: string;
   sourcePageNumber: number;
   viewportWidth?: number;
@@ -65,10 +76,7 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
 
   if (params.sourcePageNumber === 40) {
     if (params.field.fieldId.endsWith('_favorite_travel_memory')) {
-      return 220;
-    }
-    if (params.field.fieldId.endsWith('_favorite_travel_memory_line2')) {
-      return 180;
+      return 400;
     }
   }
 
@@ -80,6 +88,11 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
 }
 
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
+  const measurementLimit = getMeasurementDigitLimit(params.field);
+  if (measurementLimit != null) {
+    return measurementLimit;
+  }
+
   const birthdayLimit = getBirthdayFieldLimit(params);
   if (birthdayLimit != null) {
     return birthdayLimit;
@@ -101,19 +114,61 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     viewportHeight
   );
 
-  if (layoutLimit == null) return typeLimit;
-  if (typeLimit == null) return layoutLimit;
-  return Math.min(typeLimit, layoutLimit);
+  const limits = [params.field.maxLength, typeLimit, layoutLimit].filter(
+    (limit): limit is number => limit != null,
+  );
+  if (limits.length === 0) return undefined;
+  return Math.min(...limits);
 }
 
 export function clampFieldInput(
   field: AlbumPageField,
   text: string,
-  limit?: number
+  limit?: number,
+  layout?: FieldClampLayoutParams,
 ): string {
+  const measurementLimit = getMeasurementDigitLimit(field);
+  if (measurementLimit != null) {
+    const effectiveLimit = limit ?? measurementLimit;
+    return sanitizeMeasurementInput(text, Math.min(measurementLimit, effectiveLimit));
+  }
+
   const sanitized = sanitizeFieldInput(field.type, text);
-  if (limit == null) return sanitized;
-  return sanitized.slice(0, limit);
+  let result = limit == null ? sanitized : sanitized.slice(0, limit);
+
+  if (field.templateLineCount > 1) {
+    result = result.replace(/\r?\n/g, ' ');
+  }
+
+  if (
+    layout &&
+    field.templateLineCount > 1 &&
+    result.length > 0
+  ) {
+    const viewportWidth = layout.viewportWidth ?? DEFAULT_VIEWPORT.width;
+    const viewportHeight = layout.viewportHeight ?? DEFAULT_VIEWPORT.height;
+    const slots = getLineSlotsForPage({
+      lineGuideId: layout.lineGuideId,
+      page: layout.sourcePageNumber,
+      viewportWidth,
+      viewportHeight,
+    });
+
+    if (slots.length > 0) {
+      const profile = getTemplateTypographyProfile(layout.lineGuideId);
+      const fontSize = profile.fixedLineFontSize ?? 16;
+      result = clampTextToFieldLines({
+        text: result,
+        startSlotIndex: field.templateLineStart,
+        lineCount: field.templateLineCount,
+        slots,
+        fontSize,
+        lineGuideId: layout.lineGuideId,
+      });
+    }
+  }
+
+  return result;
 }
 
 export function countFieldCharacters(value: string): number {

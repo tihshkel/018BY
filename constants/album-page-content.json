@@ -3127,10 +3127,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p5_g5",
+          "fieldId": "pregnancy_a5_p5_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3167,10 +3167,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p6_g5",
+          "fieldId": "pregnancy_a5_p6_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3207,10 +3207,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p7_g5",
+          "fieldId": "pregnancy_a5_p7_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3248,9 +3248,16 @@
         },
         {
           "fieldId": "pregnancy_a5_p8_g5",
+          "label": "Обхват животика:",
+          "type": "text",
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_a5_p8_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 3
         }
       ]
@@ -3287,10 +3294,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p9_g5",
+          "fieldId": "pregnancy_a5_p9_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3327,10 +3334,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p10_g5",
+          "fieldId": "pregnancy_a5_p10_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3367,10 +3374,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p11_g5",
+          "fieldId": "pregnancy_a5_p11_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3407,10 +3414,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p12_g5",
+          "fieldId": "pregnancy_a5_p12_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3447,10 +3454,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p13_g5",
+          "fieldId": "pregnancy_a5_p13_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3590,10 +3597,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p15_g5",
+          "fieldId": "pregnancy_a5_p15_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3630,10 +3637,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p16_g5",
+          "fieldId": "pregnancy_a5_p16_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3670,10 +3677,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p17_g5",
+          "fieldId": "pregnancy_a5_p17_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3710,10 +3717,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p18_g5",
+          "fieldId": "pregnancy_a5_p18_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3750,10 +3757,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p19_g5",
+          "fieldId": "pregnancy_a5_p19_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3790,10 +3797,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p20_g5",
+          "fieldId": "pregnancy_a5_p20_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3830,10 +3837,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p21_g5",
+          "fieldId": "pregnancy_a5_p21_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3870,10 +3877,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p22_g5",
+          "fieldId": "pregnancy_a5_p22_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3910,10 +3917,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p23_g5",
+          "fieldId": "pregnancy_a5_p23_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3950,10 +3957,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p24_g5",
+          "fieldId": "pregnancy_a5_p24_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -3990,10 +3997,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p25_g5",
+          "fieldId": "pregnancy_a5_p25_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4030,10 +4037,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p26_g5",
+          "fieldId": "pregnancy_a5_p26_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4070,10 +4077,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p27_g5",
+          "fieldId": "pregnancy_a5_p27_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4110,10 +4117,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p28_g5",
+          "fieldId": "pregnancy_a5_p28_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4273,10 +4280,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p30_g5",
+          "fieldId": "pregnancy_a5_p30_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4313,10 +4320,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p31_g5",
+          "fieldId": "pregnancy_a5_p31_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4353,17 +4360,17 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p32_g5",
+          "fieldId": "pregnancy_a5_p32_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         },
         {
-          "fieldId": "pregnancy_a5_p32_g6",
+          "fieldId": "pregnancy_a5_p32_g7",
           "label": "Мой малыш как",
           "type": "text",
-          "templateLineStart": 11,
+          "templateLineStart": 9,
           "templateLineCount": 1
         }
       ]
@@ -4400,10 +4407,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p33_g5",
+          "fieldId": "pregnancy_a5_p33_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4440,10 +4447,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p34_g5",
+          "fieldId": "pregnancy_a5_p34_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4480,10 +4487,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p35_g5",
+          "fieldId": "pregnancy_a5_p35_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4520,10 +4527,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p36_g5",
+          "fieldId": "pregnancy_a5_p36_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4560,10 +4567,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p37_g5",
+          "fieldId": "pregnancy_a5_p37_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4600,10 +4607,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p38_g5",
+          "fieldId": "pregnancy_a5_p38_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4640,10 +4647,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p39_g5",
+          "fieldId": "pregnancy_a5_p39_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4680,10 +4687,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p40_g5",
+          "fieldId": "pregnancy_a5_p40_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4720,10 +4727,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p41_g5",
+          "fieldId": "pregnancy_a5_p41_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4760,10 +4767,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p42_g5",
+          "fieldId": "pregnancy_a5_p42_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -4800,10 +4807,10 @@
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p43_g5",
+          "fieldId": "pregnancy_a5_p43_g6",
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 6,
           "templateLineCount": 3
         }
       ]
@@ -5678,15 +5685,48 @@
         }
       ]
     },
+    "21": {
+      "heading": "Мон крёстные",
+      "fields": [
+        {
+          "fieldId": "kids_48_p21_g1",
+          "label": "Мон крёстные",
+          "type": "text",
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p21_g2",
+          "label": "Поле 2",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ]
+    },
     "22": {
       "heading": "Мне 1 месту",
       "fields": [
         {
-          "fieldId": "kids_48_p22_g1",
+          "fieldId": "kids_48_p22_g0",
           "label": "Я ЛЮБЛЮ Я УМЕЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p22_g1",
+          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p22_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5694,11 +5734,25 @@
       "heading": "Мне 2 месяца",
       "fields": [
         {
-          "fieldId": "kids_48_p23_g1",
+          "fieldId": "kids_48_p23_g0",
           "label": "Я ЛЮБЛЮ Я УМЕЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p23_g1",
+          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p23_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5706,11 +5760,25 @@
       "heading": "Мне 3 месяца",
       "fields": [
         {
-          "fieldId": "kids_48_p24_g1",
+          "fieldId": "kids_48_p24_g0",
           "label": "Я ЛЮБЛЮ Я УМЕЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p24_g1",
+          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p24_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5718,11 +5786,25 @@
       "heading": "Мне 4 месяца",
       "fields": [
         {
-          "fieldId": "kids_48_p25_g1",
+          "fieldId": "kids_48_p25_g0",
           "label": "Я ЛЮБЛЮ Я УМЕЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p25_g1",
+          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p25_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5730,11 +5812,25 @@
       "heading": "Мне 5 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p26_g1",
+          "fieldId": "kids_48_p26_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p26_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p26_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5742,11 +5838,25 @@
       "heading": "Мне 6 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p27_g1",
+          "fieldId": "kids_48_p27_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p27_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p27_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5754,11 +5864,25 @@
       "heading": "Мне 7 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p28_g1",
+          "fieldId": "kids_48_p28_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p28_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p28_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5766,11 +5890,25 @@
       "heading": "Мне 8 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p29_g1",
+          "fieldId": "kids_48_p29_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p29_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p29_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5778,11 +5916,25 @@
       "heading": "Мне 9 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p30_g1",
+          "fieldId": "kids_48_p30_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p30_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p30_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5790,11 +5942,25 @@
       "heading": "Мне 10 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p31_g1",
+          "fieldId": "kids_48_p31_g0",
           "label": "Я ЛЮБЛЮ Я УМЕЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p31_g1",
+          "label": "Я ЛЮБЛЮ Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p31_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5802,11 +5968,25 @@
       "heading": "Мне 11 месяцев",
       "fields": [
         {
-          "fieldId": "kids_48_p32_g1",
+          "fieldId": "kids_48_p32_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p32_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p32_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     },
@@ -5814,26 +5994,32 @@
       "heading": "Мне / годик!",
       "fields": [
         {
-          "fieldId": "kids_48_p33_g1",
+          "fieldId": "kids_48_p33_g0",
           "label": "Я УМЕЮ Я ЛЮБЛЮ",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p33_g1",
+          "label": "Я УМЕЮ Я ЛЮБЛЮ",
+          "type": "text",
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p33_g2",
+          "label": "Я УМЕЮ",
+          "type": "text",
+          "templateLineStart": 2,
+          "templateLineCount": 1
         }
       ]
     }
   },
   "holidays_birthday_60": {
     "1": {
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p1_g1",
-          "label": "Поле 1",
-          "type": "text",
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        }
-      ]
+      "heading": "Этот альбом"
     },
     "2": {
       "heading": "Привет, мир!"
@@ -5897,45 +6083,6 @@
     },
     "40": {
       "heading": "Мне 18 лет!"
-    },
-    "42": {
-      "heading": "Мои путешествия"
-    },
-    "58": {
-      "heading": "• Письмо во взрослую жизно",
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p58_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
-          "type": "text",
-          "templateLineStart": 0,
-          "templateLineCount": 10
-        }
-      ]
-    },
-    "59": {
-      "heading": "• Письмо во взрослую жизно",
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p59_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
-          "type": "text",
-          "templateLineStart": 0,
-          "templateLineCount": 10
-        }
-      ]
-    },
-    "60": {
-      "heading": "• Письмо во взрослую жизно",
-      "fields": [
-        {
-          "fieldId": "holidays_birthday_60_p60_g1",
-          "label": "ОТ МАМЫ И ПАПЫ",
-          "type": "text",
-          "templateLineStart": 0,
-          "templateLineCount": 10
-        }
-      ]
     }
   },
   "diary_interior_brown": {
@@ -5982,23 +6129,9 @@
       "fields": [
         {
           "fieldId": "diary_interior_brown_p3_g1",
-          "label": "(Дата начала заполнения дневника)",
-          "type": "date",
+          "label": "Давай начинать!",
+          "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p3_g2",
-          "label": "Давай начинать!",
-          "type": "text",
-          "templateLineStart": 1,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p3_g3",
-          "label": "Давай начинать!",
-          "type": "text",
-          "templateLineStart": 2,
           "templateLineCount": 1
         }
       ]
@@ -7975,16 +8108,9 @@
       "fields": [
         {
           "fieldId": "diary_interior_purple_p3_g1",
-          "label": "И помни: я всегда рядом для того, чтобы поговорить с ТОБОЙ",
+          "label": "Давай начинать!",
           "type": "text",
           "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p3_g2",
-          "label": "ТОБОЙ",
-          "type": "text",
-          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ]

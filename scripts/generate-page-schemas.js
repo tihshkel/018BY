@@ -12,7 +12,7 @@ const { applyPregnancy60PageFields } = require('./pregnancy-60-tz-builders');
 const { applyPregnancyA5PageFields } = require('./pregnancy-a5-tz-builders');
 const { applyBirthday48PageFields } = require('./birthday-48-tz-builders');
 const { getBirthday48PageTitle } = require('./birthday-48-field-specs');
-const { PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
+const { DESIGNED_ALBUM_PHOTO_BLOCK, PREGNANCY_PHOTO_BLOCK } = require('./photo-block-presets-data');
 
 const ALBUM_IDS = [
   'pregnancy_60',
@@ -89,8 +89,8 @@ const KIDS_48_LABELS = {
 const DIARY_BROWN_LABELS = {
   1: 'Обо мне',
   6: 'Анкета',
-  7: 'Папа',
-  8: 'Мама',
+  7: 'Мама',
+  8: 'Папа',
   9: 'Бабушка',
   10: 'Дедушка',
   13: 'Пожелания',
@@ -102,10 +102,10 @@ const DIARY_BROWN_LABELS = {
 const DIARY_PURPLE_LABELS = {
   1: 'Обо мне',
   4: 'Анкета',
-  5: 'Папа',
   6: 'Мама',
-  7: 'Бабушка',
-  8: 'Дедушка',
+  7: 'Папа',
+  8: 'Бабушка',
+  9: 'Дедушка',
   28: 'Пожелания',
   29: 'Мечты',
   40: 'Пожелания',
@@ -123,8 +123,9 @@ function getPregnancy60PageLabel(pageNumber) {
 function getPregnancyA5PageLabel(pageNumber) {
   if (PREGNANCY_INTRO_LABELS[pageNumber]) return PREGNANCY_INTRO_LABELS[pageNumber];
   if (pageNumber >= 8 && pageNumber <= 39) return `${pageNumber} неделя`;
-  if (pageNumber >= 40 && pageNumber <= 47) return `${pageNumber - 1} неделя`;
-  if (pageNumber === 48) return 'Для фото';
+  if (pageNumber >= 40 && pageNumber <= 46) return `${pageNumber - 1} неделя`;
+  if (pageNumber === 47) return 'Памятные моменты';
+  if (pageNumber === 48) return 'Памятные моменты';
   return `Страница ${pageNumber}`;
 }
 
@@ -381,7 +382,7 @@ function finalizePageSchema(schema) {
   }
 
   if (schema.pageType === 'photo' && !schema.photoBlocks?.length) {
-    schema.photoBlocks = [PREGNANCY_PHOTO_BLOCK];
+    schema.photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
   }
 
   if (schema.pageType === 'non_editable') {
@@ -422,7 +423,7 @@ function buildPageSchema(lineGuideId, pageNumber, slots, auditPageType, override
   if (!photoBlocks && (pageType === 'structured' || pageType === 'photo')) {
     photoBlocks = buildPhotoBlocks(slots);
     if (pageType === 'photo' && !photoBlocks) {
-      photoBlocks = [PREGNANCY_PHOTO_BLOCK];
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
     }
   }
 

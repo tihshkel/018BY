@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import {
+  Platform,
   StyleSheet,
   TextInput,
   View,
@@ -24,6 +25,8 @@ export interface AppInputProps extends TextInputProps {
   rightAccessory?: React.ReactNode;
 }
 
+const INPUT_MIN_HEIGHT = 52;
+
 export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   {
     label,
@@ -37,12 +40,14 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
     style,
     onFocus,
     onBlur,
+    multiline,
     ...rest
   },
   ref,
 ) {
   const [focused, setFocused] = useState(false);
   const helperMessage = error ?? helperText;
+  const isMultiline = multiline === true;
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -54,6 +59,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
       <View
         style={[
           styles.inputShell,
+          isMultiline ? styles.inputShellMultiline : styles.inputShellSingleLine,
           focused && styles.inputFocused,
           error ? styles.inputError : null,
           !error && success ? styles.inputSuccess : null,
@@ -63,7 +69,16 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
         <TextInput
           ref={ref}
           {...rest}
-          style={[styles.input, rightAccessory ? styles.inputWithAccessory : null, style]}
+          multiline={multiline}
+          scrollEnabled={isMultiline ? rest.scrollEnabled : false}
+          underlineColorAndroid="transparent"
+          style={[
+            styles.input,
+            isMultiline ? styles.inputMultiline : styles.inputSingleLine,
+            !isMultiline && Platform.OS === 'android' ? styles.inputSingleLineAndroid : null,
+            rightAccessory ? styles.inputWithAccessory : null,
+            style,
+          ]}
           placeholderTextColor={colors.placeholder}
           onFocus={(e) => {
             setFocused(true);
@@ -74,7 +89,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
             onBlur?.(e);
           }}
         />
-        {rightAccessory}
+        {rightAccessory ? <View style={styles.accessory}>{rightAccessory}</View> : null}
       </View>
       {helperMessage ? (
         <AppText
@@ -110,13 +125,40 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
     backgroundColor: colors.white,
   },
-  input: {
-    flex: 1,
+  inputShellSingleLine: {
+    minHeight: INPUT_MIN_HEIGHT,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: Platform.OS === 'ios' ? 4 : 2,
+  },
+  inputShellMultiline: {
+    minHeight: INPUT_MIN_HEIGHT,
+    alignItems: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: 14,
+  },
+  input: {
+    flex: 1,
     fontSize: 16,
     fontFamily: sansFont('regular'),
     color: colors.textPrimary,
+  },
+  inputSingleLine: {
+    paddingHorizontal: 0,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+    margin: 0,
+  },
+  inputSingleLineAndroid: {
+    includeFontPadding: false,
+  },
+  inputMultiline: {
+    minHeight: INPUT_MIN_HEIGHT,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    textAlignVertical: 'top',
+  },
+  accessory: {
+    alignSelf: 'center',
+    justifyContent: 'center',
   },
   inputWithAccessory: {
     paddingRight: 4,

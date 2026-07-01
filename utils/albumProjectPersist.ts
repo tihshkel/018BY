@@ -19,6 +19,8 @@ type PersistPayload = {
   instances: PageInstance[];
   pageValuesMap: Record<string, PageValues>;
   meta: AlbumProjectPersistMeta | null;
+  /** When set, incremental persist writes only this page entry (not full map). */
+  changedInstanceId?: string;
 };
 
 type PersistRunner = (payload: PersistPayload) => Promise<void>;

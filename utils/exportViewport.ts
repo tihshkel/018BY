@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { spacing } from '@/constants/design-tokens';
-import { normalizeEditorViewportForLineGuide } from '@/utils/pageSourceDimensions';
 import { getEditorPageViewportWidth, isTabletDevice } from '@/utils/responsive';
 
 export type EditorCoordinateViewport = {
@@ -13,6 +12,31 @@ export function getProjectViewportStorageKey(projectId: string): string {
   return `@project_viewport_${projectId}`;
 }
 
+export function getDefaultPageAspectRatio(params?: {
+  lineGuideId?: string | null;
+  sourceWidth?: number;
+  sourceHeight?: number;
+}): number {
+  if (params?.lineGuideId === 'kids_48') {
+    return 1;
+  }
+  if (
+    params?.lineGuideId === 'diary_interior_brown' ||
+    params?.lineGuideId === 'diary_interior_purple'
+  ) {
+    return 240 / 180;
+  }
+  if (
+    params?.sourceWidth &&
+    params?.sourceHeight &&
+    params.sourceWidth > 0 &&
+    Math.abs(params.sourceWidth - params.sourceHeight) < 2
+  ) {
+    return 1;
+  }
+  return 1.414;
+}
+
 /**
  * Coordinate space for page layout (matches useAlbumPagePreviewLayout).
  * Width is fixed on tablet (390); height follows source PNG aspect ratio.
@@ -22,8 +46,9 @@ export function resolveEditorCoordinateViewport(params: {
   sourceWidth?: number;
   sourceHeight?: number;
   imageAspectRatio?: number;
+  lineGuideId?: string | null;
 }): EditorCoordinateViewport {
-  const { windowWidth, sourceWidth, sourceHeight, imageAspectRatio } = params;
+  const { windowWidth, sourceWidth, sourceHeight, imageAspectRatio, lineGuideId } = params;
   const isTablet = isTabletDevice(windowWidth);
   const phoneCoordinateWidth = Math.max(windowWidth - spacing.md * 2, 280);
   const coordinateWidth = isTablet
@@ -35,7 +60,7 @@ export function resolveEditorCoordinateViewport(params: {
     if (sourceWidth && sourceHeight && sourceWidth > 0) {
       aspect = sourceHeight / sourceWidth;
     } else {
-      aspect = 1.414;
+      aspect = getDefaultPageAspectRatio({ lineGuideId, sourceWidth, sourceHeight });
     }
   }
 
@@ -87,14 +112,22 @@ export async function resolveProjectViewportForExport(
 ): Promise<EditorCoordinateViewport> {
   const saved = await loadProjectViewport(projectId);
   if (saved) {
-    return normalizeEditorViewportForLineGuide(saved, lineGuideId);
+    if (sourceWidth && sourceHeight && sourceWidth > 0 && sourceHeight > 0) {
+      const savedAspect = saved.height / saved.width;
+      const sourceAspect = sourceHeight / sourceWidth;
+      if (Math.abs(savedAspect - sourceAspect) < 0.02) {
+        return saved;
+      }
+    } else {
+      return saved;
+    }
   }
 
   const fallbackWidth = windowWidth ?? 390;
-  const derived = resolveEditorCoordinateViewport({
+  return resolveEditorCoordinateViewport({
     windowWidth: fallbackWidth,
     sourceWidth,
     sourceHeight,
+    lineGuideId,
   });
-  return normalizeEditorViewportForLineGuide(derived, lineGuideId);
 }

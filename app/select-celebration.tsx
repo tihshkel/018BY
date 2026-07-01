@@ -1,7 +1,7 @@
 import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory } from '@/albums';
-import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { pushAccountDataToCloud, scheduleSyncToCloud, syncToCloudNow } from '@/utils/account-sync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
@@ -153,7 +153,13 @@ export default function SelectCelebrationScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
       // Для беременности, детей и праздников переходим к выбору обложки
-      if (selectedCelebration === 'pregnancy' || selectedCelebration === 'kids' || selectedCelebration === 'holidays' || selectedCelebration === 'family') {
+      if (
+        selectedCelebration === 'pregnancy' ||
+        selectedCelebration === 'kids' ||
+        selectedCelebration === 'holidays' ||
+        selectedCelebration === 'family' ||
+        selectedCelebration === 'wedding'
+      ) {
         router.push({
           pathname: '/select-cover',
           params: { celebration: selectedCelebration }
@@ -194,8 +200,9 @@ export default function SelectCelebrationScreen() {
           const projects = existingProjects ? JSON.parse(existingProjects) : [];
           projects.push(projectData);
           await AsyncStorage.setItem('@user_projects', JSON.stringify(projects));
+          syncToCloudNow();
           scheduleSyncToCloud();
-          void pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] }).catch(() => {});
+          await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
           router.push(`/album-pages?id=${projectId}` as Href);

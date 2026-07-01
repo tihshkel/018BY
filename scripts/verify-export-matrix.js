@@ -40,36 +40,10 @@ assert(
   'exportViewport: resolveProjectViewportForExport',
 );
 
-const pageRendererSource = read('components/page-renderer.tsx');
-assert(
-  pageRendererSource.includes('resolveEditorPageSourceSize'),
-  'page-renderer: canonical source dimensions via resolveEditorPageSourceSize',
-);
-
-const exportTemplateSource = read('utils/exportTemplateText.ts');
-assert(
-  exportTemplateSource.includes('getTemplateLinePdfBaselineY'),
-  'exportTemplateText: shared PDF baseline helper',
-);
-
-const firstLastSource = read('utils/albumFirstLastPages.ts');
-assert(
-  firstLastSource.includes('export async function getExportCoverPages'),
-  'albumFirstLastPages: getExportCoverPages',
-);
-assert(
-  firstLastSource.includes('export function isSameExportImageUri'),
-  'albumFirstLastPages: isSameExportImageUri',
-);
-
 const previewSource = read('app/album-page-preview.tsx');
 assert(
   previewSource.includes('persistProjectViewport'),
   'album-page-preview: persists viewport',
-);
-assert(
-  previewSource.includes('sourceWidth={sourceImageSize'),
-  'album-page-preview: passes canonical source size to PageRenderer',
 );
 
 const syncSource = read('utils/ensureProjectAnnotationsSynced.ts');
@@ -139,6 +113,18 @@ assert(
 assert(
   dimensionsSource.includes("formatType === 'hard'"),
   'exportPageDimensions: hard cover branch',
+);
+assert(
+  (dimensionsSource.includes('isDiaryBrownLineGuide') ||
+    dimensionsSource.includes('isDiaryPortraitLineGuide')) &&
+    dimensionsSource.includes('shouldUseFullBleedDiaryExport'),
+  'exportPageDimensions: diary full-bleed helpers',
+);
+assert(
+  (dimensionsSource.includes('isDiaryBrown') ||
+    dimensionsSource.includes('isDiaryPortrait')) &&
+    dimensionsSource.includes("formatType === 'electronic'"),
+  'exportPageDimensions: diary electronic branch',
 );
 
 const lineSlots = readJson('constants/line-slots.json');

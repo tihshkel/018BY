@@ -18,7 +18,7 @@ import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
-import { getDefaultVariantIdForPage, getVariantPreviewThumbnails } from '@/utils/variantPreview';
+import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
 
 type AlbumPageUnifiedEditorProps = {
   schema: AlbumPageSchema;
@@ -41,11 +41,13 @@ type AlbumPageUnifiedEditorProps = {
   onCustomFieldsChange?: (fields: BirthdayCustomFieldValue[]) => void;
   allowCustomFieldCrud?: boolean;
   ensureMediaLibraryPermission?: () => Promise<boolean>;
+  projectId?: string;
+  instanceId?: string;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
 };
 
-export function AlbumPageUnifiedEditor({
+export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor({
   schema,
   pageValues,
   lineGuideId,
@@ -62,6 +64,8 @@ export function AlbumPageUnifiedEditor({
   onCustomFieldsChange,
   allowCustomFieldCrud = false,
   ensureMediaLibraryPermission,
+  projectId,
+  instanceId,
   showCaption,
   showPerPhotoCaptions,
 }: AlbumPageUnifiedEditorProps) {
@@ -78,7 +82,25 @@ export function AlbumPageUnifiedEditor({
     primaryBlock?.variants[0]?.variantId;
 
   useEffect(() => {
-    if (!primaryBlock || blockValues?.variantId) return;
+    if (!primaryBlock) return;
+
+    const currentId = blockValues?.variantId;
+    if (currentId) {
+      const resolved = resolvePhotoBlockVariant(
+        primaryBlock.variants,
+        currentId,
+        lineGuideId,
+      );
+      if (resolved && primaryBlock.variants.some((item) => item.variantId === resolved.variantId)) {
+        return;
+      }
+      const fallback = primaryBlock.variants[0];
+      if (fallback) {
+        onSelectVariant(primaryBlock.blockId, fallback.variantId);
+      }
+      return;
+    }
+
     const defaultVariantId = getDefaultVariantIdForPage(
       lineGuideId,
       resolvedSchema.sourcePageNumber,
@@ -93,6 +115,7 @@ export function AlbumPageUnifiedEditor({
     blockValues?.variantId,
     lineGuideId,
     onInitPhotoBlock,
+    onSelectVariant,
     primaryBlock,
     resolvedSchema.sourcePageNumber,
   ]);
@@ -136,15 +159,26 @@ export function AlbumPageUnifiedEditor({
       );
     }
 
-    if (resolvedSchema.pageType === 'birthday_free_page' && onCustomFieldsChange) {
-      return (
-        <BirthdayFreePageEditor
-          schema={resolvedSchema}
-          customFields={pageValues.customFields ?? []}
-          onChange={onCustomFieldsChange}
-          allowFieldCrud={allowCustomFieldCrud}
-        />
-      );
+    if (resolvedSchema.pageType === 'birthday_free_page') {
+      if (fields.length > 0) {
+        return (
+          <PageFormFields
+            {...formProps}
+            sectionTitle="Текстовые поля"
+          />
+        );
+      }
+      if (onCustomFieldsChange) {
+        return (
+          <BirthdayFreePageEditor
+            schema={resolvedSchema}
+            customFields={pageValues.customFields ?? []}
+            onChange={onCustomFieldsChange}
+            allowFieldCrud={allowCustomFieldCrud}
+          />
+        );
+      }
+      return null;
     }
 
     if (resolvedSchema.pageType === 'free_page' && onFreeElementsChange && ensureMediaLibraryPermission) {
@@ -153,6 +187,8 @@ export function AlbumPageUnifiedEditor({
           schema={resolvedSchema}
           elements={pageValues.freeElements ?? []}
           lineGuideId={lineGuideId}
+          projectId={projectId}
+          instanceId={instanceId}
           onChange={onFreeElementsChange}
           ensureMediaLibraryPermission={ensureMediaLibraryPermission}
         />
@@ -189,8 +225,7 @@ export function AlbumPageUnifiedEditor({
 
       {primaryBlock &&
       resolvedSchema.pageType !== 'timeline_page' &&
-      resolvedSchema.pageType !== 'free_page' &&
-      (isCircleTreeBlock || thumbnails.length > 1 || blocks.length > 0) ? (
+      resolvedSchema.pageType !== 'free_page' ? (
         <AppCard style={styles.photosCard}>
           {!isCircleTreeBlock && thumbnails.length > 1 ? (
             <AlbumVariantBar
@@ -239,6 +274,9 @@ export function AlbumPageUnifiedEditor({
                 slotUris={uris}
                 slotTransforms={pageValues.photoSlotTransforms ?? {}}
                 groupTransform={pageValues.photoGroupTransform}
+                lineGuideId={lineGuideId}
+                sourcePageNumber={resolvedSchema.sourcePageNumber}
+                templateLibraryId={resolvedSchema.templateLibraryId}
                 onPickPhoto={(slotIndex) => onPickPhoto(block.blockId, slotIndex)}
                 onRemovePhoto={(slotIndex) => onRemovePhoto(block.blockId, slotIndex)}
                 onSlotTransformChange={(slotIndex, transform) =>
@@ -290,7 +328,7 @@ export function AlbumPageUnifiedEditor({
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

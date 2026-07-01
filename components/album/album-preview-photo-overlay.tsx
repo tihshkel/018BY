@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui';
-import { colors, radii } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   filledHitArea: {
     position: 'absolute',
-    borderRadius: radii.sm,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.35)',
   },

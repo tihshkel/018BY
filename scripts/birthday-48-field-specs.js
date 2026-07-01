@@ -26,8 +26,7 @@ const YEAR_MAIN_FIELDS = [
 
 const TRAVEL_MAP_FIELDS = [
   ['countries_count', 'Количество стран', 'number', 1],
-  ['favorite_travel_memory', 'Мне больше всего понравилось в', 'text', 3],
-  ['favorite_travel_memory_line2', 'Дополнительная строка', 'text', 2],
+  ['favorite_travel_memory', 'Мне больше всего понравилось в', 'text', 5],
 ];
 
 const LETTER_FIELDS = [['letter_text', 'Письмо во взрослую жизнь', 'text', 12]];
@@ -73,6 +72,35 @@ function getPlaceholder(id, label) {
   if (id === 'favorite_travel_memory') return 'Например: море, горы и поездка на поезде';
   if (id === 'letter_text') return 'Напишите письмо во взрослую жизнь: пожелания, мечты, важные слова';
   return undefined;
+}
+
+function lineCountForCustomFieldDef(def) {
+  return def.fieldType === 'long_text' ? 2 : 1;
+}
+
+/** Fixed birthday free pages — same field model as structured album pages. */
+function buildBirthdayFreeFieldsFromDefs(lineGuideId, pageNumber, slots, defs) {
+  let cursor = 0;
+  const fields = [];
+
+  for (const def of defs) {
+    if (pageNumber === 5 && def.id === 'field_2') continue;
+
+    const count = lineCountForCustomFieldDef(def);
+    const maxStart = Math.max(0, (slots?.length ?? count) - count);
+    fields.push({
+      fieldId: `${lineGuideId}_p${pageNumber}_${def.id}`,
+      label: def.defaultLabel,
+      type: 'text',
+      required: false,
+      maxLength: def.maxValueLength,
+      templateLineStart: Math.min(cursor, maxStart),
+      templateLineCount: count,
+    });
+    cursor += count;
+  }
+
+  return fields;
 }
 
 function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset = 0) {
@@ -148,6 +176,7 @@ module.exports = {
   YEAR_FREE_CUSTOM_FIELD_DEFS,
   buildField,
   buildFieldsFromSpec,
+  buildBirthdayFreeFieldsFromDefs,
   buildOwnerFields,
   buildAgeMainFields,
   getBirthdayAge,

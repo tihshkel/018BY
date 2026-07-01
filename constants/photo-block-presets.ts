@@ -1,6 +1,38 @@
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 
-/** Full photo page: 1 / 2 / 3 / 4 photo collages */
+/** Standard 4-layout block for all designed albums (1 / 2 / 3 / 4 photos). */
+export const DESIGNED_ALBUM_PHOTO_BLOCK: PhotoBlockSchema = {
+  blockId: 'main_photo',
+  label: 'Фото для страницы',
+  variants: [
+    {
+      variantId: 'one_large',
+      label: 'Одно большое фото',
+      slots: 1,
+      slotIndices: [0],
+    },
+    {
+      variantId: 'two_vertical',
+      label: 'Два фото',
+      slots: 2,
+      slotIndices: [0, 1],
+    },
+    {
+      variantId: 'three_hero',
+      label: 'Три фото (коллаж)',
+      slots: 3,
+      slotIndices: [0, 1, 2],
+    },
+    {
+      variantId: 'four_grid',
+      label: 'Четыре фото (коллаж)',
+      slots: 4,
+      slotIndices: [0, 1, 2, 3],
+    },
+  ],
+};
+
+/** @deprecated Use DESIGNED_ALBUM_PHOTO_BLOCK */
 export const FULL_PHOTO_BLOCK: PhotoBlockSchema = {
   blockId: 'main_photo',
   label: 'Фото для страницы',
@@ -32,16 +64,8 @@ export const FULL_PHOTO_BLOCK: PhotoBlockSchema = {
   ],
 };
 
-/** Pregnancy «Для фото» — same layouts, pregnancy labels */
-export const PREGNANCY_PHOTO_BLOCK: PhotoBlockSchema = {
-  ...FULL_PHOTO_BLOCK,
-  variants: [
-    { variantId: 'one_large', label: 'Одно большое фото', slots: 1, slotIndices: [0] },
-    { variantId: 'two_photos', label: 'Два фото', slots: 2, slotIndices: [0, 1] },
-    { variantId: 'three_hero', label: 'Три фото', slots: 3, slotIndices: [0, 1, 2] },
-    { variantId: 'four_grid', label: 'Четыре фото', slots: 4, slotIndices: [0, 1, 2, 3] },
-  ],
-};
+/** @deprecated Use DESIGNED_ALBUM_PHOTO_BLOCK */
+export const PREGNANCY_PHOTO_BLOCK: PhotoBlockSchema = DESIGNED_ALBUM_PHOTO_BLOCK;
 
 /** Standard event photo block from TZ + 3-photo collage */
 export const EVENT_PHOTO_BLOCK: PhotoBlockSchema = {

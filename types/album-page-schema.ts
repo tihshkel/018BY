@@ -51,6 +51,7 @@ export interface AlbumPageField {
   type: FieldType;
   required: boolean;
   placeholder?: string;
+  maxLength?: number;
   templateLineStart: number;
   templateLineCount: number;
   options?: string[];
@@ -88,6 +89,8 @@ export interface AlbumPageSchema {
   requiredInExport?: boolean;
   /** Birthday free pages — default custom field definitions (labels editable in UI). */
   customFieldDefs?: BirthdayCustomFieldDef[];
+  /** Короткая подсказка для формы, если без контекста страницы поле непонятно. */
+  formHint?: string;
 }
 
 export type BirthdayCustomFieldDef = {
@@ -126,6 +129,7 @@ export interface PageInstance {
   addedByUser: boolean;
   imageIndex: number;
   titleOverride?: string;
+  templateLibraryId?: string;
 }
 
 export interface PageValues {

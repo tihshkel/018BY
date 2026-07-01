@@ -29,6 +29,12 @@ ALBUMS = [
         "max_page": 60,
     },
     {
+        "album_id": "pregnancy_a5",
+        "source_dir": ROOT / "in albums/беременность A5",
+        "page_regex": re.compile(r"(\d+)\.pdf$", re.IGNORECASE),
+        "max_page": 48,
+    },
+    {
         "album_id": "kids_48",
         "source_dir": ROOT / "in albums/pdf new",
         "page_regex": re.compile(r"Сва_(\d+)\.pdf$", re.IGNORECASE),
@@ -45,11 +51,6 @@ ALBUMS = [
         "source_dir": ROOT / "in albums/ЛД А5",
         "page_regex": re.compile(r"(\d+)\s*\.pdf$", re.IGNORECASE),
         "max_page": 40,
-    },
-    {
-        "album_id": "pregnancy_a5",
-        "block_pdf": ROOT / "in albums/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf",
-        "max_page": 48,
     },
     {
         "album_id": "holidays_birthday_60",
@@ -80,7 +81,7 @@ def is_photo_stroke(color: tuple[float, ...] | None, stroke_w: float | None) -> 
     return all(0.45 < channel < 0.58 for channel in color[:3])
 
 
-def detect_photo_slot(page: fitz.Page) -> dict[str, float] | None:
+def detect_photo_slot_from_rect(page: fitz.Page) -> dict[str, float] | None:
     pw = page.rect.width
     ph = page.rect.height
     candidates: list[tuple[float, float, float, float, float]] = []
@@ -116,6 +117,85 @@ def detect_photo_slot(page: fitz.Page) -> dict[str, float] | None:
         "height": round(norm_h, 4),
         "aspectRatio": [4, 3] if aspect >= 1 else [3, 4],
     }
+
+
+def detect_photo_slot_from_lines(page: fitz.Page) -> dict[str, float] | None:
+    """Reconstruct photo placeholder from gray horizontal frame lines (A5 design)."""
+    pw = page.rect.width
+    ph = page.rect.height
+    horizontals: list[tuple[float, float, float, float]] = []
+
+    for drawing in page.get_drawings():
+        if not is_photo_stroke(drawing.get("color"), drawing.get("width")):
+            continue
+        rect_raw = drawing.get("rect")
+        if not rect_raw:
+            continue
+
+        rect = fitz.Rect(rect_raw)
+        norm_w = rect.width / pw
+        norm_h = rect.height / ph
+        if norm_w <= norm_h or norm_w < 0.35:
+            continue
+
+        center_y = (rect.y0 + rect.y1) / 2 / ph
+        if not (0.25 < center_y < 0.82):
+            continue
+
+        left = rect.x0 / pw
+        right = rect.x1 / pw
+        horizontals.append((center_y, left, right, norm_w))
+
+    if len(horizontals) < 2:
+        return None
+
+    horizontals.sort(key=lambda item: item[0])
+
+    best: tuple[float, float, float, float] | None = None
+    best_score = 0.0
+
+    for i in range(len(horizontals)):
+        for j in range(i + 1, len(horizontals)):
+            top_y, top_left, top_right, top_w = horizontals[i]
+            bottom_y, bottom_left, bottom_right, bottom_w = horizontals[j]
+            height = bottom_y - top_y
+            if height < 0.18 or height > 0.48:
+                continue
+
+            left = min(top_left, bottom_left)
+            right = max(top_right, bottom_right)
+            width = right - left
+            if width < 0.35:
+                continue
+
+            wide_lines = sum(1 for w in (top_w, bottom_w) if w >= 0.65)
+            score = width * height * (1.0 + 0.25 * wide_lines)
+            if bottom_y > 0.77:
+                score *= 0.2
+            if top_y > 0.31 and top_y < 0.34 and bottom_y > 0.68 and bottom_y < 0.79:
+                score *= 1.4
+
+            if score > best_score:
+                best_score = score
+                center_y = (top_y + bottom_y) / 2
+                best = (left, center_y, width, height)
+
+    if not best:
+        return None
+
+    left_x, center_y, norm_w, norm_h = best
+    aspect = 4 / 3 if norm_w >= norm_h else 3 / 4
+    return {
+        "x": round(left_x, 4),
+        "y": round(center_y, 4),
+        "width": round(norm_w, 4),
+        "height": round(norm_h, 4),
+        "aspectRatio": [4, 3] if aspect >= 1 else [3, 4],
+    }
+
+
+def detect_photo_slot(page: fitz.Page) -> dict[str, float] | None:
+    return detect_photo_slot_from_rect(page) or detect_photo_slot_from_lines(page)
 
 
 def slot_entry(slot: dict[str, float]) -> dict:
@@ -182,59 +262,39 @@ def extract_album(config: dict) -> dict[str, dict]:
     return extract_album_from_folder(config)
 
 
-def derive_pregnancy_a5_from_60(pregnancy_60: dict[str, dict]) -> dict[str, dict]:
-    """Map pregnancy_60 PDF slots onto A5 weekly pages when block PDF has no detectable frames."""
+PREGNANCY_60_PHOTO_OVERRIDES: dict[str, dict] = {
+    "6": {
+        "variants": [
+            {
+                "variantId": "one_horizontal",
+                "slots": [
+                    {
+                        "x": 0.125,
+                        "y": 0.732,
+                        "width": 0.75,
+                        "height": 0.22,
+                        "aspectRatio": [4, 3],
+                    }
+                ],
+            }
+        ]
+    },
+}
 
-    def week_for_a5_page(page_no: int) -> int | None:
-        if 5 <= page_no <= 13:
-            return page_no + 1
-        if 15 <= page_no <= 28:
-            return page_no
-        if 30 <= page_no <= 43:
-            return page_no - 1
-        return None
 
-    def page_60_for_week(week: int) -> int | None:
-        if 6 <= week <= 14:
-            return week + 3
-        if 15 <= week <= 28:
-            return week + 4
-        if 29 <= week <= 42:
-            return week + 5
-        return None
-
-    pages: dict[str, dict] = {}
-    for page_no in range(1, 49):
-        week = week_for_a5_page(page_no)
-        if week is None:
-            continue
-        source_page = page_60_for_week(week)
-        if source_page is None:
-            continue
-        slot = pregnancy_60.get(str(source_page))
-        if slot:
-            pages[str(page_no)] = slot
-
-    if pregnancy_60.get("56"):
-        pages["48"] = pregnancy_60["56"]
-    elif pregnancy_60.get("57"):
-        pages["48"] = pregnancy_60["57"]
-
-    return pages
+def apply_pregnancy_60_overrides(pages: dict[str, dict]) -> None:
+    for page_key, layout in PREGNANCY_60_PHOTO_OVERRIDES.items():
+        pages[page_key] = layout
 
 
 def main() -> None:
     result: dict[str, dict] = {}
     for config in ALBUMS:
         album_pages = extract_album(config)
+        if config["album_id"] == "pregnancy_60":
+            apply_pregnancy_60_overrides(album_pages)
         result[config["album_id"]] = album_pages
         print(f"{config['album_id']}: {len(album_pages)} pages with photo placeholder")
-
-    if not result.get("pregnancy_a5") and result.get("pregnancy_60"):
-        result["pregnancy_a5"] = derive_pregnancy_a5_from_60(result["pregnancy_60"])
-        print(
-            f"pregnancy_a5: {len(result['pregnancy_a5'])} pages derived from pregnancy_60 slots",
-        )
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

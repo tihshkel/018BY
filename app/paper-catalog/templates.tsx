@@ -2,7 +2,7 @@ import { CatalogProductCard } from '@/components/catalog/catalog-product-card';
 import { HomeSectionHeader } from '@/components/home/home-section-header';
 import { AppButton, AppFilterSheet, AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, spacing, surfaces } from '@/constants/design-tokens';
-import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
+import { prefetchWildberriesProductInfo } from '@/utils/wildberriesProductInfo';
 import {
   CATALOG_MAX_WIDTH,
   getTabletContentShell,
@@ -10,10 +10,9 @@ import {
   useResponsiveLayout,
 } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { InteractionManager, Linking, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -47,8 +46,9 @@ const CATEGORY_TO_CELEBRATIONS: Record<string, string[]> = {
 };
 
 const CATEGORY_TO_SKU_PREFIXES: Record<string, string[]> = {
-  'Мои истории: дневники': ['DD'],
-  'Любовь и свадьба': ['SVA'],
+  'Мои истории: дневники': ['DD', 'EDD'],
+  'Любовь и свадьба': ['SVA', 'SA'],
+  'Семья': ['SDFA'],
 };
 
 const ALL_CATEGORIES = [
@@ -151,17 +151,14 @@ export default function PaperCatalogTemplatesScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      const preloadCategoryImages = async () => {
-        if (categoryItems.length === 0) return;
+      const task = InteractionManager.runAfterInteractions(() => {
+        prefetchWildberriesProductInfo(
+          categoryItems.map((item) => item.link),
+          24,
+        ).catch(() => undefined);
+      });
 
-        const wbUrls = categoryItems
-          .map((item) => getWildberriesProductImageUrl(item.link))
-          .filter((u): u is string => Boolean(u));
-
-        await Promise.all(wbUrls.map((uri) => Image.prefetch(uri).catch(() => undefined)));
-      };
-
-      preloadCategoryImages();
+      return () => task.cancel();
     }, [categoryItems])
   );
 

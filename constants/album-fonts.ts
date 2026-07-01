@@ -13,8 +13,9 @@ export interface FontOption {
   charWidthMultiplier?: number;
 }
 
+export const DEFAULT_ALBUM_TEXT_FONT_ID = 'Nefelibata-Sans';
+
 export const AVAILABLE_FONTS: FontOption[] = [
-  { id: 'default', name: 'System', file: null, displayName: 'Системный', charWidthMultiplier: 1 },
   {
     id: 'SvyaznoyRF',
     name: 'SvyaznoyRF',
@@ -52,9 +53,10 @@ export const AVAILABLE_FONTS: FontOption[] = [
   },
 ];
 
-/** Старые id, убранные из списка — откатываем на системный шрифт. */
+/** Старые id, убранные из списка — откатываем на читаемый альбомный шрифт. */
 const LEGACY_FONT_ALIASES: Record<string, string> = {
-  inspiration: 'default',
+  default: DEFAULT_ALBUM_TEXT_FONT_ID,
+  inspiration: DEFAULT_ALBUM_TEXT_FONT_ID,
   'Nefelibata-Brush': 'Nefelibata-Sans',
   'Nefelibata-BrushCanvas': 'Nefelibata-Sans',
   'Nefelibata-Extras': 'Nefelibata-Sans',
@@ -67,9 +69,9 @@ const LEGACY_FONT_ALIASES: Record<string, string> = {
 const fontById = new Map(AVAILABLE_FONTS.map((font) => [font.id, font]));
 
 export function normalizeAlbumFontId(fontId?: string | null): string {
-  if (!fontId || fontId === 'default') return 'default';
+  if (!fontId || fontId === 'default') return DEFAULT_ALBUM_TEXT_FONT_ID;
   if (fontById.has(fontId)) return fontId;
-  return LEGACY_FONT_ALIASES[fontId] ?? 'default';
+  return LEGACY_FONT_ALIASES[fontId] ?? DEFAULT_ALBUM_TEXT_FONT_ID;
 }
 
 export function getAlbumFontById(fontId?: string | null): FontOption | undefined {
@@ -82,6 +84,5 @@ export function getAlbumFontCharWidthMultiplier(fontId?: string | null): number 
 
 export function getAlbumFontFamilyName(fontId?: string | null): string | undefined {
   const font = getAlbumFontById(fontId);
-  if (!font || font.id === 'default') return undefined;
-  return font.name;
+  return font?.name;
 }

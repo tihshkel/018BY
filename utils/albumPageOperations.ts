@@ -27,6 +27,7 @@ export function insertPageAtIndex(params: {
   schemaPageId: string;
   sourcePageNumber: number;
   titleOverride?: string;
+  templateLibraryId?: string;
   lineGuideId: string;
 }): {
   instances: PageInstance[];
@@ -42,6 +43,7 @@ export function insertPageAtIndex(params: {
     schemaPageId,
     sourcePageNumber,
     titleOverride,
+    templateLibraryId,
   } = params;
 
   const newInstance: PageInstance = {
@@ -52,6 +54,7 @@ export function insertPageAtIndex(params: {
     addedByUser: true,
     imageIndex: insertAfterIndex + 1,
     titleOverride,
+    templateLibraryId,
   };
 
   const newImages = [...images];
@@ -99,6 +102,7 @@ export function duplicatePageAtIndex(params: {
     schemaPageId: source.schemaPageId,
     sourcePageNumber: source.sourcePageNumber,
     titleOverride: source.titleOverride,
+    templateLibraryId: source.templateLibraryId,
     lineGuideId,
   });
 

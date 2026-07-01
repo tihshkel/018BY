@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   ImageSourcePropType,
+  InteractionManager,
   Linking,
   Platform,
   Pressable,
@@ -30,7 +31,8 @@ import { CatalogGiftCoverImage } from '@/components/catalog-gift-cover-image';
 import { RegionPickerSheet } from '@/components/catalog/region-picker-sheet';
 import { AppFilterSheet } from '@/components/ui';
 import { PDF_CATALOG_GIFT_ITEMS } from '@/constants/pdf-catalog-gift-items';
-import { getWildberriesProductImageUrl } from '@/utils/wildberriesProductImage';
+import { useWildberriesProductInfo } from '@/hooks/use-wildberries-product-info';
+import { prefetchWildberriesProductInfo } from '@/utils/wildberriesProductInfo';
 import { CATALOG_MAX_WIDTH, useResponsiveLayout } from '@/utils/responsive';
 
 export interface GiftItem {
@@ -66,10 +68,10 @@ type CoverType = 'all' | 'hard' | 'soft';
 // Типы регионов
 type Region = 'belarus' | 'russia' | 'kazakhstan';
 
-const REGIONS: { value: Region; label: string }[] = [
-  { value: 'belarus', label: 'Беларусь' },
-  { value: 'russia', label: 'Россия' },
-  { value: 'kazakhstan', label: 'Казахстан' },
+const REGIONS: { value: Region; label: string; flag: string }[] = [
+  { value: 'belarus', label: 'Беларусь', flag: '🇧🇾' },
+  { value: 'russia', label: 'Россия', flag: '🇷🇺' },
+  { value: 'kazakhstan', label: 'Казахстан', flag: '🇰🇿' },
 ];
 
 // Функция определения типа обложки из названия
@@ -116,6 +118,14 @@ const SKU_TO_CATEGORY: Record<string, string> = {
   'DD18': 'Для девочек',
   'DD20': 'Для девочек',
   'DD21': 'Для девочек',
+  // Личные дневники для девочки А5 (EDD1–EDD7)
+  'EDD1': 'Для девочек',
+  'EDD2': 'Для девочек',
+  'EDD3': 'Для девочек',
+  'EDD4': 'Для девочек',
+  'EDD5': 'Для девочек',
+  'EDD6': 'Для девочек',
+  'EDD7': 'Для девочек',
 };
 
 export const COVER_BY_SKU: Record<string, ImageSourcePropType> = {
@@ -931,28 +941,19 @@ export default function GiftsScreen() {
 
   const opacity = useSharedValue(0);
 
-  // Предзагрузка всех изображений подарков и цен при монтировании и фокусе экрана
+  // Предзагрузка карточек WB после первого кадра — не мешает скроллу
   useFocusEffect(
     React.useCallback(() => {
-      const preloadGiftImages = async () => {
-        try {
-          const wbUrls = GIFT_ITEMS.map((g) => getWildberriesProductImageUrl(g.link)).filter(
-            (u): u is string => Boolean(u)
-          );
-          await Promise.all(
-            wbUrls.map((uri) =>
-              Image.prefetch(uri).catch((err) => {
-                console.warn('⚠️ Ошибка предзагрузки фото WB:', uri, err);
-              })
-            )
-          );
-        } catch (error) {
-          console.error('❌ Ошибка предзагрузки изображений подарков:', error);
-        }
-      };
+      const task = InteractionManager.runAfterInteractions(() => {
+        prefetchWildberriesProductInfo(
+          GIFT_ITEMS.map((gift) => gift.link),
+          32,
+        ).catch((error) => {
+          console.warn('⚠️ Ошибка предзагрузки карточек WB:', error);
+        });
+      });
 
-      // Запускаем предзагрузку сразу при фокусе экрана
-      preloadGiftImages();
+      return () => task.cancel();
     }, [])
   );
 
@@ -1057,6 +1058,7 @@ export default function GiftsScreen() {
           if (filterCategory === 'Молодожёнам') {
             const matches =
               item.sku.startsWith('SVA') ||
+              item.sku.startsWith('SA') ||
               item.sku.startsWith('SVO') ||
               item.sku.startsWith('SB') ||
               item.celebrations.includes('Молодожёнам');
@@ -1094,27 +1096,16 @@ export default function GiftsScreen() {
     });
   }, [searchQuery, activeCategory, selectedCategory, selectedCoverType]);
 
-  // Предзагрузка изображений для отфильтрованных элементов при смене фильтра
+  // Предзагрузка карточек для отфильтрованных элементов — после анимаций
   useEffect(() => {
-    const preloadFilteredImages = async () => {
-      try {
-        const wbUrls = filteredItems
-          .map((item) => getWildberriesProductImageUrl(item.link))
-          .filter((u): u is string => Boolean(u));
+    const task = InteractionManager.runAfterInteractions(() => {
+      prefetchWildberriesProductInfo(
+        filteredItems.map((item) => item.link),
+        24,
+      ).catch(() => {});
+    });
 
-        await Promise.all(
-          wbUrls.map((uri) =>
-            Image.prefetch(uri).catch((err) => {
-              console.warn('⚠️ Ошибка предзагрузки фото WB (фильтр):', err);
-            })
-          )
-        );
-      } catch (error) {
-        // Игнорируем ошибки, изображения загрузятся по требованию
-      }
-    };
-
-    preloadFilteredImages();
+    return () => task.cancel();
   }, [filteredItems]);
 
   const renderFilter = useCallback(
@@ -1149,50 +1140,15 @@ export default function GiftsScreen() {
 
 
   const renderItem = useCallback(
-    ({ item, index }: { item: GiftItem; index: number }) => {
-      // Используем high priority для видимых элементов (первые 10)
-      const imagePriority = index < 10 ? 'high' : 'normal';
-      
-      return (
-        <View style={[styles.card, numColumns > 1 && styles.cardInGrid]} accessible>
-          <View style={[styles.coverWrapper, { height: coverHeight }]}>
-            <CatalogGiftCoverImage
-              item={item}
-              style={styles.coverImage}
-              imagePriority={imagePriority}
-            />
-          </View>
-
-          <View style={styles.cardContent}>
-            <Text style={styles.cardTitle} numberOfLines={numColumns > 1 ? 3 : 2} ellipsizeMode="tail">
-              {item.title}
-            </Text>
-            {item.description && (
-              <Text
-                style={styles.cardDescription}
-                numberOfLines={numColumns > 1 ? 2 : 3}
-                ellipsizeMode="tail"
-              >
-                {item.description}
-              </Text>
-            )}
-            <Pressable
-              style={({ pressed }) => [
-                styles.buyButton,
-                pressed && styles.buyButtonPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={`Перейти на Wildberries для товара ${item.title}`}
-              accessibilityHint="Откроется карточка товара на Wildberries"
-              onPress={() => handleOpenLink(item.link)}
-            >
-              <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
-            </Pressable>
-          </View>
-        </View>
-      );
-    },
+    ({ item, index }: { item: GiftItem; index: number }) => (
+      <MemoGiftCatalogCard
+        item={item}
+        index={index}
+        numColumns={numColumns}
+        coverHeight={coverHeight}
+        onOpenLink={handleOpenLink}
+      />
+    ),
     [handleOpenLink, numColumns, coverHeight]
   );
 
@@ -1269,26 +1225,12 @@ export default function GiftsScreen() {
           numColumns={numColumns}
           columnWrapperStyle={numColumns > 1 ? styles.catalogColumnWrapper : undefined}
           showsVerticalScrollIndicator={false}
-          // Таббар с большим iOS-safe-area и скруглением перекрывает контент — даём больший нижний отступ.
           contentContainerStyle={[styles.listContent, { paddingBottom: bottomInset + 140 }]}
-          // Оптимизации для производительности
-          removeClippedSubviews={true}
-          initialNumToRender={numColumns > 1 ? 6 : 5}
-          maxToRenderPerBatch={numColumns > 1 ? 6 : 3}
-          updateCellsBatchingPeriod={50}
-          windowSize={5}
-          getItemLayout={
-            numColumns === 1
-              ? (_data, index) => {
-                  const itemHeight = coverHeight + 40 + 30 + 12 + 56 + 20;
-                  return {
-                    length: itemHeight,
-                    offset: itemHeight * index,
-                    index,
-                  };
-                }
-              : undefined
-          }
+          removeClippedSubviews={Platform.OS === 'android'}
+          initialNumToRender={numColumns > 1 ? 4 : 3}
+          maxToRenderPerBatch={numColumns > 1 ? 4 : 2}
+          updateCellsBatchingPeriod={100}
+          windowSize={7}
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="gift-outline" size={64} color={colors.tabInactive} />
@@ -1595,7 +1537,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 24,
     paddingBottom: 0,
-    gap: 20,
   },
   catalogColumnWrapper: {
     gap: 16,
@@ -1607,6 +1548,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+    marginBottom: 20,
     shadowColor: colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -1640,6 +1582,7 @@ const styles = StyleSheet.create({
     fontFamily: sansFont('bold'),
     fontWeight: '700',
     lineHeight: 26,
+    minHeight: 52,
     marginBottom: 4,
   },
   cardDescription: {
@@ -1652,6 +1595,7 @@ const styles = StyleSheet.create({
     }),
     fontWeight: '300',
     lineHeight: 20,
+    minHeight: 60,
     marginBottom: 8,
   },
   buyButton: {
@@ -1694,3 +1638,66 @@ const styles = StyleSheet.create({
     }),
   },
 });
+
+type GiftCatalogCardProps = {
+  item: GiftItem;
+  index: number;
+  numColumns: number;
+  coverHeight: number;
+  onOpenLink: (url: string) => void;
+};
+
+function GiftCatalogCard({
+  item,
+  index,
+  numColumns,
+  coverHeight,
+  onOpenLink,
+}: GiftCatalogCardProps) {
+  const wbInfo = useWildberriesProductInfo(item.link);
+  const title = wbInfo?.title ?? item.title;
+  const description = wbInfo?.description ?? item.description ?? '';
+  const imagePriority = index < 6 ? 'high' : 'normal';
+
+  return (
+    <View style={[styles.card, numColumns > 1 && styles.cardInGrid]} accessible>
+      <View style={[styles.coverWrapper, { height: coverHeight }]}>
+        <CatalogGiftCoverImage
+          item={item}
+          style={styles.coverImage}
+          imagePriority={imagePriority}
+          resolvedImageUrl={wbInfo?.imageUrl}
+        />
+      </View>
+
+      <View style={styles.cardContent}>
+        <Text
+          style={styles.cardTitle}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
+        <Text
+          style={styles.cardDescription}
+          numberOfLines={3}
+          ellipsizeMode="tail"
+        >
+          {description || ' '}
+        </Text>
+        <Pressable
+          style={({ pressed }) => [styles.buyButton, pressed && styles.buyButtonPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`Перейти на Wildberries для товара ${title}`}
+          accessibilityHint="Откроется карточка товара на Wildberries"
+          onPress={() => onOpenLink(item.link)}
+        >
+          <Ionicons name="cart-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.buyButtonText}>Купить на Wildberries</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const MemoGiftCatalogCard = React.memo(GiftCatalogCard);

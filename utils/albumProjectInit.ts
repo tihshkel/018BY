@@ -1,10 +1,12 @@
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { getDefaultTemplateId } from '@/constants/page-template-library';
 import { getAlbumPageSchemas } from '@/constants/generated/album-page-schemas';
-import { getPageTemplateById } from '@/constants/page-template-library';
 import { createId } from '@/utils/id';
 import { createEmptyPageValues } from '@/utils/pageStorage';
-import { resolvePhotoPageTemplateId } from '@/utils/photoPageTemplateManifest';
+import {
+  isBlankTemplateLineGuide,
+  resolvePhotoPageTemplateId,
+} from '@/utils/photoPageTemplateManifest';
 import { buildSchemaFromTemplate } from '@/utils/resolveTemplatePageLayout';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
@@ -32,6 +34,7 @@ export function buildInitialPageInstances(
       order: imageIndex + 1,
       addedByUser: false,
       imageIndex,
+      templateLibraryId: schema.templateLibraryId,
     });
   }
 
@@ -61,34 +64,59 @@ export function buildInitialPageValuesMap(instances: PageInstance[]): Record<str
   return map;
 }
 
+function getTemplateIdForInstance(
+  instance: PageInstance,
+  schema?: AlbumPageSchema,
+): string | undefined {
+  if (instance.templateLibraryId) {
+    return resolvePhotoPageTemplateId(instance.templateLibraryId);
+  }
+
+  const libMatch = instance.schemaPageId.match(/_lib_(.+)_\d+$/);
+  if (libMatch?.[1]) {
+    return resolvePhotoPageTemplateId(libMatch[1]);
+  }
+
+  if (schema?.templateLibraryId) {
+    return resolvePhotoPageTemplateId(schema.templateLibraryId);
+  }
+
+  return undefined;
+}
+
+function buildTemplateSchemaForInstance(
+  instance: PageInstance,
+  lineGuideId: string,
+  schema?: AlbumPageSchema,
+): AlbumPageSchema | undefined {
+  if (!isBlankTemplateLineGuide(lineGuideId)) return undefined;
+
+  const templateId = getTemplateIdForInstance(instance, schema);
+  if (!templateId) return undefined;
+
+  return enrichSchemaWithPhotoBlocks(
+    buildSchemaFromTemplate({
+      templateId,
+      lineGuideId,
+      schemaPageId: instance.schemaPageId,
+      titleOverride: instance.titleOverride,
+      order: instance.order,
+      sourcePageNumber: instance.sourcePageNumber,
+    }),
+  );
+}
+
 export function getSchemaForInstance(
   instance: PageInstance,
   lineGuideId: string
 ): AlbumPageSchema | undefined {
-  if (instance.schemaPageId.includes('_lib_')) {
-    const libMatch = instance.schemaPageId.match(/_lib_(.+)_\d+$/);
-    const rawTemplateId = libMatch?.[1];
-    const templateId = rawTemplateId ? resolvePhotoPageTemplateId(rawTemplateId) : getDefaultTemplateId();
-    const template = getPageTemplateById(templateId);
-
-    if (template) {
-      return enrichSchemaWithPhotoBlocks(
-        buildSchemaFromTemplate({
-          templateId,
-          lineGuideId,
-          schemaPageId: instance.schemaPageId,
-          titleOverride: instance.titleOverride,
-          order: instance.order,
-          sourcePageNumber: instance.sourcePageNumber,
-        }),
-      );
-    }
-  }
-
   const schemas = getAlbumPageSchemas(lineGuideId);
   const schema =
     schemas.find((s) => s.pageId === instance.schemaPageId) ??
     schemas.find((s) => s.sourcePageNumber === instance.sourcePageNumber);
+
+  const templateSchema = buildTemplateSchemaForInstance(instance, lineGuideId, schema);
+  if (templateSchema) return templateSchema;
 
   return schema ? enrichSchemaWithPhotoBlocks(schema) : undefined;
 }

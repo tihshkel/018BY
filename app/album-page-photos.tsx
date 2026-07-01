@@ -26,7 +26,6 @@ export default function AlbumPagePhotosScreen() {
     celebration,
     coverType,
     interiorType,
-    subscribeSnapshots: false,
   });
   const { shellStyle } = useAlbumFormLayout();
 
@@ -51,7 +50,8 @@ export default function AlbumPagePhotosScreen() {
     instanceId,
     schema,
     pageValues,
-    project,
+    projectId: project.projectId,
+    commitPagePatch: project.updatePageValues,
   });
 
   const handleSave = async () => {

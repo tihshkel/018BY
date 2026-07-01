@@ -1,10 +1,15 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAlbumTemplatesByCategory, type AlbumTemplate } from '@/albums';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
-import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
-import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
+import { FAMILY_COVER_DESIGNS, getFamilyCoverPickerDescription } from '@/utils/familyCoverDesigns';
+import { HOLIDAY_COVER_DESIGNS, getHolidayCoverPickerDescription } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
+import {
+  getWeddingCoverPickerDescription,
+  getWeddingCoverPickerTitle,
+  WEDDING_COVER_DESIGNS,
+} from '@/utils/weddingCoverDesigns';
 import {
     buildProjectProducts,
     projectCategories,
@@ -16,7 +21,6 @@ import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { getAlbumImages } from '@/utils/albumImages';
 import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
-import { formatRouteEventDate } from '@/utils/routeParams';
 import {
   getGridColumnCount,
   getGridColumnWrapperStyle,
@@ -126,6 +130,13 @@ const getCategoryInfo = (categoryId: string): CategoryInfo => {
       notificationTitle: 'Семейное событие',
       notificationBody: 'Сегодня важная дата для вашей семьи!',
     },
+    wedding: {
+      name: 'Свадьба',
+      title: 'Дата свадьбы',
+      description: 'Выберите дату свадьбы. Эта дата будет сохранена в напоминаниях.',
+      notificationTitle: 'День свадьбы',
+      notificationBody: 'Сегодня годовщина вашей свадьбы!',
+    },
   };
   return categoryMap[categoryId] || categoryMap.pregnancy;
 };
@@ -139,6 +150,9 @@ const getDefaultDate = (categoryId: string): Date => {
   if (categoryId === 'kids') {
     // Дата рождения: по умолчанию 1 год назад, чтобы пикер открывался на актуальном годе (2024–2026)
     defaultDate.setFullYear(defaultDate.getFullYear() - 1);
+  }
+  if (categoryId === 'wedding') {
+    defaultDate.setFullYear(defaultDate.getFullYear() + 1);
   }
   return defaultDate;
 };
@@ -233,7 +247,7 @@ export default function ProjectTemplatesScreen() {
       return HOLIDAY_COVER_DESIGNS.map((d) => ({
         id: d.id,
         name: getCoverSelectTitleBySku(d.sku, 'holidays'),
-        description: 'Праздничный альбом',
+        description: getHolidayCoverPickerDescription(d),
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
     }
@@ -246,7 +260,19 @@ export default function ProjectTemplatesScreen() {
       return FAMILY_COVER_DESIGNS.map((d) => ({
         id: d.id,
         name: getCoverSelectTitleBySku(d.sku, 'family'),
-        description: 'Семейный альбом',
+        description: getFamilyCoverPickerDescription(d),
+        thumbnailPath: d.image,
+      })) as AlbumTemplate[];
+    }
+    return [];
+  }, [categoryId]);
+
+  const weddingAlbums = useMemo(() => {
+    if (categoryId === 'wedding') {
+      return WEDDING_COVER_DESIGNS.map((d) => ({
+        id: d.id,
+        name: getWeddingCoverPickerTitle(d),
+        description: getWeddingCoverPickerDescription(d),
         thumbnailPath: d.image,
       })) as AlbumTemplate[];
     }
@@ -455,7 +481,7 @@ export default function ProjectTemplatesScreen() {
   };
 
   const handleCoverSelect = useCallback((album: AlbumTemplate | { id: string; name: string }) => {
-    // Для беременности и детей показываем модальное окно с датой
+    // Дата нужна только для альбомов, где она влияет на напоминания и контент.
     if (categoryId === 'pregnancy' || categoryId === 'kids') {
       if ('thumbnailPath' in album) {
         setSelectedAlbumForDate(album as AlbumTemplate);
@@ -480,7 +506,7 @@ export default function ProjectTemplatesScreen() {
     setIsSavingCoverDate(true);
 
     const albumId = selectedAlbumForDate.id;
-    const eventDateParam = formatRouteEventDate(coverDate);
+    const eventDateIso = coverDate.toISOString();
 
     try {
       await withTimeout(scheduleReminder(coverDate, categoryId), 8_000, 'save-reminder');
@@ -496,7 +522,7 @@ export default function ProjectTemplatesScreen() {
       params: {
         celebration: categoryId,
         coverType: albumId,
-        eventDate: eventDateParam,
+        eventDate: eventDateIso,
       },
     });
 
@@ -704,7 +730,14 @@ export default function ProjectTemplatesScreen() {
           ]}
         >
           <Text style={styles.subtitle}>
-            {(categoryId === 'pregnancy' || categoryId === 'kids' || categoryId === 'diary') ? 'Выберите обложку' : 'Выберите готовый вариант альбома'}
+            {(categoryId === 'pregnancy' ||
+              categoryId === 'kids' ||
+              categoryId === 'diary' ||
+              categoryId === 'wedding' ||
+              categoryId === 'family' ||
+              categoryId === 'holidays')
+              ? 'Выберите обложку'
+              : 'Выберите готовый вариант альбома'}
           </Text>
 
           {/* Для беременности, kids и diary показываем альбомы/обложки */}
@@ -736,7 +769,14 @@ export default function ProjectTemplatesScreen() {
                       ),
                       emptyAlbumsMessage
                     )
-                  : categoryId === 'diary'
+                  : categoryId === 'wedding'
+                    ? renderCoverPickerList(
+                        weddingAlbums.map((album, index) =>
+                          albumToPickerRow(album, index)
+                        ),
+                        emptyAlbumsMessage
+                      )
+                    : categoryId === 'diary'
                     ? renderCoverPickerList(
                         diaryCovers.map((cover, index) => ({
                           id: cover.id,

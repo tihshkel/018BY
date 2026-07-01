@@ -1,13 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import {
   AppDatePickerSheet,
   AppInlineDatePicker,
 } from '@/components/ui/app-date-picker-sheet';
 import { AppText } from '@/components/ui/app-text';
-import { formatAlbumDate, parseAlbumDate } from '@/utils/albumDateFormat';
+import { formatAlbumDate, parseAlbumDate, clampDateToBounds } from '@/utils/albumDateFormat';
 import {
   clampFieldInput,
 } from '@/utils/albumFieldLimits';
@@ -93,12 +93,14 @@ export function AppDateField({
     [stringValue, value, mode]
   );
 
+  const minDate = minimumDate ?? (field?.type === 'date' ? MIN_ALBUM_DATE : undefined);
+  const maxDate = maximumDate ?? (field?.type === 'date' ? MAX_ALBUM_DATE : undefined);
+
   const pickerDate = useMemo(() => {
-    if (stringValue !== undefined) {
-      return parseAlbumDate(stringValue) ?? value;
-    }
-    return value;
-  }, [stringValue, value]);
+    const raw =
+      stringValue !== undefined ? parseAlbumDate(stringValue) ?? value : value;
+    return clampDateToBounds(raw, minDate, maxDate);
+  }, [stringValue, value, minDate, maxDate]);
 
   const handleDateChange = (date: Date) => {
     onChange(date);
@@ -108,9 +110,6 @@ export function AppDateField({
       onStringChange(formatAlbumDate(date));
     }
   };
-
-  const minDate = minimumDate ?? (field?.type === 'date' ? MIN_ALBUM_DATE : minimumDate);
-  const maxDate = maximumDate ?? (field?.type === 'date' ? MAX_ALBUM_DATE : maximumDate);
 
   const openPicker = () => {
     if (embedded) return;
@@ -148,10 +147,6 @@ export function AppDateField({
             inputMode="numeric"
             accessibilityLabel={accessibilityLabel ?? label}
             onFocus={onInputFocus}
-            textAlignVertical="center"
-            {...(Platform.OS === 'android'
-              ? { includeFontPadding: false }
-              : null)}
           />
         ) : embedded ? null : (
           <Pressable

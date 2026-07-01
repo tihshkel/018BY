@@ -1056,8 +1056,8 @@
       "maxPhotos": 4
     },
     "TimelineTemplate": {
-      "title": "Хронология события",
-      "description": "Три события с датой и текстом",
+      "title": "Хронология событий",
+      "description": "Три события: фото, дата и описание",
       "maxPhotos": 3
     },
     "TextPageTemplate": {

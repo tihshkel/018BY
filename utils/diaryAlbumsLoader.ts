@@ -246,9 +246,28 @@ export function getDiaryInteriorById(id: string): DiaryInterior | null {
   return Object.values(DIARY_INTERIOR_MAPPING).find(interior => interior.id === id) || null;
 }
 
+async function warmDiaryInteriorAssets(images: unknown[]): Promise<void> {
+  const maxParallel = 4;
+  let index = 0;
+
+  const worker = async () => {
+    while (index < images.length) {
+      const current = index;
+      index += 1;
+      try {
+        await Asset.fromModule(images[current] as number).downloadAsync();
+      } catch {
+        // The returned bundled URI is still usable; warming is best-effort.
+      }
+    }
+  };
+
+  await Promise.all(Array.from({ length: maxParallel }, () => worker()));
+}
+
 /**
- * Загружает URI изображений внутренней части дневника
- * Оптимизировано для максимально быстрой параллельной загрузки
+ * Загружает URI изображений внутренней части дневника.
+ * Возвращает bundled URI сразу, а прогрев локального кеша запускает в фоне.
  */
 export async function getDiaryInteriorImageUris(interiorId: string): Promise<string[] | null> {
   const interior = getDiaryInteriorById(interiorId);
@@ -257,17 +276,11 @@ export async function getDiaryInteriorImageUris(interiorId: string): Promise<str
   }
 
   try {
-    const uris = await Promise.all(
-      interior.images.map(async (image) => {
-        try {
-          const asset = Asset.fromModule(image as number);
-          await asset.downloadAsync();
-          return asset.localUri || asset.uri || null;
-        } catch {
-          return null;
-        }
-      })
-    );
+    const uris = interior.images.map((image) => {
+      const asset = Asset.fromModule(image as number);
+      return asset.localUri || asset.uri || null;
+    });
+    warmDiaryInteriorAssets(interior.images).catch(() => {});
     const filtered = uris.filter((uri): uri is string => !!uri);
     return filtered.length > 0 ? filtered : null;
   } catch (error) {
