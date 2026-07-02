@@ -33,7 +33,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout } from '@/utils/templateLineText';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
@@ -350,12 +350,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const startSlotIndex = annotation.templateLineStart ?? 0;
     const startSlot = slots[startSlotIndex];
     if (!startSlot) return false;
+    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
     const effectiveFontSize = getEffectiveTemplateFontSize(
       lineGuideId,
       startSlot,
-      annotation.fontSize || 16
+      annotation.fontSize || 16,
+      { textContent: editingText, fontId: normalizedFontId },
     );
-    const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
     const { segments, truncated } = distributeTextForTemplateAnnotation({
       text: editingText,
       startSlotIndex,
@@ -2346,7 +2347,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const effectiveFontSize = getEffectiveTemplateFontSize(
           lineGuideId,
           slot,
-          currentFontSize
+          currentFontSize,
+          { textContent: mergedDisplayText, fontId: normalizedFontId },
         );
         if (isEditingText) {
           return (
@@ -2411,6 +2413,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 lineGuideId
               );
               const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
+              const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
               const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
                 row.lineSlot,
                 rowTypography.fontSize,
@@ -2444,7 +2447,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         color: currentColor,
                         fontSize: rowTypography.fontSize,
                         fontFamily: currentFontFamily,
-                        lineHeight: rowTypography.lineHeight,
+                        lineHeight: usesStrokeBaseline
+                          ? rowTypography.fontSize
+                          : rowTypography.lineHeight,
                         includeFontPadding: false,
                         textAlign: getTextAlign(annotation),
                       },

@@ -480,7 +480,8 @@ function generateSchemas(projectRoot) {
           pageNumber,
           slots,
           kidsTzManifest[pageKey],
-          lineGuideId
+          lineGuideId,
+          content,
         );
         if (tzApplied) {
           schema = mergeOverride(schema, tzApplied);

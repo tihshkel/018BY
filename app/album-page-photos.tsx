@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
@@ -9,6 +9,7 @@ import { useAlbumFormLayout } from '@/hooks/use-album-editor-layout';
 import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import { useAlbumProject } from '@/hooks/use-album-project';
 import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigation';
+import { hasFormTextInput } from '@/utils/albumPageNavigation';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
 export default function AlbumPagePhotosScreen() {
@@ -53,6 +54,15 @@ export default function AlbumPagePhotosScreen() {
     projectId: project.projectId,
     commitPagePatch: project.updatePageValues,
   });
+
+  useEffect(() => {
+    if (!schema || !instanceId || !id) return;
+    if (!hasFormTextInput(schema)) return;
+    router.replace({
+      pathname: '/album-page-form',
+      params: { id, instanceId, celebration, coverType, interiorType },
+    } as unknown as Href);
+  }, [schema, instanceId, id, celebration, coverType, interiorType]);
 
   const handleSave = async () => {
     if (!instanceId) return;

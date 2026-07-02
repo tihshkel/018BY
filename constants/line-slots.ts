@@ -9078,7 +9078,7 @@ export const LINE_SLOTS = {
         "width": 0.54328,
         "height": 0.04403,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 7
       },
       {
         "x": 0.43911,
@@ -9086,7 +9086,7 @@ export const LINE_SLOTS = {
         "width": 0.42461,
         "height": 0.03201,
         "hasLabel": false,
-        "continuationGroup": 7
+        "continuationGroup": 8
       },
       {
         "x": 0.15194,
@@ -9094,7 +9094,7 @@ export const LINE_SLOTS = {
         "width": 0.69762,
         "height": 0.01883,
         "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 9
       }
     ],
     "14": [

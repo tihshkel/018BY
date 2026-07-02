@@ -1,3 +1,4 @@
+import { resolveKids48TeethTemplateLineStart } from '@/constants/kids-48-teeth-slots';
 import { clampFieldInput, getFieldCharacterLimit } from '@/utils/albumFieldLimits';
 import type { Annotation } from '@/components/pdf-annotations';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
@@ -161,26 +162,38 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       viewportWidth,
       viewportHeight,
     });
-    const text = clampFieldInput(field, rawText, characterLimit);
+    const text = clampFieldInput(field, rawText, characterLimit, {
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      viewportWidth,
+      viewportHeight,
+    });
     if (!text) continue;
 
-    const startSlot = slots[field.templateLineStart];
+    const lineSlotStart = resolveKids48TeethTemplateLineStart(field, schema, lineGuideId);
+    const startSlot = slots[lineSlotStart];
     if (!startSlot) continue;
 
-    const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId);
+    const layout = layoutTextAnnotationFromSlot(
+      startSlot,
+      fontSize,
+      lineGuideId,
+      text,
+      textFontFamily,
+    );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
       type: 'text',
       page: schema.sourcePageNumber,
       content: text,
-      fontSize,
+      fontSize: layout.fontSize ?? fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,
-      templateLineStart: field.templateLineStart,
-      templateLineCount: field.templateLineCount ?? 1,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
+      templateLineStart: lineSlotStart,
+      templateLineCount: field.templateLineCount ?? 1,
     });
   }
 
@@ -209,10 +222,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           zIndex: zIndex++,
-          templateLineStart: slotCursor,
-          templateLineCount: lineCount,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
+          templateLineStart: slotCursor,
+          templateLineCount: lineCount,
         });
       }
 
@@ -536,10 +549,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         fontFamily: textFontFamily,
         color: '#3D3D3D',
         zIndex: zIndex++,
-        templateLineStart: captionSlot.index,
-        templateLineCount: 1,
         sourcePageNumber: schema.sourcePageNumber,
         ...layout,
+        templateLineStart: captionSlot.index,
+        templateLineCount: 1,
       });
     }
   }
@@ -578,10 +591,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           zIndex: zIndex++,
-          templateLineStart: slot.index,
-          templateLineCount: 1,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
+          templateLineStart: slot.index,
+          templateLineCount: 1,
         });
       }
     }

@@ -2,6 +2,7 @@ import {
   type NormalizedPhotoSlot,
   type PhotoPageLayouts,
 } from '@/constants/photo-slots';
+import { refineFamilyTreeSlotForViewport } from '@/utils/familyTreeSlots';
 import { resolvePhotoPageLayouts } from '@/utils/resolvePhotoPageLayouts';
 import { mapCircleSlotToViewport } from '@/utils/circleSlotColors';
 import {
@@ -93,12 +94,19 @@ export function getNormalizedPhotoSlot(
 export function mapPhotoSlotToViewport(
   slot: NormalizedPhotoSlot,
   contentRect: ContentRect,
+  lineGuideId?: string,
+  page?: number,
 ): { x: number; y: number; width: number; height: number } {
-  if (slot.shape === 'circle') {
-    return mapCircleSlotToViewport(slot, contentRect);
+  const refined =
+    lineGuideId != null && page != null
+      ? refineFamilyTreeSlotForViewport(lineGuideId, page, slot)
+      : slot;
+
+  if (refined.shape === 'circle') {
+    return mapCircleSlotToViewport(refined, contentRect);
   }
-  const topNormY = slot.y - slot.height / 2;
-  return mapSourceNormToViewport(slot.x, topNormY, slot.width, slot.height, contentRect);
+  const topNormY = refined.y - refined.height / 2;
+  return mapSourceNormToViewport(refined.x, topNormY, refined.width, refined.height, contentRect);
 }
 
 export function getPhotoSlotViewportRect(
@@ -114,5 +122,10 @@ export function getPhotoSlotViewportRect(
   if (!normalized) return null;
 
   const contentRect = resolveContentRect(params);
-  return mapPhotoSlotToViewport(normalized, contentRect);
+  return mapPhotoSlotToViewport(
+    normalized,
+    contentRect,
+    params.lineGuideId,
+    params.page,
+  );
 }

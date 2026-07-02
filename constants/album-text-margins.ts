@@ -40,8 +40,29 @@ export const KIDS_MONTH_LINE_X_INSET = 0.008;
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
+/** kids_48 p10 нижние поля — доп. зазор над штрихом (доля высоты line-slot band в px). */
+export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0.34;
+
+/** kids_48 p10 даты у зубов — небольшой зазор над штрихом. */
+export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0.2;
+
+/** kids_48 p12 «Мои следы» — дата над штрихом «ДАТА». */
+export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0.28;
+
 /** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
 export const DIARY_LINE_FONT_OFFSET = 0.86;
+
+/** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
+export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 0.85;
+
+/** Компактные поля (дата): штрих через центр слота. */
+export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
+
+/** Обычная строка: штрих у нижнего края полосы. */
+export const PREGNANCY_WEEKLY_STANDARD_LINE_HEIGHT = 0.045;
+
+/** Межстрочный шаг на недельных стр. (норм. Y центров соседних строк, page 9). */
+export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).

@@ -1,16 +1,16 @@
 {
   "coverage": {
     "pregnancy_60": {
-      "photoZoneCount": 45,
-      "fillReadyCount": 45
+      "photoZoneCount": 46,
+      "fillReadyCount": 46
     },
     "pregnancy_a5": {
-      "photoZoneCount": 38,
-      "fillReadyCount": 38
+      "photoZoneCount": 41,
+      "fillReadyCount": 41
     },
     "kids_48": {
-      "photoZoneCount": 45,
-      "fillReadyCount": 45
+      "photoZoneCount": 44,
+      "fillReadyCount": 44
     },
     "holidays_birthday_60": {
       "photoZoneCount": 45,
@@ -38,5 +38,5 @@
     }
   },
   "gaps": [],
-  "generatedAt": "2026-06-18T21:52:07.692Z"
+  "generatedAt": "2026-07-02T18:26:28.397Z"
 }

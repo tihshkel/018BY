@@ -34,7 +34,13 @@ function resolveExpectedFields(albumId, pageNumber, slots, resources) {
   } = resources;
 
   if (albumId === 'kids_48' && kidsTzManifest[pageKey]) {
-    const tz = applyKids48TzManifest(pageNumber, slots, kidsTzManifest[pageKey], albumId);
+    const tz = applyKids48TzManifest(
+      pageNumber,
+      slots,
+      kidsTzManifest[pageKey],
+      albumId,
+      pageContent?.[albumId]?.[pageKey],
+    );
     if (tz?.fields) return { source: 'tz', fields: tz.fields };
     if (tz?.replaceFields) return { source: 'tz', fields: tz.fields ?? [] };
   }

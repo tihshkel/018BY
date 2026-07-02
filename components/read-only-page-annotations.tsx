@@ -191,8 +191,15 @@ function ReadOnlyPageAnnotationsInner({
                     fontSize,
                     lineGuideId,
                     row.content,
+                    annotation.fontFamily,
                   );
                   const rowFontSize = layout.fontSize ?? fontSize;
+                  const isKidsTeethOverlayLine =
+                    lineGuideId === 'kids_48' &&
+                    row.lineSlot.page === 10 &&
+                    row.lineSlot.index !== 21;
+                  const useVisibleTextOverflow =
+                    isKidsTeethOverlayLine || row.lineSlot.lineStrokeAtBottom === true;
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
@@ -202,9 +209,11 @@ function ReadOnlyPageAnnotationsInner({
                           left: layout.x,
                           top: layout.y,
                           width: layout.width,
-                          height: layout.height,
+                          height: isKidsTeethOverlayLine
+                            ? rowFontSize + 2
+                            : layout.height,
                           zIndex: annotation.zIndex,
-                          overflow: 'hidden',
+                          overflow: useVisibleTextOverflow ? 'visible' : 'hidden',
                         },
                       ]}
                       pointerEvents="none"

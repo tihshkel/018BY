@@ -7,7 +7,11 @@ import {
   AppInlineDatePicker,
 } from '@/components/ui/app-date-picker-sheet';
 import { AppText } from '@/components/ui/app-text';
-import { formatAlbumDate, parseAlbumDate, clampDateToBounds } from '@/utils/albumDateFormat';
+import {
+  formatAlbumDate,
+  clampDateToBounds,
+  resolveAlbumPickerDate,
+} from '@/utils/albumDateFormat';
 import {
   clampFieldInput,
 } from '@/utils/albumFieldLimits';
@@ -97,9 +101,10 @@ export function AppDateField({
   const maxDate = maximumDate ?? (field?.type === 'date' ? MAX_ALBUM_DATE : undefined);
 
   const pickerDate = useMemo(() => {
-    const raw =
-      stringValue !== undefined ? parseAlbumDate(stringValue) ?? value : value;
-    return clampDateToBounds(raw, minDate, maxDate);
+    if (stringValue !== undefined) {
+      return resolveAlbumPickerDate(stringValue, minDate, maxDate);
+    }
+    return clampDateToBounds(value, minDate, maxDate);
   }, [stringValue, value, minDate, maxDate]);
 
   const handleDateChange = (date: Date) => {

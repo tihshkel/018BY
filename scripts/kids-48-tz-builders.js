@@ -10,6 +10,14 @@ const {
   GODPARENTS_PHOTO_BLOCK,
 } = require('./photo-block-presets-data');
 
+/** См. constants/kids-48-teeth-slots.ts — дублируем для Node-скриптов. */
+const KIDS_48_TEETH_FIELD_SLOT_INDEX = [
+  8, 6, 4, 2, 1,
+  3, 5, 7, 9, 0,
+  19, 16, 14, 12, 10,
+  11, 13, 15, 17, 18,
+];
+
 const FAMILY_TREE_PHOTO_BLOCK = {
   blockId: 'family_tree_photos',
   label: 'Фото родственников',
@@ -70,13 +78,19 @@ const TEETH_LABELS_RU = [
   'Нижний правый крайний моляр',
 ];
 
+function resolveTeethBrushingSlotIndex(slots) {
+  // p10: слот 20 — штрих первой строки (y=0.8349) справа от подписи.
+  if ((slots?.length ?? 0) >= 21) return slots.length - 3;
+  return Math.max(0, (slots?.length ?? 22) - 2);
+}
+
 function buildTeethFields(lineGuideId, pageNumber, slots) {
   const fields = TEETH_SLOT_IDS.map((id, index) => ({
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
     label: TEETH_LABELS_RU[index] ?? id.replace(/_/g, ' '),
     type: 'date',
     required: false,
-    templateLineStart: Math.min(index, (slots?.length ?? 1) - 1),
+    templateLineStart: KIDS_48_TEETH_FIELD_SLOT_INDEX[index] ?? Math.min(index, (slots?.length ?? 1) - 1),
     templateLineCount: 1,
   }));
   fields.push({
@@ -84,7 +98,7 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
     label: 'Первая чистка зубов',
     type: 'date',
     required: false,
-    templateLineStart: Math.max(0, (slots?.length ?? 22) - 2),
+    templateLineStart: resolveTeethBrushingSlotIndex(slots),
     templateLineCount: 1,
   });
   fields.push({
@@ -249,6 +263,25 @@ function buildDateField(lineGuideId, pageNumber, label, slotIndex) {
   }];
 }
 
+function resolveDateSlotIndex(slots, tzEntry, pageContent) {
+  if (typeof tzEntry.dateTemplateLineStart === 'number') {
+    return Math.min(tzEntry.dateTemplateLineStart, Math.max(0, (slots?.length ?? 1) - 1));
+  }
+
+  const contentDateField = pageContent?.fields?.find(
+    (field) => field.type === 'date' || /дата/i.test(field.label ?? ''),
+  );
+  if (contentDateField && typeof contentDateField.templateLineStart === 'number') {
+    return Math.min(contentDateField.templateLineStart, Math.max(0, (slots?.length ?? 1) - 1));
+  }
+
+  if ((slots?.length ?? 0) > 1) {
+    return slots.length - 1;
+  }
+
+  return 0;
+}
+
 function buildCaptionField(lineGuideId, pageNumber) {
   return [{
     fieldId: `${lineGuideId}_p${pageNumber}_caption`,
@@ -267,9 +300,9 @@ function buildAchievementsFields(lineGuideId, pageNumber, slots) {
     ['rolls_over', 'Переворачиваюсь на животик', 'text', 2, 1],
     ['crawls', 'Ползаю', 'text', 3, 1],
     ['sits_alone', 'Сижу самостоятельно', 'text', 4, 1],
-    ['stands_with_support', 'Стою у опоры', 'text', 5, 2],
-    ['first_steps', 'Первые шаги', 'text', 7, 1],
-    ['first_word', 'Первое слово (какое?)', 'text', 8, 1],
+    ['stands_with_support', 'Стою у опоры', 'text', 5, 1],
+    ['first_steps', 'Первые шаги', 'text', 6, 1],
+    ['first_word', 'Первое слово (какое?)', 'text', 7, 1],
   ];
 
   const maxSlot = Math.max(0, (slots?.length ?? 9) - 1);
@@ -283,7 +316,7 @@ function buildAchievementsFields(lineGuideId, pageNumber, slots) {
   }));
 }
 
-function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
+function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId, pageContent) {
   if (!tzEntry) return null;
 
   const pageType = tzEntry.pageType;
@@ -336,7 +369,14 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
         fields = buildMonthPageFields(lineGuideId, pageNumber, slots);
         photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'event_photo' || pageType === 'baptism_page') {
-        fields = tzEntry.hasDate ? buildDateField(lineGuideId, pageNumber, 'Дата', 0) : [];
+        fields = tzEntry.hasDate
+          ? buildDateField(
+              lineGuideId,
+              pageNumber,
+              'Дата',
+              resolveDateSlotIndex(slots, tzEntry, pageContent),
+            )
+          : [];
         photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'free_photo_caption') {
         fields = buildCaptionField(lineGuideId, pageNumber);

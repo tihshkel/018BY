@@ -22,6 +22,7 @@ import {
 } from '@/utils/imageContentRect';
 import { wrapTextToLines } from '@/utils/textWrap';
 import {
+  getEffectiveTemplateFontSize,
   getTemplateLineTextTop,
   getTemplateLineTypography,
 } from '@/utils/templateLineText';
@@ -895,6 +896,173 @@ function refineKidsMonthLineSlotNorm(
   };
 }
 
+/** kids_48 p8 «Первый день дома» — дата справа от статической подписи «ДАТА». */
+const KIDS_P8_DATE_LINE_TEXT_INSET_NORM = 0.018;
+
+/** kids_48 нижняя дата «ДАТА» — slot 0 на p12/14/15/17, slot 1 на p18/19. */
+const KIDS_BOTTOM_DATE_PAGES: readonly number[] = [12, 14, 15, 17];
+const KIDS_BOTTOM_DATE_SLOT1_PAGES: readonly number[] = [18, 19];
+const KIDS_BOTTOM_DATE_LINE_TEXT_INSET_NORM = 0.024;
+/** Доп. ширина справа — OCR-слот уже, чем линия под датой DD.MM.YYYY. */
+const KIDS_BOTTOM_DATE_LINE_EXTRA_RIGHT_NORM = 0.034;
+
+/** kids_48 p16 «Мои сновидения» — дата после «(ДАТА)», OCR-слот узкий. */
+const KIDS_DREAMS_PAGE = 16;
+const KIDS_P16_DATE_LINE_TEXT_INSET_NORM = 0.012;
+
+const KIDS_ACHIEVEMENTS_PAGE = 13;
+/** kids_48 p13 «Мои достижения» — отступ вводимого текста от статической подписи. */
+const KIDS_P13_DATE_LINE_TEXT_INSET_NORM = 0.02;
+const KIDS_P13_ACHIEVEMENT_LINE_TEXT_INSET_NORM = 0.018;
+/** Слот «Ползаю» — OCR начинается левее остальных строк. */
+const KIDS_P13_CRAWLS_LINE_TEXT_INSET_NORM = 0.034;
+
+const KIDS_TEETH_PAGE = 10;
+const KIDS_TEETH_TOOTH_LINE_WIDTH_NORM = 0.132;
+/** Нижняя челюсть справа — даты чуть правее, чтобы не наезжать на номера зубов. */
+const KIDS_TEETH_LOWER_RIGHT_DATE_X_INSET_NORM = 0.02;
+/** Нижняя челюсть слева — симметрично левее. */
+const KIDS_TEETH_LOWER_LEFT_DATE_X_INSET_NORM = 0.016;
+const KIDS_TEETH_LOWER_JAW_STROKE_Y_MIN = 0.53;
+/** Y штриха из PDF / line-guides (не верх полосы). */
+const KIDS_TEETH_BRUSHING_STROKE_Y = 0.8349;
+const KIDS_TEETH_BRUSHING_WRITABLE_X = 0.562;
+const KIDS_TEETH_BRUSHING_WRITABLE_WIDTH = 0.36;
+const KIDS_TEETH_COUNT_STROKE_Y = 0.895;
+const KIDS_TEETH_COUNT_WRITABLE_X = 0.524;
+const KIDS_TEETH_COUNT_WRITABLE_WIDTH = 0.065;
+
+function isKidsTeethPage(page: number): boolean {
+  return page === KIDS_TEETH_PAGE;
+}
+
+function isKidsTeethBottomInputSlot(page: number, slotIndex: number): boolean {
+  return isKidsTeethPage(page) && (slotIndex === 20 || slotIndex === 22);
+}
+
+/** Слоты дат зубов и нижних полей — norm.y это штрих, не верх полосы. */
+function isKidsTeethStrokeLineInputSlot(
+  page: number,
+  slotIndex: number,
+  inputKind?: string,
+): boolean {
+  if (!isKidsTeethPage(page) || slotIndex === 21) return false;
+  if (slotIndex <= 19) return (inputKind ?? 'line') === 'line';
+  return slotIndex === 20 || slotIndex === 22;
+}
+
+/** Как на month pages: norm.y — штрих, writable-полоса над линией. */
+function getKidsTeethLineSlotTopNormY(
+  norm: Pick<NormalizedLineSlot, 'y' | 'height'>,
+): number {
+  return norm.y - norm.height;
+}
+
+function refineKidsTeethPageSlotNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (lineGuideId !== 'kids_48' || !isKidsTeethPage(page)) return norm;
+
+  if (slotIndex <= 19) {
+    const centerX = norm.x + norm.width / 2;
+    const width = KIDS_TEETH_TOOTH_LINE_WIDTH_NORM;
+    let x = clamp01(centerX - width / 2);
+    const isLowerJaw = norm.y >= KIDS_TEETH_LOWER_JAW_STROKE_Y_MIN;
+    if (isLowerJaw && centerX >= 0.48) {
+      x = clamp01(x + KIDS_TEETH_LOWER_RIGHT_DATE_X_INSET_NORM);
+    } else if (isLowerJaw && centerX < 0.45) {
+      x = clamp01(x - KIDS_TEETH_LOWER_LEFT_DATE_X_INSET_NORM);
+    }
+    return {
+      ...norm,
+      x,
+      width: Math.max(0.05, Math.min(width, 0.98 - x)),
+      lineStrokeAtBottom: true,
+    };
+  }
+
+  if (slotIndex === 20) {
+    return {
+      ...norm,
+      x: KIDS_TEETH_BRUSHING_WRITABLE_X,
+      width: KIDS_TEETH_BRUSHING_WRITABLE_WIDTH,
+      y: KIDS_TEETH_BRUSHING_STROKE_Y,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+    };
+  }
+
+  if (slotIndex === 22) {
+    return {
+      ...norm,
+      x: KIDS_TEETH_COUNT_WRITABLE_X,
+      width: KIDS_TEETH_COUNT_WRITABLE_WIDTH,
+      y: KIDS_TEETH_COUNT_STROKE_Y,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+    };
+  }
+
+  return norm;
+}
+
+function isKidsP8DateLineSlot(lineGuideId: string, page: number, slotIndex: number): boolean {
+  return lineGuideId === 'kids_48' && page === 8 && slotIndex === 1;
+}
+
+function isKidsBottomDateLineSlot(page: number, slotIndex: number): boolean {
+  if (slotIndex === 0 && KIDS_BOTTOM_DATE_PAGES.includes(page)) return true;
+  if (slotIndex === 1 && KIDS_BOTTOM_DATE_SLOT1_PAGES.includes(page)) return true;
+  return false;
+}
+
+function isKidsP12DateLineSlot(page: number, slotIndex: number): boolean {
+  return isKidsBottomDateLineSlot(page, slotIndex);
+}
+
+function isKidsBottomDateStrokeLineInputSlot(page: number, slotIndex: number): boolean {
+  return isKidsBottomDateLineSlot(page, slotIndex);
+}
+
+function isKidsP12StrokeLineInputSlot(page: number, slotIndex: number): boolean {
+  return isKidsBottomDateStrokeLineInputSlot(page, slotIndex);
+}
+
+function isKidsP16DreamsDateLineSlot(page: number, slotIndex: number): boolean {
+  return page === KIDS_DREAMS_PAGE && slotIndex === 0;
+}
+
+function isKidsStrokeDateLineInputSlot(page: number, slotIndex: number): boolean {
+  return isKidsBottomDateStrokeLineInputSlot(page, slotIndex) || isKidsP16DreamsDateLineSlot(page, slotIndex);
+}
+
+function isKidsP13DateLineSlot(page: number, slotIndex: number): boolean {
+  return page === KIDS_ACHIEVEMENTS_PAGE && slotIndex === 0;
+}
+
+function isKidsP13AchievementLineSlot(page: number, slotIndex: number): boolean {
+  return page === KIDS_ACHIEVEMENTS_PAGE && slotIndex >= 1 && slotIndex <= 7;
+}
+
+function applyLabeledLineTextInset(
+  norm: NormalizedLineSlot,
+  inset: number,
+): NormalizedLineSlot {
+  const x = clamp01(norm.x + inset);
+  const width = Math.max(0.05, Math.min(norm.width - inset, 0.98 - x));
+  return { ...norm, x, width };
+}
+
+function resolveKidsP13AchievementLineInset(slotIndex: number): number {
+  if (slotIndex === 3) return KIDS_P13_CRAWLS_LINE_TEXT_INSET_NORM;
+  return KIDS_P13_ACHIEVEMENT_LINE_TEXT_INSET_NORM;
+}
+
 /** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
 function refineNormalizedSlotForTextLayout(
   lineGuideId: string,
@@ -905,6 +1073,61 @@ function refineNormalizedSlotForTextLayout(
 ): NormalizedLineSlot {
   if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
+  }
+
+  if (isKidsP8DateLineSlot(lineGuideId, page, slotIndex)) {
+    const x = clamp01(norm.x + KIDS_P8_DATE_LINE_TEXT_INSET_NORM);
+    const width = Math.max(
+      0.05,
+      Math.min(norm.width - KIDS_P8_DATE_LINE_TEXT_INSET_NORM, 0.98 - x),
+    );
+    return { ...norm, x, width };
+  }
+
+  if (lineGuideId === 'kids_48' && isKidsP16DreamsDateLineSlot(page, slotIndex)) {
+    const inset = KIDS_P16_DATE_LINE_TEXT_INSET_NORM;
+    const x = clamp01(norm.x + inset);
+    const width = Math.max(0.12, 0.98 - x);
+    return {
+      ...norm,
+      x,
+      width,
+      y: norm.y,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+    };
+  }
+
+  if (lineGuideId === 'kids_48' && isKidsBottomDateLineSlot(page, slotIndex)) {
+    const inset = KIDS_BOTTOM_DATE_LINE_TEXT_INSET_NORM;
+    const x = clamp01(norm.x + inset);
+    const rightEdge = Math.min(
+      0.98,
+      norm.x + norm.width + inset + KIDS_BOTTOM_DATE_LINE_EXTRA_RIGHT_NORM,
+    );
+    const width = Math.max(0.1, rightEdge - x);
+    return {
+      ...norm,
+      x,
+      width,
+      y: norm.y,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+    };
+  }
+
+  if (lineGuideId === 'kids_48' && isKidsTeethPage(page)) {
+    return refineKidsTeethPageSlotNorm(lineGuideId, page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && isKidsP13DateLineSlot(page, slotIndex)) {
+    return applyLabeledLineTextInset(norm, KIDS_P13_DATE_LINE_TEXT_INSET_NORM);
+  }
+
+  if (lineGuideId === 'kids_48' && isKidsP13AchievementLineSlot(page, slotIndex)) {
+    return applyLabeledLineTextInset(norm, resolveKidsP13AchievementLineInset(slotIndex));
   }
 
   if (!lineGuideId?.startsWith('diary_interior_')) {
@@ -1040,6 +1263,67 @@ export function isPregnancyWeeklyStructuredPage(
   if (lineGuideId === 'pregnancy_60') return isPregnancy60WeeklyPage(page);
   if (lineGuideId === 'pregnancy_a5') return isPregnancyA5WeeklyPage(page);
   return false;
+}
+
+/**
+ * Текстовые строки n-недели (дата, планы, ощущения) — единый stroke-baseline layout.
+ */
+export function isPregnancyWeeklyTextLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind' | 'textAnchorTop'>,
+): boolean {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
+  if (isPregnancy60WeeklyValueSlot(lineGuideId, slot)) return false;
+  return (slot.inputKind ?? 'line') === 'line';
+}
+
+/** @deprecated Используйте isPregnancyWeeklyTextLineSlot */
+export function isPregnancyWeeklyRuledLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind' | 'textAnchorTop'>,
+): boolean {
+  return isPregnancyWeeklyTextLineSlot(lineGuideId, slot);
+}
+
+/**
+ * Начало поля в continuation group.
+ * После split каждая строка — отдельная аннотация; для штриха нужен старт поля, не индекс строки.
+ */
+export function getPregnancyWeeklyFieldStartIndex(
+  slotIndex: number,
+  slots: readonly Pick<
+    TextLineSlot,
+    'index' | 'continuationGroup' | 'hasLabel' | 'inputKind' | 'normHeight'
+  >[],
+): number {
+  const slot = slots[slotIndex];
+  if (!slot) return slotIndex;
+
+  const groupSlots = slots
+    .filter((s) => s.continuationGroup === slot.continuationGroup)
+    .sort((a, b) => a.index - b.index);
+  if (groupSlots.length === 0) return slotIndex;
+
+  const first = groupSlots[0]!;
+  const unlabeled = groupSlots.filter(
+    (s) =>
+      !s.hasLabel &&
+      (s.inputKind ?? 'line') === 'line' &&
+      s.index !== 1 &&
+      s.index !== 5,
+  );
+
+  const labelOnlyHead =
+    first.hasLabel &&
+    (first.normHeight ?? 0) < 0.038 &&
+    unlabeled.length > 0 &&
+    unlabeled[0]!.index > first.index;
+
+  if (labelOnlyHead) {
+    return unlabeled[0]!.index;
+  }
+
+  return first.index;
 }
 
 function getPregnancyWeeklyCalib(
@@ -1204,6 +1488,11 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
+    'kids-p8-date-inset-v1',
+    'kids-bottom-date-line-v5',
+    'kids-p16-dreams-date-v2',
+    'kids-p13-line-inset-v1',
+    'kids-teeth-page-v16',
   ].join('|');
 }
 
@@ -1260,9 +1549,15 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
             isKidsMonthPage(page) &&
             index >= 1
           ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : anchorTop
-            ? layoutNorm.y
-            : layoutNorm.y - layoutNorm.height / 2;
+          : lineGuideId === 'kids_48' &&
+              isKidsStrokeDateLineInputSlot(page, index)
+            ? getKidsTeethLineSlotTopNormY(layoutNorm)
+            : lineGuideId === 'kids_48' &&
+              isKidsTeethStrokeLineInputSlot(page, index, layoutNorm.inputKind)
+            ? getKidsTeethLineSlotTopNormY(layoutNorm)
+            : anchorTop
+              ? layoutNorm.y
+              : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -1274,6 +1569,11 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const lineStrokeAtBottom =
       layoutNorm.lineStrokeAtBottom === true ||
       (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1) ||
+      (lineGuideId === 'kids_48' && isKidsStrokeDateLineInputSlot(page, index)) ||
+      (lineGuideId === 'kids_48' &&
+        isKidsTeethPage(page) &&
+        (index <= 19 || index === 20 || index === 22) &&
+        (layoutNorm.inputKind ?? 'line') === 'line') ||
       isDiaryInteriorLineGuide(lineGuideId);
 
     return {
@@ -1590,20 +1890,20 @@ export function layoutTextAnnotationFromSlot(
   fontSize: number,
   lineGuideId?: string,
   textContent?: string,
-): Pick<
-  Annotation,
-  'x' | 'y' | 'width' | 'height' | 'templateLineStart' | 'templateLineCount' | 'fontSize'
-> {
+  fontId?: string,
+): Pick<Annotation, 'x' | 'y' | 'width' | 'height' | 'fontSize'> {
   const layout = layoutAnnotationFromSlot(slot);
   const inputKind = slot.inputKind ?? 'line';
-  const textTop = getTemplateLineTextTop(slot, fontSize, lineGuideId);
   const typography = getTemplateLineTypography(
     fontSize,
     slot.lineHeight,
     inputKind,
     lineGuideId,
   );
-  let effectiveFontSize = typography.fontSize;
+  let effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, fontSize, {
+    textContent,
+    fontId,
+  });
   if (
     isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
     textContent &&
@@ -1616,6 +1916,22 @@ export function layoutTextAnnotationFromSlot(
       effectiveFontSize = Math.max(
         9,
         Math.floor(effectiveFontSize * (slot.width / neededWidth)),
+      );
+    }
+  } else if (
+    lineGuideId === 'kids_48' &&
+    slot.page === KIDS_TEETH_PAGE &&
+    textContent &&
+    slot.width > 0
+  ) {
+    const profile = getTemplateTypographyProfile(lineGuideId);
+    const charWidth = effectiveFontSize * profile.charWidthRatio;
+    const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.96);
+    const neededWidth = textContent.length * charWidth;
+    if (neededWidth > slackWidth) {
+      effectiveFontSize = Math.max(
+        8,
+        Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
       );
     }
   } else if (
@@ -1634,14 +1950,16 @@ export function layoutTextAnnotationFromSlot(
       );
     }
   }
+  const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
   const rowHeight = Math.max(
     typography.lineHeight,
     effectiveFontSize * 1.05,
     slot.lineHeight,
   );
   return {
-    ...layout,
+    x: layout.x,
     y: textTop,
+    width: layout.width,
     height: rowHeight,
     fontSize: effectiveFontSize,
   };

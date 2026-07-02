@@ -79,7 +79,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   const effectiveFontSize = getEffectiveTemplateFontSize(
     lineGuideId,
     startSlot,
-    ann.fontSize || 16
+    ann.fontSize || 16,
+    { textContent: ann.content, fontId: ann.fontFamily },
   );
 
   const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
