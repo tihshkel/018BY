@@ -9,6 +9,8 @@ export const DEFAULT_PHOTO_SLOT_TRANSFORM: PhotoSlotTransform = {
 export const MIN_PHOTO_SCALE = 0.6;
 export const MAX_PHOTO_SCALE = 3.5;
 export const MAX_PHOTO_OFFSET = 1.2;
+/** Доп. зум в пределах safe zone (кадрирование в рамке «Место для фото»). */
+export const PHOTO_SAFE_ZONE_SCALE_HEADROOM = 2;
 
 export function clampPhotoScaleBetween(scale: number, minScale: number, maxScale = MAX_PHOTO_SCALE): number {
   'worklet';
@@ -56,6 +58,25 @@ export function isNonDefaultPhotoSlotTransform(
     Math.abs(normalized.offsetX) > TRANSFORM_EPSILON ||
     Math.abs(normalized.offsetY) > TRANSFORM_EPSILON
   );
+}
+
+/** Для предпросмотра/экспорта: groupTransform или кадрирование слота 0 из формы. */
+export function resolvePhotoGroupTransform(
+  values: {
+    photoGroupTransform?: PhotoSlotTransform | null;
+    photoSlotTransforms?: Record<string, PhotoSlotTransform>;
+  },
+  blockId: string,
+  slotIndex = 0,
+): PhotoSlotTransform {
+  if (isNonDefaultPhotoSlotTransform(values.photoGroupTransform)) {
+    return normalizePhotoSlotTransform(values.photoGroupTransform);
+  }
+  const slotTransform = values.photoSlotTransforms?.[photoSlotTransformKey(blockId, slotIndex)];
+  if (isNonDefaultPhotoSlotTransform(slotTransform)) {
+    return normalizePhotoSlotTransform(slotTransform);
+  }
+  return DEFAULT_PHOTO_SLOT_TRANSFORM;
 }
 
 function applyPhotoSlotTransformRaw(
@@ -198,8 +219,8 @@ export function clampPhotoBlockTransform(
   }
 
   const maxScale = Math.min(
-    safeBounds.width / Math.max(baseBlock.width, 1),
-    safeBounds.height / Math.max(baseBlock.height, 1),
+    (safeBounds.width / Math.max(baseBlock.width, 1)) * PHOTO_SAFE_ZONE_SCALE_HEADROOM,
+    (safeBounds.height / Math.max(baseBlock.height, 1)) * PHOTO_SAFE_ZONE_SCALE_HEADROOM,
     MAX_PHOTO_SCALE,
   );
   scale = Math.max(MIN_PHOTO_SCALE, Math.min(scale, maxScale));

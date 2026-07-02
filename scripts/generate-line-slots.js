@@ -5,6 +5,7 @@ const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides'
 const { applyDiaryLineSlotOverrides } = require('./diary-line-slot-overrides');
 const { filterPregnancyA5LineSlots } = require('./pregnancy-a5-line-slot-filters');
 const { applyPregnancyA5Page44LineSlotOverrides } = require('./pregnancy-a5-page44-line-slot-overrides');
+const { applyKids48LineSlotOverrides } = require('./kids-48-line-slot-overrides');
 const { PREGNANCY_A5_PAGE44_OPTION_FILLS } = require('./pregnancy-a5-page44-option-fills');
 const { buildDiaryMoodOptionFillsManifest } = require('./diary-mood-option-fills');
 const { PNG } = require('pngjs');
@@ -1282,6 +1283,13 @@ async function main() {
       console.log(`[${spec.albumId}] applied page 44 birth questionnaire block overrides`);
     }
 
+    if (spec.albumId === 'kids_48') {
+      const kidsSlots = applyKids48LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = kidsSlots.slots;
+      albumGuides = kidsSlots.guides;
+      console.log(`[${spec.albumId}] applied kids_48 TZ line slot overrides`);
+    }
+
     if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {
       lineSlots[spec.albumId] = { ...lineSlots[spec.albumId], ...albumSlots };
       lineGuides[spec.albumId] = { ...lineGuides[spec.albumId], ...albumGuides };
@@ -1321,6 +1329,7 @@ async function main() {
       `  inputKind?: 'line' | 'block';\n` +
       `  textAnchorTop?: boolean;\n` +
       `  lineStrokeAtBottom?: boolean;\n` +
+      `  teethDate?: boolean;\n` +
       `};\n\n` +
       `export const LINE_SLOTS = ${JSON.stringify(lineSlots, null, 2)} as const;\n`,
     'utf8'

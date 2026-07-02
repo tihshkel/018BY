@@ -39,6 +39,10 @@ import {
 } from "@/utils/albumPageNavigation";
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { resolvePhotoBlockSafeZoneViewportRect } from "@/utils/photoBlockSafeZone";
+import {
+  DEFAULT_PHOTO_SLOT_TRANSFORM,
+  normalizePhotoSlotTransform,
+} from "@/utils/photoSlotTransform";
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
 import {
   getBlankInteriorPageUri,
@@ -146,7 +150,6 @@ export default function AlbumPagePreviewScreen() {
     Boolean(schema?.templateLibraryId) &&
     !isFinalPreview &&
     (showBlankTemplateGuide || !hasPhotoContent);
-  const preferDesignLayout = !isFinalPreview && !hasContent;
   const resolvedImageUri = useMemo(
     () =>
       resolvePagePreviewBackgroundUri({
@@ -154,14 +157,12 @@ export default function AlbumPagePreviewScreen() {
         sourcePageNumber: instance?.sourcePageNumber ?? schema?.sourcePageNumber,
         baseImageUri,
         variantId: effectiveVariantId,
-        preferDesignLayout,
+        quality: 'full',
       }),
     [
       baseImageUri,
       effectiveVariantId,
       instance?.sourcePageNumber,
-      preferDesignLayout,
-      project.lineGuideId,
       resolvedLineGuideId,
       schema?.sourcePageNumber,
     ],
@@ -234,17 +235,24 @@ export default function AlbumPagePreviewScreen() {
     primaryPhotoBlock?.variants.find((item) => item.variantId === primaryVariantId) ??
     primaryPhotoBlock?.variants[0];
   const isMultiSlotCollage = (primaryVariant?.slots ?? 0) > 1;
-  const shouldMaskPdfPhotoPlaceholder =
+  const primaryPhotoGroupTransform = useMemo(
+    () =>
+      normalizePhotoSlotTransform(
+        values?.photoGroupTransform ?? DEFAULT_PHOTO_SLOT_TRANSFORM,
+      ),
+    [values?.photoGroupTransform],
+  );
+  const showPhotoInteraction =
     isFinalPreview &&
     !isLocked &&
     primaryPhotoBlock != null &&
     hasFilledPhotos &&
-    !isCircleTreeBlock &&
-    !isMultiSlotCollage;
-  const showPhotoBlockEditor = shouldMaskPdfPhotoPlaceholder;
+    !isCircleTreeBlock;
+  const showPhotoBlockEditor = showPhotoInteraction && !isMultiSlotCollage;
+  const shouldMaskPdfPhotoPlaceholder = showPhotoBlockEditor;
 
   const photoSafeBounds = useMemo(() => {
-    if (!shouldMaskPdfPhotoPlaceholder || !instance || !schema) return null;
+    if (!showPhotoBlockEditor || !instance || !schema) return null;
     return resolvePhotoBlockSafeZoneViewportRect({
       lineGuideId: resolvedLineGuideId,
       sourcePageNumber: instance.sourcePageNumber ?? schema.sourcePageNumber,
@@ -264,7 +272,6 @@ export default function AlbumPagePreviewScreen() {
     resolvedLineGuideId,
     schema,
     showPhotoBlockEditor,
-    shouldMaskPdfPhotoPlaceholder,
     sourceImageSize?.height,
     sourceImageSize?.width,
   ]);
@@ -282,12 +289,12 @@ export default function AlbumPagePreviewScreen() {
   });
 
   const displayAnnotations = useMemo(() => {
-    if (!showPhotoBlockEditor) return annotations;
-    // Draggable collage editor redraws user photos; keep gender fills and placeholders.
+    if (!shouldMaskPdfPhotoPlaceholder) return annotations;
+    // Interactive photo layer redraws user photos; keep gender fills and placeholders.
     return annotations.filter(
       (item) => item.type !== "image" || !item.imageUri,
     );
-  }, [annotations, showPhotoBlockEditor]);
+  }, [annotations, shouldMaskPdfPhotoPlaceholder]);
 
   useEffect(() => {
     setReady(false);
@@ -413,12 +420,10 @@ export default function AlbumPagePreviewScreen() {
       <AppText variant="bodySm" style={styles.previewHint}>
         {isFinalPreview
           ? showPhotoBlockEditor
-            ? "Нажмите на фото — появится рамка. Перетаскивайте, ущипните для масштаба; фото остаётся в рамке PDF"
+            ? "Кадрирование задано при редактировании. Нажмите на фото — рамка: перетаскивание и щипок меняют размер и позицию на странице"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
           : showTemplateWireframe
             ? "Схема страницы: серые блоки — места для фото, линии — поля для текста"
-            : preferDesignLayout
-              ? "Пример макета из дизайн-PDF — здесь видно, где текст и фото"
             : "Предпросмотр макета — так страница будет выглядеть в книге"}
       </AppText>
 
@@ -486,16 +491,18 @@ export default function AlbumPagePreviewScreen() {
                   }
                 }}
                 middleLayer={
-                  showPhotoBlockEditor && instance ? (
+                  instance && primaryPhotoBlock && showPhotoBlockEditor ? (
                     <AlbumPreviewPhotoBlockEditor
+                      blockId={primaryPhotoBlock.blockId}
                       lineGuideId={resolvedLineGuideId}
                       sourcePageNumber={
                         instance.sourcePageNumber ?? schema.sourcePageNumber
                       }
                       variantId={primaryVariantId}
                       slotUris={primarySlotUris}
+                      slotTransforms={values?.photoSlotTransforms ?? {}}
                       templateLibraryId={schema.templateLibraryId}
-                      groupTransform={values?.photoGroupTransform}
+                      groupTransform={primaryPhotoGroupTransform}
                       safeBounds={photoSafeBounds}
                       coordinateWidth={previewLayout.coordinateWidth}
                       coordinateHeight={previewLayout.coordinateHeight}

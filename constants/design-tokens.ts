@@ -77,8 +77,10 @@ export const radii = {
   xl: 24,
 } as const;
 
-/** Скругление углов фото в пустых альбомах (редактор, превью, PDF). */
+/** Лёгкое скругление углов фото во всех шаблонах (редактор, превью, PDF). */
 export const BLANK_ALBUM_PHOTO_RADIUS = radii.xs;
+/** @deprecated alias — use BLANK_ALBUM_PHOTO_RADIUS */
+export const ALBUM_PHOTO_RADIUS = BLANK_ALBUM_PHOTO_RADIUS;
 
 type FontWeight = TextStyle['fontWeight'];
 

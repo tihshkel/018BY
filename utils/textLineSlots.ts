@@ -1,4 +1,7 @@
 import {
+  getKids48EventDateLineNorm,
+} from '@/constants/kids-48-event-date-slots';
+import {
   getAlbumTextMargins,
   getKidsMonthAnswerLineLayout,
   getKidsMonthAnswerStrokeY,
@@ -893,11 +896,31 @@ function refineKidsMonthLineSlotNorm(
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     continuationGroup: slotIndex,
     inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+  };
+}
+
+/** «Рост и вес до года» — PDF даёт высокую ячейку; штрих на y, полоса как у месячных страниц. */
+function refineKids48GrowthWeightSlot(
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (page !== 11 || norm.height <= KIDS_MONTH_LINE_BAND_HEIGHT) {
+    return norm;
+  }
+  const strokeY = norm.y;
+  return {
+    ...norm,
+    y: strokeY - KIDS_MONTH_LINE_BAND_HEIGHT,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
   };
 }
 
 /** kids_48 p8 «Первый день дома» — дата справа от статической подписи «ДАТА». */
-const KIDS_P8_DATE_LINE_TEXT_INSET_NORM = 0.018;
 
 /** kids_48 нижняя дата «ДАТА» — slot 0 на p12/14/15/17, slot 1 на p18/19. */
 const KIDS_BOTTOM_DATE_PAGES: readonly number[] = [12, 14, 15, 17];
@@ -1011,8 +1034,14 @@ function refineKidsTeethPageSlotNorm(
   return norm;
 }
 
-function isKidsP8DateLineSlot(lineGuideId: string, page: number, slotIndex: number): boolean {
-  return lineGuideId === 'kids_48' && page === 8 && slotIndex === 1;
+/** kids_48 p8/p9 — дата на штрихе «ДАТА» (event_photo). */
+function isKidsEventDateLineSlot(
+  lineGuideId: string,
+  page: number,
+  slotIndex: number,
+): boolean {
+  if (lineGuideId !== 'kids_48') return false;
+  return (page === 8 && slotIndex === 1) || (page === 9 && slotIndex === 0);
 }
 
 function isKidsBottomDateLineSlot(page: number, slotIndex: number): boolean {
@@ -1038,7 +1067,11 @@ function isKidsP16DreamsDateLineSlot(page: number, slotIndex: number): boolean {
 }
 
 function isKidsStrokeDateLineInputSlot(page: number, slotIndex: number): boolean {
-  return isKidsBottomDateStrokeLineInputSlot(page, slotIndex) || isKidsP16DreamsDateLineSlot(page, slotIndex);
+  if (isKidsEventDateLineSlot('kids_48', page, slotIndex)) return false;
+  return (
+    isKidsBottomDateStrokeLineInputSlot(page, slotIndex) ||
+    isKidsP16DreamsDateLineSlot(page, slotIndex)
+  );
 }
 
 function isKidsP13DateLineSlot(page: number, slotIndex: number): boolean {
@@ -1075,13 +1108,20 @@ function refineNormalizedSlotForTextLayout(
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
   }
 
-  if (isKidsP8DateLineSlot(lineGuideId, page, slotIndex)) {
-    const x = clamp01(norm.x + KIDS_P8_DATE_LINE_TEXT_INSET_NORM);
-    const width = Math.max(
-      0.05,
-      Math.min(norm.width - KIDS_P8_DATE_LINE_TEXT_INSET_NORM, 0.98 - x),
-    );
-    return { ...norm, x, width };
+  if (isKidsEventDateLineSlot(lineGuideId, page, slotIndex)) {
+    const custom = getKids48EventDateLineNorm(page, slotIndex);
+    if (custom) {
+      return {
+        ...norm,
+        x: custom.x,
+        y: custom.y,
+        width: custom.width,
+        height: custom.height,
+        inputKind: 'line',
+        lineStrokeAtBottom: true,
+        textAnchorTop: true,
+      };
+    }
   }
 
   if (lineGuideId === 'kids_48' && isKidsP16DreamsDateLineSlot(page, slotIndex)) {
@@ -1128,6 +1168,10 @@ function refineNormalizedSlotForTextLayout(
 
   if (lineGuideId === 'kids_48' && isKidsP13AchievementLineSlot(page, slotIndex)) {
     return applyLabeledLineTextInset(norm, resolveKidsP13AchievementLineInset(slotIndex));
+  }
+
+  if (lineGuideId === 'kids_48' && page === 11) {
+    return refineKids48GrowthWeightSlot(page, norm);
   }
 
   if (!lineGuideId?.startsWith('diary_interior_')) {
@@ -1488,7 +1532,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'kids-p8-date-inset-v1',
+    'kids-event-date-line-v2',
     'kids-bottom-date-line-v5',
     'kids-p16-dreams-date-v2',
     'kids-p13-line-inset-v1',
@@ -1541,7 +1585,8 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
-      layoutNorm.lineStrokeAtBottom === true;
+      layoutNorm.lineStrokeAtBottom === true ||
+      (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1);
     const topNormY =
       isDiaryInteriorLineGuide(lineGuideId)
         ? getDiarySlotTopNormY(layoutNorm)

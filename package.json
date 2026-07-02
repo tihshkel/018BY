@@ -1,7 +1,7 @@
 {
   "name": "018by",
   "main": "expo-router/entry",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -29,6 +29,9 @@
     "generate:line-slots:png": "USE_PNG_SLOTS=1 node ./scripts/generate-line-slots.js",
     "visualize:line-slots": "node ./scripts/visualize-line-slots.js",
     "audit:line-slots": "node ./scripts/audit-line-slots.js",
+    "calibrate:font-char-widths": "node ./scripts/calibrate-font-char-widths.js",
+    "audit:text-line-capacity": "node ./scripts/calibrate-font-char-widths.js && node ./scripts/audit-text-line-capacity.js",
+    "audit:text-line-capacity:fail": "FAIL_ON_ERROR=1 node ./scripts/calibrate-font-char-widths.js && FAIL_ON_ERROR=1 node ./scripts/audit-text-line-capacity.js",
     "audit:kids-48-pages": "node ./scripts/audit-kids-48-pages.js",
     "audit:kids-48-pages:visual": "node ./scripts/audit-kids-48-pages.js --visual",
     "audit:album-photo-pages": "node ./scripts/audit-album-photo-pages.js",
@@ -39,7 +42,7 @@
     "verify:line-slots": "npm run generate:line-slots && npm run audit:line-slots",
     "verify:diary-field-slots": "node ./scripts/verify-diary-field-slot-map.js",
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
-    "verify:designed-albums": "npm run verify:line-slots && node ./scripts/export-photo-pages-manifest.js && node ./scripts/generate-birthday-48-tz-manifest.js && node ./scripts/verify-field-labels.js && node ./scripts/verify-photo-flows.js && node ./scripts/verify-export-matrix.js && node ./scripts/verify-export-parity.js && node ./scripts/verify-photo-parity.js && node ./scripts/verify-tz-compliance.js && node ./scripts/verify-diary-field-slot-map.js && npm run audit:diary-field-semantic:fail && node ./scripts/diary-full-page-audit.js && npm run audit:diary-brown-text-baseline:fail && node ./scripts/audit-kids-48-pages.js --fail && node ./scripts/audit-album-photo-pages.js --fail",
+    "verify:designed-albums": "npm run verify:line-slots && npm run calibrate:font-char-widths && npm run audit:text-line-capacity:fail && node ./scripts/export-photo-pages-manifest.js && node ./scripts/generate-birthday-48-tz-manifest.js && node ./scripts/verify-field-labels.js && node ./scripts/verify-photo-flows.js && node ./scripts/verify-export-matrix.js && node ./scripts/verify-export-parity.js && node ./scripts/verify-photo-parity.js && node ./scripts/verify-tz-compliance.js && node ./scripts/verify-diary-field-slot-map.js && npm run audit:diary-field-semantic:fail && node ./scripts/diary-full-page-audit.js && npm run audit:diary-brown-text-baseline:fail && node ./scripts/audit-kids-48-pages.js --fail && node ./scripts/audit-album-photo-pages.js --fail",
     "test:e2e:designed-albums": "npx playwright test e2e/playwright/designed-albums-export.spec.ts",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",

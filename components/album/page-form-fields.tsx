@@ -7,13 +7,15 @@ import { AppText } from '@/components/ui/app-text';
 import { useAppScreenScrollToField } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageField, FieldTextStyle } from '@/types/album-page-schema';
-import { isSquareBlankLineGuide } from '@/utils/albumImages';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 import { parseAlbumDate } from '@/utils/albumDateFormat';
 import {
   clampFieldInput,
   countFieldCharacters,
+  FIELD_LIMIT_REFERENCE_VIEWPORT,
   getFieldCharacterLimit,
 } from '@/utils/albumFieldLimits';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
 import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
@@ -26,6 +28,7 @@ type PageFormFieldsProps = {
   sectionTitle?: string;
   lineGuideId: string;
   sourcePageNumber: number;
+  fontId?: string | null;
 };
 
 const MIN_FIELD_FONT_SIZE = 10;
@@ -194,6 +197,16 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
+function resolveFormFieldAutoCapitalize(field: AlbumPageField): 'none' | 'sentences' | 'words' {
+  if (field.type === 'date' || field.type === 'time' || field.type === 'number') {
+    return 'none';
+  }
+  if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') {
+    return 'sentences';
+  }
+  return 'none';
+}
+
 const TypedFormField = memo(function TypedFormField({
   field,
   value,
@@ -222,6 +235,8 @@ const TypedFormField = memo(function TypedFormField({
         }
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
+        autoCapitalize={resolveFormFieldAutoCapitalize(field)}
+        autoCorrect={false}
       />
       <FieldCharacterCounter value={value} limit={characterLimit} />
     </View>
@@ -314,8 +329,10 @@ export const PageFormFields = memo(function PageFormFields({
   sectionTitle,
   lineGuideId,
   sourcePageNumber,
+  fontId,
 }: PageFormFieldsProps) {
-  const showTextStyleToolbar = isSquareBlankLineGuide(lineGuideId);
+  const showTextStyleToolbar = usesTemplateLineTextEditing(lineGuideId);
+  const resolvedFontId = normalizeAlbumFontId(fontId);
   const fieldLimits = useMemo(() => {
     const limits: Record<string, number | undefined> = {};
     for (const field of fields) {
@@ -323,10 +340,13 @@ export const PageFormFields = memo(function PageFormFields({
         field,
         lineGuideId,
         sourcePageNumber,
+        fontId: resolvedFontId,
+        viewportWidth: FIELD_LIMIT_REFERENCE_VIEWPORT.width,
+        viewportHeight: FIELD_LIMIT_REFERENCE_VIEWPORT.height,
       });
     }
     return limits;
-  }, [fields, lineGuideId, sourcePageNumber]);
+  }, [fields, lineGuideId, resolvedFontId, sourcePageNumber]);
 
   if (fields.length === 0) return null;
 

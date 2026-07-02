@@ -318,8 +318,29 @@ export function getMissingPageItems(
     if (variant) {
       for (let i = 0; i < variant.slots; i += 1) {
         if (!hasText(blockValues?.slots[i])) continue;
-        if (hasText(values?.photoCaptions?.[i])) continue;
+        const hasCaptionText =
+          hasText(values?.caption) ||
+          hasText(values?.photoCaptions?.[i]) ||
+          (i === 0 &&
+            (values?.photoCaptions ?? []).some((caption) => hasText(caption)));
+        if (hasCaptionText) continue;
         missing.push(`Подпись к фото ${i + 1}`);
+      }
+    }
+  }
+
+  if (schema.pageType === 'free_photo_caption') {
+    const block = schema.photoBlocks?.[0];
+    const blockValues = block ? values?.photoBlocks[block.blockId] : undefined;
+    const variant =
+      block?.variants.find((v) => v.variantId === blockValues?.variantId) ??
+      block?.variants[0];
+    if (variant?.slots) {
+      const hasPhoto = Array.from({ length: variant.slots }).some((_, i) =>
+        hasText(blockValues?.slots[i]),
+      );
+      if (hasPhoto && !hasText(values?.caption) && !(values?.photoCaptions ?? []).some((c) => hasText(c))) {
+        missing.push('Подпись');
       }
     }
   }

@@ -1,13 +1,13 @@
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Annotation } from '@/components/pdf-annotations';
 import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
-import { getCachedPageSourceSize } from '@/utils/pageSourceDimensions';
+import { getCachedPageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
   layoutTextAnnotationFromSlot,
@@ -95,6 +95,33 @@ function ReadOnlyPageAnnotationsInner({
   onImageAnnotationError,
 }: ReadOnlyPageAnnotationsProps) {
   useDevRenderCount('ReadOnlyPageAnnotations');
+
+  const [imageAspectByUri, setImageAspectByUri] = useState<Record<string, number>>({});
+
+  const resolveImageAspect = useCallback((uri: string): number | undefined => {
+    const local = imageAspectByUri[uri];
+    if (local && local > 0) return local;
+    const cached = getCachedPageSourceSize(uri);
+    if (cached && cached.width > 0 && cached.height > 0) {
+      return cached.width / cached.height;
+    }
+    return undefined;
+  }, [imageAspectByUri]);
+
+  const handleAnnotationImageLoaded = useCallback(
+    (uri: string, width: number, height: number) => {
+      if (width > 0 && height > 0) {
+        setPageSourceSize(uri, { width, height });
+        setImageAspectByUri((prev) => {
+          const aspect = width / height;
+          if (prev[uri] === aspect) return prev;
+          return { ...prev, [uri]: aspect };
+        });
+      }
+      onImageAnnotationLoad?.(uri);
+    },
+    [onImageAnnotationLoad],
+  );
 
   const [fontsLoaded] = useFonts(
     AVAILABLE_FONTS.reduce(
@@ -324,20 +351,18 @@ function ReadOnlyPageAnnotationsInner({
 
         if (!annotation.imageUri) return null;
 
-        const handleAnnotationImageSettled = () => {
-          onImageAnnotationLoad?.(annotation.imageUri!);
+        const handleAnnotationImageSettled = (event: {
+          source?: { width?: number; height?: number };
+        }) => {
+          const width = event.source?.width ?? 0;
+          const height = event.source?.height ?? 0;
+          handleAnnotationImageLoaded(annotation.imageUri!, width, height);
         };
         const handleAnnotationImageFailed = () => {
           onImageAnnotationError?.(annotation.imageUri!);
         };
 
-        const cachedSize = annotation.imageUri
-          ? getCachedPageSourceSize(annotation.imageUri)
-          : null;
-        const imageAspect =
-          cachedSize && cachedSize.width > 0 && cachedSize.height > 0
-            ? cachedSize.width / cachedSize.height
-            : undefined;
+        const imageAspect = resolveImageAspect(annotation.imageUri);
 
         const innerStyle = annotation.imageSlotTransform
           ? (() => {

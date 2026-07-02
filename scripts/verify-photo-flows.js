@@ -192,33 +192,47 @@ assert(
   'schemaPhotoBlocks: enrichment denylist for text-only pages',
 );
 
-// --- 10. Preview group editor gate ---
+// --- 10. Preview photo overlay gate ---
 const previewSource = readFile('app/album-page-preview.tsx');
 assert(
   previewSource.includes('AlbumPreviewPhotoBlockEditor'),
-  'album-page-preview: uses AlbumPreviewPhotoBlockEditor overlay',
-);
-assert(
-  !previewSource.includes('primarySlotCount > 1'),
-  'album-page-preview: group editor not gated by slot count',
+  'album-page-preview: single-slot block editor for safe-zone scale',
 );
 assert(
   readFile('components/album/album-preview-photo-block-editor.tsx').includes(
-    'preview-photo-block-select',
+    'PhotoSlotCropPreview',
   ),
-  'AlbumPreviewPhotoBlockEditor: testID for maestro',
+  'AlbumPreviewPhotoBlockEditor: read-only crop preview inside block',
 );
 assert(
-  !readFile('components/album/album-preview-photo-block-editor.tsx').includes('useGridCollage'),
-  'AlbumPreviewPhotoBlockEditor: no static grid bypass for multi-photo',
+  readFile('components/album/photo-slot-crop-preview.tsx').includes('pointerEvents="none"'),
+  'PhotoSlotCropPreview: no slot gestures in preview',
 );
 assert(
-  readFile('components/album/album-preview-photo-block-editor.tsx').includes('safeBounds'),
-  'AlbumPreviewPhotoBlockEditor: safeBounds prop',
+  !readFile('app/album-page-preview.tsx').includes('AlbumPreviewPhotoGestureOverlay'),
+  'album-page-preview: no slot gesture overlay in final preview',
 );
 assert(
-  readFile('components/album/album-preview-photo-block-editor.tsx').includes('Gesture.Pinch'),
-  'AlbumPreviewPhotoBlockEditor: pinch gesture',
+  readFile('components/read-only-page-annotations.tsx').includes('setPageSourceSize'),
+  'ReadOnlyPageAnnotations: caches image size for aspect-aware crop',
+);
+assert(
+  readFile('utils/templateLineText.ts').includes('getKids48P8DateLineTextTop'),
+  'templateLineText: kids p8 date baseline',
+);
+assert(
+  readFile('utils/templateLineText.ts').includes('getKids48P9DateLineTextTop'),
+  'templateLineText: kids p9 date baseline',
+);
+assert(
+  readFile('constants/kids-48-event-date-slots.ts').includes('KIDS_48_P8_EVENT_DATE_LINE'),
+  'kids-48-event-date-slots: p8 coordinates',
+);
+assert(
+  !readFile('hooks/use-album-page-photo-editor.ts').includes(
+    'photoSlotTransformKey(primaryBlock.blockId, 0)',
+  ),
+  'photo editor: preview group transform does not overwrite slot crop',
 );
 assert(
   readFile('utils/photoSlotTransform.ts').includes('clampPhotoBlockTransform'),

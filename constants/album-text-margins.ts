@@ -46,6 +46,17 @@ export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0.34;
 /** kids_48 p10 даты у зубов — небольшой зазор над штрихом. */
 export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0.2;
 
+/** Эталон PNG 300 dpi для ручной разметки p8/p9 (kids_48). */
+export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
+
+/** Дата чуть выше штриха — ~5 px на эталоне 2481×2481. */
+export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
+  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+
+/** p8 «Первый день дома» — доп. подъём даты (~8 px на эталоне). */
+export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
+  8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+
 /** kids_48 p12 «Мои следы» — дата над штрихом «ДАТА». */
 export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0.28;
 

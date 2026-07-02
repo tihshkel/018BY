@@ -39,6 +39,7 @@ import {
   type ExportPageBundle,
 } from '@/utils/exportPageSelection';
 import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from '@/utils/exportViewport';
+import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { loadPageInstances, loadPageValuesMapMerged } from '@/utils/pageStorage';
@@ -1013,7 +1014,7 @@ export default function ExportPdfScreen() {
       };
 
       // Оптимизация изображений перед встраиванием в PDF.
-      // electronic: A5 по размеру листа, ~72 DPI + низкое JPEG (экран, не печать).
+      // electronic: растр 300 DPI + JPEG; в приложении фото уже ~72 DPI по размеру слота.
       const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover', isLargeDoc?: boolean) => {
         if (!uri) return uri;
         if (Platform.OS === 'web') return uri;
@@ -1610,7 +1611,17 @@ export default function ExportPdfScreen() {
         const results = await Promise.all(
           batch.map(async (uri) => {
             try {
-              const normalizedUri = await normalizePhotoOrientation(uri);
+              const normalizedUri = await normalizePhotoOrientation(uri, {
+                compress: isElectronicExport ? 0.9 : 0.98,
+              });
+              if (isElectronicExport) {
+                const optimizedUri = await optimizeImageForExport(normalizedUri, 'page', isLargeDoc);
+                return await withTimeout({
+                  label: `load annotation image`,
+                  timeoutMs: 20000,
+                  task: async () => loadImageAsBytes(optimizedUri),
+                });
+              }
               return await withTimeout({
                 label: `load annotation image`,
                 timeoutMs: 20000,

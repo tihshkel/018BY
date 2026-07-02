@@ -1,7 +1,10 @@
 import {
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
+  isKidsMonthPage,
   KIDS_MONTH_LINE_FONT_OFFSET,
+  KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO,
+  KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO,
   KIDS_P12_DATE_LINE_GAP_BAND_RATIO,
   KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO,
   KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO,
@@ -32,6 +35,33 @@ const SPACE_WIDTH_FACTOR = 0.35;
 export function normalizeTemplateMultilineText(text: string, lineCount?: number): string {
   if (!text || lineCount == null || lineCount <= 1) return text;
   return text.replace(/\r?\n/g, ' ');
+}
+
+/** Штрих внизу полосы — месячные страницы, p8/p9 «ДАТА», сетка роста (стр. 11). */
+function usesKids48BottomBandStroke(
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'textAnchorTop' | 'lineStrokeAtBottom'>,
+): boolean {
+  if (!slot.lineStrokeAtBottom) return false;
+  if (slot.page === 11) return true;
+  if (slot.page === 8 && slot.index === 1) return true;
+  if (slot.page === 9 && slot.index === 0) return true;
+  return slot.page != null && isKidsMonthPage(slot.page) && slot.index >= 1;
+}
+
+/** Y печатной линии для kids_48: TZ-полосы — линия по центру, месяц/рост — по низу полосы. */
+function resolveKids48LineStrokeY(
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'textAnchorTop' | 'lineStrokeAtBottom' | 'page' | 'index'
+  >,
+): number {
+  if (usesKids48BottomBandStroke(slot)) {
+    return slot.y + slot.lineHeight;
+  }
+  if (slot.textAnchorTop && slot.lineStrokeAtBottom) {
+    return slot.y + slot.lineHeight / 2;
+  }
+  return slot.y + slot.lineHeight * 0.5;
 }
 
 function isDiaryInteriorLineGuide(lineGuideId?: string): boolean {
@@ -359,17 +389,21 @@ export function getEffectiveTemplateFontSize(
     slot?.inputKind ?? 'line',
     lineGuideId,
   );
-  if (!slot || !options?.textContent || !isKidsStrokeBaselineDateLineSlot(lineGuideId, slot)) {
-    return base;
+  if (!slot || !options?.textContent) return base;
+  if (
+    isKidsStrokeBaselineDateLineSlot(lineGuideId, slot) ||
+    isKidsEventDateLineSlot(lineGuideId, slot)
+  ) {
+    return shrinkFontSizeToFitSlotText(
+      base,
+      slot,
+      options.textContent,
+      lineGuideId,
+      options.fontId,
+      9,
+    );
   }
-  return shrinkFontSizeToFitSlotText(
-    base,
-    slot,
-    options.textContent,
-    lineGuideId,
-    options.fontId,
-    9,
-  );
+  return base;
 }
 
 export function getTemplateLineTypography(
@@ -816,11 +850,35 @@ function isKidsP16DreamsDateLineSlot(
   return lineGuideId === 'kids_48' && slot.page === 16 && slot.index === 0;
 }
 
+function isKids48P8DateLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index'>,
+): boolean {
+  return lineGuideId === 'kids_48' && slot.page === 8 && slot.index === 1;
+}
+
+function isKids48P9DateLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index'>,
+): boolean {
+  return lineGuideId === 'kids_48' && slot.page === 9 && slot.index === 0;
+}
+
+function isKidsEventDateLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index'>,
+): boolean {
+  return isKids48P8DateLineSlot(lineGuideId, slot) || isKids48P9DateLineSlot(lineGuideId, slot);
+}
+
 function isKidsStrokeBaselineDateLineSlot(
   lineGuideId: string | undefined,
   slot: Pick<TextLineSlot, 'page' | 'index'>,
 ): boolean {
-  return isKidsBottomDateLineSlot(lineGuideId, slot) || isKidsP16DreamsDateLineSlot(lineGuideId, slot);
+  return (
+    isKidsBottomDateLineSlot(lineGuideId, slot) ||
+    isKidsP16DreamsDateLineSlot(lineGuideId, slot)
+  );
 }
 
 function isKidsBottomDateLineSlot(
@@ -853,6 +911,33 @@ export function getKidsP12DateLineTextTop(
   const strokeY = slot.y + slot.lineHeight;
   const gapAboveStroke = slot.lineHeight * KIDS_P12_DATE_LINE_GAP_BAND_RATIO;
   return strokeY - lineFitted * KIDS_MONTH_LINE_FONT_OFFSET - gapAboveStroke;
+}
+
+/** kids_48 p8 — дата чуть выше штриха «ДАТА» (доп. lift vs p9). */
+export function getKids48P8DateLineTextTop(
+  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'page' | 'index' | 'lineStrokeAtBottom'>,
+  fontSize: number,
+  lineGuideId?: string,
+): number {
+  const lineFitted = fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId);
+  const strokeY = resolveKids48LineStrokeY(slot);
+  const gapAboveLine =
+    slot.lineHeight *
+    (KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO +
+      KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO);
+  return strokeY - lineFitted * KIDS_MONTH_LINE_FONT_OFFSET - gapAboveLine;
+}
+
+/** @see getKids48P8DateLineTextTop */
+export function getKids48P9DateLineTextTop(
+  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'page' | 'index' | 'lineStrokeAtBottom'>,
+  fontSize: number,
+  lineGuideId?: string,
+): number {
+  const lineFitted = fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId);
+  const strokeY = resolveKids48LineStrokeY(slot);
+  const gapAboveLine = slot.lineHeight * KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO;
+  return strokeY - lineFitted * KIDS_MONTH_LINE_FONT_OFFSET - gapAboveLine;
 }
 
 export function getKidsTeethToothDateLineTextTop(
@@ -924,6 +1009,14 @@ export function getTemplateLineTextTop(
     return getKidsTeethToothDateLineTextTop(slot, fontSize, lineGuideId);
   }
 
+  if (isKids48P8DateLineSlot(lineGuideId, slot) && inputKind === 'line') {
+    return getKids48P8DateLineTextTop(slot, fontSize, lineGuideId);
+  }
+
+  if (isKids48P9DateLineSlot(lineGuideId, slot) && inputKind === 'line') {
+    return getKids48P9DateLineTextTop(slot, fontSize, lineGuideId);
+  }
+
   if (isKidsStrokeBaselineDateLineSlot(lineGuideId, slot) && inputKind === 'line') {
     return getKidsP12DateLineTextTop(slot, fontSize, lineGuideId);
   }
@@ -960,7 +1053,10 @@ export function getTemplateLineTextTop(
     );
     return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO;
   } else if (usesStrokeBaselineLayout(slot, lineGuideId)) {
-    const lineY = slot.y + slot.lineHeight;
+    const lineY =
+      lineGuideId === 'kids_48'
+        ? resolveKids48LineStrokeY(slot)
+        : slot.y + slot.lineHeight;
     const lineFitted = fitFontSizeToSlot(
       fontSize,
       slot.lineHeight,
@@ -977,12 +1073,12 @@ export function getTemplateLineTextTop(
     const lineY = slot.y + slot.lineHeight;
     top = lineY - fittedSize * 0.98;
   } else if (lineGuideId === 'kids_48' && inputKind === 'line') {
-    const lineY = slot.y + slot.lineHeight / 2;
+    const lineY = resolveKids48LineStrokeY(slot);
     const lineFitted = fitFontSizeToSlot(
       fontSize,
       slot.lineHeight,
       'line',
-      lineGuideId
+      lineGuideId,
     );
     const profile = getTemplateTypographyProfile(lineGuideId);
     top = lineY - lineFitted * profile.lineFontOffsetRatio;
@@ -1057,6 +1153,9 @@ export function getTemplateLineStrokeY(
   }
 
   if (usesStrokeBaselineLayout(slot, lineGuideId)) {
+    if (lineGuideId === 'kids_48') {
+      return resolveKids48LineStrokeY(slot);
+    }
     return slot.y + slot.lineHeight;
   }
 
@@ -1068,8 +1167,8 @@ export function getTemplateLineStrokeY(
     return getPregnancyWeeklyLineStrokeY(slot, allSlots, lineGuideId, fieldStartIndex);
   }
 
-  if (lineGuideId === 'kids_48' && inputKind === 'line' && slot.lineStrokeAtBottom) {
-    return slot.y + slot.lineHeight;
+  if (lineGuideId === 'kids_48' && inputKind === 'line') {
+    return resolveKids48LineStrokeY(slot);
   }
 
   if (

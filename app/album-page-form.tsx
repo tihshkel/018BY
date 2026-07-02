@@ -2,6 +2,7 @@ import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import {
   AlbumPageFormEditor,
   type AlbumPageFormEditorHandle,
@@ -115,18 +116,20 @@ export default function AlbumPageFormScreen() {
           onBack={() => navigateToAlbumPages(albumFlowParams)}
         />
 
-        <AlbumPageFormEditor
-          ref={editorRef}
-          instance={instance}
-          schema={schema}
-          pageValues={pageValues}
-          instanceId={instanceId}
-          lineGuideId={project.lineGuideId}
-          projectId={project.projectId}
-          projectActions={projectActions}
-          layout={layout}
-          getInstanceTitle={project.getInstanceTitle}
-        />
+        <ErrorBoundary title="Не удалось открыть редактор страницы">
+          <AlbumPageFormEditor
+            ref={editorRef}
+            instance={instance}
+            schema={schema}
+            pageValues={pageValues}
+            instanceId={instanceId}
+            lineGuideId={project.lineGuideId}
+            projectId={project.projectId}
+            projectActions={projectActions}
+            layout={layout}
+            getInstanceTitle={project.getInstanceTitle}
+          />
+        </ErrorBoundary>
 
         <AppButton
           testID={unifiedEditor ? 'unified-editor-save' : 'form-save'}

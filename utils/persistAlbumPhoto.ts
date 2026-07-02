@@ -1,7 +1,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
 import type { FreePageElement, PageValues } from '@/types/album-page-schema';
-import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
+import {
+  type PhotoTargetPixels,
+  resamplePhotoForAlbumStorage,
+} from '@/utils/albumPhotoResample';
 
 const ALBUM_PHOTOS_DIR = `${FileSystem.documentDirectory}album-photos/`;
 
@@ -62,10 +65,16 @@ export async function photoUriExists(uri: string): Promise<boolean> {
   }
 }
 
+export type PersistAlbumPhotoOptions = {
+  /** Целевые пиксели при design DPI (72); крупнее — уменьшаются при сохранении. */
+  targetPixels?: PhotoTargetPixels | null;
+};
+
 /** Копирует фото из галереи/кэша в documentDirectory — URI переживает перезапуск приложения. */
 export async function persistAlbumPhotoUri(
   sourceUri: string,
   relativeKey: string,
+  options?: PersistAlbumPhotoOptions,
 ): Promise<string> {
   if (!sourceUri.trim()) return sourceUri;
   if (isRemotePhotoUri(sourceUri)) return sourceUri;
@@ -73,7 +82,7 @@ export async function persistAlbumPhotoUri(
 
   await FileSystem.makeDirectoryAsync(ALBUM_PHOTOS_DIR, { intermediates: true });
 
-  const ext = inferPhotoExtension(sourceUri);
+  const ext = options?.targetPixels ? 'jpg' : inferPhotoExtension(sourceUri);
   const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}.${ext}`;
   const destUri = normalizeFileUri(destPath);
 
@@ -82,18 +91,8 @@ export async function persistAlbumPhotoUri(
   }
 
   try {
-    await FileSystem.copyAsync({ from: sourceUri, to: destPath });
-    const normalizedUri = await normalizePhotoOrientation(destUri);
-    if (normalizedUri !== destUri) {
-      try {
-        await FileSystem.copyAsync({
-          from: normalizedUri,
-          to: destPath,
-        });
-      } catch {
-        return normalizedUri;
-      }
-    }
+    const processedUri = await resamplePhotoForAlbumStorage(sourceUri, options?.targetPixels);
+    await FileSystem.copyAsync({ from: processedUri, to: destPath });
     return destUri;
   } catch (error) {
     console.warn('[persistAlbumPhotoUri] copy failed, keeping source URI', error);

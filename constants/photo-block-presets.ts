@@ -158,3 +158,23 @@ export const SINGLE_HORIZONTAL_PHOTO_BLOCK: PhotoBlockSchema = {
     },
   ],
 };
+
+/** «Мои следы»: одно или два фото (руки / ноги). */
+export const FOOTPRINTS_PHOTO_BLOCK: PhotoBlockSchema = {
+  blockId: 'main_photo',
+  label: 'Фото следов',
+  variants: [
+    {
+      variantId: 'one_horizontal',
+      label: '1 фото',
+      slots: 1,
+      slotIndices: [0],
+    },
+    {
+      variantId: 'two_horizontal',
+      label: '2 фото (руки и ноги)',
+      slots: 2,
+      slotIndices: [0, 1],
+    },
+  ],
+};

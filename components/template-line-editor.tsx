@@ -6,7 +6,9 @@ import {
   getTemplateLineTextTop,
   getTemplateLineTypography,
   getWishSlotInputKind,
+  getSlotTemplateTextAlign,
   mergeActiveLineEdit,
+  resolveTemplateLineFontSize,
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -74,10 +76,18 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {
-      map.set(
-        segment.slotIndex,
-        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId, fontId)
-      );
+      const slotForSegment = allSlots[segment.slotIndex]!;
+      const displayContent =
+        lineGuideId === 'kids_48'
+          ? segment.content
+          : truncateTextToSlotWidth(
+              segment.content,
+              slotForSegment,
+              fontSize,
+              lineGuideId,
+              fontId,
+            );
+      map.set(segment.slotIndex, displayContent);
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
   }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
@@ -127,9 +137,19 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const isInputSlot = lineSlot.index === activeInputSlotIndex;
         const wishInputKind = getWishSlotInputKind(lineSlot, lineGuideId);
+        const rowFontSize = resolveTemplateLineFontSize(
+          lineText,
+          lineSlot,
+          fontSize,
+          lineGuideId,
+          fontId,
+        );
+        const rowLineHeight =
+          lineTypography.lineHeight * (rowFontSize / lineTypography.fontSize);
+        const rowTextAlign = getSlotTemplateTextAlign(lineSlot, lineGuideId, textAlign);
         const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
           lineSlot,
-          lineTypography.fontSize,
+          rowFontSize,
           wishInputKind,
           lineGuideId
         );
@@ -156,13 +176,13 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.input,
                   {
                     color,
-                    fontSize: lineTypography.fontSize,
+                    fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: lineTypography.lineHeight,
-                    height: lineTypography.lineHeight,
+                    lineHeight: rowLineHeight,
+                    height: rowLineHeight,
                     top: textTopInset,
                     width: lineSlot.width,
-                    textAlign,
+                    textAlign: rowTextAlign,
                   },
                 ]}
                 value={inputValue}
@@ -175,6 +195,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 scrollEnabled={false}
                 autoFocus={autoFocus}
                 autoCorrect={false}
+                autoCapitalize={lineSlot.hasLabel ? 'sentences' : 'none'}
                 placeholder=""
                 selectionColor={color}
                 underlineColorAndroid="transparent"
@@ -189,12 +210,12 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.lineText,
                   {
                     color,
-                    fontSize: lineTypography.fontSize,
+                    fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: lineTypography.lineHeight,
+                    lineHeight: rowLineHeight,
                     top: textTopInset,
                     width: lineSlot.width,
-                    textAlign,
+                    textAlign: rowTextAlign,
                   },
                 ]}
                 numberOfLines={1}

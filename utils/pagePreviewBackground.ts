@@ -9,8 +9,13 @@ type ResolvePagePreviewBackgroundParams = {
   sourcePageNumber?: number | null;
   baseImageUri?: string | null;
   variantId?: string | null;
-  /** Empty / first-visit preview — show designer PDF layout with photo examples */
+  /** @deprecated Empty pages use full baseImageUri; design PNGs are thumbnail-only. */
   preferDesignLayout?: boolean;
+  /**
+   * full — editor/preview: only full PDF page raster (page_XXX.png).
+   * thumbnail — page list chips: may use lighter design_previews.
+   */
+  quality?: 'full' | 'thumbnail';
 };
 
 /** Global layout chip PNGs (one_large.png etc.) are UI thumbnails, not page backgrounds. */
@@ -19,8 +24,8 @@ function usesGlobalLayoutChipPreviews(lineGuideId: string): boolean {
 }
 
 /**
- * Picks preview background. Empty pages show the plain PDF page template (baseImageUri).
- * Legacy albums may fall back to full-page design/variant PNGs — never layout chip icons.
+ * Picks preview background. In-app always uses full PDF page PNG when available.
+ * Low-res design_previews (~½ size) are only for thumbnail chips, not editor preview.
  */
 export function resolvePagePreviewBackgroundUri(
   params: ResolvePagePreviewBackgroundParams,
@@ -30,32 +35,21 @@ export function resolvePagePreviewBackgroundUri(
     sourcePageNumber,
     baseImageUri,
     variantId,
-    preferDesignLayout = false,
+    quality = 'full',
   } = params;
 
   if (!lineGuideId || !sourcePageNumber || sourcePageNumber < 1) {
     return baseImageUri ?? null;
   }
 
-  if (preferDesignLayout) {
-    if (baseImageUri) return baseImageUri;
+  if (baseImageUri) return baseImageUri;
 
-    const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
-    if (designUri) return designUri;
-
-    if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {
-      const variantUri = resolveVariantPreviewBackgroundUri({
-        lineGuideId,
-        sourcePageNumber,
-        variantId,
-      });
-      if (variantUri) return variantUri;
-    }
-
+  if (quality !== 'thumbnail') {
     return null;
   }
 
-  if (baseImageUri) return baseImageUri;
+  const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
+  if (designUri) return designUri;
 
   if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {
     return resolveVariantPreviewBackgroundUri({

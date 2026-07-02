@@ -38,6 +38,7 @@ import {
   buildAlbumPhotoStorageKey,
   persistAlbumPhotoUri,
 } from '@/utils/persistAlbumPhoto';
+import { computeFreeElementTargetPixels } from '@/utils/albumPhotoResample';
 
 type FreePageEditorProps = {
   schema: AlbumPageSchema;
@@ -452,6 +453,13 @@ export function FreePageEditor({
     const pickedUri = await pickPhotoFromLibrary({ ensurePermission: ensureMediaLibraryPermission });
     if (!pickedUri) return;
     const elementId = createId('free');
+    const defaultW = 0.52;
+    const defaultH = 0.52;
+    const targetPixels = computeFreeElementTargetPixels({
+      lineGuideId,
+      elementWidth: defaultW,
+      elementHeight: defaultH,
+    });
     const uri =
       projectId && instanceId
         ? await persistAlbumPhotoUri(
@@ -461,6 +469,7 @@ export function FreePageEditor({
               instanceId,
               freeElementId: elementId,
             }),
+            { targetPixels },
           )
         : pickedUri;
     const imageSize = await resolvePageSourceSize(uri);
@@ -472,10 +481,10 @@ export function FreePageEditor({
     const next: FreePageElement = {
       id: elementId,
       type: 'image',
-      x: safeRect.x + (safeRect.w - 0.52) / 2 + 0.05 * photoCount,
-      y: safeRect.y + (safeRect.h - 0.52) / 2 + 0.05 * photoCount,
-      w: 0.52,
-      h: 0.52,
+      x: safeRect.x + (safeRect.w - defaultW) / 2 + 0.05 * photoCount,
+      y: safeRect.y + (safeRect.h - defaultH) / 2 + 0.05 * photoCount,
+      w: defaultW,
+      h: defaultH,
       zIndex: elements.length + 1,
       content: uri,
       crop: initialCrop,
@@ -487,6 +496,7 @@ export function FreePageEditor({
     ensureMediaLibraryPermission,
     instanceId,
     limits.maxPhotos,
+    lineGuideId,
     onChange,
     photoCount,
     projectId,

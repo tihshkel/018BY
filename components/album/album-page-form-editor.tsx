@@ -23,6 +23,7 @@ import type { FieldTextStyle, PageInstance, PageValues } from '@/types/album-pag
 import type { AlbumPageSchema } from '@/types/album-page-schema';
 import { usesUnifiedPhotoEditor, hasFormTextInput } from '@/utils/albumPageNavigation';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { isKidsMonthPage } from '@/constants/album-text-margins';
 import { FORM_MODAL_MAX_WIDTH, type ResponsiveLayout } from '@/utils/responsive';
 
 export type AlbumPageFormEditorHandle = {
@@ -64,7 +65,10 @@ export const AlbumPageFormEditor = forwardRef<
   useDevRenderCount('AlbumPageFormEditor');
 
   const isBlankTemplatePage = isBlankTemplateLineGuide(schema.lineGuideId);
-  const debounceMs = isBlankTemplatePage ? 500 : 350;
+  const isKidsMonthTemplatePage =
+    schema.lineGuideId === 'kids_48' &&
+    (schema.pageType === 'month_page' || isKidsMonthPage(schema.sourcePageNumber));
+  const debounceMs = isBlankTemplatePage ? 500 : isKidsMonthTemplatePage ? 450 : 350;
 
   const { draft: draftFields, setField: setDraftField, flush: flushDraftFields } =
     useDeferredRecord(

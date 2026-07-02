@@ -41,6 +41,7 @@ GENDER_FILL_SPECS = [
 
 # Slight bleed so the fill fully covers the yellow ring on the design PNG.
 GENDER_FILL_BLEED = 1.08
+FAMILY_TREE_INNER_RATIO = 0.94
 
 
 def is_yellow_ring_pixel(r: int, g: int, b: int) -> bool:
@@ -144,6 +145,40 @@ def detect_circle_candidates(page: fitz.Page, *, min_y: float, max_y: float) -> 
     return unique
 
 
+def refine_circle_from_yellow_ring(
+    hint_cx: float,
+    hint_cy: float,
+    hint_diameter: float,
+    samples: bytes,
+    w: int,
+    h: int,
+) -> tuple[float, float, float]:
+    """Snap slot center/diameter to the visible yellow ring on the rendered page."""
+    search_r = hint_diameter * 0.7
+    xmin = max(0, int((hint_cx - search_r) * w))
+    xmax = min(w, int((hint_cx + search_r) * w))
+    ymin = max(0, int((hint_cy - search_r) * h))
+    ymax = min(h, int((hint_cy + search_r) * h))
+    pts: list[tuple[float, float]] = []
+
+    for y in range(ymin, ymax):
+        for x in range(xmin, xmax):
+            i = (y * w + x) * 3
+            r, g, b = samples[i], samples[i + 1], samples[i + 2]
+            if not is_yellow_ring_pixel(r, g, b):
+                continue
+            pts.append((x / w, y / h))
+
+    if len(pts) < 24:
+        return hint_cx, hint_cy, hint_diameter
+
+    cx = sum(p[0] for p in pts) / len(pts)
+    cy = sum(p[1] for p in pts) / len(pts)
+    max_r = max(((p[0] - cx) ** 2 + (p[1] - cy) ** 2) ** 0.5 for p in pts)
+    diameter = 2 * max_r * FAMILY_TREE_INNER_RATIO
+    return cx, cy, diameter
+
+
 def detect_family_tree_circles(page: fitz.Page) -> list[dict]:
     pw = page.rect.width
     ph = page.rect.height
@@ -196,8 +231,14 @@ def detect_family_tree_circles(page: fitz.Page) -> list[dict]:
     ordered.extend(father_branch[4:])
     ordered.extend(center_branch)
 
+    scale = 2100 / page.rect.width
+    pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale))
+    w, h = pix.width, pix.height
+    samples = pix.samples
+
     slots: list[dict] = []
     for index, (cx, cy, diameter) in enumerate(ordered):
+        cx, cy, diameter = refine_circle_from_yellow_ring(cx, cy, diameter, samples, w, h)
         if index < len(FAMILY_TREE_NAMED_SLOTS):
             slot_id, branch = FAMILY_TREE_NAMED_SLOTS[index]
         else:

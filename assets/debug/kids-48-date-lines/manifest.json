@@ -1,0 +1,23 @@
+{
+  "dpi": 300,
+  "album": "kids_48",
+  "referenceSizePx": 2481,
+  "userLineCoordsPx": {
+    "8": { "x": 1031, "y": 2223, "note": "Первый день дома — штрих «ДАТА»" },
+    "9": { "x": 1031, "y": 463, "note": "Первое купание — штрих «ДАТА»" }
+  },
+  "pages": {
+    "8": {
+      "file": "assets/debug/kids-48-date-lines/page_008_300dpi.png",
+      "sourcePdf": "in albums/pdf new/БЃеЃ_210е210_Сва_08.pdf",
+      "widthPx": 2481,
+      "heightPx": 2481
+    },
+    "9": {
+      "file": "assets/debug/kids-48-date-lines/page_009_300dpi.png",
+      "sourcePdf": "in albums/pdf new/БЃеЃ_210е210_Сва_09.pdf",
+      "widthPx": 2481,
+      "heightPx": 2481
+    }
+  }
+}

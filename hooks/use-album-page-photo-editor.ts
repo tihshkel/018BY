@@ -8,6 +8,7 @@ import {
   buildAlbumPhotoStorageKey,
   persistAlbumPhotoUri,
 } from '@/utils/persistAlbumPhoto';
+import { computePhotoSlotTargetPixels } from '@/utils/albumPhotoResample';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
@@ -108,6 +109,16 @@ export function useAlbumPagePhotoEditor({
       });
       if (!uri) return;
 
+      const targetPixels = resolvedSchema
+        ? computePhotoSlotTargetPixels({
+            lineGuideId: resolvedSchema.lineGuideId,
+            page: resolvedSchema.sourcePageNumber,
+            variantId,
+            slotIndex,
+            templateLibraryId: resolvedSchema.templateLibraryId,
+          })
+        : null;
+
       const persistentUri =
         pid && instanceId
           ? await persistAlbumPhotoUri(
@@ -118,6 +129,7 @@ export function useAlbumPagePhotoEditor({
                 blockId,
                 slotIndex,
               }),
+              { targetPixels },
             )
           : uri;
 

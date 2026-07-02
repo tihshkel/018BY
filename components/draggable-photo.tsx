@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { ALBUM_USER_PHOTO_DISPLAY_PROPS } from '@/utils/albumPhotoDisplay';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -155,9 +156,7 @@ const DraggablePhoto: React.FC<DraggablePhotoProps> = ({
                     ]}
                     contentFit="cover"
                     priority="high"
-                    cachePolicy="disk"
-                    transition={0}
-                    fadeDuration={0}
+                    {...ALBUM_USER_PHOTO_DISPLAY_PROPS}
                   />
                   
                   {isSelected && (

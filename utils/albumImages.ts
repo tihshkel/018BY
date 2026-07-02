@@ -189,9 +189,8 @@ async function warmRemoteAlbumCache(
 }
 
 /**
- * Быстрый список страниц для просмотра: сразу отдаём URL с GitHub,
- * без ожидания проверки кеша каждой из 48–60 страниц.
- * Локальный кеш прогревается в фоне.
+ * Быстрый список страниц для просмотра: полноразмерные page_XXX.png.
+ * Локальный кэш (file://) предпочтительнее GitHub; прогрев в фоне.
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);
@@ -199,10 +198,12 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
     return getAlbumImageUris(albumId);
   }
 
-  const uris = Array.from({ length: spec.pageCount }, (_, index) => {
-    const fileName = resolveRemotePageFileName(albumId, index + 1);
-    return remotePageUrl(spec.folderPath, fileName);
-  });
+  const uris = await Promise.all(
+    Array.from({ length: spec.pageCount }, async (_, index) => {
+      const page = index + 1;
+      return loadRemoteAlbumPageUri(albumId, spec.folderPath, page, true);
+    }),
+  );
 
   warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
 

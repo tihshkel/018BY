@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
 import PdfAnnotations, { type Annotation } from './pdf-annotations';
 import { ReadOnlyPageAnnotations } from './read-only-page-annotations';
+import { ALBUM_TEMPLATE_DISPLAY_PROPS } from '@/utils/albumPhotoDisplay';
 import { setPageSourceSize } from '@/utils/pageSourceDimensions';
 
 export interface PageRendererRef {
@@ -215,11 +216,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           style={styles.image}
           contentFit="contain"
           contentPosition="center"
-          transition={0}
-          fadeDuration={0}
-          cachePolicy="disk"
-          priority="high"
-          allowDownscaling
+          {...ALBUM_TEMPLATE_DISPLAY_PROPS}
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;

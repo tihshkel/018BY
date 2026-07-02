@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PhotoSlotGestureLayer } from '@/components/album/photo-slot-gesture-layer';
+import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import type { PhotoBlockSchema, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -100,7 +101,7 @@ export function AlbumPreviewPhotoGestureOverlay({
               slotIndex={slotIndex}
               transform={transform}
               gesturesEnabled
-              hideChrome
+              chromeStyle="overlay"
               onPressEmpty={() => {}}
               onTransformChange={(next) => onSlotTransformChange(slotIndex, next)}
             />
@@ -119,5 +120,6 @@ const styles = StyleSheet.create({
   slotWrap: {
     position: 'absolute',
     overflow: 'hidden',
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
   },
 });

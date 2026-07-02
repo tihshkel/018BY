@@ -156,18 +156,1429 @@ const BIRTHDAY_CAPTION_PAGES = Array.from({ length: 7 }, (_, index) => 41 + inde
 /** Manual layouts for pregnancy memory blocks and photo-only pages. */
 export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   pregnancy_60: {
-    ...repeatPhotoLayout(PREGNANCY_60_MEMORY_PAGES, pregnancyMemoryPhotoLayouts()),
+    '56': {
+    variants: [
+    {
+      variantId: 'one_large',
+      slots: [
+      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_photos',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'four_grid',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      ],
+    },
+    ],
+  },
+    '57': {
+    variants: [
+    {
+      variantId: 'one_large',
+      slots: [
+      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_photos',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'four_grid',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      ],
+    },
+    ],
+  },
+    '58': {
+    variants: [
+    {
+      variantId: 'one_large',
+      slots: [
+      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_photos',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'four_grid',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      ],
+    },
+    ],
+  },
+    '59': {
+    variants: [
+    {
+      variantId: 'one_large',
+      slots: [
+      { x: 0.1256, y: 0.51, width: 0.7488, height: 0.42, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_photos',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.63, width: 0.7488, height: 0.22, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.1256, y: 0.41, width: 0.7488, height: 0.26, aspectRatio: [4, 3] },
+      { x: 0.1256, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      { x: 0.5156, y: 0.645, width: 0.3588, height: 0.19, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'four_grid',
+      slots: [
+      { x: 0.1256, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.39, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.1256, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      { x: 0.5156, y: 0.63, width: 0.3588, height: 0.22, aspectRatio: [1, 1] },
+      ],
+    },
+    ],
+  },
   },
   pregnancy_a5: {
     '46': pregnancyPhotoLayouts(),
     '48': pregnancyPhotoLayouts(),
   },
-  kids_48: {},
-  holidays_birthday_60: {
-    '2': BIRTHDAY_HELLO_PHOTO_LAYOUT,
-    ...repeatPhotoLayout(BIRTHDAY_AGE_PAGES, BIRTHDAY_AGE_PHOTO_LAYOUT),
-    ...repeatPhotoLayout(BIRTHDAY_FREE_PAGES, blankPageLayouts()),
-    ...repeatPhotoLayout(BIRTHDAY_CAPTION_PAGES, blankPageLayouts()),
+    kids_48: {
+    '1': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.2024, y: 0.24, width: 0.5952, height: 0.112, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.2024, y: 0.2078, width: 0.5952, height: 0.0588, aspectRatio: [4, 3] },
+      { x: 0.2024, y: 0.2722, width: 0.5952, height: 0.0588, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '3': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.164, y: 0.38, width: 0.672, height: 0.176, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.164, y: 0.3294, width: 0.672, height: 0.0924, aspectRatio: [4, 3] },
+      { x: 0.164, y: 0.4306, width: 0.672, height: 0.0924, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '4': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.1352, y: 0.22, width: 0.7296, height: 0.224, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.1352, y: 0.1556, width: 0.7296, height: 0.1176, aspectRatio: [4, 3] },
+      { x: 0.1352, y: 0.2844, width: 0.7296, height: 0.1176, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '5': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '6': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '7': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '8': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '9': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '12': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.626, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '13': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '14': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '15': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '16': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '17': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '18': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '19': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '20': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '21': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    ],
+  },
+    '22': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '23': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '24': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '25': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '26': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '27': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '28': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '29': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '30': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '31': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '32': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '33': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '34': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '35': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '36': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '37': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '38': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '39': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '40': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '41': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '42': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '43': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '44': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '45': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '46': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
+    '47': {
+    variants: [
+    {
+      variantId: 'one_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.8064, height: 0.48, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_horizontal',
+      slots: [
+      { x: 0.0968, y: 0.362, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.638, width: 0.8064, height: 0.252, aspectRatio: [4, 3] },
+      ],
+    },
+    {
+      variantId: 'two_vertical',
+      slots: [
+      { x: 0.0968, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.5, width: 0.3864, height: 0.504, aspectRatio: [3, 4] },
+      ],
+    },
+    {
+      variantId: 'three_hero',
+      slots: [
+      { x: 0.0968, y: 0.38, width: 0.8064, height: 0.312, aspectRatio: [4, 3] },
+      { x: 0.0968, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      { x: 0.5168, y: 0.662, width: 0.3864, height: 0.228, aspectRatio: [3, 4] },
+      ],
+    },
+    ],
+  },
   },
   diary_interior_brown: {
     '5': blankPageLayouts(),

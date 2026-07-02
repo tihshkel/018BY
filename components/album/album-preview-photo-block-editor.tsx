@@ -1,4 +1,3 @@
-import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -8,6 +7,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
+import { PhotoSlotCropPreview } from '@/components/album/photo-slot-crop-preview';
 import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
@@ -21,13 +21,16 @@ import {
   clampPhotoBlockTransform,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
+  photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
 
 type AlbumPreviewPhotoBlockEditorProps = {
+  blockId: string;
   lineGuideId: string;
   sourcePageNumber: number;
   variantId: string;
   slotUris: (string | null)[];
+  slotTransforms?: Record<string, PhotoSlotTransform>;
   templateLibraryId?: string;
   groupTransform?: PhotoSlotTransform;
   safeBounds?: ViewportRect | null;
@@ -73,10 +76,12 @@ function cornerHandleStyle(corner: CornerId) {
 }
 
 export function AlbumPreviewPhotoBlockEditor({
+  blockId,
   lineGuideId,
   sourcePageNumber,
   variantId,
   slotUris,
+  slotTransforms = {},
   templateLibraryId,
   groupTransform = DEFAULT_PHOTO_SLOT_TRANSFORM,
   safeBounds,
@@ -444,7 +449,11 @@ export function AlbumPreviewPhotoBlockEditor({
           accessibilityRole={!selected ? 'button' : undefined}
           accessibilityLabel={!selected ? 'Выбрать блок фото' : undefined}
         >
-          <BlockPhotos layout={layout} />
+          <BlockPhotos
+            layout={layout}
+            blockId={blockId}
+            slotTransforms={slotTransforms}
+          />
 
           {selected ? (
             <>
@@ -471,7 +480,15 @@ export function AlbumPreviewPhotoBlockEditor({
   );
 }
 
-function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
+function BlockPhotos({
+  layout,
+  blockId,
+  slotTransforms,
+}: {
+  layout: PhotoBlockLayout;
+  blockId: string;
+  slotTransforms: Record<string, PhotoSlotTransform>;
+}) {
   return (
     <>
       {layout.slots.map((slot) => (
@@ -486,8 +503,15 @@ function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
               height: `${slot.relative.height * 100}%`,
             },
           ]}
+          pointerEvents="none"
         >
-          <Image source={{ uri: slot.uri }} style={styles.photo} contentFit="cover" />
+          <PhotoSlotCropPreview
+            uri={slot.uri}
+            transform={
+              slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
+              DEFAULT_PHOTO_SLOT_TRANSFORM
+            }
+          />
         </View>
       ))}
     </>
@@ -510,10 +534,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     overflow: 'hidden',
     borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
   },
   selectionBorder: {
     ...StyleSheet.absoluteFillObject,

@@ -21,6 +21,7 @@ import {
   usesBlankPagePhotoFallback,
   type AlbumSparsePhotoConfig,
 } from '@/constants/sparse-photo-album-config';
+import { getSparsePhotoZoomBounds } from '@/constants/photo-print-margins';
 import { filterFeasiblePhotoLayouts } from '@/utils/photoLayoutFeasibility';
 
 const FULL_PHOTO_TEMPLATES = [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS];
@@ -369,6 +370,36 @@ function resolveStrategySafeZone(
     default:
       return undefined;
   }
+}
+
+export function resolveSparsePhotoZoomSafeZone(
+  lineGuideId: string,
+  page: number,
+): SafeZone {
+  const config = getSparsePhotoAlbumConfig(lineGuideId);
+  const bounds = getSparsePhotoZoomBounds(lineGuideId);
+  const baseZone: SafeZone = {
+    x: bounds.left,
+    y: bounds.top,
+    width: bounds.right - bounds.left,
+    height: bounds.bottom - bounds.top,
+  };
+
+  if (!config) {
+    return baseZone;
+  }
+
+  if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+    const weekly = buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config);
+    return constrainPhotoSafeZone(lineGuideId, page, weekly, config);
+  }
+
+  if (isPregnancyUpperBandPage(lineGuideId, page)) {
+    const upper = buildUpperBandPhotoSafeZone(lineGuideId, page, config);
+    return constrainPhotoSafeZone(lineGuideId, page, upper, config);
+  }
+
+  return constrainPhotoSafeZone(lineGuideId, page, baseZone, config);
 }
 
 export function resolveSparsePhotoSafeZone(

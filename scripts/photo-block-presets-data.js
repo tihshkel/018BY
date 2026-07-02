@@ -67,6 +67,15 @@ const GODPARENTS_PHOTO_BLOCK = {
   ],
 };
 
+const FOOTPRINTS_PHOTO_BLOCK = {
+  blockId: 'main_photo',
+  label: 'Фото следов',
+  variants: [
+    { variantId: 'one_horizontal', label: '1 фото', slots: 1, slotIndices: [0] },
+    { variantId: 'two_horizontal', label: '2 фото (руки и ноги)', slots: 2, slotIndices: [0, 1] },
+  ],
+};
+
 module.exports = {
   DESIGNED_ALBUM_PHOTO_BLOCK,
   FULL_PHOTO_BLOCK,
@@ -75,4 +84,5 @@ module.exports = {
   PARENTS_PHOTO_BLOCK,
   SINGLE_HORIZONTAL_PHOTO_BLOCK,
   GODPARENTS_PHOTO_BLOCK,
+  FOOTPRINTS_PHOTO_BLOCK,
 };

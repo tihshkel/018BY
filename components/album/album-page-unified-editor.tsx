@@ -17,7 +17,7 @@ import { PageFormFields, TextFieldStyleToolbar } from '@/components/album/page-f
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FieldTextStyle, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
-import { isSquareBlankLineGuide } from '@/utils/albumImages';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
 
@@ -136,7 +136,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   );
 
   const fields = resolvedSchema.fields ?? [];
-  const showTextStyleToolbar = isSquareBlankLineGuide(lineGuideId);
+  const showTextStyleToolbar = usesTemplateLineTextEditing(lineGuideId);
   const formProps = {
     fields,
     values: pageValues.fields,
@@ -145,6 +145,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
     onFieldStyleChange,
     lineGuideId,
     sourcePageNumber: resolvedSchema.sourcePageNumber,
+    fontId: pageValues.textFontFamily,
   };
 
   const textForm = (() => {
@@ -321,6 +322,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                   onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                   placeholder="Необязательно"
                   placeholderTextColor={colors.placeholder}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </AppCard>
             ));
@@ -345,6 +348,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
             onChangeText={onCaptionChange}
             placeholder="Короткая подпись"
             placeholderTextColor={colors.placeholder}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </AppCard>
       ) : null}

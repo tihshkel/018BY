@@ -18,8 +18,10 @@ export function getBranchFillColor(branch?: NormalizedPhotoSlot['branch']): stri
 export function mapCircleSlotToViewport(
   slot: Pick<NormalizedPhotoSlot, 'x' | 'y' | 'width' | 'height'>,
   contentRect: ContentRect,
+  options?: { diameterBleed?: number },
 ): { x: number; y: number; width: number; height: number } {
-  const diameter = Math.max(slot.width, slot.height);
+  const bleed = options?.diameterBleed ?? 1;
+  const diameter = Math.max(slot.width, slot.height) * bleed;
   const size = diameter * contentRect.width;
   const centerX = contentRect.offsetX + slot.x * contentRect.width;
   const centerY = contentRect.offsetY + slot.y * contentRect.height;

@@ -38,6 +38,7 @@ import {
 import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletDevice, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ALBUM_TEMPLATE_DISPLAY_PROPS } from '@/utils/albumPhotoDisplay';
 import { Image } from 'expo-image';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -873,10 +874,7 @@ export default function ImageViewer({
                             source={{ uri: imageUri }}
                             style={styles.blankPageImage}
                             contentFit="fill"
-                            transition={0}
-                            fadeDuration={0}
-                            cachePolicy="memory-disk"
-                            priority={index < 3 ? 'high' : 'normal'}
+                            {...ALBUM_TEMPLATE_DISPLAY_PROPS}
                             recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
                           />
                         </View>
@@ -886,10 +884,7 @@ export default function ImageViewer({
                           style={styles.image}
                           contentFit="contain"
                           contentPosition="center"
-                          transition={0}
-                          fadeDuration={0}
-                          cachePolicy="disk"
-                          priority={index < 3 ? 'high' : 'normal'}
+                          {...ALBUM_TEMPLATE_DISPLAY_PROPS}
                           recyclingKey={`${lineGuideId || albumName}-p${index}-${BLANK_INTERIOR_CACHE_REVISION}`}
                           pointerEvents="none"
                           onLoad={(event) => {

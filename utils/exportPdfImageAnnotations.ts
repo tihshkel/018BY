@@ -15,7 +15,6 @@ import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import { getContentRect, mapViewportAnnotationToPdf } from '@/utils/imageContentRect';
 import { computeObjectFitCover } from '@/utils/imageCoverDraw';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
-import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 
 const ELLIPSE_KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
 
@@ -132,8 +131,6 @@ export async function drawImageAnnotationsOnPdfPage(
 
   if (imageAnnotations.length === 0) return;
 
-  const useBlankAlbumPhotoRadius = isBlankTemplateLineGuide(params.lineGuideId ?? '');
-
   const editorContentRect = getContentRect(
     params.pagesViewport.width,
     params.pagesViewport.height,
@@ -225,20 +222,6 @@ export async function drawImageAnnotationsOnPdfPage(
     const annImageBytes = params.annotationImageMap.get(ann.imageUri);
     if (!annImageBytes) continue;
 
-    const photoBleed = Math.max(2, mapped.width * 0.015);
-    try {
-      params.page.drawRectangle({
-        x: mapped.x - photoBleed,
-        y: mapped.y - photoBleed,
-        width: mapped.width + photoBleed * 2,
-        height: mapped.height + photoBleed * 2,
-        color: rgb(1, 1, 1),
-        borderWidth: 0,
-      });
-    } catch {
-      // ignore mask failures
-    }
-
     try {
       let embeddedAnnImage = params.embeddedImagesCache.get(ann.imageUri);
       if (!embeddedAnnImage) {
@@ -256,14 +239,10 @@ export async function drawImageAnnotationsOnPdfPage(
       if (ann.clipShape === 'circle') {
         pushCircleClip(params.page, clipMapped);
       } else if (needsRectClip) {
-        if (useBlankAlbumPhotoRadius) {
-          const pdfRadius =
-            BLANK_ALBUM_PHOTO_RADIUS *
-            (clipMapped.height / Math.max(slotViewport.height, 1));
-          pushRoundedRectClip(params.page, clipMapped, pdfRadius);
-        } else {
-          pushRectClip(params.page, clipMapped);
-        }
+        const pdfRadius =
+          BLANK_ALBUM_PHOTO_RADIUS *
+          (clipMapped.height / Math.max(slotViewport.height, 1));
+        pushRoundedRectClip(params.page, clipMapped, pdfRadius);
       }
 
       if (ann.imageContentFit === 'cover') {

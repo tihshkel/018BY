@@ -1,4 +1,5 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import type { AlbumPageField } from '@/types/album-page-schema';
 import {
   getMeasurementDigitLimit,
@@ -8,11 +9,18 @@ import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
+import { measureTextWithFontTable } from '@/utils/fontCharWidths';
 import { getLineSlotsForPage } from '@/utils/textLineSlots';
-import { clampTextToFieldLines } from '@/utils/templateLineText';
+import {
+  clampTextToFieldLines,
+  type TextWidthMeasure,
+} from '@/utils/templateLineText';
 
-const DEFAULT_VIEWPORT = { width: 390, height: 844 };
-const FIELD_LIMIT_PROBE = 'n'.repeat(500);
+/** Эталонная ширина PDF-растра — лимит не зависит от ширины телефона. */
+export const FIELD_LIMIT_REFERENCE_VIEWPORT = { width: 2480, height: 2480 };
+
+const FIELD_LIMIT_PROBE_CYRILLIC =
+  'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789. '.repeat(20);
 
 type FieldLimitParams = {
   field: AlbumPageField;
@@ -20,14 +28,25 @@ type FieldLimitParams = {
   sourcePageNumber: number;
   viewportWidth?: number;
   viewportHeight?: number;
+  fontId?: string | null;
 };
+
+function resolveMeasureTextWidth(fontId?: string | null): TextWidthMeasure | undefined {
+  const normalized = normalizeAlbumFontId(fontId);
+  if (measureTextWithFontTable('А', 16, normalized) == null) {
+    return undefined;
+  }
+  return (text, fittedFontSize) =>
+    measureTextWithFontTable(text, fittedFontSize, normalized) ?? 0;
+}
 
 function computeLayoutCharacterLimit(
   field: AlbumPageField,
   lineGuideId: string,
   sourcePageNumber: number,
   viewportWidth: number,
-  viewportHeight: number
+  viewportHeight: number,
+  fontId?: string | null,
 ): number | undefined {
   const slots = getLineSlotsForPage({
     lineGuideId,
@@ -38,24 +57,39 @@ function computeLayoutCharacterLimit(
 
   const fieldSlots = slots.slice(
     field.templateLineStart,
-    field.templateLineStart + field.templateLineCount
+    field.templateLineStart + field.templateLineCount,
   );
 
   if (fieldSlots.length === 0) return undefined;
 
   const profile = getTemplateTypographyProfile(lineGuideId);
   const fontSize = profile.fixedLineFontSize ?? 16;
+  const measureTextWidth = resolveMeasureTextWidth(fontId);
 
   const clamped = clampTextToFieldLines({
-    text: FIELD_LIMIT_PROBE,
+    text: FIELD_LIMIT_PROBE_CYRILLIC,
     startSlotIndex: field.templateLineStart,
     lineCount: field.templateLineCount,
     slots,
     fontSize,
     lineGuideId,
+    fontId: normalizeAlbumFontId(fontId),
+    measureTextWidth,
   });
 
   return clamped.length;
+}
+
+function getKids48FieldLimit(params: FieldLimitParams): number | undefined {
+  if (params.lineGuideId !== 'kids_48') {
+    return undefined;
+  }
+
+  if (params.sourcePageNumber === 5 && params.field.type === 'text') {
+    return params.field.maxLength ?? 28;
+  }
+
+  return undefined;
 }
 
 function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
@@ -91,21 +125,34 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     return birthdayLimit;
   }
 
+  const kids48Limit = getKids48FieldLimit(params);
+  if (kids48Limit != null) {
+    return kids48Limit;
+  }
+
   const typeLimit = getFieldMaxLength(params.field.type);
-  // Дата и время имеют фиксированный формат (ДД.ММ.ГГГГ / ЧЧ:ММ), не зависят от ширины слота.
   if (params.field.type === 'date' || params.field.type === 'time') {
     return typeLimit;
   }
 
-  const viewportWidth = params.viewportWidth ?? DEFAULT_VIEWPORT.width;
-  const viewportHeight = params.viewportHeight ?? DEFAULT_VIEWPORT.height;
+  const viewportWidth = params.viewportWidth ?? FIELD_LIMIT_REFERENCE_VIEWPORT.width;
+  const viewportHeight = params.viewportHeight ?? FIELD_LIMIT_REFERENCE_VIEWPORT.height;
   const layoutLimit = computeLayoutCharacterLimit(
     params.field,
     params.lineGuideId,
     params.sourcePageNumber,
     viewportWidth,
-    viewportHeight
+    viewportHeight,
+    params.fontId,
   );
+
+  if (params.lineGuideId === 'kids_48' && params.field.type === 'text') {
+    const limits = [params.field.maxLength, typeLimit].filter(
+      (limit): limit is number => limit != null,
+    );
+    if (limits.length === 0) return layoutLimit;
+    return Math.min(...limits);
+  }
 
   const limits = [params.field.maxLength, typeLimit, layoutLimit].filter(
     (limit): limit is number => limit != null,

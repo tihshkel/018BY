@@ -28,14 +28,14 @@ export const AVAILABLE_FONTS: FontOption[] = [
     name: 'AmaticSC-Regular',
     file: require('@/assets/fonts/AmaticSC-Regular.ttf'),
     displayName: 'Amatic SC',
-    charWidthMultiplier: 1.08,
+    charWidthMultiplier: 0.92,
   },
   {
     id: 'AmaticSC-Bold',
     name: 'AmaticSC-Bold',
     file: require('@/assets/fonts/AmaticSC-Bold.ttf'),
     displayName: 'Amatic SC Bold',
-    charWidthMultiplier: 1.1,
+    charWidthMultiplier: 0.94,
   },
   {
     id: 'Nefelibata-Sans',

@@ -29,29 +29,29 @@
           "one_horizontal",
           "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_collage",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5117711904761905,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.36541668571428565,
+            "xNorm": 0.253528,
+            "yNorm": 0.5,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 7
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 13
       },
-      "photoDescription": "≈169×77 мм, горизонталь 4:3, 69–146 мм от верха (центр)",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 74–136 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 37–197 мм",
-        "photoZone": "69–146 мм от верха",
-        "minGapToTextMm": 7,
+        "photoZone": "74–136 мм от верха",
+        "minGapToTextMm": 13,
         "overlapIssues": []
       },
       "status": "ok"
@@ -111,29 +111,29 @@
           "one_horizontal",
           "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_collage",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.4046936904761904,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.39003588571428555,
+            "xNorm": 0.253528,
+            "yNorm": 0.3801,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 7
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 24
       },
-      "photoDescription": "≈169×82 мм, горизонталь 4:3, 44–126 мм от верха (центр)",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 48–111 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
-        "textZone": "верх 132–155 мм",
-        "photoZone": "44–126 мм от верха",
-        "minGapToTextMm": 7,
+        "textZone": "верх 134–152 мм",
+        "photoZone": "48–111 мм от верха",
+        "minGapToTextMm": 24,
         "overlapIssues": []
       },
       "status": "ok"
@@ -159,29 +159,29 @@
           "one_horizontal",
           "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_collage",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.253528,
             "yNorm": 0.7177,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.34281599999999995,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "four_grid",
-        "primaryGapMm": 44
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 48
       },
-      "photoDescription": "≈169×72 мм, горизонталь 4:3, 115–187 мм от верха (низ)",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 119–182 мм от верха (низ)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 66–72 мм",
-        "photoZone": "115–187 мм от верха",
-        "minGapToTextMm": 44,
+        "photoZone": "119–182 мм от верха",
+        "minGapToTextMm": 48,
         "overlapIssues": []
       },
       "status": "ok"
@@ -197,7 +197,7 @@
         "radioCount": 0,
         "totalFields": 9,
         "captionField": false,
-        "lineSlotCount": 9,
+        "lineSlotCount": 15,
         "displayCount": 9
       },
       "photo": {
@@ -206,123 +206,17 @@
         "variants": [
           "tree"
         ],
-        "primaryVariant": "tree",
+        "primaryVariant": null,
         "layoutSource": "circle",
-        "slots": [
-          {
-            "xNorm": 0.4451,
-            "yNorm": 0.1805,
-            "widthNorm": 0.1526,
-            "heightNorm": 0.1526,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.2077,
-            "yNorm": 0.2954,
-            "widthNorm": 0.17,
-            "heightNorm": 0.17,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.3742,
-            "yNorm": 0.4154,
-            "widthNorm": 0.17,
-            "heightNorm": 0.17,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.1821,
-            "yNorm": 0.501,
-            "widthNorm": 0.1562,
-            "heightNorm": 0.1562,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.385,
-            "yNorm": 0.6414,
-            "widthNorm": 0.1478,
-            "heightNorm": 0.1478,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.6703,
-            "yNorm": 0.2138,
-            "widthNorm": 0.1562,
-            "heightNorm": 0.1562,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.8437,
-            "yNorm": 0.328,
-            "widthNorm": 0.17,
-            "heightNorm": 0.17,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.6548,
-            "yNorm": 0.4123,
-            "widthNorm": 0.1562,
-            "heightNorm": 0.1562,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.8273,
-            "yNorm": 0.5509,
-            "widthNorm": 0.1573,
-            "heightNorm": 0.1573,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.2202,
-            "yNorm": 0.7243,
-            "widthNorm": 0.1357,
-            "heightNorm": 0.1357,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.3511,
-            "yNorm": 0.8555,
-            "widthNorm": 0.1255,
-            "heightNorm": 0.1255,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.6125,
-            "yNorm": 0.6076,
-            "widthNorm": 0.1552,
-            "heightNorm": 0.1552,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.7591,
-            "yNorm": 0.7076,
-            "widthNorm": 0.1562,
-            "heightNorm": 0.1562,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.6782,
-            "yNorm": 0.8444,
-            "widthNorm": 0.1478,
-            "heightNorm": 0.1478,
-            "shape": "circle"
-          },
-          {
-            "xNorm": 0.513,
-            "yNorm": 0.7757,
-            "widthNorm": 0.1429,
-            "heightNorm": 0.1429,
-            "shape": "circle"
-          }
-        ],
-        "worstCaseVariant": "tree",
+        "slots": [],
+        "worstCaseVariant": null,
         "primaryGapMm": null
       },
-      "photoDescription": "15 кругов Ø≈32 мм (семейное дерево)",
-      "photoSummary": "15 кругов Ø≈32 мм (семейное дерево)",
+      "photoDescription": "—",
+      "photoSummary": "—",
       "layout": {
-        "textZone": "верх 55–157 мм",
-        "photoZone": "22–193 мм от верха",
+        "textZone": "верх 52–198 мм",
+        "photoZone": "нет фото",
         "minGapToTextMm": null,
         "overlapIssues": [
           {
@@ -350,36 +244,35 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.47,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5184,
+            "xNorm": 0.253528,
+            "yNorm": 0.4263,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
+        "worstCaseVariant": "two_vertical",
         "primaryGapMm": null
       },
-      "photoDescription": "≈169×109 мм, горизонталь 4:3, 44–153 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 58–121 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "44–153 мм от верха",
+        "photoZone": "58–121 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -401,36 +294,35 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.291252,
             "yNorm": 0.5985,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.6535679999999999,
+            "widthNorm": 0.417496,
+            "heightNorm": 0.5718719999999999,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
+        "worstCaseVariant": "two_vertical",
         "primaryGapMm": null
       },
-      "photoDescription": "≈169×137 мм, горизонталь 4:3, 57–194 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈88×120 мм, горизонталь 4:3, 66–186 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "57–194 мм от верха",
+        "photoZone": "66–186 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -447,49 +339,42 @@
         "radioCount": 0,
         "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 2,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6095011904761903,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.39753828571428557,
+            "xNorm": 0.253528,
+            "yNorm": 0.581,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 7
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 37
       },
-      "photoDescription": "≈169×83 мм, горизонталь 4:3, 86–170 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 91–154 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 30–201 мм",
-        "photoZone": "86–170 мм от верха",
-        "minGapToTextMm": 7,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 1 overlaps photo (y=0.896)"
-          }
-        ]
+        "textZone": "верх 189–195 мм",
+        "photoZone": "91–154 мм от верха",
+        "minGapToTextMm": 37,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -509,37 +394,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.610175,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.556464,
+            "xNorm": 0.253528,
+            "yNorm": 0.4989,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 30
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 33
       },
-      "photoDescription": "≈169×117 мм, горизонталь 4:3, 70–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 73–136 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 36–42 мм",
-        "photoZone": "70–187 мм от верха",
-        "minGapToTextMm": 30,
+        "photoZone": "73–136 мм от верха",
+        "minGapToTextMm": 33,
         "overlapIssues": []
       },
       "status": "ok"
@@ -555,7 +439,7 @@
         "radioCount": 0,
         "totalFields": 22,
         "captionField": false,
-        "lineSlotCount": 23,
+        "lineSlotCount": 22,
         "displayCount": 22
       },
       "photo": {
@@ -630,38 +514,33 @@
         "hasPhoto": true,
         "blockId": "main_photo",
         "variants": [
-          "one_horizontal"
+          "one_horizontal",
+          "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "kids_event",
+        "primaryVariant": "one_large",
+        "layoutSource": "designed_event",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.11359999999999998,
             "yNorm": 0.5628911904761904,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.6103510857142856,
+            "widthNorm": 0.7728,
+            "heightNorm": 0.5340572,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "four_grid",
+        "primaryGapMm": 17
       },
-      "photoDescription": "≈169×128 мм, горизонталь 4:3, 54–182 мм от верха (центр)",
-      "photoSummary": "1 фото",
+      "photoDescription": "≈162×112 мм, горизонталь 4:3, 62–174 мм от верха (центр)",
+      "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "54–182 мм от верха",
-        "minGapToTextMm": 9,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 0 overlaps photo (y=0.914)"
-          }
-        ]
+        "photoZone": "62–174 мм от верха",
+        "minGapToTextMm": 17,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -686,29 +565,29 @@
           "one_horizontal",
           "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.253528,
             "yNorm": 0.7322,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.34281599999999995,
+            "widthNorm": 0.492844,
+            "heightNorm": 0.29996399999999995,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 12
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 16
       },
-      "photoDescription": "≈169×72 мм, горизонталь 4:3, 118–190 мм от верха (низ)",
+      "photoDescription": "≈103×63 мм, горизонталь 4:3, 122–185 мм от верха (низ)",
       "photoSummary": "1–2 варианта",
       "layout": {
         "textZone": "верх 34–108 мм",
-        "photoZone": "118–190 мм от верха",
-        "minGapToTextMm": 12,
+        "photoZone": "122–185 мм от верха",
+        "minGapToTextMm": 16,
         "overlapIssues": []
       },
       "status": "ok"
@@ -720,53 +599,46 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 0
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5862911904761905,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5654230857142856,
+            "xNorm": 0.311856,
+            "yNorm": 0.5985,
+            "widthNorm": 0.376188,
+            "heightNorm": 0.5152559999999999,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 11
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 64–182 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈79×108 мм, горизонталь 4:3, 72–180 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "64–182 мм от верха",
-        "minGapToTextMm": 9,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 0 overlaps photo (y=0.914)"
-          }
-        ]
+        "photoZone": "72–180 мм от верха",
+        "minGapToTextMm": 11,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -777,53 +649,46 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 0
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5886161904761904,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5609590857142857,
+            "xNorm": 0.32556799999999997,
+            "yNorm": 0.5808,
+            "widthNorm": 0.348864,
+            "heightNorm": 0.47770799999999997,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 18
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 65–183 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈73×100 мм, горизонталь 4:3, 72–172 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "65–183 мм от верха",
-        "minGapToTextMm": 9,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 0 overlaps photo (y=0.914)"
-          }
-        ]
+        "photoZone": "72–172 мм от верха",
+        "minGapToTextMm": 18,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -834,47 +699,52 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 2,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 2,
         "captionField": false,
-        "lineSlotCount": 1,
-        "displayCount": 0
+        "lineSlotCount": 2,
+        "displayCount": 2
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.291252,
             "yNorm": 0.5985,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.653568,
+            "widthNorm": 0.417496,
+            "heightNorm": 0.5718719999999999,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 12
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 5
       },
-      "photoDescription": "≈169×137 мм, горизонталь 4:3, 57–194 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈88×120 мм, горизонталь 4:3, 66–186 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 42–47 мм",
-        "photoZone": "57–194 мм от верха",
-        "minGapToTextMm": 12,
-        "overlapIssues": []
+        "textZone": "верх 42–195 мм",
+        "photoZone": "66–186 мм от верха",
+        "minGapToTextMm": 5,
+        "overlapIssues": [
+          {
+            "severity": "warn",
+            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
+            "detail": "[two_vertical] line slot 1 overlaps photo (y=0.914)"
+          }
+        ]
       },
       "status": "ok"
     },
@@ -885,53 +755,46 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 0
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5330911904761906,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.6675670857142857,
+            "xNorm": 0.291252,
+            "yNorm": 0.5258,
+            "widthNorm": 0.417496,
+            "heightNorm": 0.5718719999999999,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 10
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 20
       },
-      "photoDescription": "≈169×140 мм, горизонталь 4:3, 42–182 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈88×120 мм, горизонталь 4:3, 50–170 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 189–195 мм",
-        "photoZone": "42–182 мм от верха",
-        "minGapToTextMm": 10,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 0 overlaps photo (y=0.914)"
-          }
-        ]
+        "photoZone": "50–170 мм от верха",
+        "minGapToTextMm": 20,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -942,53 +805,46 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 2,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 2,
         "captionField": false,
         "lineSlotCount": 2,
-        "displayCount": 0
+        "displayCount": 2
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5536000000000001,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5398701714285715,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×113 мм, горизонталь 4:3, 60–173 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–205 мм",
-        "photoZone": "60–173 мм от верха",
-        "minGapToTextMm": 9,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 1 overlaps photo (y=0.914)"
-          }
-        ]
+        "textZone": "верх 38–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -999,53 +855,46 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 2,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5536000000000001,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5398701714285715,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×113 мм, горизонталь 4:3, 60–173 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–205 мм",
-        "photoZone": "60–173 мм от верха",
-        "minGapToTextMm": 9,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_OVERLAP",
-            "detail": "[three_hero] line slot 1 overlaps photo (y=0.914)"
-          }
-        ]
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -1065,37 +914,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.5854999999999999,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.6038399999999999,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 16
       },
-      "photoDescription": "≈169×127 мм, горизонталь 4:3, 60–186 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "верх 47–53 мм",
-        "photoZone": "60–186 мм от верха",
-        "minGapToTextMm": 9,
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 16,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1121,29 +969,29 @@
           "one_horizontal",
           "two_horizontal"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6011250000000001,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.57384,
+            "xNorm": 0.148472,
+            "yNorm": 0.557,
+            "widthNorm": 0.703156,
+            "heightNorm": 0.42797999999999997,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 14
+        "worstCaseVariant": "four_grid",
+        "primaryGapMm": null
       },
-      "photoDescription": "≈169×121 мм, горизонталь 4:3, 66–186 мм от верха (центр)",
+      "photoDescription": "≈148×90 мм, горизонталь 4:3, 72–162 мм от верха (центр)",
       "photoSummary": "1–2 варианта",
       "layout": {
-        "textZone": "верх 34–55 мм",
-        "photoZone": "66–186 мм от верха",
-        "minGapToTextMm": 14,
+        "textZone": "верх 101–109 мм",
+        "photoZone": "72–162 мм от верха",
+        "minGapToTextMm": null,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1164,37 +1012,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1215,37 +1062,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1266,37 +1112,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1317,37 +1162,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1368,37 +1212,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1419,37 +1262,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1470,37 +1312,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1521,37 +1362,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1572,37 +1412,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1623,37 +1462,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1674,37 +1512,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6068388095238095,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.5628694857142857,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.5669,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 9
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×118 мм, горизонталь 4:3, 68–187 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 28–62 мм",
-        "photoZone": "68–187 мм от верха",
-        "minGapToTextMm": 9,
+        "textZone": "верх 31–49 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1725,37 +1562,36 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.6018938095238096,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.38036388571428575,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.6307,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 7
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 14
       },
-      "photoDescription": "≈169×80 мм, горизонталь 4:3, 86–166 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 80–185 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 47–81 мм",
-        "photoZone": "86–166 мм от верха",
-        "minGapToTextMm": 7,
+        "textZone": "верх 50–68 мм",
+        "photoZone": "80–185 мм от верха",
+        "minGapToTextMm": 14,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1767,46 +1603,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1827,36 +1662,35 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
+        "worstCaseVariant": "two_vertical",
         "primaryGapMm": null
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
         "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
+        "photoZone": "53–157 мм от верха",
         "minGapToTextMm": null,
         "overlapIssues": []
       },
@@ -1869,46 +1703,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1920,46 +1753,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -1971,46 +1803,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2022,46 +1853,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2073,46 +1903,45 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 19
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 19,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2133,44 +1962,37 @@
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
-            "yNorm": 0.49606119047619046,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.7612054857142856,
+            "xNorm": 0.31848000000000004,
+            "yNorm": 0.3955,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": 11
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 52
       },
-      "photoDescription": "≈169×160 мм, горизонталь 4:3, 24–184 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 31–135 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "верх 191–197 мм",
-        "photoZone": "24–184 мм от верха",
-        "minGapToTextMm": 11,
-        "overlapIssues": [
-          {
-            "severity": "warn",
-            "code": "WORST_CASE_PHOTO_TEXT_GAP_SMALL",
-            "detail": "[three_hero] line slot 0 gap 3 mm < 4 mm"
-          }
-        ]
+        "textZone": "верх 186–192 мм",
+        "photoZone": "31–135 мм от верха",
+        "minGapToTextMm": 52,
+        "overlapIssues": []
       },
       "status": "ok"
     },
@@ -2185,42 +2007,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5669,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 16
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 59–179 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 67–171 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "59–179 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "67–171 мм от верха",
+        "minGapToTextMm": 16,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2236,42 +2057,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 30
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "53–157 мм от верха",
+        "minGapToTextMm": 30,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2287,42 +2107,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 30
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "53–157 мм от верха",
+        "minGapToTextMm": 30,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2338,42 +2157,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 30
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "53–157 мм от верха",
+        "minGapToTextMm": 30,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2389,42 +2207,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 30
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "53–157 мм от верха",
+        "minGapToTextMm": 30,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2440,42 +2257,41 @@
         "radioCount": 0,
         "totalFields": 0,
         "captionField": true,
-        "lineSlotCount": 0,
+        "lineSlotCount": 1,
         "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
-        "blockId": "event_photos",
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.5,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 30
       },
-      "photoDescription": "≈169×119 мм, горизонталь 4:3, 45–165 мм от верха (центр)",
-      "photoSummary": "1–5 варианта",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 53–157 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "45–165 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 186–192 мм",
+        "photoZone": "53–157 мм от верха",
+        "minGapToTextMm": 30,
         "overlapIssues": []
       },
       "status": "ok"
@@ -2483,50 +2299,49 @@
     {
       "page": 48,
       "title": "Моя история только начинается",
-      "pageType": "non_editable",
-      "editable": false,
+      "pageType": "event_photo",
+      "editable": true,
       "section": "Памятные моменты и завершение",
       "textFields": {
-        "schemaCount": 0,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 0,
+        "totalFields": 1,
         "captionField": false,
-        "lineSlotCount": 0,
-        "displayCount": 0
+        "lineSlotCount": 1,
+        "displayCount": 1
       },
       "photo": {
-        "hasPhoto": false,
-        "blockId": null,
+        "hasPhoto": true,
+        "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal",
+          "one_large",
           "two_vertical",
           "three_hero",
-          "four_vertical"
+          "four_grid"
         ],
-        "primaryVariant": "one_horizontal",
-        "layoutSource": "pdf_expanded",
+        "primaryVariant": "one_large",
+        "layoutSource": "pdf_standard",
         "slots": [
           {
-            "xNorm": 0.0968,
+            "xNorm": 0.31848000000000004,
             "yNorm": 0.3765,
-            "widthNorm": 0.8063999999999999,
-            "heightNorm": 0.568128,
+            "widthNorm": 0.36294000000000004,
+            "heightNorm": 0.497112,
             "aspectRatio": [
               4,
               3
             ]
           }
         ],
-        "worstCaseVariant": "three_hero",
-        "primaryGapMm": null
+        "worstCaseVariant": "two_vertical",
+        "primaryGapMm": 59
       },
-      "photoDescription": "—",
-      "photoSummary": "нет",
+      "photoDescription": "≈76×104 мм, горизонталь 4:3, 27–131 мм от верха (центр)",
+      "photoSummary": "1–4 варианта",
       "layout": {
-        "textZone": "нет текстовых слотов",
-        "photoZone": "19–139 мм от верха",
-        "minGapToTextMm": null,
+        "textZone": "верх 189–195 мм",
+        "photoZone": "27–131 мм от верха",
+        "minGapToTextMm": 59,
         "overlapIssues": []
       },
       "status": "ok"

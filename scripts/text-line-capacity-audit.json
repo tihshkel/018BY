@@ -1,0 +1,791 @@
+{
+  "generatedAt": "2026-07-02T16:40:42.756Z",
+  "probeSample": "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0",
+  "albums": [
+    {
+      "albumId": "kids_48",
+      "pageCount": 44,
+      "issuePages": 0,
+      "pages": [
+        {
+          "page": "1",
+          "title": "Этот альбом принадлежит",
+          "slotCount": 5,
+          "fieldCount": 5,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p1_child_name",
+              "slotIndex": 0,
+              "detail": "slotY=0.2359 guideY=0.2359 driftMm=12.6"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p1_weight",
+              "slotIndex": 3,
+              "detail": "slotY=0.8597 guideY=0.8597 driftMm=5.3"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p1_height",
+              "slotIndex": 4,
+              "detail": "slotY=0.9113 guideY=0.9113 driftMm=5.4"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "3",
+          "title": "Мы ждем тебя",
+          "slotCount": 2,
+          "fieldCount": 4,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "4",
+          "title": "Мои мама и папа",
+          "slotCount": 2,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p4_mother_name",
+              "slotIndex": 0,
+              "detail": "slotY=0.3294 guideY=0.3294 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p4_father_name",
+              "slotIndex": 1,
+              "detail": "slotY=0.3294 guideY=0.3294 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "5",
+          "title": "Семейное дерево",
+          "slotCount": 15,
+          "fieldCount": 9,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "8",
+          "title": "Первый день дома",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "9",
+          "title": "Первое купание",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "10",
+          "title": "Мои зубки",
+          "slotCount": 22,
+          "fieldCount": 22,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "11",
+          "title": "Мой рост и вес до года",
+          "slotCount": 24,
+          "fieldCount": 24,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_01_height",
+              "slotIndex": 0,
+              "detail": "slotY=0.2588 guideY=0.2588 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_01_weight",
+              "slotIndex": 1,
+              "detail": "slotY=0.2588 guideY=0.2588 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_02_height",
+              "slotIndex": 2,
+              "detail": "slotY=0.3208 guideY=0.3208 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_02_weight",
+              "slotIndex": 3,
+              "detail": "slotY=0.3208 guideY=0.3208 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_03_height",
+              "slotIndex": 4,
+              "detail": "slotY=0.3828 guideY=0.3828 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_03_weight",
+              "slotIndex": 5,
+              "detail": "slotY=0.3828 guideY=0.3828 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_04_height",
+              "slotIndex": 6,
+              "detail": "slotY=0.4448 guideY=0.4448 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_04_weight",
+              "slotIndex": 7,
+              "detail": "slotY=0.4448 guideY=0.4448 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_05_height",
+              "slotIndex": 8,
+              "detail": "slotY=0.5068 guideY=0.5068 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_05_weight",
+              "slotIndex": 9,
+              "detail": "slotY=0.5068 guideY=0.5068 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_06_height",
+              "slotIndex": 10,
+              "detail": "slotY=0.5687 guideY=0.5687 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_06_weight",
+              "slotIndex": 11,
+              "detail": "slotY=0.5687 guideY=0.5687 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_07_height",
+              "slotIndex": 12,
+              "detail": "slotY=0.6307 guideY=0.6307 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_07_weight",
+              "slotIndex": 13,
+              "detail": "slotY=0.6307 guideY=0.6307 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_08_height",
+              "slotIndex": 14,
+              "detail": "slotY=0.6927 guideY=0.6927 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_08_weight",
+              "slotIndex": 15,
+              "detail": "slotY=0.6927 guideY=0.6927 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_09_height",
+              "slotIndex": 16,
+              "detail": "slotY=0.7547 guideY=0.7547 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_09_weight",
+              "slotIndex": 17,
+              "detail": "slotY=0.7547 guideY=0.7547 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_10_height",
+              "slotIndex": 18,
+              "detail": "slotY=0.8167 guideY=0.8167 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_10_weight",
+              "slotIndex": 19,
+              "detail": "slotY=0.8167 guideY=0.8167 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_11_height",
+              "slotIndex": 20,
+              "detail": "slotY=0.8787 guideY=0.8787 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_11_weight",
+              "slotIndex": 21,
+              "detail": "slotY=0.8787 guideY=0.8787 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_12_height",
+              "slotIndex": 22,
+              "detail": "slotY=0.9406 guideY=0.9406 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_12_weight",
+              "slotIndex": 23,
+              "detail": "slotY=0.9406 guideY=0.9406 driftMm=6.5"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "12",
+          "title": "Мои следы",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "13",
+          "title": "Мои достижения",
+          "slotCount": 9,
+          "fieldCount": 8,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_holds_head",
+              "slotIndex": 1,
+              "detail": "slotY=0.2293 guideY=0.2293 driftMm=4.4"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_rolls_over",
+              "slotIndex": 2,
+              "detail": "slotY=0.2693 guideY=0.2693 driftMm=4.2"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_crawls",
+              "slotIndex": 3,
+              "detail": "slotY=0.3096 guideY=0.3096 driftMm=4.4"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_sits_alone",
+              "slotIndex": 4,
+              "detail": "slotY=0.3540 guideY=0.3540 driftMm=4.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_stands_with_support",
+              "slotIndex": 5,
+              "detail": "slotY=0.3956 guideY=0.3956 driftMm=4.4"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_stands_with_support",
+              "slotIndex": 6,
+              "detail": "slotY=0.4385 guideY=0.4385 driftMm=4.6"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_first_steps",
+              "slotIndex": 7,
+              "detail": "slotY=0.4837 guideY=0.4837 driftMm=3.4"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_first_word",
+              "slotIndex": 8,
+              "detail": "slotY=0.5025 guideY=0.5025 driftMm=2.0"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "14",
+          "title": "Моя первая прогулка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "15",
+          "title": "Моя первая игрушка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "16",
+          "title": "Мои сновидения",
+          "slotCount": 2,
+          "fieldCount": 2,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "17",
+          "title": "Моя первая улыбка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "18",
+          "title": "Я сижу",
+          "slotCount": 2,
+          "fieldCount": 2,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "19",
+          "title": "Я стою",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "20",
+          "title": "Таинство крещения",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "21",
+          "title": "Мои крестные",
+          "slotCount": 2,
+          "fieldCount": 2,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "22",
+          "title": "Мне 1 месяц",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p22_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p22_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "23",
+          "title": "Мне 2 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p23_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p23_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "24",
+          "title": "Мне 3 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p24_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p24_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "25",
+          "title": "Мне 4 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p25_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p25_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "26",
+          "title": "Мне 5 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p26_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p26_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "27",
+          "title": "Мне 6 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p27_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p27_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "28",
+          "title": "Мне 7 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p28_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p28_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "29",
+          "title": "Мне 8 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p29_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p29_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "30",
+          "title": "Мне 9 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p30_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p30_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "31",
+          "title": "Мне 10 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p31_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p31_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "32",
+          "title": "Мне 11 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p32_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p32_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "33",
+          "title": "Мне 1 годик",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p33_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.2559 guideY=0.2559 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p33_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.3078 guideY=0.3078 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "34",
+          "title": "Мой первый Новый год",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "36",
+          "title": "Моя первая зима",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "37",
+          "title": "Моя первая весна",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "38",
+          "title": "Мое первое лето",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "39",
+          "title": "Моя первая осень",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "40",
+          "title": "Мое первое путешествие",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "41",
+          "title": "Свободная страница для путешествия",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "42",
+          "title": "Памятные моменты",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "43",
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "44",
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "45",
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "46",
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "47",
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "48",
+          "title": "Моя история только начинается",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        }
+      ]
+    }
+  ]
+}

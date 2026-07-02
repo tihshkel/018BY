@@ -7,6 +7,9 @@ export const PRINT_PHOTO_MARGIN_MM = 10;
 /** Отступ от края листа на страницах только с фото (2 см). */
 export const PHOTO_ONLY_PAGE_MARGIN_MM = 20;
 
+/** Поле pinch/zoom на разреженных страницах (мало строк текста). */
+export const SPARSE_PHOTO_ZOOM_MARGIN_MM = 15;
+
 export const PRINT_PHOTO_MARGIN_NORM = PRINT_PHOTO_MARGIN_MM / 210;
 
 export type PagePhotoBounds = {
@@ -56,6 +59,19 @@ export function getPhotoOnlyPageBounds(lineGuideId: string): PagePhotoBounds {
   };
 }
 
+/** Поле pinch/zoom на разреженных страницах — 1.5 см от края листа. */
+export function getSparsePhotoZoomBounds(lineGuideId: string): PagePhotoBounds {
+  const { widthMm, heightMm } = getAlbumPageSizeMm(lineGuideId);
+  const left = SPARSE_PHOTO_ZOOM_MARGIN_MM / widthMm;
+  const top = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  return {
+    left,
+    top,
+    right: 1 - left,
+    bottom: 1 - top,
+  };
+}
+
 function clampSlotToBounds(
   slot: {
     x: number;
@@ -63,6 +79,7 @@ function clampSlotToBounds(
     width: number;
     height: number;
     aspectRatio?: [number, number];
+    shape?: 'rect' | 'circle';
   },
   bounds: PagePhotoBounds,
 ) {
@@ -79,14 +96,29 @@ function clampSlotToBounds(
     height = side;
   }
 
-  const centerX = Math.min(
-    Math.max(slot.x + slot.width / 2, bounds.left + width / 2),
+  const isCircle = slot.shape === 'circle';
+  // Rect slots: x = left edge, y = vertical center. Circle slots: x/y = center.
+  let centerX = isCircle ? slot.x : slot.x + width / 2;
+  let centerY = slot.y;
+
+  centerX = Math.min(
+    Math.max(centerX, bounds.left + width / 2),
     bounds.right - width / 2,
   );
-  const centerY = Math.min(
-    Math.max(slot.y, bounds.top + height / 2),
+  centerY = Math.min(
+    Math.max(centerY, bounds.top + height / 2),
     bounds.bottom - height / 2,
   );
+
+  if (isCircle) {
+    return {
+      ...slot,
+      x: centerX,
+      y: centerY,
+      width,
+      height,
+    };
+  }
 
   return {
     ...slot,
