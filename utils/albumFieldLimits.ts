@@ -87,6 +87,19 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
   return undefined;
 }
 
+/** Семейное дерево (kids_48, стр. 5): имена под кругами — до 7 символов. */
+export const FAMILY_TREE_NAME_MAX_LENGTH = 7;
+
+function getFamilyTreeFieldLimit(params: FieldLimitParams): number | undefined {
+  if (params.lineGuideId !== 'kids_48' || params.sourcePageNumber !== 5) {
+    return undefined;
+  }
+  if (params.field.type !== 'text') {
+    return undefined;
+  }
+  return FAMILY_TREE_NAME_MAX_LENGTH;
+}
+
 /** Постановка на учёт: телефон — одна строка на макете, длинный ввод не помещается. */
 function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
   if (
@@ -114,6 +127,11 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
   const pregnancyLimit = getPregnancyFieldLimit(params);
   if (pregnancyLimit != null) {
     return pregnancyLimit;
+  }
+
+  const familyTreeLimit = getFamilyTreeFieldLimit(params);
+  if (familyTreeLimit != null) {
+    return familyTreeLimit;
   }
 
   const typeLimit = getFieldMaxLength(params.field.type);

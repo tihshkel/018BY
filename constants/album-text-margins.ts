@@ -40,6 +40,87 @@ export const KIDS_MONTH_LINE_X_INSET = 0.008;
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
+/** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА». */
+export const KIDS48_P8_DATE_LINE = {
+  writableX: 0.438,
+  /** Достаточно для «ДД.ММ.ГГГГ» без обрезки на превью и в PDF. */
+  writableWidth: 0.36,
+  strokeY: 0.8956,
+} as const;
+
+/** Зазор между низом даты и штрихом линии. */
+export const KIDS48_P8_DATE_LINE_FONT_OFFSET = 1.07;
+
+/** Y штриха нижней линии «ДАТА» по номеру страницы kids_48. */
+const KIDS48_BOTTOM_DATE_STROKE_Y: Record<number, number> = {
+  8: 0.8956,
+  14: 0.91383,
+  15: 0.91383,
+  17: 0.91383,
+  18: 0.91383,
+  19: 0.91383,
+};
+
+export function getKids48BottomDateLineStrokeY(page: number): number | null {
+  return KIDS48_BOTTOM_DATE_STROKE_Y[page] ?? null;
+}
+
+/** Индекс слота нижней линии «ДАТА» (p8/p18/p19 — вторая линия, остальные — единственная). */
+export function getKids48BottomDateLineSlotIndex(page: number): number | null {
+  if (page === 8 || page === 18 || page === 19) return 1;
+  if (page === 14 || page === 15 || page === 17) return 0;
+  return null;
+}
+
+export function isKids48BottomDateLineSlot(
+  lineGuideId: string,
+  page: number,
+  slotIndex: number,
+): boolean {
+  const dateSlotIndex = getKids48BottomDateLineSlotIndex(page);
+  return lineGuideId === 'kids_48' && dateSlotIndex !== null && slotIndex === dateSlotIndex;
+}
+
+/** p16 «Мои сновидения» — дата на верхней линии (не внизу страницы). */
+export function isKids48DreamsDateLineSlot(
+  lineGuideId: string,
+  page: number,
+  slotIndex: number,
+): boolean {
+  return lineGuideId === 'kids_48' && page === 16 && slotIndex === 0;
+}
+
+export function isKids48CalibratedDateLineSlot(
+  lineGuideId: string,
+  page: number,
+  slotIndex: number,
+): boolean {
+  return (
+    isKids48BottomDateLineSlot(lineGuideId, page, slotIndex) ||
+    isKids48DreamsDateLineSlot(lineGuideId, page, slotIndex)
+  );
+}
+
+/** «Мои сновидения» (p16): дата у заголовка «Первая ночь…» — линия вверху справа. */
+export const KIDS48_P16_DREAMS_DATE_LINE = {
+  writableX: 0.715,
+  writableWidth: 0.27,
+  strokeY: 0.21164,
+} as const;
+
+/** «Мои зубки» (p10): узкие линии у зубов — компактный шрифт для «ДД.ММ». */
+export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 12;
+
+/** Ширина линии даты у зуба — ровно «ДД.ММ» (5 символов). */
+export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.118;
+
+/** «Мои зубки» (p10): линия «Первая чистка зубов» — полная дата «ДД.ММ.ГГГГ». */
+export const KIDS48_P10_FIRST_BRUSHING_LINE = {
+  writableX: 0.555,
+  writableWidth: 0.28,
+  strokeY: 0.8349,
+} as const;
+
 /** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
 export const DIARY_LINE_FONT_OFFSET = 0.86;
 

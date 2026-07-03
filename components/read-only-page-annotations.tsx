@@ -246,7 +246,7 @@ function ReadOnlyPageAnnotationsInner({
                           width: row.lineSlot.width,
                           height: textLineHeight + viewportTopInset,
                           zIndex: annotation.zIndex,
-                          overflow: 'hidden',
+                          overflow: usesStrokeBaseline ? 'visible' : 'hidden',
                         },
                       ]}
                       pointerEvents="none"

@@ -393,7 +393,12 @@ export default function AlbumPagePreviewScreen() {
     if (current) {
       await project.savePageValuesNow(instanceId, current);
     }
-    router.replace(buildAlbumPagesHref(albumFlowParams));
+    router.replace(
+      buildAlbumPagesHref({
+        ...albumFlowParams,
+        scrollToInstanceId: instanceId,
+      }),
+    );
   };
 
   const fontPicker =

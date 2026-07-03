@@ -84,7 +84,7 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
     label: 'Первая чистка зубов',
     type: 'date',
     required: false,
-    templateLineStart: Math.max(0, (slots?.length ?? 22) - 2),
+    templateLineStart: 20,
     templateLineCount: 1,
   });
   fields.push({
@@ -92,7 +92,7 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
     label: 'В годик было зубов',
     type: 'number',
     required: false,
-    templateLineStart: Math.max(0, (slots?.length ?? 22) - 1),
+    templateLineStart: 22,
     templateLineCount: 1,
   });
   return fields;
@@ -162,6 +162,7 @@ function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
     label,
     type: 'text',
     required: false,
+    maxLength: 7,
     templateLineStart: index,
     templateLineCount: 1,
   }));
@@ -267,9 +268,9 @@ function buildAchievementsFields(lineGuideId, pageNumber, slots) {
     ['rolls_over', 'Переворачиваюсь на животик', 'text', 2, 1],
     ['crawls', 'Ползаю', 'text', 3, 1],
     ['sits_alone', 'Сижу самостоятельно', 'text', 4, 1],
-    ['stands_with_support', 'Стою у опоры', 'text', 5, 2],
-    ['first_steps', 'Первые шаги', 'text', 7, 1],
-    ['first_word', 'Первое слово (какое?)', 'text', 8, 1],
+    ['stands_with_support', 'Стою у опоры', 'text', 5, 1],
+    ['first_steps', 'Первые шаги', 'text', 6, 1],
+    ['first_word', 'Первое слово (какое?)', 'text', 7, 1],
   ];
 
   const maxSlot = Math.max(0, (slots?.length ?? 9) - 1);
@@ -307,6 +308,34 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
     case 5:
       fields = buildFamilyTreeFields(lineGuideId, pageNumber, slots);
       photoBlocks = [FAMILY_TREE_PHOTO_BLOCK];
+      break;
+    case 8:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 14:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 15:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 16:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 17:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 18:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
+      break;
+    case 19:
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 10:
       fields = buildTeethFields(lineGuideId, pageNumber, slots);

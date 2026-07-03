@@ -1,6 +1,9 @@
 import {
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
+  isKids48BottomDateLineSlot,
+  isKids48CalibratedDateLineSlot,
+  KIDS48_P8_DATE_LINE_FONT_OFFSET,
   KIDS_MONTH_LINE_FONT_OFFSET,
   PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO,
   PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
@@ -16,6 +19,7 @@ import {
 import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import type { TextLineSlot } from '@/utils/textLineSlots';
+import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
 import {
   isPregnancy60GuideRuledLineSlot,
   isPregnancy60WeeklyValueSlot,
@@ -138,6 +142,14 @@ export function truncateTextToSlotWidth(
   fontId?: string,
   measureTextWidth?: TextWidthMeasure
 ): string {
+  if (
+    text &&
+    isKids48TeethToothDateSlot(lineGuideId ?? '', slot.page, slot.index) &&
+    /^\d{2}\.\d{2}$/.test(text)
+  ) {
+    return text;
+  }
+
   if (!text || textFitsInSlot(text, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
     return text;
   }
@@ -248,6 +260,9 @@ function getStrokeBaselineFontOffset(
   slot: Pick<TextLineSlot, 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>,
   lineGuideId?: string,
 ): number {
+  if (lineGuideId === 'kids_48' && isKids48CalibratedDateLineSlot(lineGuideId, slot.page, slot.index ?? 0)) {
+    return KIDS48_P8_DATE_LINE_FONT_OFFSET;
+  }
   if (lineGuideId === 'pregnancy_a5' && slot.page === 44) {
     return 0.84;
   }

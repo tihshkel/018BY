@@ -1,11 +1,18 @@
 import {
   getAlbumTextMargins,
+  getKids48BottomDateLineStrokeY,
   getKidsMonthAnswerLineLayout,
   getKidsMonthAnswerStrokeY,
   getKidsMonthAnswerWritableBounds,
   getTemplateTypographyProfile,
   isBlankLineGuideAlbum,
+  isKids48BottomDateLineSlot,
+  isKids48CalibratedDateLineSlot,
   isKidsMonthPage,
+  KIDS48_P8_DATE_LINE,
+  KIDS48_P16_DREAMS_DATE_LINE,
+  KIDS48_P10_FIRST_BRUSHING_LINE,
+  KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH,
   KIDS_MONTH_LINE_BAND_HEIGHT,
 } from '@/constants/album-text-margins';
 import { resolveLineGuideId } from '@/utils/albumImages';
@@ -25,6 +32,7 @@ import {
   getTemplateLineTextTop,
   getTemplateLineTypography,
 } from '@/utils/templateLineText';
+import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
 
 export type TextLineSlot = {
   index: number;
@@ -867,6 +875,86 @@ function getKidsMonthAnswerSlotTopNormY(norm: NormalizedLineSlot): number {
   return norm.y - norm.height;
 }
 
+/** Нижняя линия «ДАТА» на event-страницах kids_48 (p8, p14…). */
+function refineKids48BottomDateLineSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (!isKids48BottomDateLineSlot('kids_48', page, slotIndex)) return norm;
+  const strokeY = getKids48BottomDateLineStrokeY(page);
+  if (strokeY == null) return norm;
+  return {
+    ...norm,
+    x: KIDS48_P8_DATE_LINE.writableX,
+    width: KIDS48_P8_DATE_LINE.writableWidth,
+    y: strokeY,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    hasLabel: false,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+  };
+}
+
+function refineKids48Page16DreamsDateLineSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (page !== 16 || slotIndex !== 0) return norm;
+  return {
+    ...norm,
+    x: KIDS48_P16_DREAMS_DATE_LINE.writableX,
+    width: KIDS48_P16_DREAMS_DATE_LINE.writableWidth,
+    y: KIDS48_P16_DREAMS_DATE_LINE.strokeY,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    hasLabel: false,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+  };
+}
+
+function refineKids48Page10FirstBrushingSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (page !== 10 || slotIndex !== 20) return norm;
+  return {
+    ...norm,
+    x: KIDS48_P10_FIRST_BRUSHING_LINE.writableX,
+    width: KIDS48_P10_FIRST_BRUSHING_LINE.writableWidth,
+    y: KIDS48_P10_FIRST_BRUSHING_LINE.strokeY,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    hasLabel: false,
+    inputKind: 'line',
+  };
+}
+
+function refineKids48Page10ToothDateSlotNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (!isKids48TeethToothDateSlot(lineGuideId, page, slotIndex)) return norm;
+  const targetWidth = KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH;
+  if (norm.width >= targetWidth) return norm;
+
+  const widthDelta = targetWidth - norm.width;
+  const slotCenterX = norm.x + norm.width / 2;
+  let x = norm.x;
+  if (slotCenterX < 0.5) {
+    x = Math.max(0.06, norm.x - widthDelta);
+  }
+
+  return {
+    ...norm,
+    x,
+    width: targetWidth,
+  };
+}
+
 function refineKidsMonthLineSlotNorm(
   page: number,
   norm: NormalizedLineSlot,
@@ -905,6 +993,19 @@ function refineNormalizedSlotForTextLayout(
 ): NormalizedLineSlot {
   if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && getKids48BottomDateLineStrokeY(page) != null) {
+    return refineKids48BottomDateLineSlotNorm(page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && page === 16) {
+    return refineKids48Page16DreamsDateLineSlotNorm(page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && page === 10) {
+    const refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
+    return refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
   }
 
   if (!lineGuideId?.startsWith('diary_interior_')) {
@@ -1282,7 +1383,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v8',
+    'weekly-stroke-v11',
   ].join('|');
 }
 
@@ -1339,9 +1440,11 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
             isKidsMonthPage(page) &&
             index >= 1
           ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : anchorTop
-            ? layoutNorm.y
-            : layoutNorm.y - layoutNorm.height / 2;
+          : isKids48CalibratedDateLineSlot(lineGuideId, page, index)
+            ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+            : anchorTop
+              ? layoutNorm.y
+              : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -1353,6 +1456,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const lineStrokeAtBottom =
       layoutNorm.lineStrokeAtBottom === true ||
       (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1) ||
+      isKids48CalibratedDateLineSlot(lineGuideId, page, index) ||
       isDiaryInteriorLineGuide(lineGuideId);
 
     return {

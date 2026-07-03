@@ -5569,20 +5569,20 @@
           "label": "СТОЮ У ОПОРЫ",
           "type": "text",
           "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p13_g7",
           "label": "ПЕРВЫЕ ШАГИ_",
           "type": "text",
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p13_g8",
           "label": "ПЕРВОЕ СЛОВО (КАКОЕ?)",
           "type": "text",
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 1
         }
       ]

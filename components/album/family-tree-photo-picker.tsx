@@ -6,7 +6,7 @@ import { AppText } from '@/components/ui';
 import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 import { getBranchFillColor } from '@/utils/circleSlotColors';
-import { getFamilyTreeSlots } from '@/utils/familyTreeSlots';
+import { getFamilyTreeSlots, refineFamilyTreeSlotForPicker } from '@/utils/familyTreeSlots';
 
 type FamilyTreePhotoPickerProps = {
   block: PhotoBlockSchema;
@@ -28,7 +28,10 @@ export function FamilyTreePhotoPicker({
   embedded = false,
 }: FamilyTreePhotoPickerProps) {
   const treeSlots = useMemo(
-    () => getFamilyTreeSlots(lineGuideId, sourcePageNumber),
+    () =>
+      getFamilyTreeSlots(lineGuideId, sourcePageNumber).map((slot) =>
+        refineFamilyTreeSlotForPicker(lineGuideId, sourcePageNumber, slot),
+      ),
     [lineGuideId, sourcePageNumber],
   );
 

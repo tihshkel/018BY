@@ -1,12 +1,14 @@
 import { clampFieldInput, getFieldCharacterLimit } from '@/utils/albumFieldLimits';
 import type { Annotation } from '@/components/pdf-annotations';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
-import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
+import { getTemplateTypographyProfile, KIDS48_TEETH_TOOTH_DATE_FONT_SIZE } from '@/constants/album-text-margins';
 import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import { getContentRect } from '@/utils/imageContentRect';
+import { formatAlbumDateDayMonth } from '@/utils/albumDateFormat';
+import { isKids48TeethToothDateField } from '@/utils/kids48TeethDates';
 import {
   getLineSlotsForPage,
   layoutAnnotationFromSlot,
@@ -169,16 +171,25 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     });
     if (!text) continue;
 
+    const isTeethToothDate = isKids48TeethToothDateField(
+      field,
+      lineGuideId,
+      schema.sourcePageNumber,
+    );
+    const displayText = isTeethToothDate ? formatAlbumDateDayMonth(text) : text;
+    if (!displayText) continue;
+
     const startSlot = slots[field.templateLineStart];
     if (!startSlot) continue;
 
-    const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId);
+    const fieldFontSize = isTeethToothDate ? KIDS48_TEETH_TOOTH_DATE_FONT_SIZE : fontSize;
+    const layout = layoutTextAnnotationFromSlot(startSlot, fieldFontSize, lineGuideId);
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: text,
-      fontSize,
+      content: displayText,
+      fontSize: fieldFontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,

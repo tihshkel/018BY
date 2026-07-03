@@ -7418,6 +7418,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Имя ребенка",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
@@ -7426,6 +7427,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прабабушка (линия мамы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
@@ -7434,6 +7436,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прадедушка (линия мамы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
@@ -7442,6 +7445,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Бабушка (линия мамы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
@@ -7450,6 +7454,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дедушка (линия мамы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
@@ -7458,6 +7463,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прабабушка (линия папы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 5,
           "templateLineCount": 1
         },
@@ -7466,6 +7472,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Прадедушка (линия папы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 6,
           "templateLineCount": 1
         },
@@ -7474,6 +7481,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Бабушка (линия папы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 7,
           "templateLineCount": 1
         },
@@ -7482,6 +7490,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дедушка (линия папы)",
           "type": "text",
           "required": false,
+          "maxLength": 7,
           "templateLineStart": 8,
           "templateLineCount": 1
         }
@@ -7656,7 +7665,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ],
@@ -7954,7 +7963,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Первая чистка зубов",
           "type": "date",
           "required": false,
-          "templateLineStart": 21,
+          "templateLineStart": 20,
           "templateLineCount": 1
         },
         {
@@ -8273,14 +8282,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
           "fieldId": "kids_48_p13_first_steps",
           "label": "Первые шаги",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -8288,7 +8297,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Первое слово (какое?)",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 1
         }
       ],
@@ -8330,7 +8339,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 14,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p14_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -8390,7 +8408,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 15,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p15_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -8450,7 +8477,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 16,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p16_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -8510,7 +8546,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 17,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p17_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -8570,7 +8615,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 18,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p18_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",
@@ -8630,7 +8684,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "editable": true,
       "lineGuideId": "kids_48",
       "sourcePageNumber": 19,
-      "fields": [],
+      "fields": [
+        {
+          "fieldId": "kids_48_p19_event_date",
+          "label": "Дата",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 1,
+          "templateLineCount": 1
+        }
+      ],
       "photoBlocks": [
         {
           "blockId": "main_photo",

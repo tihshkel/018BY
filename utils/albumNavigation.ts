@@ -6,6 +6,10 @@ export type AlbumFlowParams = {
   coverType?: string;
   interiorType?: string;
   eventDate?: string;
+  /** После добавления страницы — баннер + прокрутка к карточке. */
+  highlightInstanceId?: string;
+  /** После сохранения — только прокрутка к карточке (без баннера). */
+  scrollToInstanceId?: string;
 };
 
 export function buildAlbumPagesHref(params: AlbumFlowParams): Href {
@@ -17,6 +21,8 @@ export function buildAlbumPagesHref(params: AlbumFlowParams): Href {
       coverType: params.coverType,
       interiorType: params.interiorType,
       eventDate: params.eventDate,
+      highlightInstanceId: params.highlightInstanceId,
+      scrollToInstanceId: params.scrollToInstanceId,
     },
   } as unknown as Href;
 }

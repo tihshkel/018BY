@@ -101,6 +101,7 @@ export default function AlbumPagesScreen() {
     interiorType?: string | string[];
     eventDate?: string | string[];
     highlightInstanceId?: string | string[];
+    scrollToInstanceId?: string | string[];
   }>();
 
   const id = normalizeRouteParam(params.id);
@@ -109,12 +110,19 @@ export default function AlbumPagesScreen() {
   const interiorType = normalizeRouteParam(params.interiorType);
   const eventDate = normalizeRouteParam(params.eventDate);
   const highlightInstanceId = normalizeRouteParam(params.highlightInstanceId);
+  const scrollToInstanceId = normalizeRouteParam(params.scrollToInstanceId);
 
   const scrollRef = useRef<ScrollView>(null);
   const scrollContentRef = useRef<View>(null);
   const hasScrolledToHighlightRef = useRef(false);
-  const skipNextReloadRef = useRef(Boolean(highlightInstanceId));
+  const skipNextReloadRef = useRef(Boolean(highlightInstanceId || scrollToInstanceId));
   const [highlightDismissed, setHighlightDismissed] = useState(false);
+
+  const scrollTargetInstanceId = useMemo(() => {
+    if (scrollToInstanceId) return scrollToInstanceId;
+    if (highlightInstanceId && !highlightDismissed) return highlightInstanceId;
+    return undefined;
+  }, [scrollToInstanceId, highlightInstanceId, highlightDismissed]);
 
   const insets = useSafeAreaInsets();
   const albumFlowParams: AlbumFlowParams = {
@@ -457,7 +465,7 @@ export default function AlbumPagesScreen() {
                 project.setPageExcluded(instanceId, excluded)
               }
               highlightInstanceId={
-                highlightDismissed ? undefined : highlightInstanceId
+                highlightDismissed ? undefined : scrollTargetInstanceId
               }
               scrollContentRef={scrollContentRef}
               onHighlightMeasured={scrollToHighlightedPage}
