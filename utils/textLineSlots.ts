@@ -1063,6 +1063,23 @@ export function isPregnancyWeeklyRuledLineSlot(
 }
 
 /**
+ * Статические страницы pregnancy_60 (не недельные) — штрих из LINE_GUIDES, как на недельных.
+ * Постановка на учёт: «Моё самочувствие», рекомендации и т.п.
+ */
+export function isPregnancy60GuideRuledLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+): boolean {
+  if (lineGuideId !== 'pregnancy_60') return false;
+  if (isPregnancy60WeeklyPage(slot.page)) return false;
+  if ((slot.inputKind ?? 'line') !== 'line') return false;
+  const guides = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+    lineGuideId
+  ]?.[String(slot.page)];
+  return !!guides && slot.index >= 0 && slot.index < guides.length;
+}
+
+/**
  * Начало поля в continuation group.
  * После split каждая строка — отдельная аннотация; для штриха нужен старт поля, не индекс строки.
  */

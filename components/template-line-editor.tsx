@@ -11,7 +11,7 @@ import {
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
-import { usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 
 type TextAlign = 'left' | 'center' | 'right';
 
@@ -140,7 +140,9 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           wishInputKind,
           lineGuideId
         );
-        const usesStrokeBaseline = usesStrokeBaselineLayout(lineSlot, lineGuideId);
+        const usesStrokeBaseline =
+          usesStrokeBaselineLayout(lineSlot, lineGuideId) ||
+          usesPregnancyGuideRuledTextLayout(lineGuideId, lineSlot);
         const textLineHeight = usesStrokeBaseline
           ? lineTypography.fontSize
           : lineTypography.lineHeight;

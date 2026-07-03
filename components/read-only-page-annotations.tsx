@@ -19,6 +19,7 @@ import {
   getWishSlotInputKind,
   truncateTextToSlotWidth,
   usesStrokeBaselineLayout,
+  usesPregnancyGuideRuledTextLayout,
 } from '@/utils/templateLineText';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
@@ -228,10 +229,9 @@ function ReadOnlyPageAnnotationsInner({
                     lineGuideId,
                     annotation.fontFamily,
                   );
-                  const usesStrokeBaseline = usesStrokeBaselineLayout(
-                    row.lineSlot,
-                    lineGuideId,
-                  );
+                  const usesStrokeBaseline =
+                    usesStrokeBaselineLayout(row.lineSlot, lineGuideId) ||
+                    usesPregnancyGuideRuledTextLayout(lineGuideId, row.lineSlot);
                   const textLineHeight = usesStrokeBaseline
                     ? rowTypography.fontSize
                     : rowTypography.lineHeight;

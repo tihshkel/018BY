@@ -317,7 +317,7 @@
           "label": "Номер телефона",
           "type": "text",
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p4_g8",

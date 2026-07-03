@@ -87,6 +87,19 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
   return undefined;
 }
 
+/** Постановка на учёт: телефон — одна строка на макете, длинный ввод не помещается. */
+function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
+  if (
+    params.lineGuideId === 'pregnancy_60' &&
+    params.sourcePageNumber === 4 &&
+    params.field.fieldId === 'pregnancy_60_p4_phone'
+  ) {
+    return 25;
+  }
+
+  return undefined;
+}
+
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
   const measurementLimit = getMeasurementDigitLimit(params.field);
   if (measurementLimit != null) {
@@ -96,6 +109,11 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
   const birthdayLimit = getBirthdayFieldLimit(params);
   if (birthdayLimit != null) {
     return birthdayLimit;
+  }
+
+  const pregnancyLimit = getPregnancyFieldLimit(params);
+  if (pregnancyLimit != null) {
+    return pregnancyLimit;
   }
 
   const typeLimit = getFieldMaxLength(params.field.type);

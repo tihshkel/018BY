@@ -33,7 +33,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
@@ -2429,7 +2429,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 lineGuideId
               );
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-              const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
+              const usesStrokeBaseline =
+                usesStrokeBaselineLayout(row.lineSlot, lineGuideId) ||
+                usesPregnancyGuideRuledTextLayout(lineGuideId, row.lineSlot);
               const textLineHeight = usesStrokeBaseline
                 ? rowTypography.fontSize
                 : rowTypography.lineHeight;
