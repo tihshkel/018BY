@@ -1,4 +1,5 @@
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
+import { resolveBundledPreviewUri } from '@/constants/generated/preview-asset-registry';
 import { hasSparsePhotoConfig, usesBlankPagePhotoFallback } from '@/constants/sparse-photo-album-config';
 import { resolvePreviewAssetUri } from '@/utils/previewAssetUri';
 
@@ -27,6 +28,12 @@ const kids48PreviewVariantsManifest = require('../assets/pdfs/Блок БОХО_
 const LEGACY_MANIFESTS: Record<string, LegacyPageManifest> = {
   pregnancy_60: pregnancy60PreviewVariantsManifest,
   kids_48: kids48PreviewVariantsManifest,
+};
+
+/** Per-page variant PNG folders (multi-page PDF without «Место для фото»). */
+const PREVIEW_VARIANT_ALBUM_FOLDERS: Record<string, string> = {
+  pregnancy_60: 'assets/pdfs/Блок БЕРЕМЕННОСТЬ 60 стр',
+  kids_48: 'assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр',
 };
 
 /** Maps saved / legacy variant IDs to the unified standard IDs. */
@@ -104,6 +111,35 @@ function resolveManifestPath(relativePath: string): string {
   return resolvePreviewAssetUri(relativePath);
 }
 
+function resolveConventionalPerPageVariantUri(params: {
+  lineGuideId: string;
+  sourcePageNumber: number;
+  variantId?: string | null;
+}): string | null {
+  const folder = PREVIEW_VARIANT_ALBUM_FOLDERS[params.lineGuideId];
+  if (!folder) return null;
+
+  const page = String(params.sourcePageNumber).padStart(3, '0');
+  const candidateKeys: string[] = [];
+  if (params.variantId) {
+    const normalized = manifestVariantKey(params.lineGuideId, params.variantId);
+    candidateKeys.push(normalized);
+    if (normalized !== params.variantId) {
+      candidateKeys.push(params.variantId);
+    }
+  }
+  candidateKeys.push('one_large');
+
+  for (const key of candidateKeys) {
+    const relativePath = `${folder}/preview_variants/page_${page}_${key}.png`;
+    if (resolveBundledPreviewUri(relativePath)) {
+      return resolveManifestPath(relativePath);
+    }
+  }
+
+  return null;
+}
+
 export function getVariantPreviewManifest(lineGuideId: string): LegacyPageManifest | null {
   return LEGACY_MANIFESTS[lineGuideId] ?? null;
 }
@@ -119,6 +155,36 @@ export function hasVariantPreviewManifest(
   if (!manifest) return false;
   const entry = manifest[String(sourcePageNumber)];
   return !!entry && Object.keys(entry).length > 0;
+}
+
+/** Per-page variant PNG without «Место для фото» — not global layout chips. */
+export function resolvePerPageVariantBackgroundUri(params: {
+  lineGuideId?: string | null;
+  sourcePageNumber?: number | null;
+  variantId?: string | null;
+}): string | null {
+  const { lineGuideId, sourcePageNumber, variantId } = params;
+  if (!lineGuideId || !sourcePageNumber || sourcePageNumber < 1) return null;
+
+  const manifest = LEGACY_MANIFESTS[lineGuideId];
+  const pageEntry = manifest?.[String(sourcePageNumber)];
+
+  if (pageEntry) {
+    if (variantId) {
+      const key = manifestVariantKey(lineGuideId, variantId);
+      const path = pageEntry[key];
+      if (path) return resolveManifestPath(path);
+    }
+
+    const firstKey = Object.keys(pageEntry)[0];
+    if (firstKey) return resolveManifestPath(pageEntry[firstKey]);
+  }
+
+  return resolveConventionalPerPageVariantUri({
+    lineGuideId,
+    sourcePageNumber,
+    variantId,
+  });
 }
 
 export function resolveVariantPreviewBackgroundUri(params: {

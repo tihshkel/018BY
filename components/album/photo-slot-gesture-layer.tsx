@@ -21,6 +21,7 @@ import {
   MAX_PHOTO_SCALE,
   normalizePhotoSlotTransformWithMin,
 } from '@/utils/photoSlotTransform';
+import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
 
@@ -104,14 +105,45 @@ function PhotoSlotFilled({
 
   useEffect(() => {
     const minScale = minPhotoScale.value;
-    const next = normalizePhotoSlotTransformWithMin(transform, minScale);
+    const slotW = slotWidth.value;
+    const slotH = slotHeight.value;
+    const aspect = imageAspect.value;
+    const displayTransform =
+      slotW > 0 && slotH > 0 && aspect > 0
+        ? resolvePhotoSlotTransformForDisplay(transform, slotW, slotH, aspect)
+        : transform;
+    const next = normalizePhotoSlotTransformWithMin(displayTransform, minScale);
     savedScale.value = next.scale;
     savedOffsetX.value = next.offsetX;
     savedOffsetY.value = next.offsetY;
     scale.value = next.scale;
     offsetX.value = next.offsetX;
     offsetY.value = next.offsetY;
-  }, [transform, offsetX, offsetY, savedOffsetX, savedOffsetY, savedScale, scale, minPhotoScale]);
+
+    if (
+      slotW > 0 &&
+      slotH > 0 &&
+      aspect > 0 &&
+      (Math.abs((displayTransform.scale ?? 1) - (transform.scale ?? 1)) > 0.001 ||
+        Math.abs((displayTransform.offsetX ?? 0) - (transform.offsetX ?? 0)) > 0.001 ||
+        Math.abs((displayTransform.offsetY ?? 0) - (transform.offsetY ?? 0)) > 0.001)
+    ) {
+      onTransformChange(next);
+    }
+  }, [
+    transform,
+    offsetX,
+    offsetY,
+    savedOffsetX,
+    savedOffsetY,
+    savedScale,
+    scale,
+    minPhotoScale,
+    slotWidth,
+    slotHeight,
+    imageAspect,
+    onTransformChange,
+  ]);
 
   const commitTransform = useCallback(() => {
     const minScale = minPhotoScale.value;

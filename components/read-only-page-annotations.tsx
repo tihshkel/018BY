@@ -4,9 +4,11 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { Annotation } from '@/components/pdf-annotations';
+import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
+import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { getCachedPageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
@@ -20,8 +22,10 @@ import {
   getTemplateLineTextTop,
   getTemplateLineTypography,
   getWishSlotInputKind,
+  resolveBirthQuestionnaireBlockTextAlign,
   usesStrokeBaselineLayout,
 } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
 type ReadOnlyPageAnnotationsProps = {
@@ -194,6 +198,7 @@ function ReadOnlyPageAnnotationsInner({
           const slotCount = annotation.templateLineCount ?? 1;
 
           if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
+            const measureTextWidth = resolveMeasureTextWidth(annotation.fontFamily);
             const { segments } = distributeTextForTemplateAnnotation({
               text: annotation.content,
               startSlotIndex: startIndex,
@@ -202,6 +207,7 @@ function ReadOnlyPageAnnotationsInner({
               lineGuideId,
               fontId: annotation.fontFamily,
               lineCount: slotCount,
+              measureTextWidth,
             });
 
             const linesToRender = segments
@@ -253,6 +259,9 @@ function ReadOnlyPageAnnotationsInner({
                     lineGuideId,
                   );
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
+                  const rowTextAlign =
+                    annotation.textAlign ??
+                    resolveBirthQuestionnaireBlockTextAlign(row.lineSlot, lineGuideId);
                   const isKidsTeethOverlayLine =
                     lineGuideId === 'kids_48' &&
                     row.lineSlot.page === 10 &&
@@ -290,7 +299,7 @@ function ReadOnlyPageAnnotationsInner({
                             lineHeight: usesStrokeBaseline
                               ? rowTypography.fontSize
                               : rowTypography.lineHeight,
-                            textAlign: annotation.textAlign ?? 'left',
+                            textAlign: rowTextAlign,
                             maxWidth: textInsets.width || row.lineSlot.width,
                             includeFontPadding: false,
                           },
@@ -364,7 +373,13 @@ function ReadOnlyPageAnnotationsInner({
             : annotation.y;
           const fillWidth = fillSize ?? annotation.width;
           const fillHeight = fillSize ?? annotation.height;
-          const fillRadius = isCircle ? fillWidth / 2 : circleRadius;
+          const fillRadius = isCircle
+            ? fillWidth / 2
+            : resolveRectFillBorderRadius(
+                fillWidth,
+                fillHeight,
+                annotation.fillCornerRadiusRatio,
+              );
 
           return (
             <View
@@ -404,9 +419,15 @@ function ReadOnlyPageAnnotationsInner({
 
         const innerStyle = annotation.imageSlotTransform
           ? (() => {
+              const displayTransform = resolvePhotoSlotTransformForDisplay(
+                annotation.imageSlotTransform,
+                annotation.width,
+                annotation.height,
+                imageAspect,
+              );
               const inner = applyPhotoSlotTransform(
                 { x: 0, y: 0, width: annotation.width, height: annotation.height },
-                annotation.imageSlotTransform,
+                displayTransform,
                 imageAspect,
               );
               return {

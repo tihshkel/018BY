@@ -16,7 +16,8 @@ function insertThirdPlanLine(slots) {
   if (!slots || slots.length < 9) return slots;
 
   const planLine2 = slots[4];
-  const planLine3Y = planLine2.y + planLine2.height + 0.008;
+  const planLine3StrokeY = 0.45375;
+  const planLine3Y = planLine3StrokeY - planLine2.height;
   const thirdPlanLine = {
     x: slots[3].x,
     y: planLine3Y,

@@ -138,17 +138,21 @@ const GENDER_OPTIONS = ['Мальчик', 'Девочка'];
 const DELIVERY_OPTIONS = ['Ер', 'Кс'];
 
 const TODO_LIST_ITEMS = [
-  'Список дел',
-  'Посмотреть сериал',
-  'Сделать фотосессию',
-  'Погулять с подругами',
-  'Написать пост в соцсетях',
-  'Прочитать книгу',
-  'Съездить в путешествие',
-  'Выбросить ненужные вещи',
+  'Выспаться',
+  'Посмотреть интересный сериал',
+  'Сходить на фотосессию',
+  'Насладиться беременностью',
+  'Встретиться с подругами',
+  'Сходить в кино или театр',
+  'День без соцсетей',
+  'Прочитать интересную книгу',
+  'Отправиться в путешествие',
+  'Избавиться от ненужных вещей',
+  'Погулять в парке',
+  'Кушать вкусняшки',
   'Испечь пирог',
-  'Посидеть под пледом',
-  'Сходить за шоппингом',
+  'Выпить чай/какао под пледом',
+  'День шоппинга',
 ];
 
 const SHOPPING_ITEM_LABEL = 'К рождению малыша';
@@ -223,12 +227,17 @@ function buildShoppingListFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildTodoListFields(lineGuideId, pageNumber, slots) {
-  const lineCount = slots?.length ?? TODO_LIST_ITEMS.length;
+  void slots;
   const fields = [];
-  for (let index = 0; index < lineCount; index += 1) {
-    const label = TODO_LIST_ITEMS[Math.min(index, TODO_LIST_ITEMS.length - 1)];
+  for (let index = 0; index < TODO_LIST_ITEMS.length; index += 1) {
     fields.push(
-      buildField(lineGuideId, pageNumber, `todo_${index + 1}`, label, 'text', index, 1, slots),
+      buildRadioField(
+        lineGuideId,
+        pageNumber,
+        `todo_${index + 1}`,
+        TODO_LIST_ITEMS[index],
+        YES_NO_OPTIONS,
+      ),
     );
   }
   return fields;
@@ -353,31 +362,31 @@ function buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots) {
       slots,
     ),
     buildRadioField(lineGuideId, pageNumber, 'baby_gender', 'Пол', GENDER_OPTIONS),
-    buildField(lineGuideId, pageNumber, 'baby_weight', 'Вес', 'number', 8, 1, slots),
-    buildField(lineGuideId, pageNumber, 'baby_height', 'Рост', 'number', 9, 1, slots),
-    buildField(lineGuideId, pageNumber, 'weekday', 'День недели', 'text', 10, 1, slots),
-    buildField(lineGuideId, pageNumber, 'birth_time', 'Время', 'time', 11, 1, slots),
+    buildField(lineGuideId, pageNumber, 'baby_weight', 'Вес', 'number', 9, 1, slots),
+    buildField(lineGuideId, pageNumber, 'baby_height', 'Рост', 'number', 10, 1, slots),
+    buildField(lineGuideId, pageNumber, 'weekday', 'День недели', 'text', 13, 1, slots),
+    buildField(lineGuideId, pageNumber, 'birth_time', 'Время', 'time', 14, 1, slots),
     buildField(
       lineGuideId,
       pageNumber,
       'delivery_type',
       'Естественные роды / Кесарево',
       'text',
-      12,
+      15,
       1,
       slots,
     ),
     buildRadioField(lineGuideId, pageNumber, 'stimulation', 'Стимуляция', YES_NO_OPTIONS),
     buildRadioField(lineGuideId, pageNumber, 'tears', 'Разрывы', YES_NO_OPTIONS),
     buildRadioField(lineGuideId, pageNumber, 'cord', 'Обвитие', YES_NO_OPTIONS),
-    buildField(lineGuideId, pageNumber, 'condition', 'Общее состояние', 'text', 13, 1, slots),
+    buildField(lineGuideId, pageNumber, 'condition', 'Общее состояние', 'text', 20, 1, slots),
     buildField(
       lineGuideId,
       pageNumber,
       'discharge_date',
       'Дата выписки из роддома',
       'date',
-      14,
+      21,
       1,
       slots,
     ),
@@ -387,7 +396,7 @@ function buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots) {
       'days_in_hospital',
       'Сколько дней провела в роддоме',
       'text',
-      15,
+      22,
       1,
       slots,
     ),
@@ -397,7 +406,7 @@ function buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots) {
       'discharge_guests',
       'Кто пришёл на выписку',
       'text',
-      16,
+      23,
       3,
       slots,
     ),

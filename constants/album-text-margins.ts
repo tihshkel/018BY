@@ -216,7 +216,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_60: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.54,
-    lineWidthSlackRatio: 0.98,
+    lineWidthSlackRatio: 0.99,
     lineCenterRatio: 0.5,
     lineFontOffsetRatio: 0.8,
     blockCenterRatio: 0.58,
@@ -226,7 +226,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_a5: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.54,
-    lineWidthSlackRatio: 0.98,
+    lineWidthSlackRatio: 0.99,
     lineCenterRatio: 0.5,
     lineFontOffsetRatio: 0.96,
     blockCenterRatio: 0.58,

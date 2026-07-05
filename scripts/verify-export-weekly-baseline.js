@@ -109,11 +109,81 @@ assert(
   'weekly text top applies inline tail extra lift',
 );
 
+assert(
+  exportTemplateSource.includes('resolveMeasureTextWidth'),
+  'export uses font-table fallback when PDF font missing',
+);
+
+const exportPdfSource = read('app/export-pdf.tsx');
+assert(
+  exportPdfSource.includes('pageSourceSize.width') &&
+    exportPdfSource.includes('Canonical source size'),
+  'export-pdf prefers pageSourceSize over embedded JPEG dims',
+);
+
+assert(
+  templateSource.includes('getBirthQuestionnaireLineTextTop') &&
+    templateSource.includes('isBirthQuestionnairePage(lineGuideId, slot.page)'),
+  'birth questionnaire uses weekly-style baseline',
+);
+
+const readOnlySource = read('components/read-only-page-annotations.tsx');
+assert(
+  readOnlySource.includes('resolveMeasureTextWidth') &&
+    readOnlySource.includes('measureTextWidth'),
+  'read-only preview uses font-table text measure',
+);
+
 const slots = require('../constants/line-slots.json').pregnancy_60['9'];
 assert(slots[3] && slots[8], 'page 9 has plans slot 3 and feelings slot 8');
 assert(
   slots[7].hasLabel === true && slots[8].hasLabel === false,
   'feelings label on slot 7, text starts slot 8',
+);
+
+const planLine3 = slots[5];
+assert(planLine3 && planLine3.lineStrokeAtBottom, 'page 9 plan line 3 uses stroke baseline');
+const planLine3Stroke = planLine3.y + planLine3.height;
+assert(
+  Math.abs(planLine3Stroke - 0.45375) < 0.002,
+  'page 9 plan line 3 stroke aligns with LINE_GUIDES index 5',
+);
+
+const schemasRaw = read('constants/generated/album-page-schemas.ts');
+const p52Block = schemasRaw.match(/"pageId": "pregnancy_60_p52"[\s\S]*?"pageId": "pregnancy_60_p53"/);
+assert(p52Block, 'pregnancy_60 p52 schema exists');
+assert(
+  !p52Block[0].includes('"photoBlocks"'),
+  'pregnancy_60 p52 has no photoBlocks',
+);
+assert(
+  p52Block[0].includes('"fieldId": "pregnancy_60_p52_condition"') &&
+    p52Block[0].includes('"templateLineStart": 20'),
+  'pregnancy_60 p52 condition maps to slot 20',
+);
+
+const p52Slots = require('../constants/line-slots.json').pregnancy_60['52'];
+assert(p52Slots[20]?.inputKind === 'line', 'pregnancy_60 p52 slot 20 is condition line');
+assert(
+  Math.abs(p52Slots[20].y + p52Slots[20].height - 0.669) < 0.003,
+  'pregnancy_60 p52 condition line stroke at 0.669',
+);
+assert(p52Slots[15]?.hasLabel === false, 'pregnancy_60 p52 delivery block has external label');
+assert(
+  p52Slots[9]?.inputKind === 'block' && p52Slots[13]?.inputKind === 'block',
+  'pregnancy_60 p52 white blocks at slots 9 and 13',
+);
+
+const p52Fills = require('../constants/generated/pdf-circle-slots.json').pregnancy_60['52'];
+assert(
+  Array.isArray(p52Fills?.optionFills) && p52Fills.optionFills.length === 8,
+  'pregnancy_60 p52 has 8 checkbox option fills',
+);
+assert(
+  p52Fills.optionFills.some(
+    (fill) => fill.id === 'gender_boy' && fill.fieldId === 'pregnancy_60_p52_baby_gender',
+  ),
+  'pregnancy_60 p52 gender boy fill registered',
 );
 
 if (failed > 0) {

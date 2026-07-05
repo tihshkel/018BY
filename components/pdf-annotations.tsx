@@ -18,8 +18,10 @@ import {
   hasLineGuides,
   layoutAnnotationFromSlot,
   resolveWeeklyFieldLineSlots,
+  type TextLineSlot,
 } from '@/utils/textLineSlots';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
+import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { createId } from '@/utils/id';
 import {
   applyPhotoSlotTransform,
@@ -34,7 +36,8 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, resolveBirthQuestionnaireBlockTextAlign, usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
@@ -352,6 +355,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     const startSlot = slots[startSlotIndex];
     if (!startSlot) return false;
     const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
+    const measureTextWidth = resolveMeasureTextWidth(normalizedFontId);
     const effectiveFontSize = getEffectiveTemplateFontSize(
       lineGuideId,
       startSlot,
@@ -366,6 +370,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       lineGuideId,
       fontId: normalizedFontId,
       lineCount: annotation.templateLineCount ?? 1,
+      measureTextWidth,
     });
 
     if (truncated) {
@@ -463,8 +468,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     requestAnimationFrame(() => setSelectionOverride(null));
   };
 
-  const getTextAlign = (annotation: Annotation): AnnotationTextAlign =>
-    annotation.textAlign ?? 'left';
+  const getTextAlign = (
+    annotation: Annotation,
+    slot?: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+  ): AnnotationTextAlign =>
+    annotation.textAlign ??
+    (slot ? resolveBirthQuestionnaireBlockTextAlign(slot, lineGuideId) : 'left');
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSizePicker, setShowFontSizePicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
@@ -2389,6 +2398,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
+        const measureTextWidth = resolveMeasureTextWidth(normalizedFontId);
         const { segments: displaySegments } = distributeTextForTemplateAnnotation({
           text: mergedDisplayText,
           startSlotIndex: slotIndex,
@@ -2397,6 +2407,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           lineGuideId,
           fontId: normalizedFontId,
           lineCount: annotation.templateLineCount ?? 1,
+          measureTextWidth,
         });
         const linesToRender = displaySegments
           .map((segment) => {
@@ -2464,7 +2475,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                           ? rowTypography.fontSize
                           : rowTypography.lineHeight,
                         includeFontPadding: false,
-                        textAlign: getTextAlign(annotation),
+                        textAlign: getTextAlign(annotation, row.lineSlot),
                       },
                     ]}
                     numberOfLines={1}
@@ -2773,7 +2784,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           : basePos.y;
         const fillWidth = fillSize ?? annotation.width;
         const fillHeight = fillSize ?? annotation.height;
-        const fillRadius = isCircle ? fillWidth / 2 : circleRadius;
+        const fillRadius = isCircle
+          ? fillWidth / 2
+          : resolveRectFillBorderRadius(
+              fillWidth,
+              fillHeight,
+              annotation.fillCornerRadiusRatio,
+            );
 
         return (
           <View

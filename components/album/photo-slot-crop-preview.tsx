@@ -4,10 +4,8 @@ import { StyleSheet, View } from 'react-native';
 
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
-import {
-  applyPhotoSlotTransform,
-  DEFAULT_PHOTO_SLOT_TRANSFORM,
-} from '@/utils/photoSlotTransform';
+import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
+import { applyPhotoSlotTransform, DEFAULT_PHOTO_SLOT_TRANSFORM } from '@/utils/photoSlotTransform';
 
 type PhotoSlotCropPreviewProps = {
   uri: string;
@@ -38,9 +36,15 @@ export function PhotoSlotCropPreview({
 
   const innerStyle = useMemo(() => {
     if (slotSize.width <= 0 || slotSize.height <= 0) return null;
+    const displayTransform = resolvePhotoSlotTransformForDisplay(
+      transform,
+      slotSize.width,
+      slotSize.height,
+      imageAspect > 0 ? imageAspect : undefined,
+    );
     const rect = applyPhotoSlotTransform(
       { x: 0, y: 0, width: slotSize.width, height: slotSize.height },
-      transform,
+      displayTransform,
       imageAspect > 0 ? imageAspect : undefined,
     );
     return {

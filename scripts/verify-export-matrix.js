@@ -116,6 +116,10 @@ assert(
   'exportPageSelection: template image by sourcePageNumber',
 );
 assert(
+  selectionSource.includes('resolvePhotoPageCleanBackgroundUri'),
+  'exportPageSelection: per-page variant background for photo pages',
+);
+assert(
   !selectionSource.includes('annotations.filter'),
   'filterProjectDataForExport: no legacy pool filter by sourcePageNumber',
 );

@@ -2,6 +2,10 @@ import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-pa
 import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
+import {
+  resolvePhotoPageCleanBackgroundUri,
+  resolvePrimaryPhotoVariantId,
+} from '@/utils/pagePreviewBackground';
 import { resolveExportPageImageUri } from '@/utils/resolveInstancePageImage';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { createEmptyPageValues } from '@/utils/pageStorage';
@@ -259,20 +263,32 @@ export function filterProjectDataForExport(params: {
     const schema = getSchema(instance);
     if (!schema) continue;
 
-    const imageUri =
+    const baseImageUri =
       resolveExportPageImageUri(images, instance, templatePageUris) ??
       blankPageUri ??
       null;
-    if (!imageUri) continue;
+    if (!baseImageUri) continue;
+
+    const values = pageValuesMap[instance.instanceId] ?? createEmptyPageValues();
+    const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
+    const sourcePageNumber = instance.sourcePageNumber ?? schema.sourcePageNumber;
+    let imageUri = baseImageUri;
+    if (resolvedSchema.photoBlocks?.length) {
+      const variantId = resolvePrimaryPhotoVariantId(values, resolvedSchema);
+      const cleanUri = resolvePhotoPageCleanBackgroundUri({
+        lineGuideId,
+        sourcePageNumber,
+        variantId,
+        fallbackUri: baseImageUri,
+      });
+      if (cleanUri) imageUri = cleanUri;
+    }
 
     filteredImages.push(imageUri);
     const targetPageNumber = filteredImages.length;
-    const values = pageValuesMap[instance.instanceId] ?? createEmptyPageValues();
     const sourceSize =
       sourceSizesBySourcePage?.get(instance.sourcePageNumber) ??
       sourceSizesByImageIndex?.get(instance.imageIndex);
-    const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
-
     pages.push({
       instance,
       schema: resolvedSchema,

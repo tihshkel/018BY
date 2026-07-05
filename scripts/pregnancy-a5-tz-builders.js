@@ -54,6 +54,8 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
         title: 'Анкета родов',
         pageType: 'structured',
         fields: buildBirthQuestionnaireA5Fields(lineGuideId, pageNumber, slots),
+        replacePhotoBlocks: true,
+        photoBlocks: undefined,
       });
     case 45:
       return tzOverride({

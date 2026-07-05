@@ -1181,6 +1181,25 @@ function refineNormalizedSlotForTextLayout(
     return refineKids48GrowthWeightSlot(page, norm);
   }
 
+  if (lineGuideId === 'pregnancy_60' && page === 52) {
+    if (slotIndex === 6) {
+      return applyLabeledLineTextInset(norm, 0.065);
+    }
+    if (slotIndex === 20) {
+      return applyLabeledLineTextInset(norm, 0.024);
+    }
+    if (slotIndex === 21) {
+      return applyLabeledLineTextInset(norm, 0.028);
+    }
+    if (slotIndex === 22) {
+      return applyLabeledLineTextInset(norm, 0.034);
+    }
+    if (slotIndex === 23) {
+      return applyLabeledLineTextInset(norm, 0.042);
+    }
+    return norm;
+  }
+
   if (!lineGuideId?.startsWith('diary_interior_')) {
     return norm;
   }

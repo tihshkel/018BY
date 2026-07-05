@@ -13,7 +13,7 @@ export interface FontOption {
   charWidthMultiplier?: number;
 }
 
-export const DEFAULT_ALBUM_TEXT_FONT_ID = 'Nefelibata-Sans';
+export const DEFAULT_ALBUM_TEXT_FONT_ID = 'AmaticSC-Bold';
 
 export const AVAILABLE_FONTS: FontOption[] = [
   {

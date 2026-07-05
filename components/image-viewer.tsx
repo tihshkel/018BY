@@ -408,7 +408,7 @@ export default function ImageViewer({
       savedFont ??
       defaultTextStyle?.fontFamily ??
       lastTextStyle?.fontFamily ??
-      (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+      'default';
 
     return { color, fontSize, fontFamily: fontFamily || 'default' };
   };

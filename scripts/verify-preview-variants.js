@@ -71,7 +71,9 @@ const pagePreviewBgSource = fs.readFileSync(
   'utf8',
 );
 assert(pagePreviewBgSource.includes("quality?: 'full' | 'thumbnail'"), 'pagePreviewBackground: quality modes');
-assert(pagePreviewBgSource.includes("quality !== 'thumbnail'"), 'pagePreviewBackground: full mode skips low-res');
+assert(pagePreviewBgSource.includes('preferCleanPhotoBackground'), 'pagePreviewBackground: clean photo background');
+assert(pagePreviewBgSource.includes('resolvePhotoPageCleanBackgroundUri'), 'pagePreviewBackground: per-page variant PNG');
+assert(pagePreviewBgSource.includes("quality === 'thumbnail'"), 'pagePreviewBackground: thumbnail vs full quality modes');
 
 const registrySource = fs.readFileSync(
   path.join(root, 'constants/generated/preview-asset-registry.ts'),
@@ -85,6 +87,7 @@ assert(previewAssetUriSource.includes('resolveBundledPreviewUri'), 'previewAsset
 
 const previewScreenSource = fs.readFileSync(path.join(root, 'app/album-page-preview.tsx'), 'utf8');
 assert(previewScreenSource.includes("quality: 'full'"), 'album-page-preview: full-quality background');
+assert(previewScreenSource.includes('preferCleanPhotoBackground'), 'album-page-preview: clean photo background');
 assert(previewScreenSource.includes('PageRenderer'), 'album-page-preview: PageRenderer for export parity');
 
 const unifiedEditorSource = fs.readFileSync(

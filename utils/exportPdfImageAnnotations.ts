@@ -12,9 +12,11 @@ import {
 } from 'pdf-lib';
 
 import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
+import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { getContentRect, mapViewportAnnotationToPdf } from '@/utils/imageContentRect';
 import { computeObjectFitCover } from '@/utils/imageCoverDraw';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
+import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 
 const ELLIPSE_KAPPA = 4.0 * ((Math.sqrt(2) - 1.0) / 3.0);
 
@@ -147,18 +149,6 @@ export async function drawImageAnnotationsOnPdfPage(
     };
 
     let drawViewport = slotViewport;
-    if (ann.imageSlotTransform) {
-      const inner = applyPhotoSlotTransform(
-        { x: 0, y: 0, width: slotViewport.width, height: slotViewport.height },
-        ann.imageSlotTransform,
-      );
-      drawViewport = {
-        x: slotViewport.x + inner.x,
-        y: slotViewport.y + inner.y,
-        width: inner.width,
-        height: inner.height,
-      };
-    }
 
     const clipMapped = mapViewportAnnotationToPdf({
       x: slotViewport.x,
@@ -172,44 +162,51 @@ export async function drawImageAnnotationsOnPdfPage(
       pdfImageHeight: params.pdfImageHeight,
     });
 
-    const mapped = mapViewportAnnotationToPdf({
-      x: drawViewport.x,
-      y: drawViewport.y,
-      width: drawViewport.width,
-      height: drawViewport.height,
-      editorContentRect,
-      pdfImageX: params.pdfImageX,
-      pdfImageY: params.pdfImageY,
-      pdfImageWidth: params.pdfImageWidth,
-      pdfImageHeight: params.pdfImageHeight,
-    });
-
     if (!ann.imageUri && ann.fillColor) {
       try {
         if (ann.clipShape === 'circle') {
-          const centerX = mapped.x + mapped.width / 2;
-          const centerY = mapped.y + mapped.height / 2;
-          pushCircleClip(params.page, mapped);
+          const centerX = clipMapped.x + clipMapped.width / 2;
+          const centerY = clipMapped.y + clipMapped.height / 2;
+          pushCircleClip(params.page, clipMapped);
           params.page.drawEllipse({
             x: centerX,
             y: centerY,
-            xScale: mapped.width / 2,
-            yScale: mapped.height / 2,
+            xScale: clipMapped.width / 2,
+            yScale: clipMapped.height / 2,
             color: hexToRgb(ann.fillColor),
             opacity: ann.fillOpacity ?? 1,
             borderWidth: 0,
           });
           params.page.pushOperators(popGraphicsState());
         } else {
-          params.page.drawRectangle({
-            x: mapped.x,
-            y: mapped.y,
-            width: mapped.width,
-            height: mapped.height,
-            color: hexToRgb(ann.fillColor),
-            opacity: ann.fillOpacity ?? 1,
-            borderWidth: 0,
-          });
+          const radius = resolveRectFillBorderRadius(
+            clipMapped.width,
+            clipMapped.height,
+            ann.fillCornerRadiusRatio,
+          );
+          if (radius > 0.5) {
+            pushRoundedRectClip(params.page, clipMapped, radius);
+            params.page.drawRectangle({
+              x: clipMapped.x,
+              y: clipMapped.y,
+              width: clipMapped.width,
+              height: clipMapped.height,
+              color: hexToRgb(ann.fillColor),
+              opacity: ann.fillOpacity ?? 1,
+              borderWidth: 0,
+            });
+            params.page.pushOperators(popGraphicsState());
+          } else {
+            params.page.drawRectangle({
+              x: clipMapped.x,
+              y: clipMapped.y,
+              width: clipMapped.width,
+              height: clipMapped.height,
+              color: hexToRgb(ann.fillColor),
+              opacity: ann.fillOpacity ?? 1,
+              borderWidth: 0,
+            });
+          }
         }
       } catch {
         // ignore single annotation failures
@@ -233,6 +230,53 @@ export async function drawImageAnnotationsOnPdfPage(
       }
 
       const embedded = embeddedAnnImage as Awaited<ReturnType<PDFDocument['embedJpg']>>;
+      const imageAspect =
+        embedded.width > 0 && embedded.height > 0
+          ? embedded.width / embedded.height
+          : undefined;
+
+      if (ann.imageSlotTransform && imageAspect) {
+        const displayTransform = resolvePhotoSlotTransformForDisplay(
+          ann.imageSlotTransform,
+          slotViewport.width,
+          slotViewport.height,
+          imageAspect,
+        );
+        const inner = applyPhotoSlotTransform(
+          { x: 0, y: 0, width: slotViewport.width, height: slotViewport.height },
+          displayTransform,
+          imageAspect,
+        );
+        drawViewport = {
+          x: slotViewport.x + inner.x,
+          y: slotViewport.y + inner.y,
+          width: inner.width,
+          height: inner.height,
+        };
+      } else if (ann.imageSlotTransform) {
+        const inner = applyPhotoSlotTransform(
+          { x: 0, y: 0, width: slotViewport.width, height: slotViewport.height },
+          ann.imageSlotTransform,
+        );
+        drawViewport = {
+          x: slotViewport.x + inner.x,
+          y: slotViewport.y + inner.y,
+          width: inner.width,
+          height: inner.height,
+        };
+      }
+
+      const mapped = mapViewportAnnotationToPdf({
+        x: drawViewport.x,
+        y: drawViewport.y,
+        width: drawViewport.width,
+        height: drawViewport.height,
+        editorContentRect,
+        pdfImageX: params.pdfImageX,
+        pdfImageY: params.pdfImageY,
+        pdfImageWidth: params.pdfImageWidth,
+        pdfImageHeight: params.pdfImageHeight,
+      });
 
       const needsRectClip = ann.clipShape !== 'circle' && ann.imageContentFit === 'cover';
 

@@ -126,6 +126,18 @@ assert(diaryBrownP2.includes('"photoBlocks": []'), 'schema diary brown p2: expli
 const adapterSource = readFile('utils/pageValuesAdapter.ts');
 assert(adapterSource.includes("imageContentFit: 'cover'"), 'pageValuesAdapter: imageContentFit cover');
 assert(
+  adapterSource.includes('resolvePhotoCaptionViewportLayouts'),
+  'pageValuesAdapter: photo caption layouts below photo zone',
+);
+assert(
+  adapterSource.includes('resolvePrimaryPhotoCaptionLayout'),
+  'pageValuesAdapter: primary photo caption layout',
+);
+assert(
+  readFile('utils/photoZoneLayout.ts').includes('resolvePhotoZoneViewportRects'),
+  'photoZoneLayout: photo zone rects for captions',
+);
+assert(
   !adapterSource.includes('variant.slots > 1 ? values.photoGroupTransform'),
   'pageValuesAdapter: group transform applies to single-slot blocks',
 );

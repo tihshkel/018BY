@@ -9,12 +9,9 @@ import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
-import { measureTextWithFontTable } from '@/utils/fontCharWidths';
 import { getLineSlotsForPage, resolveWeeklyFieldLineSlots } from '@/utils/textLineSlots';
-import {
-  clampTextToFieldLines,
-  type TextWidthMeasure,
-} from '@/utils/templateLineText';
+import { clampTextToFieldLines } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 
 /** Эталонная ширина PDF-растра — лимит не зависит от ширины телефона. */
 export const FIELD_LIMIT_REFERENCE_VIEWPORT = { width: 2480, height: 2480 };
@@ -30,15 +27,6 @@ type FieldLimitParams = {
   viewportHeight?: number;
   fontId?: string | null;
 };
-
-function resolveMeasureTextWidth(fontId?: string | null): TextWidthMeasure | undefined {
-  const normalized = normalizeAlbumFontId(fontId);
-  if (measureTextWithFontTable('А', 16, normalized) == null) {
-    return undefined;
-  }
-  return (text, fittedFontSize) =>
-    measureTextWithFontTable(text, fittedFontSize, normalized) ?? 0;
-}
 
 function computeLayoutCharacterLimit(
   field: AlbumPageField,

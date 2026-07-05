@@ -35,6 +35,7 @@ export {
   getVariantPreviewManifest,
   getVariantPreviewThumbnails,
   hasVariantPreviewManifest,
+  resolvePerPageVariantBackgroundUri,
   resolveVariantPreviewBackgroundUri,
 } from '@/utils/variantPreview';
 export type { VariantPreviewThumbnail } from '@/utils/variantPreview';

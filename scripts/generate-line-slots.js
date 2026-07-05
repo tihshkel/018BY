@@ -7,8 +7,10 @@ const { filterPregnancyA5LineSlots } = require('./pregnancy-a5-line-slot-filters
 const { applyPregnancyA5Page44LineSlotOverrides } = require('./pregnancy-a5-page44-line-slot-overrides');
 const { applyPregnancyA5Page46LineSlotOverrides } = require('./pregnancy-a5-page46-line-slot-overrides');
 const { applyPregnancy60Page52LineSlotOverrides } = require('./pregnancy-60-page52-line-slot-overrides');
+const { applyPregnancy60Page51LineSlotOverrides } = require('./pregnancy-60-page51-line-slot-overrides');
 const { applyPregnancy60Page54LineSlotOverrides } = require('./pregnancy-60-page54-line-slot-overrides');
 const { PREGNANCY_60_PAGE52_OPTION_FILLS } = require('./pregnancy-60-page52-option-fills');
+const { PREGNANCY_60_PAGE51_OPTION_FILLS } = require('./pregnancy-60-page51-option-fills');
 const { applyPregnancy60WeeklyLineSlotOverrides } = require('./pregnancy-60-weekly-line-slot-overrides');
 const { applyKids48LineSlotOverrides } = require('./kids-48-line-slot-overrides');
 const { PREGNANCY_A5_PAGE44_OPTION_FILLS } = require('./pregnancy-a5-page44-option-fills');
@@ -1287,6 +1289,11 @@ async function main() {
       albumGuides = page52.guides;
       console.log(`[${spec.albumId}] applied page 52 birth questionnaire block overrides`);
 
+      const page51 = applyPregnancy60Page51LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = page51.slots;
+      albumGuides = page51.guides;
+      console.log(`[${spec.albumId}] applied page 51 todo checkbox overrides`);
+
       const page54 = applyPregnancy60Page54LineSlotOverrides(albumSlots, albumGuides);
       albumSlots = page54.slots;
       albumGuides = page54.guides;
@@ -1388,6 +1395,10 @@ async function main() {
       ...(circleSlots.pregnancy_60['52'] ?? {}),
       optionFills: PREGNANCY_60_PAGE52_OPTION_FILLS,
     };
+    circleSlots.pregnancy_60['51'] = {
+      ...(circleSlots.pregnancy_60['51'] ?? {}),
+      optionFills: PREGNANCY_60_PAGE51_OPTION_FILLS,
+    };
     const diaryMoodFills = buildDiaryMoodOptionFillsManifest();
     for (const [albumId, pages] of Object.entries(diaryMoodFills)) {
       circleSlots[albumId] = circleSlots[albumId] ?? {};
@@ -1399,7 +1410,7 @@ async function main() {
       }
     }
     fs.writeFileSync(circleSlotsFile, `${JSON.stringify(circleSlots, null, 2)}\n`, 'utf8');
-    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + pregnancy_60 p52 + diary mood fills)');
+    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + pregnancy_60 p51/p52 + diary mood fills)');
   }
 
   console.log('✅ Wrote', path.relative(projectRoot, slotsFile));

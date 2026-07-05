@@ -46,7 +46,6 @@ import {
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
 import {
   getBlankInteriorPageUri,
-  resolveDesignPreviewUri,
 } from "@/utils/albumImages";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
@@ -151,6 +150,8 @@ export default function AlbumPagePreviewScreen() {
     Boolean(schema?.templateLibraryId) &&
     !isFinalPreview &&
     (showBlankTemplateGuide || !hasPhotoContent);
+  const preferCleanPhotoBackground =
+    isFinalPreview && Boolean(primaryPhotoBlock) && !showTemplateWireframe;
   const resolvedImageUri = useMemo(
     () =>
       resolvePagePreviewBackgroundUri({
@@ -159,11 +160,13 @@ export default function AlbumPagePreviewScreen() {
         baseImageUri,
         variantId: effectiveVariantId,
         quality: 'full',
+        preferCleanPhotoBackground,
       }),
     [
       baseImageUri,
       effectiveVariantId,
       instance?.sourcePageNumber,
+      preferCleanPhotoBackground,
       resolvedLineGuideId,
       schema?.sourcePageNumber,
     ],
@@ -480,19 +483,6 @@ export default function AlbumPagePreviewScreen() {
                 onReady={() => setReady(true)}
                 onSourceSize={handleSourceSize}
                 onImageError={() => {
-                  const designFallback = resolveDesignPreviewUri({
-                    lineGuideId: resolvedLineGuideId,
-                    sourcePageNumber:
-                      instance?.sourcePageNumber ?? schema?.sourcePageNumber,
-                  });
-                  if (designFallback && displayImageUri !== designFallback) {
-                    setDisplayImageUri(designFallback);
-                    return;
-                  }
-                  if (baseImageUri && displayImageUri !== baseImageUri) {
-                    setDisplayImageUri(baseImageUri);
-                    return;
-                  }
                   if (
                     isBlankTemplatePage &&
                     blankPageFallbackUri &&

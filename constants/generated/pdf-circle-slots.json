@@ -2591,6 +2591,190 @@
     }
   },
   "pregnancy_60": {
+    "51": {
+      "optionFills": [
+        {
+          "id": "todo_1_yes",
+          "fieldId": "pregnancy_60_p51_todo_1",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.177,
+          "y": 0.2434,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_2_yes",
+          "fieldId": "pregnancy_60_p51_todo_2",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.47659999999999997,
+          "y": 0.2434,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_3_yes",
+          "fieldId": "pregnancy_60_p51_todo_3",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.7782,
+          "y": 0.2434,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_4_yes",
+          "fieldId": "pregnancy_60_p51_todo_4",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.1985,
+          "y": 0.39799999999999996,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_5_yes",
+          "fieldId": "pregnancy_60_p51_todo_5",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.4466,
+          "y": 0.39799999999999996,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_6_yes",
+          "fieldId": "pregnancy_60_p51_todo_6",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.7294999999999999,
+          "y": 0.39799999999999996,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_7_yes",
+          "fieldId": "pregnancy_60_p51_todo_7",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.177,
+          "y": 0.5510999999999999,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_8_yes",
+          "fieldId": "pregnancy_60_p51_todo_8",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.47659999999999997,
+          "y": 0.5510999999999999,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_9_yes",
+          "fieldId": "pregnancy_60_p51_todo_9",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.7817999999999999,
+          "y": 0.5510999999999999,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_10_yes",
+          "fieldId": "pregnancy_60_p51_todo_10",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.2343,
+          "y": 0.7067,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_11_yes",
+          "fieldId": "pregnancy_60_p51_todo_11",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.5171,
+          "y": 0.7067,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_12_yes",
+          "fieldId": "pregnancy_60_p51_todo_12",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.7652,
+          "y": 0.7067,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_13_yes",
+          "fieldId": "pregnancy_60_p51_todo_13",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.177,
+          "y": 0.8608,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_14_yes",
+          "fieldId": "pregnancy_60_p51_todo_14",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.47659999999999997,
+          "y": 0.8608,
+          "width": 0.0369,
+          "height": 0.0286
+        },
+        {
+          "id": "todo_15_yes",
+          "fieldId": "pregnancy_60_p51_todo_15",
+          "option": "Да",
+          "fillColor": "#C8864A",
+          "shape": "rect",
+          "cornerRadiusRatio": 0.182,
+          "x": 0.7782,
+          "y": 0.8608,
+          "width": 0.0369,
+          "height": 0.0286
+        }
+      ]
+    },
     "52": {
       "optionFills": [
         {
@@ -2599,10 +2783,11 @@
           "option": "Мальчик",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.204,
-          "y": 0.428,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.17880000000000001,
+          "y": 0.41709999999999997,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "gender_girl",
@@ -2610,10 +2795,11 @@
           "option": "Девочка",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.388,
-          "y": 0.428,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.36889999999999995,
+          "y": 0.41709999999999997,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "stimulation_yes",
@@ -2621,10 +2807,11 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.652,
-          "y": 0.428,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.7192,
+          "y": 0.4165,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "stimulation_no",
@@ -2632,10 +2819,11 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.738,
-          "y": 0.428,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.7990999999999999,
+          "y": 0.4165,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "tears_yes",
@@ -2643,10 +2831,11 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.652,
-          "y": 0.468,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.6546,
+          "y": 0.4533,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "tears_no",
@@ -2654,10 +2843,11 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.738,
-          "y": 0.468,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.7393,
+          "y": 0.4533,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "cord_yes",
@@ -2665,10 +2855,11 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.652,
-          "y": 0.508,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.6650999999999999,
+          "y": 0.4926,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         },
         {
           "id": "cord_no",
@@ -2676,10 +2867,11 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.738,
-          "y": 0.508,
-          "width": 0.038,
-          "height": 0.028
+          "x": 0.7487999999999999,
+          "y": 0.4926,
+          "width": 0.038900000000000004,
+          "height": 0.030600000000000002,
+          "cornerRadiusRatio": 0.182
         }
       ]
     }

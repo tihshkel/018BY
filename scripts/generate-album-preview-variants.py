@@ -113,6 +113,9 @@ def generate_album(config: dict, allowed_pages: set[int]) -> dict[str, dict[str,
 def main() -> None:
     photo_pages = load_photo_pages()
     for config in ALBUM_CONFIGS:
+        if config["album_id"] == "pregnancy_60":
+            print("[pregnancy_60] use scripts/generate-pregnancy-preview-variants.py (block PDF)")
+            continue
         allowed = set(photo_pages.get(config["album_id"], []))
         generate_album(config, allowed)
 

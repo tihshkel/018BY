@@ -74,3 +74,15 @@ export function buildContentRect(
     sourceHeight ?? viewportHeight,
   );
 }
+
+const DEFAULT_RECT_FILL_CORNER_RADIUS_RATIO = 0.22;
+
+/** Pixel corner radius for rect option fills (checkboxes, radio boxes). */
+export function resolveRectFillBorderRadius(
+  width: number,
+  height: number,
+  cornerRadiusRatio?: number,
+): number {
+  const ratio = cornerRadiusRatio ?? DEFAULT_RECT_FILL_CORNER_RADIUS_RATIO;
+  return Math.min(width, height) * ratio;
+}

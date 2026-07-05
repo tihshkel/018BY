@@ -69,9 +69,10 @@ assert(
   'pdf circle fills use ellipse center (pdf-lib), not bbox corner',
 );
 assert(
-  pdfAnnotationsSource.includes('distributeTextWithinContinuationGroup') &&
-    exportTextSource.includes('distributeTextWithinContinuationGroup'),
-  'preview and pdf export share continuation-group text distribution',
+  (pdfAnnotationsSource.includes('distributeTextWithinContinuationGroup') ||
+    pdfAnnotationsSource.includes('distributeTextForTemplateAnnotation')) &&
+    exportTextSource.includes('distributeTextForTemplateAnnotation'),
+  'preview and pdf export share template text distribution',
 );
 assert(
   exportTextSource.includes('getViewportToPdfScale') &&

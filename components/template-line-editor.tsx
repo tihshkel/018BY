@@ -11,6 +11,7 @@ import {
   resolveTemplateLineFontSize,
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -64,6 +65,11 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   const slotsToRender = groupSlots.length > 0 ? groupSlots : [slot];
   const startSlotIndex = slot.index;
 
+  const measureTextWidth = useMemo(
+    () => resolveMeasureTextWidth(fontId),
+    [fontId],
+  );
+
   const { segments, segmentBySlotIndex } = useMemo(() => {
     const distributed = distributeTextWithinContinuationGroup({
       text: value,
@@ -73,6 +79,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
       lineGuideId,
       fontId,
       slotCount: slotsToRender.length,
+      measureTextWidth,
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {
@@ -86,11 +93,12 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
               fontSize,
               lineGuideId,
               fontId,
+              measureTextWidth,
             );
       map.set(segment.slotIndex, displayContent);
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
-  }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
+  }, [allSlots, fontId, fontSize, lineGuideId, measureTextWidth, startSlotIndex, value]);
 
   const activeInputSlotIndex = useMemo(
     () => getActiveEditSlotIndex(segments, startSlotIndex),

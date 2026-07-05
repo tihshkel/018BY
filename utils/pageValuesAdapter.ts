@@ -6,7 +6,7 @@ import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
-import { getSchemaForInstance } from '@/utils/albumProjectInit';
+import { resolveBirthQuestionnaireBlockTextAlign } from '@/utils/templateLineText';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
   getLineSlotsForPage,
@@ -19,6 +19,10 @@ import {
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
+import {
+  resolvePhotoCaptionViewportLayouts,
+  resolvePrimaryPhotoCaptionLayout,
+} from '@/utils/photoCaptionLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
 import {
   isNonDefaultPhotoSlotTransform,
@@ -230,6 +234,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
+      textAlign: resolveBirthQuestionnaireBlockTextAlign(startSlot, lineGuideId),
       templateLineStart: lineSlotStart,
       templateLineCount: field.templateLineCount ?? 1,
     });
@@ -303,6 +308,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       height: rect.height,
       fillColor: target.fillColor,
       fillOpacity: target.fillOpacity,
+      fillCornerRadiusRatio:
+        'shape' in target && target.shape === 'rect' ? target.cornerRadiusRatio : undefined,
       clipShape: 'shape' in target && target.shape === 'rect' ? undefined : 'circle',
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
@@ -575,21 +582,55 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   }
 
   if (!isBlankTemplate && values.caption?.trim()) {
-    const captionSlot = slots.find((s) => s.hasLabel) ?? slots[0];
-    if (captionSlot) {
-      const layout = layoutTextAnnotationFromSlot(captionSlot, fontSize, lineGuideId);
+    const captionStyle = values.captionTextStyle;
+    const captionFontSize = captionStyle?.fontSize ?? fontSize;
+    const captionLayoutParams = {
+      schema,
+      values,
+      lineGuideId,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      contentRect: editorContentRect,
+    };
+
+    let captionLayout:
+      | { x: number; y: number; width: number; height: number; fontSize?: number }
+      | null = null;
+    let templateLineStart: number | undefined;
+
+    if ((schema.photoBlocks?.length ?? 0) > 0) {
+      captionLayout = resolvePrimaryPhotoCaptionLayout(captionLayoutParams);
+    } else {
+      const captionSlot = slots.find((s) => s.hasLabel) ?? slots[0];
+      if (captionSlot) {
+        captionLayout = layoutTextAnnotationFromSlot(
+          captionSlot,
+          captionFontSize,
+          lineGuideId,
+        );
+        templateLineStart = captionSlot.index;
+      }
+    }
+
+    if (captionLayout) {
       annotations.push({
         id: stableAnnotationId('caption', lineGuideId, schema.sourcePageNumber),
         type: 'text',
         page: schema.sourcePageNumber,
         content: values.caption.trim(),
-        fontSize,
+        fontSize: captionLayout.fontSize ?? captionFontSize,
         fontFamily: textFontFamily,
         color: '#3D3D3D',
+        textAlign: captionStyle?.textAlign ?? 'center',
         zIndex: zIndex++,
         sourcePageNumber: schema.sourcePageNumber,
-        ...layout,
-        templateLineStart: captionSlot.index,
+        x: captionLayout.x,
+        y: captionLayout.y,
+        width: captionLayout.width,
+        height: captionLayout.height,
+        templateLineStart,
         templateLineCount: 1,
       });
     }
@@ -617,7 +658,17 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         schema.captionEnabled)
     ) {
       const labelSlots = slots.filter((s) => s.hasLabel);
-      const captionHeight = Math.max(16, viewportHeight * 0.028);
+      const captionLayoutParams = {
+        schema,
+        values,
+        lineGuideId,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth,
+        sourceHeight,
+        contentRect: editorContentRect,
+      };
+      const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
 
       const appendCaption = (
         index: number,
@@ -625,14 +676,16 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         layout: { x: number; y: number; width: number; height: number },
         slotIndex = index,
       ) => {
+        const fieldStyle = values.fieldTextStyles?.[`caption${index + 1}`];
         annotations.push({
           id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
           type: 'text',
           page: schema.sourcePageNumber,
           content: text,
-          fontSize,
+          fontSize: fieldStyle?.fontSize ?? fontSize,
           fontFamily: textFontFamily,
           color: '#3D3D3D',
+          textAlign: fieldStyle?.textAlign ?? 'center',
           zIndex: zIndex++,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
@@ -641,53 +694,26 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         });
       };
 
-      if (labelSlots.length > 0) {
+      if (photoCaptionLayouts.length > 0) {
+        for (let i = 0; i < values.photoCaptions.length; i += 1) {
+          const text = values.photoCaptions[i]?.trim();
+          if (!text) continue;
+          const layout = photoCaptionLayouts[i];
+          if (!layout) continue;
+          appendCaption(i, text, layout);
+        }
+      } else if (labelSlots.length > 0) {
         for (let i = 0; i < values.photoCaptions.length; i += 1) {
           const text = values.photoCaptions[i]?.trim();
           if (!text) continue;
           const slot = labelSlots[i];
           if (!slot) continue;
-          appendCaption(i, text, layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId), slot.index);
-        }
-      } else {
-        const fallbackLayouts: Array<{ x: number; y: number; width: number; height: number }> = [];
-        for (const block of schema.photoBlocks ?? []) {
-          const blockValues = values.photoBlocks[block.blockId];
-          if (!blockValues) continue;
-          const variant =
-            block.variants.find((v) => v.variantId === blockValues.variantId) ??
-            block.variants[0];
-          if (!variant) continue;
-
-          for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
-            const photoRect = getPhotoSlotViewportRect({
-              lineGuideId,
-              page: schema.sourcePageNumber,
-              variantId: variant.variantId,
-              slotIndex,
-              viewportWidth,
-              viewportHeight,
-              sourceWidth,
-              sourceHeight,
-              contentRect: editorContentRect,
-              templateLibraryId: schema.templateLibraryId,
-            });
-            if (!photoRect) continue;
-            fallbackLayouts.push({
-              x: photoRect.x,
-              y: photoRect.y + photoRect.height / 2 + captionHeight * 0.45,
-              width: photoRect.width,
-              height: captionHeight,
-            });
-          }
-        }
-
-        for (let i = 0; i < values.photoCaptions.length; i += 1) {
-          const text = values.photoCaptions[i]?.trim();
-          if (!text) continue;
-          const layout = fallbackLayouts[i];
-          if (!layout) continue;
-          appendCaption(i, text, layout);
+          appendCaption(
+            i,
+            text,
+            layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId),
+            slot.index,
+          );
         }
       }
     }

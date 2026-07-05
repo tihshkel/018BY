@@ -287,6 +287,56 @@ function isBirthQuestionnairePage(lineGuideId: string | undefined, page?: number
   );
 }
 
+function isBirthQuestionnaireLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'inputKind'>,
+): boolean {
+  return (
+    isBirthQuestionnairePage(lineGuideId, slot.page) &&
+    (slot.inputKind ?? 'line') === 'line'
+  );
+}
+
+/** Узкий хвост после подписи «Роддом» — единственная строка, где нужен shrink. */
+const BIRTH_QUESTIONNAIRE_AUTO_SHRINK_SLOT_INDICES = new Set([6]);
+
+function isBirthQuestionnaireAutoShrinkSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+): boolean {
+  return (
+    isBirthQuestionnaireLineSlot(lineGuideId, slot) &&
+    typeof slot.index === 'number' &&
+    BIRTH_QUESTIONNAIRE_AUTO_SHRINK_SLOT_INDICES.has(slot.index)
+  );
+}
+
+/** White input blocks on pregnancy_60 p52 (weight, height, weekday, time, delivery). */
+const PREGNANCY_60_P52_BLOCK_SLOT_INDICES = new Set([9, 10, 13, 14, 15]);
+
+export function isPregnancy60Page52WhiteBlockSlot(
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+  lineGuideId?: string,
+): boolean {
+  return (
+    lineGuideId === 'pregnancy_60' &&
+    slot.page === 52 &&
+    (slot.inputKind ?? 'line') === 'block' &&
+    typeof slot.index === 'number' &&
+    PREGNANCY_60_P52_BLOCK_SLOT_INDICES.has(slot.index)
+  );
+}
+
+export function resolveBirthQuestionnaireBlockTextAlign(
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+  lineGuideId?: string,
+): 'left' | 'center' {
+  if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
+    return 'center';
+  }
+  return 'left';
+}
+
 function isAlreadyMomPage(lineGuideId: string | undefined, page?: number): boolean {
   return (
     (lineGuideId === 'pregnancy_60' && page === 54) ||
@@ -299,7 +349,7 @@ function getStrokeBaselineFontOffset(
   lineGuideId?: string,
 ): number {
   if (isBirthQuestionnairePage(lineGuideId, slot.page)) {
-    return 0.84;
+    return PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO;
   }
   if (isAlreadyMomPage(lineGuideId, slot.page)) {
     return PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO;
@@ -429,6 +479,16 @@ export function getEffectiveTemplateFontSize(
       lineGuideId,
       options.fontId,
       9,
+    );
+  }
+  if (isBirthQuestionnaireAutoShrinkSlot(lineGuideId, slot)) {
+    return shrinkFontSizeToFitSlotText(
+      base,
+      slot,
+      options.textContent,
+      lineGuideId,
+      options.fontId,
+      10,
     );
   }
   return base;
@@ -649,9 +709,12 @@ function resolveTemplateTextVerticalRatios(
   }
 
   if (isBirthQuestionnairePage(lineGuideId, slot.page) && inputKind === 'block') {
+    if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
+      return { centerRatio: 0.5, fontOffsetRatio: 0.5 };
+    }
     const normHeight = slot.normHeight ?? 0;
+    const normY = slot.normY ?? 0;
     if (normHeight <= 0.032) {
-      const normY = slot.normY ?? 0;
       if (normY >= 0.49 && normY <= 0.52) {
         return { centerRatio: 0.34, fontOffsetRatio: 0.78 };
       }
@@ -659,6 +722,9 @@ function resolveTemplateTextVerticalRatios(
         return { centerRatio: 0.36, fontOffsetRatio: 0.78 };
       }
       return { centerRatio: 0.34, fontOffsetRatio: 0.78 };
+    }
+    if (lineGuideId === 'pregnancy_60' && slot.page === 52 && normY >= 0.51 && normY <= 0.56) {
+      return { centerRatio: 0.56, fontOffsetRatio: 0.66 };
     }
     return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
   }
@@ -742,12 +808,24 @@ export function getWishSlotInputKind(
 }
 
 export function getTemplateBlockTextInsets(
-  slot: Pick<TextLineSlot, 'inputKind' | 'width' | 'page' | 'hasLabel'>,
+  slot: Pick<TextLineSlot, 'inputKind' | 'width' | 'page' | 'hasLabel' | 'index'>,
   lineGuideId?: string,
 ): { left: number; width: number } {
   if (lineGuideId === 'holidays_birthday_60' && slot.inputKind === 'block') {
     const pad = slot.width * 0.08;
     return { left: pad, width: Math.max(0, slot.width - pad * 2) };
+  }
+  if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
+    const pad = slot.width * 0.06;
+    return { left: pad, width: Math.max(0, slot.width - pad * 2) };
+  }
+  if (
+    isBirthQuestionnairePage(lineGuideId, slot.page) &&
+    slot.inputKind === 'block' &&
+    slot.hasLabel
+  ) {
+    const pad = slot.width * 0.06;
+    return { left: pad, width: Math.max(0, slot.width - pad) };
   }
   if (
     isBirthQuestionnairePage(lineGuideId, slot.page) &&
@@ -799,6 +877,19 @@ export function getAlreadyMomLineTextTop(
 ): number {
   const strokeY = getPregnancyWeeklyLineStrokeY(slot, allSlots, lineGuideId);
   const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO;
+  return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO - lift;
+}
+
+/** Top Text для «Анкета родов» — weekly-формула на штрихе линии. */
+export function getBirthQuestionnaireLineTextTop(
+  slot: PregnancyWeeklyStrokeSlot,
+  fittedSize: number,
+  referenceFittedSize?: number,
+): number {
+  const strokeY = slot.y + slot.lineHeight;
+  const ref = referenceFittedSize ?? fittedSize;
+  const liftScale = ref > 0 ? fittedSize / ref : 1;
+  const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO * liftScale;
   return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO - lift;
 }
 
@@ -1142,6 +1233,19 @@ export function getTemplateLineTextTop(
   } else if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
     const strokeY = getPregnancyWeeklyLineStrokeY(slot, allSlots, lineGuideId);
     return getAlreadyMomLineTextTop({ ...slot, strokeY }, fittedSize, lineGuideId, allSlots);
+  } else if (
+    isBirthQuestionnairePage(lineGuideId, slot.page) &&
+    inputKind === 'line' &&
+    slot.lineStrokeAtBottom
+  ) {
+    const profile = getTemplateTypographyProfile(lineGuideId);
+    const referenceFitted = fitFontSizeToSlot(
+      profile.fixedLineFontSize ?? 16,
+      slot.lineHeight,
+      inputKind,
+      lineGuideId,
+    );
+    return getBirthQuestionnaireLineTextTop(slot, fittedSize, referenceFitted);
   } else if (usesStrokeBaselineLayout(slot, lineGuideId)) {
     const lineY =
       lineGuideId === 'kids_48'
@@ -1336,6 +1440,15 @@ export function getTemplateLinePdfBaselineY(
   }
 
   if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
+    const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO;
+    return textTop + fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO + lift;
+  }
+
+  if (
+    isBirthQuestionnairePage(lineGuideId, slot.page) &&
+    inputKind === 'line' &&
+    slot.lineStrokeAtBottom
+  ) {
     const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO;
     return textTop + fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO + lift;
   }

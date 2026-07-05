@@ -2338,17 +2338,18 @@ export default function ExportPdfScreen() {
           const imageAspectRatio = imageDims.width / imageDims.height;
           const contentAspectRatio = contentWidth / contentHeight;
 
-          let sourceWidth = imageDims.width;
-          let sourceHeight = imageDims.height;
-          const cachedSource = getCachedPageSourceSize(imageUri) ?? getCachedPageSourceSize(optimizedPageUri);
-          if (cachedSource) {
-            sourceWidth = cachedSource.width;
-            sourceHeight = cachedSource.height;
-          } else {
-            const resolvedSource = await resolvePageSourceSize(imageUri);
-            if (resolvedSource) {
-              sourceWidth = resolvedSource.width;
-              sourceHeight = resolvedSource.height;
+          // Canonical source size — same as preview (bundle → cache → resolve), not JPEG dims.
+          let sourceWidth = pageSourceSize.width;
+          let sourceHeight = pageSourceSize.height;
+          if (!sourceWidth || !sourceHeight) {
+            const cachedSource =
+              getCachedPageSourceSize(imageUri) ?? getCachedPageSourceSize(optimizedPageUri);
+            if (cachedSource) {
+              sourceWidth = cachedSource.width;
+              sourceHeight = cachedSource.height;
+            } else {
+              sourceWidth = imageDims.width;
+              sourceHeight = imageDims.height;
             }
           }
 
@@ -2402,7 +2403,7 @@ export default function ExportPdfScreen() {
             width: actualImageWidth,
             height: actualImageHeight,
           });
-          
+
           // Сначала фото, затем текст — текст всегда поверх фото при пересечении зон.
           const sortedAnnotations = pageAnnotations.length > 0 
             ? [...pageAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))

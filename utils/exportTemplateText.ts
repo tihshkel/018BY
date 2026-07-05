@@ -9,10 +9,13 @@ import {
   distributeTextForTemplateAnnotation,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
+  getTemplateBlockTextInsets,
   getTemplateLinePdfBaselineY,
+  resolveBirthQuestionnaireBlockTextAlign,
   truncateTextToSlotWidth,
   type TextWidthMeasure,
 } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { getLineSlotsForPage } from '@/utils/textLineSlots';
 
 type DrawTemplateTextParams = {
@@ -94,12 +97,11 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   const { scaleX, scaleY } = getViewportToPdfScale(editorContentRect, actualImageWidth, actualImageHeight);
   const scaledFontSize = effectiveFontSize * scaleY;
-  const textAlign = ann.textAlign ?? 'left';
   const fontId = ann.fontFamily;
 
   const measureTextWidth: TextWidthMeasure | undefined = font
     ? (text) => font.widthOfTextAtSize(text, scaledFontSize) / scaleX
-    : undefined;
+    : resolveMeasureTextWidth(fontId);
 
   const drawSegmentAtSlot = (slotIndex: number, content: string): void => {
     const slot = slots[slotIndex];
@@ -115,7 +117,10 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     );
     if (!truncated) return;
 
-    const relX = slot.x - editorContentRect.offsetX;
+    const textInsets = getTemplateBlockTextInsets(slot, lineGuideId);
+    const textAlign =
+      ann.textAlign ?? resolveBirthQuestionnaireBlockTextAlign(slot, lineGuideId);
+    const relX = slot.x + textInsets.left - editorContentRect.offsetX;
     const viewportBaseline = getTemplateLinePdfBaselineY(
       slot,
       effectiveFontSize,
@@ -131,7 +136,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     let drawX = scaledX;
     if (font && textAlign !== 'left') {
       const textWidth = font.widthOfTextAtSize(truncated, scaledFontSize);
-      const slotWidth = slot.width * scaleX;
+      const slotWidth = (textInsets.width || slot.width) * scaleX;
       if (textAlign === 'center') {
         drawX = scaledX + (slotWidth - textWidth) / 2;
       } else if (textAlign === 'right') {

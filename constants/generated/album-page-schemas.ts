@@ -4052,147 +4052,183 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "pregnancy_60_p51_todo_1",
-          "label": "Список дел",
-          "type": "text",
+          "label": "Выспаться",
+          "type": "radio",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_2",
-          "label": "Посмотреть сериал",
-          "type": "text",
+          "label": "Посмотреть интересный сериал",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 1,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_3",
-          "label": "Сделать фотосессию",
-          "type": "text",
+          "label": "Сходить на фотосессию",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_4",
-          "label": "Погулять с подругами",
-          "type": "text",
+          "label": "Насладиться беременностью",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_5",
-          "label": "Написать пост в соцсетях",
-          "type": "text",
+          "label": "Встретиться с подругами",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_6",
-          "label": "Прочитать книгу",
-          "type": "text",
+          "label": "Сходить в кино или театр",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_7",
-          "label": "Съездить в путешествие",
-          "type": "text",
+          "label": "День без соцсетей",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_8",
-          "label": "Выбросить ненужные вещи",
-          "type": "text",
+          "label": "Прочитать интересную книгу",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 7,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_9",
-          "label": "Испечь пирог",
-          "type": "text",
+          "label": "Отправиться в путешествие",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 8,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_10",
-          "label": "Посидеть под пледом",
-          "type": "text",
+          "label": "Избавиться от ненужных вещей",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 9,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_11",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Погулять в парке",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_12",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Кушать вкусняшки",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 11,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_13",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Испечь пирог",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 12,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_14",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Выпить чай/какао под пледом",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 13,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p51_todo_15",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "День шоппинга",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 14,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_16",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_17",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_18",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         }
       ],
       "canDuplicate": false,
@@ -4288,7 +4324,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Вес",
           "type": "number",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -4296,7 +4332,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рост",
           "type": "number",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -4304,7 +4340,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "День недели",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -4312,7 +4348,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Время",
           "type": "time",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -4320,7 +4356,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Естественные роды / Кесарево",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -4364,7 +4400,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Общее состояние",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 20,
           "templateLineCount": 1
         },
         {
@@ -4372,7 +4408,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата выписки из роддома",
           "type": "date",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 21,
           "templateLineCount": 1
         },
         {
@@ -4380,7 +4416,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Сколько дней провела в роддоме",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 22,
           "templateLineCount": 1
         },
         {
@@ -4388,44 +4424,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Кто пришёл на выписку",
           "type": "text",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 23,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                8,
-                9,
-                10,
-                12
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,
@@ -7311,42 +7311,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 16,
           "templateLineCount": 3
-        }
-      ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                8,
-                9,
-                10,
-                12
-              ]
-            }
-          ]
         }
       ],
       "canDuplicate": false,

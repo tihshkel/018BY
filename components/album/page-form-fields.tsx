@@ -197,6 +197,29 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
+function isTodoCheckboxField(field: AlbumPageField): boolean {
+  return field.type === 'radio' && /_todo_\d+$/.test(field.fieldId);
+}
+
+function TodoCheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
+  const checked = value === 'Да';
+
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={field.label}
+      onPress={() => onChange(checked ? 'Нет' : 'Да')}
+      style={styles.todoCheckboxRow}
+    >
+      <View style={[styles.todoCheckboxBox, checked && styles.todoCheckboxBoxChecked]} />
+      <AppText variant="body" style={styles.todoCheckboxLabel}>
+        {field.label}
+      </AppText>
+    </Pressable>
+  );
+}
+
 function resolveFormFieldAutoCapitalize(field: AlbumPageField): 'none' | 'sentences' | 'words' {
   if (field.type === 'date' || field.type === 'time' || field.type === 'number') {
     return 'none';
@@ -284,9 +307,11 @@ const AlbumFormField = memo(function AlbumFormField({
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
-      <AppText variant="caption" style={styles.label}>
-        {field.label}
-      </AppText>
+      {!isTodoCheckboxField(field) ? (
+        <AppText variant="caption" style={styles.label}>
+          {field.label}
+        </AppText>
+      ) : null}
       {showToolbar ? (
         <TextFieldStyleToolbar
           style={fieldStyle}
@@ -306,7 +331,11 @@ const AlbumFormField = memo(function AlbumFormField({
           <FieldCharacterCounter value={value} limit={characterLimit} />
         </View>
       ) : field.type === 'radio' ? (
-        <RadioFormField field={field} value={value} onChange={onChange} />
+        isTodoCheckboxField(field) ? (
+          <TodoCheckboxFormField field={field} value={value} onChange={onChange} />
+        ) : (
+          <RadioFormField field={field} value={value} onChange={onChange} />
+        )
       ) : (
         <TypedFormField
           field={field}
@@ -448,6 +477,29 @@ const styles = StyleSheet.create({
   radioDotSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
+  },
+  todoCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: 10,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.sm,
+  },
+  todoCheckboxBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#C8864A',
+    backgroundColor: colors.white,
+  },
+  todoCheckboxBoxChecked: {
+    backgroundColor: '#C8864A',
+    borderColor: '#C8864A',
+  },
+  todoCheckboxLabel: {
+    flex: 1,
   },
   toolbar: {
     flexDirection: 'row',
