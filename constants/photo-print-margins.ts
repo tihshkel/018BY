@@ -26,25 +26,36 @@ export type AlbumPageSizeMm = {
 
 /** Физический размер страницы альбома в мм (для нормализованных полей). */
 export function getAlbumPageSizeMm(lineGuideId: string): AlbumPageSizeMm {
-  if (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') {
+  if (
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple' ||
+    lineGuideId === 'pregnancy_60'
+  ) {
     return { widthMm: 180, heightMm: 240 };
   }
   if (lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank') {
     return { widthMm: 180, heightMm: 240 };
   }
 
-  const sparseSide = getSparsePhotoAlbumConfig(lineGuideId)?.pageSizeMm;
+  const sparseConfig = getSparsePhotoAlbumConfig(lineGuideId);
+  if (sparseConfig?.pageWidthMm != null && sparseConfig?.pageHeightMm != null) {
+    return { widthMm: sparseConfig.pageWidthMm, heightMm: sparseConfig.pageHeightMm };
+  }
+  const sparseSide = sparseConfig?.pageSizeMm;
   const side = sparseSide ?? 210;
   return { widthMm: side, heightMm: side };
 }
 
-export function getDefaultPagePhotoBounds(pageSizeMm = 210): PagePhotoBounds {
-  const inset = PRINT_PHOTO_MARGIN_MM / pageSizeMm;
+export function getDefaultPagePhotoBounds(
+  pageWidthMm = 210,
+  pageHeightMm?: number,
+): PagePhotoBounds {
+  const heightMm = pageHeightMm ?? pageWidthMm;
   return {
-    left: inset,
-    top: inset,
-    right: 1 - inset,
-    bottom: 1 - inset,
+    left: PRINT_PHOTO_MARGIN_MM / pageWidthMm,
+    top: PRINT_PHOTO_MARGIN_MM / heightMm,
+    right: 1 - PRINT_PHOTO_MARGIN_MM / pageWidthMm,
+    bottom: 1 - PRINT_PHOTO_MARGIN_MM / heightMm,
   };
 }
 
@@ -132,9 +143,13 @@ function clampSlotToBounds(
 /** Удерживает все слоты внутри типографских полей (не касаются обреза). */
 export function clampPhotoPageLayoutsToPrintMargins(
   layouts: PhotoPageLayouts,
-  pageSizeMm = 210,
+  lineGuideIdOrWidthMm: string | number = 210,
+  pageHeightMm?: number,
 ): PhotoPageLayouts {
-  const bounds = getDefaultPagePhotoBounds(pageSizeMm);
+  const bounds =
+    typeof lineGuideIdOrWidthMm === 'string'
+      ? getDefaultPagePhotoBounds(...Object.values(getAlbumPageSizeMm(lineGuideIdOrWidthMm)))
+      : getDefaultPagePhotoBounds(lineGuideIdOrWidthMm, pageHeightMm);
 
   return {
     variants: layouts.variants.map((variant) => ({

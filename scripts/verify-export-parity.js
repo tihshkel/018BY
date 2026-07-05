@@ -106,6 +106,19 @@ assert(
   'export viewport defaults kids_48 pages to square aspect',
 );
 assert(
+  viewportSource.includes("lineGuideId === 'pregnancy_60'"),
+  'export viewport defaults pregnancy_60 pages to 180×240 aspect',
+);
+assert(
+  read('utils/exportPageDimensions.ts').includes('isPregnancy60LineGuide'),
+  'pdf export uses 180×240 mm for pregnancy_60',
+);
+assert(
+  read('utils/pageValuesAdapter.ts').includes('caption_photo_page') &&
+    read('utils/pageValuesAdapter.ts').includes('fallbackLayouts'),
+  'photo captions fall back below photo slots when line slots are empty',
+);
+assert(
   viewportSource.includes("lineGuideId === 'family_blank_21x21'"),
   'export viewport uses square aspect for family_blank_21x21',
 );

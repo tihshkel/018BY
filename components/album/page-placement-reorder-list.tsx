@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, ScrollView } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -131,6 +131,7 @@ type RowProps = {
   onMoveNewToStart?: () => void;
   onMoveNewToEnd?: () => void;
   showQuickMoves?: boolean;
+  scrollGesture?: ReturnType<typeof Gesture.Native>;
 };
 
 function PlacementRowCard({
@@ -148,6 +149,7 @@ function PlacementRowCard({
   onMoveNewToStart,
   onMoveNewToEnd,
   showQuickMoves = false,
+  scrollGesture,
 }: RowProps) {
   const isNew = row.kind === "new";
   const canDrag = isNew && !disabled;
@@ -189,6 +191,7 @@ function PlacementRowCard({
       {canDrag ? (
         <PageDragHandle
           active={isActive}
+          scrollGesture={scrollGesture}
           onDragStart={handleDragStart}
           onDragMove={handleDragMove}
           onDragEnd={handleDragEnd}
@@ -314,6 +317,8 @@ export function PagePlacementReorderList({
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
 
+  const scrollGesture = Gesture.Native();
+
   const rowsRef = useRef(rows);
   const draggingIndexRef = useRef<number | null>(null);
   const hoverIndexRef = useRef<number | null>(null);
@@ -344,14 +349,27 @@ export function PagePlacementReorderList({
     setScrollEnabled(false);
   }, []);
 
-  const handleDragMove = useCallback((index: number, translationY: number) => {
-    if (draggingIndexRef.current !== index) return;
-    const nextHover = Math.max(
-      0,
-      Math.min(rowsRef.current.length - 1, Math.round(index + translationY / ROW_HEIGHT)),
-    );
-    hoverIndexRef.current = nextHover;
-  }, []);
+  const handleDragMove = useCallback(
+    (index: number, translationY: number) => {
+      const from = draggingIndexRef.current;
+      if (from == null) return;
+      const nextHover = Math.max(
+        0,
+        Math.min(
+          rowsRef.current.length - 1,
+          Math.round(from + translationY / ROW_HEIGHT),
+        ),
+      );
+      if (nextHover === hoverIndexRef.current) return;
+      hoverIndexRef.current = nextHover;
+      if (nextHover !== from) {
+        const nextRows = moveRow(rowsRef.current, from, nextHover);
+        draggingIndexRef.current = nextHover;
+        onOrderChange(nextRows);
+      }
+    },
+    [onOrderChange],
+  );
 
   const handleDragEnd = useCallback(() => {
     const from = draggingIndexRef.current;
@@ -404,37 +422,40 @@ export function PagePlacementReorderList({
   }, [moveNewToIndex]);
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={styles.scroll}
-      scrollEnabled={scrollEnabled}
-      nestedScrollEnabled
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.listContent}
-    >
-      <View style={styles.list}>
-        {rows.map((row, index) => (
-          <PlacementRowCard
-            key={row.id}
-            row={row}
-            index={index}
-            displayNumber={index + 1}
-            isActive={draggingIndex === index}
-            disabled={disabled}
-            onDragStart={handleDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDragEnd}
-            onInsertAfter={handleInsertAfter}
-            onMoveNewUp={handleMoveNewUp}
-            onMoveNewDown={handleMoveNewDown}
-            onMoveNewToStart={handleMoveNewToStart}
-            onMoveNewToEnd={handleMoveNewToEnd}
-            showQuickMoves={row.kind === "new"}
-          />
-        ))}
-      </View>
-    </ScrollView>
+    <GestureDetector gesture={scrollGesture}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.scroll}
+        scrollEnabled={scrollEnabled}
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.listContent}
+      >
+        <View style={styles.list}>
+          {rows.map((row, index) => (
+            <PlacementRowCard
+              key={row.id}
+              row={row}
+              index={index}
+              displayNumber={index + 1}
+              isActive={draggingIndex === index}
+              disabled={disabled}
+              scrollGesture={scrollGesture}
+              onDragStart={handleDragStart}
+              onDragMove={handleDragMove}
+              onDragEnd={handleDragEnd}
+              onInsertAfter={handleInsertAfter}
+              onMoveNewUp={handleMoveNewUp}
+              onMoveNewDown={handleMoveNewDown}
+              onMoveNewToStart={handleMoveNewToStart}
+              onMoveNewToEnd={handleMoveNewToEnd}
+              showQuickMoves={row.kind === "new"}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </GestureDetector>
   );
 }
 

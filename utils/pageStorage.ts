@@ -107,6 +107,34 @@ export async function loadPageValuesMapMerged(
   return merged;
 }
 
+function pageValuesUpdatedAt(values: PageValues | undefined): string {
+  return values?.updatedAt ?? '';
+}
+
+/** Сливает несколько map по instanceId; побеждает запись с более поздним updatedAt. */
+export function mergePageValuesMaps(
+  ...maps: Record<string, PageValues>[]
+): Record<string, PageValues> {
+  const merged: Record<string, PageValues> = {};
+
+  for (const map of maps) {
+    for (const [instanceId, values] of Object.entries(map)) {
+      const existing = merged[instanceId];
+      if (!existing) {
+        merged[instanceId] = values;
+        continue;
+      }
+      const existingAt = pageValuesUpdatedAt(existing);
+      const incomingAt = pageValuesUpdatedAt(values);
+      if (!existingAt || (incomingAt && incomingAt >= existingAt)) {
+        merged[instanceId] = values;
+      }
+    }
+  }
+
+  return merged;
+}
+
 export function createEmptyPageValues(): PageValues {
   return {
     fields: {},

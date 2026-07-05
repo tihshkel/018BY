@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
 
@@ -8,6 +8,7 @@ import { colors, radii } from "@/constants/design-tokens";
 
 type PageDragHandleProps = {
   disabled?: boolean;
+  scrollGesture?: ReturnType<typeof Gesture.Native>;
   onDragStart: () => void;
   onDragMove: (translationY: number) => void;
   onDragEnd: () => void;
@@ -16,13 +17,14 @@ type PageDragHandleProps = {
 
 export function PageDragHandle({
   disabled = false,
+  scrollGesture,
   onDragStart,
   onDragMove,
   onDragEnd,
   active = false,
 }: PageDragHandleProps) {
   const panGesture = Gesture.Pan()
-    .activateAfterLongPress(Platform.OS === "android" ? 220 : 280)
+    .activeOffsetY([-8, 8])
     .enabled(!disabled)
     .shouldCancelWhenOutside(false)
     .onStart(() => {
@@ -34,6 +36,10 @@ export function PageDragHandle({
     .onEnd(() => {
       runOnJS(onDragEnd)();
     });
+
+  if (scrollGesture) {
+    panGesture.blocksExternalGesture(scrollGesture);
+  }
 
   return (
     <GestureDetector gesture={panGesture}>

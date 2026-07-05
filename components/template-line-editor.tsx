@@ -111,6 +111,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           fontSize,
           lineGuideId,
           fontId,
+          slotCount: slotsToRender.length,
         })
       );
     },
@@ -127,7 +128,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   return (
     <>
       {slotsToRender.map((lineSlot) => {
-        const textTop = getTemplateLineTextTop(lineSlot, fontSize, lineGuideId);
+        const textTop = getTemplateLineTextTop(lineSlot, fontSize, lineGuideId, allSlots);
         const lineTypography = getTemplateLineTypography(
           fontSize,
           lineSlot.lineHeight,

@@ -47,6 +47,7 @@ import {
 } from "@/utils/albumPageNavigation";
 import { isBlankTemplateLineGuide } from "@/utils/photoPageTemplateManifest";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
+import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { computePageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 import { normalizeRouteParam } from "@/utils/routeParams";
@@ -421,7 +422,14 @@ export default function AlbumPagesScreen() {
               title: project.getInstanceTitle(instance),
               subtitle: getPageSubtitle(instance, schema, values),
               status,
-              thumbnailUri: resolveInstancePageImageUri(project.images, instance),
+              thumbnailUri:
+                resolvePagePreviewBackgroundUri({
+                  lineGuideId: project.lineGuideId,
+                  sourcePageNumber:
+                    instance.sourcePageNumber ?? schema?.sourcePageNumber,
+                  baseImageUri: resolveInstancePageImageUri(project.images, instance),
+                  quality: "thumbnail",
+                }) ?? undefined,
               schema,
               pageValues: values,
               canShowMenu: canShowPageActions(schema, instance),

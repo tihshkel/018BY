@@ -10,6 +10,8 @@ import {
   isBlankLineGuideAlbum,
   isKidsMonthPage,
   KIDS_MONTH_LINE_BAND_HEIGHT,
+  PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
+  PREGNANCY_WEEKLY_LINE_PITCH,
 } from '@/constants/album-text-margins';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
@@ -26,6 +28,7 @@ import {
 import { wrapTextToLines } from '@/utils/textWrap';
 import {
   getEffectiveTemplateFontSize,
+  getPregnancyWeeklyTypographyBandHeight,
   getTemplateLineTextTop,
   getTemplateLineTypography,
 } from '@/utils/templateLineText';
@@ -48,6 +51,10 @@ export type TextLineSlot = {
   lineStrokeAtBottom?: boolean;
   /** Y слота = верх полосы (калибровка «Вес» / «Обхват» на неделях pregnancy_60). */
   textAnchorTop?: boolean;
+  /** Y штриха линии в viewport px (из LINE_GUIDES, без интерполяции OCR-полосы). */
+  strokeY?: number;
+  /** Хвост строки с печатной подписью — ввод сразу после «ПЛАНЫ НА НЕДЕЛЮ:» и т.п. */
+  inlineLabelTail?: boolean;
 };
 
 export type GetLineSlotsParams = {
@@ -1309,22 +1316,149 @@ export function isPregnancyWeeklyStructuredPage(
   return false;
 }
 
+/** Мин. зазор между левым краем body-строки и хвостом после печатной подписи (norm X). */
+const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
+
+function findPregnancyWeeklyBodyLineInGroup(
+  slots: readonly TextLineSlot[],
+  groupId: number,
+  afterIndex: number,
+  bellyIndex: number,
+): TextLineSlot | undefined {
+  return slots
+    .filter(
+      (s) =>
+        s.continuationGroup === groupId &&
+        !s.hasLabel &&
+        (s.inputKind ?? 'line') === 'line' &&
+        s.index > afterIndex &&
+        s.index !== 1 &&
+        s.index !== bellyIndex,
+    )
+    .sort((a, b) => a.index - b.index)[0];
+}
+
+/** OCR-слот справа от подписи на той же строке — сюда продолжается текст пользователя. */
+export function isPregnancyWeeklyInlineTailLabelSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<
+    TextLineSlot,
+    'page' | 'index' | 'hasLabel' | 'continuationGroup' | 'x' | 'normHeight' | 'inlineLabelTail'
+  >,
+  slots: readonly TextLineSlot[],
+): boolean {
+  if (slot.inlineLabelTail) return true;
+  if (!lineGuideId || !isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
+  if (!slot.hasLabel) return false;
+
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bodySlot = findPregnancyWeeklyBodyLineInGroup(
+    slots,
+    slot.continuationGroup,
+    slot.index,
+    bellyIndex,
+  );
+  if (!bodySlot) return false;
+
+  return slot.x > bodySlot.x + PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP;
+}
+
+function markPregnancyWeeklyInlineTailSlots(
+  slots: TextLineSlot[],
+  lineGuideId: string,
+  page: number,
+): TextLineSlot[] {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, page)) return slots;
+
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  return slots.map((slot) => {
+    if (!slot.hasLabel || slot.inlineLabelTail) return slot;
+    const bodySlot = findPregnancyWeeklyBodyLineInGroup(
+      slots,
+      slot.continuationGroup,
+      slot.index,
+      bellyIndex,
+    );
+    if (!bodySlot || slot.x <= bodySlot.x + PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP) {
+      return slot;
+    }
+    return { ...slot, inlineLabelTail: true };
+  });
+}
+
+function findPregnancyWeeklyInlineLabelTailSlot(
+  slots: readonly TextLineSlot[],
+  bodyStartIndex: number,
+  groupId: number,
+  lineGuideId: string,
+): TextLineSlot | null {
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const labelSlot = slots
+    .filter(
+      (s) =>
+        s.continuationGroup === groupId &&
+        s.hasLabel &&
+        s.index < bodyStartIndex &&
+        (s.inputKind ?? 'line') === 'line' &&
+        s.index !== 1 &&
+        s.index !== bellyIndex,
+    )
+    .sort((a, b) => b.index - a.index)[0];
+
+  if (!labelSlot || !isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, labelSlot, slots)) {
+    return null;
+  }
+  return labelSlot;
+}
+
 /**
  * Текстовые строки n-недели (дата, планы, ощущения) — единый stroke-baseline layout.
  */
 export function isPregnancyWeeklyTextLineSlot(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind' | 'textAnchorTop'>,
+  slot: Pick<
+    TextLineSlot,
+    | 'page'
+    | 'index'
+    | 'inputKind'
+    | 'textAnchorTop'
+    | 'hasLabel'
+    | 'normHeight'
+    | 'inlineLabelTail'
+    | 'x'
+    | 'continuationGroup'
+  >,
+  allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
   if (isPregnancy60WeeklyValueSlot(lineGuideId, slot)) return false;
-  return (slot.inputKind ?? 'line') === 'line';
+  if ((slot.inputKind ?? 'line') !== 'line') return false;
+  if (slot.inlineLabelTail) return true;
+  if (allSlots && isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, slot, allSlots)) {
+    return true;
+  }
+  if (slot.hasLabel) {
+    const normH = slot.normHeight ?? 0;
+    if (normH > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) return false;
+  }
+  return true;
 }
 
 /** @deprecated Используйте isPregnancyWeeklyTextLineSlot */
 export function isPregnancyWeeklyRuledLineSlot(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind' | 'textAnchorTop'>,
+  slot: Pick<
+    TextLineSlot,
+    | 'page'
+    | 'index'
+    | 'inputKind'
+    | 'textAnchorTop'
+    | 'hasLabel'
+    | 'normHeight'
+    | 'inlineLabelTail'
+    | 'x'
+    | 'continuationGroup'
+  >,
 ): boolean {
   return isPregnancyWeeklyTextLineSlot(lineGuideId, slot);
 }
@@ -1337,7 +1471,7 @@ export function getPregnancyWeeklyFieldStartIndex(
   slotIndex: number,
   slots: readonly Pick<
     TextLineSlot,
-    'index' | 'continuationGroup' | 'hasLabel' | 'inputKind' | 'normHeight'
+    'index' | 'continuationGroup' | 'hasLabel' | 'inputKind' | 'normHeight' | 'x' | 'inlineLabelTail'
   >[],
 ): number {
   const slot = slots[slotIndex];
@@ -1349,17 +1483,47 @@ export function getPregnancyWeeklyFieldStartIndex(
   if (groupSlots.length === 0) return slotIndex;
 
   const first = groupSlots[0]!;
+  const bellyIndex =
+    groupSlots.some((s) => s.index === 6) ? 6 : 5;
   const unlabeled = groupSlots.filter(
     (s) =>
       !s.hasLabel &&
       (s.inputKind ?? 'line') === 'line' &&
       s.index !== 1 &&
-      s.index !== 5,
+      s.index !== bellyIndex,
   );
+
+  const inlineTail = groupSlots
+    .filter(
+      (s) =>
+        (s.inlineLabelTail || s.hasLabel) &&
+        (s.inputKind ?? 'line') === 'line' &&
+        s.index !== 1 &&
+        s.index !== bellyIndex,
+    )
+    .sort((a, b) => b.index - a.index)
+    .find((labelSlot) => {
+      if (labelSlot.inlineLabelTail) return true;
+      const bodySlot = groupSlots.find(
+        (s) =>
+          !s.hasLabel &&
+          (s.inputKind ?? 'line') === 'line' &&
+          s.index > labelSlot.index &&
+          s.index !== 1 &&
+          s.index !== bellyIndex,
+      );
+      return (
+        bodySlot != null &&
+        labelSlot.x > bodySlot.x + PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP
+      );
+    });
+
+  if (inlineTail && slotIndex >= inlineTail.index) {
+    return inlineTail.index;
+  }
 
   const labelOnlyHead =
     first.hasLabel &&
-    (first.normHeight ?? 0) < 0.038 &&
     unlabeled.length > 0 &&
     unlabeled[0]!.index > first.index;
 
@@ -1368,6 +1532,44 @@ export function getPregnancyWeeklyFieldStartIndex(
   }
 
   return first.index;
+}
+
+/** Слоты ввода для weekly-поля: хвост после подписи + body-строки ниже. */
+export function resolveWeeklyFieldLineSlots(
+  slots: readonly TextLineSlot[],
+  startSlotIndex: number,
+  lineCount: number,
+  lineGuideId?: string,
+): TextLineSlot[] {
+  const startSlot = slots[startSlotIndex];
+  if (!startSlot || lineCount <= 0) return [];
+
+  if (lineGuideId && isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page)) {
+    const groupId = startSlot.continuationGroup;
+    const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+    const bodySlots = slots
+      .filter(
+        (s) =>
+          s.continuationGroup === groupId &&
+          s.index >= startSlotIndex &&
+          !s.hasLabel &&
+          (s.inputKind ?? 'line') === 'line' &&
+          s.index !== 1 &&
+          s.index !== bellyIndex,
+      )
+      .sort((a, b) => a.index - b.index);
+
+    const labelTail = findPregnancyWeeklyInlineLabelTailSlot(
+      slots,
+      startSlotIndex,
+      groupId,
+      lineGuideId,
+    );
+    const fieldSlots = labelTail ? [labelTail, ...bodySlots] : bodySlots;
+    return fieldSlots.slice(0, lineCount);
+  }
+
+  return slots.slice(startSlotIndex, startSlotIndex + lineCount) as TextLineSlot[];
 }
 
 function getPregnancyWeeklyCalib(
@@ -1390,7 +1592,7 @@ export function isPregnancy60WeeklyValueSlot(
   return (
     (lineGuideId === 'pregnancy_60' &&
       isPregnancy60WeeklyPage(slot.page) &&
-      (slot.index === 1 || slot.index === 5)) ||
+      (slot.index === 1 || slot.index === 6)) ||
     (lineGuideId === 'pregnancy_a5' &&
       isPregnancyA5WeeklyPage(slot.page) &&
       (slot.index === 1 || slot.index === 5))
@@ -1439,8 +1641,9 @@ function refinePregnancy60WeeklyWeightBellySlots(
     textAnchorTop: true,
   };
 
-  result[5] = {
-    ...result[5],
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  result[bellyIndex] = {
+    ...result[bellyIndex],
     x: bellyX,
     y: bellyTopY,
     width: formatSlotNorm(Math.max(0.05, (boxRight - belly.valueX) / pageWidth)),
@@ -1451,6 +1654,49 @@ function refinePregnancy60WeeklyWeightBellySlots(
   };
 
   return result;
+}
+
+/** Недельные строки: штрих по LINE_GUIDES[i], высота полосы ≈ pitch (OCR часто раздувает до 0.08). */
+function refinePregnancyWeeklyRuledLineNorms(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
+    return [...norms];
+  }
+
+  const guides = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+    lineGuideId
+  ]?.[String(page)];
+  if (!guides?.length) return [...norms];
+
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+
+  return norms.map((norm, index) => {
+    if (index === 1 || index === bellyIndex) return norm;
+    if ((norm.inputKind ?? 'line') !== 'line') return norm;
+    if (norm.hasLabel && norm.height > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) {
+      return norm;
+    }
+
+    const guideStrokeY = guides[index];
+    if (typeof guideStrokeY !== 'number') return norm;
+
+    const bandHeight =
+      norm.hasLabel && norm.height <= PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT
+        ? norm.height
+        : PREGNANCY_WEEKLY_LINE_PITCH;
+    const topY = guideStrokeY - bandHeight;
+
+    return {
+      ...norm,
+      y: formatSlotNorm(topY),
+      height: formatSlotNorm(bandHeight),
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  });
 }
 
 function slotsInGroupTooClose(slots: NormalizedLineSlot[]): boolean {
@@ -1469,6 +1715,11 @@ function refineDenseContinuationGroupSpacing(
   norms: readonly NormalizedLineSlot[],
 ): NormalizedLineSlot[] {
   if (lineGuideId !== 'pregnancy_60' && lineGuideId !== 'pregnancy_a5') {
+    return [...norms];
+  }
+
+  // Weekly pages: OCR slots + LINE_GUIDES already aligned — do not redistribute.
+  if (isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
     return [...norms];
   }
 
@@ -1537,6 +1788,8 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     'kids-p16-dreams-date-v2',
     'kids-p13-line-inset-v1',
     'kids-teeth-page-v16',
+    'pregnancy-weekly-skip-dense-spacing-v1',
+    'pregnancy-weekly-guide-stroke-v4',
   ].join('|');
 }
 
@@ -1551,13 +1804,17 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     return [];
   }
 
-  const normalized = refinePregnancy60WeeklyWeightBellySlots(
+  const normalized = refinePregnancyWeeklyRuledLineNorms(
     lineGuideId,
     page,
-    refineDenseContinuationGroupSpacing(
+    refinePregnancy60WeeklyWeightBellySlots(
       lineGuideId,
       page,
-      getNormalizedSlotsForPage(lineGuideId, page),
+      refineDenseContinuationGroupSpacing(
+        lineGuideId,
+        page,
+        getNormalizedSlotsForPage(lineGuideId, page),
+      ),
     ),
   );
   if (!normalized.length) {
@@ -1578,7 +1835,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const isWeeklyValueSlot =
       (lineGuideId === 'pregnancy_60' &&
         isPregnancy60WeeklyPage(page) &&
-        (index === 1 || index === 5)) ||
+        (index === 1 || index === 6)) ||
       (lineGuideId === 'pregnancy_a5' &&
         isPregnancyA5WeeklyPage(page) &&
         (index === 1 || index === 5));
@@ -1621,6 +1878,16 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
         (layoutNorm.inputKind ?? 'line') === 'line') ||
       isDiaryInteriorLineGuide(lineGuideId);
 
+    const weeklyGuideNorm =
+      isPregnancyWeeklyStructuredPage(lineGuideId, page) &&
+      (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId]?.[
+        String(page)
+      ]?.[index];
+    const strokeY =
+      typeof weeklyGuideNorm === 'number'
+        ? rect.offsetY + weeklyGuideNorm * rect.height
+        : mapped.y + mapped.height;
+
     return {
       index,
       page,
@@ -1635,11 +1902,28 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       normHeight: layoutNorm.height,
       lineStrokeAtBottom,
       textAnchorTop: anchorTop,
+      strokeY,
     };
   });
 
-  lineSlotsResultCache.set(cacheKey, slots);
-  return slots;
+  const finalizedSlots = markPregnancyWeeklyInlineTailSlots(
+    lineGuideId === 'pregnancy_60' && (page === 53 || page === 54 || page === 60)
+      ? slots.map((slot) =>
+          (slot.inputKind ?? 'line') === 'line'
+            ? {
+                ...slot,
+                lineStrokeAtBottom: true,
+                textAnchorTop: true,
+              }
+            : slot,
+        )
+      : slots,
+    lineGuideId,
+    page,
+  );
+
+  lineSlotsResultCache.set(cacheKey, finalizedSlots);
+  return finalizedSlots;
 }
 
 export type LineSlotGroupBounds = {
@@ -1939,9 +2223,10 @@ export function layoutTextAnnotationFromSlot(
 ): Pick<Annotation, 'x' | 'y' | 'width' | 'height' | 'fontSize'> {
   const layout = layoutAnnotationFromSlot(slot);
   const inputKind = slot.inputKind ?? 'line';
+  const typographyBandHeight = getPregnancyWeeklyTypographyBandHeight(slot, lineGuideId);
   const typography = getTemplateLineTypography(
     fontSize,
-    slot.lineHeight,
+    typographyBandHeight,
     inputKind,
     lineGuideId,
   );
@@ -1996,11 +2281,13 @@ export function layoutTextAnnotationFromSlot(
     }
   }
   const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
-  const rowHeight = Math.max(
-    typography.lineHeight,
-    effectiveFontSize * 1.05,
-    slot.lineHeight,
-  );
+  const rowHeight = isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
+    ? typography.lineHeight
+    : Math.max(
+        typography.lineHeight,
+        effectiveFontSize * 1.05,
+        slot.lineHeight,
+      );
   return {
     x: layout.x,
     y: textTop,

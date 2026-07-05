@@ -10,11 +10,17 @@ import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
 import { getCachedPageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
-  layoutTextAnnotationFromSlot,
 } from '@/utils/textLineSlots';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   distributeTextForTemplateAnnotation,
+  getEffectiveTemplateFontSize,
+  getTemplateBlockTextInsets,
+  getTemplateLineRowInsets,
+  getTemplateLineTextTop,
+  getTemplateLineTypography,
+  getWishSlotInputKind,
+  usesStrokeBaselineLayout,
 } from '@/utils/templateLineText';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
@@ -147,7 +153,11 @@ function ReadOnlyPageAnnotationsInner({
       !viewportWidth ||
       !viewportHeight ||
       viewportWidth <= 0 ||
-      viewportHeight <= 0
+      viewportHeight <= 0 ||
+      !sourceWidth ||
+      !sourceHeight ||
+      sourceWidth <= 0 ||
+      sourceHeight <= 0
     ) {
       return null;
     }
@@ -213,34 +223,56 @@ function ReadOnlyPageAnnotationsInner({
             return (
               <React.Fragment key={annotation.id}>
                 {linesToRender.map((row) => {
-                  const layout = layoutTextAnnotationFromSlot(
+                  const rowFontSize = getEffectiveTemplateFontSize(
+                    lineGuideId,
                     row.lineSlot,
                     fontSize,
-                    lineGuideId,
-                    row.content,
-                    annotation.fontFamily,
+                    {
+                      textContent: row.content,
+                      fontId: annotation.fontFamily,
+                    },
                   );
-                  const rowFontSize = layout.fontSize ?? fontSize;
+                  const rowTop = getTemplateLineTextTop(
+                    row.lineSlot,
+                    rowFontSize,
+                    lineGuideId,
+                    lineSlots ?? undefined,
+                  );
+                  const rowTypography = getTemplateLineTypography(
+                    rowFontSize,
+                    row.lineSlot.lineHeight,
+                    getWishSlotInputKind(row.lineSlot, lineGuideId),
+                    lineGuideId,
+                  );
+                  const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
+                  const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
+                  const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+                    row.lineSlot,
+                    rowTypography.fontSize,
+                    wishInputKind,
+                    lineGuideId,
+                  );
+                  const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
                   const isKidsTeethOverlayLine =
                     lineGuideId === 'kids_48' &&
                     row.lineSlot.page === 10 &&
                     row.lineSlot.index !== 21;
-                  const useVisibleTextOverflow =
-                    isKidsTeethOverlayLine || row.lineSlot.lineStrokeAtBottom === true;
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
                       style={[
                         styles.annotation,
                         {
-                          left: layout.x,
-                          top: layout.y,
-                          width: layout.width,
+                          left: row.lineSlot.x + textInsets.left,
+                          top: rowTop - viewportTopInset,
+                          width: textInsets.width || row.lineSlot.width,
                           height: isKidsTeethOverlayLine
-                            ? rowFontSize + 2
-                            : layout.height,
+                            ? rowTypography.fontSize + 2
+                            : rowTypography.lineHeight + viewportTopInset,
                           zIndex: annotation.zIndex,
-                          overflow: useVisibleTextOverflow ? 'visible' : 'hidden',
+                          overflow: isKidsTeethOverlayLine || usesStrokeBaseline
+                            ? 'visible'
+                            : 'hidden',
                         },
                       ]}
                       pointerEvents="none"
@@ -249,12 +281,18 @@ function ReadOnlyPageAnnotationsInner({
                         style={[
                           styles.text,
                           {
+                            position: 'absolute',
+                            top: textTopInset,
+                            left: 0,
                             color: annotation.color ?? '#3D3D3D',
-                            fontSize: rowFontSize,
+                            fontSize: rowTypography.fontSize,
                             fontFamily,
-                            lineHeight: rowFontSize,
+                            lineHeight: usesStrokeBaseline
+                              ? rowTypography.fontSize
+                              : rowTypography.lineHeight,
                             textAlign: annotation.textAlign ?? 'left',
-                            maxWidth: layout.width || 360,
+                            maxWidth: textInsets.width || row.lineSlot.width,
+                            includeFontPadding: false,
                           },
                         ]}
                         numberOfLines={1}

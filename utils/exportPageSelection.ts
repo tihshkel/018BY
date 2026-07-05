@@ -2,7 +2,7 @@ import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-pa
 import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
-import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
+import { resolveExportPageImageUri } from '@/utils/resolveInstancePageImage';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { createEmptyPageValues } from '@/utils/pageStorage';
 
@@ -33,19 +33,24 @@ export type ExportSelectionSummary = {
   includedInstanceIds: string[];
 };
 
+/** electronic — только заполненные/частичные; print — ещё и декоративные non_editable. */
+export type ExportSelectionFormat = 'electronic' | 'print';
+
 function hasUserContent(schema: AlbumPageSchema, values?: PageValues | null): boolean {
   if (!values) return false;
   const status = computePageStatus(schema, values);
   return status === 'filled' || status === 'continue' || status === 'draft';
 }
 
-/** Декоративные / статичные страницы шаблона — всегда входят в экспорт. */
-export function isStaticExportPage(schema: AlbumPageSchema): boolean {
-  return (
-    schema.requiredInExport === true ||
-    schema.pageType === 'non_editable' ||
-    schema.editable === false
-  );
+/** Страницы «Только просмотр» (non_editable / editable:false) и requiredInExport. */
+export function isStaticExportPage(
+  schema: AlbumPageSchema,
+  _exportFormat: ExportSelectionFormat = 'print',
+): boolean {
+  if (schema.pageType === 'non_editable' || schema.editable === false) {
+    return true;
+  }
+  return schema.requiredInExport === true;
 }
 
 /** Добавляет статичные страницы к сохранённому выбору (актуально для старых selection в storage). */
@@ -53,12 +58,14 @@ export function mergeStaticPagesIntoExportSelection(params: {
   instances: PageInstance[];
   includedInstanceIds: string[];
   getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
+  exportFormat?: ExportSelectionFormat;
 }): string[] {
   const included = new Set(params.includedInstanceIds);
+  const exportFormat = params.exportFormat ?? 'print';
 
   for (const instance of params.instances) {
     const schema = params.getSchema(instance);
-    if (schema && isStaticExportPage(schema)) {
+    if (schema && isStaticExportPage(schema, exportFormat)) {
       included.add(instance.instanceId);
     }
   }
@@ -73,8 +80,9 @@ export function buildExportSelection(params: {
   pageValuesMap: Record<string, PageValues>;
   getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
   getTitle: (instance: PageInstance) => string;
+  exportFormat?: ExportSelectionFormat;
 }): ExportSelectionSummary {
-  const { instances, pageValuesMap, getSchema, getTitle } = params;
+  const { instances, pageValuesMap, getSchema, getTitle, exportFormat = 'print' } = params;
   const rows: ExportPageRow[] = [];
   const includedInstanceIds: string[] = [];
 
@@ -92,7 +100,7 @@ export function buildExportSelection(params: {
     const status = computePageStatus(schema, values);
     const title = getTitle(instance);
 
-    if (isStaticExportPage(schema)) {
+    if (isStaticExportPage(schema, exportFormat)) {
       requiredCount += 1;
       includedInstanceIds.push(instance.instanceId);
       rows.push({
@@ -218,6 +226,8 @@ export function filterProjectDataForExport(params: {
   viewportWidth: number;
   viewportHeight: number;
   sourceSizesByImageIndex?: Map<number, { width: number; height: number }>;
+  sourceSizesBySourcePage?: Map<number, { width: number; height: number }>;
+  templatePageUris?: readonly string[];
   getSchema: (instance: PageInstance) => AlbumPageSchema | undefined;
 }): {
   images: string[];
@@ -234,6 +244,8 @@ export function filterProjectDataForExport(params: {
     viewportWidth,
     viewportHeight,
     sourceSizesByImageIndex,
+    sourceSizesBySourcePage,
+    templatePageUris,
     getSchema,
   } = params;
   const idSet = new Set(includedInstanceIds);
@@ -247,13 +259,18 @@ export function filterProjectDataForExport(params: {
     const schema = getSchema(instance);
     if (!schema) continue;
 
-    const imageUri = resolveInstancePageImageUri(images, instance) ?? blankPageUri ?? null;
+    const imageUri =
+      resolveExportPageImageUri(images, instance, templatePageUris) ??
+      blankPageUri ??
+      null;
     if (!imageUri) continue;
 
     filteredImages.push(imageUri);
     const targetPageNumber = filteredImages.length;
     const values = pageValuesMap[instance.instanceId] ?? createEmptyPageValues();
-    const sourceSize = sourceSizesByImageIndex?.get(instance.imageIndex);
+    const sourceSize =
+      sourceSizesBySourcePage?.get(instance.sourcePageNumber) ??
+      sourceSizesByImageIndex?.get(instance.imageIndex);
     const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
 
     pages.push({

@@ -10,7 +10,7 @@ import {
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
 import { measureTextWithFontTable } from '@/utils/fontCharWidths';
-import { getLineSlotsForPage } from '@/utils/textLineSlots';
+import { getLineSlotsForPage, resolveWeeklyFieldLineSlots } from '@/utils/textLineSlots';
 import {
   clampTextToFieldLines,
   type TextWidthMeasure,
@@ -55,9 +55,11 @@ function computeLayoutCharacterLimit(
     viewportHeight,
   });
 
-  const fieldSlots = slots.slice(
+  const fieldSlots = resolveWeeklyFieldLineSlots(
+    slots,
     field.templateLineStart,
-    field.templateLineStart + field.templateLineCount,
+    field.templateLineCount ?? 1,
+    lineGuideId,
   );
 
   if (fieldSlots.length === 0) return undefined;

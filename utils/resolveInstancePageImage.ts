@@ -1,5 +1,14 @@
 import type { PageInstance } from '@/types/album-page-schema';
 
+/** Номер PDF-страницы из URI вида …/page_009.png */
+export function parseAlbumPageNumberFromUri(uri: string): number | null {
+  if (!uri) return null;
+  const match = decodeURIComponent(uri).match(/page_(\d+)\.png/i);
+  if (!match?.[1]) return null;
+  const page = Number.parseInt(match[1], 10);
+  return Number.isFinite(page) && page > 0 ? page : null;
+}
+
 /**
  * Фон страницы привязан к шаблону (sourcePageNumber), а не к позиции в альбоме.
  * После «+ Добавить страницу» imageIndex смещается, но PDF-шаблон остаётся прежним.
@@ -8,13 +17,44 @@ export function resolveInstancePageImageUri(
   images: string[],
   instance: PageInstance,
 ): string | undefined {
-  // imageIndex — актуальная позиция в массиве проекта (с учётом добавленных страниц).
+  if (instance.addedByUser) {
+    return images[instance.imageIndex] ?? undefined;
+  }
+
+  const sourceIndex = instance.sourcePageNumber - 1;
+  if (sourceIndex >= 0 && sourceIndex < images.length) {
+    const bySource = images[sourceIndex];
+    if (bySource) return bySource;
+  }
+
   const atIndex = images[instance.imageIndex];
   if (atIndex) return atIndex;
 
-  if (!instance.addedByUser && instance.sourcePageNumber >= 1) {
-    return images[instance.sourcePageNumber - 1];
+  return undefined;
+}
+
+/**
+ * Фон для экспорта: шаблонные страницы — по sourcePageNumber в каталоге альбома,
+ * пользовательские копии — по imageIndex в проекте.
+ */
+export function resolveExportPageImageUri(
+  projectImages: readonly string[],
+  instance: PageInstance,
+  templatePageUris?: readonly string[],
+): string | undefined {
+  if (instance.addedByUser) {
+    return projectImages[instance.imageIndex] ?? undefined;
   }
 
-  return undefined;
+  const templateIndex = instance.sourcePageNumber - 1;
+  if (
+    templatePageUris &&
+    templateIndex >= 0 &&
+    templateIndex < templatePageUris.length
+  ) {
+    const bySource = templatePageUris[templateIndex];
+    if (bySource) return bySource;
+  }
+
+  return resolveInstancePageImageUri([...projectImages], instance);
 }

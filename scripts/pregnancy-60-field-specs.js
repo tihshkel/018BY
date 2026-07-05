@@ -6,10 +6,9 @@
 const WEEKLY_PAGE_FIELDS = [
   ['date', 'Дата', 'date', 1],
   ['weight', 'Вес', 'number', 1],
-  ['plans_header', 'Главные планы на неделю', 'text', 1],
-  ['plans_body', 'Подробные заметки и дела на неделю', 'text', 2],
+  ['plans', 'Планы на неделю', 'text', 2],
   ['belly', 'Обхват животика:', 'number', 1],
-  ['feelings', 'Мои ощущения, чувства, мысли', 'text', 3],
+  ['feelings', 'Мои ощущения, чувства, мысли', 'text', 2],
 ];
 
 const PAGE1_FIELDS = [
@@ -127,8 +126,9 @@ const BIRTH_QUESTIONNAIRE_A5 = [
 const ALREADY_MOM_FIELDS = [
   ['name', 'Имя', 'text', 1],
   ['hair_color', 'Цвет волос', 'text', 1],
+  ['eye_color', 'Цвет глаз', 'text', 1],
   ['zodiac', 'Знак зодиака', 'text', 1],
-  ['zodiac_year', 'Год (по восточному календарю)', 'text', 1],
+  ['zodiac_year', 'Год (по восточному календарю)', 'date', 1],
   ['wishes', 'Пожелания от мамы и папы', 'text', 3],
 ];
 
@@ -247,17 +247,20 @@ function buildRadioField(lineGuideId, pageNumber, id, label, options) {
 }
 
 function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
+  const is60 = lineGuideId === 'pregnancy_60';
+  const wishesLineCount = is60 ? 4 : 3;
   return [
     buildField(lineGuideId, pageNumber, 'name', 'Имя', 'text', 0, 1, slots),
     buildField(lineGuideId, pageNumber, 'hair_color', 'Цвет волос', 'text', 1, 1, slots),
-    buildField(lineGuideId, pageNumber, 'zodiac', 'Знак зодиака', 'text', 2, 1, slots),
+    buildField(lineGuideId, pageNumber, 'eye_color', 'Цвет глаз', 'text', 2, 1, slots),
+    buildField(lineGuideId, pageNumber, 'zodiac', 'Знак зодиака', 'text', 3, 1, slots),
     buildField(
       lineGuideId,
       pageNumber,
       'zodiac_year',
       'Год (по восточному календарю)',
-      'text',
-      3,
+      'date',
+      4,
       1,
       slots,
     ),
@@ -267,7 +270,134 @@ function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
       'wishes',
       'Пожелания от мамы и папы',
       'text',
-      6,
+      5,
+      wishesLineCount,
+      slots,
+    ),
+  ];
+}
+
+function buildWeeklyPageFields(lineGuideId, pageNumber, slots) {
+  const is60 = lineGuideId === 'pregnancy_60';
+  return [
+    buildField(lineGuideId, pageNumber, 'date', 'Дата', 'date', 0, 1, slots),
+    buildField(lineGuideId, pageNumber, 'weight', 'Вес', 'number', 1, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'plans',
+      'Планы на неделю',
+      'text',
+      3,
+      is60 ? 3 : 2,
+      slots,
+    ),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'belly',
+      'Обхват животика:',
+      'number',
+      is60 ? 6 : 5,
+      1,
+      slots,
+    ),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'feelings',
+      'Мои ощущения, чувства, мысли',
+      'text',
+      is60 ? 8 : 7,
+      2,
+      slots,
+    ),
+  ];
+}
+
+function buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots) {
+  return [
+    buildField(lineGuideId, pageNumber, 'age', 'Возраст на момент родов', 'text', 0, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'weight_before',
+      'Вес до беременности',
+      'number',
+      1,
+      1,
+      slots,
+    ),
+    buildField(lineGuideId, pageNumber, 'weight_gain', 'Прибавка веса', 'number', 2, 1, slots),
+    buildField(lineGuideId, pageNumber, 'due_date', 'ПДР', 'date', 3, 1, slots),
+    buildField(lineGuideId, pageNumber, 'birth_date', 'Дата родов', 'date', 4, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'term_weeks',
+      'Срок беременности на момент родов (нед.)',
+      'text',
+      5,
+      1,
+      slots,
+    ),
+    buildField(lineGuideId, pageNumber, 'hospital', 'Роддом', 'text', 6, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'admission_date',
+      'Дата поступления в дородовое отделение',
+      'date',
+      7,
+      1,
+      slots,
+    ),
+    buildRadioField(lineGuideId, pageNumber, 'baby_gender', 'Пол', GENDER_OPTIONS),
+    buildField(lineGuideId, pageNumber, 'baby_weight', 'Вес', 'number', 8, 1, slots),
+    buildField(lineGuideId, pageNumber, 'baby_height', 'Рост', 'number', 9, 1, slots),
+    buildField(lineGuideId, pageNumber, 'weekday', 'День недели', 'text', 10, 1, slots),
+    buildField(lineGuideId, pageNumber, 'birth_time', 'Время', 'time', 11, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'delivery_type',
+      'Естественные роды / Кесарево',
+      'text',
+      12,
+      1,
+      slots,
+    ),
+    buildRadioField(lineGuideId, pageNumber, 'stimulation', 'Стимуляция', YES_NO_OPTIONS),
+    buildRadioField(lineGuideId, pageNumber, 'tears', 'Разрывы', YES_NO_OPTIONS),
+    buildRadioField(lineGuideId, pageNumber, 'cord', 'Обвитие', YES_NO_OPTIONS),
+    buildField(lineGuideId, pageNumber, 'condition', 'Общее состояние', 'text', 13, 1, slots),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'discharge_date',
+      'Дата выписки из роддома',
+      'date',
+      14,
+      1,
+      slots,
+    ),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'days_in_hospital',
+      'Сколько дней провела в роддоме',
+      'text',
+      15,
+      1,
+      slots,
+    ),
+    buildField(
+      lineGuideId,
+      pageNumber,
+      'discharge_guests',
+      'Кто пришёл на выписку',
+      'text',
+      16,
       3,
       slots,
     ),
@@ -430,6 +560,8 @@ module.exports = {
   buildTodoListFields,
   buildBirthStoryFields,
   buildBirthQuestionnaireA5Fields,
+  buildBirthQuestionnaire60Fields,
+  buildWeeklyPageFields,
   buildAlreadyMomFields,
   buildRadioField,
   PREGNANCY_FORM_FILL,

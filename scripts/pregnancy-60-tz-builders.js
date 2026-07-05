@@ -17,6 +17,8 @@ const {
   buildTodoListFields,
   buildBirthStoryFields,
   buildAlreadyMomFields,
+  buildWeeklyPageFields,
+  buildBirthQuestionnaire60Fields,
   isPregnancy60WeeklyPage,
   getPregnancy60WeekNumber,
   LETTER_TO_BABY_FIELDS,
@@ -43,7 +45,7 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
     return tzOverride({
       title: `${week}-я неделя`,
       pageType: 'structured',
-      fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, WEEKLY_PAGE_FIELDS),
+      fields: buildWeeklyPageFields(lineGuideId, pageNumber, slots),
     });
   }
 
@@ -97,7 +99,7 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
       return tzOverride({
         title: 'Анкета родов',
         pageType: 'structured',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, BIRTH_QUESTIONNAIRE_60),
+        fields: buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots),
       });
     case 53:
       return tzOverride({

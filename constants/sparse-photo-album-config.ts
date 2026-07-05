@@ -4,7 +4,10 @@ import type { SafeZone } from '@/constants/photo-layout-templates';
 export type AlbumSparsePhotoConfig = {
   eventSafe: SafeZone;
   gapMm: number;
+  /** @deprecated use pageWidthMm/pageHeightMm for non-square albums */
   pageSizeMm: number;
+  pageWidthMm?: number;
+  pageHeightMm?: number;
   sparseMaxLineSlots: number;
   sideBySideTwoPhotoPages?: ReadonlySet<number>;
   excludePages?: ReadonlySet<number>;
@@ -76,7 +79,9 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
   }),
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
-    pageSizeMm: 210,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
   }),
   pregnancy_a5: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,

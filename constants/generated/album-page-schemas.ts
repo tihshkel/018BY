@@ -832,27 +832,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p9_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p9_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p9_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p9_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -860,8 +852,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -893,27 +910,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p10_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p10_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p10_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p10_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -921,8 +930,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -954,27 +988,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p11_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p11_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p11_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p11_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -982,8 +1008,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1015,27 +1066,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p12_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p12_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p12_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p12_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1043,8 +1086,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1076,27 +1144,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p13_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p13_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p13_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p13_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1104,8 +1164,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1137,27 +1222,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p14_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p14_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p14_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p14_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1165,8 +1242,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1198,27 +1300,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p15_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p15_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p15_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p15_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1226,8 +1320,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1259,27 +1378,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p16_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p16_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p16_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p16_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1287,8 +1398,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1320,27 +1456,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p17_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p17_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p17_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p17_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1348,8 +1476,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1393,27 +1546,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p19_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p19_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p19_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p19_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1421,8 +1566,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1454,27 +1624,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p20_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p20_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p20_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p20_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1482,8 +1644,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1515,27 +1702,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p21_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p21_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p21_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p21_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1543,8 +1722,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1576,27 +1780,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p22_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p22_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p22_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p22_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1604,8 +1800,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1637,27 +1858,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p23_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p23_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p23_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p23_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1665,8 +1878,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1698,27 +1936,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p24_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p24_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p24_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p24_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1726,8 +1956,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1759,27 +2014,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p25_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p25_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p25_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p25_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1787,8 +2034,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1820,27 +2092,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p26_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p26_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p26_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p26_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1848,8 +2112,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1881,27 +2170,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p27_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p27_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p27_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p27_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1909,8 +2190,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -1942,27 +2248,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p28_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p28_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p28_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p28_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -1970,8 +2268,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2003,27 +2326,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p29_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p29_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p29_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p29_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2031,8 +2346,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2064,27 +2404,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p30_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p30_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p30_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p30_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2092,8 +2424,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2125,27 +2482,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p31_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p31_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p31_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p31_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2153,8 +2502,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2186,27 +2560,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p32_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p32_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p32_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p32_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2214,8 +2580,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2259,27 +2650,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p34_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p34_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p34_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p34_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2287,8 +2670,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2320,27 +2728,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p35_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p35_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p35_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p35_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2348,8 +2748,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2381,27 +2806,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p36_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p36_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p36_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p36_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2409,8 +2826,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2442,27 +2884,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p37_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p37_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p37_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p37_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2470,8 +2904,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2503,27 +2962,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p38_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p38_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p38_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p38_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2531,8 +2982,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2564,27 +3040,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p39_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p39_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p39_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p39_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2592,8 +3060,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2625,27 +3118,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p40_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p40_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p40_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p40_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2653,8 +3138,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2686,27 +3196,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p41_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p41_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p41_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p41_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2714,8 +3216,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2747,27 +3274,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p42_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p42_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p42_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p42_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2775,8 +3294,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2808,27 +3352,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p43_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p43_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p43_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p43_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2836,8 +3372,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2869,27 +3430,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p44_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p44_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p44_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p44_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2897,8 +3450,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2930,27 +3508,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p45_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p45_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p45_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p45_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -2958,8 +3528,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -2991,27 +3586,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p46_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p46_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p46_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p46_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -3019,8 +3606,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -3052,27 +3664,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p47_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p47_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_60_p47_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "pregnancy_60_p47_belly",
           "label": "Обхват животика:",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -3080,8 +3684,33 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                1
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                1,
+                6
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -3640,14 +4269,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "date",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_60_p52_baby_gender",
+          "label": "Пол",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Мальчик",
+            "Девочка"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_baby_weight",
           "label": "Вес",
           "type": "number",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -3655,7 +4296,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рост",
           "type": "number",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -3663,7 +4304,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "День недели",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -3671,7 +4312,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Время",
           "type": "time",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -3679,23 +4320,51 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Естественные роды / Кесарево",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 12,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_60_p52_stimulation",
+          "label": "Стимуляция",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
+        },
+        {
+          "fieldId": "pregnancy_60_p52_tears",
+          "label": "Разрывы",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_cord",
           "label": "Обвитие",
-          "type": "text",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 14,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_condition",
           "label": "Общее состояние",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -3703,7 +4372,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата выписки из роддома",
           "type": "date",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -3711,7 +4380,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Сколько дней провела в роддоме",
           "type": "text",
           "required": false,
-          "templateLineStart": 17,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -3719,8 +4388,44 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Кто пришёл на выписку",
           "type": "text",
           "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
+          "templateLineStart": 16,
+          "templateLineCount": 3
+        }
+      ],
+      "photoBlocks": [
+        {
+          "blockId": "main_photo",
+          "label": "Фото для страницы",
+          "variants": [
+            {
+              "variantId": "one_horizontal",
+              "label": "Одно горизонтальное фото",
+              "slots": 1,
+              "slotIndices": [
+                8
+              ]
+            },
+            {
+              "variantId": "two_vertical",
+              "label": "Два вертикальных фото",
+              "slots": 2,
+              "slotIndices": [
+                8,
+                9
+              ]
+            },
+            {
+              "variantId": "four_photos",
+              "label": "4 фото",
+              "slots": 4,
+              "slotIndices": [
+                8,
+                9,
+                10,
+                12
+              ]
+            }
+          ]
         }
       ],
       "canDuplicate": false,
@@ -3773,19 +4478,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p54_zodiac",
-          "label": "Знак зодиака",
+          "fieldId": "pregnancy_60_p54_eye_color",
+          "label": "Цвет глаз",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p54_zodiac_year",
-          "label": "Год (по восточному календарю)",
+          "fieldId": "pregnancy_60_p54_zodiac",
+          "label": "Знак зодиака",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_60_p54_zodiac_year",
+          "label": "Год (по восточному календарю)",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -3793,8 +4506,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 5,
+          "templateLineCount": 4
         }
       ],
       "photoBlocks": [
@@ -4447,16 +5160,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p5_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p5_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p5_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4475,8 +5180,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4508,16 +5213,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p6_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p6_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p6_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4536,8 +5233,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4569,16 +5266,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p7_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p7_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p7_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4597,8 +5286,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4630,16 +5319,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p8_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p8_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p8_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4658,8 +5339,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4691,16 +5372,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p9_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p9_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p9_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4719,8 +5392,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4752,16 +5425,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p10_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p10_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p10_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4780,8 +5445,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4813,16 +5478,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p11_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p11_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p11_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4841,8 +5498,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4874,16 +5531,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p12_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p12_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p12_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4902,8 +5551,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -4935,16 +5584,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p13_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p13_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p13_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -4963,8 +5604,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5008,16 +5649,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p15_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p15_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p15_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5036,8 +5669,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5069,16 +5702,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p16_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p16_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p16_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5097,8 +5722,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5130,16 +5755,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p17_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p17_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p17_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5158,8 +5775,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5191,16 +5808,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p18_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p18_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p18_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5219,8 +5828,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5252,16 +5861,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p19_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p19_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p19_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5280,8 +5881,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5313,16 +5914,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p20_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p20_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p20_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5341,8 +5934,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5374,16 +5967,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p21_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p21_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p21_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5402,8 +5987,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5435,16 +6020,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p22_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p22_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p22_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5463,8 +6040,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5496,16 +6073,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p23_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p23_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p23_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5524,8 +6093,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5557,16 +6126,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p24_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p24_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p24_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5585,8 +6146,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5618,16 +6179,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p25_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p25_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p25_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5646,8 +6199,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5679,16 +6232,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p26_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p26_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p26_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5707,8 +6252,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5740,16 +6285,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p27_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p27_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p27_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5768,8 +6305,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5801,16 +6338,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p28_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p28_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p28_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5829,8 +6358,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5874,16 +6403,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p30_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p30_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p30_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5902,8 +6423,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5935,16 +6456,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p31_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p31_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p31_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -5963,8 +6476,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -5996,16 +6509,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p32_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p32_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p32_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6024,8 +6529,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6057,16 +6562,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p33_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p33_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p33_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6085,8 +6582,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6118,16 +6615,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p34_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p34_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p34_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6146,8 +6635,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6179,16 +6668,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p35_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p35_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p35_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6207,8 +6688,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6240,16 +6721,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p36_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p36_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p36_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6268,8 +6741,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6301,16 +6774,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p37_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p37_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p37_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6329,8 +6794,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6362,16 +6827,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p38_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p38_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p38_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6390,8 +6847,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6423,16 +6880,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p39_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p39_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p39_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6451,8 +6900,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6484,16 +6933,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p40_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p40_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p40_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6512,8 +6953,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6545,16 +6986,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p41_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p41_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p41_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6573,8 +7006,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6606,16 +7039,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p42_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p42_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p42_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6634,8 +7059,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6667,16 +7092,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p43_plans_header",
-          "label": "Главные планы на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p43_plans_body",
-          "label": "Подробные заметки и дела на неделю",
+          "fieldId": "pregnancy_a5_p43_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
@@ -6695,8 +7112,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Мои ощущения, чувства, мысли",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 7,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -6982,19 +7399,27 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p46_zodiac",
-          "label": "Знак зодиака",
+          "fieldId": "pregnancy_a5_p46_eye_color",
+          "label": "Цвет глаз",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p46_zodiac_year",
-          "label": "Год (по восточному календарю)",
+          "fieldId": "pregnancy_a5_p46_zodiac",
+          "label": "Знак зодиака",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_a5_p46_zodiac_year",
+          "label": "Год (по восточному календарю)",
+          "type": "date",
+          "required": false,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -7002,7 +7427,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 3
         }
       ],
@@ -7656,7 +8081,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
@@ -7954,7 +8379,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Первая чистка зубов",
           "type": "date",
           "required": false,
-          "templateLineStart": 20,
+          "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
@@ -7962,7 +8387,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "В годик было зубов",
           "type": "number",
           "required": false,
-          "templateLineStart": 22,
+          "templateLineStart": 21,
           "templateLineCount": 1
         }
       ],
@@ -8681,7 +9106,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],

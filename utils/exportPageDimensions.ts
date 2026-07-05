@@ -33,6 +33,11 @@ export function isDiaryPortraitLineGuide(lineGuideId?: string | null): boolean {
   return isDiaryBrownLineGuide(lineGuideId) || isDiaryPurpleLineGuide(lineGuideId);
 }
 
+/** Беременность 180×240 мм (60 стр.) — не A5. */
+export function isPregnancy60LineGuide(lineGuideId?: string | null): boolean {
+  return lineGuideId === 'pregnancy_60';
+}
+
 /** Электронный экспорт дневников — full-bleed 180×240 без полей. */
 export function shouldUseFullBleedDiaryExport(
   formatType: ExportFormatType,
@@ -58,8 +63,9 @@ export function getExportPageDimensions(
   const isPortraitBlank =
     lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
   const isDiaryPortrait = isDiaryPortraitLineGuide(lineGuideId);
+  const isPregnancy60 = isPregnancy60LineGuide(lineGuideId);
 
-  if (isDiaryPortrait) {
+  if (isDiaryPortrait || isPregnancy60) {
     const margin =
       formatType === 'electronic'
         ? 0

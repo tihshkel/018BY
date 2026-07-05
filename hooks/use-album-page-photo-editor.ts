@@ -51,6 +51,7 @@ export function useAlbumPagePhotoEditor({
   const showPerPhotoCaptions = useMemo(() => {
     if (!resolvedSchema) return false;
     if (resolvedSchema.pageType === 'birthday_free_page') return true;
+    if (resolvedSchema.pageType === 'caption_photo_page') return true;
     if (!resolvedSchema.captionEnabled || !resolvedSchema.templateLibraryId) {
       return false;
     }

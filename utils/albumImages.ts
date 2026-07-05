@@ -12,6 +12,7 @@ import {
   isBirthday48Album,
 } from '@/utils/birthday48AssetRemap';
 import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
+import { parseAlbumPageNumberFromUri } from '@/utils/resolveInstancePageImage';
 
 /**
  * Маппинг изображений страниц альбомов
@@ -208,6 +209,45 @@ export async function getAlbumImageUrisForViewing(albumId: string): Promise<stri
   warmRemoteAlbumCache(albumId, spec.folderPath, spec.pageCount).catch(() => {});
 
   return uris;
+}
+
+/**
+ * Восстанавливает массив URI страниц: дополняет до полного числа и выравнивает по номеру page_XXX.
+ */
+export async function repairProjectImageUris(
+  albumId: string,
+  existing: readonly string[],
+): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId);
+  const expectedCount = getAlbumPageCount(interiorId);
+  if (expectedCount <= 0 || !getRemoteAlbumSpec(interiorId)) {
+    return [...existing];
+  }
+
+  const fresh = await getAlbumImageUrisForViewing(interiorId);
+  if (fresh.length === 0) {
+    return [...existing];
+  }
+
+  const merged = fresh.slice(0, expectedCount);
+  let changed = existing.length !== expectedCount;
+
+  for (let i = 0; i < expectedCount; i += 1) {
+    const expectedPage = i + 1;
+    const existingUri = existing[i];
+    const existingPage = existingUri ? parseAlbumPageNumberFromUri(existingUri) : null;
+
+    if (existingUri && existingPage === expectedPage) {
+      merged[i] = existingUri;
+      continue;
+    }
+
+    if (existingUri !== merged[i]) {
+      changed = true;
+    }
+  }
+
+  return changed ? merged : [...existing];
 }
 
 /**

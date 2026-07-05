@@ -9,6 +9,7 @@ import type { PageInstance, PageValues } from '@/types/album-page-schema';
 import {
   getAlbumImages,
   getAlbumImageUrisForViewing,
+  repairProjectImageUris,
   getAlbumPageCount,
   getBlankInteriorPageUri,
   isBlankInteriorAlbum,
@@ -685,16 +686,28 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           setEffectiveProjectId(projectId);
 
           let imageUris: string[] = [];
+          const albumIdForImages = project.interiorType ?? project.albumId ?? '';
           if (savedImages) {
-            imageUris = await normalizeBlankImageUris(
-              project.interiorType ?? project.albumId ?? '',
+            const parsedImages = JSON.parse(savedImages) as string[];
+            const normalized = await normalizeBlankImageUris(
+              albumIdForImages,
               project.category,
-              JSON.parse(savedImages),
+              parsedImages,
             );
-            void AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
+            const repaired = await repairProjectImageUris(albumIdForImages, normalized);
+            imageUris = repaired;
+            if (
+              repaired.length !== parsedImages.length ||
+              repaired.some((uri, index) => uri !== normalized[index])
+            ) {
+              void AsyncStorage.setItem(
+                `@project_images_${projectId}`,
+                JSON.stringify(repaired),
+              );
+            }
           } else {
             imageUris = await loadImagesForAlbum(
-              project.interiorType ?? project.albumId ?? '',
+              albumIdForImages,
               project.category
             );
           }

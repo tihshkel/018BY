@@ -17,6 +17,7 @@ import {
   getLineSlotsForPage,
   hasLineGuides,
   layoutAnnotationFromSlot,
+  resolveWeeklyFieldLineSlots,
 } from '@/utils/textLineSlots';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { createId } from '@/utils/id';
@@ -400,9 +401,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     }
 
     const fieldSlotCount = annotation.templateLineCount ?? 1;
+    const fieldSlotIndices = resolveWeeklyFieldLineSlots(
+      slots,
+      startSlotIndex,
+      fieldSlotCount,
+      lineGuideId,
+    ).map((slot) => slot.index);
     const usedIndices = new Set(segments.map((s) => s.slotIndex));
-    for (let offset = 0; offset < fieldSlotCount; offset += 1) {
-      const slotIndex = startSlotIndex + offset;
+    for (const slotIndex of fieldSlotIndices) {
       if (usedIndices.has(slotIndex)) continue;
       const orphan = findAnnotationForSlot(annotations, pageNumber, slotIndex);
       if (orphan && orphan.id !== annotation.id) {
@@ -2339,16 +2345,26 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         if (!slot) return null;
 
         const fieldSlotCount = annotation.templateLineCount ?? 1;
-        const fieldSlots = templateSlots.filter(
-          (lineSlot) =>
-            lineSlot.index >= slotIndex && lineSlot.index < slotIndex + fieldSlotCount,
+        const fieldSlots = resolveWeeklyFieldLineSlots(
+          templateSlots,
+          slotIndex,
+          fieldSlotCount,
+          lineGuideId,
         );
+
+        const mergedDisplayText =
+          pageNumberForSlots != null
+            ? getMergedTemplateGroupText(annotation, pageNumberForSlots, slotIndex, templateSlots)
+            : annotation.content || '';
 
         const effectiveFontSize = getEffectiveTemplateFontSize(
           lineGuideId,
           slot,
           currentFontSize,
-          { textContent: mergedDisplayText, fontId: normalizedFontId },
+          {
+            textContent: isEditingText ? editingText : mergedDisplayText,
+            fontId: normalizedFontId,
+          },
         );
         if (isEditingText) {
           return (
@@ -2373,10 +2389,6 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
-        const mergedDisplayText =
-          pageNumberForSlots != null
-            ? getMergedTemplateGroupText(annotation, pageNumberForSlots, slotIndex, templateSlots)
-            : annotation.content || '';
         const { segments: displaySegments } = distributeTextForTemplateAnnotation({
           text: mergedDisplayText,
           startSlotIndex: slotIndex,
@@ -2404,7 +2416,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               const rowTop = getTemplateLineTextTop(
                 row.lineSlot,
                 effectiveFontSize,
-                lineGuideId
+                lineGuideId,
+                templateSlots,
               );
               const rowTypography = getTemplateLineTypography(
                 effectiveFontSize,

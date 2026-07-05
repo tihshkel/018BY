@@ -17,6 +17,10 @@ import {
   getAlbumPageCount,
   getAlbumImageUris,
   getBlankInteriorPageUri,
+  BLANK_INTERIOR_PAGE_HEIGHT,
+  BLANK_INTERIOR_PAGE_WIDTH,
+  BLANK_SQUARE_PAGE_HEIGHT,
+  BLANK_SQUARE_PAGE_WIDTH,
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
@@ -25,6 +29,7 @@ import {
   flushAlbumProjectPersist,
   hasPendingAlbumProjectPersist,
 } from '@/utils/albumProjectPersist';
+import { getAlbumProjectSnapshot } from '@/utils/albumProjectStateSync';
 import {
   getExportFormatOptions,
   type ExportFormatType,
@@ -37,12 +42,14 @@ import {
   getExportSelectionStorageKey,
   mergeStaticPagesIntoExportSelection,
   type ExportPageBundle,
+  type ExportSelectionFormat,
 } from '@/utils/exportPageSelection';
+import { drawExportCoverFullBleed } from '@/utils/exportPdfCover';
 import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from '@/utils/exportViewport';
 import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
-import { loadPageInstances, loadPageValuesMapMerged } from '@/utils/pageStorage';
+import { loadPageInstances, loadPageValuesMapMerged, mergePageValuesMaps } from '@/utils/pageStorage';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
@@ -244,6 +251,7 @@ async function resolveExportPageSourceSize(
   optimizedPageUri: string,
   bundle?: ExportPageBundle,
   fallback?: { width: number; height: number },
+  lineGuideId?: string | null,
 ): Promise<{ width: number; height: number }> {
   if (bundle?.sourceSize?.width && bundle?.sourceSize?.height) {
     return bundle.sourceSize;
@@ -254,6 +262,17 @@ async function resolveExportPageSourceSize(
   const resolved = await resolvePageSourceSize(imageUri);
   if (resolved) return resolved;
   if (fallback) return fallback;
+  if (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  ) {
+    return { width: BLANK_INTERIOR_PAGE_WIDTH, height: BLANK_INTERIOR_PAGE_HEIGHT };
+  }
+  if (lineGuideId === 'kids_48' || lineGuideId === 'family_blank_21x21') {
+    return { width: BLANK_SQUARE_PAGE_WIDTH, height: BLANK_SQUARE_PAGE_HEIGHT };
+  }
   return { width: 2480, height: 3508 };
 }
 
@@ -704,41 +723,101 @@ export default function ExportPdfScreen() {
             (k) => AsyncStorage.getItem(k),
             projectId,
           );
-          const pageValuesMap = await loadPageValuesMapMerged(
+          const memorySnapshot = getAlbumProjectSnapshot(projectId);
+          const resolvedInstances =
+            memorySnapshot?.instances?.length ? memorySnapshot.instances : instances;
+          if (memorySnapshot?.images?.length) {
+            images = memorySnapshot.images;
+          }
+          const asyncPageValuesMap = await loadPageValuesMapMerged(
             (k) => AsyncStorage.getItem(k),
             projectId,
-            instances.map((item) => item.instanceId),
+            resolvedInstances.map((item) => item.instanceId),
+          );
+          const pageValuesMap = mergePageValuesMaps(
+            asyncPageValuesMap,
+            memorySnapshot?.pageValuesMap ?? {},
           );
 
           const getSchema = (instance: PageInstance) =>
             getSchemaForInstance(instance, lineGuideId);
 
+          const exportSelectionFormat: ExportSelectionFormat =
+            formatToUse.type === 'electronic' ? 'electronic' : 'print';
+
+          const validInstanceIds = new Set(
+            resolvedInstances.map((instance) => instance.instanceId),
+          );
           let includedIds: string[];
           const selectionRaw = await AsyncStorage.getItem(
             getExportSelectionStorageKey(projectId),
           );
           if (selectionRaw) {
-            const storedIds = JSON.parse(selectionRaw) as string[];
-            includedIds = mergeStaticPagesIntoExportSelection({
-              instances,
-              includedInstanceIds: storedIds,
-              getSchema,
-            });
+            try {
+              const storedIds = JSON.parse(selectionRaw) as string[];
+              includedIds = storedIds.filter((id) => validInstanceIds.has(id));
+            } catch {
+              includedIds = [];
+            }
           } else {
+            includedIds = [];
+          }
+          if (includedIds.length === 0) {
             includedIds = buildExportSelection({
-              instances,
+              instances: resolvedInstances,
               pageValuesMap,
               getSchema,
               getTitle: (instance) => getInstanceTitle(instance, lineGuideId),
+              exportFormat: exportSelectionFormat,
             }).includedInstanceIds;
+          }
+
+          includedIds = mergeStaticPagesIntoExportSelection({
+            instances: resolvedInstances,
+            includedInstanceIds: includedIds,
+            getSchema,
+            exportFormat: exportSelectionFormat,
+          });
+
+          console.log(
+            `[PDF Export] Selection (${exportSelectionFormat}, ${selectionRaw ? 'stored' : 'computed'}): ${includedIds.length} pages`,
+          );
+          for (const instanceId of includedIds) {
+            const instance = resolvedInstances.find((item) => item.instanceId === instanceId);
+            if (!instance) continue;
+            const schema = getSchema(instance);
+            const values = pageValuesMap[instanceId];
+            const fieldCount = Object.values(values?.fields ?? {}).filter(
+              (value) => typeof value === 'string' && value.trim().length > 0,
+            ).length;
+            console.log(
+              `[PDF Export]   • ${getInstanceTitle(instance, lineGuideId)} | sourcePage=${instance.sourcePageNumber} | fields=${fieldCount}`,
+            );
+          }
+
+          let templatePageUris: string[] | undefined;
+          const interiorAlbumId = projectInteriorType ?? albumId;
+          if (interiorAlbumId) {
+            try {
+              templatePageUris = await ensureAlbumPagesCachedForExport(
+                interiorAlbumId,
+                projectCategory,
+              );
+            } catch (templateError) {
+              console.warn('[PDF Export] Каталог шаблонов не загружен до фильтра:', templateError);
+            }
           }
 
           const sourceSizesByImageIndex = new Map<
             number,
             { width: number; height: number }
           >();
+          const sourceSizesBySourcePage = new Map<
+            number,
+            { width: number; height: number }
+          >();
           await Promise.all(
-            [...new Set(instances.map((instance) => instance.imageIndex))].map(
+            [...new Set(resolvedInstances.map((instance) => instance.imageIndex))].map(
               async (index) => {
                 const uri = images[index];
                 if (!uri) return;
@@ -748,12 +827,23 @@ export default function ExportPdfScreen() {
               },
             ),
           );
+          if (templatePageUris?.length) {
+            await Promise.all(
+              templatePageUris.map(async (uri, pageIndex) => {
+                if (!uri) return;
+                const cached = getCachedPageSourceSize(uri);
+                const size = cached ?? (await resolvePageSourceSize(uri));
+                if (size) sourceSizesBySourcePage.set(pageIndex + 1, size);
+              }),
+            );
+          }
 
-          const sampleInstance = instances.find((instance) =>
+          const sampleInstance = resolvedInstances.find((instance) =>
             includedIds.includes(instance.instanceId),
           );
           const sampleSize = sampleInstance
-            ? sourceSizesByImageIndex.get(sampleInstance.imageIndex)
+            ? sourceSizesBySourcePage.get(sampleInstance.sourcePageNumber) ??
+              sourceSizesByImageIndex.get(sampleInstance.imageIndex)
             : undefined;
           exportSampleSourceSize = sampleSize;
 
@@ -765,11 +855,11 @@ export default function ExportPdfScreen() {
             lineGuideId,
           );
 
-          if (instances.length === 0) {
+          if (resolvedInstances.length === 0) {
             annotations = await ensureProjectAnnotationsSynced(projectId);
           } else {
             const filtered = filterProjectDataForExport({
-              instances,
+              instances: resolvedInstances,
               images,
               pageValuesMap,
               lineGuideId,
@@ -778,6 +868,8 @@ export default function ExportPdfScreen() {
               viewportWidth: pagesViewportResolved.width,
               viewportHeight: pagesViewportResolved.height,
               sourceSizesByImageIndex,
+              sourceSizesBySourcePage,
+              templatePageUris,
               getSchema,
             });
             images = filtered.images;
@@ -914,6 +1006,12 @@ export default function ExportPdfScreen() {
           if (cachedAll.length > 0) {
             images = await Promise.all(
               images.map(async (uri, index) => {
+                const sourcePageNumber =
+                  exportPages[index]?.schema.sourcePageNumber ??
+                  exportPages[index]?.instance.sourcePageNumber ??
+                  index + 1;
+                const templateIndex = sourcePageNumber - 1;
+
                 if (uri.startsWith('file://')) {
                   try {
                     const info = await FileSystem.getInfoAsync(uri);
@@ -923,15 +1021,31 @@ export default function ExportPdfScreen() {
                   }
                 }
                 return (
-                  cachedAll[index] ??
+                  cachedAll[templateIndex] ??
                   (await ensureRemoteAlbumPageCachedByIndex(
                     lineGuideAlbumId,
                     projectCategory,
-                    index + 1
+                    sourcePageNumber
                   )) ??
                   uri
                 );
               })
+            );
+
+            exportPages = await Promise.all(
+              exportPages.map(async (bundle, index) => {
+                const imageUri = images[index] ?? bundle.imageUri;
+                const cached = getCachedPageSourceSize(imageUri);
+                const sourceSize =
+                  cached ??
+                  (await resolvePageSourceSize(imageUri)) ??
+                  bundle.sourceSize;
+                return {
+                  ...bundle,
+                  imageUri,
+                  sourceSize,
+                };
+              }),
             );
           }
         } catch (cacheError) {
@@ -953,7 +1067,8 @@ export default function ExportPdfScreen() {
           const { firstPage, closingPage } = await getExportCoverPages(
             coverIdForFirstLast,
             projectCategory,
-            formatToUse.type
+            formatToUse.type,
+            exportLineGuideId,
           );
           exportFirstPageUri = firstPage;
           if (closingPage && !isSameExportImageUri(closingPage, firstPage)) {
@@ -1951,15 +2066,13 @@ export default function ExportPdfScreen() {
           if (firstCoverBytes) {
             const isJpg = firstCoverBytes[0] === 0xFF && firstCoverBytes[1] === 0xD8;
             const embeddedFirst = isJpg ? await pdfDoc.embedJpg(firstCoverBytes) : await pdfDoc.embedPng(firstCoverBytes);
-            const dims = embeddedFirst.scale(1);
-            const ar = dims.width / dims.height;
-            const pageAr = pageWidth / pageHeight;
-            let w = pageWidth, h = pageHeight;
-            if (ar > pageAr) { h = pageWidth / ar; } else { w = pageHeight * ar; }
             const coverPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            const cx = (pageWidth - w) / 2;
-            const cy = (pageHeight - h) / 2;
-            coverPage.drawImage(embeddedFirst, { x: cx, y: cy, width: w, height: h });
+            const { x: cx, y: cy, width: w, height: h } = drawExportCoverFullBleed(
+              coverPage,
+              embeddedFirst,
+              pageWidth,
+              pageHeight,
+            );
 
             // Cover annotations на первой странице
             const sortedCoverAnns = [...coverAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
@@ -2019,6 +2132,8 @@ export default function ExportPdfScreen() {
             imageUri,
             optimizedPageUri,
             exportPageBundle,
+            undefined,
+            resolvedLineGuideId || exportLineGuideId,
           );
 
           const buildPageAnnotations = (sourceW: number, sourceH: number): Annotation[] => {
@@ -2371,15 +2486,8 @@ export default function ExportPdfScreen() {
           if (lastBytes) {
             const isJpg = lastBytes[0] === 0xFF && lastBytes[1] === 0xD8;
             const embeddedLast = isJpg ? await pdfDoc.embedJpg(lastBytes) : await pdfDoc.embedPng(lastBytes);
-            const dims = embeddedLast.scale(1);
-            const ar = dims.width / dims.height;
-            const pageAr = pageWidth / pageHeight;
-            let w = pageWidth, h = pageHeight;
-            if (ar > pageAr) { h = pageWidth / ar; } else { w = pageHeight * ar; }
             const lastPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            const lx = (pageWidth - w) / 2;
-            const ly = (pageHeight - h) / 2;
-            lastPage.drawImage(embeddedLast, { x: lx, y: ly, width: w, height: h });
+            drawExportCoverFullBleed(lastPage, embeddedLast, pageWidth, pageHeight);
             processedCount++;
             console.log('[PDF Export] ✓ Последняя страница обложки добавлена');
           }

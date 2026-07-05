@@ -63,7 +63,35 @@ assert(
 );
 assert(
   exportPdfSource.includes('buildExportSelection'),
-  'export-pdf: default export selection when storage empty',
+  'export-pdf: rebuild export selection from project state',
+);
+assert(
+  exportPdfSource.includes('mergePageValuesMaps'),
+  'export-pdf: merge page values by updatedAt',
+);
+assert(
+  exportPdfSource.includes('getExportSelectionStorageKey'),
+  'export-pdf: read stored selection from export-review',
+);
+assert(
+  exportPdfSource.includes('exportPages = await Promise.all'),
+  'export-pdf: sync exportPages after cache remap',
+);
+assert(
+  exportPdfSource.includes('sourcePageNumber'),
+  'export-pdf: cache templates by sourcePageNumber not export index',
+);
+assert(
+  exportPdfSource.includes('mergeStaticPagesIntoExportSelection'),
+  'export-pdf: merge locked static pages into selection',
+);
+assert(
+  exportPdfSource.includes('drawExportCoverFullBleed'),
+  'export-pdf: full-bleed cover/closing draw',
+);
+assert(
+  exportPdfSource.includes('BLANK_INTERIOR_PAGE_WIDTH'),
+  'export-pdf: portrait sourceSize fallback not A4',
 );
 assert(
   exportPdfSource.includes('filterProjectDataForExport'),
@@ -72,8 +100,20 @@ assert(
 
 const selectionSource = read('utils/exportPageSelection.ts');
 assert(
-  selectionSource.includes('pageValuesToAnnotations'),
-  'filterProjectDataForExport: rebuilds via pageValuesToAnnotations',
+  selectionSource.includes('exportFormat'),
+  'exportPageSelection: electronic vs print format',
+);
+assert(
+  selectionSource.includes('non_editable'),
+  'exportPageSelection: locked non_editable pages auto-included',
+);
+assert(
+  selectionSource.includes('requiredInExport'),
+  'exportPageSelection: requiredInExport static pages',
+);
+assert(
+  selectionSource.includes('resolveExportPageImageUri'),
+  'exportPageSelection: template image by sourcePageNumber',
 );
 assert(
   !selectionSource.includes('annotations.filter'),

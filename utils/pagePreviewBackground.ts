@@ -24,8 +24,9 @@ function usesGlobalLayoutChipPreviews(lineGuideId: string): boolean {
 }
 
 /**
- * Picks preview background. In-app always uses full PDF page PNG when available.
- * Low-res design_previews (~½ size) are only for thumbnail chips, not editor preview.
+ * Picks preview background.
+ * - thumbnail: bundled design_previews (надёжно офлайн), затем full page PNG.
+ * - full: full PDF page raster, при отсутствии — design_previews.
  */
 export function resolvePagePreviewBackgroundUri(
   params: ResolvePagePreviewBackgroundParams,
@@ -42,13 +43,22 @@ export function resolvePagePreviewBackgroundUri(
     return baseImageUri ?? null;
   }
 
-  if (baseImageUri) return baseImageUri;
+  const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
 
-  if (quality !== 'thumbnail') {
+  if (quality === 'thumbnail') {
+    if (designUri) return designUri;
+    if (baseImageUri) return baseImageUri;
+    if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {
+      return resolveVariantPreviewBackgroundUri({
+        lineGuideId,
+        sourcePageNumber,
+        variantId,
+      });
+    }
     return null;
   }
 
-  const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
+  if (baseImageUri) return baseImageUri;
   if (designUri) return designUri;
 
   if (variantId && !usesGlobalLayoutChipPreviews(lineGuideId)) {

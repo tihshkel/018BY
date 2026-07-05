@@ -64,9 +64,15 @@ export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0.28;
 export const DIARY_LINE_FONT_OFFSET = 0.86;
 
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
-export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 0.85;
+export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;
 
-/** Компактные поля (дата): штрих через центр слота. */
+/** Доп. подъём над штрихом — RN/Связной рисуют глифы ниже расчётного cap height (доля lineHeight слота). */
+export const PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO = 0.82;
+
+/** Хвост после длинной подписи (ощущения): OCR-полоса выше обычной строки — доп. подъём первой строки. */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_EXTRA_LIFT_BAND_RATIO = 0.1;
+
+/** Компактные поля (дата): узкая OCR-полоса под одну строку. */
 export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
 
 /** Обычная строка: штрих у нижнего края полосы. */

@@ -25,7 +25,9 @@ export function getDefaultPageAspectRatio(params?: {
   }
   if (
     params?.lineGuideId === 'diary_interior_brown' ||
-    params?.lineGuideId === 'diary_interior_purple'
+    params?.lineGuideId === 'diary_interior_purple' ||
+    params?.lineGuideId === 'pregnancy_60' ||
+    params?.lineGuideId === 'pregnancy_a5'
   ) {
     return 240 / 180;
   }

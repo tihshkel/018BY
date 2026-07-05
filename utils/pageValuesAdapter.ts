@@ -10,8 +10,10 @@ import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
   getLineSlotsForPage,
+  isPregnancyWeeklyStructuredPage,
   layoutAnnotationFromSlot,
   layoutTextAnnotationFromSlot,
+  resolveWeeklyFieldLineSlots,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
@@ -50,6 +52,29 @@ function isPurpleMyDayPage(lineGuideId: string, pageNumber: number): boolean {
   return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGES.has(pageNumber);
 }
 
+function resolvePregnancyWeeklyFieldText(
+  field: AlbumPageField,
+  values: PageValues,
+  lineGuideId: string,
+  sourcePageNumber: number,
+): string | null {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, sourcePageNumber)) {
+    return values.fields[field.fieldId]?.trim() || null;
+  }
+
+  if (field.fieldId.endsWith('_plans')) {
+    const direct = values.fields[field.fieldId]?.trim() ?? '';
+    if (direct) return direct;
+    const prefix = field.fieldId.replace(/_plans$/, '');
+    const header = values.fields[`${prefix}_plans_header`]?.trim() ?? '';
+    const body = values.fields[`${prefix}_plans_body`]?.trim() ?? '';
+    const merged = [header, body].filter(Boolean).join('\n');
+    return merged || null;
+  }
+
+  return values.fields[field.fieldId]?.trim() || null;
+}
+
 /** Фиолетовый «Твой день»: дата и текст «За сегодня» идут одним потоком по 5 строкам. */
 function resolvePurpleMyDayFieldText(
   field: AlbumPageField,
@@ -57,8 +82,21 @@ function resolvePurpleMyDayFieldText(
   values: PageValues,
   lineGuideId: string,
 ): string | null {
+  const weeklyText = resolvePregnancyWeeklyFieldText(
+    field,
+    values,
+    lineGuideId,
+    schema.sourcePageNumber,
+  );
+  if (
+    isPregnancyWeeklyStructuredPage(lineGuideId, schema.sourcePageNumber) &&
+    field.fieldId.endsWith('_plans')
+  ) {
+    return weeklyText;
+  }
+
   if (!isPurpleMyDayPage(lineGuideId, schema.sourcePageNumber)) {
-    return values.fields[field.fieldId]?.trim() || null;
+    return weeklyText;
   }
 
   if (field.fieldId.endsWith('_date')) {
@@ -573,17 +611,22 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
     if (
       templateCaptions.annotations.length === 0 &&
-      schema.pageType === 'caption_photo_page'
+      values.photoCaptions?.length &&
+      (schema.pageType === 'caption_photo_page' ||
+        schema.pageType === 'photo' ||
+        schema.captionEnabled)
     ) {
       const labelSlots = slots.filter((s) => s.hasLabel);
-      for (let i = 0; i < values.photoCaptions.length; i += 1) {
-        const text = values.photoCaptions[i]?.trim();
-        if (!text) continue;
-        const slot = labelSlots[i];
-        if (!slot) continue;
-        const layout = layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId);
+      const captionHeight = Math.max(16, viewportHeight * 0.028);
+
+      const appendCaption = (
+        index: number,
+        text: string,
+        layout: { x: number; y: number; width: number; height: number },
+        slotIndex = index,
+      ) => {
         annotations.push({
-          id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, i),
+          id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
           type: 'text',
           page: schema.sourcePageNumber,
           content: text,
@@ -593,9 +636,59 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           zIndex: zIndex++,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
-          templateLineStart: slot.index,
+          templateLineStart: slotIndex,
           templateLineCount: 1,
         });
+      };
+
+      if (labelSlots.length > 0) {
+        for (let i = 0; i < values.photoCaptions.length; i += 1) {
+          const text = values.photoCaptions[i]?.trim();
+          if (!text) continue;
+          const slot = labelSlots[i];
+          if (!slot) continue;
+          appendCaption(i, text, layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId), slot.index);
+        }
+      } else {
+        const fallbackLayouts: Array<{ x: number; y: number; width: number; height: number }> = [];
+        for (const block of schema.photoBlocks ?? []) {
+          const blockValues = values.photoBlocks[block.blockId];
+          if (!blockValues) continue;
+          const variant =
+            block.variants.find((v) => v.variantId === blockValues.variantId) ??
+            block.variants[0];
+          if (!variant) continue;
+
+          for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
+            const photoRect = getPhotoSlotViewportRect({
+              lineGuideId,
+              page: schema.sourcePageNumber,
+              variantId: variant.variantId,
+              slotIndex,
+              viewportWidth,
+              viewportHeight,
+              sourceWidth,
+              sourceHeight,
+              contentRect: editorContentRect,
+              templateLibraryId: schema.templateLibraryId,
+            });
+            if (!photoRect) continue;
+            fallbackLayouts.push({
+              x: photoRect.x,
+              y: photoRect.y + photoRect.height / 2 + captionHeight * 0.45,
+              width: photoRect.width,
+              height: captionHeight,
+            });
+          }
+        }
+
+        for (let i = 0; i < values.photoCaptions.length; i += 1) {
+          const text = values.photoCaptions[i]?.trim();
+          if (!text) continue;
+          const layout = fallbackLayouts[i];
+          if (!layout) continue;
+          appendCaption(i, text, layout);
+        }
       }
     }
   }
@@ -642,14 +735,33 @@ export function annotationsToPageValues(
   const pageAnnotations = annotations.filter((ann) => Number(ann.page) === pageNumber);
 
   const fields: Record<string, string> = {};
+  const lineGuideId = schema.lineGuideId;
+  const slots =
+    lineGuideId && schema.sourcePageNumber
+      ? getLineSlotsForPage(lineGuideId, schema.sourcePageNumber)
+      : [];
+
   for (const field of schema.fields ?? []) {
+    const lineCount = field.templateLineCount ?? 1;
+    const fieldSlotIndices =
+      lineGuideId &&
+      isPregnancyWeeklyStructuredPage(lineGuideId, schema.sourcePageNumber) &&
+      lineCount > 1 &&
+      slots.length > 0
+        ? resolveWeeklyFieldLineSlots(
+            slots,
+            field.templateLineStart,
+            lineCount,
+            lineGuideId,
+          ).map((slot) => slot.index)
+        : Array.from({ length: lineCount }, (_, offset) => field.templateLineStart + offset);
+
     const related = pageAnnotations
       .filter(
         (ann) =>
           ann.type === 'text' &&
           typeof ann.templateLineStart === 'number' &&
-          ann.templateLineStart >= field.templateLineStart &&
-          ann.templateLineStart < field.templateLineStart + field.templateLineCount
+          fieldSlotIndices.includes(ann.templateLineStart),
       )
       .sort((a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0));
 

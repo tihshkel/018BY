@@ -21,8 +21,8 @@ const SCENARIOS: DesignedAlbumScenario[] = [
       interiorType: 'pregnancy_60',
     },
     totalPages: 60,
-    pagesToPreview: [6, 54, 60],
-    pageToFill: 6,
+    pagesToPreview: [6, 9, 52, 54, 60],
+    pageToFill: 9,
   },
   {
     name: 'pregnancy A5',

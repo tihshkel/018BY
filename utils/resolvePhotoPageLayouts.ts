@@ -73,7 +73,7 @@ function finalizeLayouts(
   const expanded = expandCollageVariants(layouts, lineGuideId, page);
   const feasible = filterFeasiblePhotoLayouts(expanded);
   if (!feasible.variants.length) return { variants: [] };
-  return clampPhotoPageLayoutsToPrintMargins(feasible);
+  return clampPhotoPageLayoutsToPrintMargins(feasible, lineGuideId);
 }
 
 function resolveDesignedAlbumLayouts(
@@ -119,12 +119,12 @@ export function resolvePhotoPageLayouts(
 ): PhotoPageLayouts {
   const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId, page);
   if (templateLayouts?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(templateLayouts);
+    return clampPhotoPageLayoutsToPrintMargins(templateLayouts, lineGuideId);
   }
 
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(circle);
+    return clampPhotoPageLayoutsToPrintMargins(circle, lineGuideId);
   }
 
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
@@ -134,10 +134,10 @@ export function resolvePhotoPageLayouts(
   if (designed) return designed;
 
   if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampPhotoPageLayoutsToPrintMargins(manual, lineGuideId);
   }
   if (manual?.variants && manual.variants.length > 1 && manualLayoutsArePlausible(manual)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampPhotoPageLayoutsToPrintMargins(manual, lineGuideId);
   }
   if (pdf?.variants?.length) {
     return finalizeLayouts(pdf, lineGuideId, page) ?? pdf;
@@ -153,6 +153,7 @@ export function resolvePhotoPageLayouts(
   }
   return clampPhotoPageLayoutsToPrintMargins(
     expandCollageVariants(DEFAULT_PHOTO_PAGE_LAYOUTS, lineGuideId, page),
+    lineGuideId,
   );
 }
 
@@ -163,12 +164,12 @@ export function resolvePhotoPageLayoutsOrUndefined(
 ): PhotoPageLayouts | undefined {
   const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId, page);
   if (templateLayouts?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(templateLayouts);
+    return clampPhotoPageLayoutsToPrintMargins(templateLayouts, lineGuideId);
   }
 
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(circle);
+    return clampPhotoPageLayoutsToPrintMargins(circle, lineGuideId);
   }
 
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
@@ -178,10 +179,10 @@ export function resolvePhotoPageLayoutsOrUndefined(
   if (designed) return designed;
 
   if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampPhotoPageLayoutsToPrintMargins(manual, lineGuideId);
   }
   if (manual?.variants && manual.variants.length > 1 && manualLayoutsArePlausible(manual)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampPhotoPageLayoutsToPrintMargins(manual, lineGuideId);
   }
   if (pdf?.variants?.length) {
     return finalizeLayouts(pdf, lineGuideId, page);

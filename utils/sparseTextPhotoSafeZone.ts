@@ -55,7 +55,8 @@ function getLineSlots(lineGuideId: string, page: number): readonly NormalizedLin
 }
 
 function gapNorm(config: AlbumSparsePhotoConfig): number {
-  return config.gapMm / config.pageSizeMm;
+  const pageWidthMm = config.pageWidthMm ?? config.pageSizeMm;
+  return config.gapMm / pageWidthMm;
 }
 
 /** PDF «Место для фото» в нижней части страницы (анкеты беременности p1/p3 и др.). */

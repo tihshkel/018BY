@@ -120,6 +120,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
       slot,
       effectiveFontSize,
       lineGuideId,
+      slots,
     );
     const relBaseline = viewportBaseline - editorContentRect.offsetY;
 
@@ -161,6 +162,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     lineGuideId,
     fontId,
     lineCount: ann.templateLineCount ?? 1,
+    measureTextWidth,
   });
 
   for (const segment of segments) {

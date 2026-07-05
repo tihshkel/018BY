@@ -8,7 +8,25 @@ import { HOLIDAY_COVER_DESIGNS } from './holidayCoverDesigns';
 import { githubRawFileUrl } from './githubRawAssets';
 import { getWeddingCoverById } from './weddingCoverDesigns';
 
-const GITHUB_REPO_BASE = 'https://raw.githubusercontent.com/tihshkel/018BY/5437a89c83e07ab0f8b3c5dfecd679f2cda85f94';
+/** Первая страница 180×240 — albums/DBn/page_001.png */
+const PREGNANCY_HARD_FIRST_PAGE_MODULES: Record<string, any | null> = {
+  DB1: (() => { try { return require('@/albums/DB1/page_001.png'); } catch { return null; } })(),
+  DB2: (() => { try { return require('@/albums/DB2/page_001.png'); } catch { return null; } })(),
+  DB3: (() => { try { return require('@/albums/DB3/page_001.png'); } catch { return null; } })(),
+  DB4: (() => { try { return require('@/albums/DB4/page_001.png'); } catch { return null; } })(),
+  DB5: (() => { try { return require('@/albums/DB5/page_001.png'); } catch { return null; } })(),
+  DB6: (() => { try { return require('@/albums/DB6/page_001.png'); } catch { return null; } })(),
+};
+
+/** Первая страница A5 — albums/pregnant/A5/1_str_DBn_page_001.png */
+const PREGNANCY_A5_FIRST_PAGE_MODULES: Record<string, any | null> = {
+  DB1: (() => { try { return require('@/albums/pregnant/A5/1_str_DB1_page_001.png'); } catch { return null; } })(),
+  DB2: (() => { try { return require('@/albums/pregnant/A5/1_str_DB2_page_001.png'); } catch { return null; } })(),
+  DB3: (() => { try { return require('@/albums/pregnant/A5/1_str_DB3_page_001.png'); } catch { return null; } })(),
+  DB4: (() => { try { return require('@/albums/pregnant/A5/1_str_DB4_page_001.png'); } catch { return null; } })(),
+  DB5: (() => { try { return require('@/albums/pregnant/A5/1_str_DB5_page_001.png'); } catch { return null; } })(),
+  DB6: null,
+};
 
 /** Стандартизированные last_page.png для A5 беременности (albums/pregnant/A5/DBn/last_page.png). */
 const PREGNANCY_A5_LAST_PAGE_MODULES: Record<string, any> = {
@@ -212,71 +230,29 @@ async function loadPregnancyA5ClosingPageUri(
   return downloadImageToCache(githubRawFileUrl(closingUrl), `${dbNumber}_closing_${fileName}`);
 }
 
-const PREGNANCY_FIRST_LAST_PAGES_URLS: Record<string, { firstPage: string | null; lastPages: string[] }> = {
-  'DB1_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB1_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB1_60стр/page_001.png'],
-  },
-  'DB1_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB1_А5/page_001.png',
-    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB1_А5/page_001.png'],
-  },
-  'DB2_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB2_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB2_60стр/page_001.png'],
-  },
-  'DB2_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB2_А5/page_001.png',
-    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB2_А5/page_001.png'],
-  },
-  'DB3_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB3_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB3_60стр/page_001.png'],
-  },
-  'DB3_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB3_А5/page_001.png',
-    lastPages: [
-      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_001.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_002.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_003.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_004.png',
-    ],
-  },
-  'DB4_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB4_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB4_60стр/page_001.png'],
-  },
-  'DB4_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB4_А5/page_001.png',
-    lastPages: [
-      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_001.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_002.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_003.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_004.png',
-    ],
-  },
-  'DB5_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB5_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB5_60стр/page_001.png'],
-  },
-  'DB5_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB5_А5/page_001.png',
-    lastPages: [
-      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_001.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_002.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_003.png',
-      'albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_004.png',
-    ],
-  },
-  'DB6_hard': {
-    firstPage: 'albums/pregnant/180х240/1 стр/1 стр._DB6_60стр/page_001.png',
-    lastPages: ['albums/pregnant/180х240/последняя стр/последняя стр._DB6_60стр/page_001.png'],
-  },
-  'DB6_soft': {
-    firstPage: 'albums/pregnant/А5/1 стр/1 стр._DB6_А5/page_001.png',
-    lastPages: ['albums/pregnant/А5/последняя стр/последняя стр._DB6_А5/page_001.png'],
-  },
-};
+const PREGNANCY_DB_NUMBERS = ['DB1', 'DB2', 'DB3', 'DB4', 'DB5', 'DB6'] as const;
+
+function buildPregnancyFirstLastPagesUrls(): Record<
+  string,
+  { firstPage: string | null; lastPages: string[] }
+> {
+  const urls: Record<string, { firstPage: string | null; lastPages: string[] }> = {};
+  for (const dbNumber of PREGNANCY_DB_NUMBERS) {
+    urls[`${dbNumber}_hard`] = {
+      firstPage: `albums/${dbNumber}/page_001.png`,
+      lastPages: [`albums/pregnant/A5/${dbNumber}/last_page.png`],
+    };
+    urls[`${dbNumber}_soft`] = {
+      firstPage: PREGNANCY_A5_FIRST_PAGE_MODULES[dbNumber]
+        ? `albums/pregnant/A5/1_str_${dbNumber}_page_001.png`
+        : `albums/${dbNumber}/page_001.png`,
+      lastPages: [`albums/pregnant/A5/${dbNumber}/last_page.png`],
+    };
+  }
+  return urls;
+}
+
+const PREGNANCY_FIRST_LAST_PAGES_URLS = buildPregnancyFirstLastPagesUrls();
 
 async function downloadImageToCache(url: string, cacheFileName: string): Promise<string | null> {
   try {
@@ -742,164 +718,27 @@ const KIDS_FIRST_LAST_PAGES_MAPPING: Record<string, { firstPage: any | null; las
 };
 
 /**
- * Статический маппинг require() модулей для первой и последней страницы альбомов беременности
- * Ключ: 'DB{N}_{format}' где format = 'hard' или 'soft'
+ * Статический маппинг require() модулей для первой и последней страницы альбомов беременности.
+ * Ключ: 'DB{N}_{format}' где format = 'hard' (180×240) или 'soft' (A5).
  */
-const PREGNANCY_FIRST_LAST_PAGES_MAPPING: Record<string, { firstPage: any | null; lastPages: any[] }> = {
-  // DB1 - hard (180х240)
-  'DB1_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB1_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB1_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB1 - soft (А5)
-  'DB1_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB1_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB1_А5/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB2 - hard
-  'DB2_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB2_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB2_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB2 - soft
-  'DB2_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB2_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB2_А5/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB3 - hard
-  'DB3_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB3_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB3_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB3 - soft (может быть несколько страниц)
-  'DB3_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB3_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_001.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_002.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_003.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB3_А5/page_004.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB4 - hard
-  'DB4_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB4_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB4_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB4 - soft (может быть несколько страниц)
-  'DB4_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB4_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_001.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_002.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_003.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB4_А5/page_004.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB5 - hard
-  'DB5_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB5_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB5_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB5 - soft (может быть несколько страниц)
-  'DB5_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB5_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_001.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_002.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_003.png')); } catch {}
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB5_А5/page_004.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB6 - hard
-  'DB6_hard': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/180х240/1 стр/1 стр._DB6_60стр/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/180х240/последняя стр/последняя стр._DB6_60стр/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-  // DB6 - soft (если есть)
-  'DB6_soft': (() => {
-    const firstPage = (() => {
-      try { return require('@/albums/pregnant/А5/1 стр/1 стр._DB6_А5/page_001.png'); } catch { return null; }
-    })();
-    const lastPages = (() => {
-      const pages: any[] = [];
-      try { pages.push(require('@/albums/pregnant/А5/последняя стр/последняя стр._DB6_А5/page_001.png')); } catch {}
-      return pages;
-    })();
-    return { firstPage, lastPages };
-  })(),
-};
+function buildPregnancyFirstLastPagesMapping(): Record<
+  string,
+  { firstPage: any | null; lastPages: any[] }
+> {
+  const mapping: Record<string, { firstPage: any | null; lastPages: any[] }> = {};
+  for (const dbNumber of PREGNANCY_DB_NUMBERS) {
+    const hardFirst = PREGNANCY_HARD_FIRST_PAGE_MODULES[dbNumber] ?? null;
+    const softFirst =
+      PREGNANCY_A5_FIRST_PAGE_MODULES[dbNumber] ?? PREGNANCY_HARD_FIRST_PAGE_MODULES[dbNumber] ?? null;
+    const lastPage = PREGNANCY_A5_LAST_PAGE_MODULES[dbNumber] ?? null;
+    const lastPages = lastPage ? [lastPage] : [];
+    mapping[`${dbNumber}_hard`] = { firstPage: hardFirst, lastPages };
+    mapping[`${dbNumber}_soft`] = { firstPage: softFirst, lastPages };
+  }
+  return mapping;
+}
+
+const PREGNANCY_FIRST_LAST_PAGES_MAPPING = buildPregnancyFirstLastPagesMapping();
 
 /**
  * Получает изображение first_page.png для альбома детей (синхронная версия для select-cover)
@@ -1099,16 +938,25 @@ export async function getPregnancyFirstLastPages(
  */
 export async function getPregnancyFirstLastPagesForExport(
   albumId: string | null,
-  formatType: 'hard' | 'soft' = 'hard'
+  formatType: 'hard' | 'soft' = 'hard',
+  lineGuideId?: string | null,
 ): Promise<{ firstPage: string | null; lastPages: string[] }> {
-  const localPages = await getPregnancyFirstLastPages(albumId, formatType);
-  const remotePages = await getPregnancyFirstLastPagesFromGitHub(albumId, formatType);
+  const firstPageFormat: 'hard' | 'soft' =
+    lineGuideId === 'pregnancy_60' || formatType === 'hard' ? 'hard' : 'soft';
+
+  const localPages = await getPregnancyFirstLastPages(albumId, firstPageFormat);
+  const remotePages = localPages.firstPage
+    ? { firstPage: null, lastPages: [] as string[] }
+    : await getPregnancyFirstLastPagesFromGitHub(albumId, firstPageFormat);
 
   const firstPage = localPages.firstPage || remotePages.firstPage;
 
-  // A5 / электронная версия: в конец PDF добавляется одна декоративная страница (форзац last_str).
-  // Страницы из «последняя стр» не дублируем — они совпадают с форзацом и давали 2 одинаковых листа.
-  if (formatType === 'soft') {
+  const useHardClosing =
+    lineGuideId === 'pregnancy_60' || formatType === 'hard';
+
+  // A5 / электронная версия (кроме pregnancy_60): форзац last_str.
+  // pregnancy_60 — hard 180×240, как внутренние страницы (без A5 letterbox).
+  if (formatType === 'soft' && !useHardClosing) {
     const closingUri = await loadPregnancyA5ClosingPageUri(albumId, 'soft');
     if (closingUri) {
       return { firstPage, lastPages: [closingUri] };
@@ -1155,7 +1003,7 @@ export async function getPregnancyFirstLastPagesFromGitHub(
     if (urls.firstPage) {
       const fileName = urls.firstPage.split('/').pop() || 'first_page.png';
       const localPath = await downloadImageToCache(
-        `${GITHUB_REPO_BASE}/${encodeURI(urls.firstPage)}`,
+        githubRawFileUrl(urls.firstPage),
         `${mappingKey}_first_${fileName}`
       );
       if (localPath) {
@@ -1166,7 +1014,7 @@ export async function getPregnancyFirstLastPagesFromGitHub(
     for (const lastPageUrl of urls.lastPages) {
       const fileName = lastPageUrl.split('/').pop() || 'last_page.png';
       const localPath = await downloadImageToCache(
-        `${GITHUB_REPO_BASE}/${encodeURI(lastPageUrl)}`,
+        githubRawFileUrl(lastPageUrl),
         `${mappingKey}_last_${fileName}`
       );
       if (localPath) {
@@ -1211,7 +1059,8 @@ export function isSameExportImageUri(a: string | null, b: string | null): boolea
 export async function getExportCoverPages(
   albumId: string | null,
   category: string | null | undefined,
-  formatType: 'hard' | 'soft' | 'electronic'
+  formatType: 'hard' | 'soft' | 'electronic',
+  lineGuideId?: string | null,
 ): Promise<ExportCoverPages> {
   if (!albumId) {
     return { firstPage: null, closingPage: null };
@@ -1223,7 +1072,8 @@ export async function getExportCoverPages(
   if (normalizedCategory === 'pregnancy' || albumId.startsWith('pregnancy_')) {
     const { firstPage, lastPages } = await getPregnancyFirstLastPagesForExport(
       albumId,
-      coverFormat
+      coverFormat,
+      lineGuideId,
     );
     return {
       firstPage,

@@ -104,8 +104,9 @@ export default function ExportReviewScreen() {
         pageValuesMap: project.pageValuesMap,
         getSchema: project.getSchemaForInstance,
         getTitle: project.getInstanceTitle,
+        exportFormat: selectedFormat === 'electronic' ? 'electronic' : 'print',
       }),
-    [project.instances, project.pageValuesMap, project],
+    [project.instances, project.pageValuesMap, project, selectedFormat],
   );
 
   const isPrintLocked =

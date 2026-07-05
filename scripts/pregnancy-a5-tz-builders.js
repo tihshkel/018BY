@@ -7,6 +7,7 @@ const {
   PAGE1_FIELDS,
   ABOUT_ME_FIELDS,
   buildFieldsFromSpec,
+  buildWeeklyPageFields,
   buildBirthStoryFields,
   buildBirthQuestionnaireA5Fields,
   buildAlreadyMomFields,
@@ -29,7 +30,7 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
     return tzOverride({
       title: `${week}-я неделя`,
       pageType: 'structured',
-      fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, WEEKLY_PAGE_FIELDS),
+      fields: buildWeeklyPageFields(lineGuideId, pageNumber, slots),
     });
   }
 
