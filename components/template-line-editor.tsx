@@ -2,16 +2,11 @@ import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinFieldLines,
   getActiveEditSlotIndex,
-  getTemplateLineRowInsets,
-  getTemplateLineTextTop,
-  getTemplateLineTypography,
-  getWishSlotInputKind,
+  getTemplateLineReadOnlyTextLayout,
   mergeActiveLineEdit,
-  truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
-import { usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 
 type TextAlign = 'left' | 'center' | 'right';
 
@@ -75,10 +70,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {
-      map.set(
-        segment.slotIndex,
-        truncateTextToSlotWidth(segment.content, allSlots[segment.slotIndex]!, fontSize, lineGuideId, fontId)
-      );
+      map.set(segment.slotIndex, segment.content);
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
   }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
@@ -118,34 +110,16 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   return (
     <>
       {slotsToRender.map((lineSlot) => {
-        const textTop = getTemplateLineTextTop(
-          lineSlot,
+        const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
+          slot: lineSlot,
           fontSize,
           lineGuideId,
+          fontId,
           allSlots,
-          startSlotIndex,
-        );
-        const lineTypography = getTemplateLineTypography(
-          fontSize,
-          lineSlot.lineHeight,
-          getWishSlotInputKind(lineSlot, lineGuideId),
-          lineGuideId
-        );
+          fieldStartIndex: startSlotIndex,
+        });
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const isInputSlot = lineSlot.index === activeInputSlotIndex;
-        const wishInputKind = getWishSlotInputKind(lineSlot, lineGuideId);
-        const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
-          lineSlot,
-          lineTypography.fontSize,
-          wishInputKind,
-          lineGuideId
-        );
-        const usesStrokeBaseline =
-          usesStrokeBaselineLayout(lineSlot, lineGuideId) ||
-          usesPregnancyGuideRuledTextLayout(lineGuideId, lineSlot);
-        const textLineHeight = usesStrokeBaseline
-          ? lineTypography.fontSize
-          : lineTypography.lineHeight;
 
         return (
           <View
@@ -154,9 +128,10 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
               styles.host,
               {
                 left: lineSlot.x,
-                top: textTop - viewportTopInset,
+                top: readOnlyLayout.containerTop,
                 width: lineSlot.width,
-                height: lineTypography.inputHeight + viewportTopInset,
+                height: readOnlyLayout.containerHeight,
+                overflow: readOnlyLayout.overflow,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}
@@ -169,11 +144,11 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.input,
                   {
                     color,
-                    fontSize: lineTypography.fontSize,
+                    fontSize: readOnlyLayout.fontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: textLineHeight,
-                    height: textLineHeight,
-                    top: textTopInset,
+                    lineHeight: readOnlyLayout.textLineHeight,
+                    height: readOnlyLayout.textLineHeight,
+                    top: readOnlyLayout.textTop,
                     width: lineSlot.width,
                     textAlign,
                   },
@@ -202,16 +177,12 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.lineText,
                   {
                     color,
-                    fontSize: lineTypography.fontSize,
+                    fontSize: readOnlyLayout.fontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: textLineHeight,
-                    top: textTopInset,
+                    lineHeight: readOnlyLayout.textLineHeight,
+                    top: readOnlyLayout.textTop,
                     width: lineSlot.width,
                     textAlign,
-                    ...(Platform.OS === 'android' &&
-                      !usesStrokeBaseline && {
-                        textAlignVertical: 'bottom',
-                      }),
                   },
                 ]}
                 numberOfLines={1}

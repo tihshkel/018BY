@@ -1,4 +1,4 @@
-import { Image } from 'expo-image';
+import { AlbumPhotoImage, prefetchAlbumPhotoUri } from '@/components/album/album-photo-image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -87,6 +87,10 @@ export function AlbumPreviewPhotoBlockEditor({
   onGroupTransformChange,
 }: AlbumPreviewPhotoBlockEditorProps) {
   const [selected, setSelected] = useState(false);
+
+  useEffect(() => {
+    slotUris.forEach((uri) => prefetchAlbumPhotoUri(uri));
+  }, [slotUris]);
 
   const contentRect = useMemo(
     () =>
@@ -487,7 +491,11 @@ function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
             },
           ]}
         >
-          <Image source={{ uri: slot.uri }} style={styles.photo} contentFit="cover" />
+          <AlbumPhotoImage
+            uri={slot.uri}
+            style={styles.photo}
+            recyclingKey={`preview-slot-${slot.slotIndex}-${slot.uri}`}
+          />
         </View>
       ))}
     </>

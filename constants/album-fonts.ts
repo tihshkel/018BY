@@ -11,9 +11,17 @@ export interface FontOption {
   displayName: string;
   /** Множитель ширины символа относительно профиля альбома (кириллица шире латиницы). */
   charWidthMultiplier?: number;
+  /**
+   * Доля fontSize от top Text до baseline в превью (RN).
+   * PDF использует 0.85; у рукописных шрифтов baseline в RN ниже — нужно больше.
+   */
+  previewCapHeightRatio?: number;
 }
 
 export const DEFAULT_ALBUM_TEXT_FONT_ID = 'Nefelibata-Sans';
+
+/** Baseline PDF (pdf-lib drawText) — доля fontSize от top до baseline. */
+export const PDF_TEXT_CAP_HEIGHT_RATIO = 0.85;
 
 export const AVAILABLE_FONTS: FontOption[] = [
   {
@@ -22,6 +30,7 @@ export const AVAILABLE_FONTS: FontOption[] = [
     file: require('@/assets/fonts/SvyaznoyRF.ttf'),
     displayName: 'Связной',
     charWidthMultiplier: 1.02,
+    previewCapHeightRatio: 0.86,
   },
   {
     id: 'AmaticSC-Regular',
@@ -29,6 +38,7 @@ export const AVAILABLE_FONTS: FontOption[] = [
     file: require('@/assets/fonts/AmaticSC-Regular.ttf'),
     displayName: 'Amatic SC',
     charWidthMultiplier: 1.08,
+    previewCapHeightRatio: 0.88,
   },
   {
     id: 'AmaticSC-Bold',
@@ -36,6 +46,7 @@ export const AVAILABLE_FONTS: FontOption[] = [
     file: require('@/assets/fonts/AmaticSC-Bold.ttf'),
     displayName: 'Amatic SC Bold',
     charWidthMultiplier: 1.1,
+    previewCapHeightRatio: 0.9,
   },
   {
     id: 'Nefelibata-Sans',
@@ -43,6 +54,7 @@ export const AVAILABLE_FONTS: FontOption[] = [
     file: require('@/assets/fonts/Nefelibata-Sans.otf'),
     displayName: 'Nefelibata Sans',
     charWidthMultiplier: 1.04,
+    previewCapHeightRatio: 0.92,
   },
   {
     id: 'Nefelibata-PenSans',
@@ -50,6 +62,7 @@ export const AVAILABLE_FONTS: FontOption[] = [
     file: require('@/assets/fonts/Nefelibata-PenSans.otf'),
     displayName: 'Nefelibata Pen',
     charWidthMultiplier: 1.06,
+    previewCapHeightRatio: 0.94,
   },
 ];
 
@@ -80,6 +93,10 @@ export function getAlbumFontById(fontId?: string | null): FontOption | undefined
 
 export function getAlbumFontCharWidthMultiplier(fontId?: string | null): number {
   return getAlbumFontById(fontId)?.charWidthMultiplier ?? 1;
+}
+
+export function getAlbumFontPreviewCapHeightRatio(fontId?: string | null): number {
+  return getAlbumFontById(fontId)?.previewCapHeightRatio ?? PDF_TEXT_CAP_HEIGHT_RATIO;
 }
 
 export function getAlbumFontFamilyName(fontId?: string | null): string | undefined {

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+
+import { AlbumPhotoImage } from '@/components/album/album-photo-image';
 
 import { LayoutPreviewThumbnail } from '@/components/album/layout-preview-thumbnail';
 import { LayoutPreviewIcon } from '@/components/album/photo-layout-preview-icon';
@@ -117,7 +118,7 @@ export function PhotoBlockPicker({
                         {slotLabel}
                       </AppText>
                     ) : null}
-                    <Image source={{ uri }} style={styles.preview} contentFit="cover" />
+                    <AlbumPhotoImage uri={uri} style={styles.preview} />
                     <View style={styles.slotActions}>
                       <Pressable
                         onPress={() => onReplacePhoto(slotIndex)}

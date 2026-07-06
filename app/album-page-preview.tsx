@@ -40,6 +40,7 @@ import {
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { resolvePhotoBlockSafeZoneViewportRect } from "@/utils/photoBlockSafeZone";
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
+import { resolveEditorPageSourceSize } from "@/utils/pageSourceDimensions";
 import {
   getBlankInteriorPageUri,
 } from "@/utils/albumImages";
@@ -243,6 +244,24 @@ export default function AlbumPagePreviewScreen() {
     !isMultiSlotCollage;
   const showPhotoBlockEditor = shouldMaskPdfPhotoPlaceholder;
 
+  const annotationSourceSize = useMemo(
+    () =>
+      resolveEditorPageSourceSize({
+        lineGuideId: resolvedLineGuideId,
+        measured: sourceImageSize,
+        viewportFallback: {
+          width: previewLayout.coordinateWidth,
+          height: previewLayout.coordinateHeight,
+        },
+      }),
+    [
+      previewLayout.coordinateHeight,
+      previewLayout.coordinateWidth,
+      resolvedLineGuideId,
+      sourceImageSize,
+    ],
+  );
+
   const photoSafeBounds = useMemo(() => {
     if (!shouldMaskPdfPhotoPlaceholder || !instance || !schema) return null;
     return resolvePhotoBlockSafeZoneViewportRect({
@@ -251,22 +270,21 @@ export default function AlbumPagePreviewScreen() {
       variantId: primaryVariantId,
       coordinateWidth: previewLayout.coordinateWidth,
       coordinateHeight: previewLayout.coordinateHeight,
-      sourceWidth: sourceImageSize?.width,
-      sourceHeight: sourceImageSize?.height,
+      sourceWidth: annotationSourceSize.width,
+      sourceHeight: annotationSourceSize.height,
       templateLibraryId: schema.templateLibraryId,
       photoOnlyPage: isPhotoOnlySchema(schema),
     });
   }, [
+    annotationSourceSize.height,
+    annotationSourceSize.width,
     instance,
     previewLayout.coordinateHeight,
     previewLayout.coordinateWidth,
     primaryVariantId,
     resolvedLineGuideId,
     schema,
-    showPhotoBlockEditor,
     shouldMaskPdfPhotoPlaceholder,
-    sourceImageSize?.height,
-    sourceImageSize?.width,
   ]);
 
   const annotations = usePageAnnotationsForLayout({
@@ -276,8 +294,8 @@ export default function AlbumPagePreviewScreen() {
     lineGuideId: resolvedLineGuideId,
     viewportWidth: previewLayout.coordinateWidth,
     viewportHeight: previewLayout.coordinateHeight,
-    sourceWidth: sourceImageSize?.width,
-    sourceHeight: sourceImageSize?.height,
+    sourceWidth: annotationSourceSize.width,
+    sourceHeight: annotationSourceSize.height,
     debounceMs: 0,
   });
 
@@ -461,8 +479,8 @@ export default function AlbumPagePreviewScreen() {
                 annotations={displayAnnotations}
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
-                sourceWidth={sourceImageSize?.width}
-                sourceHeight={sourceImageSize?.height}
+                sourceWidth={annotationSourceSize.width}
+                sourceHeight={annotationSourceSize.height}
                 lineGuideId={resolvedLineGuideId}
                 sourcePageNumber={instance.sourcePageNumber ?? schema.sourcePageNumber}
                 waitForAnnotationImages={false}
@@ -497,8 +515,8 @@ export default function AlbumPagePreviewScreen() {
                       safeBounds={photoSafeBounds}
                       coordinateWidth={previewLayout.coordinateWidth}
                       coordinateHeight={previewLayout.coordinateHeight}
-                      sourceWidth={sourceImageSize?.width}
-                      sourceHeight={sourceImageSize?.height}
+                      sourceWidth={annotationSourceSize.width}
+                      sourceHeight={annotationSourceSize.height}
                       onGroupTransformChange={photoEditor.handleGroupTransformChange}
                     />
                   ) : null

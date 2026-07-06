@@ -16,7 +16,7 @@ import {
   DIARY_BROWN_WEEKLY_SCHEDULE_TEMPLATES,
   getDiaryBrownPageTemplate,
 } from '@/constants/diary-brown-page-templates';
-import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
+import { getAlbumFontCharWidthMultiplier, getAlbumFontPreviewCapHeightRatio } from '@/constants/album-fonts';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import type { TextLineSlot } from '@/utils/textLineSlots';
 import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
@@ -144,8 +144,7 @@ export function truncateTextToSlotWidth(
 ): string {
   if (
     text &&
-    isKids48TeethToothDateSlot(lineGuideId ?? '', slot.page, slot.index) &&
-    /^\d{2}\.\d{2}$/.test(text)
+    isKids48TeethToothDateSlot(lineGuideId ?? '', slot.page, slot.index)
   ) {
     return text;
   }
@@ -694,6 +693,72 @@ export function getTemplateBlockTextInsets(
 
 /** Высота заглавных глифов от top до baseline (RN ≈ PDF для sans). */
 const TEMPLATE_LINE_CAP_HEIGHT_RATIO = 0.85;
+
+export type TemplateLineReadOnlyLayout = {
+  containerTop: number;
+  containerHeight: number;
+  textTop: number;
+  textLineHeight: number;
+  fontSize: number;
+  overflow: 'visible' | 'hidden';
+};
+
+/**
+ * Единый layout строки макета для read-only превью (PageRenderer / PdfAnnotations display).
+ * Baseline совпадает с PDF-экспортом (getTemplateLinePdfBaselineY).
+ *
+ * Покрывает все альбомы со строками макета (TEMPLATE_LINE_GUIDE_IDS):
+ * pregnancy_60, pregnancy_a5, kids_48, holidays_birthday_60,
+ * diary_interior_brown, diary_interior_purple — все страницы через LINE_SLOTS.
+ */
+export function getTemplateLineReadOnlyTextLayout(params: {
+  slot: Pick<
+    TextLineSlot,
+    | 'y'
+    | 'lineHeight'
+    | 'inputKind'
+    | 'normY'
+    | 'normHeight'
+    | 'page'
+    | 'lineStrokeAtBottom'
+    | 'index'
+    | 'textAnchorTop'
+    | 'continuationGroup'
+    | 'hasLabel'
+    | 'width'
+  >;
+  fontSize: number;
+  lineGuideId?: string;
+  fontId?: string;
+  allSlots?: PregnancyWeeklyStrokeSlot[];
+  fieldStartIndex?: number;
+}): TemplateLineReadOnlyLayout {
+  const { slot, fontSize, lineGuideId, fontId, allSlots, fieldStartIndex } = params;
+  const effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, fontSize);
+  const wishInputKind = getWishSlotInputKind(slot, lineGuideId);
+  const typography = getTemplateLineTypography(
+    effectiveFontSize,
+    slot.lineHeight,
+    wishInputKind,
+    lineGuideId,
+  );
+  const usesStrokeBaseline =
+    usesStrokeBaselineLayout(slot, lineGuideId) ||
+    usesPregnancyGuideRuledTextLayout(lineGuideId, slot);
+  const textLineHeight = usesStrokeBaseline ? typography.fontSize : typography.lineHeight;
+  const baselineY = getTemplateLinePdfBaselineY(slot, fontSize, lineGuideId);
+  const capRatio = getAlbumFontPreviewCapHeightRatio(fontId);
+  const containerTop = baselineY - typography.fontSize * capRatio;
+
+  return {
+    containerTop,
+    containerHeight: textLineHeight,
+    textTop: 0,
+    textLineHeight,
+    fontSize: typography.fontSize,
+    overflow: usesStrokeBaseline ? 'visible' : 'hidden',
+  };
+}
 
 function applyTemplateLineStrokeClearance(
   top: number,

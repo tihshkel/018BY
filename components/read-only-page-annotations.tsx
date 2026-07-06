@@ -1,8 +1,8 @@
 import { useFonts } from 'expo-font';
-import { Image } from 'expo-image';
 import React, { useMemo } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { AlbumPhotoImageRaw } from '@/components/album/album-photo-image';
 import type { Annotation } from '@/components/pdf-annotations';
 import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
@@ -11,15 +11,8 @@ import { getLineSlotsForPage, getPregnancyWeeklyFieldStartIndex } from '@/utils/
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   distributeTextForTemplateAnnotation,
-  getEffectiveTemplateFontSize,
   getTemplateBlockTextInsets,
-  getTemplateLineRowInsets,
-  getTemplateLineTextTop,
-  getTemplateLineTypography,
-  getWishSlotInputKind,
-  truncateTextToSlotWidth,
-  usesStrokeBaselineLayout,
-  usesPregnancyGuideRuledTextLayout,
+  getTemplateLineReadOnlyTextLayout,
 } from '@/utils/templateLineText';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
@@ -196,45 +189,15 @@ function ReadOnlyPageAnnotationsInner({
             return (
               <React.Fragment key={annotation.id}>
                 {linesToRender.map((row) => {
-                  const effectiveFontSize = getEffectiveTemplateFontSize(
-                    lineGuideId,
-                    row.lineSlot,
+                  const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
+                    slot: row.lineSlot,
                     fontSize,
-                  );
-                  const rowTop = getTemplateLineTextTop(
-                    row.lineSlot,
-                    effectiveFontSize,
                     lineGuideId,
-                    lineSlots,
-                    fieldStartForLayout,
-                  );
-                  const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
-                  const rowTypography = getTemplateLineTypography(
-                    effectiveFontSize,
-                    row.lineSlot.lineHeight,
-                    wishInputKind,
-                    lineGuideId,
-                  );
-                  const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
-                    row.lineSlot,
-                    rowTypography.fontSize,
-                    wishInputKind,
-                    lineGuideId,
-                  );
+                    fontId: annotation.fontFamily,
+                    allSlots: lineSlots,
+                    fieldStartIndex: fieldStartForLayout,
+                  });
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-                  const displayContent = truncateTextToSlotWidth(
-                    row.content,
-                    row.lineSlot,
-                    rowTypography.fontSize,
-                    lineGuideId,
-                    annotation.fontFamily,
-                  );
-                  const usesStrokeBaseline =
-                    usesStrokeBaselineLayout(row.lineSlot, lineGuideId) ||
-                    usesPregnancyGuideRuledTextLayout(lineGuideId, row.lineSlot);
-                  const textLineHeight = usesStrokeBaseline
-                    ? rowTypography.fontSize
-                    : rowTypography.lineHeight;
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
@@ -242,11 +205,11 @@ function ReadOnlyPageAnnotationsInner({
                         styles.annotation,
                         {
                           left: row.lineSlot.x,
-                          top: rowTop - viewportTopInset,
+                          top: readOnlyLayout.containerTop,
                           width: row.lineSlot.width,
-                          height: textLineHeight + viewportTopInset,
+                          height: readOnlyLayout.containerHeight,
                           zIndex: annotation.zIndex,
-                          overflow: usesStrokeBaseline ? 'visible' : 'hidden',
+                          overflow: readOnlyLayout.overflow,
                         },
                       ]}
                       pointerEvents="none"
@@ -256,25 +219,21 @@ function ReadOnlyPageAnnotationsInner({
                           styles.text,
                           styles.templateLineText,
                           {
-                            top: textTopInset,
+                            top: readOnlyLayout.textTop,
                             left: textInsets.left,
                             width: textInsets.width,
                             color: annotation.color ?? '#3D3D3D',
-                            fontSize: rowTypography.fontSize,
+                            fontSize: readOnlyLayout.fontSize,
                             fontFamily,
-                            lineHeight: textLineHeight,
+                            lineHeight: readOnlyLayout.textLineHeight,
                             textAlign: annotation.textAlign ?? 'left',
                             includeFontPadding: false,
-                            ...(Platform.OS === 'android' &&
-                              !usesStrokeBaseline && {
-                                textAlignVertical: 'bottom',
-                              }),
                           },
                         ]}
                         numberOfLines={1}
                         ellipsizeMode="clip"
                       >
-                        {displayContent}
+                        {row.content}
                       </Text>
                     </View>
                   );
@@ -405,28 +364,20 @@ function ReadOnlyPageAnnotationsInner({
             <View style={[styles.imageClip, circleClipStyle]}>
               {innerStyle ? (
                 <View style={[styles.imageInner, innerStyle]}>
-                  <Image
-                    source={{ uri: annotation.imageUri }}
+                  <AlbumPhotoImageRaw
+                    uri={annotation.imageUri}
                     style={styles.imageFill}
                     contentFit={annotation.imageContentFit ?? 'cover'}
-                    cachePolicy="disk"
-                    transition={0}
-                    fadeDuration={0}
-                    allowDownscaling
                     recyclingKey={annotation.id}
                     onLoad={handleAnnotationImageSettled}
                     onError={handleAnnotationImageFailed}
                   />
                 </View>
               ) : (
-                <Image
-                  source={{ uri: annotation.imageUri }}
+                <AlbumPhotoImageRaw
+                  uri={annotation.imageUri}
                   style={styles.imageFill}
                   contentFit={annotation.imageContentFit ?? 'cover'}
-                  cachePolicy="disk"
-                  transition={0}
-                  fadeDuration={0}
-                  allowDownscaling
                   recyclingKey={annotation.id}
                   onLoad={handleAnnotationImageSettled}
                   onError={handleAnnotationImageFailed}

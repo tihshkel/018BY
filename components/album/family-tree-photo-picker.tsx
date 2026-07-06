@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
+
+import { AlbumPhotoImage } from '@/components/album/album-photo-image';
 
 import { AppText } from '@/components/ui';
 import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
@@ -76,7 +77,7 @@ export function FamilyTreePhotoPicker({
               accessibilityLabel={slot.label}
             >
               {uri ? (
-                <Image source={{ uri }} style={styles.slotImage} contentFit="cover" />
+                <AlbumPhotoImage uri={uri} style={styles.slotImage} />
               ) : (
                 <AppText variant="caption" style={styles.slotPlaceholder}>
                   +

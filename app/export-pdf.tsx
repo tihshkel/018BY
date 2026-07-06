@@ -517,6 +517,7 @@ export default function ExportPdfScreen() {
     imageUri: string;
     annotations: Annotation[];
     pageNumber: number;
+    sourcePageNumber?: number;
     viewport: { width: number; height: number };
     lineGuideId?: string;
     sourceWidth?: number;
@@ -2060,6 +2061,8 @@ export default function ExportPdfScreen() {
                       imageUri: optimizedPageUri,
                       annotations: pageAnnotations,
                       pageNumber,
+                      sourcePageNumber:
+                        exportPageBundle?.schema.sourcePageNumber ?? pageNumber,
                       viewport: pagesViewport,
                       lineGuideId: resolvedLineGuideId || undefined,
                       sourceWidth: pageSourceSize.width,
@@ -3074,6 +3077,7 @@ export default function ExportPdfScreen() {
               width={renderingPage.viewport.width}
               height={renderingPage.viewport.height}
               lineGuideId={renderingPage.lineGuideId}
+              sourcePageNumber={renderingPage.sourcePageNumber ?? renderingPage.pageNumber}
               sourceWidth={renderingPage.sourceWidth}
               sourceHeight={renderingPage.sourceHeight}
               captureFormat="jpg"

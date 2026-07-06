@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppButton, AppCard, AppText } from '@/components/ui';
+import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type {
   AlbumPageSchema,
@@ -108,65 +109,18 @@ export function BirthdayFreePageEditor({
         const displayLabel = def?.defaultLabel ?? field.label;
 
         return (
-          <View key={field.id} style={styles.fieldBlock}>
-            {allowFieldCrud ? (
-              <>
-                <View style={styles.fieldHeader}>
-                  <AppText variant="caption" style={styles.fieldIndex}>
-                    {displayLabel || 'Новое поле'}
-                  </AppText>
-                  {fields.length > 1 ? (
-                    <Pressable onPress={() => removeField(field.id)} hitSlop={8}>
-                      <AppText variant="caption" style={styles.removeLink}>
-                        Удалить
-                      </AppText>
-                    </Pressable>
-                  ) : null}
-                </View>
-
-                <AppText variant="caption" style={styles.inputLabel}>
-                  Название поля
-                </AppText>
-                <TextInput
-                  style={styles.input}
-                  value={field.label}
-                  onChangeText={(text) =>
-                    updateField(field.id, { label: clampCustomFieldLabel(text, labelLimit) })
-                  }
-                  placeholder={def?.defaultLabel ?? 'Название поля'}
-                  placeholderTextColor={colors.textSecondary}
-                  maxLength={labelLimit}
-                />
-              </>
-            ) : (
-              <AppText variant="caption" style={styles.fixedLabel}>
-                {displayLabel}
-              </AppText>
-            )}
-
-            {allowFieldCrud ? (
-              <AppText variant="caption" style={styles.inputLabel}>
-                Значение
-              </AppText>
-            ) : null}
-            <TextInput
-              style={[styles.input, field.fieldType === 'long_text' && styles.inputMultiline]}
-              value={field.value}
-              onChangeText={(text) =>
-                updateField(field.id, {
-                  value: clampCustomFieldValue(text, field.fieldType, valueLimit),
-                })
-              }
-              placeholder="Введите текст"
-              placeholderTextColor={colors.textSecondary}
-              multiline={field.fieldType === 'long_text'}
-              maxLength={valueLimit}
-              accessibilityLabel={displayLabel}
-            />
-            <AppText variant="caption" style={styles.counter}>
-              {field.value.length} / {valueLimit}
-            </AppText>
-          </View>
+          <BirthdayFieldBlock
+            key={field.id}
+            field={field}
+            def={def}
+            displayLabel={displayLabel}
+            labelLimit={labelLimit}
+            valueLimit={valueLimit}
+            allowFieldCrud={allowFieldCrud}
+            canRemove={fields.length > 1}
+            onRemove={() => removeField(field.id)}
+            onUpdate={(patch) => updateField(field.id, patch)}
+          />
         );
       })}
 
@@ -176,6 +130,96 @@ export function BirthdayFreePageEditor({
         </AppButton>
       ) : null}
     </AppCard>
+  );
+}
+
+type BirthdayFieldBlockProps = {
+  field: BirthdayCustomFieldValue;
+  def: BirthdayCustomFieldDef | undefined;
+  displayLabel: string;
+  labelLimit: number;
+  valueLimit: number;
+  allowFieldCrud: boolean;
+  canRemove: boolean;
+  onRemove: () => void;
+  onUpdate: (patch: Partial<BirthdayCustomFieldValue>) => void;
+};
+
+function BirthdayFieldBlock({
+  field,
+  def,
+  displayLabel,
+  labelLimit,
+  valueLimit,
+  allowFieldCrud,
+  canRemove,
+  onRemove,
+  onUpdate,
+}: BirthdayFieldBlockProps) {
+  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
+
+  return (
+    <View ref={fieldRef} style={styles.fieldBlock} collapsable={false}>
+      {allowFieldCrud ? (
+        <>
+          <View style={styles.fieldHeader}>
+            <AppText variant="caption" style={styles.fieldIndex}>
+              {displayLabel || 'Новое поле'}
+            </AppText>
+            {canRemove ? (
+              <Pressable onPress={onRemove} hitSlop={8}>
+                <AppText variant="caption" style={styles.removeLink}>
+                  Удалить
+                </AppText>
+              </Pressable>
+            ) : null}
+          </View>
+
+          <AppText variant="caption" style={styles.inputLabel}>
+            Название поля
+          </AppText>
+          <TextInput
+            style={styles.input}
+            value={field.label}
+            onChangeText={(text) =>
+              onUpdate({ label: clampCustomFieldLabel(text, labelLimit) })
+            }
+            placeholder={def?.defaultLabel ?? 'Название поля'}
+            placeholderTextColor={colors.textSecondary}
+            maxLength={labelLimit}
+            onFocus={onInputFocus}
+          />
+        </>
+      ) : (
+        <AppText variant="caption" style={styles.fixedLabel}>
+          {displayLabel}
+        </AppText>
+      )}
+
+      {allowFieldCrud ? (
+        <AppText variant="caption" style={styles.inputLabel}>
+          Значение
+        </AppText>
+      ) : null}
+      <TextInput
+        style={[styles.input, field.fieldType === 'long_text' && styles.inputMultiline]}
+        value={field.value}
+        onChangeText={(text) =>
+          onUpdate({
+            value: clampCustomFieldValue(text, field.fieldType, valueLimit),
+          })
+        }
+        placeholder="Введите текст"
+        placeholderTextColor={colors.textSecondary}
+        multiline={field.fieldType === 'long_text'}
+        maxLength={valueLimit}
+        accessibilityLabel={displayLabel}
+        onFocus={onInputFocus}
+      />
+      <AppText variant="caption" style={styles.counter}>
+        {field.value.length} / {valueLimit}
+      </AppText>
+    </View>
   );
 }
 

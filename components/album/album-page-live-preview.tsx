@@ -6,6 +6,7 @@ import PageRenderer, { type PageRendererRef } from '@/components/page-renderer';
 import { AppText } from '@/components/ui';
 import { colors, spacing } from '@/constants/design-tokens';
 import { useAlbumPagePreviewLayout } from '@/hooks/use-album-editor-layout';
+import { resolveEditorPageSourceSize } from '@/utils/pageSourceDimensions';
 import type { Annotation } from '@/components/pdf-annotations';
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 
@@ -13,6 +14,7 @@ type AlbumPageLivePreviewProps = {
   imageUri?: string | null;
   annotations: Annotation[];
   lineGuideId: string;
+  sourcePageNumber?: number;
   hint?: string;
   photoOverlay?: {
     sourcePageNumber: number;
@@ -28,13 +30,32 @@ export function AlbumPageLivePreview({
   imageUri,
   annotations,
   lineGuideId,
+  sourcePageNumber,
   hint = 'Предпросмотр — так страница будет выглядеть в альбоме. Нажмите на зону «Место для фото», чтобы добавить снимок.',
   photoOverlay,
 }: AlbumPageLivePreviewProps) {
   const rendererRef = useRef<PageRendererRef>(null);
   const [ready, setReady] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState(1.414);
+  const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(null);
   const previewLayout = useAlbumPagePreviewLayout(imageAspectRatio);
+  const resolvedSourceSize = useMemo(
+    () =>
+      resolveEditorPageSourceSize({
+        lineGuideId,
+        measured: sourceSize,
+        viewportFallback: {
+          width: previewLayout.coordinateWidth,
+          height: previewLayout.coordinateHeight,
+        },
+      }),
+    [
+      lineGuideId,
+      previewLayout.coordinateHeight,
+      previewLayout.coordinateWidth,
+      sourceSize,
+    ],
+  );
 
   useEffect(() => {
     setReady(false);
@@ -42,6 +63,7 @@ export function AlbumPageLivePreview({
 
   const handleSourceSize = useCallback((size: { width: number; height: number }) => {
     if (size.width > 0 && size.height > 0) {
+      setSourceSize({ width: size.width, height: size.height });
       setImageAspectRatio(size.height / size.width);
       setReady(true);
     }
@@ -88,7 +110,10 @@ export function AlbumPageLivePreview({
                 annotations={annotations}
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
+                sourceWidth={resolvedSourceSize.width}
+                sourceHeight={resolvedSourceSize.height}
                 lineGuideId={lineGuideId}
+                sourcePageNumber={sourcePageNumber}
                 backgroundColor={colors.white}
                 readOnly
                 waitForAnnotationImages={false}

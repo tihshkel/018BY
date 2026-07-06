@@ -105,6 +105,7 @@ export default function AlbumPageFormScreen() {
       <AppScreen
         scroll
         keyboardAware
+        keyboardFooterOffset={88}
         tabletShell
         contentMaxWidth={layout.contentMaxWidth ?? FORM_MODAL_MAX_WIDTH}
         style={styles.screen}

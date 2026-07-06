@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
+import { prefetchAlbumPhotoUri } from '@/components/album/album-photo-image';
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Annotation } from '@/components/pdf-annotations';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { resolveEditorPageSourceSize } from '@/utils/pageSourceDimensions';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
 
@@ -32,13 +34,21 @@ export function usePageAnnotationsForLayout({
 }: UsePageAnnotationsForLayoutParams): Annotation[] {
   const debouncedValues = useDebouncedValue(values, debounceMs);
 
-  return useMemo(() => {
+  const annotations = useMemo(() => {
     const resolvedValues = debounceMs > 0 ? debouncedValues : values;
     if (!instance || !schema || !resolvedValues || viewportWidth <= 0 || viewportHeight <= 0) {
       return [];
     }
 
     const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
+    const resolvedSource = resolveEditorPageSourceSize({
+      lineGuideId,
+      measured:
+        sourceWidth && sourceHeight
+          ? { width: sourceWidth, height: sourceHeight }
+          : null,
+      viewportFallback: { width: viewportWidth, height: viewportHeight },
+    });
 
     return pageValuesToAnnotations({
       lineGuideId,
@@ -47,8 +57,8 @@ export function usePageAnnotationsForLayout({
       values: resolvedValues,
       viewportWidth,
       viewportHeight,
-      sourceWidth,
-      sourceHeight,
+      sourceWidth: resolvedSource.width,
+      sourceHeight: resolvedSource.height,
     });
   }, [
     debounceMs,
@@ -62,4 +72,14 @@ export function usePageAnnotationsForLayout({
     viewportHeight,
     viewportWidth,
   ]);
+
+  useEffect(() => {
+    for (const ann of annotations) {
+      if (ann.type === 'image' && ann.imageUri) {
+        prefetchAlbumPhotoUri(ann.imageUri);
+      }
+    }
+  }, [annotations]);
+
+  return annotations;
 }

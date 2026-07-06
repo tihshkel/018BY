@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
+import { prefetchAlbumPhotoUriAsync } from '@/components/album/album-photo-image';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { flushAlbumProjectPersist } from '@/utils/albumProjectPersist';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
@@ -115,6 +116,8 @@ export function useAlbumPagePhotoEditor({
               }),
             )
           : uri;
+
+      await prefetchAlbumPhotoUriAsync(persistentUri);
 
       updateBlock(blockId, (prev) => {
         const slots = [...prev.slots];

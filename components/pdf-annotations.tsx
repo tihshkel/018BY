@@ -33,7 +33,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
@@ -47,6 +47,7 @@ import type { GetLineSlotsParams } from '@/utils/textLineSlots';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFonts } from 'expo-font';
+import { normalizeAlbumPhotoUri } from '@/components/album/album-photo-image';
 import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -2408,43 +2409,25 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         return (
           <>
             {linesToRender.map((row) => {
-              const rowTop = getTemplateLineTextTop(
-                row.lineSlot,
-                effectiveFontSize,
+              const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
+                slot: row.lineSlot,
+                fontSize: effectiveFontSize,
                 lineGuideId,
-                templateSlots,
-                fieldStartForLayout,
-              );
-              const rowTypography = getTemplateLineTypography(
-                effectiveFontSize,
-                row.lineSlot.lineHeight,
-                getWishSlotInputKind(row.lineSlot, lineGuideId),
-                lineGuideId
-              );
-              const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
-              const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
-                row.lineSlot,
-                rowTypography.fontSize,
-                wishInputKind,
-                lineGuideId
-              );
+                fontId: normalizedFontId,
+                allSlots: templateSlots,
+                fieldStartIndex: fieldStartForLayout,
+              });
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-              const usesStrokeBaseline =
-                usesStrokeBaselineLayout(row.lineSlot, lineGuideId) ||
-                usesPregnancyGuideRuledTextLayout(lineGuideId, row.lineSlot);
-              const textLineHeight = usesStrokeBaseline
-                ? rowTypography.fontSize
-                : rowTypography.lineHeight;
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
                   style={{
                     position: 'absolute',
                     left: row.lineSlot.x,
-                    top: rowTop - viewportTopInset,
+                    top: readOnlyLayout.containerTop,
                     width: row.lineSlot.width,
-                    height: textLineHeight + viewportTopInset,
-                    overflow: 'visible',
+                    height: readOnlyLayout.containerHeight,
+                    overflow: readOnlyLayout.overflow,
                     zIndex: annotation.zIndex,
                   }}
                   pointerEvents="none"
@@ -2455,19 +2438,15 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       styles.templateLineText,
                       {
                         position: 'absolute',
-                        top: textTopInset,
+                        top: readOnlyLayout.textTop,
                         left: textInsets.left,
                         width: textInsets.width,
                         color: currentColor,
-                        fontSize: rowTypography.fontSize,
+                        fontSize: readOnlyLayout.fontSize,
                         fontFamily: currentFontFamily,
-                        lineHeight: textLineHeight,
+                        lineHeight: readOnlyLayout.textLineHeight,
                         includeFontPadding: false,
                         textAlign: getTextAlign(annotation),
-                        ...(Platform.OS === 'android' &&
-                          !usesStrokeBaseline && {
-                            textAlignVertical: 'bottom',
-                          }),
                       },
                     ]}
                     numberOfLines={1}
@@ -2861,7 +2840,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     ]}
                   >
                     <Image
-                      source={{ uri: annotation.imageUri }}
+                      source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
                       style={[
                         styles.imageAnnotation,
                         isBlankAlbumPhoto
@@ -2888,7 +2867,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 </View>
               ) : (
                 <Image
-                  source={{ uri: annotation.imageUri }}
+                  source={{ uri: normalizeAlbumPhotoUri(annotation.imageUri) }}
                   style={[
                     styles.imageAnnotation,
                     photoClipStyle,

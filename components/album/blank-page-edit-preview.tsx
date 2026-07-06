@@ -12,6 +12,7 @@ import {
   getPageFormatForLineGuide,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
+import { resolveEditorPageSourceSize } from '@/utils/pageSourceDimensions';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
 
 type BlankPageEditPreviewProps = {
@@ -56,6 +57,16 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
     [pageValues.photoBlocks],
   );
 
+  const resolvedSourceSize = useMemo(
+    () =>
+      resolveEditorPageSourceSize({
+        lineGuideId: schema.lineGuideId,
+        measured: sourceSize,
+        viewportFallback: { width, height },
+      }),
+    [height, schema.lineGuideId, sourceSize, width],
+  );
+
   const annotations = useMemo(
     () =>
       hasPhotoContent
@@ -66,17 +77,17 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
             values: debouncedPageValues,
             viewportWidth: width,
             viewportHeight: height,
-            sourceWidth: sourceSize?.width,
-            sourceHeight: sourceSize?.height,
+            sourceWidth: resolvedSourceSize.width,
+            sourceHeight: resolvedSourceSize.height,
           })
         : [],
     [
       debouncedPageValues,
       hasPhotoContent,
       height,
+      resolvedSourceSize.height,
+      resolvedSourceSize.width,
       schema,
-      sourceSize?.height,
-      sourceSize?.width,
       width,
     ],
   );
@@ -106,10 +117,12 @@ export const BlankPageEditPreview = React.memo(function BlankPageEditPreview({
             annotations={annotations}
             width={width}
             height={height}
-            sourceWidth={sourceSize?.width}
-            sourceHeight={sourceSize?.height}
+            sourceWidth={resolvedSourceSize.width}
+            sourceHeight={resolvedSourceSize.height}
             lineGuideId={schema.lineGuideId}
+            sourcePageNumber={schema.sourcePageNumber}
             backgroundColor={colors.white}
+            readOnly
             onSourceSize={setSourceSize}
           />
         )}

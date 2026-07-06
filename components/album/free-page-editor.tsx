@@ -12,8 +12,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { Image } from 'expo-image';
-
+import { AlbumPhotoImageRaw, prefetchAlbumPhotoUriAsync } from '@/components/album/album-photo-image';
 import { AppButton, AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, FreePageElement } from '@/types/album-page-schema';
@@ -143,7 +142,11 @@ function DraggableFreeElement({
     <GestureDetector gesture={composed}>
       <Animated.View style={style}>
         {element.type === 'image' && element.content ? (
-          <Image source={{ uri: element.content }} style={styles.fill} contentFit="cover" />
+          <AlbumPhotoImageRaw
+            uri={element.content}
+            style={styles.fill}
+            recyclingKey={`free-${element.id}-${element.content}`}
+          />
         ) : (
           <View style={styles.textPreview}>
             <AppText variant="caption" numberOfLines={3}>
@@ -242,6 +245,7 @@ export function FreePageEditor({
             }),
           )
         : pickedUri;
+    await prefetchAlbumPhotoUriAsync(uri);
     const next: FreePageElement = {
       id: elementId,
       type: 'image',
