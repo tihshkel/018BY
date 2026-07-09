@@ -40,14 +40,64 @@ function isDiaryInteriorLineGuide(lineGuideId?: string): boolean {
   return lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple';
 }
 
-function getEffectiveCharWidthRatio(lineGuideId?: string, fontId?: string): number {
+type WrapWidthSlot = Pick<
+  TextLineSlot,
+  'width' | 'continuationGroup' | 'hasLabel' | 'inputKind' | 'page' | 'index' | 'textAnchorTop'
+>;
+
+function getEffectiveCharWidthRatio(
+  lineGuideId?: string,
+  fontId?: string,
+  slot?: WrapWidthSlot,
+): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
-  return profile.charWidthRatio * getAlbumFontCharWidthMultiplier(fontId);
+  let ratio = profile.charWidthRatio * getAlbumFontCharWidthMultiplier(fontId);
+  if (
+    slot &&
+    lineGuideId &&
+    usesPregnancyGuideRuledTextLayout(lineGuideId, slot) &&
+    !isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
+    (slot.inputKind ?? 'line') === 'line'
+  ) {
+    // Рукописные шрифты в RN уже уже, чем charWidthRatio — иначе перенос раньше края линии.
+    ratio *= 0.88;
+  }
+  return ratio;
 }
 
-function getEffectiveLineWidth(slot: TextLineSlot, lineGuideId?: string): number {
+/** Ширина для переноса: на ruled-строках pregnancy берём максимум группы (OCR-слоты уже линии). */
+function getWrapWidthForSlot(
+  slot: WrapWidthSlot,
+  lineGuideId?: string,
+  allSlots?: readonly TextLineSlot[],
+): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
-  return slot.width * profile.lineWidthSlackRatio;
+  let width = slot.width;
+
+  if (
+    lineGuideId &&
+    usesPregnancyGuideRuledTextLayout(lineGuideId, slot) &&
+    !isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
+    (slot.inputKind ?? 'line') === 'line'
+  ) {
+    if (allSlots && allSlots.length > 0) {
+      const groupId = slot.continuationGroup;
+      const groupLineWidths = allSlots
+        .filter(
+          (candidate) =>
+            candidate.continuationGroup === groupId &&
+            !candidate.hasLabel &&
+            (candidate.inputKind ?? 'line') === 'line',
+        )
+        .map((candidate) => candidate.width);
+      if (groupLineWidths.length > 0) {
+        width = Math.max(width, ...groupLineWidths);
+      }
+    }
+    return width * Math.min(1.06, profile.lineWidthSlackRatio + 0.06);
+  }
+
+  return width * profile.lineWidthSlackRatio;
 }
 
 function getCharWidthFactor(char: string, charWidthRatio: number): number {
@@ -74,7 +124,8 @@ function measureTextLineWidth(
   fittedFontSize: number,
   lineGuideId: string | undefined,
   fontId: string | undefined,
-  measureTextWidth?: TextWidthMeasure
+  measureTextWidth?: TextWidthMeasure,
+  slot?: WrapWidthSlot,
 ): number {
   if (measureTextWidth) {
     return measureTextWidth(text, fittedFontSize);
@@ -82,7 +133,7 @@ function measureTextLineWidth(
   return estimateTextWidth(
     text,
     fittedFontSize,
-    getEffectiveCharWidthRatio(lineGuideId, fontId)
+    getEffectiveCharWidthRatio(lineGuideId, fontId, slot),
   );
 }
 
@@ -92,13 +143,14 @@ export function textFitsInSlot(
   fontSize: number,
   lineGuideId?: string,
   fontId?: string,
-  measureTextWidth?: TextWidthMeasure
+  measureTextWidth?: TextWidthMeasure,
+  allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (!text) return true;
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
   return (
-    measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth) <=
-    getEffectiveLineWidth(slot, lineGuideId)
+    measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth, slot) <=
+    getWrapWidthForSlot(slot, lineGuideId, allSlots)
   );
 }
 
@@ -108,10 +160,11 @@ function splitWordToFit(
   fontSize: number,
   lineGuideId?: string,
   fontId?: string,
-  measureTextWidth?: TextWidthMeasure
+  measureTextWidth?: TextWidthMeasure,
+  allSlots?: readonly TextLineSlot[],
 ): { line: string; rest: string } {
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
-  const charWidthRatio = getEffectiveCharWidthRatio(lineGuideId, fontId);
+  const charWidthRatio = getEffectiveCharWidthRatio(lineGuideId, fontId, slot);
 
   let line = '';
   for (const ch of word) {
@@ -119,7 +172,7 @@ function splitWordToFit(
     const width = measureTextWidth
       ? measureTextWidth(candidate, fitted)
       : estimateTextWidth(candidate, fitted, charWidthRatio);
-    if (width <= getEffectiveLineWidth(slot, lineGuideId)) {
+    if (width <= getWrapWidthForSlot(slot, lineGuideId, allSlots)) {
       line = candidate;
       continue;
     }
@@ -265,6 +318,9 @@ function getStrokeBaselineFontOffset(
   if (lineGuideId === 'pregnancy_a5' && slot.page === 44) {
     return 0.84;
   }
+  if (lineGuideId === 'pregnancy_60' && slot.page === 52) {
+    return 0.84;
+  }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
     const isBrownCoverField =
       lineGuideId === 'diary_interior_brown' &&
@@ -313,6 +369,9 @@ export function usesStrokeBaselineLayout(
   if (!Boolean(slot.lineStrokeAtBottom)) return false;
   if (lineGuideId === 'kids_48') return true;
   if (lineGuideId === 'pregnancy_a5' && slot.page === 44) return true;
+  if (lineGuideId === 'pregnancy_60' && slot.page === 52 && slot.lineStrokeAtBottom) {
+    return true;
+  }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
     return !isDiaryPeachCellField(slot);
   }
@@ -592,6 +651,14 @@ function resolveTemplateTextVerticalRatios(
     return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
   }
 
+  if (lineGuideId === 'pregnancy_60' && slot.page === 52 && inputKind === 'block') {
+    const normHeight = slot.normHeight ?? 0;
+    if (normHeight <= 0.032) {
+      return { centerRatio: 0.34, fontOffsetRatio: 0.78 };
+    }
+    return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
+  }
+
   if (
     (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
     inputKind === 'line'
@@ -681,6 +748,16 @@ export function getTemplateBlockTextInsets(
   if (
     lineGuideId === 'pregnancy_a5' &&
     slot.page === 44 &&
+    slot.inputKind === 'block' &&
+    slot.width <= 0.2 &&
+    !slot.hasLabel
+  ) {
+    const pad = slot.width * 0.07;
+    return { left: pad, width: Math.max(0, slot.width - pad * 2) };
+  }
+  if (
+    lineGuideId === 'pregnancy_60' &&
+    slot.page === 52 &&
     slot.inputKind === 'block' &&
     slot.width <= 0.2 &&
     !slot.hasLabel
@@ -902,6 +979,16 @@ export function getTemplateLineTextTop(
       lineGuideId,
     );
     top = slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+  } else if (usesStrokeBaselineLayout(slot, lineGuideId)) {
+    const lineY = slot.y + slot.lineHeight;
+    const lineFitted = fitFontSizeToSlot(
+      fontSize,
+      slot.lineHeight,
+      inputKind,
+      lineGuideId,
+    );
+    top = lineY - lineFitted * getStrokeBaselineFontOffset(slot, lineGuideId);
+    return top;
   } else if (
     usesPregnancyGuideRuledTextLayout(lineGuideId, slot) &&
     inputKind === 'line' &&
@@ -914,16 +1001,6 @@ export function getTemplateLineTextTop(
       fieldStartIndex,
     );
     return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO;
-  } else if (usesStrokeBaselineLayout(slot, lineGuideId)) {
-    const lineY = slot.y + slot.lineHeight;
-    const lineFitted = fitFontSizeToSlot(
-      fontSize,
-      slot.lineHeight,
-      inputKind,
-      lineGuideId,
-    );
-    top = lineY - lineFitted * getStrokeBaselineFontOffset(slot, lineGuideId);
-    return top;
   } else if (
     lineGuideId === 'holidays_birthday_60' &&
     slot.page === 48 &&
@@ -1095,7 +1172,8 @@ function consumeOneLineForSlot(
   fontSize: number,
   lineGuideId?: string,
   fontId?: string,
-  measureTextWidth?: TextWidthMeasure
+  measureTextWidth?: TextWidthMeasure,
+  allSlots?: readonly TextLineSlot[],
 ): { line: string; rest: string } {
   const withoutLeading = text.replace(/^\s+/, '');
   const trailingMatch = withoutLeading.match(/(\s+)$/);
@@ -1114,7 +1192,7 @@ function consumeOneLineForSlot(
 
   for (const word of words) {
     const testLine = built ? `${built} ${word}` : word;
-    if (textFitsInSlot(testLine, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
+    if (textFitsInSlot(testLine, slot, fontSize, lineGuideId, fontId, measureTextWidth, allSlots)) {
       built = testLine;
       wordCount += 1;
       continue;
@@ -1124,7 +1202,7 @@ function consumeOneLineForSlot(
       return { line: built + trailingSpaces, rest: words.slice(wordCount).join(' ') };
     }
 
-    if (textFitsInSlot(word, slot, fontSize, lineGuideId, fontId, measureTextWidth)) {
+    if (textFitsInSlot(word, slot, fontSize, lineGuideId, fontId, measureTextWidth, allSlots)) {
       return { line: word + trailingSpaces, rest: words.slice(1).join(' ') };
     }
 
@@ -1134,7 +1212,8 @@ function consumeOneLineForSlot(
       fontSize,
       lineGuideId,
       fontId,
-      measureTextWidth
+      measureTextWidth,
+      allSlots,
     );
     const tail = [wordRest, ...words.slice(1)].filter(Boolean).join(' ');
     return { line: line + trailingSpaces, rest: tail };
@@ -1159,7 +1238,7 @@ export function getTailAfterFirstLine(params: {
   const startSlot = slots[startSlotIndex];
   if (!startSlot) return '';
 
-  return consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId).rest;
+  return consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId, undefined, slots).rest;
 }
 
 /**
@@ -1181,7 +1260,7 @@ export function getFirstLineInputValue(params: {
   const startSlot = slots[startSlotIndex];
   if (!startSlot) return trimmed;
 
-  const { rest } = consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId);
+  const { rest } = consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId, undefined, slots);
   if (!rest) return trimmed;
 
   return trimmed.slice(0, trimmed.length - rest.length);
@@ -1347,7 +1426,8 @@ export function distributeTextWithinContinuationGroup(params: {
       fontSize,
       lineGuideId,
       fontId,
-      measureTextWidth
+      measureTextWidth,
+      slots,
     );
     const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
     segments.push({ slotIndex: slot.index, content });
@@ -1506,6 +1586,7 @@ export function distributeTextWithinFieldLines(params: {
       lineGuideId,
       fontId,
       measureTextWidth,
+      slots,
     );
     const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
     segments.push({ slotIndex: slot.index, content });

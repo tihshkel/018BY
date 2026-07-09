@@ -6,6 +6,8 @@ const { applyDiaryLineSlotOverrides } = require('./diary-line-slot-overrides');
 const { filterPregnancyA5LineSlots } = require('./pregnancy-a5-line-slot-filters');
 const { applyPregnancyA5Page44LineSlotOverrides } = require('./pregnancy-a5-page44-line-slot-overrides');
 const { PREGNANCY_A5_PAGE44_OPTION_FILLS } = require('./pregnancy-a5-page44-option-fills');
+const { applyPregnancy60Page52LineSlotOverrides } = require('./pregnancy-60-page52-line-slot-overrides');
+const { PREGNANCY_60_PAGE52_OPTION_FILLS } = require('./pregnancy-60-page52-option-fills');
 const { buildDiaryMoodOptionFillsManifest } = require('./diary-mood-option-fills');
 const { PNG } = require('pngjs');
 
@@ -1282,6 +1284,13 @@ async function main() {
       console.log(`[${spec.albumId}] applied page 44 birth questionnaire block overrides`);
     }
 
+    if (spec.albumId === 'pregnancy_60') {
+      const page52 = applyPregnancy60Page52LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = page52.slots;
+      albumGuides = page52.guides;
+      console.log(`[${spec.albumId}] applied page 52 birth questionnaire block overrides`);
+    }
+
     if (process.env.ONLY_PAGE && lineSlots[spec.albumId]) {
       lineSlots[spec.albumId] = { ...lineSlots[spec.albumId], ...albumSlots };
       lineGuides[spec.albumId] = { ...lineGuides[spec.albumId], ...albumGuides };
@@ -1347,6 +1356,11 @@ async function main() {
       ...(circleSlots.pregnancy_a5['44'] ?? {}),
       optionFills: PREGNANCY_A5_PAGE44_OPTION_FILLS,
     };
+    circleSlots.pregnancy_60 = circleSlots.pregnancy_60 ?? {};
+    circleSlots.pregnancy_60['52'] = {
+      ...(circleSlots.pregnancy_60['52'] ?? {}),
+      optionFills: PREGNANCY_60_PAGE52_OPTION_FILLS,
+    };
     const diaryMoodFills = buildDiaryMoodOptionFillsManifest();
     for (const [albumId, pages] of Object.entries(diaryMoodFills)) {
       circleSlots[albumId] = circleSlots[albumId] ?? {};
@@ -1358,7 +1372,7 @@ async function main() {
       }
     }
     fs.writeFileSync(circleSlotsFile, `${JSON.stringify(circleSlots, null, 2)}\n`, 'utf8');
-    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + diary mood fills)');
+    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + pregnancy_60 p52 + diary mood fills)');
   }
 
   console.log('✅ Wrote', path.relative(projectRoot, slotsFile));

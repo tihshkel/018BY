@@ -403,7 +403,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: понедельник",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -411,7 +411,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: четверг",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -419,7 +419,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: вторник",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -427,7 +427,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: пятница",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -435,7 +435,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: среда",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -443,7 +443,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: суббота",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -451,7 +451,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рекомендации врача",
           "type": "text",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 15,
           "templateLineCount": 3
         }
       ],
@@ -3640,14 +3640,26 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "date",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_60_p52_baby_gender",
+          "label": "Пол",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Мальчик",
+            "Девочка"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_baby_weight",
           "label": "Вес",
           "type": "number",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -3655,7 +3667,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рост",
           "type": "number",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -3663,7 +3675,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "День недели",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -3671,7 +3683,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Время",
           "type": "time",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -3679,23 +3691,51 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Естественные роды / Кесарево",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 12,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "pregnancy_60_p52_stimulation",
+          "label": "Стимуляция",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
+        },
+        {
+          "fieldId": "pregnancy_60_p52_tears",
+          "label": "Разрывы",
+          "type": "radio",
+          "required": false,
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_cord",
           "label": "Обвитие",
-          "type": "text",
+          "type": "radio",
           "required": false,
-          "templateLineStart": 14,
-          "templateLineCount": 1
+          "templateLineStart": 0,
+          "templateLineCount": 1,
+          "options": [
+            "Да",
+            "Нет"
+          ]
         },
         {
           "fieldId": "pregnancy_60_p52_condition",
           "label": "Общее состояние",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -3703,7 +3743,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата выписки из роддома",
           "type": "date",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -3711,7 +3751,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Сколько дней провела в роддоме",
           "type": "text",
           "required": false,
-          "templateLineStart": 17,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -3719,8 +3759,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Кто пришёл на выписку",
           "type": "text",
           "required": false,
-          "templateLineStart": 18,
-          "templateLineCount": 1
+          "templateLineStart": 16,
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,

@@ -9,9 +9,9 @@ const {
   FUTURE_DAD_FIELDS,
   PAGE4_FIELDS,
   PAGE6_FIELDS,
-  BIRTH_QUESTIONNAIRE_60,
   ALREADY_MOM_FIELDS,
   buildFieldsFromSpec,
+  buildBirthQuestionnaire60Fields,
   buildNameChoiceFields,
   buildShoppingListFields,
   buildTodoListFields,
@@ -97,7 +97,7 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
       return tzOverride({
         title: 'Анкета родов',
         pageType: 'structured',
-        fields: buildFieldsFromSpec(lineGuideId, pageNumber, slots, BIRTH_QUESTIONNAIRE_60),
+        fields: buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots),
       });
     case 53:
       return tzOverride({

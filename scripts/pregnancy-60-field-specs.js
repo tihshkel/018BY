@@ -274,6 +274,11 @@ function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
   ];
 }
 
+/** pregnancy_60 p52 / A5 p44: grid layout — explicit slot indices, not sequential cursor. */
+function buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots) {
+  return buildBirthQuestionnaireA5Fields(lineGuideId, pageNumber, slots);
+}
+
 /** A5 p44: grid layout — explicit slot indices, not sequential cursor. */
 function buildBirthQuestionnaireA5Fields(lineGuideId, pageNumber, slots) {
   return [
@@ -430,6 +435,7 @@ module.exports = {
   buildTodoListFields,
   buildBirthStoryFields,
   buildBirthQuestionnaireA5Fields,
+  buildBirthQuestionnaire60Fields,
   buildAlreadyMomFields,
   buildRadioField,
   PREGNANCY_FORM_FILL,

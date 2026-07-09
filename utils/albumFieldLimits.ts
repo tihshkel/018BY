@@ -102,12 +102,16 @@ function getFamilyTreeFieldLimit(params: FieldLimitParams): number | undefined {
 
 /** Постановка на учёт: телефон — одна строка на макете, длинный ввод не помещается. */
 function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
-  if (
-    params.lineGuideId === 'pregnancy_60' &&
-    params.sourcePageNumber === 4 &&
-    params.field.fieldId === 'pregnancy_60_p4_phone'
-  ) {
+  if (params.lineGuideId !== 'pregnancy_60' || params.sourcePageNumber !== 4) {
+    return undefined;
+  }
+
+  if (params.field.fieldId === 'pregnancy_60_p4_phone') {
     return 25;
+  }
+
+  if (params.field.fieldId === 'pregnancy_60_p4_wellbeing') {
+    return 84;
   }
 
   return undefined;

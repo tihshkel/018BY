@@ -1,0 +1,100 @@
+/**
+ * Radio option rect fills for pregnancy_60 page 52 — coords from design_previews/page_052_design.png.
+ */
+
+const PREGNANCY_FORM_FILL = '#E8C4A8';
+
+const PREGNANCY_60_PAGE52_OPTION_FILLS = [
+  {
+    id: 'gender_boy',
+    fieldId: 'pregnancy_60_p52_baby_gender',
+    option: 'Мальчик',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.17,
+    y: 0.424,
+    width: 0.0395,
+    height: 0.028,
+  },
+  {
+    id: 'gender_girl',
+    fieldId: 'pregnancy_60_p52_baby_gender',
+    option: 'Девочка',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.355,
+    y: 0.424,
+    width: 0.0395,
+    height: 0.028,
+  },
+  {
+    id: 'stimulation_yes',
+    fieldId: 'pregnancy_60_p52_stimulation',
+    option: 'Да',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.6724,
+    y: 0.424,
+    width: 0.039,
+    height: 0.028,
+  },
+  {
+    id: 'stimulation_no',
+    fieldId: 'pregnancy_60_p52_stimulation',
+    option: 'Нет',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.7621,
+    y: 0.424,
+    width: 0.039,
+    height: 0.028,
+  },
+  {
+    id: 'tears_yes',
+    fieldId: 'pregnancy_60_p52_tears',
+    option: 'Да',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.6724,
+    y: 0.464,
+    width: 0.039,
+    height: 0.028,
+  },
+  {
+    id: 'tears_no',
+    fieldId: 'pregnancy_60_p52_tears',
+    option: 'Нет',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.7621,
+    y: 0.464,
+    width: 0.039,
+    height: 0.028,
+  },
+  {
+    id: 'cord_yes',
+    fieldId: 'pregnancy_60_p52_cord',
+    option: 'Да',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.6724,
+    y: 0.504,
+    width: 0.039,
+    height: 0.028,
+  },
+  {
+    id: 'cord_no',
+    fieldId: 'pregnancy_60_p52_cord',
+    option: 'Нет',
+    fillColor: PREGNANCY_FORM_FILL,
+    shape: 'rect',
+    x: 0.7621,
+    y: 0.504,
+    width: 0.039,
+    height: 0.028,
+  },
+];
+
+module.exports = {
+  PREGNANCY_60_PAGE52_OPTION_FILLS,
+};

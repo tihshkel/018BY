@@ -1083,8 +1083,12 @@ function refineNormalizedSlotForTextLayout(
   }
 
   const isBlock = refined.inputKind === 'block';
-  const xInset = isBlock ? 0 : refined.hasLabel ? 0.003 : 0.006;
-  const widthTrim = isBlock ? 0 : refined.hasLabel ? 0.004 : 0.01;
+  const isPregnancyRuledLine =
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    !isBlock &&
+    !refined.hasLabel;
+  const xInset = isBlock ? 0 : refined.hasLabel ? 0.003 : isPregnancyRuledLine ? 0.003 : 0.006;
+  const widthTrim = isBlock ? 0 : refined.hasLabel ? 0.004 : isPregnancyRuledLine ? 0.004 : 0.01;
   const x = clamp01(refined.x + xInset);
   const width = Math.max(0.05, Math.min(refined.width - widthTrim, 0.98 - x));
 

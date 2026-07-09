@@ -179,11 +179,15 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     const displayText = isTeethToothDate ? formatAlbumDateDayMonth(text) : text;
     if (!displayText) continue;
 
-    const startSlot = slots[field.templateLineStart];
-    if (!startSlot) continue;
+    const startIndex = field.templateLineStart;
+    if (!slots[startIndex]) continue;
 
     const fieldFontSize = isTeethToothDate ? KIDS48_TEETH_TOOTH_DATE_FONT_SIZE : fontSize;
-    const layout = layoutTextAnnotationFromSlot(startSlot, fieldFontSize, lineGuideId);
+    const layout = layoutTextAnnotationFromSlot(
+      slots[startIndex],
+      fieldFontSize,
+      lineGuideId,
+    );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
       type: 'text',
@@ -195,7 +199,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
-      templateLineStart: field.templateLineStart,
+      templateLineStart: startIndex,
       templateLineCount: field.templateLineCount ?? 1,
     });
   }
