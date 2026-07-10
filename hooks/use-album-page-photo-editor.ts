@@ -42,6 +42,7 @@ export function useAlbumPagePhotoEditor({
   const photoBlocks = pageValues.photoBlocks;
 
   const showCaption = resolvedSchema?.captionEnabled === true;
+  const captionMaxLength = resolvedSchema?.captionMaxLength;
   const showPerPhotoCaptions =
     resolvedSchema?.pageType === 'caption_photo_page' ||
     resolvedSchema?.pageType === 'birthday_free_page';
@@ -238,6 +239,7 @@ export function useAlbumPagePhotoEditor({
     blocks,
     photoBlocks,
     showCaption,
+    captionMaxLength,
     showPerPhotoCaptions,
     updatePageValues,
     handlePickPhoto,

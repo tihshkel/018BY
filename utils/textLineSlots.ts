@@ -10,6 +10,7 @@ import {
   isKids48CalibratedDateLineSlot,
   isKidsMonthPage,
   KIDS48_P8_DATE_LINE,
+  KIDS48_P13_CRAWLS_LINE,
   KIDS48_P16_DREAMS_DATE_LINE,
   KIDS48_P10_FIRST_BRUSHING_LINE,
   KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH,
@@ -919,6 +920,20 @@ function refineKids48Page16DreamsDateLineSlotNorm(
   };
 }
 
+/** p13 «Ползаю» — сдвиг зоны ввода вправо, как у «Держу голову». */
+function refineKids48Page13CrawlsSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (page !== 13 || slotIndex !== 3) return norm;
+  return {
+    ...norm,
+    x: KIDS48_P13_CRAWLS_LINE.writableX,
+    width: KIDS48_P13_CRAWLS_LINE.writableWidth,
+  };
+}
+
 function refineKids48Page10FirstBrushingSlotNorm(
   page: number,
   norm: NormalizedLineSlot,
@@ -1006,6 +1021,10 @@ function refineNormalizedSlotForTextLayout(
 
   if (lineGuideId === 'kids_48' && page === 16) {
     return refineKids48Page16DreamsDateLineSlotNorm(page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && page === 13) {
+    return refineKids48Page13CrawlsSlotNorm(page, norm, slotIndex);
   }
 
   if (lineGuideId === 'kids_48' && page === 10) {

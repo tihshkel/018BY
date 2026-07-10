@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -67,8 +67,9 @@ function PhotoSlotFilled({
   const scale = useSharedValue(transform.scale || 1);
   const offsetX = useSharedValue(transform.offsetX || 0);
   const offsetY = useSharedValue(transform.offsetY || 0);
-  const slotWidth = useSharedValue(120);
-  const slotHeight = useSharedValue(120);
+  const slotWidth = useSharedValue(0);
+  const slotHeight = useSharedValue(0);
+  const [slotLayoutKey, setSlotLayoutKey] = useState<string | null>(null);
 
   useEffect(() => {
     const next = normalizePhotoSlotTransform(transform);
@@ -147,24 +148,28 @@ function PhotoSlotFilled({
       style={styles.imageClip}
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;
-        if (width > 0 && height > 0) {
+        if (width > 1 && height > 1) {
           slotWidth.value = width;
           slotHeight.value = height;
+          const nextKey = `${Math.round(width)}x${Math.round(height)}`;
+          setSlotLayoutKey((prev) => (prev === nextKey ? prev : nextKey));
         }
       }}
     >
-      <Animated.View style={[styles.imageInner, imageStyle]}>
-        <AlbumPhotoImageRaw
-          uri={uri}
-          style={styles.image}
-          recyclingKey={`gesture-slot-${slotIndex}-${uri}`}
-          onError={() => {
-            if (!isRemotePhotoUri(uri)) {
-              onRemovePhoto?.();
-            }
-          }}
-        />
-      </Animated.View>
+      {slotLayoutKey ? (
+        <Animated.View style={[styles.imageInner, imageStyle]}>
+          <AlbumPhotoImageRaw
+            uri={uri}
+            style={styles.image}
+            recyclingKey={`gesture-slot-${slotIndex}-${uri}-${slotLayoutKey}`}
+            onError={() => {
+              if (!isRemotePhotoUri(uri)) {
+                onRemovePhoto?.();
+              }
+            }}
+          />
+        </Animated.View>
+      ) : null}
     </Animated.View>
   );
 

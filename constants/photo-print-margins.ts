@@ -1,5 +1,6 @@
 import type { PhotoPageLayouts } from '@/constants/photo-slots';
 import { getSparsePhotoAlbumConfig } from '@/constants/sparse-photo-album-config';
+import { fitNormalizedSlotToAspect } from '@/utils/photoSlotAspect';
 
 /** Минимальный отступ фото от обреза листа (10 мм на альбоме 210×210). */
 export const PRINT_PHOTO_MARGIN_MM = 10;
@@ -65,6 +66,7 @@ function clampSlotToBounds(
     aspectRatio?: [number, number];
   },
   bounds: PagePhotoBounds,
+  pageAspect = 1,
 ) {
   const maxWidth = bounds.right - bounds.left;
   const maxHeight = bounds.bottom - bounds.top;
@@ -72,11 +74,10 @@ function clampSlotToBounds(
   let width = Math.min(slot.width, maxWidth);
   let height = Math.min(slot.height, maxHeight);
 
-  const isSquare = slot.aspectRatio?.[0] === 1 && slot.aspectRatio?.[1] === 1;
-  if (isSquare) {
-    const side = Math.min(width, height, maxWidth, maxHeight);
-    width = side;
-    height = side;
+  if (slot.aspectRatio) {
+    const fitted = fitNormalizedSlotToAspect(width, height, pageAspect, slot.aspectRatio);
+    width = fitted.width;
+    height = fitted.height;
   }
 
   const centerX = Math.min(
@@ -101,13 +102,18 @@ function clampSlotToBounds(
 export function clampPhotoPageLayoutsToPrintMargins(
   layouts: PhotoPageLayouts,
   pageSizeMm = 210,
+  lineGuideId?: string,
 ): PhotoPageLayouts {
+  const albumSize = lineGuideId ? getAlbumPageSizeMm(lineGuideId) : null;
+  const pageAspect = albumSize
+    ? albumSize.heightMm / albumSize.widthMm
+    : 1;
   const bounds = getDefaultPagePhotoBounds(pageSizeMm);
 
   return {
     variants: layouts.variants.map((variant) => ({
       ...variant,
-      slots: variant.slots.map((slot) => clampSlotToBounds(slot, bounds)),
+      slots: variant.slots.map((slot) => clampSlotToBounds(slot, bounds, pageAspect)),
     })),
   };
 }

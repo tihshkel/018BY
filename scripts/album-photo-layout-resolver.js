@@ -336,6 +336,7 @@ const MANUAL_PHOTO_SLOTS = {
     ['49', buildPageLayoutsFromTemplates(BLANK_PAGE_PHOTO_SAFE, FULL_PHOTO_TEMPLATES)],
   ]),
   pregnancy_a5: {
+    '47': buildPageLayoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES),
     '48': buildPageLayoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES),
   },
   holidays_birthday_60: buildHolidaysManualSlots(),

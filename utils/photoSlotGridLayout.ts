@@ -1,5 +1,6 @@
 import { PHOTO_LAYOUT_TEMPLATES } from '@/constants/photo-layout-templates';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
+import { getPageAspectRatio } from '@/utils/photoSlotAspect';
 
 export type CollageSlotFrame = {
   slotIndex: number;
@@ -112,6 +113,7 @@ export function getPageCalibratedCollageLayout(params: {
     params;
   if (!lineGuideId || !sourcePageNumber || slotCount <= 0) return null;
 
+  const pageAspect = getPageAspectRatio(lineGuideId);
   const resolvedIndices =
     slotIndices && slotIndices.length === slotCount
       ? slotIndices
@@ -134,7 +136,7 @@ export function getPageCalibratedCollageLayout(params: {
         left: slot.x,
         top: slot.y - height / 2,
         width,
-        height,
+        height: height * pageAspect,
       };
     })
     .filter((slot): slot is NormalizedSlotRect => Boolean(slot));

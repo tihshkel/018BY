@@ -305,6 +305,7 @@ export const AlbumPageFormEditor = forwardRef<
       ensureMediaLibraryPermission={ensureMediaLibraryPermission}
       showCaption={photoEditor.showCaption}
       showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+      captionMaxLength={photoEditor.captionMaxLength}
     />
   ) : (
     <AlbumPageFillForm
@@ -320,6 +321,7 @@ export const AlbumPageFormEditor = forwardRef<
       onRemovePhoto={photoEditor.handleRemovePhoto}
       showCaption={photoEditor.showCaption}
       showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+      captionMaxLength={photoEditor.captionMaxLength}
     />
   );
 

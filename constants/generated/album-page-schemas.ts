@@ -6647,8 +6647,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         }
       ],
       "canDuplicate": false,
-      "canAddAfter": true,
-      "captionEnabled": true
+      "canAddAfter": true
     }
   ],
   "kids_48": [

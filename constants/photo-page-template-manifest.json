@@ -18,7 +18,7 @@
             "id": "caption1",
             "type": "caption",
             "required": false,
-            "maxLength": 120,
+            "maxLength": 32,
             "x": 0.12,
             "y": 0.84,
             "w": 0.76,

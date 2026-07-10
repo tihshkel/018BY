@@ -22,6 +22,7 @@ import {
   type AlbumSparsePhotoConfig,
 } from '@/constants/sparse-photo-album-config';
 import { filterFeasiblePhotoLayouts } from '@/utils/photoLayoutFeasibility';
+import { getPageAspectRatio } from '@/utils/photoSlotAspect';
 
 const FULL_PHOTO_TEMPLATES = [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS];
 
@@ -437,6 +438,7 @@ export function getCollageTemplateSet(lineGuideId: string): readonly string[] {
 /** 4 standard variants scaled to PDF «Место для фото» bbox (no sparse expansion). */
 export function buildStandardDesignedAlbumLayouts(
   layouts: PhotoPageLayouts,
+  lineGuideId?: string,
 ): PhotoPageLayouts | undefined {
   const primarySlot = layouts.variants[0]?.slots[0];
   if (!primarySlot || primarySlot.height < 0.12 || primarySlot.width < 0.25) {
@@ -444,7 +446,8 @@ export function buildStandardDesignedAlbumLayouts(
   }
 
   const safeZone = slotToSafeZone(primarySlot);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS]);
+  const pageAspect = getPageAspectRatio(lineGuideId);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS], pageAspect);
   if (expanded.variants.length === 0) return undefined;
   const feasible = filterFeasiblePhotoLayouts(expanded);
   if (!feasible.variants.length) return undefined;
@@ -452,11 +455,12 @@ export function buildStandardDesignedAlbumLayouts(
 }
 
 export function buildTwoHorizontalVariant(
-  _lineGuideId: string,
+  lineGuideId: string,
   _page: number,
   safeZone: SafeZone,
 ): PhotoPageLayouts['variants'][number] | null {
-  const built = buildPageLayoutsFromTemplates(safeZone, ['two_vertical']);
+  const pageAspect = getPageAspectRatio(lineGuideId);
+  const built = buildPageLayoutsFromTemplates(safeZone, ['two_vertical'], pageAspect);
   const variant = built.variants[0];
   if (!variant) return null;
   return { ...variant, variantId: 'two_vertical' };
@@ -490,7 +494,7 @@ export function expandDesignedAlbumCollageVariants(
 ): PhotoPageLayouts | undefined {
   if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) return undefined;
 
-  const standard = buildStandardDesignedAlbumLayouts(layouts);
+  const standard = buildStandardDesignedAlbumLayouts(layouts, lineGuideId);
   if (standard) return standard;
 
   const primarySlot = layouts.variants[0]?.slots[0];
@@ -500,7 +504,8 @@ export function expandDesignedAlbumCollageVariants(
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  const pageAspect = getPageAspectRatio(lineGuideId);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], pageAspect);
   if (expanded.variants.length === 0) return undefined;
 
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
@@ -517,7 +522,8 @@ function buildDesignedAlbumEventPhotoLayouts(lineGuideId: string, page: number):
   };
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);
-  return buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS]);
+  const pageAspect = getPageAspectRatio(lineGuideId);
+  return buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS], pageAspect);
 }
 
 export function expandManualSparseLayouts(
@@ -532,7 +538,8 @@ export function expandManualSparseLayouts(
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
   const templateSet = getCollageTemplateSet(lineGuideId);
-  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet]);
+  const pageAspect = getPageAspectRatio(lineGuideId);
+  const expanded = buildPageLayoutsFromTemplates(safeZone, [...templateSet], pageAspect);
   if (expanded.variants.length <= 1) return undefined;
 
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
@@ -563,7 +570,11 @@ export function expandCollageVariantsWithSparse(
       ? [...FULL_PHOTO_TEMPLATES]
       : COLLAGE_TEMPLATE_SETS.default);
 
-  const expanded = buildPageLayoutsFromTemplates(safeZone, templateIds);
+  const expanded = buildPageLayoutsFromTemplates(
+    safeZone,
+    templateIds,
+    getPageAspectRatio(lineGuideId),
+  );
   if (expanded.variants.length <= 1) return layouts;
 
   if (!shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
@@ -580,7 +591,9 @@ export function resolveKidsPhotoPageLayouts(
   const lineGuideId = 'kids_48';
 
   if (pdf?.variants?.length && !shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
-    const standard = buildStandardDesignedAlbumLayouts(pdf) ?? expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
+    const standard =
+      buildStandardDesignedAlbumLayouts(pdf, lineGuideId) ??
+      expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
     if (standard) return filterFeasiblePhotoLayouts(standard);
   }
 

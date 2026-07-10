@@ -146,6 +146,14 @@ export function isPregnancyUpperBandPage(lineGuideId: string, page: number): boo
   return false;
 }
 
+/** Страница «Уже мама» — фото в верхней полосе над анкетой. */
+export function isAlreadyMomPhotoPage(lineGuideId: string, page: number): boolean {
+  return (
+    (lineGuideId === 'pregnancy_60' && page === 54) ||
+    (lineGuideId === 'pregnancy_a5' && page === 46)
+  );
+}
+
 /** PDF-рамка фото без sparse expansion — все designed-альбомы с PDF-слотом. */
 export function prefersPdfPinnedPhotoLayout(lineGuideId: string, page: number): boolean {
   if (prefersManualPhotoLayout(lineGuideId, page)) return false;

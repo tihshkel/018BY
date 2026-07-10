@@ -85,6 +85,8 @@ export interface AlbumPageSchema {
   canAddAfter: boolean;
   templateLibraryId?: string;
   captionEnabled?: boolean;
+  /** Лимит символов для поля «Подпись» (caption в PageValues). */
+  captionMaxLength?: number;
   /** Always included in electronic export even when empty (e.g. kids p2). */
   requiredInExport?: boolean;
   /** Birthday free pages — default custom field definitions (labels editable in UI). */

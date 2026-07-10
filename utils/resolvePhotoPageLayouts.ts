@@ -6,6 +6,8 @@ import {
 import { buildPageLayoutsFromTemplates } from '@/constants/photo-layout-templates';
 import {
   hasSparsePhotoConfig,
+  getSparsePhotoAlbumConfig,
+  isAlreadyMomPhotoPage,
   isPregnancyWeeklyMiddlePage,
   prefersManualPhotoLayout,
   prefersPdfPinnedPhotoLayout,
@@ -24,6 +26,7 @@ import { getTemplatePhotoLayouts } from '@/utils/resolveTemplatePageLayout';
 import { getPdfPhotoPageLayouts } from '@/utils/pdfPhotoSlots';
 import { clampPhotoPageLayoutsToPrintMargins } from '@/constants/photo-print-margins';
 import { getPdfCirclePhotoPageLayouts } from '@/utils/pdfCircleSlots';
+import { getPageAspectRatio } from '@/utils/photoSlotAspect';
 import { filterFeasiblePhotoLayouts } from '@/utils/photoLayoutFeasibility';
 
 function manualLayoutsArePlausible(manual: PhotoPageLayouts): boolean {
@@ -58,10 +61,41 @@ export function expandCollageVariants(
 
   const templateIds =
     COLLAGE_TEMPLATE_SETS[primaryVariant.variantId] ?? COLLAGE_TEMPLATE_SETS.default;
-  const expanded = buildPageLayoutsFromTemplates(slotToSafeZone(primarySlot), templateIds);
+  const expanded = buildPageLayoutsFromTemplates(
+    slotToSafeZone(primarySlot),
+    templateIds,
+    lineGuideId ? getPageAspectRatio(lineGuideId) : 1,
+  );
 
   if (expanded.variants.length <= 1) return layouts;
   return expanded;
+}
+
+/** «Уже мама»: чуть ниже и компактнее относительно PDF-рамки. */
+function tuneAlreadyMomPhotoLayouts(layouts: PhotoPageLayouts): PhotoPageLayouts {
+  const yShift = 0.03;
+  const heightScale = 0.76;
+
+  return {
+    variants: layouts.variants.map((variant) => ({
+      ...variant,
+      slots: variant.slots.map((slot) => ({
+        ...slot,
+        y: slot.y + yShift,
+        height: slot.height * heightScale,
+      })),
+    })),
+  };
+}
+
+function prepareDesignedAlbumPdfLayouts(
+  lineGuideId: string,
+  page: number,
+  pdf: PhotoPageLayouts | undefined,
+): PhotoPageLayouts | undefined {
+  if (!pdf) return pdf;
+  if (!isAlreadyMomPhotoPage(lineGuideId, page)) return pdf;
+  return tuneAlreadyMomPhotoLayouts(pdf);
 }
 
 function finalizeLayouts(
@@ -73,7 +107,8 @@ function finalizeLayouts(
   const expanded = expandCollageVariants(layouts, lineGuideId, page);
   const feasible = filterFeasiblePhotoLayouts(expanded);
   if (!feasible.variants.length) return { variants: [] };
-  return clampPhotoPageLayoutsToPrintMargins(feasible);
+  const pageSizeMm = getSparsePhotoAlbumConfig(lineGuideId)?.pageSizeMm ?? 210;
+  return clampPhotoPageLayoutsToPrintMargins(feasible, pageSizeMm, lineGuideId);
 }
 
 function resolveDesignedAlbumLayouts(
@@ -90,16 +125,18 @@ function resolveDesignedAlbumLayouts(
     return undefined;
   }
 
-  if (pdf?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
+  const pdfLayouts = prepareDesignedAlbumPdfLayouts(lineGuideId, page, pdf);
+
+  if (pdfLayouts?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
     if (!isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
-      const standard = buildStandardDesignedAlbumLayouts(pdf);
+      const standard = buildStandardDesignedAlbumLayouts(pdfLayouts, lineGuideId);
       if (standard) return finalizeLayouts(standard, lineGuideId, page);
-      return finalizeLayouts(pdf, lineGuideId, page);
+      return finalizeLayouts(pdfLayouts, lineGuideId, page);
     }
   }
 
-  if (pdf?.variants?.length) {
-    const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
+  if (pdfLayouts?.variants?.length) {
+    const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdfLayouts);
     if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
   }
 
@@ -111,6 +148,14 @@ function resolveDesignedAlbumLayouts(
   return undefined;
 }
 
+function clampLayoutsForAlbum(
+  layouts: PhotoPageLayouts,
+  lineGuideId: string,
+): PhotoPageLayouts {
+  const pageSizeMm = getSparsePhotoAlbumConfig(lineGuideId)?.pageSizeMm ?? 210;
+  return clampPhotoPageLayoutsToPrintMargins(layouts, pageSizeMm, lineGuideId);
+}
+
 /** Calibrated multi-variant layouts in PHOTO_SLOTS win only without PDF; иначе PDF «Место для фото». */
 export function resolvePhotoPageLayouts(
   lineGuideId: string,
@@ -119,12 +164,12 @@ export function resolvePhotoPageLayouts(
 ): PhotoPageLayouts {
   const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId, page);
   if (templateLayouts?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(templateLayouts);
+    return clampLayoutsForAlbum(templateLayouts, lineGuideId);
   }
 
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(circle);
+    return clampLayoutsForAlbum(circle, lineGuideId);
   }
 
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
@@ -134,10 +179,10 @@ export function resolvePhotoPageLayouts(
   if (designed) return designed;
 
   if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampLayoutsForAlbum(manual, lineGuideId);
   }
   if (manual?.variants && manual.variants.length > 1 && manualLayoutsArePlausible(manual)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampLayoutsForAlbum(manual, lineGuideId);
   }
   if (pdf?.variants?.length) {
     return finalizeLayouts(pdf, lineGuideId, page) ?? pdf;
@@ -151,8 +196,9 @@ export function resolvePhotoPageLayouts(
   if (!usesBlankPagePhotoFallback(lineGuideId)) {
     return { variants: [] };
   }
-  return clampPhotoPageLayoutsToPrintMargins(
+  return clampLayoutsForAlbum(
     expandCollageVariants(DEFAULT_PHOTO_PAGE_LAYOUTS, lineGuideId, page),
+    lineGuideId,
   );
 }
 
@@ -163,12 +209,12 @@ export function resolvePhotoPageLayoutsOrUndefined(
 ): PhotoPageLayouts | undefined {
   const templateLayouts = getTemplatePhotoLayouts(templateLibraryId, lineGuideId, page);
   if (templateLayouts?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(templateLayouts);
+    return clampLayoutsForAlbum(templateLayouts, lineGuideId);
   }
 
   const circle = getPdfCirclePhotoPageLayouts(lineGuideId, page);
   if (circle?.variants?.length) {
-    return clampPhotoPageLayoutsToPrintMargins(circle);
+    return clampLayoutsForAlbum(circle, lineGuideId);
   }
 
   const manual = PHOTO_SLOTS[lineGuideId]?.[String(page)];
@@ -178,10 +224,10 @@ export function resolvePhotoPageLayoutsOrUndefined(
   if (designed) return designed;
 
   if (manual?.variants?.length && prefersManualPhotoLayout(lineGuideId, page)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampLayoutsForAlbum(manual, lineGuideId);
   }
   if (manual?.variants && manual.variants.length > 1 && manualLayoutsArePlausible(manual)) {
-    return clampPhotoPageLayoutsToPrintMargins(manual);
+    return clampLayoutsForAlbum(manual, lineGuideId);
   }
   if (pdf?.variants?.length) {
     return finalizeLayouts(pdf, lineGuideId, page);

@@ -17,6 +17,12 @@ export const PREGNANCY_BLOCK_PAGE_SIZE: PageSourceSize = {
   height: 2835,
 };
 
+/** Блок «Первые годы малыша» (kids_48) — квадратные PNG @ 300 dpi. */
+export const KIDS_48_PAGE_SIZE: PageSourceSize = {
+  width: 2528,
+  height: 2528,
+};
+
 /** Блок беременности A5 @ 300 dpi (фактический размер PNG page_*.png). */
 export const PREGNANCY_A5_PAGE_SIZE: PageSourceSize = {
   width: 1796,
@@ -41,6 +47,9 @@ export function inferPageSourceSizeFromUri(uri: string): PageSourceSize | null {
     }
   })();
 
+  if (decoded.includes('бохо_дет') || decoded.includes('фотоальбом_ 48')) {
+    return KIDS_48_PAGE_SIZE;
+  }
   if (
     decoded.includes('180х240') ||
     decoded.includes('180x240') ||
@@ -55,7 +64,6 @@ export function inferPageSourceSizeFromUri(uri: string): PageSourceSize | null {
     decoded.includes('беременность') ||
     decoded.includes('pregnancy_60') ||
     decoded.includes('дней рождения') ||
-    decoded.includes('бохо_дет') ||
     decoded.includes('kids_')
   ) {
     return PREGNANCY_BLOCK_PAGE_SIZE;
@@ -83,9 +91,10 @@ export function resolvePageSourceSizeByLineGuide(
 
   switch (lineGuideId) {
     case 'pregnancy_60':
-    case 'kids_48':
     case 'holidays_birthday_60':
       return PREGNANCY_BLOCK_PAGE_SIZE;
+    case 'kids_48':
+      return KIDS_48_PAGE_SIZE;
     case 'pregnancy_a5':
       return PREGNANCY_A5_PAGE_SIZE;
     case 'diary_interior_brown':

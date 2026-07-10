@@ -41,7 +41,7 @@ export const ALBUM_PHOTO_IMAGE_PROPS = {
   cachePolicy: 'disk' as const,
   transition: 0,
   fadeDuration: 0,
-  allowDownscaling: true,
+  allowDownscaling: false,
   priority: 'high' as const,
 };
 

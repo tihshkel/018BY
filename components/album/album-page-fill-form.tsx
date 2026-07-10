@@ -26,6 +26,7 @@ type AlbumPageFillFormProps = {
   onRemovePhoto: (blockId: string, slotIndex: number) => void;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
+  captionMaxLength?: number;
 };
 
 export function AlbumPageFillForm({
@@ -41,6 +42,7 @@ export function AlbumPageFillForm({
   onRemovePhoto,
   showCaption,
   showPerPhotoCaptions,
+  captionMaxLength,
 }: AlbumPageFillFormProps) {
   const fields = schema.fields ?? [];
   const blocks = schema.photoBlocks ?? [];
@@ -121,13 +123,19 @@ export function AlbumPageFillForm({
         <AppCard style={styles.captionCard}>
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
+            {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
           <TextInput
             style={styles.captionInput}
             value={caption}
-            onChangeText={onCaptionChange}
+            onChangeText={(text) =>
+              onCaptionChange(
+                captionMaxLength != null ? text.slice(0, captionMaxLength) : text,
+              )
+            }
             placeholder="Короткая подпись"
             placeholderTextColor={colors.placeholder}
+            maxLength={captionMaxLength}
           />
         </AppCard>
       ) : null}

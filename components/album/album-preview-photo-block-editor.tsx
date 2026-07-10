@@ -1,5 +1,5 @@
 import { AlbumPhotoImage, prefetchAlbumPhotoUri } from '@/components/album/album-photo-image';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -150,17 +150,17 @@ export function AlbumPreviewPhotoBlockEditor({
   const offsetX = useSharedValue(groupTransform.offsetX ?? 0);
   const offsetY = useSharedValue(groupTransform.offsetY ?? 0);
 
-  const baseX = useSharedValue(0);
-  const baseY = useSharedValue(0);
-  const baseW = useSharedValue(1);
-  const baseH = useSharedValue(1);
+  const baseX = useSharedValue(baseBlock?.x ?? 0);
+  const baseY = useSharedValue(baseBlock?.y ?? 0);
+  const baseW = useSharedValue(baseBlock?.width ?? 0);
+  const baseH = useSharedValue(baseBlock?.height ?? 0);
   const safeX = useSharedValue(0);
   const safeY = useSharedValue(0);
   const safeW = useSharedValue(0);
   const safeH = useSharedValue(0);
   const hasSafeBounds = useSharedValue(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!baseBlock) return;
     baseX.value = baseBlock.x;
     baseY.value = baseBlock.y;
@@ -428,7 +428,7 @@ export function AlbumPreviewPhotoBlockEditor({
     };
   });
 
-  if (!layout || !baseBlock) return null;
+  if (!layout || !baseBlock || baseBlock.width < 2 || baseBlock.height < 2) return null;
 
   return (
     <View style={styles.wrap} pointerEvents="box-none">
@@ -476,6 +476,8 @@ export function AlbumPreviewPhotoBlockEditor({
 }
 
 function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
+  const blockKey = `${Math.round(layout.baseBlock.width)}x${Math.round(layout.baseBlock.height)}`;
+
   return (
     <>
       {layout.slots.map((slot) => (
@@ -494,7 +496,7 @@ function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
           <AlbumPhotoImage
             uri={slot.uri}
             style={styles.photo}
-            recyclingKey={`preview-slot-${slot.slotIndex}-${slot.uri}`}
+            recyclingKey={`preview-slot-${slot.slotIndex}-${slot.uri}-${blockKey}`}
           />
         </View>
       ))}

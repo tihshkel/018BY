@@ -104,7 +104,13 @@ export default function AlbumPagePhotosScreen() {
         lineGuideId={project.lineGuideId}
         onFieldChange={() => {}}
         onCaptionChange={(text) =>
-          photoEditor.updatePageValues((prev) => ({ ...prev, caption: text }))
+          photoEditor.updatePageValues((prev) => ({
+            ...prev,
+            caption:
+              photoEditor.captionMaxLength != null
+                ? text.slice(0, photoEditor.captionMaxLength)
+                : text,
+          }))
         }
         onPhotoCaptionChange={(slotIndex, text) =>
           photoEditor.updatePageValues((prev) => {
@@ -124,6 +130,7 @@ export default function AlbumPagePhotosScreen() {
         }
         showCaption={photoEditor.showCaption}
         showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
+        captionMaxLength={photoEditor.captionMaxLength}
       />
 
       <View style={styles.footer}>

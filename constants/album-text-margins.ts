@@ -40,6 +40,12 @@ export const KIDS_MONTH_LINE_X_INSET = 0.008;
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
+/** kids_48 p13 «Мои достижения» — строка «Ползаю» (PDF-слот слишком влево). */
+export const KIDS48_P13_CRAWLS_LINE = {
+  writableX: 0.3258,
+  writableWidth: 0.53767,
+} as const;
+
 /** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА». */
 export const KIDS48_P8_DATE_LINE = {
   writableX: 0.438,

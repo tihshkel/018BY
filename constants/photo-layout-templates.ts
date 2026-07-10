@@ -216,10 +216,13 @@ export type SafeZone = {
   height: number;
 };
 
+import { fitNormalizedSlotToAspect } from '@/utils/photoSlotAspect';
+
 /** Map template slots (safe-zone relative) to absolute page-normalized coords (y = center). */
 export function buildVariantLayoutFromTemplate(
   template: PhotoLayoutTemplate,
   safeZone: SafeZone,
+  pageAspect = 1,
 ): { variantId: string; slots: Array<{
   x: number;
   y: number;
@@ -231,18 +234,19 @@ export function buildVariantLayoutFromTemplate(
     template.variantId === 'three_hero' ? buildThreeHeroSlots(safeZone) : template.slots;
 
   const slots = templateSlots.map((s) => {
-    const absX = safeZone.x + s.x * safeZone.width;
-    let absW = s.width * safeZone.width;
-    const isSquare = s.aspectRatio?.[0] === 1 && s.aspectRatio?.[1] === 1;
-    let absH = isSquare ? Math.min(absW, s.height * safeZone.height) : s.height * safeZone.height;
-    if (isSquare) {
-      absW = absH;
-    }
+    const cellW = s.width * safeZone.width;
+    const cellH = s.height * safeZone.height;
+    const { width: absW, height: absH } = fitNormalizedSlotToAspect(
+      cellW,
+      cellH,
+      pageAspect,
+      s.aspectRatio,
+    );
     const topY = safeZone.y + s.y * safeZone.height;
-    const centerY = topY + absH / 2;
-    const colOffsetX = isSquare ? (s.width * safeZone.width - absW) / 2 : 0;
+    const centerY = topY + (cellH - absH) / 2 + absH / 2;
+    const colOffsetX = (cellW - absW) / 2;
     return {
-      x: absX + colOffsetX,
+      x: safeZone.x + s.x * safeZone.width + colOffsetX,
       y: centerY,
       width: absW,
       height: absH,
@@ -256,11 +260,12 @@ export function buildVariantLayoutFromTemplate(
 export function buildPageLayoutsFromTemplates(
   safeZone: SafeZone,
   templateIds: string[],
+  pageAspect = 1,
 ): { variants: ReturnType<typeof buildVariantLayoutFromTemplate>[] } {
   const variants = templateIds
     .map((id) => PHOTO_LAYOUT_TEMPLATES[id])
     .filter(Boolean)
-    .map((t) => buildVariantLayoutFromTemplate(t, safeZone));
+    .map((t) => buildVariantLayoutFromTemplate(t, safeZone, pageAspect));
   return { variants };
 }
 

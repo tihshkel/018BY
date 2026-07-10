@@ -17,6 +17,24 @@ import {
   type TemplateTextBlockDef,
 } from '@/utils/photoPageTemplateManifest';
 
+const FAMILY_BLANK_CAPTION_MAX_LENGTH = 32;
+
+function resolveCaptionMaxLength(
+  layout: TemplateLayoutDef | undefined,
+  lineGuideId: string,
+): number | undefined {
+  const captionBlocks = layout?.textBlocks?.filter((block) => block.type === 'caption') ?? [];
+  const singleCaption =
+    captionBlocks.length === 1 && !layout?.perPhotoCaptions;
+  if (!singleCaption) return undefined;
+
+  if (lineGuideId === 'family_blank' || lineGuideId === 'family_blank_21x21') {
+    return FAMILY_BLANK_CAPTION_MAX_LENGTH;
+  }
+
+  return captionBlocks[0]?.maxLength;
+}
+
 const TEXT_LABELS: Record<string, string> = {
   caption1: 'Подпись',
   caption2: 'Подпись 2',
@@ -177,6 +195,8 @@ export function buildSchemaFromTemplate(params: {
   const fields = buildFieldsFromTemplate(resolvedId, format, params.schemaPageId);
   const photoBlocks = buildPhotoBlocksFromTemplate(resolvedId, format);
 
+  const captionMaxLength = resolveCaptionMaxLength(layout, params.lineGuideId);
+
   return {
     pageId: params.schemaPageId,
     title: params.titleOverride ?? meta?.title ?? resolvedId,
@@ -193,6 +213,7 @@ export function buildSchemaFromTemplate(params: {
         (layout?.textBlocks?.filter((b) => b.type === 'caption').length === 1 &&
           !layout?.perPhotoCaptions),
     ),
+    captionMaxLength,
     fields: fields.length ? fields : undefined,
     photoBlocks,
   };

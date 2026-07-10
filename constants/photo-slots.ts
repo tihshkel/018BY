@@ -7,6 +7,7 @@ import {
   buildPageLayoutsFromTemplates,
   type SafeZone,
 } from '@/constants/photo-layout-templates';
+import { getPageAspectRatio } from '@/utils/photoSlotAspect';
 import { normalizeDesignedAlbumVariantId } from '@/utils/variantPreview';
 
 export type NormalizedPhotoSlot = {
@@ -66,8 +67,16 @@ const EVENT_PHOTO_TEMPLATES = [
   'four_vertical',
 ] as const;
 
-function layoutsFromTemplates(safeZone: SafeZone, templateIds: readonly string[]): PhotoPageLayouts {
-  return buildPageLayoutsFromTemplates(safeZone, [...templateIds]) as PhotoPageLayouts;
+function layoutsFromTemplates(
+  safeZone: SafeZone,
+  templateIds: readonly string[],
+  lineGuideId?: string,
+): PhotoPageLayouts {
+  return buildPageLayoutsFromTemplates(
+    safeZone,
+    [...templateIds],
+    getPageAspectRatio(lineGuideId),
+  ) as PhotoPageLayouts;
 }
 
 /** «Люблю» / memory block (p56–59): center zone below title, above rose decor */
@@ -79,13 +88,13 @@ const PREGNANCY_MEMORY_PHOTO_SAFE: SafeZone = {
 };
 
 function pregnancyMemoryPhotoLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(PREGNANCY_MEMORY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES);
+  return layoutsFromTemplates(PREGNANCY_MEMORY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES, 'pregnancy_60');
 }
 
 const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59];
 
 function pregnancyPhotoLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES);
+  return layoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES, 'pregnancy_a5');
 }
 
 function eventPhotoLayouts(): PhotoPageLayouts {
@@ -160,6 +169,7 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   },
   pregnancy_a5: {
     '46': pregnancyPhotoLayouts(),
+    '47': pregnancyPhotoLayouts(),
     '48': pregnancyPhotoLayouts(),
   },
   kids_48: {},

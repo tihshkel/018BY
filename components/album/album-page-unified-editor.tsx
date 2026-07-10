@@ -45,6 +45,7 @@ type AlbumPageUnifiedEditorProps = {
   instanceId?: string;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
+  captionMaxLength?: number;
 };
 
 export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor({
@@ -68,6 +69,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   instanceId,
   showCaption,
   showPerPhotoCaptions,
+  captionMaxLength,
 }: AlbumPageUnifiedEditorProps) {
   const resolvedSchema = useMemo(
     () => enrichSchemaWithPhotoBlocks(schema),
@@ -316,13 +318,19 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
         <AppCard style={styles.captionCard}>
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
+            {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
           <TextInput
             style={styles.captionInput}
             value={pageValues.caption ?? ''}
-            onChangeText={onCaptionChange}
+            onChangeText={(text) =>
+              onCaptionChange(
+                captionMaxLength != null ? text.slice(0, captionMaxLength) : text,
+              )
+            }
             placeholder="Короткая подпись"
             placeholderTextColor={colors.placeholder}
+            maxLength={captionMaxLength}
           />
         </AppCard>
       ) : null}
