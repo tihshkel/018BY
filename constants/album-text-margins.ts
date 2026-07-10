@@ -269,7 +269,7 @@ const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
 
 const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_60: {
-    fixedLineFontSize: 16,
+    fixedLineFontSize: 15,
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,

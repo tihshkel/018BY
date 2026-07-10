@@ -6,8 +6,7 @@
 const WEEKLY_PAGE_FIELDS = [
   ['date', 'Дата', 'date', 1],
   ['weight', 'Вес', 'number', 1],
-  ['plans_header', 'Главные планы на неделю', 'text', 1],
-  ['plans_body', 'Подробные заметки и дела на неделю', 'text', 2],
+  ['plans', 'Планы на неделю', 'text', 3, 78],
   ['belly', 'Обхват животика:', 'number', 1],
   ['feelings', 'Мои ощущения, чувства, мысли', 'text', 3],
 ];
@@ -64,7 +63,7 @@ const PAGE4_FIELDS = [
   ['wellbeing', 'Моё самочувствие', 'text', 3],
   ['fio', 'ФИО врача / акушерки', 'text', 1],
   ['cabinet', 'Кабинет врача', 'text', 1],
-  ['phone', 'Телефон врача или регистратуры', 'text', 1],
+  ['phone', 'Телефон врача или регистратуры', 'text', 2],
   ['mon', 'График врача: понедельник', 'text', 1],
   ['thu', 'График врача: четверг', 'text', 1],
   ['tue', 'График врача: вторник', 'text', 1],
@@ -127,9 +126,10 @@ const BIRTH_QUESTIONNAIRE_A5 = [
 const ALREADY_MOM_FIELDS = [
   ['name', 'Имя', 'text', 1],
   ['hair_color', 'Цвет волос', 'text', 1],
+  ['eye_color', 'Цвет глаз', 'text', 1],
   ['zodiac', 'Знак зодиака', 'text', 1],
   ['zodiac_year', 'Год (по восточному календарю)', 'text', 1],
-  ['wishes', 'Пожелания от мамы и папы', 'text', 3],
+  ['wishes', 'Пожелания от мамы и папы', 'text', 4],
 ];
 
 const PREGNANCY_FORM_FILL = '#E8C4A8';
@@ -138,24 +138,28 @@ const GENDER_OPTIONS = ['Мальчик', 'Девочка'];
 const DELIVERY_OPTIONS = ['Ер', 'Кс'];
 
 const TODO_LIST_ITEMS = [
-  'Список дел',
-  'Посмотреть сериал',
-  'Сделать фотосессию',
-  'Погулять с подругами',
-  'Написать пост в соцсетях',
-  'Прочитать книгу',
-  'Съездить в путешествие',
-  'Выбросить ненужные вещи',
+  'Выспаться',
+  'Посмотреть интересный сериал',
+  'Сходить на фотосессию',
+  'Насладиться беременностью',
+  'Встретиться с подругами',
+  'Сходить в кино или театр',
+  'День без соцсетей',
+  'Прочитать интересную книгу',
+  'Отправиться в путешествие',
+  'Избавиться от ненужных вещей',
+  'Погулять в парке',
+  'Кушать вкусняшки',
   'Испечь пирог',
-  'Посидеть под пледом',
-  'Сходить за шоппингом',
+  'Выпить чай/какао под пледом',
+  'День шоппинга',
 ];
 
 const SHOPPING_ITEM_LABEL = 'К рождению малыша';
 
-function buildField(lineGuideId, pageNumber, id, label, type, start, count, slots) {
+function buildField(lineGuideId, pageNumber, id, label, type, start, count, slots, maxLength) {
   const maxStart = Math.max(0, (slots?.length ?? 1) - 1);
-  return {
+  const field = {
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
     label,
     type,
@@ -163,13 +167,20 @@ function buildField(lineGuideId, pageNumber, id, label, type, start, count, slot
     templateLineStart: Math.min(start, maxStart),
     templateLineCount: count,
   };
+  if (maxLength != null) {
+    field.maxLength = maxLength;
+  }
+  return field;
 }
 
 function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset = 0) {
   let cursor = startOffset;
   const fields = [];
-  for (const [id, label, type, count] of spec) {
-    fields.push(buildField(lineGuideId, pageNumber, id, label, type, cursor, count, slots));
+  for (const entry of spec) {
+    const [id, label, type, count, maxLength] = entry;
+    fields.push(
+      buildField(lineGuideId, pageNumber, id, label, type, cursor, count, slots, maxLength),
+    );
     cursor += count;
   }
   return fields;
@@ -222,16 +233,21 @@ function buildShoppingListFields(lineGuideId, pageNumber, slots) {
   return fields;
 }
 
-function buildTodoListFields(lineGuideId, pageNumber, slots) {
-  const lineCount = slots?.length ?? TODO_LIST_ITEMS.length;
-  const fields = [];
-  for (let index = 0; index < lineCount; index += 1) {
-    const label = TODO_LIST_ITEMS[Math.min(index, TODO_LIST_ITEMS.length - 1)];
-    fields.push(
-      buildField(lineGuideId, pageNumber, `todo_${index + 1}`, label, 'text', index, 1, slots),
-    );
-  }
-  return fields;
+function buildTodoCheckboxField(lineGuideId, pageNumber, id, label) {
+  return {
+    fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
+    label,
+    type: 'checkbox',
+    required: false,
+    templateLineStart: 0,
+    templateLineCount: 1,
+  };
+}
+
+function buildTodoListFields(lineGuideId, pageNumber, _slots) {
+  return TODO_LIST_ITEMS.map((label, index) =>
+    buildTodoCheckboxField(lineGuideId, pageNumber, `todo_${index + 1}`, label),
+  );
 }
 
 function buildRadioField(lineGuideId, pageNumber, id, label, options) {
@@ -250,14 +266,15 @@ function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
   return [
     buildField(lineGuideId, pageNumber, 'name', 'Имя', 'text', 0, 1, slots),
     buildField(lineGuideId, pageNumber, 'hair_color', 'Цвет волос', 'text', 1, 1, slots),
-    buildField(lineGuideId, pageNumber, 'zodiac', 'Знак зодиака', 'text', 2, 1, slots),
+    buildField(lineGuideId, pageNumber, 'eye_color', 'Цвет глаз', 'text', 2, 1, slots),
+    buildField(lineGuideId, pageNumber, 'zodiac', 'Знак зодиака', 'text', 3, 1, slots),
     buildField(
       lineGuideId,
       pageNumber,
       'zodiac_year',
       'Год (по восточному календарю)',
       'text',
-      3,
+      4,
       1,
       slots,
     ),
@@ -267,8 +284,8 @@ function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
       'wishes',
       'Пожелания от мамы и папы',
       'text',
-      6,
-      3,
+      5,
+      4,
       slots,
     ),
   ];
@@ -418,6 +435,7 @@ function getPregnancyA5WeekNumber(pageNumber) {
 
 module.exports = {
   WEEKLY_PAGE_FIELDS,
+  PREGNANCY_WEEKLY_PLANS_MAX_LENGTH: 78,
   PAGE1_FIELDS,
   ABOUT_ME_FIELDS,
   FUTURE_DAD_FIELDS,

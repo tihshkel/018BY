@@ -2,6 +2,7 @@ import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinFieldLines,
   getActiveEditSlotIndex,
+  getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
   mergeActiveLineEdit,
 } from '@/utils/templateLineText';
@@ -110,6 +111,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   return (
     <>
       {slotsToRender.map((lineSlot) => {
+        const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
           slot: lineSlot,
           fontSize,
@@ -117,9 +119,10 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           fontId,
           allSlots,
           fieldStartIndex: startSlotIndex,
+          textContent: lineText,
         });
-        const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
         const isInputSlot = lineSlot.index === activeInputSlotIndex;
+        const textInsets = getTemplateBlockTextInsets(lineSlot, lineGuideId);
 
         return (
           <View
@@ -147,9 +150,16 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     fontSize: readOnlyLayout.fontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: readOnlyLayout.textLineHeight,
-                    height: readOnlyLayout.textLineHeight,
+                    height: Math.min(
+                      readOnlyLayout.containerHeight,
+                      Math.max(
+                        readOnlyLayout.textLineHeight,
+                        readOnlyLayout.containerHeight - readOnlyLayout.textTop,
+                      ),
+                    ),
                     top: readOnlyLayout.textTop,
-                    width: lineSlot.width,
+                    left: textInsets.left,
+                    width: textInsets.width,
                     textAlign,
                   },
                 ]}
@@ -181,7 +191,8 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     fontFamily: fontFamilyStyle,
                     lineHeight: readOnlyLayout.textLineHeight,
                     top: readOnlyLayout.textTop,
-                    width: lineSlot.width,
+                    left: textInsets.left,
+                    width: textInsets.width,
                     textAlign,
                   },
                 ]}
@@ -202,7 +213,6 @@ const styles = StyleSheet.create({
   host: {
     position: 'absolute',
     zIndex: 100000,
-    overflow: 'visible',
   },
   lineText: {
     position: 'absolute',

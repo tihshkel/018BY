@@ -55,8 +55,8 @@ const viewportSource = read('utils/exportViewport.ts');
 
 assert(
   pdfAnnotationsSource.includes('getTemplateLineTextTop') &&
-    exportTextSource.includes('getTemplateLinePdfBaselineY'),
-  'preview uses text top; pdf export derives baseline from text top + cap height',
+    exportTextSource.includes('getTemplateLinePdfDrawLayout'),
+  'pdf export uses the same draw layout helper as read-only preview',
 );
 assert(
   exportPdfSource.includes('buildExportPageAnnotations') &&
@@ -69,9 +69,9 @@ assert(
   'pdf circle fills use ellipse center (pdf-lib), not bbox corner',
 );
 assert(
-  pdfAnnotationsSource.includes('distributeTextWithinContinuationGroup') &&
-    exportTextSource.includes('distributeTextWithinContinuationGroup'),
-  'preview and pdf export share continuation-group text distribution',
+  pdfAnnotationsSource.includes('distributeTextForTemplateAnnotation') &&
+    exportTextSource.includes('distributeTextForTemplateAnnotation'),
+  'preview and pdf export share template-line text distribution',
 );
 assert(
   exportTextSource.includes('getViewportToPdfScale') &&
@@ -85,8 +85,9 @@ assert(
   'pdf export preserves sourcePageNumber when looking up slots',
 );
 assert(
-  exportPdfSource.includes('shouldUsePageRendererForExport'),
-  'PageRenderer path is limited to pages with image annotations',
+  exportPdfSource.includes('hasTemplateTextAnnotations') &&
+    exportPdfSource.includes('hasLineGuides(lineGuideId)'),
+  'template-line pages export via PageRenderer snapshot for WYSIWYG parity',
 );
 assert(
   read('utils/exportPdfImageAnnotations.ts').includes('pushRectClip'),
@@ -109,6 +110,17 @@ assert(
   textLineSource.includes('getLineSlotsForPage') &&
     textLineSource.includes('mapSourceNormToViewport'),
   'line slots are mapped from normalized source coordinates into viewport',
+);
+assert(
+  read('utils/templateLineText.ts').includes('isPregnancyAboutMeWantChildHeadSlot') &&
+    read('utils/templateLineText.ts').includes('PREGNANCY_ABOUT_ME_WANT_CHILD_HEAD_LEFT_WIDTH_RATIOS'),
+  'about-me want_child head line has extra left inset past printed label',
+);
+assert(
+  read('utils/templateLineText.ts').includes('isPregnancyBirthQuestionnairePinkBlockSlot') &&
+    read('utils/templateLineText.ts').includes('pregnancy_a5') &&
+    read('utils/templateLineText.ts').includes('page === 44'),
+  'A5 birth questionnaire pink blocks share p52 text layout',
 );
 
 for (const albumId of DESIGNED_ALBUM_IDS) {

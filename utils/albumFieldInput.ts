@@ -39,6 +39,8 @@ export function sanitizeNumberInput(text: string): string {
 
 export function sanitizeFieldInput(type: FieldType, text: string): string {
   switch (type) {
+    case 'checkbox':
+      return text === '1' ? '1' : '';
     case 'date':
       return sanitizeDateInput(text);
     case 'time':

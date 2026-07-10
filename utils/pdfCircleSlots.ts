@@ -23,6 +23,7 @@ type RectFillTarget = {
   y: number;
   width: number;
   height: number;
+  cornerRadius?: number;
 };
 
 type OptionFillTarget = CircleFillTarget | RectFillTarget;

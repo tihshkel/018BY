@@ -31,6 +31,9 @@ import { wrapTextToLines } from '@/utils/textWrap';
 import {
   getTemplateLineTextTop,
   getTemplateLineTypography,
+  getTemplateBlockTextInsets,
+  isPregnancyBirthQuestionnaireNarrowTailLineSlot,
+  shrinkFontSizeToFitSlot,
 } from '@/utils/templateLineText';
 import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
 
@@ -48,6 +51,8 @@ export type TextLineSlot = {
   normY?: number;
   /** Нормализованная высота слота (0–1), для типографики */
   normHeight?: number;
+  /** Нормализованная ширина слота (0–1), для подбора шрифта */
+  normWidth?: number;
   /** norm.y = штрих линии; полоса лежит над линией (как diary_interior) */
   lineStrokeAtBottom?: boolean;
   /** Y слота = верх полосы (калибровка «Вес» / «Обхват» на неделях pregnancy_60). */
@@ -1475,6 +1480,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       inputKind: layoutNorm.inputKind ?? norm.inputKind,
       normY: anchorTop ? layoutNorm.y + layoutNorm.height / 2 : layoutNorm.y,
       normHeight: layoutNorm.height,
+      normWidth: layoutNorm.width,
       lineStrokeAtBottom,
       textAnchorTop: anchorTop,
     };
@@ -1802,6 +1808,19 @@ export function layoutTextAnnotationFromSlot(
         Math.floor(effectiveFontSize * (slot.width / neededWidth)),
       );
     }
+  } else if (
+    textContent &&
+    slot.width > 0 &&
+    isPregnancyBirthQuestionnaireNarrowTailLineSlot(lineGuideId, slot)
+  ) {
+    const insets = getTemplateBlockTextInsets(slot, lineGuideId);
+    const slotForFit = { ...slot, width: insets.width } as TextLineSlot;
+    effectiveFontSize = shrinkFontSizeToFitSlot(
+      effectiveFontSize,
+      slotForFit,
+      textContent,
+      lineGuideId,
+    );
   } else if (
     textContent &&
     slot.width > 0 &&

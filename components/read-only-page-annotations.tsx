@@ -14,6 +14,7 @@ import {
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
 } from '@/utils/templateLineText';
+import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
 type ReadOnlyPageAnnotationsProps = {
@@ -156,7 +157,12 @@ function ReadOnlyPageAnnotationsInner({
 
           if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
             const { segments } = distributeTextForTemplateAnnotation({
-              text: annotation.content,
+              text: formatTemplateLineSlotDisplayText(
+                annotation.content,
+                lineGuideId,
+                sourcePageNumber,
+                startIndex,
+              ),
               startSlotIndex: startIndex,
               slots: lineSlots,
               fontSize,
@@ -196,6 +202,7 @@ function ReadOnlyPageAnnotationsInner({
                     fontId: annotation.fontFamily,
                     allSlots: lineSlots,
                     fieldStartIndex: fieldStartForLayout,
+                    textContent: row.content,
                   });
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
                   return (
@@ -299,7 +306,9 @@ function ReadOnlyPageAnnotationsInner({
             : annotation.y;
           const fillWidth = fillSize ?? annotation.width;
           const fillHeight = fillSize ?? annotation.height;
-          const fillRadius = isCircle ? fillWidth / 2 : circleRadius;
+          const fillRadius = isCircle
+            ? fillWidth / 2
+            : (annotation.fillCornerRadius ?? circleRadius);
 
           return (
             <View

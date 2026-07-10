@@ -19,6 +19,8 @@ import {
 import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
 import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
+export const TODO_CHECKBOX_VALUE = '1';
+
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
@@ -136,6 +138,25 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
+function CheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
+  const checked = value === TODO_CHECKBOX_VALUE;
+
+  return (
+    <Pressable
+      onPress={() => onChange(checked ? '' : TODO_CHECKBOX_VALUE)}
+      style={styles.checkboxRow}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={field.label}
+    >
+      <View style={[styles.checkboxBox, checked && styles.checkboxBoxChecked]} />
+      <AppText variant="body" style={styles.checkboxLabel}>
+        {field.label}
+      </AppText>
+    </Pressable>
+  );
+}
+
 const TypedFormField = memo(function TypedFormField({
   field,
   value,
@@ -210,31 +231,37 @@ const AlbumFormField = memo(function AlbumFormField({
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
-      <AppText variant="caption" style={styles.label}>
-        {field.label}
-      </AppText>
-      {field.type === 'date' ? (
-        <View>
-          <DateFormField
-            field={field}
-            value={value}
-            onChange={onChange}
-            characterLimit={characterLimit}
-            onInputFocus={handleInputFocus}
-          />
-          <FieldCharacterCounter value={value} limit={characterLimit} />
-        </View>
-      ) : field.type === 'radio' ? (
-        <RadioFormField field={field} value={value} onChange={onChange} />
+      {field.type === 'checkbox' ? (
+        <CheckboxFormField field={field} value={value} onChange={onChange} />
       ) : (
-        <TypedFormField
-          field={field}
-          value={value}
-          onChange={onChange}
-          characterLimit={characterLimit}
-          onInputFocus={handleInputFocus}
-          layoutClamp={layoutClamp}
-        />
+        <>
+          <AppText variant="caption" style={styles.label}>
+            {field.label}
+          </AppText>
+          {field.type === 'date' ? (
+            <View>
+              <DateFormField
+                field={field}
+                value={value}
+                onChange={onChange}
+                characterLimit={characterLimit}
+                onInputFocus={handleInputFocus}
+              />
+              <FieldCharacterCounter value={value} limit={characterLimit} />
+            </View>
+          ) : field.type === 'radio' ? (
+            <RadioFormField field={field} value={value} onChange={onChange} />
+          ) : (
+            <TypedFormField
+              field={field}
+              value={value}
+              onChange={onChange}
+              characterLimit={characterLimit}
+              onInputFocus={handleInputFocus}
+              layoutClamp={layoutClamp}
+            />
+          )}
+        </>
       )}
     </View>
   );
@@ -385,5 +412,26 @@ const styles = StyleSheet.create({
   radioDotSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  checkboxBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: colors.pregnancyFormFill,
+    backgroundColor: colors.white,
+    marginRight: spacing.sm,
+  },
+  checkboxBoxChecked: {
+    backgroundColor: colors.pregnancyFormFill,
+    borderColor: colors.pregnancyFormFill,
+  },
+  checkboxLabel: {
+    flex: 1,
   },
 });

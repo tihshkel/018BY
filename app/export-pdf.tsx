@@ -225,16 +225,21 @@ function drawTextAnnotationOnPdfPage(params: {
   }
 }
 
-/** ViewShot через PageRenderer — только free-form / travel; designed-альбомы быстрее через pdf-lib. */
+/**
+ * ViewShot через PageRenderer — тот же рендер, что в предпросмотре (ReadOnlyPageAnnotations).
+ * Для designed-альбомов с текстом по слотам — WYSIWYG; pdf-lib drawText даёт другие метрики шрифта.
+ */
 function shouldUsePageRendererForExport(params: {
   hasImageAnnotations: boolean;
+  hasTemplateTextAnnotations: boolean;
   lineGuideId: string;
   schema?: AlbumPageSchema;
 }): boolean {
-  const { hasImageAnnotations, lineGuideId, schema } = params;
-  if (!hasImageAnnotations) return false;
+  const { hasImageAnnotations, hasTemplateTextAnnotations, lineGuideId, schema } = params;
   if (schema?.pageType === 'travel_map_page') return true;
   if (isBlankTemplateLineGuide(lineGuideId)) return true;
+  if (hasImageAnnotations) return true;
+  if (hasTemplateTextAnnotations && hasLineGuides(lineGuideId)) return true;
   return false;
 }
 
@@ -2034,8 +2039,15 @@ export default function ExportPdfScreen() {
           const hasImageAnnotations = pageAnnotations.some(
             (ann) => ann.type === 'image' && ann.imageUri
           );
+          const hasTemplateTextAnnotations = pageAnnotations.some(
+            (ann) =>
+              ann.type === 'text' &&
+              Boolean(ann.content?.trim()) &&
+              typeof ann.templateLineStart === 'number',
+          );
           const usePageRenderer = shouldUsePageRendererForExport({
             hasImageAnnotations,
+            hasTemplateTextAnnotations,
             lineGuideId: resolvedLineGuideId,
             schema: exportPageBundle?.schema,
           });
@@ -2043,11 +2055,15 @@ export default function ExportPdfScreen() {
             ? isLargeDoc
               ? 45000
               : 25000
-            : isLargeDoc
-              ? 30000
-              : 15000;
+            : hasTemplateTextAnnotations
+              ? isLargeDoc
+                ? 20000
+                : 12000
+              : isLargeDoc
+                ? 30000
+                : 15000;
 
-          // PageRenderer — только для страниц с аннотациями (фото/текст как в редакторе)
+          // PageRenderer — снапшот того же рендера, что в предпросмотре (фото и/или текст по слотам)
           let pageSnapshotUri: string | null = null;
           if (usePageRenderer) {
             try {
@@ -3069,7 +3085,17 @@ export default function ExportPdfScreen() {
 
         {/* Скрытый рендерер страницы для “1 в 1” экспорта через снапшот */}
         {renderingPage ? (
-          <View style={{ position: 'absolute', left: -10000, top: -10000, opacity: 0 }}>
+          <View
+            collapsable={false}
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: -20000,
+              top: 0,
+              width: renderingPage.viewport.width,
+              height: renderingPage.viewport.height,
+            }}
+          >
             <PageRenderer
               ref={pageRendererRef}
               imageUri={renderingPage.imageUri}
@@ -3083,7 +3109,13 @@ export default function ExportPdfScreen() {
               captureFormat="jpg"
               captureScale={captureSettingsRef.current.scale}
               captureQuality={captureSettingsRef.current.quality}
+              backgroundColor={colors.white}
               readOnly
+              readySettleMs={
+                renderingPage.annotations.some((ann) => ann.type === 'image' && ann.imageUri)
+                  ? 500
+                  : 350
+              }
               onReady={() => setPageRendererReady(true)}
             />
           </View>

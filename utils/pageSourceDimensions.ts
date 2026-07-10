@@ -17,10 +17,10 @@ export const PREGNANCY_BLOCK_PAGE_SIZE: PageSourceSize = {
   height: 2835,
 };
 
-/** Блок беременности A5 @ 300 dpi. */
+/** Блок беременности A5 @ 300 dpi (фактический размер PNG page_*.png). */
 export const PREGNANCY_A5_PAGE_SIZE: PageSourceSize = {
-  width: 1748,
-  height: 2480,
+  width: 1796,
+  height: 2528,
 };
 
 const cache = new Map<string, PageSourceSize>();

@@ -9,11 +9,11 @@ import {
   distributeTextForTemplateAnnotation,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
-  getTemplateLinePdfBaselineY,
+  getTemplateLineFitSlot,
+  getTemplateLinePdfDrawLayout,
   truncateTextToSlotWidth,
-  type TextWidthMeasure,
 } from '@/utils/templateLineText';
-import { getLineSlotsForPage } from '@/utils/textLineSlots';
+import { getLineSlotsForPage, getPregnancyWeeklyFieldStartIndex } from '@/utils/textLineSlots';
 
 type DrawTemplateTextParams = {
   page: PDFPage;
@@ -73,6 +73,11 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   if (slots.length === 0) return false;
 
+  const fitSlots = slots.map((s) => ({
+    ...s,
+    ...getTemplateLineFitSlot(s, lineGuideId),
+  }));
+
   const startSlot = slots[ann.templateLineStart];
   if (!startSlot) return false;
 
@@ -83,6 +88,9 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   );
 
   const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
+  const lineCount = ann.templateLineCount ?? 1;
+  const fieldStartForLayout =
+    lineCount > 1 ? ann.templateLineStart : getPregnancyWeeklyFieldStartIndex(ann.templateLineStart, slots);
 
   const pdfImageRect: ContentRect = {
     offsetX,
@@ -92,14 +100,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   };
 
   const { scaleX, scaleY } = getViewportToPdfScale(editorContentRect, actualImageWidth, actualImageHeight);
-  const scaledFontSize = effectiveFontSize * scaleY;
   const textAlign = ann.textAlign ?? 'left';
   const fontId = ann.fontFamily;
-
-  const measureTextWidth: TextWidthMeasure | undefined = font
-    ? (text, fittedFontSize) =>
-        font.widthOfTextAtSize(text, fittedFontSize * scaleY) / scaleX
-    : undefined;
 
   const drawSegmentAtSlot = (
     slotIndex: number,
@@ -109,27 +111,33 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     const slot = slots[slotIndex];
     if (!slot || !content) return;
 
-    // После distributeTextForTemplateAnnotation строки уже укладываются в слот;
-    // повторный truncate с pdf-lib метриками иначе отрезает хвост (Android).
+    const fitSlot = getTemplateLineFitSlot(slot, lineGuideId);
+
+    const drawLayout = getTemplateLinePdfDrawLayout({
+      slot,
+      fontSize: effectiveFontSize,
+      lineGuideId,
+      fontId,
+      allSlots: slots,
+      fieldStartIndex: fieldStartForLayout,
+      textContent: content,
+    });
+
+    // Те же оценки ширины, что в превью — pdf-lib метрики иначе вмещают больше символов в строку.
     const truncated = preDistributed
       ? content
       : truncateTextToSlotWidth(
           content,
-          slot,
-          effectiveFontSize,
+          fitSlot as typeof slot,
+          drawLayout.fontSize,
           lineGuideId,
           fontId,
-          measureTextWidth,
         );
     if (!truncated) return;
 
-    const relX = slot.x - editorContentRect.offsetX;
-    const viewportBaseline = getTemplateLinePdfBaselineY(
-      slot,
-      effectiveFontSize,
-      lineGuideId,
-    );
-    const relBaseline = viewportBaseline - editorContentRect.offsetY;
+    const relX = drawLayout.x - editorContentRect.offsetX;
+    const relBaseline = drawLayout.baselineY - editorContentRect.offsetY;
+    const scaledFontSize = drawLayout.fontSize * scaleY;
 
     const scaledX = pdfImageRect.offsetX + relX * scaleX;
     const scaledY =
@@ -138,7 +146,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     let drawX = scaledX;
     if (font && textAlign !== 'left') {
       const textWidth = font.widthOfTextAtSize(truncated, scaledFontSize);
-      const slotWidth = slot.width * scaleX;
+      const slotWidth = drawLayout.width * scaleX;
       if (textAlign === 'center') {
         drawX = scaledX + (slotWidth - textWidth) / 2;
       } else if (textAlign === 'right') {
@@ -164,12 +172,11 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   const { segments } = distributeTextForTemplateAnnotation({
     text: ann.content,
     startSlotIndex: ann.templateLineStart,
-    slots,
+    slots: fitSlots,
     fontSize: effectiveFontSize,
     lineGuideId,
     fontId,
-    lineCount: ann.templateLineCount ?? 1,
-    measureTextWidth,
+    lineCount,
   });
 
   for (const segment of segments) {

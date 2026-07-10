@@ -1,5 +1,6 @@
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
+import { isPregnancyWeeklyStructuredPage } from '@/utils/textLineSlots';
 
 /** Переносит legacy customFields в schema.fields для фиксированных страниц дня рождения. */
 export function migrateBirthdayPageValues(
@@ -143,6 +144,80 @@ export function migrateDiaryFieldValues(values: PageValues, pageNumber?: number)
   return migrated ? { ...next, fields: nextFields } : next;
 }
 
+/** Недельные стр. pregnancy: plans_header + plans_body → plans (78 символов, 3 строки макета). */
+export const PREGNANCY_WEEKLY_PLANS_MAX_LENGTH = 78;
+
+export function migratePregnancyWeeklyPlansFields(
+  schema: Pick<AlbumPageSchema, 'lineGuideId' | 'sourcePageNumber' | 'fields'>,
+  values: PageValues,
+): PageValues {
+  if (!isPregnancyWeeklyStructuredPage(schema.lineGuideId, schema.sourcePageNumber)) {
+    return values;
+  }
+
+  const plansField = schema.fields?.find((field) => field.fieldId.endsWith('_plans'));
+  if (!plansField) return values;
+
+  const prefix = plansField.fieldId.replace(/_plans$/, '');
+  const plansKey = `${prefix}_plans`;
+  const headerKey = `${prefix}_plans_header`;
+  const bodyKey = `${prefix}_plans_body`;
+
+  const legacyHeader = values.fields[headerKey]?.trim() ?? '';
+  const legacyBody = values.fields[bodyKey]?.trim() ?? '';
+  if (!legacyHeader && !legacyBody) return values;
+
+  const existingPlans = values.fields[plansKey]?.trim() ?? '';
+  const nextFields = { ...values.fields };
+
+  if (!existingPlans) {
+    nextFields[plansKey] = [legacyHeader, legacyBody]
+      .filter(Boolean)
+      .join(' ')
+      .slice(0, PREGNANCY_WEEKLY_PLANS_MAX_LENGTH);
+  }
+
+  delete nextFields[headerKey];
+  delete nextFields[bodyKey];
+
+  return { ...values, fields: nextFields };
+}
+
+/** «Уже мама»: до v2 не было eye_color — слоты zodiac/zodiac_year были сдвинуты на 1. */
+export function migrateAlreadyMomPageValues(
+  schema: Pick<AlbumPageSchema, 'title' | 'lineGuideId' | 'fields'>,
+  values: PageValues,
+): PageValues {
+  if (schema.title !== 'Уже мама') return values;
+  if (schema.lineGuideId !== 'pregnancy_60' && schema.lineGuideId !== 'pregnancy_a5') {
+    return values;
+  }
+
+  const eyeField = schema.fields.find((field) => field.fieldId.endsWith('_eye_color'));
+  if (!eyeField) return values;
+
+  const prefix = eyeField.fieldId.replace(/_eye_color$/, '');
+  const eyeKey = `${prefix}_eye_color`;
+  const zodiacKey = `${prefix}_zodiac`;
+  const yearKey = `${prefix}_zodiac_year`;
+
+  if (values.fields[eyeKey]?.trim()) return values;
+
+  const legacyZodiac = values.fields[zodiacKey]?.trim() ?? '';
+  const legacyYear = values.fields[yearKey]?.trim() ?? '';
+  if (!legacyZodiac && !legacyYear) return values;
+
+  return {
+    ...values,
+    fields: {
+      ...values.fields,
+      [eyeKey]: legacyZodiac,
+      [zodiacKey]: legacyYear,
+      [yearKey]: '',
+    },
+  };
+}
+
 export function migrateBirthdayPageValuesMap(
   instances: PageInstance[],
   pageValuesMap: Record<string, PageValues>,
@@ -160,6 +235,8 @@ export function migrateBirthdayPageValuesMap(
     let migrated = migrateBirthdayPageValues(schema, values);
     migrated = migrateTravelPageValues(schema, migrated);
     migrated = migrateDiaryFieldValues(migrated, schema.sourcePageNumber);
+    migrated = migrateAlreadyMomPageValues(schema, migrated);
+    migrated = migratePregnancyWeeklyPlansFields(schema, migrated);
     if (migrated === values) continue;
 
     nextMap[instance.instanceId] = migrated;

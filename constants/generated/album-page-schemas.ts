@@ -396,14 +396,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p4_mon",
           "label": "График врача: понедельник",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -411,7 +411,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: четверг",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -419,7 +419,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: вторник",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -427,7 +427,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: пятница",
           "type": "text",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -435,7 +435,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: среда",
           "type": "text",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -443,7 +443,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "График врача: суббота",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -451,7 +451,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Рекомендации врача",
           "type": "text",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 16,
           "templateLineCount": 3
         }
       ],
@@ -832,20 +832,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p9_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p9_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p9_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p9_belly",
@@ -893,20 +886,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p10_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p10_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p10_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p10_belly",
@@ -954,20 +940,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p11_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p11_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p11_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p11_belly",
@@ -1015,20 +994,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p12_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p12_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p12_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p12_belly",
@@ -1076,20 +1048,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p13_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p13_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p13_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p13_belly",
@@ -1137,20 +1102,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p14_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p14_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p14_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p14_belly",
@@ -1198,20 +1156,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p15_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p15_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p15_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p15_belly",
@@ -1259,20 +1210,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p16_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p16_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p16_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p16_belly",
@@ -1320,20 +1264,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p17_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p17_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p17_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p17_belly",
@@ -1393,20 +1330,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p19_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p19_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p19_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p19_belly",
@@ -1454,20 +1384,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p20_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p20_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p20_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p20_belly",
@@ -1515,20 +1438,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p21_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p21_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p21_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p21_belly",
@@ -1576,20 +1492,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p22_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p22_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p22_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p22_belly",
@@ -1637,20 +1546,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p23_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p23_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p23_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p23_belly",
@@ -1698,20 +1600,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p24_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p24_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p24_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p24_belly",
@@ -1759,20 +1654,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p25_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p25_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p25_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p25_belly",
@@ -1820,20 +1708,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p26_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p26_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p26_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p26_belly",
@@ -1881,20 +1762,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p27_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p27_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p27_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p27_belly",
@@ -1942,20 +1816,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p28_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p28_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p28_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p28_belly",
@@ -2003,20 +1870,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p29_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p29_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p29_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p29_belly",
@@ -2064,20 +1924,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p30_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p30_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p30_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p30_belly",
@@ -2125,20 +1978,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p31_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p31_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p31_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p31_belly",
@@ -2186,20 +2032,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p32_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p32_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p32_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p32_belly",
@@ -2259,20 +2098,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p34_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p34_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p34_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p34_belly",
@@ -2320,20 +2152,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p35_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p35_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p35_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p35_belly",
@@ -2381,20 +2206,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p36_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p36_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p36_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p36_belly",
@@ -2442,20 +2260,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p37_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p37_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p37_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p37_belly",
@@ -2503,20 +2314,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p38_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p38_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p38_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p38_belly",
@@ -2564,20 +2368,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p39_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p39_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p39_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p39_belly",
@@ -2625,20 +2422,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p40_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p40_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p40_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p40_belly",
@@ -2686,20 +2476,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p41_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p41_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p41_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p41_belly",
@@ -2747,20 +2530,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p42_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p42_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p42_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p42_belly",
@@ -2808,20 +2584,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p43_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p43_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p43_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p43_belly",
@@ -2869,20 +2638,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p44_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p44_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p44_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p44_belly",
@@ -2930,20 +2692,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p45_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p45_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p45_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p45_belly",
@@ -2991,20 +2746,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p46_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p46_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p46_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p46_belly",
@@ -3052,20 +2800,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_60_p47_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_60_p47_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p47_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_60_p47_belly",
@@ -3423,146 +3164,122 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "pregnancy_60_p51_todo_1",
-          "label": "Список дел",
-          "type": "text",
+          "label": "Выспаться",
+          "type": "checkbox",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_2",
-          "label": "Посмотреть сериал",
-          "type": "text",
+          "label": "Посмотреть интересный сериал",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_3",
-          "label": "Сделать фотосессию",
-          "type": "text",
+          "label": "Сходить на фотосессию",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_4",
-          "label": "Погулять с подругами",
-          "type": "text",
+          "label": "Насладиться беременностью",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_5",
-          "label": "Написать пост в соцсетях",
-          "type": "text",
+          "label": "Встретиться с подругами",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 4,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_6",
-          "label": "Прочитать книгу",
-          "type": "text",
+          "label": "Сходить в кино или театр",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_7",
-          "label": "Съездить в путешествие",
-          "type": "text",
+          "label": "День без соцсетей",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_8",
-          "label": "Выбросить ненужные вещи",
-          "type": "text",
+          "label": "Прочитать интересную книгу",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_9",
-          "label": "Испечь пирог",
-          "type": "text",
+          "label": "Отправиться в путешествие",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_10",
-          "label": "Посидеть под пледом",
-          "type": "text",
+          "label": "Избавиться от ненужных вещей",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_11",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Погулять в парке",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_12",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Кушать вкусняшки",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_13",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Испечь пирог",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_14",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "Выпить чай/какао под пледом",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p51_todo_15",
-          "label": "Сходить за шоппингом",
-          "type": "text",
+          "label": "День шоппинга",
+          "type": "checkbox",
           "required": false,
-          "templateLineStart": 14,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_16",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 15,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_17",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 16,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_60_p51_todo_18",
-          "label": "Сходить за шоппингом",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 17,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
@@ -3813,11 +3530,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_60_p54_eye_color",
+          "label": "Цвет глаз",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_60_p54_zodiac",
           "label": "Знак зодиака",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -3825,7 +3550,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Год (по восточному календарю)",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -3833,8 +3558,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 5,
+          "templateLineCount": 4
         }
       ],
       "photoBlocks": [
@@ -4487,20 +4212,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p5_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p5_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p5_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p5_belly",
@@ -4548,20 +4266,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p6_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p6_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p6_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p6_belly",
@@ -4609,20 +4320,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p7_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p7_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p7_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p7_belly",
@@ -4670,20 +4374,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p8_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p8_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p8_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p8_belly",
@@ -4731,20 +4428,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p9_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p9_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p9_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p9_belly",
@@ -4792,20 +4482,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p10_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p10_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p10_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p10_belly",
@@ -4853,20 +4536,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p11_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p11_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p11_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p11_belly",
@@ -4914,20 +4590,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p12_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p12_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p12_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p12_belly",
@@ -4975,20 +4644,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p13_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p13_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p13_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p13_belly",
@@ -5048,20 +4710,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p15_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p15_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p15_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p15_belly",
@@ -5109,20 +4764,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p16_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p16_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p16_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p16_belly",
@@ -5170,20 +4818,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p17_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p17_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p17_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p17_belly",
@@ -5231,20 +4872,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p18_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p18_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p18_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p18_belly",
@@ -5292,20 +4926,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p19_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p19_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p19_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p19_belly",
@@ -5353,20 +4980,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p20_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p20_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p20_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p20_belly",
@@ -5414,20 +5034,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p21_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p21_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p21_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p21_belly",
@@ -5475,20 +5088,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p22_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p22_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p22_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p22_belly",
@@ -5536,20 +5142,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p23_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p23_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p23_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p23_belly",
@@ -5597,20 +5196,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p24_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p24_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p24_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p24_belly",
@@ -5658,20 +5250,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p25_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p25_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p25_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p25_belly",
@@ -5719,20 +5304,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p26_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p26_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p26_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p26_belly",
@@ -5780,20 +5358,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p27_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p27_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p27_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p27_belly",
@@ -5841,20 +5412,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p28_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p28_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p28_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p28_belly",
@@ -5914,20 +5478,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p30_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p30_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p30_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p30_belly",
@@ -5975,20 +5532,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p31_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p31_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p31_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p31_belly",
@@ -6036,20 +5586,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p32_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p32_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p32_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p32_belly",
@@ -6097,20 +5640,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p33_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p33_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p33_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p33_belly",
@@ -6158,20 +5694,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p34_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p34_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p34_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p34_belly",
@@ -6219,20 +5748,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p35_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p35_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p35_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p35_belly",
@@ -6280,20 +5802,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p36_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p36_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p36_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p36_belly",
@@ -6341,20 +5856,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p37_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p37_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p37_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p37_belly",
@@ -6402,20 +5910,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p38_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p38_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p38_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p38_belly",
@@ -6463,20 +5964,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p39_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p39_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p39_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p39_belly",
@@ -6524,20 +6018,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p40_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p40_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p40_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p40_belly",
@@ -6585,20 +6072,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p41_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p41_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p41_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p41_belly",
@@ -6646,20 +6126,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p42_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p42_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p42_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p42_belly",
@@ -6707,20 +6180,13 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "pregnancy_a5_p43_plans_header",
-          "label": "Главные планы на неделю",
+          "fieldId": "pregnancy_a5_p43_plans",
+          "label": "Планы на неделю",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "pregnancy_a5_p43_plans_body",
-          "label": "Подробные заметки и дела на неделю",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 3,
+          "maxLength": 78
         },
         {
           "fieldId": "pregnancy_a5_p43_belly",
@@ -6936,42 +6402,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 3
         }
       ],
-      "photoBlocks": [
-        {
-          "blockId": "main_photo",
-          "label": "Фото для страницы",
-          "variants": [
-            {
-              "variantId": "one_horizontal",
-              "label": "Одно горизонтальное фото",
-              "slots": 1,
-              "slotIndices": [
-                8
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "Два вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                8,
-                9
-              ]
-            },
-            {
-              "variantId": "four_photos",
-              "label": "4 фото",
-              "slots": 4,
-              "slotIndices": [
-                8,
-                9,
-                10,
-                12
-              ]
-            }
-          ]
-        }
-      ],
       "canDuplicate": false,
       "canAddAfter": true
     },
@@ -7022,11 +6452,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "pregnancy_a5_p46_eye_color",
+          "label": "Цвет глаз",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "pregnancy_a5_p46_zodiac",
           "label": "Знак зодиака",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -7034,7 +6472,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Год (по восточному календарю)",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -7042,8 +6480,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Пожелания от мамы и папы",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 3
+          "templateLineStart": 5,
+          "templateLineCount": 4
         }
       ],
       "photoBlocks": [

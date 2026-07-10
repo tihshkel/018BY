@@ -33,6 +33,8 @@ interface PageRendererProps {
   sourcePageNumber?: number;
   /** Ждать загрузки фото в аннотациях перед onReady (экспорт). Для экрана превью — false. */
   waitForAnnotationImages?: boolean;
+  /** Доп. пауза после готовности слоёв перед onReady (экспорт — дать фону дописаться). */
+  readySettleMs?: number;
   /** Средний слой между фоном и текстом (например, фото в финальном предпросмотре). */
   middleLayer?: React.ReactNode;
 }
@@ -60,6 +62,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     readOnly = false,
     sourcePageNumber: sourcePageNumberProp,
     waitForAnnotationImages = true,
+    readySettleMs,
     middleLayer,
   }, ref) => {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -123,7 +126,9 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
 
     if (!annotationImagesReady) return;
 
-    const settleMs = pendingAnnotationImageUris.length > 0 ? 400 : 150;
+    const settleMs =
+      readySettleMs ??
+      (pendingAnnotationImageUris.length > 0 ? 400 : 150);
 
     let cancelled = false;
     const timer = setTimeout(() => {
@@ -141,6 +146,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     isImageLoaded,
     loadedAnnotationImageUris,
     pendingAnnotationImageUris,
+    readySettleMs,
     waitForAnnotationImages,
   ]);
 

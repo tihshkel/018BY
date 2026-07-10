@@ -10,6 +10,10 @@ import { getContentRect } from '@/utils/imageContentRect';
 import { formatAlbumDateDayMonth } from '@/utils/albumDateFormat';
 import { isKids48TeethToothDateField } from '@/utils/kids48TeethDates';
 import {
+  formatPregnancyBirthQuestionnaireAdmissionDate,
+  isPregnancyBirthQuestionnaireAdmissionDateField,
+} from '@/utils/pregnancyBirthQuestionnaireDates';
+import {
   getLineSlotsForPage,
   layoutAnnotationFromSlot,
   layoutTextAnnotationFromSlot,
@@ -150,7 +154,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   let zIndex = 1;
 
   for (const field of schema.fields ?? []) {
-    if (field.type === 'radio') continue;
+    if (field.type === 'radio' || field.type === 'checkbox') continue;
     if (isBlankTemplate) continue;
 
     const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
@@ -176,7 +180,16 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       lineGuideId,
       schema.sourcePageNumber,
     );
-    const displayText = isTeethToothDate ? formatAlbumDateDayMonth(text) : text;
+    const isAdmissionDate = isPregnancyBirthQuestionnaireAdmissionDateField(
+      field,
+      lineGuideId,
+      schema.sourcePageNumber,
+    );
+    const displayText = isTeethToothDate
+      ? formatAlbumDateDayMonth(text)
+      : isAdmissionDate
+        ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
+        : text;
     if (!displayText) continue;
 
     const startIndex = field.templateLineStart;
@@ -187,6 +200,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       slots[startIndex],
       fieldFontSize,
       lineGuideId,
+      displayText,
     );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
@@ -273,6 +287,13 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       fillColor: target.fillColor,
       fillOpacity: target.fillOpacity,
       clipShape: 'shape' in target && target.shape === 'rect' ? undefined : 'circle',
+      fillCornerRadius:
+        'shape' in target &&
+        target.shape === 'rect' &&
+        target.cornerRadius != null &&
+        target.width > 0
+          ? target.cornerRadius * (rect.width / (target.width * editorContentRect.width))
+          : undefined,
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
     });

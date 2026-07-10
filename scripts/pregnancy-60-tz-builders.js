@@ -98,6 +98,8 @@ function applyPregnancy60PageFields(pageNumber, lineGuideId, slots = []) {
         title: 'Анкета родов',
         pageType: 'structured',
         fields: buildBirthQuestionnaire60Fields(lineGuideId, pageNumber, slots),
+        replacePhotoBlocks: true,
+        photoBlocks: undefined,
       });
     case 53:
       return tzOverride({

@@ -22,6 +22,7 @@ export interface Annotation {
   clipShape?: 'circle';
   fillColor?: string;
   fillOpacity?: number;
+  fillCornerRadius?: number;
   imageSlotTransform?: PhotoSlotTransform;
 }
 

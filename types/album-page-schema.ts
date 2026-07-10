@@ -20,7 +20,7 @@ export type PageType =
   | 'birthday_free_page'
   | 'travel_map_page';
 
-export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
+export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio' | 'checkbox';
 
 export type TemplateTextBlockType = 'caption' | 'title' | 'longText' | 'date';
 

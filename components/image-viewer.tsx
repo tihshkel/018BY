@@ -9,6 +9,7 @@ import { useMediaLibraryPermission } from '@/components/media-library-permission
 import { createId } from '@/utils/id';
 import {
   DIARY_BLOCK_PAGE_SIZE,
+  PREGNANCY_A5_PAGE_SIZE,
   getCachedPageSourceSize,
   resolvePageSourceSize,
 } from '@/utils/pageSourceDimensions';
@@ -217,6 +218,9 @@ export default function ImageViewer({
     if (lineGuideId?.startsWith('diary_interior_')) {
       return DIARY_BLOCK_PAGE_SIZE;
     }
+    if (lineGuideId === 'pregnancy_a5') {
+      return PREGNANCY_A5_PAGE_SIZE;
+    }
     return {
       width: editorViewportWidth,
       height: containerHeight,
@@ -248,6 +252,23 @@ export default function ImageViewer({
         changed = true;
         const uri = images[page - 1];
         if (uri) setPageSourceSize(uri, DIARY_BLOCK_PAGE_SIZE);
+      }
+      return changed ? next : prev;
+    });
+  }, [lineGuideId, images]);
+
+  // A5 беременность: канонический размер PNG до onLoad — иначе слоты «День недели»/«Время» съезжают
+  useEffect(() => {
+    if (lineGuideId !== 'pregnancy_a5' || images.length === 0) return;
+    setPageSourceSizes((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (let page = 1; page <= images.length; page += 1) {
+        if (next[page]?.width === PREGNANCY_A5_PAGE_SIZE.width) continue;
+        next[page] = PREGNANCY_A5_PAGE_SIZE;
+        changed = true;
+        const uri = images[page - 1];
+        if (uri) setPageSourceSize(uri, PREGNANCY_A5_PAGE_SIZE);
       }
       return changed ? next : prev;
     });

@@ -34,6 +34,7 @@ import {
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
 import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
+import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
@@ -2379,7 +2380,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
-        const displayText = annotation.content || '';
+        const displayText = formatTemplateLineSlotDisplayText(
+          annotation.content || '',
+          lineGuideId,
+          pageNumberForSlots ?? undefined,
+          slotIndex,
+        );
         const { segments: displaySegments } = distributeTextForTemplateAnnotation({
           text: displayText,
           startSlotIndex: slotIndex,
@@ -2416,6 +2422,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 fontId: normalizedFontId,
                 allSlots: templateSlots,
                 fieldStartIndex: fieldStartForLayout,
+                textContent: row.content,
               });
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
@@ -2755,7 +2762,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           : basePos.y;
         const fillWidth = fillSize ?? annotation.width;
         const fillHeight = fillSize ?? annotation.height;
-        const fillRadius = isCircle ? fillWidth / 2 : circleRadius;
+        const fillRadius = isCircle
+          ? fillWidth / 2
+          : (annotation.fillCornerRadius ?? circleRadius);
 
         return (
           <View

@@ -111,7 +111,7 @@ function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
   }
 
   if (params.field.fieldId === 'pregnancy_60_p4_wellbeing') {
-    return 84;
+    return 70;
   }
 
   return undefined;

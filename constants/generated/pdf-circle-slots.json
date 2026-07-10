@@ -2591,6 +2591,190 @@
     }
   },
   "pregnancy_60": {
+    "51": {
+      "optionFills": [
+        {
+          "id": "todo_1",
+          "fieldId": "pregnancy_60_p51_todo_1",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.17727022526934377,
+          "y": 0.24427443056576048,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_2",
+          "fieldId": "pregnancy_60_p51_todo_2",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.47647022526934374,
+          "y": 0.24427443056576048,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_3",
+          "fieldId": "pregnancy_60_p51_todo_3",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7781702252693438,
+          "y": 0.24427443056576048,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_4",
+          "fieldId": "pregnancy_60_p51_todo_4",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.19837022526934378,
+          "y": 0.3985744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_5",
+          "fieldId": "pregnancy_60_p51_todo_5",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.44707022526934376,
+          "y": 0.3985744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_6",
+          "fieldId": "pregnancy_60_p51_todo_6",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7291702252693438,
+          "y": 0.3985744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_7",
+          "fieldId": "pregnancy_60_p51_todo_7",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.17727022526934377,
+          "y": 0.5514744305657604,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_8",
+          "fieldId": "pregnancy_60_p51_todo_8",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.47647022526934374,
+          "y": 0.5514744305657604,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_9",
+          "fieldId": "pregnancy_60_p51_todo_9",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7820702252693438,
+          "y": 0.5514744305657604,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_10",
+          "fieldId": "pregnancy_60_p51_todo_10",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.23457022526934376,
+          "y": 0.7071744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_11",
+          "fieldId": "pregnancy_60_p51_todo_11",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.5171702252693439,
+          "y": 0.7071744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_12",
+          "fieldId": "pregnancy_60_p51_todo_12",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7654702252693438,
+          "y": 0.7071744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_13",
+          "fieldId": "pregnancy_60_p51_todo_13",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.17727022526934377,
+          "y": 0.8614744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_14",
+          "fieldId": "pregnancy_60_p51_todo_14",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.47647022526934374,
+          "y": 0.8614744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        },
+        {
+          "id": "todo_15",
+          "fieldId": "pregnancy_60_p51_todo_15",
+          "option": "1",
+          "fillColor": "#E8C4A8",
+          "shape": "rect",
+          "x": 0.7781702252693438,
+          "y": 0.8614744305657605,
+          "width": 0.03525954946131244,
+          "height": 0.02645113886847906,
+          "cornerRadius": 3
+        }
+      ]
+    },
     "52": {
       "optionFills": [
         {
@@ -2599,10 +2783,10 @@
           "option": "Мальчик",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.17,
-          "y": 0.424,
-          "width": 0.0395,
-          "height": 0.028
+          "x": 0.1851,
+          "y": 0.4225,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "gender_girl",
@@ -2610,10 +2794,10 @@
           "option": "Девочка",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.355,
-          "y": 0.424,
-          "width": 0.0395,
-          "height": 0.028
+          "x": 0.3751,
+          "y": 0.4225,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "stimulation_yes",
@@ -2621,10 +2805,10 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.6724,
-          "y": 0.424,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.7258,
+          "y": 0.4217,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "stimulation_no",
@@ -2632,10 +2816,10 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.7621,
-          "y": 0.424,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.8051,
+          "y": 0.4217,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "tears_yes",
@@ -2643,10 +2827,10 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.6724,
-          "y": 0.464,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.6611,
+          "y": 0.4585,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "tears_no",
@@ -2654,10 +2838,10 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.7621,
-          "y": 0.464,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.7453,
+          "y": 0.4585,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "cord_yes",
@@ -2665,10 +2849,10 @@
           "option": "Да",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.6724,
-          "y": 0.504,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.6709,
+          "y": 0.4982,
+          "width": 0.0274,
+          "height": 0.0206
         },
         {
           "id": "cord_no",
@@ -2676,10 +2860,10 @@
           "option": "Нет",
           "fillColor": "#E8C4A8",
           "shape": "rect",
-          "x": 0.7621,
-          "y": 0.504,
-          "width": 0.039,
-          "height": 0.028
+          "x": 0.7551,
+          "y": 0.4982,
+          "width": 0.0274,
+          "height": 0.0206
         }
       ]
     }
