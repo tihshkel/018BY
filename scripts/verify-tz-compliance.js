@@ -315,7 +315,8 @@ function verifyPregnancyA5() {
   const belly = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_belly'));
   const feelings = (p5.fields ?? []).find((f) => f.fieldId.endsWith('_feelings'));
   assert(belly?.templateLineStart === 5, 'pregnancy A5 p5 belly slot 5');
-  assert(feelings?.templateLineStart === 6, 'pregnancy A5 p5 feelings slot 6');
+  assert(feelings?.templateLineStart === 7, 'pregnancy A5 p5 feelings slot 7');
+  assert(feelings?.templateLineCount === 3, 'pregnancy A5 p5 feelings has 3 lines');
 
   const p44 = byPage['44'];
   assert(

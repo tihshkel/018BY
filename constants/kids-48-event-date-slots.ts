@@ -38,7 +38,7 @@ export function getKids48EventDateLineNorm(
   page: number,
   slotIndex: number,
 ): { x: number; y: number; width: number; height: number } | null {
-  if (page === 8 && slotIndex === 1) return KIDS_48_P8_EVENT_DATE_LINE;
+  if (page === 8 && slotIndex === 0) return KIDS_48_P8_EVENT_DATE_LINE;
   if (page === 9 && slotIndex === 0) return KIDS_48_P9_EVENT_DATE_LINE;
   return null;
 }

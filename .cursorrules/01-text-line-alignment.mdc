@@ -1,0 +1,217 @@
+---
+description: Принцип 1 — выравнивание текста в зонах макета (линии, блоки, семантические слоты) на designed-страницах
+globs: utils/textLineSlots.ts,utils/templateLineText.ts,components/pdf-annotations.tsx,components/template-line-editor.tsx,components/line-slot-pressables.tsx,components/read-only-page-annotations.tsx,constants/line-slots.ts,constants/line-guides.ts,scripts/generate-line-slots.js,scripts/pregnancy-60-weekly-line-slot-overrides.js,scripts/kids-48-line-slot-overrides.js,scripts/build-diary-brown-slot-overrides.js,constants/album-text-margins.ts
+alwaysApply: false
+---
+
+# Принцип 1: Текст в зонах макета
+
+**Цель:** когда пользователь редактирует страницы альбома, весь текст должен попадать **ровно в ту зону макета, куда ему место по смыслу** — на линию, в прямоугольник или в семантическую зону без видимого штриха.
+
+**Исключение:** blank-альбомы без дизайна (`family_blank`, `family_blank_21x21`, `holidays_blank`) — свободный floating-текст, line slots **не применять**.
+
+---
+
+## Когда применяется
+
+Designed-альбомы с `hasLineGuides()` / `usesTemplateLineTextEditing()`:
+- `pregnancy_60`, `pregnancy_a5`
+- `kids_48` (белые страницы, но **designed** со слотами!)
+- `holidays_birthday_60`
+- `diary_interior_brown`, `diary_interior_purple`
+
+Проверка в коде:
+```typescript
+import { hasLineGuides } from '@/utils/textLineSlots';
+import { isBlankLineGuideAlbum } from '@/constants/album-text-margins';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
+```
+
+---
+
+## Типы слотов: line vs block vs семантический
+
+Не весь текст в designed-альбомах идёт **на линию**. У каждого слота есть `inputKind` (по умолчанию `'line'`).
+
+### 1. `inputKind: 'line'` — текст на штрихе
+
+Печатная линия видна в PDF. Текст выравнивается **над штрихом** (stroke-baseline):
+- Дневники (`diary_interior_brown/purple`) — штрих внизу полосы
+- `kids_48` — month pages, даты, сетка роста
+- `holidays_birthday_60` — короткие поля с подчёркиванием (дата, вес, рост)
+- Недели беременности — строки «Планы», «Ощущения», дата (с `lineStrokeAtBottom: true`)
+
+Ключевые флаги слота: `lineStrokeAtBottom`, `textAnchorTop`, `hasLabel`.
+
+### 2. `inputKind: 'block'` — текст в прямоугольнике
+
+**Нет штриха** — текст центрируется внутри ячейки дизайна:
+- **`holidays_birthday_60`** — белые блоки (обложка, заголовки «Мне N лет», крупные поля анкеты). Insets: `getTemplateBlockTextInsets()` → pad 8% ширины
+- **`diary_interior_brown/purple`** — peach/white ячейки (ширина ≥ 0.62 norm → block). Определяется в `build-diary-brown-slot-overrides.js`
+- **`kids_48`** — wish-блоки, caption-поля (`kids-48-line-slot-overrides.js`)
+- **Недели беременности** — слоты «Вес» (index 1) и «Обхват животика» (index 6 для 60 стр. / 5 для A5) — розовые блоки справа, `isPregnancy60WeeklyValueSlot()`
+
+Позиционирование block:
+```typescript
+// templateLineText.ts — default block branch
+top = slot.y + slot.lineHeight * centerRatio - fittedSize * fontOffsetRatio;
+```
+`fitFontSizeToSlot()` для block: `min(fontSize, lineHeight*0.78, blockMaxFontSize)`.
+
+### 3. Семантические слоты — зона есть, линии нет
+
+Страницы, где **по дизайну** есть поле ввода, но в PDF **нет** видимой линии или стандартного OCR-слота. Слоты создаются **вручную** через overrides:
+
+#### Недельные страницы «В ожидании чуда» (`pregnancy_60`, `pregnancy_a5`)
+
+Страницы: `isPregnancyWeeklyStructuredPage()` — pregnancy_60: p9–p17, p19–p32, p34–p47.
+
+Особенности:
+- Заголовок «N-я неделя» — **не слот ввода** (печатный текст)
+- **Вес / Обхват** — `inputKind: 'block'`, калибровка в `PREGNANCY_WEEKLY_CALIB`, `refinePregnancy60WeeklyWeightBellySlots()`
+- **Планы на неделю** (3 строки) — `inputKind: 'line'` со `lineStrokeAtBottom`, третья строка вставляется в `pregnancy-60-weekly-line-slot-overrides.js`
+- **Inline tail** — текст справа от подписи («ПЛАНЫ НА НЕДЕЛЮ:»): `inlineLabelTail`, `isPregnancyWeeklyInlineTailLabelSlot()`, `resolveWeeklyFieldLineSlots()`
+- Поля формы привязаны через `getPregnancyWeeklyFieldStartIndex()` — не всегда совпадает с визуальным порядком OCR
+
+Функции для weekly:
+```typescript
+isPregnancyWeeklyStructuredPage(lineGuideId, page)
+isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
+isPregnancy60WeeklyValueSlot(lineGuideId, slot)  // вес/обхват
+resolveWeeklyFieldLineSlots(slots, start, count, lineGuideId)
+```
+
+#### Анкеты рождения (birth questionnaire pages)
+
+`isBirthQuestionnairePage()` — pregnancy_60 p52+, блоки без линий, смешанный line/block layout.
+
+### Правило для агента
+
+> Если на странице **нет видимой линии**, но пользователь должен вводить текст — **нельзя** оставлять поле без слота. Нужен manual override в:
+> - `scripts/pregnancy-60-weekly-line-slot-overrides.js`
+> - `scripts/generate-line-slots.js` (post-OCR)
+> - `utils/textLineSlots.ts` → `refineNormalizedSlotForTextLayout()`
+> - `scripts/kids-48-line-slot-overrides.js` / `build-diary-brown-slot-overrides.js`
+
+Отсутствие слота ≠ blank-альбом. Отсутствие слота = баг, если в схеме есть поле.
+
+---
+
+## Инварианты (обязательны)
+
+### 1. Единая точка геометрии слотов
+`getLineSlotsForPage()` в `utils/textLineSlots.ts`:
+```
+LINE_SLOTS (OCR) → runtime refinements → mapSourceNormToViewport → TextLineSlot[]
+```
+Никогда не дублировать расчёт координат слотов в компонентах.
+
+### 2. Вертикаль текста — только через хелперы
+- **Preview:** `getTemplateLineTextTop()` в `utils/templateLineText.ts`
+- **PDF export:** `getTemplateLinePdfBaselineY()` в `utils/exportTemplateText.ts`
+- Baseline PDF = preview top + cap height (`PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO` и album-specific offsets)
+
+Типы layout (в `getTemplateLineTextTop`):
+- **Stroke-baseline** (`inputKind: 'line'`) — текст над печатной линией (дневники, kids month, pregnancy weekly text lines, даты)
+- **Block** (`inputKind: 'block'`) — центрирование в прямоугольнике; insets через `getTemplateBlockTextInsets()` (birthday, diary peach, weekly вес/обхват)
+- **Center-band** — центр полосы слота (default для line без stroke-baseline)
+
+### 3. Распределение текста — общие функции
+Preview и export **обязаны** вызывать:
+- `distributeTextForTemplateAnnotation()`
+- `distributeTextWithinContinuationGroup()`
+- `layoutTextAnnotationFromSlot()` — для preview/export parity
+
+### 4. Одна аннотация = одна строка
+После сохранения: `templateLineStart` + `templateLineCount: 1` на каждую строку.
+
+### 5. continuationGroup
+Несколько слотов с одинаковым `continuationGroup` = одно многострочное поле. Перенос слов только внутри группы через `distributeTextWithinContinuationGroup()`.
+
+### 6. Album-specific lift/gap
+Константы в `constants/album-text-margins.ts`:
+- `KIDS_MONTH_LINE_BAND_HEIGHT`, `KIDS_MONTH_LINE_FONT_OFFSET`
+- `PREGNANCY_WEEKLY_LINE_PITCH`, `PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO`
+- `DIARY_LINE_FONT_OFFSET`, `KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO`
+- и др.
+
+Новые страницы требуют **явного override** в `textLineSlots.ts` или `generate-line-slots.js`, не «подкрутки» в JSX.
+
+### 7. Регенерация слотов
+При изменении геометрии:
+```bash
+node scripts/generate-line-slots.js
+```
++ bump cache-key суффикса в `textLineSlots.ts` (версионные суффиксы в ключе кэша).
+
+---
+
+## Пайплайн getLineSlotsForPage (для понимания)
+
+1. `getNormalizedSlotsForPage()` — читает `LINE_SLOTS[guideId][page]`, фильтрует spurious slots
+2. `refineDenseContinuationGroupSpacing()` — pregnancy: равномерное распределение плотных групп
+3. `refinePregnancy60WeeklyWeightBellySlots()`, `refinePregnancyWeeklyRuledLineNorms()` — недельные страницы
+4. Per-slot `refineNormalizedSlotForTextLayout()` — diary/kids_48 overrides (insets, wish-блоки, даты, зубы)
+5. Вычисление `topNormY`:
+   - Diary: `y - height` (штрих внизу полосы)
+   - kids month / stroke-date: `textAnchorTop` + `lineStrokeAtBottom`
+   - Default: `y - height/2`
+6. `mapSourceNormToViewport()` → `TextLineSlot` с `lineHeight = mapped.height`
+
+---
+
+## Рендеринг и редактирование
+
+### Preview (RN)
+- `pdf-annotations.tsx` — редактируемый режим
+- `read-only-page-annotations.tsx` — read-only превью
+- `template-line-editor.tsx` — **один TextInput на активную строку** (iOS workaround: многострочный value сжимается)
+- `numberOfLines={1}`, `ellipsizeMode="clip"` — одна видимая строка
+
+### Позиционирование шрифта
+`fitFontSizeToSlot()`:
+- Diary/pregnancy: фиксированный `fixedLineFontSize` (16)
+- Block: `min(fontSize, lineHeight*0.78, blockMaxFontSize)`
+- Birthday: до `lineHeight*0.82`, max 18
+- Default: `min(fontSize, lineHeight*0.76, 16)`
+
+`layoutTextAnnotationFromSlot()` подбирает `effectiveFontSize` (shrink-to-fit для узких слотов).
+
+### iOS workaround
+`truncateTextToSlotWidth()` — везде **кроме** `kids_48`. Не ломать эту ветку.
+
+---
+
+## Запрещено
+
+- Хардкодить `top`/`y` в `pdf-annotations.tsx` или `exportTemplateText.ts` минуя хелперы
+- Менять preview-логику без зеркального изменения export
+- Применять line-slot логику к blank-альбомам
+- Добавлять inline style offsets в компонентах вместо констант в `album-text-margins.ts`
+- Создавать аннотации с `templateLineCount > 1` после сохранения (только при распределении)
+
+---
+
+## Верификация
+
+```bash
+npm run verify:line-slots
+npm run audit:pregnancy-stroke-alignment:fail    # pregnancy weekly baseline
+npm run audit:diary-brown-text-baseline:fail     # diary baseline
+node scripts/audit-kids-48-pages.js --fail       # kids_48
+node scripts/verify-export-parity.js             # preview ↔ export helpers
+```
+
+### Debug-артефакты
+- `assets/debug/line-slots/<album>/page_XXX.png` — оверлеи слотов
+- `assets/debug/kids-48-audit/` — combined audit kids_48
+- `assets/debug/diary-brown-text-baseline/` — baseline drift diary
+
+### При добавлении новой страницы
+1. Определить тип зон: `line`, `block` или семантический (без видимой линии)
+2. Убедиться, что слот есть в `LINE_SLOTS` (или manual override в generate/overrides)
+3. Для block: проверить `getTemplateBlockTextInsets()` и `resolveTemplateTextVerticalRatios()`
+4. Для weekly/анкет: проверить `resolveWeeklyFieldLineSlots()` / `isPregnancyWeeklyTextLineSlot()`
+5. Проверить `refineNormalizedSlotForTextLayout()` — нужен ли album-specific override
+6. Проверить `getTemplateLineTextTop()` — lift/gap/centerRatio для этой страницы
+7. Прогнать визуальный audit + `verify-export-parity.js`

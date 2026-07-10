@@ -111,6 +111,14 @@ function resolveManifestPath(relativePath: string): string {
   return resolvePreviewAssetUri(relativePath);
 }
 
+/** Per-page legacy manifests use native variant ids (one_horizontal, two_horizontal). */
+function perPageManifestVariantKey(lineGuideId: string, variantId: string): string {
+  if (LEGACY_MANIFESTS[lineGuideId]) {
+    return variantId;
+  }
+  return manifestVariantKey(lineGuideId, variantId);
+}
+
 function resolveConventionalPerPageVariantUri(params: {
   lineGuideId: string;
   sourcePageNumber: number;
@@ -122,13 +130,14 @@ function resolveConventionalPerPageVariantUri(params: {
   const page = String(params.sourcePageNumber).padStart(3, '0');
   const candidateKeys: string[] = [];
   if (params.variantId) {
-    const normalized = manifestVariantKey(params.lineGuideId, params.variantId);
-    candidateKeys.push(normalized);
+    candidateKeys.push(params.variantId);
+    const normalized = perPageManifestVariantKey(params.lineGuideId, params.variantId);
     if (normalized !== params.variantId) {
-      candidateKeys.push(params.variantId);
+      candidateKeys.push(normalized);
     }
   }
   candidateKeys.push('one_large');
+  candidateKeys.push('one_horizontal');
 
   for (const key of candidateKeys) {
     const relativePath = `${folder}/preview_variants/page_${page}_${key}.png`;
@@ -171,9 +180,14 @@ export function resolvePerPageVariantBackgroundUri(params: {
 
   if (pageEntry) {
     if (variantId) {
-      const key = manifestVariantKey(lineGuideId, variantId);
-      const path = pageEntry[key];
-      if (path) return resolveManifestPath(path);
+      const directPath = pageEntry[variantId];
+      if (directPath) return resolveManifestPath(directPath);
+
+      const key = perPageManifestVariantKey(lineGuideId, variantId);
+      if (key !== variantId) {
+        const aliasedPath = pageEntry[key];
+        if (aliasedPath) return resolveManifestPath(aliasedPath);
+      }
     }
 
     const firstKey = Object.keys(pageEntry)[0];

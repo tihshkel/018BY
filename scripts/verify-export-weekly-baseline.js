@@ -55,13 +55,14 @@ assert(
 
 const exportTemplateSource = read('utils/exportTemplateText.ts');
 assert(
-  exportTemplateSource.includes('getTemplateLinePdfBaselineY') &&
-    exportTemplateSource.includes('slots'),
-  'exportTemplateText passes slots to pdf baseline',
+  exportTemplateSource.includes('resolveTemplateLineViewportBaseline') &&
+    exportTemplateSource.includes('allSlots: slots'),
+  'exportTemplateText passes slots to viewport baseline resolver',
 );
 assert(
-  exportTemplateSource.includes('measureTextWidth'),
-  'export distribute uses PDF font metrics',
+  exportTemplateSource.includes('resolveMeasureTextWidth') &&
+    exportTemplateSource.includes('baseFontSize'),
+  'export distribute uses font-table metrics (preview parity)',
 );
 
 const weeklyStrokeFn = templateSource.slice(
@@ -133,6 +134,19 @@ assert(
     readOnlySource.includes('measureTextWidth'),
   'read-only preview uses font-table text measure',
 );
+assert(
+  readOnlySource.includes('resolvePregnancyWeeklyFieldRowLayout') &&
+    readOnlySource.includes('shouldClipPregnancyWeeklyFieldRow') &&
+    readOnlySource.includes('getTemplateBlockTextInsets') &&
+    readOnlySource.includes('lineSlots ?? undefined'),
+  'read-only preview uses weekly clipWeeklyRow path with allSlots',
+);
+assert(
+  templateSource.includes('resolvePregnancyWeeklyFieldRowLayout') &&
+    templateSource.includes('resolveTemplateTextRenderBox(slot, insets)') &&
+    !templateSource.includes('viewLeft: slot.x,\n    viewWidth: bodyWidth'),
+  'weekly render fallback uses template insets, not raw slot.x',
+);
 
 const slots = require('../constants/line-slots.json').pregnancy_60['9'];
 assert(slots[3] && slots[8], 'page 9 has plans slot 3 and feelings slot 8');
@@ -184,6 +198,50 @@ assert(
     (fill) => fill.id === 'gender_boy' && fill.fieldId === 'pregnancy_60_p52_baby_gender',
   ),
   'pregnancy_60 p52 gender boy fill registered',
+);
+
+assert(
+  !templateSource.includes('PDF_BLOCK_STROKE_CLEARANCE_RATIO'),
+  'p52 block fields: PDF baseline derives from getTemplateLineTextTop, not strokeY clearance',
+);
+assert(
+  templateSource.includes('getTemplateLinePreviewAbsoluteTextTop') &&
+    templateSource.includes('resolveTemplateLinePdfAscentRatio') &&
+    templateSource.includes('return TEMPLATE_LINE_CAP_HEIGHT_RATIO'),
+  'block and default line fields use preview top + ascent ratio for PDF baseline',
+);
+
+const p54Slots = require('../constants/line-slots.json').pregnancy_60['54'];
+assert(Array.isArray(p54Slots) && p54Slots.length === 9, 'pregnancy_60 p54 has 9 line slots');
+assert(
+  p54Slots[0]?.lineStrokeAtBottom === true && p54Slots[5]?.hasLabel === true,
+  'p54 name and wishes slots use stroke baseline',
+);
+assert(
+  templateSource.includes('resolveAlreadyMomLineStrokeY') &&
+    templateSource.includes('resolveTemplateLineViewportBaseline') &&
+    !exportTemplateSource.includes('heightAtSize') &&
+    exportTemplateSource.includes('fontId'),
+  'p54 already-mom export uses unified viewport baseline resolver (no heightAtSize)',
+);
+assert(
+  readOnlySource.includes('resolveTemplateLineRowLayout'),
+  'read-only preview uses shared resolveTemplateLineRowLayout',
+);
+const pdfAnnotationsSource = read('components/pdf-annotations.tsx');
+assert(
+  pdfAnnotationsSource.includes('resolveTemplateLineRowLayout'),
+  'pdf-annotations uses shared resolveTemplateLineRowLayout',
+);
+assert(
+  templateSource.includes('getRnAscentRatioAt16') &&
+    templateSource.includes('usesPregnancyAlbumRnLineHeightAscent'),
+  'baseline resolver uses calibrated RN ascent ratio',
+);
+assert(
+  textSlotsSource.includes('isAlreadyMomGuidePage') &&
+    textSlotsSource.includes('page === 54'),
+  'p54 strokeY uses LINE_GUIDES in getLineSlotsForPage',
 );
 
 if (failed > 0) {

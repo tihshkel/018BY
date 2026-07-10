@@ -44,7 +44,7 @@ export function AlbumPageFillForm({
 }: AlbumPageFillFormProps) {
   const fields = schema.fields ?? [];
   const blocks = schema.photoBlocks ?? [];
-  const photoBlocks = pageValues.photoBlocks;
+  const photoBlocks = pageValues.photoBlocks ?? {};
   const photoCaptions = pageValues.photoCaptions ?? [];
   const caption = pageValues.caption ?? '';
 
@@ -54,6 +54,7 @@ export function AlbumPageFillForm({
     onChange: onFieldChange,
     lineGuideId,
     sourcePageNumber: schema.sourcePageNumber,
+    fontId: pageValues.textFontFamily,
   };
 
   const textForm = (() => {

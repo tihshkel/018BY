@@ -20,6 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { resolveAlbumEntryPath } from '@/utils/albumIntro';
 import { buildAlbumIntroHref, buildAlbumPagesHref } from '@/utils/albumNavigation';
+import { buildAlbumFlowParamsFromProject } from '@/utils/albumFlowParams';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
@@ -114,6 +115,7 @@ export default function HomeScreen() {
           if (changed) {
             loadProjects();
             loadUserData();
+            void syncWidgetSnapshot();
             void refreshAllAlbumNotifications({ skipCloudSync: true }).catch(() => {});
           } else {
             // Если pullLatestFromCloud не обнаружил изменений, но проектов локально 0 —
@@ -129,6 +131,7 @@ export default function HomeScreen() {
                     if (retryChanged) {
                       loadProjects();
                       loadUserData();
+                      void syncWidgetSnapshot();
                     } else {
                       loadProjects();
                     }
@@ -181,10 +184,11 @@ export default function HomeScreen() {
 
   const navigateToPdfAlbum = async (project: UserProject) => {
     const entry = await resolveAlbumEntryPath(project.id);
+    const flowParams = buildAlbumFlowParamsFromProject(project);
     const href =
       entry === 'album-intro'
-        ? buildAlbumIntroHref({ id: project.id })
-        : buildAlbumPagesHref({ id: project.id });
+        ? buildAlbumIntroHref(flowParams)
+        : buildAlbumPagesHref(flowParams);
     router.push(href);
   };
 

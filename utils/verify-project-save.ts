@@ -3,23 +3,42 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const PROJECT_PREFIX = '@project_';
 const USER_PROJECTS_KEY = '@user_projects';
 
-/**
- * Проверяет целостность проекта в хранилище
- */
-export async function verifyProjectInStorage(projectId: string): Promise<boolean> {
-  if (!projectId) return false;
-  
+const PROJECT_KEY_SUBPREFIXES = [
+  'images_',
+  'annotations_',
+  'cover_annotations_',
+  'pdf_',
+  'viewport_',
+  'cover_viewport_',
+  'last_text_style_',
+  'sections_',
+  'page_instances_',
+  'page_values_',
+  'schema_version_',
+  'form_migration_',
+  'pv_',
+];
+
+function isProjectMetaKey(key: string): boolean {
+  if (!key.startsWith(PROJECT_PREFIX)) return false;
+  const rest = key.slice(PROJECT_PREFIX.length);
+  return !PROJECT_KEY_SUBPREFIXES.some((sub) => rest.startsWith(sub));
+}
+
+function projectIdFromMetaKey(key: string): string {
+  return key.slice(PROJECT_PREFIX.length);
+}
+
+function parseUserProjects(raw: string | null): Array<Record<string, unknown>> {
+  if (!raw) return [];
   try {
-    const projectKey = `${PROJECT_PREFIX}${projectId}`;
-    const projectData = await AsyncStorage.getItem(projectKey);
-    
-    if (!projectData) return false;
-    
-    const parsed = JSON.parse(projectData);
-    return !!parsed && typeof parsed === 'object';
-  } catch (error) {
-    console.error(`Error verifying project ${projectId}:`, error);
-    return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((entry) => entry && typeof entry === 'object') as Array<
+      Record<string, unknown>
+    >;
+  } catch {
+    return [];
   }
 }
 
@@ -29,27 +48,34 @@ export async function verifyProjectInStorage(projectId: string): Promise<boolean
 export async function fixMissingProjectsInList(): Promise<void> {
   try {
     const allKeys = await AsyncStorage.getAllKeys();
-    const projectKeys = allKeys.filter(key => key.startsWith(PROJECT_PREFIX) && !key.includes('_'));
-    const projectIds = projectKeys.map(key => key.replace(PROJECT_PREFIX, ''));
-    
-    const userProjectsRaw = await AsyncStorage.getItem(USER_PROJECTS_KEY);
-    let userProjects: string[] = [];
-    
-    if (userProjectsRaw) {
+    const projectKeys = allKeys.filter(isProjectMetaKey);
+    const projectIds = projectKeys.map(projectIdFromMetaKey);
+
+    const userProjects = parseUserProjects(await AsyncStorage.getItem(USER_PROJECTS_KEY));
+    const byId = new Map<string, Record<string, unknown>>();
+    for (const entry of userProjects) {
+      const id = entry.id != null ? String(entry.id) : '';
+      if (id) byId.set(id, entry);
+    }
+
+    let changed = false;
+    for (const projectId of projectIds) {
+      if (byId.has(projectId)) continue;
+      const projectRaw = await AsyncStorage.getItem(`${PROJECT_PREFIX}${projectId}`);
+      if (!projectRaw) continue;
       try {
-        userProjects = JSON.parse(userProjectsRaw);
-        if (!Array.isArray(userProjects)) userProjects = [];
+        const parsed = JSON.parse(projectRaw) as Record<string, unknown>;
+        if (parsed && typeof parsed === 'object') {
+          byId.set(projectId, parsed);
+          changed = true;
+        }
       } catch {
-        userProjects = [];
+        // ignore corrupt project meta
       }
     }
-    
-    const existingIds = new Set(userProjects);
-    const missingProjects = projectIds.filter(id => !existingIds.has(id));
-    
-    if (missingProjects.length > 0) {
-      const updatedList = [...userProjects, ...missingProjects];
-      await AsyncStorage.setItem(USER_PROJECTS_KEY, JSON.stringify(updatedList));
+
+    if (changed) {
+      await AsyncStorage.setItem(USER_PROJECTS_KEY, JSON.stringify(Array.from(byId.values())));
     }
   } catch (error) {
     console.error('Error fixing missing projects:', error);
@@ -69,16 +95,16 @@ export async function runFullVerifyReport(): Promise<{
     totalProjects: 0,
     validProjects: 0,
     invalidProjects: [] as string[],
-    orphanedProjects: [] as string[]
+    orphanedProjects: [] as string[],
   };
-  
+
   try {
     const allKeys = await AsyncStorage.getAllKeys();
-    const projectKeys = allKeys.filter(key => key.startsWith(PROJECT_PREFIX) && !key.includes('_'));
-    const projectIds = projectKeys.map(key => key.replace(PROJECT_PREFIX, ''));
-    
+    const projectKeys = allKeys.filter(isProjectMetaKey);
+    const projectIds = projectKeys.map(projectIdFromMetaKey);
+
     report.totalProjects = projectIds.length;
-    
+
     for (const projectId of projectIds) {
       const isValid = await verifyProjectInStorage(projectId);
       if (isValid) {
@@ -87,22 +113,35 @@ export async function runFullVerifyReport(): Promise<{
         report.invalidProjects.push(projectId);
       }
     }
-    
-    const userProjectsRaw = await AsyncStorage.getItem(USER_PROJECTS_KEY);
-    if (userProjectsRaw) {
-      try {
-        const userProjects = JSON.parse(userProjectsRaw);
-        if (Array.isArray(userProjects)) {
-          const projectSet = new Set(projectIds);
-          report.orphanedProjects = userProjects.filter(id => !projectSet.has(id));
-        }
-      } catch {
-        // ignore parsing errors
-      }
-    }
+
+    const userProjects = parseUserProjects(await AsyncStorage.getItem(USER_PROJECTS_KEY));
+    const projectSet = new Set(projectIds);
+    report.orphanedProjects = userProjects
+      .map((entry) => (entry.id != null ? String(entry.id) : ''))
+      .filter((id) => id && !projectSet.has(id));
   } catch (error) {
     console.error('Error running verify report:', error);
   }
-  
+
   return report;
+}
+
+/**
+ * Проверяет целостность проекта в хранилище
+ */
+export async function verifyProjectInStorage(projectId: string): Promise<boolean> {
+  if (!projectId) return false;
+
+  try {
+    const projectKey = `${PROJECT_PREFIX}${projectId}`;
+    const projectData = await AsyncStorage.getItem(projectKey);
+
+    if (!projectData) return false;
+
+    const parsed = JSON.parse(projectData);
+    return !!parsed && typeof parsed === 'object';
+  } catch (error) {
+    console.error(`Error verifying project ${projectId}:`, error);
+    return false;
+  }
 }

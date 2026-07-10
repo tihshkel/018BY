@@ -95,10 +95,16 @@ export async function persistAlbumPhotoUri(
     await FileSystem.copyAsync({ from: processedUri, to: destPath });
     return destUri;
   } catch (error) {
-    console.warn('[persistAlbumPhotoUri] copy failed, keeping source URI', error);
-    return sourceUri.startsWith('file://') || sourceUri.startsWith('/')
-      ? normalizeFileUri(sourceUri)
-      : sourceUri;
+    console.warn('[persistAlbumPhotoUri] resample/copy failed, retrying direct copy', error);
+    try {
+      await FileSystem.copyAsync({ from: sourceUri, to: destPath });
+      return destUri;
+    } catch (retryError) {
+      console.error('[persistAlbumPhotoUri] direct copy failed', retryError);
+      throw new Error(
+        `Не удалось сохранить фото в альбом (${relativeKey}). Попробуйте выбрать снимок снова.`,
+      );
+    }
   }
 }
 

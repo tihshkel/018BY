@@ -1,0 +1,12 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "018BY",
+    "NSCameraUsageDescription": "Камера нужна, чтобы сделать фото для альбомов.",
+    "NSPhotoLibraryUsageDescription": "Доступ к фото библиотеке нужен, чтобы добавлять фотографии в альбомы и сохранять созданные проекты.",
+    "NSPhotoLibraryAddUsageDescription": "Доступ для сохранения нужен, чтобы сохранять созданные PDF файлы и экспортированные альбомы в галерею.",
+    "NSUserNotificationsUsageDescription": "Уведомления нужны, чтобы напоминать о важных моментах беременности и развития ребёнка."
+  },
+  "android": {
+    "app_name": "018BY"
+  }
+}

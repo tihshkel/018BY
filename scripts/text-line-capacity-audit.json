@@ -1,182 +1,35 @@
 {
-  "generatedAt": "2026-07-05T09:23:26.614Z",
+  "generatedAt": "2026-07-10T13:02:03.391Z",
   "probeSample": "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0",
   "albums": [
     {
-      "albumId": "pregnancy_60",
-      "pageCount": 49,
+      "albumId": "kids_48",
+      "pageCount": 43,
       "issuePages": 0,
       "pages": [
         {
           "page": "1",
-          "title": "У нас будет малыш!",
-          "slotCount": 7,
+          "title": "Этот альбом принадлежит",
+          "slotCount": 5,
           "fieldCount": 5,
           "issues": [
             {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p1_reaction",
-              "detail": "heuristic=498 export=561"
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p1_child_name",
+              "slotIndex": 0,
+              "detail": "slotY=0.2359 guideY=0.2359 driftMm=12.6"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p1_reaction",
-              "slotIndex": 1,
-              "detail": "slotY=0.2384 guideY=0.2384 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p1_reaction",
-              "slotIndex": 2,
-              "detail": "slotY=0.2808 guideY=0.2808 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p1_reaction",
+              "fieldId": "kids_48_p1_weight",
               "slotIndex": 3,
-              "detail": "slotY=0.3234 guideY=0.3234 driftMm=4.4"
+              "detail": "slotY=0.8597 guideY=0.8597 driftMm=5.3"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p1_name",
-              "slotIndex": 5,
-              "detail": "slotY=0.4069 guideY=0.4069 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p1_age",
-              "slotIndex": 6,
-              "detail": "slotY=0.4512 guideY=0.4512 driftMm=4.7"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "2",
-          "title": "Обо мне",
-          "slotCount": 22,
-          "fieldCount": 21,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_eye_color",
-              "slotIndex": 1,
-              "detail": "slotY=0.2110 guideY=0.2110 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_hair_color",
-              "slotIndex": 2,
-              "detail": "slotY=0.2110 guideY=0.2110 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_blood_type",
-              "slotIndex": 3,
-              "detail": "slotY=0.2529 guideY=0.2529 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_height",
+              "fieldId": "kids_48_p1_height",
               "slotIndex": 4,
-              "detail": "slotY=0.2529 guideY=0.2529 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_weight",
-              "slotIndex": 5,
-              "detail": "slotY=0.2531 guideY=0.2531 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_education",
-              "slotIndex": 6,
-              "detail": "slotY=0.2939 guideY=0.2939 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_workplace",
-              "slotIndex": 7,
-              "detail": "slotY=0.3357 guideY=0.3357 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_position",
-              "slotIndex": 8,
-              "detail": "slotY=0.3766 guideY=0.3766 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_hobby",
-              "slotIndex": 9,
-              "detail": "slotY=0.4177 guideY=0.4177 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_love",
-              "slotIndex": 10,
-              "detail": "slotY=0.4601 guideY=0.4601 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_dislike",
-              "slotIndex": 11,
-              "detail": "slotY=0.5005 guideY=0.5005 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_want_child",
-              "slotIndex": 12,
-              "detail": "slotY=0.5425 guideY=0.5425 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_want_child",
-              "slotIndex": 13,
-              "detail": "slotY=0.5790 guideY=0.5790 driftMm=4.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_want_count",
-              "slotIndex": 14,
-              "detail": "slotY=0.6193 guideY=0.6193 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_gender",
-              "slotIndex": 15,
-              "detail": "slotY=0.7299 guideY=0.7299 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_baby_weight",
-              "slotIndex": 17,
-              "detail": "slotY=0.8138 guideY=0.8138 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_baby_height",
-              "slotIndex": 18,
-              "detail": "slotY=0.8138 guideY=0.8138 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_baby_hair",
-              "slotIndex": 19,
-              "detail": "slotY=0.8566 guideY=0.8566 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_baby_eyes",
-              "slotIndex": 20,
-              "detail": "slotY=0.8566 guideY=0.8566 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p2_look_like",
-              "slotIndex": 21,
-              "detail": "slotY=0.8990 guideY=0.8990 driftMm=4.5"
+              "detail": "slotY=0.9113 guideY=0.9113 driftMm=5.4"
             }
           ],
           "blockingIssues": [],
@@ -184,629 +37,220 @@
         },
         {
           "page": "3",
-          "title": "Будущий папа",
-          "slotCount": 11,
-          "fieldCount": 10,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_name",
-              "slotIndex": 0,
-              "detail": "slotY=0.1742 guideY=0.1742 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_eye_color",
-              "slotIndex": 2,
-              "detail": "slotY=0.2536 guideY=0.2536 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_hair_color",
-              "slotIndex": 3,
-              "detail": "slotY=0.2536 guideY=0.2536 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_education",
-              "slotIndex": 4,
-              "detail": "slotY=0.2927 guideY=0.2927 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_workplace",
-              "slotIndex": 5,
-              "detail": "slotY=0.3345 guideY=0.3345 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_position",
-              "slotIndex": 6,
-              "detail": "slotY=0.3754 guideY=0.3754 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_hobby",
-              "slotIndex": 7,
-              "detail": "slotY=0.4165 guideY=0.4165 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_want_child",
-              "slotIndex": 8,
-              "detail": "slotY=0.4562 guideY=0.4562 driftMm=4.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_want_child",
-              "slotIndex": 9,
-              "detail": "slotY=0.4935 guideY=0.4935 driftMm=4.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p3_want_count",
-              "slotIndex": 10,
-              "detail": "slotY=0.5322 guideY=0.5322 driftMm=4.1"
-            }
-          ],
+          "title": "Мы ждем тебя",
+          "slotCount": 2,
+          "fieldCount": 4,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "4",
-          "title": "Постановка на учёт",
-          "slotCount": 19,
-          "fieldCount": 14,
+          "title": "Мои мама и папа",
+          "slotCount": 2,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_term",
-              "slotIndex": 1,
-              "detail": "slotY=0.2139 guideY=0.2139 driftMm=4.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_weight",
-              "slotIndex": 2,
-              "detail": "slotY=0.2148 guideY=0.2148 driftMm=4.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_wellbeing",
-              "slotIndex": 3,
-              "detail": "slotY=0.2542 guideY=0.2542 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_wellbeing",
-              "slotIndex": 4,
-              "detail": "slotY=0.2943 guideY=0.2943 driftMm=3.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_wellbeing",
-              "slotIndex": 5,
-              "detail": "slotY=0.3155 guideY=0.3155 driftMm=6.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_fio",
-              "slotIndex": 6,
-              "detail": "slotY=0.4151 guideY=0.4151 driftMm=7.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_cabinet",
-              "slotIndex": 7,
-              "detail": "slotY=0.4534 guideY=0.4534 driftMm=4.1"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p4_phone",
-              "detail": "heuristic=274 export=334"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_phone",
-              "slotIndex": 8,
-              "detail": "slotY=0.4924 guideY=0.4924 driftMm=3.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_phone",
-              "slotIndex": 9,
-              "detail": "slotY=0.5156 guideY=0.5156 driftMm=6.8"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_mon",
-              "slotIndex": 10,
-              "detail": "slotY=0.6222 guideY=0.6222 driftMm=7.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_thu",
-              "slotIndex": 11,
-              "detail": "slotY=0.6222 guideY=0.6222 driftMm=7.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_tue",
-              "slotIndex": 12,
-              "detail": "slotY=0.6579 guideY=0.6579 driftMm=3.8"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_fri",
-              "slotIndex": 13,
-              "detail": "slotY=0.6579 guideY=0.6579 driftMm=3.8"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_wed",
-              "slotIndex": 14,
-              "detail": "slotY=0.6955 guideY=0.6955 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_sat",
-              "slotIndex": 15,
-              "detail": "slotY=0.6955 guideY=0.6955 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_recommendations",
-              "slotIndex": 16,
-              "detail": "slotY=0.8091 guideY=0.8091 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_recommendations",
-              "slotIndex": 17,
-              "detail": "slotY=0.8476 guideY=0.8476 driftMm=4.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p4_recommendations",
-              "slotIndex": 18,
-              "detail": "slotY=0.8862 guideY=0.8862 driftMm=4.0"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "6",
-          "title": "Первое УЗИ",
-          "slotCount": 9,
-          "fieldCount": 4,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_place",
-              "slotIndex": 1,
-              "detail": "slotY=0.2105 guideY=0.2105 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_doctor",
-              "slotIndex": 2,
-              "detail": "slotY=0.2492 guideY=0.2492 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 3,
-              "detail": "slotY=0.3711 guideY=0.3711 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 4,
-              "detail": "slotY=0.4099 guideY=0.4099 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 5,
-              "detail": "slotY=0.4486 guideY=0.4486 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 6,
-              "detail": "slotY=0.4874 guideY=0.4874 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 7,
-              "detail": "slotY=0.5262 guideY=0.5262 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p6_emotions",
-              "slotIndex": 8,
-              "detail": "slotY=0.5649 guideY=0.5649 driftMm=4.1"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "7",
-          "title": "Выбор имени",
-          "slotCount": 33,
-          "fieldCount": 33,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_1",
+              "fieldId": "kids_48_p4_mother_name",
               "slotIndex": 0,
-              "detail": "slotY=0.2162 guideY=0.2162 driftMm=4.1"
+              "detail": "slotY=0.3294 guideY=0.3294 driftMm=2.9"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_1",
+              "fieldId": "kids_48_p4_father_name",
               "slotIndex": 1,
-              "detail": "slotY=0.2162 guideY=0.2162 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_2",
-              "slotIndex": 2,
-              "detail": "slotY=0.2555 guideY=0.2555 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_2",
-              "slotIndex": 3,
-              "detail": "slotY=0.2555 guideY=0.2555 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_3",
-              "slotIndex": 4,
-              "detail": "slotY=0.2949 guideY=0.2949 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_3",
-              "slotIndex": 5,
-              "detail": "slotY=0.2949 guideY=0.2949 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_4",
-              "slotIndex": 6,
-              "detail": "slotY=0.3343 guideY=0.3343 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_4",
-              "slotIndex": 7,
-              "detail": "slotY=0.3343 guideY=0.3343 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_5",
-              "slotIndex": 8,
-              "detail": "slotY=0.3747 guideY=0.3747 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_5",
-              "slotIndex": 9,
-              "detail": "slotY=0.3747 guideY=0.3747 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_6",
-              "slotIndex": 10,
-              "detail": "slotY=0.4141 guideY=0.4141 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_6",
-              "slotIndex": 11,
-              "detail": "slotY=0.4141 guideY=0.4141 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_7",
-              "slotIndex": 12,
-              "detail": "slotY=0.4535 guideY=0.4535 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_7",
-              "slotIndex": 13,
-              "detail": "slotY=0.4535 guideY=0.4535 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_8",
-              "slotIndex": 14,
-              "detail": "slotY=0.4929 guideY=0.4929 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_8",
-              "slotIndex": 15,
-              "detail": "slotY=0.4929 guideY=0.4929 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_9",
-              "slotIndex": 16,
-              "detail": "slotY=0.5337 guideY=0.5337 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_9",
-              "slotIndex": 17,
-              "detail": "slotY=0.5337 guideY=0.5337 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_10",
-              "slotIndex": 18,
-              "detail": "slotY=0.5731 guideY=0.5731 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_10",
-              "slotIndex": 19,
-              "detail": "slotY=0.5731 guideY=0.5731 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_11",
-              "slotIndex": 20,
-              "detail": "slotY=0.6125 guideY=0.6125 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_11",
-              "slotIndex": 21,
-              "detail": "slotY=0.6125 guideY=0.6125 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_12",
-              "slotIndex": 22,
-              "detail": "slotY=0.6519 guideY=0.6519 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_12",
-              "slotIndex": 23,
-              "detail": "slotY=0.6519 guideY=0.6519 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_13",
-              "slotIndex": 24,
-              "detail": "slotY=0.6923 guideY=0.6923 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_13",
-              "slotIndex": 25,
-              "detail": "slotY=0.6923 guideY=0.6923 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_14",
-              "slotIndex": 26,
-              "detail": "slotY=0.7317 guideY=0.7317 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_14",
-              "slotIndex": 27,
-              "detail": "slotY=0.7317 guideY=0.7317 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_15",
-              "slotIndex": 28,
-              "detail": "slotY=0.7711 guideY=0.7711 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_15",
-              "slotIndex": 29,
-              "detail": "slotY=0.7711 guideY=0.7711 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_16",
-              "slotIndex": 30,
-              "detail": "slotY=0.8105 guideY=0.8105 driftMm=6.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_name_forms_16",
-              "slotIndex": 31,
-              "detail": "slotY=0.8105 guideY=0.8105 driftMm=6.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p7_chosen_name",
-              "slotIndex": 32,
-              "detail": "slotY=0.8897 guideY=0.8897 driftMm=8.3"
+              "detail": "slotY=0.3294 guideY=0.3294 driftMm=2.9"
             }
           ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "5",
+          "title": "Семейное дерево",
+          "slotCount": 15,
+          "fieldCount": 9,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "8",
+          "title": "Первый день дома",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "9",
-          "title": "6-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p9_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p9_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Первое купание",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "10",
-          "title": "7-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p10_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p10_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мои зубки",
+          "slotCount": 22,
+          "fieldCount": 22,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "11",
-          "title": "8-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мой рост и вес до года",
+          "slotCount": 24,
+          "fieldCount": 24,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_plans_header",
+              "fieldId": "kids_48_p11_month_01_height",
+              "slotIndex": 0,
+              "detail": "slotY=0.2588 guideY=0.2588 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_01_weight",
+              "slotIndex": 1,
+              "detail": "slotY=0.2588 guideY=0.2588 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_02_height",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
+              "detail": "slotY=0.3208 guideY=0.3208 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_plans_body",
+              "fieldId": "kids_48_p11_month_02_weight",
               "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
+              "detail": "slotY=0.3208 guideY=0.3208 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_plans_body",
+              "fieldId": "kids_48_p11_month_03_height",
               "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
+              "detail": "slotY=0.3828 guideY=0.3828 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_plans_body",
+              "fieldId": "kids_48_p11_month_03_weight",
               "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p11_feelings",
-              "detail": "heuristic=543 export=654"
+              "detail": "slotY=0.3828 guideY=0.3828 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_feelings",
+              "fieldId": "kids_48_p11_month_04_height",
+              "slotIndex": 6,
+              "detail": "slotY=0.4448 guideY=0.4448 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_04_weight",
               "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
+              "detail": "slotY=0.4448 guideY=0.4448 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_feelings",
+              "fieldId": "kids_48_p11_month_05_height",
               "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
+              "detail": "slotY=0.5068 guideY=0.5068 driftMm=6.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p11_feelings",
+              "fieldId": "kids_48_p11_month_05_weight",
               "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.5068 guideY=0.5068 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_06_height",
+              "slotIndex": 10,
+              "detail": "slotY=0.5687 guideY=0.5687 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_06_weight",
+              "slotIndex": 11,
+              "detail": "slotY=0.5687 guideY=0.5687 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_07_height",
+              "slotIndex": 12,
+              "detail": "slotY=0.6307 guideY=0.6307 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_07_weight",
+              "slotIndex": 13,
+              "detail": "slotY=0.6307 guideY=0.6307 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_08_height",
+              "slotIndex": 14,
+              "detail": "slotY=0.6927 guideY=0.6927 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_08_weight",
+              "slotIndex": 15,
+              "detail": "slotY=0.6927 guideY=0.6927 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_09_height",
+              "slotIndex": 16,
+              "detail": "slotY=0.7547 guideY=0.7547 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_09_weight",
+              "slotIndex": 17,
+              "detail": "slotY=0.7547 guideY=0.7547 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_10_height",
+              "slotIndex": 18,
+              "detail": "slotY=0.8167 guideY=0.8167 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_10_weight",
+              "slotIndex": 19,
+              "detail": "slotY=0.8167 guideY=0.8167 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_11_height",
+              "slotIndex": 20,
+              "detail": "slotY=0.8787 guideY=0.8787 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_11_weight",
+              "slotIndex": 21,
+              "detail": "slotY=0.8787 guideY=0.8787 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_12_height",
+              "slotIndex": 22,
+              "detail": "slotY=0.9406 guideY=0.9406 driftMm=6.5"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p11_month_12_weight",
+              "slotIndex": 23,
+              "detail": "slotY=0.9406 guideY=0.9406 driftMm=6.5"
             }
           ],
           "blockingIssues": [],
@@ -814,113 +258,60 @@
         },
         {
           "page": "12",
-          "title": "9-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p12_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p12_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мои следы",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "13",
-          "title": "10-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мои достижения",
+          "slotCount": 9,
+          "fieldCount": 8,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_plans_header",
+              "fieldId": "kids_48_p13_holds_head",
+              "slotIndex": 1,
+              "detail": "slotY=0.2293 guideY=0.2293 driftMm=4.4"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_rolls_over",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
+              "detail": "slotY=0.2693 guideY=0.2693 driftMm=4.2"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_plans_body",
+              "fieldId": "kids_48_p13_crawls",
               "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
+              "detail": "slotY=0.3096 guideY=0.3096 driftMm=4.4"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_plans_body",
+              "fieldId": "kids_48_p13_sits_alone",
               "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
+              "detail": "slotY=0.3540 guideY=0.3540 driftMm=4.5"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_plans_body",
+              "fieldId": "kids_48_p13_stands_with_support",
               "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p13_feelings",
-              "detail": "heuristic=543 export=654"
+              "detail": "slotY=0.3956 guideY=0.3956 driftMm=4.4"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_feelings",
+              "fieldId": "kids_48_p13_first_steps",
+              "slotIndex": 6,
+              "detail": "slotY=0.4385 guideY=0.4385 driftMm=4.6"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p13_first_word",
               "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p13_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.4837 guideY=0.4837 driftMm=3.4"
             }
           ],
           "blockingIssues": [],
@@ -928,455 +319,93 @@
         },
         {
           "page": "14",
-          "title": "11-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p14_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p14_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая прогулка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "15",
-          "title": "12-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p15_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p15_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая игрушка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "16",
-          "title": "13-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p16_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p16_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мои сновидения",
+          "slotCount": 2,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "17",
-          "title": "14-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p17_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p17_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая улыбка",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "18",
+          "title": "Я сижу",
+          "slotCount": 2,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "19",
-          "title": "15-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p19_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p19_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Я стою",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "20",
-          "title": "16-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p20_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p20_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Таинство крещения",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "21",
-          "title": "17-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p21_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p21_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мои крестные",
+          "slotCount": 2,
+          "fieldCount": 2,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "22",
-          "title": "18-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 1 месяц",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_plans_header",
+              "fieldId": "kids_48_p22_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p22_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p22_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p22_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1384,56 +413,21 @@
         },
         {
           "page": "23",
-          "title": "19-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 2 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_plans_header",
+              "fieldId": "kids_48_p23_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p23_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p23_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p23_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1441,56 +435,21 @@
         },
         {
           "page": "24",
-          "title": "20-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 3 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_plans_header",
+              "fieldId": "kids_48_p24_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p24_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p24_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p24_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1498,56 +457,21 @@
         },
         {
           "page": "25",
-          "title": "21-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 4 месяца",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_plans_header",
+              "fieldId": "kids_48_p25_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p25_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p25_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p25_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1555,56 +479,21 @@
         },
         {
           "page": "26",
-          "title": "22-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 5 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_plans_header",
+              "fieldId": "kids_48_p26_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p26_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p26_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p26_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1612,56 +501,21 @@
         },
         {
           "page": "27",
-          "title": "23-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 6 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_plans_header",
+              "fieldId": "kids_48_p27_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p27_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p27_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p27_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1669,56 +523,21 @@
         },
         {
           "page": "28",
-          "title": "24-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 7 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_plans_header",
+              "fieldId": "kids_48_p28_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p28_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p28_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p28_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1726,56 +545,21 @@
         },
         {
           "page": "29",
-          "title": "25-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 8 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_plans_header",
+              "fieldId": "kids_48_p29_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p29_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p29_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p29_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1783,56 +567,21 @@
         },
         {
           "page": "30",
-          "title": "26-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 9 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_plans_header",
+              "fieldId": "kids_48_p30_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p30_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p30_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p30_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1840,56 +589,21 @@
         },
         {
           "page": "31",
-          "title": "27-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 10 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_plans_header",
+              "fieldId": "kids_48_p31_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p31_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p31_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p31_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1897,56 +611,43 @@
         },
         {
           "page": "32",
-          "title": "28-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
+          "title": "Мне 11 месяцев",
+          "slotCount": 3,
+          "fieldCount": 2,
           "issues": [
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_plans_header",
+              "fieldId": "kids_48_p32_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.1677 guideY=0.1677 driftMm=2.9"
+            },
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p32_i_can",
               "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
+              "detail": "slotY=0.2195 guideY=0.2195 driftMm=2.9"
+            }
+          ],
+          "blockingIssues": [],
+          "ok": true
+        },
+        {
+          "page": "33",
+          "title": "Мне 1 годик",
+          "slotCount": 3,
+          "fieldCount": 2,
+          "issues": [
+            {
+              "code": "BASELINE_DRIFT",
+              "fieldId": "kids_48_p33_i_love",
+              "slotIndex": 1,
+              "detail": "slotY=0.2559 guideY=0.2559 driftMm=2.9"
             },
             {
               "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p32_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p32_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
+              "fieldId": "kids_48_p33_i_can",
+              "slotIndex": 2,
+              "detail": "slotY=0.3078 guideY=0.3078 driftMm=2.9"
             }
           ],
           "blockingIssues": [],
@@ -1954,1482 +655,118 @@
         },
         {
           "page": "34",
-          "title": "29-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p34_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p34_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "35",
-          "title": "30-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p35_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p35_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мой первый Новый год",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "36",
-          "title": "31-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p36_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p36_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая зима",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "37",
-          "title": "32-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p37_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p37_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая весна",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "38",
-          "title": "33-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p38_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p38_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мое первое лето",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "39",
-          "title": "34-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p39_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p39_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Моя первая осень",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "40",
-          "title": "35-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p40_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p40_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Мое первое путешествие",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "41",
-          "title": "36-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p41_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p41_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для путешествия",
+          "slotCount": 1,
+          "fieldCount": 1,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "42",
-          "title": "37-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p42_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p42_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Памятные моменты",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "43",
-          "title": "38-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p43_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p43_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "44",
-          "title": "39-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p44_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p44_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "45",
-          "title": "40-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p45_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p45_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "46",
-          "title": "41-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p46_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p46_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         },
         {
           "page": "47",
-          "title": "42-я неделя",
-          "slotCount": 10,
-          "fieldCount": 6,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_plans_header",
-              "slotIndex": 2,
-              "detail": "slotY=0.2031 guideY=0.2375 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_plans_body",
-              "slotIndex": 3,
-              "detail": "slotY=0.2444 guideY=0.2857 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_plans_body",
-              "slotIndex": 4,
-              "detail": "slotY=0.2858 guideY=0.3658 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_plans_body",
-              "slotIndex": 5,
-              "detail": "slotY=0.3738 guideY=0.4538 driftMm=8.4"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p47_feelings",
-              "detail": "heuristic=543 export=654"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_feelings",
-              "slotIndex": 7,
-              "detail": "slotY=0.7693 guideY=0.8493 driftMm=8.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_feelings",
-              "slotIndex": 8,
-              "detail": "slotY=0.8104 guideY=0.8517 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p47_feelings",
-              "slotIndex": 9,
-              "detail": "slotY=0.8518 guideY=0.8931 driftMm=4.3"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "50",
-          "title": "Список покупок",
-          "slotCount": 36,
-          "fieldCount": 36,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_1",
-              "slotIndex": 0,
-              "detail": "slotY=0.1952 guideY=0.1952 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_2",
-              "slotIndex": 1,
-              "detail": "slotY=0.1952 guideY=0.1952 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_3",
-              "slotIndex": 2,
-              "detail": "slotY=0.2364 guideY=0.2364 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_4",
-              "slotIndex": 3,
-              "detail": "slotY=0.2364 guideY=0.2364 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_5",
-              "slotIndex": 4,
-              "detail": "slotY=0.2777 guideY=0.2777 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_6",
-              "slotIndex": 5,
-              "detail": "slotY=0.2777 guideY=0.2777 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_7",
-              "slotIndex": 6,
-              "detail": "slotY=0.3190 guideY=0.3190 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_8",
-              "slotIndex": 7,
-              "detail": "slotY=0.3190 guideY=0.3190 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_9",
-              "slotIndex": 8,
-              "detail": "slotY=0.3603 guideY=0.3603 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_10",
-              "slotIndex": 9,
-              "detail": "slotY=0.3603 guideY=0.3603 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_11",
-              "slotIndex": 10,
-              "detail": "slotY=0.4015 guideY=0.4015 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_12",
-              "slotIndex": 11,
-              "detail": "slotY=0.4015 guideY=0.4015 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_13",
-              "slotIndex": 12,
-              "detail": "slotY=0.4428 guideY=0.4428 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_14",
-              "slotIndex": 13,
-              "detail": "slotY=0.4428 guideY=0.4428 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_15",
-              "slotIndex": 14,
-              "detail": "slotY=0.4841 guideY=0.4841 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_16",
-              "slotIndex": 15,
-              "detail": "slotY=0.4841 guideY=0.4841 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_17",
-              "slotIndex": 16,
-              "detail": "slotY=0.5253 guideY=0.5253 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_18",
-              "slotIndex": 17,
-              "detail": "slotY=0.5253 guideY=0.5253 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_19",
-              "slotIndex": 18,
-              "detail": "slotY=0.5666 guideY=0.5666 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_20",
-              "slotIndex": 19,
-              "detail": "slotY=0.5666 guideY=0.5666 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_21",
-              "slotIndex": 20,
-              "detail": "slotY=0.6079 guideY=0.6079 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_22",
-              "slotIndex": 21,
-              "detail": "slotY=0.6079 guideY=0.6079 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_23",
-              "slotIndex": 22,
-              "detail": "slotY=0.6491 guideY=0.6491 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_24",
-              "slotIndex": 23,
-              "detail": "slotY=0.6491 guideY=0.6491 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_25",
-              "slotIndex": 24,
-              "detail": "slotY=0.6904 guideY=0.6904 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_26",
-              "slotIndex": 25,
-              "detail": "slotY=0.6904 guideY=0.6904 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_27",
-              "slotIndex": 26,
-              "detail": "slotY=0.7317 guideY=0.7317 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_28",
-              "slotIndex": 27,
-              "detail": "slotY=0.7317 guideY=0.7317 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_29",
-              "slotIndex": 28,
-              "detail": "slotY=0.7730 guideY=0.7730 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_30",
-              "slotIndex": 29,
-              "detail": "slotY=0.7730 guideY=0.7730 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_31",
-              "slotIndex": 30,
-              "detail": "slotY=0.8142 guideY=0.8142 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_32",
-              "slotIndex": 31,
-              "detail": "slotY=0.8142 guideY=0.8142 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_33",
-              "slotIndex": 32,
-              "detail": "slotY=0.8555 guideY=0.8555 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_34",
-              "slotIndex": 33,
-              "detail": "slotY=0.8555 guideY=0.8555 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_35",
-              "slotIndex": 34,
-              "detail": "slotY=0.8968 guideY=0.8968 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p50_item_36",
-              "slotIndex": 35,
-              "detail": "slotY=0.8968 guideY=0.8968 driftMm=4.3"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "51",
-          "title": "Список дел",
-          "slotCount": 18,
-          "fieldCount": 18,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_1",
-              "slotIndex": 0,
-              "detail": "slotY=0.1513 guideY=0.1513 driftMm=12.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_2",
-              "slotIndex": 1,
-              "detail": "slotY=0.2896 guideY=0.2896 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_3",
-              "slotIndex": 2,
-              "detail": "slotY=0.3034 guideY=0.3034 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_4",
-              "slotIndex": 3,
-              "detail": "slotY=0.3035 guideY=0.3035 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_5",
-              "slotIndex": 4,
-              "detail": "slotY=0.3035 guideY=0.3035 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_6",
-              "slotIndex": 5,
-              "detail": "slotY=0.4416 guideY=0.4416 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_7",
-              "slotIndex": 6,
-              "detail": "slotY=0.4416 guideY=0.4416 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_8",
-              "slotIndex": 7,
-              "detail": "slotY=0.4417 guideY=0.4417 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_9",
-              "slotIndex": 8,
-              "detail": "slotY=0.4540 guideY=0.4540 driftMm=7.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_10",
-              "slotIndex": 9,
-              "detail": "slotY=0.5923 guideY=0.5923 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_11",
-              "slotIndex": 10,
-              "detail": "slotY=0.6070 guideY=0.6070 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_12",
-              "slotIndex": 11,
-              "detail": "slotY=0.6071 guideY=0.6071 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_13",
-              "slotIndex": 12,
-              "detail": "slotY=0.6071 guideY=0.6071 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_14",
-              "slotIndex": 13,
-              "detail": "slotY=0.7452 guideY=0.7452 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_15",
-              "slotIndex": 14,
-              "detail": "slotY=0.7452 guideY=0.7452 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_16",
-              "slotIndex": 15,
-              "detail": "slotY=0.7453 guideY=0.7453 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_17",
-              "slotIndex": 16,
-              "detail": "slotY=0.7586 guideY=0.7586 driftMm=8.0"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p51_todo_18",
-              "slotIndex": 17,
-              "detail": "slotY=0.8969 guideY=0.8969 driftMm=12.6"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "52",
-          "title": "Анкета родов",
-          "slotCount": 20,
-          "fieldCount": 18,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_age",
-              "slotIndex": 0,
-              "detail": "slotY=0.1763 guideY=0.2173 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_weight_before",
-              "slotIndex": 1,
-              "detail": "slotY=0.2174 guideY=0.2594 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_weight_gain",
-              "slotIndex": 2,
-              "detail": "slotY=0.2601 guideY=0.3031 driftMm=4.5"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_term_weeks",
-              "slotIndex": 5,
-              "detail": "slotY=0.3425 guideY=0.3825 driftMm=4.2"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_hospital",
-              "slotIndex": 6,
-              "detail": "slotY=0.3836 guideY=0.4176 driftMm=3.6"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_baby_weight",
-              "slotIndex": 8,
-              "detail": "slotY=0.4960 guideY=0.4960 driftMm=2.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_baby_height",
-              "slotIndex": 9,
-              "detail": "slotY=0.5320 guideY=0.5320 driftMm=2.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_weekday",
-              "slotIndex": 12,
-              "detail": "slotY=0.5140 guideY=0.5400 driftMm=2.7"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_delivery_type",
-              "slotIndex": 14,
-              "detail": "slotY=0.6190 guideY=0.6660 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_cord",
-              "slotIndex": 15,
-              "detail": "slotY=0.6600 guideY=0.7010 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_condition",
-              "slotIndex": 14,
-              "detail": "slotY=0.6190 guideY=0.6660 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_days_in_hospital",
-              "slotIndex": 16,
-              "detail": "slotY=0.7010 guideY=0.7430 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_discharge_guests",
-              "slotIndex": 17,
-              "detail": "slotY=0.7430 guideY=0.7850 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_discharge_guests",
-              "slotIndex": 18,
-              "detail": "slotY=0.7840 guideY=0.8260 driftMm=4.4"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p52_discharge_guests",
-              "slotIndex": 19,
-              "detail": "slotY=0.8260 guideY=0.8680 driftMm=4.4"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "53",
-          "title": "История родов",
-          "slotCount": 15,
-          "fieldCount": 1,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 0,
-              "detail": "slotY=0.2258 guideY=0.2258 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 1,
-              "detail": "slotY=0.2730 guideY=0.2730 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 2,
-              "detail": "slotY=0.3201 guideY=0.3201 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 3,
-              "detail": "slotY=0.3673 guideY=0.3673 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 4,
-              "detail": "slotY=0.4144 guideY=0.4144 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 5,
-              "detail": "slotY=0.4616 guideY=0.4616 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 6,
-              "detail": "slotY=0.5087 guideY=0.5087 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 7,
-              "detail": "slotY=0.5559 guideY=0.5559 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 8,
-              "detail": "slotY=0.6030 guideY=0.6030 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 9,
-              "detail": "slotY=0.6501 guideY=0.6501 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 10,
-              "detail": "slotY=0.6973 guideY=0.6973 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 11,
-              "detail": "slotY=0.7444 guideY=0.7444 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 12,
-              "detail": "slotY=0.7916 guideY=0.7916 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 13,
-              "detail": "slotY=0.8387 guideY=0.8387 driftMm=4.9"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p53_story",
-              "slotIndex": 14,
-              "detail": "slotY=0.8859 guideY=0.8859 driftMm=4.9"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "54",
-          "title": "Уже мама",
-          "slotCount": 9,
-          "fieldCount": 5,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_name",
-              "slotIndex": 0,
-              "detail": "slotY=0.6359 guideY=0.6359 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_hair_color",
-              "slotIndex": 1,
-              "detail": "slotY=0.6767 guideY=0.6767 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_zodiac",
-              "slotIndex": 2,
-              "detail": "slotY=0.6767 guideY=0.6767 driftMm=4.3"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_zodiac_year",
-              "slotIndex": 3,
-              "detail": "slotY=0.7178 guideY=0.7178 driftMm=4.2"
-            },
-            {
-              "code": "LIMIT_UNDER_CAPACITY",
-              "fieldId": "pregnancy_60_p54_wishes",
-              "detail": "heuristic=557 export=665"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_wishes",
-              "slotIndex": 6,
-              "detail": "slotY=0.8355 guideY=0.8355 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_wishes",
-              "slotIndex": 7,
-              "detail": "slotY=0.8744 guideY=0.8744 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p54_wishes",
-              "slotIndex": 8,
-              "detail": "slotY=0.9133 guideY=0.9133 driftMm=4.1"
-            }
-          ],
-          "blockingIssues": [],
-          "ok": true
-        },
-        {
-          "page": "60",
-          "title": "Письмо малышу",
-          "slotCount": 17,
-          "fieldCount": 1,
-          "issues": [
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 0,
-              "detail": "slotY=0.2125 guideY=0.2125 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 1,
-              "detail": "slotY=0.2519 guideY=0.2519 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 2,
-              "detail": "slotY=0.2913 guideY=0.2913 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 3,
-              "detail": "slotY=0.3307 guideY=0.3307 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 4,
-              "detail": "slotY=0.3702 guideY=0.3702 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 5,
-              "detail": "slotY=0.4096 guideY=0.4096 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 6,
-              "detail": "slotY=0.4489 guideY=0.4489 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 7,
-              "detail": "slotY=0.4883 guideY=0.4883 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 8,
-              "detail": "slotY=0.5277 guideY=0.5277 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 9,
-              "detail": "slotY=0.5671 guideY=0.5671 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 10,
-              "detail": "slotY=0.6066 guideY=0.6066 driftMm=4.1"
-            },
-            {
-              "code": "BASELINE_DRIFT",
-              "fieldId": "pregnancy_60_p60_letter_text",
-              "slotIndex": 11,
-              "detail": "slotY=0.6460 guideY=0.6460 driftMm=4.3"
-            }
-          ],
+          "title": "Свободная страница для памятных моментов",
+          "slotCount": 1,
+          "fieldCount": 0,
+          "issues": [],
           "blockingIssues": [],
           "ok": true
         }

@@ -64,7 +64,7 @@ function resolveBlockPhotoZoneRects(
     templateLibraryId: params.schema.templateLibraryId,
   });
 
-  if (blockLayout && variant.slots === 1) {
+  if (blockLayout) {
     const groupTransform = params.values.photoGroupTransform;
     return [
       resolvePhotoBlockRect(

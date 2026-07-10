@@ -43,7 +43,16 @@ ALBUM_CONFIGS = [
         "variants_by_page_count": {
             1: ["one_horizontal"],
             2: ["one_horizontal", "two_horizontal"],
-            4: ["one_horizontal", "two_horizontal", "two_vertical", "three_hero"],
+            4: [
+                "one_horizontal",
+                "two_horizontal",
+                "two_vertical",
+                "three_hero",
+                "four_grid",
+            ],
+        },
+        "extra_variants_by_page": {
+            5: ["tree"],
         },
     },
 ]
@@ -88,15 +97,31 @@ def generate_album(config: dict, allowed_pages: set[int]) -> dict[str, dict[str,
             continue
 
         manifest[str(page_no)] = {}
+        clean_variant_id = variants[0]
         for index, variant_id in enumerate(variants):
             if index >= doc.page_count:
-                break
-            page = doc.load_page(index)
+                # Collage variants share the same clean background (see pregnancy_60 script).
+                source_index = min(doc.page_count - 1, 0)
+                page = doc.load_page(source_index)
+            else:
+                page = doc.load_page(index)
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
             file_name = f"page_{page_no:03d}_{variant_id}.png"
             output_path = output_dir / file_name
             pix.save(output_path)
             manifest[str(page_no)][variant_id] = f"{config['assets_prefix']}/{file_name}"
+
+        extra_variants = config.get("extra_variants_by_page", {}).get(page_no, [])
+        if extra_variants and clean_variant_id in manifest[str(page_no)]:
+            source_path = output_dir / f"page_{page_no:03d}_{clean_variant_id}.png"
+            for variant_id in extra_variants:
+                if variant_id in manifest[str(page_no)]:
+                    continue
+                target_path = output_dir / f"page_{page_no:03d}_{variant_id}.png"
+                target_path.write_bytes(source_path.read_bytes())
+                manifest[str(page_no)][variant_id] = (
+                    f"{config['assets_prefix']}/{target_path.name}"
+                )
 
         doc.close()
 
@@ -115,6 +140,9 @@ def main() -> None:
     for config in ALBUM_CONFIGS:
         if config["album_id"] == "pregnancy_60":
             print("[pregnancy_60] use scripts/generate-pregnancy-preview-variants.py (block PDF)")
+            continue
+        if config["album_id"] == "kids_48":
+            print("[kids_48] use scripts/generate-kids-48-preview-variants.py (block PDF)")
             continue
         allowed = set(photo_pages.get(config["album_id"], []))
         generate_album(config, allowed)

@@ -18,6 +18,7 @@ import { refreshAllAlbumNotifications } from '@/utils/albumNotificationCoordinat
 import { syncToCloudNow } from '@/utils/account-sync';
 import { getAndStorePushToken } from '@/utils/pushToken';
 import { initializeImagePreload } from '@/utils/imagePreloader';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import Constants from 'expo-constants';
 
 function NotificationHandlersBootstrap() {
@@ -58,12 +59,23 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (isExpoGo) return;
+
+    const timer = setTimeout(() => {
+      void syncWidgetSnapshot();
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const sub = AppState.addEventListener('change', (state: AppStateStatus) => {
       if (state === 'background' || state === 'inactive') {
         syncToCloudNow();
       }
       if (state === 'active') {
         syncToCloudNow();
+        void syncWidgetSnapshot();
         if (!isExpoGo) {
           void refreshAllAlbumNotifications({ skipCloudSync: true }).catch((error) => {
             console.warn('[RootLayout] Failed to refresh album notifications on resume:', error);

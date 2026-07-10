@@ -79,8 +79,9 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
     [schema],
   );
   const blocks = resolvedSchema.photoBlocks ?? [];
+  const photoBlocks = pageValues.photoBlocks ?? {};
   const primaryBlock = blocks[0];
-  const blockValues = primaryBlock ? pageValues.photoBlocks[primaryBlock.blockId] : undefined;
+  const blockValues = primaryBlock ? photoBlocks[primaryBlock.blockId] : undefined;
   const selectedVariantId =
     blockValues?.variantId ??
     getDefaultVariantIdForPage(lineGuideId, resolvedSchema.sourcePageNumber, primaryBlock) ??
@@ -250,7 +251,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           ) : null}
 
           {blocks.map((block) => {
-            const values = pageValues.photoBlocks[block.blockId];
+            const values = photoBlocks[block.blockId];
             const variantId =
               values?.variantId ?? block.variants[0]?.variantId ?? 'default';
             const variant =

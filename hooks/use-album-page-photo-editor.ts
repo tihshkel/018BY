@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { useCallback, useMemo } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
@@ -120,19 +121,28 @@ export function useAlbumPagePhotoEditor({
           })
         : null;
 
-      const persistentUri =
-        pid && instanceId
-          ? await persistAlbumPhotoUri(
-              uri,
-              buildAlbumPhotoStorageKey({
-                projectId: pid,
-                instanceId,
-                blockId,
-                slotIndex,
-              }),
-              { targetPixels },
-            )
-          : uri;
+      let persistentUri = uri;
+      if (pid && instanceId) {
+        try {
+          persistentUri = await persistAlbumPhotoUri(
+            uri,
+            buildAlbumPhotoStorageKey({
+              projectId: pid,
+              instanceId,
+              blockId,
+              slotIndex,
+            }),
+            { targetPixels },
+          );
+        } catch (error) {
+          console.error('[handlePickPhoto] persist failed', error);
+          Alert.alert(
+            'Не удалось сохранить фото',
+            'Попробуйте выбрать снимок ещё раз. Если ошибка повторяется — перезапустите приложение.',
+          );
+          return;
+        }
+      }
 
       const slotAspect = resolvedSchema
         ? getSlotAspectRatio({

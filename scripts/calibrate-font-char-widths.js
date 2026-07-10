@@ -35,6 +35,9 @@ async function measureFont(fontId, relativePath) {
   pdfDoc.registerFontkit(fontkit);
   const bytes = fs.readFileSync(abs);
   const font = await pdfDoc.embedFont(bytes);
+  const fk = fontkit.create(bytes);
+  const unitsPerEm = fk.unitsPerEm || 1000;
+  const pdfAscentRatioAt16 = fk.ascent / unitsPerEm;
 
   const chars = {};
   let total = 0;
@@ -46,11 +49,17 @@ async function measureFont(fontId, relativePath) {
     count += 1;
   }
 
+  // RN Text with lineHeight === fontSize and includeFontPadding: false places
+  // the baseline at top + fontSize (bottom of the line box).
+  const rnAscentRatioAt16 = 1.0;
+
   return {
     fontId,
     file: relativePath,
     fontSize: FONT_SIZE,
     avgCharWidthAt16: total / Math.max(count, 1),
+    rnAscentRatioAt16,
+    pdfAscentRatioAt16,
     chars,
   };
 }
@@ -61,7 +70,9 @@ async function main() {
     const data = await measureFont(fontId, file);
     if (data) {
       fonts[fontId] = data;
-      console.log(`measured ${fontId}: avg=${data.avgCharWidthAt16.toFixed(2)}`);
+      console.log(
+        `measured ${fontId}: avg=${data.avgCharWidthAt16.toFixed(2)} rnAscent=${data.rnAscentRatioAt16}`,
+      );
     }
   }
 

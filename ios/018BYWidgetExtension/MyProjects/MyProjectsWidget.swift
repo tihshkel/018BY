@@ -3,6 +3,7 @@ import WidgetKit
 
 struct MyProjectsEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetPalette) private var palette
     let entry: WidgetEntry
 
     private var projects: [WidgetProjectItem] {
@@ -14,7 +15,7 @@ struct MyProjectsEntryView: View {
             if projects.isEmpty {
                 WidgetEmptyState(
                     title: "Пока нет проектов",
-                    subtitle: "Нажмите, чтобы создать первый альбом"
+                    subtitle: "Откройте «Мои истории» и выберите категорию альбома"
                 )
                 .widgetURL(WidgetDeepLinks.createAlbum)
             } else {
@@ -42,14 +43,21 @@ struct MyProjectsEntryView: View {
         return VStack(alignment: .leading, spacing: 10) {
             WidgetBrandMark(compact: true)
             Text(project.title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(WidgetColors.textPrimary)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
             Spacer(minLength: 0)
             HStack {
-                Text(project.categoryLabel)
-                    .font(.system(size: 11))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Заполнено \(project.percent)%")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(palette.textSecondary)
+                    if let remaining = project.unfinishedPages, remaining > 0 {
+                        Text("Осталось \(remaining) стр.")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(palette.textSecondary)
+                    }
+                }
                 Spacer()
                 WidgetProgressRing(percent: project.percent, lineWidth: 5, size: 42)
             }
@@ -64,8 +72,8 @@ struct MyProjectsEntryView: View {
                 WidgetBrandMark(compact: true)
                 Spacer()
                 Text("\(projects.count) проект(ов)")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(palette.textSecondary)
             }
             ForEach(Array(projects.prefix(2)), id: \.id) { project in
                 WidgetProjectRow(project: project)
@@ -84,12 +92,12 @@ struct MyProjectsEntryView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Мои альбомы")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(WidgetColors.textPrimary)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(palette.textPrimary)
                     if let name = entry.snapshot.userName {
                         Text("Привет, \(name)")
-                            .font(.system(size: 12))
-                            .foregroundStyle(WidgetColors.textSecondary)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(palette.textSecondary)
                     }
                 }
                 Spacer()
@@ -116,9 +124,7 @@ struct MyProjectsEntryView: View {
         VStack(alignment: .leading, spacing: 8) {
             WidgetProjectRow(project: project)
         }
-        .padding(10)
-        .background(WidgetColors.primarySurface.opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .widgetSectionCard(padding: 10)
         .widgetURL(WidgetDeepLinks.albumPages(project: project))
     }
 }
@@ -134,5 +140,6 @@ struct MyProjectsWidget: Widget {
         .configurationDisplayName("Мои проекты")
         .description("Обложки и прогресс ваших альбомов.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge])
+        .containerBackgroundRemovable(true)
     }
 }

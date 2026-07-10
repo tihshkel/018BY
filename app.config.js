@@ -29,7 +29,12 @@ module.exports = ({ config } = {}) => {
     process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? base.extra?.googleIosClientId ?? '';
   const googleIosUrlScheme = googleIosUrlSchemeFromClientId(googleIosClientId);
 
-  const plugins = ['./plugins/with-ios-product-name.js', ...(base.plugins ?? []), ...(fromCli.plugins ?? [])];
+  const plugins = [
+    './plugins/with-ios-product-name.js',
+    './plugins/with-ios-russian-localization.js',
+    ...(base.plugins ?? []),
+    ...(fromCli.plugins ?? []),
+  ];
   if (googleIosUrlScheme) {
     plugins.push([
       '@react-native-google-signin/google-signin',

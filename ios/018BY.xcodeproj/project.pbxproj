@@ -20,6 +20,7 @@
 		7E2696DF2D844525BE603996 /* QuickAccessWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AAF608283DA4ACD89479FF3 /* QuickAccessWidget.swift */; };
 		98FD2B3BD1D445FBAC952F5D /* MyProjectsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D9F24AE34134FF7A0FB099E /* MyProjectsWidget.swift */; };
 		A198F99A67DD48E694AD381C /* ReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4A9236242840309A68B605 /* ReminderWidget.swift */; };
+		B1C2D3E4F5A6478990ABCDEF /* NotificationsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */; };
 		A63907214692FF69084533C7 /* libPods-018BY.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B951544750259968D400C55D /* libPods-018BY.a */; };
 		B90CEB7AA458B4FFF7115A7D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D3A42D22958AC2B6309C8E /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
@@ -82,6 +83,7 @@
 		8E7368AEFA55238D2574DA3A /* Pods-018BY.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-018BY.debug.xcconfig"; path = "Target Support Files/Pods-018BY/Pods-018BY.debug.xcconfig"; sourceTree = "<group>"; };
 		8F1CB295E3E14F4A88774F1A /* WidgetComponents.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = WidgetComponents.swift; sourceTree = "<group>"; };
 		9908B750FEC541E691D819C2 /* PregnancyWidget.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = PregnancyWidget.swift; sourceTree = "<group>"; };
+		A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = NotificationsWidget.swift; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = 018BY/SplashScreen.storyboard; sourceTree = "<group>"; };
 		B68282F653634371A3DA4F2B /* ContinueWidget.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ContinueWidget.swift; sourceTree = "<group>"; };
 		B951544750259968D400C55D /* libPods-018BY.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-018BY.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -240,6 +242,7 @@
 				C591766C4C674A6EBC5BF983 /* Pregnancy */,
 				F38886CBD1A1425989F06CB4 /* QuickAccess */,
 				FB13D10C956142C99E3FD0E6 /* Reminder */,
+				A9B8C7D6E5F4432109876543 /* Notifications */,
 				91F522F7E1C1465A81D4C562 /* Shared */,
 			);
 			path = 018BYWidgetExtension;
@@ -292,6 +295,14 @@
 				1E4A9236242840309A68B605 /* ReminderWidget.swift */,
 			);
 			path = Reminder;
+			sourceTree = "<group>";
+		};
+		A9B8C7D6E5F4432109876543 /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				A0B1C2D3E4F5467890ABCDE /* NotificationsWidget.swift */,
+			);
+			path = Notifications;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -358,9 +369,10 @@
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "018BY" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = en;
+			developmentRegion = ru;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				ru,
 				en,
 				Base,
 			);
@@ -568,6 +580,7 @@
 				98FD2B3BD1D445FBAC952F5D /* MyProjectsWidget.swift in Sources */,
 				2214B8144CDB4724B6792544 /* ContinueWidget.swift in Sources */,
 				A198F99A67DD48E694AD381C /* ReminderWidget.swift in Sources */,
+				B1C2D3E4F5A6478990ABCDEF /* NotificationsWidget.swift in Sources */,
 				382159E0377A4EA6A97C1D8D /* PregnancyWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

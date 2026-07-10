@@ -11,6 +11,7 @@ import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-ed
 import { PageFontPicker } from '@/components/album/page-font-picker';
 import { AppText } from '@/components/ui';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
+import { isKidsMonthPage } from '@/constants/album-text-margins';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { colors, spacing } from '@/constants/design-tokens';
 import { useDeferredJson } from '@/hooks/use-deferred-json';
@@ -21,9 +22,10 @@ import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import type { useStableAlbumProjectActions } from '@/hooks/use-stable-album-project-actions';
 import type { FieldTextStyle, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { AlbumPageSchema } from '@/types/album-page-schema';
-import { usesUnifiedPhotoEditor, hasFormTextInput } from '@/utils/albumPageNavigation';
+import { usesUnifiedPhotoEditor, hasTypographyEditableContent } from '@/utils/albumPageNavigation';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
-import { isKidsMonthPage } from '@/constants/album-text-margins';
+import { clampFieldInput, clampPageFieldValuesForLayoutFont } from '@/utils/albumFieldLimits';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 import { FORM_MODAL_MAX_WIDTH, type ResponsiveLayout } from '@/utils/responsive';
 
 export type AlbumPageFormEditorHandle = {
@@ -209,18 +211,35 @@ export const AlbumPageFormEditor = forwardRef<
 
   const handleFieldStyleChange = useCallback(
     (fieldId: string, patch: Partial<FieldTextStyle>) => {
-      projectActions.commitPagePatch(instanceId, (prev) => ({
-        ...prev,
-        fieldTextStyles: {
+      projectActions.commitPagePatch(instanceId, (prev) => {
+        const nextFieldTextStyles = {
           ...prev.fieldTextStyles,
           [fieldId]: {
             ...prev.fieldTextStyles?.[fieldId],
             ...patch,
           },
-        },
-      }));
+        };
+        const field = schema.fields?.find((item) => item.fieldId === fieldId);
+        const nextFields = { ...prev.fields };
+        if (field?.type === 'text' && patch.fontSize != null) {
+          const raw = nextFields[fieldId] ?? '';
+          if (raw) {
+            nextFields[fieldId] = clampFieldInput(field, raw, undefined, {
+              lineGuideId,
+              sourcePageNumber: schema.sourcePageNumber,
+              fontId: prev.textFontFamily,
+              fontSize: nextFieldTextStyles[fieldId]?.fontSize,
+            });
+          }
+        }
+        return {
+          ...prev,
+          fieldTextStyles: nextFieldTextStyles,
+          fields: nextFields,
+        };
+      });
     },
-    [instanceId, projectActions],
+    [instanceId, lineGuideId, projectActions, schema],
   );
 
   const handleCaptionStyleChange = useCallback(
@@ -252,16 +271,22 @@ export const AlbumPageFormEditor = forwardRef<
 
   const handleFontChange = useCallback(
     (fontId: string) => {
-      projectActions.commitPagePatch(instanceId, (prev) => ({
-        ...prev,
-        textFontFamily: fontId,
-      }));
+      projectActions.commitPagePatch(instanceId, (prev) =>
+        clampPageFieldValuesForLayoutFont({
+          schema,
+          values: { ...prev, textFontFamily: fontId },
+          lineGuideId,
+          fontId,
+        }),
+      );
     },
-    [instanceId, projectActions],
+    [instanceId, lineGuideId, projectActions, schema],
   );
 
   const unifiedEditor = usesUnifiedPhotoEditor(schema);
-  const showFontPicker = isBlankTemplatePage && hasFormTextInput(schema);
+  const showFontPicker =
+    (isBlankTemplatePage || usesTemplateLineTextEditing(lineGuideId)) &&
+    hasTypographyEditableContent(schema);
   const selectedFontId = normalizeAlbumFontId(editorPageValues.textFontFamily);
   const constrainFormWidth = layout.isTablet && !isBlankTemplatePage;
 

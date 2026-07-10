@@ -53,7 +53,7 @@ function resolveKids48LineStrokeY(slot) {
       return slot.y + slot.lineHeight;
     }
     if (slot.textAnchorTop) {
-      return slot.y + slot.lineHeight / 2;
+      return slot.y + slot.lineHeight;
     }
   }
   return slot.y + slot.lineHeight * 0.5;
@@ -69,6 +69,8 @@ function mapPageSlots(page, norms) {
     let topNormY;
     if (isKidsMonthPage(page) && index >= 1) {
       topNormY = layoutNorm.y - layoutNorm.height;
+    } else if (layoutNorm.teethDate) {
+      topNormY = layoutNorm.y;
     } else if (anchorTop) {
       topNormY = layoutNorm.y;
     } else {
@@ -96,7 +98,7 @@ function getStrokeY(slot) {
     return null;
   }
   if (slot.teethDate) {
-    return slot.y + slot.lineHeight / 2;
+    return slot.y + slot.lineHeight;
   }
   return resolveKids48LineStrokeY(slot);
 }

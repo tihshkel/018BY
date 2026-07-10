@@ -36,7 +36,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, resolveBirthQuestionnaireBlockTextAlign, usesStrokeBaselineLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, joinContinuationSegmentTexts, resolveBirthQuestionnaireBlockTextAlign, resolvePregnancyWeeklyFieldRowLayout, resolveTemplateLineRowLayout, resolveTemplateTextRenderBox, shouldClipPregnancyWeeklyFieldRow } from '@/utils/templateLineText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -228,8 +228,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   const isTemplateLineAnnotation = (ann: Annotation) =>
     !!lineGuideId &&
     hasLineGuides(lineGuideId) &&
-    typeof ann.templateLineStart === 'number' &&
-    (ann.templateLineCount ?? 1) === 1;
+    typeof ann.templateLineStart === 'number';
 
   const getPageNumber = (ann: Annotation): number | null => {
     if (typeof ann.page === 'number') return ann.page;
@@ -2326,7 +2325,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           : [];
 
       const templateLineTexts =
-        typeof annotation.templateLineStart === 'number' && templateSlots.length > 0
+        typeof annotation.templateLineStart === 'number' &&
+        templateSlots.length > 0 &&
+        (annotation.templateLineCount ?? 1) === 1
           ? (annotation.content || '').split('\n')
           : null;
 
@@ -2347,6 +2348,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       if (shouldHideTemplateGroupDisplaySibling(annotation, pageNumberForSlots, templateSlots)) {
         return null;
       }
+
+      const usesMultiLineTemplateField =
+        typeof annotation.templateLineStart === 'number' &&
+        (annotation.templateLineCount ?? 1) > 1 &&
+        !!lineGuideId &&
+        hasLineGuides(lineGuideId);
 
       if (isTemplateLineAnnotation(annotation)) {
         const slotIndex = annotation.templateLineStart ?? 0;
@@ -2424,37 +2431,48 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         return (
           <>
             {linesToRender.map((row) => {
-              const rowTop = getTemplateLineTextTop(
+              const rowLayout = resolveTemplateLineRowLayout({
+                lineSlot: row.lineSlot,
+                fontSize: effectiveFontSize,
+                lineGuideId,
+                lineSlots: templateSlots,
+                fontId: normalizedFontId,
+              });
+              const textInsets = getTemplateBlockTextInsets(
                 row.lineSlot,
-                effectiveFontSize,
                 lineGuideId,
                 templateSlots,
               );
-              const rowTypography = getTemplateLineTypography(
-                effectiveFontSize,
-                row.lineSlot.lineHeight,
-                getWishSlotInputKind(row.lineSlot, lineGuideId),
-                lineGuideId
-              );
-              const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
-              const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
-              const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+              const renderBox = shouldClipPregnancyWeeklyFieldRow(
                 row.lineSlot,
-                rowTypography.fontSize,
-                wishInputKind,
-                lineGuideId
+                lineGuideId,
+                templateSlots,
+              )
+                ? resolvePregnancyWeeklyFieldRowLayout(
+                    row.lineSlot,
+                    row.content,
+                    lineGuideId,
+                    templateSlots,
+                    effectiveFontSize,
+                    normalizedFontId,
+                    measureTextWidth,
+                  )
+                : resolveTemplateTextRenderBox(row.lineSlot, textInsets);
+              const clipWeeklyRow = shouldClipPregnancyWeeklyFieldRow(
+                row.lineSlot,
+                lineGuideId,
+                templateSlots,
               );
-              const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
                   style={{
                     position: 'absolute',
-                    left: row.lineSlot.x,
-                    top: rowTop - viewportTopInset,
-                    width: row.lineSlot.width,
-                    height: rowTypography.lineHeight + viewportTopInset,
-                    overflow: 'visible',
+                    left: renderBox.viewLeft,
+                    top: rowLayout.rowViewTop,
+                    width: renderBox.viewWidth || row.lineSlot.width,
+                    height: rowLayout.rowViewHeight,
+                    overflow: rowLayout.overflowVisible ? 'visible' : 'hidden',
                     zIndex: annotation.zIndex,
                   }}
                   pointerEvents="none"
@@ -2465,15 +2483,13 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       styles.templateLineText,
                       {
                         position: 'absolute',
-                        top: textTopInset,
-                        left: textInsets.left,
-                        width: textInsets.width,
+                        top: rowLayout.rowTextTop,
+                        left: renderBox.textLeft,
+                        width: renderBox.textWidth,
                         color: currentColor,
-                        fontSize: rowTypography.fontSize,
+                        fontSize: effectiveFontSize,
                         fontFamily: currentFontFamily,
-                        lineHeight: usesStrokeBaseline
-                          ? rowTypography.fontSize
-                          : rowTypography.lineHeight,
+                        lineHeight: rowLayout.lineHeight,
                         includeFontPadding: false,
                         textAlign: getTextAlign(annotation, row.lineSlot),
                       },
@@ -2488,6 +2504,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             })}
           </>
         );
+      }
+
+      if (usesMultiLineTemplateField) {
+        return null;
       }
 
       return (

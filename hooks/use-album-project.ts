@@ -23,7 +23,7 @@ import {
   getSchemaForInstance,
 } from '@/utils/albumProjectInit';
 import { migrateBirthdayPageValuesMap } from '@/utils/migrateBirthdayPageValues';
-import { migrateBlankAlbumPhotosMap } from '@/utils/migrateBlankAlbumPhotos';
+import { migrateAlbumPhotosMap } from '@/utils/migrateBlankAlbumPhotos';
 import { migrateProjectToPageValues } from '@/utils/migrateToPageValues';
 import {
   buildAnnotationsForProject,
@@ -58,7 +58,9 @@ import {
   subscribeAlbumProjectSnapshot,
 } from '@/utils/albumProjectStateSync';
 import { scheduleDeferredAlbumCloudSync, addProjectToSyncedList } from '@/utils/account-sync';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import { runDedupedAlbumProjectCreation } from '@/utils/albumProjectCreationLock';
+import { repairEmptyAlbumProject } from '@/utils/repairEmptyAlbumProject';
 import { getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
 
 export type AlbumProjectMeta = {
@@ -173,6 +175,11 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             options.changedInstanceId,
             nextValues[options.changedInstanceId],
           );
+          const existingMap = await loadPageValuesMap((k) => AsyncStorage.getItem(k), pid);
+          await savePageValuesMap(setItem, pid, {
+            ...existingMap,
+            [options.changedInstanceId]: nextValues[options.changedInstanceId],
+          });
         } else {
           await savePageInstances(setItem, pid, nextInstances);
           await savePageValuesMap(setItem, pid, nextValues);
@@ -682,16 +689,33 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           }
           const project = JSON.parse(projectRaw) as AlbumProjectMeta;
           if (cancelled) return;
-          setMeta(project);
+
+          const enrichedProject: AlbumProjectMeta = {
+            ...project,
+            category: project.category || celebration,
+            coverType: project.coverType || coverType,
+            interiorType: project.interiorType || interiorType || project.albumId,
+            albumId: project.albumId || interiorType,
+          };
+          if (
+            enrichedProject.category !== project.category ||
+            enrichedProject.coverType !== project.coverType ||
+            enrichedProject.interiorType !== project.interiorType ||
+            enrichedProject.albumId !== project.albumId
+          ) {
+            await AsyncStorage.setItem(`@project_${projectId}`, JSON.stringify(enrichedProject));
+          }
+
+          setMeta(enrichedProject);
           setEffectiveProjectId(projectId);
 
           let imageUris: string[] = [];
-          const albumIdForImages = project.interiorType ?? project.albumId ?? '';
+          const albumIdForImages = enrichedProject.interiorType ?? enrichedProject.albumId ?? '';
           if (savedImages) {
             const parsedImages = JSON.parse(savedImages) as string[];
             const normalized = await normalizeBlankImageUris(
               albumIdForImages,
-              project.category,
+              enrichedProject.category,
               parsedImages,
             );
             const repaired = await repairProjectImageUris(albumIdForImages, normalized);
@@ -708,21 +732,44 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           } else {
             imageUris = await loadImagesForAlbum(
               albumIdForImages,
-              project.category
+              enrichedProject.category
             );
           }
-          setImages(imageUris);
 
           let nextInstances = loadedInstances;
           let nextValues = loadedValues;
 
-          const lgId = resolveLineGuideId(project.interiorType ?? project.albumId, project.category);
+          const lgId = resolveLineGuideId(
+            enrichedProject.interiorType ?? enrichedProject.albumId,
+            enrichedProject.category,
+          );
+
+          if (
+            nextInstances.length === 0 &&
+            (albumIdForImages || enrichedProject.category)
+          ) {
+            const repaired = await repairEmptyAlbumProject(
+              projectId,
+              enrichedProject,
+              loadImagesForAlbum,
+            );
+            if (repaired.repaired) {
+              if (repaired.images.length > 0) imageUris = repaired.images;
+              if (repaired.instances.length > 0) nextInstances = repaired.instances;
+              if (Object.keys(repaired.pageValuesMap).length > 0) {
+                nextValues = repaired.pageValuesMap;
+              }
+            }
+          }
+
           if (nextInstances.length === 0 && imageUris.length > 0) {
             nextInstances = buildInitialPageInstances(lgId, imageUris.length);
             nextValues = buildInitialPageValuesMap(nextInstances);
             await savePageInstances((k, v) => AsyncStorage.setItem(k, v), projectId, nextInstances);
             await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, nextValues);
           }
+
+          setImages(imageUris);
 
           const memorySnapshotAfterLoad = getAlbumProjectSnapshot(projectId);
           const mergedValues = memorySnapshotAfterLoad?.pageValuesMap
@@ -761,7 +808,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             );
           }
 
-          const blankMigrated = await migrateBlankAlbumPhotosMap(
+          const blankMigrated = await migrateAlbumPhotosMap(
             projectId,
             mergedInstances,
             finalValues,
@@ -876,6 +923,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
             await addProjectToSyncedList(createdProjectId);
             scheduleDeferredAlbumCloudSync();
+            void syncWidgetSnapshot();
 
             if (eventDate && celebration) {
               try {

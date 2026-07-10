@@ -107,6 +107,13 @@ type TypedFormFieldProps = {
   onChange: (value: string) => void;
   characterLimit?: number;
   onInputFocus?: () => void;
+  textAlign?: 'left' | 'center' | 'right';
+  layoutClamp?: {
+    lineGuideId: string;
+    sourcePageNumber: number;
+    fontId?: string | null;
+    fontSize?: number | null;
+  };
 };
 
 function FieldCharacterCounter({
@@ -140,9 +147,15 @@ function handleTypedInput(
   field: AlbumPageField,
   text: string,
   onChange: (value: string) => void,
-  characterLimit?: number
+  characterLimit?: number,
+  layoutClamp?: {
+    lineGuideId: string;
+    sourcePageNumber: number;
+    fontId?: string | null;
+    fontSize?: number | null;
+  },
 ) {
-  onChange(clampFieldInput(field, text, characterLimit));
+  onChange(clampFieldInput(field, text, characterLimit, layoutClamp));
 }
 
 const MIN_ALBUM_DATE = new Date(1920, 0, 1);
@@ -236,15 +249,23 @@ const TypedFormField = memo(function TypedFormField({
   onChange,
   characterLimit,
   onInputFocus,
+  textAlign = 'left',
+  layoutClamp,
 }: TypedFormFieldProps) {
   const isMultiline = field.templateLineCount > 1;
 
   return (
     <View>
       <TextInput
-        style={[styles.input, isMultiline && styles.inputMultiline]}
+        style={[
+          styles.input,
+          isMultiline && styles.inputMultiline,
+          { textAlign },
+        ]}
         value={value}
-        onChangeText={(text) => handleTypedInput(field, text, onChange, characterLimit)}
+        onChangeText={(text) =>
+          handleTypedInput(field, text, onChange, characterLimit, layoutClamp)
+        }
         placeholder={field.placeholder ?? field.label}
         placeholderTextColor={colors.placeholder}
         keyboardType={getFieldKeyboardTypeForField(field)}
@@ -275,6 +296,9 @@ const AlbumFormField = memo(function AlbumFormField({
   fieldStyle,
   onFieldStyleChange,
   showTextStyleToolbar,
+  lineGuideId,
+  sourcePageNumber,
+  fontId,
 }: {
   field: AlbumPageField;
   value: string;
@@ -284,6 +308,9 @@ const AlbumFormField = memo(function AlbumFormField({
   fieldStyle?: FieldTextStyle;
   onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   showTextStyleToolbar?: boolean;
+  lineGuideId: string;
+  sourcePageNumber: number;
+  fontId?: string | null;
 }) {
   const fieldRef = useRef<View>(null);
   const scrollToField = useAppScreenScrollToField();
@@ -299,11 +326,16 @@ const AlbumFormField = memo(function AlbumFormField({
 
   const defaultAlign =
     field.fieldId.endsWith('_title') || field.label === 'Заголовок' ? 'center' : 'left';
+  const resolvedAlign = fieldStyle?.textAlign ?? defaultAlign;
   const showToolbar =
     showTextStyleToolbar &&
     onFieldStyleChange &&
     field.type !== 'date' &&
     field.type !== 'radio';
+  const layoutClamp =
+    field.type === 'text' && usesTemplateLineTextEditing(lineGuideId)
+      ? { lineGuideId, sourcePageNumber, fontId, fontSize: fieldStyle?.fontSize }
+      : undefined;
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
@@ -343,6 +375,8 @@ const AlbumFormField = memo(function AlbumFormField({
           onChange={onChange}
           characterLimit={characterLimit}
           onInputFocus={handleInputFocus}
+          textAlign={resolvedAlign}
+          layoutClamp={layoutClamp}
         />
       )}
     </View>
@@ -370,12 +404,13 @@ export const PageFormFields = memo(function PageFormFields({
         lineGuideId,
         sourcePageNumber,
         fontId: resolvedFontId,
+        fontSize: fieldTextStyles?.[field.fieldId]?.fontSize,
         viewportWidth: FIELD_LIMIT_REFERENCE_VIEWPORT.width,
         viewportHeight: FIELD_LIMIT_REFERENCE_VIEWPORT.height,
       });
     }
     return limits;
-  }, [fields, lineGuideId, resolvedFontId, sourcePageNumber]);
+  }, [fields, fieldTextStyles, lineGuideId, resolvedFontId, sourcePageNumber]);
 
   if (fields.length === 0) return null;
 
@@ -401,6 +436,9 @@ export const PageFormFields = memo(function PageFormFields({
             fieldStyle={fieldTextStyles?.[field.fieldId]}
             onFieldStyleChange={onFieldStyleChange}
             showTextStyleToolbar={showTextStyleToolbar}
+            lineGuideId={lineGuideId}
+            sourcePageNumber={sourcePageNumber}
+            fontId={resolvedFontId}
           />
         );
       })}
@@ -491,12 +529,12 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#C8864A',
+    borderColor: colors.pregnancyFormFill,
     backgroundColor: colors.white,
   },
   todoCheckboxBoxChecked: {
-    backgroundColor: '#C8864A',
-    borderColor: '#C8864A',
+    backgroundColor: colors.pregnancyFormFill,
+    borderColor: colors.pregnancyFormFill,
   },
   todoCheckboxLabel: {
     flex: 1,

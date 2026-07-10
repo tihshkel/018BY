@@ -89,7 +89,227 @@ function measureTextWidth(text, fontSize, lineGuideId, fontId, fontTable) {
   return estimateTextWidth(text, fontSize, profile.charWidthRatio * multiplier);
 }
 
-function getEffectiveLineWidthNorm(slot, lineGuideId) {
+const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
+const PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO = 0.55;
+const PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO = 0.15;
+const PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO = 0.34;
+const PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO = 0.53;
+const PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO = 0.44;
+const PREGNANCY_WEEKLY_LONG_LABEL_TAIL_GAP_THRESHOLD = 0.25;
+const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
+const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
+
+/** PNG-калибровка p9 inline-tail (norm X 0–1). */
+const PREGNANCY_WEEKLY_P9_INLINE_TAIL = {
+  plans: {
+    labelEndNormX: 0.302,
+    lineRightNormX: 0.572,
+    lineLeftNormX: 0.06522,
+  },
+  feelings: {
+    labelEndNormX: 0.528,
+    lineRightNormX: 0.935,
+    lineLeftNormX: 0.06522,
+  },
+};
+
+function getPregnancyWeeklyInlineTailFieldCalib(lineGuideId, page, continuationGroup) {
+  if (lineGuideId !== 'pregnancy_60' || page !== 9) return null;
+  if (continuationGroup === 3) return PREGNANCY_WEEKLY_P9_INLINE_TAIL.plans;
+  if (continuationGroup === 5) return PREGNANCY_WEEKLY_P9_INLINE_TAIL.feelings;
+  return null;
+}
+
+function findWeeklyFieldBodyAnchorSlot(slot, allSlots, lineGuideId) {
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  return allSlots.find(
+    (s) =>
+      s.continuationGroup === slot.continuationGroup &&
+      !s.hasLabel &&
+      !s.inlineLabelTail &&
+      (s.inputKind ?? 'line') === 'line' &&
+      s.index !== 1 &&
+      s.index !== bellyIndex,
+  );
+}
+
+function resolveTemplateTextRenderBox(slot, insets) {
+  if (insets.anchorX != null && insets.anchorWidth != null) {
+    return {
+      viewLeft: insets.anchorX,
+      viewWidth: insets.anchorWidth,
+      textLeft: insets.left,
+      textWidth: insets.width,
+    };
+  }
+  return {
+    viewLeft: slot.x + insets.left,
+    viewWidth: insets.width,
+    textLeft: 0,
+    textWidth: insets.width,
+  };
+}
+
+function getTemplateBlockTextInsets(slot, lineGuideId, allSlots) {
+  if (slot.inlineLabelTail && isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) {
+    return getPregnancyWeeklyInlineTailTextInsets(slot, lineGuideId, allSlots);
+  }
+  return { left: 0, width: slot.width };
+}
+
+function resolvePregnancyWeeklyFieldRowLayout(slot, lineGuideId, allSlots) {
+  const calibGeometry = getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots);
+  if (calibGeometry) {
+    return calibGeometry;
+  }
+  const insets = getTemplateBlockTextInsets(slot, lineGuideId, allSlots);
+  return resolveTemplateTextRenderBox(slot, insets);
+}
+
+function getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots) {
+  const calib = getPregnancyWeeklyInlineTailFieldCalib(
+    lineGuideId,
+    slot.page,
+    slot.continuationGroup,
+  );
+  if (!calib || !allSlots?.length) return null;
+
+  const anchorSlot = findWeeklyFieldBodyAnchorSlot(slot, allSlots, lineGuideId);
+  if (!anchorSlot || anchorSlot.x <= 0 || calib.lineLeftNormX <= 0) return null;
+
+  const profile = getTypography(lineGuideId);
+  const slack = profile.lineWidthSlackRatio;
+  const scale = anchorSlot.x / calib.lineLeftNormX;
+  const lineLeftPx = calib.lineLeftNormX * scale;
+  const lineRightPx = calib.lineRightNormX * scale;
+  const labelEndPx = calib.labelEndNormX * scale;
+  const fullWidth = (lineRightPx - lineLeftPx) * slack;
+
+  if (slot.inlineLabelTail) {
+    return {
+      viewLeft: lineLeftPx,
+      viewWidth: fullWidth,
+      textLeft: (labelEndPx - lineLeftPx) * slack,
+      textWidth: (lineRightPx - labelEndPx) * slack,
+    };
+  }
+
+  return {
+    viewLeft: lineLeftPx,
+    viewWidth: fullWidth,
+    textLeft: 0,
+    textWidth: fullWidth,
+  };
+}
+
+const PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET = 0.86;
+
+function getPregnancyWeeklyFieldTextTopInView(rowViewTop, slot, fontSize) {
+  const strokeY =
+    typeof slot.strokeY === 'number' ? slot.strokeY : slot.y + slot.lineHeight;
+  return Math.max(0, strokeY - rowViewTop - fontSize * PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET);
+}
+
+function getViewportNormScale(slot) {
+  const normWidth = slot.normWidth ?? 0;
+  if (normWidth <= 0 || slot.width <= 0) return 1;
+  return slot.width / normWidth;
+}
+
+function getInlineTailWidthRatio(viewportSlot) {
+  const normHeight = viewportSlot.normHeight ?? 0;
+  if (normHeight > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) {
+    return PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO;
+  }
+  return PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO;
+}
+
+function findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId) {
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  return allSlots.find(
+    (s) =>
+      s.continuationGroup === slot.continuationGroup &&
+      !s.hasLabel &&
+      (s.inputKind ?? 'line') === 'line' &&
+      s.index > slot.index &&
+      s.index !== 1 &&
+      s.index !== bellyIndex,
+  );
+}
+
+function isPregnancyWeeklyInlineTailAfterLabelSlot(slot, lineGuideId, allSlots) {
+  if (!slot.inlineLabelTail || !allSlots?.length) return false;
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
+  const bodySlot = findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId);
+  if (!bodySlot) return false;
+  const gapNorm = (slot.x - bodySlot.x) / getViewportNormScale(bodySlot);
+  return gapNorm > PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP;
+}
+
+function resolvePregnancyWeeklyInlineLabelBodyEndRatio(continuationGroup) {
+  if (continuationGroup === 3) return PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO;
+  if (continuationGroup === 5) return PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO;
+  return PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO;
+}
+
+function getPregnancyWeeklyInlineTailTextInsets(slot, lineGuideId, allSlots) {
+  if (
+    !slot.inlineLabelTail ||
+    !isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)
+  ) {
+    return { left: 0, width: slot.width };
+  }
+
+  const calibGeometry = getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots);
+  if (calibGeometry) {
+    return {
+      left: calibGeometry.textLeft,
+      width: calibGeometry.textWidth,
+      anchorX: calibGeometry.viewLeft,
+      anchorWidth: calibGeometry.viewWidth,
+    };
+  }
+
+  const profile = getTypography(lineGuideId);
+  const slack = profile.lineWidthSlackRatio;
+  const bodySlot = allSlots?.length
+    ? findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId)
+    : undefined;
+
+  if (bodySlot && isPregnancyWeeklyInlineTailAfterLabelSlot(slot, lineGuideId, allSlots)) {
+    const anchorWidth = bodySlot.width * slack;
+    const labelEndRatio = resolvePregnancyWeeklyInlineLabelBodyEndRatio(
+      slot.continuationGroup,
+    );
+    const textLeft = anchorWidth * labelEndRatio;
+    const lineRight = bodySlot.x + anchorWidth;
+    const tailStartX = bodySlot.x + textLeft;
+    const lineRemainder = Math.max(0, lineRight - tailStartX);
+    return {
+      left: textLeft,
+      width: lineRemainder,
+      anchorX: bodySlot.x,
+      anchorWidth,
+    };
+  }
+
+  const ratio = getInlineTailWidthRatio(slot);
+  const tailWidth = slot.width * ratio * slack;
+  const labelWidth = Math.max(0, slot.width * slack - tailWidth);
+  return { left: labelWidth, width: tailWidth };
+}
+
+function getEffectiveLineWidthPx(slot, lineGuideId, allSlots) {
+  const calibGeometry = getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots);
+  if (calibGeometry) {
+    return calibGeometry.textWidth;
+  }
+  if (
+    slot?.inlineLabelTail &&
+    isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)
+  ) {
+    return getPregnancyWeeklyInlineTailTextInsets(slot, lineGuideId, allSlots).width;
+  }
   const profile = getTypography(lineGuideId);
   return slot.width * profile.lineWidthSlackRatio;
 }
@@ -115,6 +335,9 @@ function refineNormSlot(lineGuideId, page, norm) {
   }
 
   if (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') {
+    if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
+      return norm;
+    }
     const xInset = norm.hasLabel ? 0.003 : 0.002;
     const widthTrim = norm.hasLabel ? 0.004 : 0.002;
     const x = Math.min(0.98, Math.max(0, norm.x + xInset));
@@ -125,37 +348,160 @@ function refineNormSlot(lineGuideId, page, norm) {
   return norm;
 }
 
-function normSlotsToViewportSlots(lineGuideId, page, norms) {
-  const vw = REFERENCE_VIEWPORT.width;
+function markPregnancyWeeklyInlineTailSlots(slots, lineGuideId) {
+  if (lineGuideId !== 'pregnancy_60' && lineGuideId !== 'pregnancy_a5') return slots;
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  return slots.map((slot) => {
+    if (!slot.hasLabel || slot.inlineLabelTail) return slot;
+    const bodySlot = slots.find(
+      (s) =>
+        s.continuationGroup === slot.continuationGroup &&
+        !s.hasLabel &&
+        (s.inputKind ?? 'line') === 'line' &&
+        s.index > slot.index &&
+        s.index !== 1 &&
+        s.index !== bellyIndex,
+    );
+    if (!bodySlot || slot.x <= bodySlot.x + 0.015 * getViewportNormScale(bodySlot)) return slot;
+    return { ...slot, inlineLabelTail: true };
+  });
+}
+
+function refinePregnancyWeeklyCollapsedGuideStrokes(lineGuideId, page, norms, guides) {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, page) || !guides?.length) {
+    return [...guides];
+  }
+  const pitch = PREGNANCY_WEEKLY_LINE_PITCH;
+  const minGap = pitch * 0.5;
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const result = [...guides];
+  let i = 0;
+  while (i < result.length - 1) {
+    const normA = norms[i];
+    const normB = norms[i + 1];
+    if (
+      !normA ||
+      !normB ||
+      (normA.inputKind ?? 'line') !== 'line' ||
+      (normB.inputKind ?? 'line') !== 'line' ||
+      normA.continuationGroup !== normB.continuationGroup ||
+      i === 1 ||
+      i + 1 === bellyIndex ||
+      typeof result[i] !== 'number' ||
+      typeof result[i + 1] !== 'number'
+    ) {
+      i += 1;
+      continue;
+    }
+    if (result[i + 1] - result[i] < minGap) {
+      result[i + 1] = result[i] + pitch;
+      let j = i + 2;
+      while (j < norms.length && norms[j]?.continuationGroup === normA.continuationGroup) {
+        if (
+          j === bellyIndex ||
+          (norms[j]?.inputKind ?? 'line') !== 'line' ||
+          typeof result[j] !== 'number' ||
+          typeof result[j - 1] !== 'number'
+        ) {
+          j += 1;
+          continue;
+        }
+        if (result[j] - result[j - 1] < minGap) {
+          result[j] = result[j - 1] + pitch;
+        }
+        j += 1;
+      }
+      i = j;
+      continue;
+    }
+    i += 1;
+  }
+  return result;
+}
+
+function refinePregnancyWeeklyRuledLineNorms(lineGuideId, page, norms, guides) {
+  if (!isPregnancyWeeklyStructuredPage(lineGuideId, page) || !guides?.length) {
+    return [...norms];
+  }
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const pitch = PREGNANCY_WEEKLY_LINE_PITCH;
   return norms.map((norm, index) => {
+    if (index === 1 || index === bellyIndex) return norm;
+    if ((norm.inputKind ?? 'line') !== 'line') return norm;
+    const guideStrokeY = guides[index];
+    if (typeof guideStrokeY !== 'number') return norm;
+    const bandHeight =
+      norm.hasLabel && norm.height <= PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT
+        ? norm.height
+        : pitch;
+    const topY = guideStrokeY - bandHeight;
+    return {
+      ...norm,
+      y: topY,
+      height: bandHeight,
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  });
+}
+
+function normSlotsToViewportSlots(lineGuideId, page, norms, lineGuides) {
+  const vw = REFERENCE_VIEWPORT.width;
+  const preppedNorms = norms.map((norm, index) => refineNormSlot(lineGuideId, page, norm));
+  let guides = lineGuides?.[lineGuideId]?.[String(page)] ?? [];
+  if (isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
+    guides = refinePregnancyWeeklyCollapsedGuideStrokes(
+      lineGuideId,
+      page,
+      preppedNorms,
+      guides,
+    );
+  }
+  let weeklyNorms = preppedNorms;
+  if (isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
+    weeklyNorms = refinePregnancyWeeklyRuledLineNorms(
+      lineGuideId,
+      page,
+      preppedNorms,
+      guides,
+    );
+  }
+  const refinedNorms = refinePregnancyRuledNotebookLineNorms(
+    lineGuideId,
+    page,
+    weeklyNorms,
+    lineGuides?.[lineGuideId],
+  );
+  const mapped = refinedNorms.map((norm, index) => {
     const refined = refineNormSlot(lineGuideId, page, norm);
+    const guideStroke = guides[index];
     return {
       index,
+      page,
       x: refined.x * vw,
       y: refined.y * vw,
       width: refined.width * vw,
       lineHeight: refined.height * vw,
       inputKind: refined.inputKind ?? 'line',
       hasLabel: refined.hasLabel ?? false,
+      continuationGroup: refined.continuationGroup ?? index + 1,
       normWidth: refined.width,
       normY: refined.y,
       normHeight: refined.height,
+      strokeY: typeof guideStroke === 'number' ? guideStroke * vw : undefined,
     };
   });
+  return markPregnancyWeeklyInlineTailSlots(mapped, lineGuideId);
 }
 
-function textFitsInSlot(text, slot, fontSize, lineGuideId, fontId, fontTable) {
+function textFitsInSlot(text, slot, fontSize, lineGuideId, fontId, fontTable, allSlots) {
   if (!text) return true;
-  const lineWidthNorm = getEffectiveLineWidthNorm(
-    { width: slot.width / REFERENCE_VIEWPORT.width },
-    lineGuideId,
-  );
-  const lineWidthPx = lineWidthNorm * REFERENCE_VIEWPORT.width;
+  const lineWidthPx = getEffectiveLineWidthPx(slot, lineGuideId, allSlots);
   const measured = measureTextWidth(text, fontSize, lineGuideId, fontId, fontTable);
   return measured <= lineWidthPx;
 }
 
-function consumeOneLine(text, slot, fontSize, lineGuideId, fontId, fontTable) {
+function consumeOneLine(text, slot, fontSize, lineGuideId, fontId, fontTable, allSlots) {
   const words = text.split(/(\s+)/).filter((part) => part.length > 0);
   let line = '';
   let rest = '';
@@ -163,7 +509,7 @@ function consumeOneLine(text, slot, fontSize, lineGuideId, fontId, fontTable) {
   for (let i = 0; i < words.length; i += 1) {
     const word = words[i];
     const candidate = line + word;
-    if (textFitsInSlot(candidate, slot, fontSize, lineGuideId, fontId, fontTable)) {
+    if (textFitsInSlot(candidate, slot, fontSize, lineGuideId, fontId, fontTable, allSlots)) {
       line = candidate;
       continue;
     }
@@ -171,7 +517,7 @@ function consumeOneLine(text, slot, fontSize, lineGuideId, fontId, fontTable) {
       let partial = '';
       for (const ch of word) {
         const next = partial + ch;
-        if (textFitsInSlot(next, slot, fontSize, lineGuideId, fontId, fontTable)) {
+        if (textFitsInSlot(next, slot, fontSize, lineGuideId, fontId, fontTable, allSlots)) {
           partial = next;
         } else {
           break;
@@ -188,43 +534,226 @@ function consumeOneLine(text, slot, fontSize, lineGuideId, fontId, fontTable) {
   return { line, rest };
 }
 
-function clampTextToFieldLines(params) {
-  const { text, startSlotIndex, lineCount, slots, fontSize, lineGuideId, fontId, fontTable } =
-    params;
-  if (!text) return text;
+function isPregnancyWeeklyLineGuide(lineGuideId) {
+  return lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5';
+}
 
+function findPregnancyWeeklyInlineLabelTailSlot(slots, bodyStartIndex, groupId, lineGuideId) {
+  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const labelSlot = slots
+    .filter(
+      (s) =>
+        s.continuationGroup === groupId &&
+        s.hasLabel &&
+        s.index < bodyStartIndex &&
+        (s.inputKind ?? 'line') === 'line' &&
+        s.index !== 1 &&
+        s.index !== bellyIndex,
+    )
+    .sort((a, b) => b.index - a.index)[0];
+
+  if (!labelSlot) return null;
+  const bodySlot = slots.find(
+    (s) =>
+      s.continuationGroup === groupId &&
+      !s.hasLabel &&
+      (s.inputKind ?? 'line') === 'line' &&
+      s.index >= bodyStartIndex &&
+      s.index !== 1 &&
+      s.index !== bellyIndex,
+  );
+  if (!bodySlot || labelSlot.x <= bodySlot.x + 0.015) return null;
+  return labelSlot;
+}
+
+function isPregnancyWeeklyStructuredPage(lineGuideId, page) {
+  if (lineGuideId === 'pregnancy_60') {
+    return (
+      (page >= 9 && page <= 17) ||
+      (page >= 19 && page <= 32) ||
+      (page >= 34 && page <= 47)
+    );
+  }
+  if (lineGuideId === 'pregnancy_a5') {
+    return (
+      (page >= 5 && page <= 13) ||
+      (page >= 15 && page <= 28) ||
+      (page >= 30 && page <= 43)
+    );
+  }
+  return false;
+}
+
+function isPregnancyRuledNotebookPage(lineGuideId, page) {
+  return lineGuideId === 'pregnancy_60' && (page === 53 || page === 60);
+}
+
+function refinePregnancyRuledNotebookLineNorms(lineGuideId, page, norms, guides) {
+  if (!isPregnancyRuledNotebookPage(lineGuideId, page)) return norms;
+  const pageGuides = guides?.[String(page)];
+  if (!pageGuides?.length) return norms;
+
+  const compactLineHeight = 0.035;
+  const linePitch = 0.0412;
+
+  return norms.map((norm, index) => {
+    if ((norm.inputKind ?? 'line') !== 'line') return norm;
+    const guideStrokeY = pageGuides[index];
+    if (typeof guideStrokeY !== 'number') return norm;
+    const nextGuide = pageGuides[index + 1];
+    const bandHeight =
+      typeof nextGuide === 'number'
+        ? Math.max(compactLineHeight, nextGuide - guideStrokeY)
+        : linePitch;
+    const topY = guideStrokeY - bandHeight;
+    return {
+      ...norm,
+      y: topY,
+      height: bandHeight,
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  });
+}
+
+function filterPregnancyWeeklyPlanSpuriousBodySlots(bodySlots, lineGuideId) {
+  if (lineGuideId !== 'pregnancy_60' || bodySlots.length < 3) return bodySlots;
+  const indices = new Set(bodySlots.map((slot) => slot.index));
+  if (indices.has(3) && indices.has(4) && indices.has(5)) {
+    return bodySlots.filter((slot) => slot.index !== 5);
+  }
+  return bodySlots;
+}
+
+function resolveWeeklyFieldLineSlots(slots, startSlotIndex, lineCount, lineGuideId) {
+  const startSlot = slots[startSlotIndex];
+  if (!startSlot || lineCount <= 0) return [];
+
+  if (lineGuideId && isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page)) {
+    const groupId = startSlot.continuationGroup;
+    const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+    const bodySlots = filterPregnancyWeeklyPlanSpuriousBodySlots(
+      slots
+        .filter(
+          (s) =>
+            s.continuationGroup === groupId &&
+            s.index >= startSlotIndex &&
+            !s.hasLabel &&
+            (s.inputKind ?? 'line') === 'line' &&
+            s.index !== 1 &&
+            s.index !== bellyIndex,
+        )
+        .sort((a, b) => a.index - b.index),
+      lineGuideId,
+    );
+    let labelTail = findPregnancyWeeklyInlineLabelTailSlot(
+      slots,
+      startSlotIndex,
+      groupId,
+      lineGuideId,
+    );
+    if (!labelTail && lineGuideId === 'pregnancy_60') {
+      const fallbackTailIndex = groupId === 3 ? 2 : groupId === 5 ? 7 : null;
+      if (fallbackTailIndex != null && slots[fallbackTailIndex]) {
+        labelTail = slots[fallbackTailIndex];
+      }
+    }
+    if (lineCount === 1) {
+      return [startSlot];
+    }
+    const fieldSlots = labelTail ? [labelTail, ...bodySlots] : bodySlots;
+    return fieldSlots.slice(0, lineCount);
+  }
+
+  return slots.slice(startSlotIndex, startSlotIndex + lineCount);
+}
+
+function distributeTextWithinFieldLines(params) {
+  const {
+    text: rawText,
+    startSlotIndex,
+    lineCount,
+    slots,
+    fontSize,
+    lineGuideId,
+    fontId,
+    fontTable,
+  } = params;
+  const text = rawText.replace(/\r?\n/g, ' ');
+  const fieldSlots = resolveWeeklyFieldLineSlots(
+    slots,
+    startSlotIndex,
+    lineCount,
+    lineGuideId,
+  );
+
+  if (fieldSlots.length === 0) {
+    return { segments: [], truncated: text.length > 0 };
+  }
+
+  const segments = [];
   let remaining = text;
-  for (let i = 0; i < lineCount; i += 1) {
-    const slot = slots[startSlotIndex + i];
-    if (!slot) break;
-    const { rest } = consumeOneLine(remaining, slot, fontSize, lineGuideId, fontId, fontTable);
+  const headIndex = fieldSlots[0]?.index ?? startSlotIndex;
+
+  for (const slot of fieldSlots) {
+    if (!remaining) {
+      segments.push({ slotIndex: slot.index, content: '' });
+      continue;
+    }
+    const { line, rest } = consumeOneLine(
+      remaining,
+      slot,
+      fontSize,
+      lineGuideId,
+      fontId,
+      fontTable,
+      slots,
+    );
+    const content = slot.index === headIndex ? line : line.replace(/^\s+/, '');
+    segments.push({ slotIndex: slot.index, content });
     remaining = rest;
   }
 
-  if (!remaining) return text;
+  return { segments, truncated: remaining.length > 0 };
+}
+
+function clampTextToFieldLines(params) {
+  const {
+    text: rawText,
+    startSlotIndex,
+    lineCount,
+    slots,
+    fontSize,
+    lineGuideId,
+    fontId,
+    fontTable,
+  } = params;
+  const text = rawText.replace(/\r?\n/g, ' ');
+  if (!text) return text;
+
+  const distribute = (value) =>
+    distributeTextWithinFieldLines({
+      text: value,
+      startSlotIndex,
+      lineCount,
+      slots,
+      fontSize,
+      lineGuideId,
+      fontId,
+      fontTable,
+    });
+
+  const { truncated } = distribute(text);
+  if (!truncated) return text;
 
   let lo = 0;
   let hi = text.length;
   let best = 0;
+
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2);
-    let probe = text.slice(0, mid);
-    for (let i = 0; i < lineCount; i += 1) {
-      const slot = slots[startSlotIndex + i];
-      if (!slot) break;
-      const { rest } = consumeOneLine(probe, slot, fontSize, lineGuideId, fontId, fontTable);
-      probe = probe.slice(0, probe.length - rest.length);
-    }
-    const stillTruncated = (() => {
-      let r = text.slice(0, mid);
-      for (let i = 0; i < lineCount; i += 1) {
-        const slot = slots[startSlotIndex + i];
-        if (!slot) break;
-        const { rest } = consumeOneLine(r, slot, fontSize, lineGuideId, fontId, fontTable);
-        r = rest;
-      }
-      return r.length > 0;
-    })();
+    const candidate = text.slice(0, mid);
+    const { truncated: stillTruncated } = distribute(candidate);
 
     if (stillTruncated) {
       hi = mid - 1;
@@ -240,9 +769,11 @@ function clampTextToFieldLines(params) {
 function computeLayoutCharacterLimit(field, lineGuideId, page, slots, fontId, fontTable) {
   const profile = getTypography(lineGuideId);
   const fontSize = profile.fixedLineFontSize ?? 16;
-  const fieldSlots = slots.slice(
+  const fieldSlots = resolveWeeklyFieldLineSlots(
+    slots,
     field.templateLineStart,
-    field.templateLineStart + (field.templateLineCount ?? 1),
+    field.templateLineCount ?? 1,
+    lineGuideId,
   );
   if (fieldSlots.length === 0) return undefined;
 
@@ -321,8 +852,19 @@ module.exports = {
   normSlotsToViewportSlots,
   computeLayoutCharacterLimit,
   clampTextToFieldLines,
+  distributeTextWithinFieldLines,
+  resolveWeeklyFieldLineSlots,
   textFitsInSlot,
   measureTextWidth,
-  getEffectiveLineWidthNorm,
+  getEffectiveLineWidthPx,
+  getPregnancyWeeklyFieldLineGeometry,
+  getPregnancyWeeklyFieldTextTopInView,
+  getPregnancyWeeklyInlineTailTextInsets,
+  resolvePregnancyWeeklyFieldRowLayout,
+  resolveTemplateTextRenderBox,
+  PREGNANCY_WEEKLY_P9_INLINE_TAIL,
+  PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET,
+  refinePregnancyWeeklyCollapsedGuideStrokes,
   expectedMinLineWidth,
+  consumeOneLine,
 };

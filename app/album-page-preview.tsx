@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams, type Href } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -32,11 +32,12 @@ import {
   getDefaultVariantIdForPage,
 } from "@/utils/variantPreview";
 import {
-  hasFormTextInput,
+  hasTypographyEditableContent,
   isPhotoOnlySchema,
   resolveFormPathname,
   usesUnifiedPhotoEditor,
 } from "@/utils/albumPageNavigation";
+import { clampPageFieldValuesForLayoutFont } from "@/utils/albumFieldLimits";
 import { resolvePagePreviewBackgroundUri } from "@/utils/pagePreviewBackground";
 import { resolvePhotoBlockSafeZoneViewportRect } from "@/utils/photoBlockSafeZone";
 import {
@@ -180,7 +181,6 @@ export default function AlbumPagePreviewScreen() {
 
   useEffect(() => {
     setDisplayImageUri(resolvedImageUri ?? undefined);
-    setReady(false);
   }, [resolvedImageUri]);
 
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function AlbumPagePreviewScreen() {
 
   const imageUri = displayImageUri ?? resolvedImageUri ?? blankPageFallbackUri ?? undefined;
   const selectedFontId = normalizeAlbumFontId(values?.textFontFamily);
-  const hasTextFields = hasFormTextInput(schema);
+  const hasTypographyContent = hasTypographyEditableContent(schema);
   const isLocked =
     schema?.pageType === "non_editable" || status === "locked";
 
@@ -252,11 +252,13 @@ export default function AlbumPagePreviewScreen() {
     primaryPhotoBlock != null &&
     hasFilledPhotos &&
     !isCircleTreeBlock;
-  const showPhotoBlockEditor = showPhotoInteraction && !isMultiSlotCollage;
+  const showPhotoBlockEditor = showPhotoInteraction;
   const shouldMaskPdfPhotoPlaceholder = showPhotoBlockEditor;
+  const showPreviewLoadingOverlay =
+    !showTemplateWireframe && !ready && Boolean(imageUri) && hasFilledPhotos;
 
   const photoSafeBounds = useMemo(() => {
-    if (!showPhotoBlockEditor || !instance || !schema) return null;
+    if (!showPhotoInteraction || !instance || !schema) return null;
     return resolvePhotoBlockSafeZoneViewportRect({
       lineGuideId: resolvedLineGuideId,
       sourcePageNumber: instance.sourcePageNumber ?? schema.sourcePageNumber,
@@ -275,7 +277,7 @@ export default function AlbumPagePreviewScreen() {
     primaryVariantId,
     resolvedLineGuideId,
     schema,
-    showPhotoBlockEditor,
+    showPhotoInteraction,
     sourceImageSize?.height,
     sourceImageSize?.width,
   ]);
@@ -304,12 +306,30 @@ export default function AlbumPagePreviewScreen() {
     setReady(false);
   }, [instanceId, imageUri]);
 
-  const handleSourceSize = (size: { width: number; height: number }) => {
-    setSourceImageSize(size);
+  useEffect(() => {
+    if (!imageUri) return;
+    const timer = setTimeout(() => {
+      setReady(true);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [instanceId, imageUri]);
+
+  const handleSourceSize = useCallback((size: { width: number; height: number }) => {
+    setSourceImageSize((prev) => {
+      if (prev?.width === size.width && prev?.height === size.height) return prev;
+      return size;
+    });
     if (size.width > 0 && size.height > 0) {
-      setImageAspectRatio(size.height / size.width);
+      const nextRatio = size.height / size.width;
+      setImageAspectRatio((prev) =>
+        Math.abs(prev - nextRatio) < 0.0001 ? prev : nextRatio,
+      );
     }
-  };
+  }, []);
+
+  const handlePreviewReady = useCallback(() => {
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     if (!imageUri) {
@@ -398,16 +418,25 @@ export default function AlbumPagePreviewScreen() {
   };
 
   const handleFontChange = (fontId: string) => {
-    if (!instanceId) return;
-    project.updatePageValues(instanceId, (prev) => ({
-      ...prev,
-      textFontFamily: fontId,
-    }));
+    if (!instanceId || !schema) return;
+    project.updatePageValues(instanceId, (prev) =>
+      clampPageFieldValuesForLayoutFont({
+        schema,
+        values: { ...prev, textFontFamily: fontId },
+        lineGuideId: resolvedLineGuideId,
+        fontId,
+      }),
+    );
   };
 
   const handleSave = async () => {
-    if (!instanceId) return;
-    const current = project.pageValuesMap[instanceId] ?? values;
+    if (!instanceId || !schema) return;
+    const raw = project.pageValuesMap[instanceId] ?? values;
+    const current = clampPageFieldValuesForLayoutFont({
+      schema,
+      values: raw,
+      lineGuideId: resolvedLineGuideId,
+    });
     if (current) {
       await project.savePageValuesNow(instanceId, current);
     }
@@ -415,7 +444,7 @@ export default function AlbumPagePreviewScreen() {
   };
 
   const fontPicker =
-    !isLocked && isFinalPreview && (hasTextFields || schema.captionEnabled) ? (
+    !isLocked && isFinalPreview && hasTypographyContent ? (
       <PageFontPicker value={selectedFontId} onChange={handleFontChange} />
     ) : null;
 
@@ -424,7 +453,9 @@ export default function AlbumPagePreviewScreen() {
       <AppText variant="bodySm" style={styles.previewHint}>
         {isFinalPreview
           ? showPhotoBlockEditor
-            ? "Кадрирование задано при редактировании. Нажмите на фото — рамка: перетаскивание и щипок меняют размер и позицию на странице"
+            ? isMultiSlotCollage
+              ? "Нажмите на коллаж — рамка вокруг всех фото: углы меняют размер, перетаскивание — позицию на странице"
+              : "Кадрирование задано при редактировании. Нажмите на фото — рамка: перетаскивание и углы меняют размер и позицию на странице"
             : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
           : showTemplateWireframe
             ? "Схема страницы: серые блоки — места для фото, линии — поля для текста"
@@ -480,7 +511,7 @@ export default function AlbumPagePreviewScreen() {
                 waitForAnnotationImages={false}
                 backgroundColor={colors.white}
                 readOnly
-                onReady={() => setReady(true)}
+                onReady={handlePreviewReady}
                 onSourceSize={handleSourceSize}
                 onImageError={() => {
                   if (
@@ -522,7 +553,7 @@ export default function AlbumPagePreviewScreen() {
                 </AppText>
               </View>
             )}
-            {!showTemplateWireframe && !ready && imageUri ? (
+            {showPreviewLoadingOverlay ? (
               <View style={styles.loadingOverlay}>
                 <ActivityIndicator color={colors.primary} />
               </View>

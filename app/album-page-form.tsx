@@ -18,6 +18,7 @@ import { navigateToAlbumPages, type AlbumFlowParams } from '@/utils/albumNavigat
 import { usesUnifiedPhotoEditor } from '@/utils/albumPageNavigation';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { createEmptyPageValues } from '@/utils/pageStorage';
+import { clampPageFieldValuesForLayoutFont } from '@/utils/albumFieldLimits';
 import { FORM_MODAL_MAX_WIDTH } from '@/utils/responsive';
 
 export default function AlbumPageFormScreen() {
@@ -69,13 +70,20 @@ export default function AlbumPageFormScreen() {
 
   const handleSave = async () => {
     if (!instanceId || isNavigating) return;
+    const pageSchema = schema;
+    if (!pageSchema) return;
     setIsNavigating(true);
     try {
       editorRef.current?.flushDrafts();
-      const current =
+      const raw =
         editorRef.current?.getEditorPageValues() ?? {
           ...pageValues,
         };
+      const current = clampPageFieldValuesForLayoutFont({
+        schema: pageSchema,
+        values: raw,
+        lineGuideId: pageSchema.lineGuideId ?? project.lineGuideId,
+      });
       await projectActions.saveNow(instanceId, current);
       router.push({
         pathname: '/album-page-preview',

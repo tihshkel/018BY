@@ -5,6 +5,15 @@ import {
   resolveVariantPreviewBackgroundUri,
 } from '@/utils/albumImages';
 import { hasSparsePhotoConfig, usesBlankPagePhotoFallback } from '@/constants/sparse-photo-album-config';
+import { hasVariantPreviewManifest } from '@/utils/variantPreview';
+
+type ResolvePageOutputBackgroundParams = {
+  lineGuideId?: string | null;
+  sourcePageNumber?: number | null;
+  variantId?: string | null;
+  baseImageUri?: string | null;
+  hasPhotoBlocks?: boolean;
+};
 
 type ResolvePagePreviewBackgroundParams = {
   lineGuideId?: string | null;
@@ -14,7 +23,7 @@ type ResolvePagePreviewBackgroundParams = {
   /** @deprecated Empty pages use full baseImageUri; design PNGs are thumbnail-only. */
   preferDesignLayout?: boolean;
   /**
-   * full — editor/preview: only full PDF page raster (page_XXX.png).
+   * full — editor/preview: per-page layout PNG when available, else full PDF raster.
    * thumbnail — page list chips: may use lighter design_previews.
    */
   quality?: 'full' | 'thumbnail';
@@ -40,6 +49,43 @@ export function resolvePrimaryPhotoVariantId(
 }
 
 /**
+ * Чистый фон для финального превью и экспорта.
+ * Не откатывается на PDF-растр с рамкой «Место для фото», если есть preview_variants.
+ */
+export function resolvePageOutputBackgroundUri(
+  params: ResolvePageOutputBackgroundParams,
+): string | null {
+  const { lineGuideId, sourcePageNumber, variantId, baseImageUri, hasPhotoBlocks } = params;
+  if (!lineGuideId || !sourcePageNumber || sourcePageNumber < 1) {
+    return baseImageUri ?? null;
+  }
+
+  if (!hasPhotoBlocks) {
+    return baseImageUri ?? null;
+  }
+
+  const withVariant = resolvePerPageVariantBackgroundUri({
+    lineGuideId,
+    sourcePageNumber,
+    variantId,
+  });
+  if (withVariant) return withVariant;
+
+  const anyVariant = resolvePerPageVariantBackgroundUri({
+    lineGuideId,
+    sourcePageNumber,
+    variantId: null,
+  });
+  if (anyVariant) return anyVariant;
+
+  if (hasVariantPreviewManifest(lineGuideId, sourcePageNumber)) {
+    return null;
+  }
+
+  return baseImageUri ?? null;
+}
+
+/**
  * Чистый фон страницы с фото: per-page variant PNG (второй лист PDF без рамки).
  */
 export function resolvePhotoPageCleanBackgroundUri(params: {
@@ -48,26 +94,20 @@ export function resolvePhotoPageCleanBackgroundUri(params: {
   variantId?: string | null;
   fallbackUri?: string | null;
 }): string | null {
-  const { lineGuideId, sourcePageNumber, variantId, fallbackUri } = params;
-  if (!lineGuideId || !sourcePageNumber || sourcePageNumber < 1) {
-    return fallbackUri ?? null;
-  }
-
-  const variantUri = resolvePerPageVariantBackgroundUri({
-    lineGuideId,
-    sourcePageNumber,
-    variantId,
+  return resolvePageOutputBackgroundUri({
+    lineGuideId: params.lineGuideId,
+    sourcePageNumber: params.sourcePageNumber,
+    variantId: params.variantId,
+    baseImageUri: params.fallbackUri,
+    hasPhotoBlocks: true,
   });
-  if (variantUri) return variantUri;
-
-  return fallbackUri ?? null;
 }
 
 /**
  * Picks preview background.
  * - thumbnail: bundled design_previews (надёжно офлайн), затем full page PNG.
  * - full + preferCleanPhotoBackground: per-page variant PNG без рамки фото.
- * - full: full PDF page raster, при отсутствии — design_previews.
+ * - full: per-page variant PNG for sparse photo pages, else full PDF raster, then design_previews.
  */
 export function resolvePagePreviewBackgroundUri(
   params: ResolvePagePreviewBackgroundParams,
@@ -86,14 +126,18 @@ export function resolvePagePreviewBackgroundUri(
   }
 
   if (preferCleanPhotoBackground) {
-    return (
-      resolvePhotoPageCleanBackgroundUri({
-        lineGuideId,
-        sourcePageNumber,
-        variantId,
-        fallbackUri: baseImageUri,
-      }) ?? baseImageUri
-    );
+    const outputUri = resolvePageOutputBackgroundUri({
+      lineGuideId,
+      sourcePageNumber,
+      variantId,
+      baseImageUri,
+      hasPhotoBlocks: true,
+    });
+    if (outputUri) return outputUri;
+    if (!hasVariantPreviewManifest(lineGuideId, sourcePageNumber)) {
+      return baseImageUri ?? null;
+    }
+    return null;
   }
 
   const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });
@@ -109,6 +153,19 @@ export function resolvePagePreviewBackgroundUri(
       });
     }
     return null;
+  }
+
+  if (
+    hasSparsePhotoConfig(lineGuideId) &&
+    !usesBlankPagePhotoFallback(lineGuideId) &&
+    hasVariantPreviewManifest(lineGuideId, sourcePageNumber)
+  ) {
+    const layoutUri = resolvePerPageVariantBackgroundUri({
+      lineGuideId,
+      sourcePageNumber,
+      variantId,
+    });
+    if (layoutUri) return layoutUri;
   }
 
   if (baseImageUri) return baseImageUri;

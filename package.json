@@ -1,11 +1,12 @@
 {
   "name": "018by",
   "main": "expo-router/entry",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "verify-project-save": "node ./scripts/verify-project-save.js",
+    "test:project-sync": "node ./scripts/test-project-sync-merge.js && node ./scripts/test-prune-ghost-score.js && node ./scripts/test-field-text-align.js && node ./scripts/test-pregnancy-plans-capacity.js && node ./scripts/test-pregnancy-feelings-capacity.js && node ./scripts/test-export-preview-distribute-parity.js && node ./scripts/test-export-weekly-legacy-branch.js && node ./scripts/test-typography-font-picker.js && node ./scripts/test-ios-russian-localization.js && node ./scripts/test-widget-visual-design.js && node ./scripts/test-widget-snapshot-payload.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
@@ -34,6 +35,7 @@
     "audit:text-line-capacity:fail": "FAIL_ON_ERROR=1 node ./scripts/calibrate-font-char-widths.js && FAIL_ON_ERROR=1 node ./scripts/audit-text-line-capacity.js",
     "audit:kids-48-pages": "node ./scripts/audit-kids-48-pages.js",
     "audit:kids-48-pages:visual": "node ./scripts/audit-kids-48-pages.js --visual",
+    "audit:kids-48-text-visual": "node ./scripts/audit-kids-48-text-visual-baseline.js",
     "audit:album-photo-pages": "node ./scripts/audit-album-photo-pages.js",
     "audit:album-photo-pages:fail": "node ./scripts/audit-album-photo-pages.js --fail",
     "audit:pregnancy-photo": "node ./scripts/audit-album-photo-pages.js --album=pregnancy_60 && node ./scripts/audit-album-photo-pages.js --album=pregnancy_a5",

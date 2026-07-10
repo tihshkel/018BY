@@ -16,6 +16,11 @@ import {
   pushProjectDataToSupabase,
 } from './supabase-account';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
+import {
+  mergeProjectKeyFromCloud,
+  mergeUserProjectEntry,
+  projectSnapshotRichness,
+} from './projectSyncMerge';
 
 const PROJECT_PREFIX = '@project_';
 const DEFAULT_USER_NAME = 'Пользователь';
@@ -111,6 +116,13 @@ const PROJECT_KEY_SUBPREFIXES = [
  */
 function getProjectIdFromKey(key: string): string {
   let rest = key.slice(PROJECT_PREFIX.length);
+  if (rest.startsWith('pv_')) {
+    const body = rest.slice(3);
+    const pageMarker = body.indexOf('_page_');
+    if (pageMarker > 0) {
+      return body.slice(0, pageMarker);
+    }
+  }
   for (const sub of PROJECT_KEY_SUBPREFIXES) {
     if (rest.startsWith(sub)) {
       rest = rest.slice(sub.length);
@@ -118,6 +130,18 @@ function getProjectIdFromKey(key: string): string {
     }
   }
   return rest;
+}
+
+async function loadLocalProjectSnapshot(projectId: string): Promise<Record<string, string>> {
+  const keys = await AsyncStorage.getAllKeys();
+  const snapshot: Record<string, string> = {};
+  for (const key of keys) {
+    if (!key.startsWith(PROJECT_PREFIX)) continue;
+    if (getProjectIdFromKey(key) !== projectId) continue;
+    const value = await AsyncStorage.getItem(key);
+    if (value) snapshot[key] = value;
+  }
+  return snapshot;
 }
 
 /**
@@ -193,6 +217,23 @@ export async function importAccountData(
 ): Promise<void> {
   try {
     const deletedIds = await loadDeletedProjectIds();
+
+    const cloudProjects: Record<string, Record<string, string>> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (!key?.startsWith(PROJECT_PREFIX) || typeof value !== 'string') continue;
+      const projectId = getProjectIdFromKey(key);
+      if (!projectId || isProjectDeleted(projectId, deletedIds)) continue;
+      if (protectProjectIds?.has(projectId)) continue;
+      if (!cloudProjects[projectId]) cloudProjects[projectId] = {};
+      cloudProjects[projectId][key] = value;
+    }
+
+    const localRichnessByProject = new Map<string, number>();
+    for (const projectId of Object.keys(cloudProjects)) {
+      const localSnapshot = await loadLocalProjectSnapshot(projectId);
+      localRichnessByProject.set(projectId, projectSnapshotRichness(localSnapshot));
+    }
+
     for (const [key, value] of Object.entries(data)) {
       if (!key || typeof value !== 'string') continue;
       if (key.startsWith(PROJECT_PREFIX)) {
@@ -226,17 +267,39 @@ export async function importAccountData(
             return [];
           }
         })();
-        const byId = new Map<string, any>();
-        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(cloudList, deletedIds))) {
+        const byId = new Map<string, Record<string, unknown>>();
+        for (const p of filterOutLegacyFreeformProjects(
+          filterProjectsByDeleted(cloudList, deletedIds),
+        )) {
           const id = p?.id != null ? String(p.id) : '';
-          if (id) byId.set(id, p);
+          if (id) byId.set(id, p as Record<string, unknown>);
         }
-        for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(localList, deletedIds))) {
+        for (const p of filterOutLegacyFreeformProjects(
+          filterProjectsByDeleted(localList, deletedIds),
+        )) {
           const id = p?.id != null ? String(p.id) : '';
-          if (id && !byId.has(id)) byId.set(id, p);
+          if (!id) continue;
+          if (byId.has(id)) {
+            byId.set(id, mergeUserProjectEntry(byId.get(id)!, p as Record<string, unknown>));
+          } else {
+            byId.set(id, p as Record<string, unknown>);
+          }
         }
         const merged = Array.from(byId.values());
         await AsyncStorage.setItem('@user_projects', JSON.stringify(merged));
+      } else if (key.startsWith(PROJECT_PREFIX)) {
+        const projectId = getProjectIdFromKey(key);
+        const cloudProject = projectId ? cloudProjects[projectId] : undefined;
+        const cloudRichness = projectId ? projectSnapshotRichness(cloudProject ?? {}) : 0;
+        const localRichness = projectId ? (localRichnessByProject.get(projectId) ?? 0) : 0;
+
+        if (projectId && cloudRichness < localRichness) {
+          continue;
+        }
+
+        const local = await AsyncStorage.getItem(key);
+        const mergedValue = mergeProjectKeyFromCloud(key, local, value);
+        await AsyncStorage.setItem(key, mergedValue);
       } else {
         await AsyncStorage.setItem(key, value);
       }
@@ -902,6 +965,11 @@ export async function pullLatestFromCloud(): Promise<boolean> {
 
     if (__DEV__) {
       console.log('[AccountSync] pullLatestFromCloud: changed=', changed, 'forceChanged=', forceChanged, 'localProjectsNow=', localListParsed.length);
+    }
+
+    if (changed || forceChanged) {
+      const { syncWidgetSnapshot } = await import('@/utils/widgetSnapshot');
+      void syncWidgetSnapshot();
     }
 
     return changed || forceChanged;

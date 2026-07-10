@@ -84,6 +84,7 @@ export function AlbumPageLivePreview({
                 width={previewLayout.coordinateWidth}
                 height={previewLayout.coordinateHeight}
                 lineGuideId={lineGuideId}
+                sourcePageNumber={photoOverlay?.sourcePageNumber}
                 backgroundColor={colors.white}
                 readOnly
                 onReady={() => setReady(true)}

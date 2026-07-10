@@ -161,7 +161,7 @@ function auditAlbum(albumId, lineSlots, lineGuides, fontTable) {
     const norms = albumSlots[pageKey] ?? [];
     if (!norms.length) continue;
 
-    const slots = normSlotsToViewportSlots(albumId, schema.sourcePageNumber, norms);
+    const slots = normSlotsToViewportSlots(albumId, schema.sourcePageNumber, norms, lineGuides);
     const fields = schema.fields ?? [];
     const issues = [];
 

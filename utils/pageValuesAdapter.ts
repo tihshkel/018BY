@@ -3,7 +3,7 @@ import { clampFieldInput, getFieldCharacterLimit } from '@/utils/albumFieldLimit
 import type { Annotation } from '@/components/pdf-annotations';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
-import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform, FieldTextStyle } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import { resolveBirthQuestionnaireBlockTextAlign } from '@/utils/templateLineText';
@@ -47,6 +47,17 @@ import {
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 /** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
 const TEXT_ANNOTATION_ZINDEX_BASE = 10_000;
+
+function resolveFieldAnnotationTextAlign(
+  field: AlbumPageField,
+  startSlot: { page: number; index: number; inputKind?: string },
+  lineGuideId: string,
+  fieldStyle?: FieldTextStyle,
+): 'left' | 'center' | 'right' {
+  if (fieldStyle?.textAlign) return fieldStyle.textAlign;
+  if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') return 'center';
+  return resolveBirthQuestionnaireBlockTextAlign(startSlot, lineGuideId);
+}
 
 const PURPLE_MY_DAY_PAGES = new Set([
   9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
@@ -197,18 +208,21 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
     if (!rawText) continue;
 
+    const fieldStyle = values.fieldTextStyles?.[field.fieldId];
     const characterLimit = getFieldCharacterLimit({
       field,
       lineGuideId,
       sourcePageNumber: schema.sourcePageNumber,
       viewportWidth,
       viewportHeight,
+      fontId: textFontFamily,
+      fontSize: fieldStyle?.fontSize,
     });
     const text = clampFieldInput(field, rawText, characterLimit, {
       lineGuideId,
       sourcePageNumber: schema.sourcePageNumber,
-      viewportWidth,
-      viewportHeight,
+      fontId: textFontFamily,
+      fontSize: fieldStyle?.fontSize,
     });
     if (!text) continue;
 
@@ -218,7 +232,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
     const layout = layoutTextAnnotationFromSlot(
       startSlot,
-      fontSize,
+      fieldStyle?.fontSize ?? fontSize,
       lineGuideId,
       text,
       textFontFamily,
@@ -228,13 +242,13 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       type: 'text',
       page: schema.sourcePageNumber,
       content: text,
-      fontSize: layout.fontSize ?? fontSize,
+      fontSize: fieldStyle?.fontSize ?? layout.fontSize ?? fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
-      textAlign: resolveBirthQuestionnaireBlockTextAlign(startSlot, lineGuideId),
+      textAlign: resolveFieldAnnotationTextAlign(field, startSlot, lineGuideId, fieldStyle),
       templateLineStart: lineSlotStart,
       templateLineCount: field.templateLineCount ?? 1,
     });
@@ -346,77 +360,6 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (!variant) continue;
 
     const isCircleTree = block.layoutKind === 'circle_tree';
-    const isGridCollage = !isCircleTree && variant.slots > 1;
-
-    if (isGridCollage) {
-      for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
-        const uri = blockValues.slots[slotIndex];
-        const normalizedSlot = getNormalizedPhotoSlot(
-          lineGuideId,
-          schema.sourcePageNumber,
-          variant.variantId,
-          slotIndex,
-          schema.templateLibraryId,
-        );
-        const clipShape = normalizedSlot?.shape === 'circle' ? 'circle' : undefined;
-
-        const photoRect = getPhotoSlotViewportRect({
-          lineGuideId,
-          page: schema.sourcePageNumber,
-          variantId: variant.variantId,
-          slotIndex,
-          viewportWidth,
-          viewportHeight,
-          sourceWidth,
-          sourceHeight,
-          contentRect: editorContentRect,
-          templateLibraryId: schema.templateLibraryId,
-        });
-
-        if (!photoRect) continue;
-
-        const transformKey = photoSlotTransformKey(block.blockId, slotIndex);
-        const slotTransform = values.photoSlotTransforms?.[transformKey];
-        const rect = photoRect;
-
-        if (!uri && clipShape) {
-          annotations.push({
-            id: stableAnnotationId('photo-fill', lineGuideId, schema.sourcePageNumber, block.blockId, slotIndex),
-            type: 'image',
-            page: schema.sourcePageNumber,
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: rect.height,
-            fillColor: getBranchFillColor(normalizedSlot?.branch),
-            clipShape: 'circle',
-            sourcePageNumber: schema.sourcePageNumber,
-            zIndex: zIndex++,
-          });
-          continue;
-        }
-
-        if (!uri) continue;
-
-        annotations.push({
-          id: stableAnnotationId('photo', lineGuideId, schema.sourcePageNumber, block.blockId, slotIndex),
-          type: 'image',
-          page: schema.sourcePageNumber,
-          x: rect.x,
-          y: rect.y,
-          width: rect.width,
-          height: rect.height,
-          imageUri: uri,
-          imageContentFit: 'cover',
-          clipShape,
-          imageSlotTransform: slotTransformForAnnotation(slotTransform),
-          sourcePageNumber: schema.sourcePageNumber,
-          zIndex: zIndex++,
-        });
-      }
-
-      continue;
-    }
 
     const blockLayout = isCircleTree
       ? null
@@ -438,10 +381,13 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         ? values.photoGroupTransform
         : null;
       const resolvedSlots = resolvePhotoBlockSlotRects(blockLayout, useGroupTransform);
+      const isMultiSlotCollage = variant.slots > 1;
 
       for (const slot of resolvedSlots) {
         const transformKey = photoSlotTransformKey(block.blockId, slot.slotIndex);
-        const slotTransform = values.photoSlotTransforms?.[transformKey];
+        const slotTransform = isMultiSlotCollage
+          ? undefined
+          : values.photoSlotTransforms?.[transformKey];
         const rect = slot.rect;
 
         const normalizedSlot = getNormalizedPhotoSlot(
@@ -764,7 +710,12 @@ export function annotationsToPageValues(
   const lineGuideId = schema.lineGuideId;
   const slots =
     lineGuideId && schema.sourcePageNumber
-      ? getLineSlotsForPage(lineGuideId, schema.sourcePageNumber)
+      ? getLineSlotsForPage({
+          lineGuideId,
+          page: schema.sourcePageNumber,
+          viewportWidth: DEFAULT_VIEWPORT.width,
+          viewportHeight: DEFAULT_VIEWPORT.height,
+        })
       : [];
 
   for (const field of schema.fields ?? []) {

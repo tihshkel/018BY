@@ -54,9 +54,28 @@ const textLineSource = read('utils/textLineSlots.ts');
 const viewportSource = read('utils/exportViewport.ts');
 
 assert(
-  pdfAnnotationsSource.includes('getTemplateLineTextTop') &&
-    exportTextSource.includes('getTemplateLinePdfBaselineY'),
-  'preview uses text top; pdf export derives baseline from text top + cap height',
+  exportTextSource.includes('baseFontSize') &&
+    exportTextSource.includes('getEffectiveTemplateFontSize'),
+  'export uses per-segment font size like read-only preview',
+);
+assert(
+  exportTextSource.includes('resolveTemplateLineViewportBaseline') &&
+    !exportTextSource.includes('heightAtSize'),
+  'pdf export uses unified viewport baseline resolver (no heightAtSize)',
+);
+assert(
+  pdfAnnotationsSource.includes('resolveTemplateLineRowLayout') &&
+    read('components/read-only-page-annotations.tsx').includes('resolveTemplateLineRowLayout'),
+  'preview components share resolveTemplateLineRowLayout helper',
+);
+assert(
+  read('utils/templateLineText.ts').includes('getRnAscentRatioAt16') &&
+    read('utils/fontCharWidths.ts').includes('rnAscentRatioAt16'),
+  'font calibration exposes RN ascent ratio for baseline parity',
+);
+assert(
+  fs.existsSync(path.join(root, 'scripts/audit-export-preview-baseline-drift.js')),
+  'baseline drift audit script exists for pregnancy_60',
 );
 assert(
   exportPdfSource.includes('buildExportPageAnnotations') &&
@@ -73,6 +92,18 @@ assert(
     pdfAnnotationsSource.includes('distributeTextForTemplateAnnotation')) &&
     exportTextSource.includes('distributeTextForTemplateAnnotation'),
   'preview and pdf export share template text distribution',
+);
+assert(
+  !/isTemplateLineAnnotation[\s\S]{0,280}templateLineCount[\s\S]{0,40}===\s*1/.test(
+    pdfAnnotationsSource,
+  ),
+  'preview isTemplateLineAnnotation includes multi-line fields (templateLineCount > 1)',
+);
+assert(
+  exportTextSource.includes('isLegacySplitSegment') &&
+    exportTextSource.includes('(ann.templateLineCount ?? 1) === 1') &&
+    exportTextSource.includes('distributeTextForTemplateAnnotation'),
+  'multi-line export fields use distribute path, not legacy single drawText',
 );
 assert(
   exportTextSource.includes('getViewportToPdfScale') &&
@@ -133,12 +164,12 @@ assert(
   'blank template text annotations respect field text styles',
 );
 assert(
-  read('utils/migrateBlankAlbumPhotos.ts').includes('migrateBlankAlbumPhotosMap'),
-  'blank album photo migration runs before sanitize',
+  read('utils/migrateBlankAlbumPhotos.ts').includes('migrateAlbumPhotosMap'),
+  'album photo migration runs for designed and blank albums',
 );
 assert(
-  read('hooks/use-album-project.ts').includes('migrateBlankAlbumPhotosMap'),
-  'album project load invokes blank photo migration',
+  read('hooks/use-album-project.ts').includes('migrateAlbumPhotosMap'),
+  'album project load invokes photo migration',
 );
 
 for (const albumId of DESIGNED_ALBUM_IDS) {

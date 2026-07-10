@@ -49,7 +49,9 @@ import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from
 import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
-import { loadPageInstances, loadPageValuesMapMerged, mergePageValuesMaps } from '@/utils/pageStorage';
+import { migrateAlbumPhotosMap } from '@/utils/migrateBlankAlbumPhotos';
+import { loadPageInstances, loadPageValuesMapMerged, mergePageValuesMaps, savePageValuesMap } from '@/utils/pageStorage';
+import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
@@ -734,10 +736,30 @@ export default function ExportPdfScreen() {
             projectId,
             resolvedInstances.map((item) => item.instanceId),
           );
-          const pageValuesMap = mergePageValuesMaps(
+          let pageValuesMap = mergePageValuesMaps(
             asyncPageValuesMap,
             memorySnapshot?.pageValuesMap ?? {},
           );
+
+          const migratedPhotos = await migrateAlbumPhotosMap(
+            projectId,
+            resolvedInstances,
+            pageValuesMap,
+            lineGuideId,
+          );
+          if (migratedPhotos.changed) {
+            pageValuesMap = migratedPhotos.pageValuesMap;
+          }
+
+          const sanitizedPhotos = await sanitizePageValuesMapPhotos(projectId, pageValuesMap);
+          if (sanitizedPhotos.changed || migratedPhotos.changed) {
+            pageValuesMap = sanitizedPhotos.pageValuesMap;
+            await savePageValuesMap(
+              (k, v) => AsyncStorage.setItem(k, v),
+              projectId,
+              pageValuesMap,
+            );
+          }
 
           const getSchema = (instance: PageInstance) =>
             getSchemaForInstance(instance, lineGuideId);

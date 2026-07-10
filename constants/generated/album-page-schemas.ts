@@ -853,7 +853,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -931,7 +931,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1009,7 +1009,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1087,7 +1087,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1165,7 +1165,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1243,7 +1243,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1321,7 +1321,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1399,7 +1399,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1477,7 +1477,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1567,7 +1567,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1645,7 +1645,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1723,7 +1723,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1801,7 +1801,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1879,7 +1879,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -1957,7 +1957,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2035,7 +2035,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2113,7 +2113,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2191,7 +2191,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2269,7 +2269,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2347,7 +2347,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2425,7 +2425,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2503,7 +2503,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2581,7 +2581,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2671,7 +2671,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2749,7 +2749,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2827,7 +2827,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2905,7 +2905,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -2983,7 +2983,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3061,7 +3061,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3139,7 +3139,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3217,7 +3217,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3295,7 +3295,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3373,7 +3373,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3451,7 +3451,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3529,7 +3529,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3607,7 +3607,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -3685,7 +3685,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "photoBlocks": [
@@ -5181,7 +5181,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5234,7 +5234,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5287,7 +5287,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5340,7 +5340,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5393,7 +5393,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5446,7 +5446,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5499,7 +5499,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5552,7 +5552,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5605,7 +5605,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5670,7 +5670,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5723,7 +5723,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5776,7 +5776,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5829,7 +5829,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5882,7 +5882,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5935,7 +5935,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -5988,7 +5988,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6041,7 +6041,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6094,7 +6094,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6147,7 +6147,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6200,7 +6200,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6253,7 +6253,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6306,7 +6306,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6359,7 +6359,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6424,7 +6424,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6477,7 +6477,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6530,7 +6530,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6583,7 +6583,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6636,7 +6636,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6689,7 +6689,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6742,7 +6742,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6795,7 +6795,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6848,7 +6848,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6901,7 +6901,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -6954,7 +6954,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -7007,7 +7007,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -7060,7 +7060,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -7113,7 +7113,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -8343,7 +8343,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Первая чистка зубов",
           "type": "date",
           "required": false,
-          "templateLineStart": 19,
+          "templateLineStart": 20,
           "templateLineCount": 1
         },
         {

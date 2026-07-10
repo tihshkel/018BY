@@ -4,6 +4,8 @@ type FontCharWidthEntry = {
   fontId: string;
   fontSize: number;
   avgCharWidthAt16: number;
+  /** Baseline offset from RN Text top when lineHeight === fontSize (preview parity). */
+  rnAscentRatioAt16?: number;
   chars?: Record<string, number>;
 };
 
@@ -28,4 +30,14 @@ export function measureTextWithFontTable(
     width += (perChar ?? entry.avgCharWidthAt16) * scale;
   }
   return width;
+}
+
+/** RN-compatible ascent ratio for preview top → pdf-lib baseline conversion. */
+export function getRnAscentRatioAt16(fontId?: string | null): number | null {
+  if (!fontId) return null;
+  const entry = fontTable.fonts?.[fontId];
+  if (typeof entry?.rnAscentRatioAt16 === 'number' && entry.rnAscentRatioAt16 > 0) {
+    return entry.rnAscentRatioAt16;
+  }
+  return null;
 }

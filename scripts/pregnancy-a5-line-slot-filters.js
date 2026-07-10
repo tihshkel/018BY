@@ -63,6 +63,21 @@ function isPhotoFrameLineSlot(lineSlot, photoRect) {
   return true;
 }
 
+/**
+ * Стр. 32 — единственная weekly-страница с коротким декоративным штрихом возле
+ * подписи «Мой малыш как…». Это не поле ввода: его ошибочное попадание в slots
+ * делало из него третью строку «Мои ощущения» и уводило текст при PDF-экспорте.
+ */
+function isPregnancyA5DecorativeBottomStroke(pageKey, lineSlot) {
+  return (
+    Number(pageKey) === 32 &&
+    lineSlot.y > 0.9 &&
+    lineSlot.width < 0.1 &&
+    lineSlot.x > 0.25 &&
+    lineSlot.x < 0.4
+  );
+}
+
 function filterPregnancyA5LineSlots(albumSlots, albumGuides, photoSlots = loadPhotoSlots()) {
   const slots = { ...albumSlots };
   const guides = { ...albumGuides };
@@ -74,7 +89,11 @@ function filterPregnancyA5LineSlots(albumSlots, albumGuides, photoSlots = loadPh
     if (!photoRect) continue;
 
     const pageSlots = slots[pageKey] ?? [];
-    const filtered = pageSlots.filter((slot) => !isPhotoFrameLineSlot(slot, photoRect));
+    const filtered = pageSlots.filter(
+      (slot) =>
+        !isPhotoFrameLineSlot(slot, photoRect) &&
+        !isPregnancyA5DecorativeBottomStroke(pageKey, slot),
+    );
     if (filtered.length === pageSlots.length) continue;
 
     slots[pageKey] = filtered;
@@ -86,5 +105,6 @@ function filterPregnancyA5LineSlots(albumSlots, albumGuides, photoSlots = loadPh
 
 module.exports = {
   filterPregnancyA5LineSlots,
+  isPregnancyA5DecorativeBottomStroke,
   isPregnancyA5WeeklyPage,
 };

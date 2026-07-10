@@ -3,13 +3,16 @@
  * Coords from PDF vector paths (white checkbox squares) + bleed into stroke.
  */
 
-const TODO_CHECKBOX_FILL = '#C8864A';
+/** Мягкий персик — как на p52 «Анкета родов», гармонирует с карточками страницы. */
+const TODO_CHECKBOX_FILL = '#E8C4A8';
 
 /** Rounded-corner ratio from PDF path (rx ≈ 3.09 pt on 17.01 pt box). */
 const CHECKBOX_CORNER_RADIUS_RATIO = 0.182;
 
 /** Cover orange stroke (~0.57 pt) and raster antialiasing. */
-const CHECKBOX_BLEED = 0.0018;
+const CHECKBOX_BLEED = 0.0028;
+const CHECKBOX_NUDGE_X = -0.0008;
+const CHECKBOX_NUDGE_Y = -0.0005;
 
 /** Exact checkbox outer bounds from PDF page 51 (normalized top-left). */
 const TODO_CHECKBOX_RECTS = [
@@ -37,8 +40,8 @@ const TODO_CHECKBOX_RECTS = [
 
 function withBleed(rect) {
   return {
-    x: rect.x - CHECKBOX_BLEED,
-    y: rect.y - CHECKBOX_BLEED,
+    x: rect.x + CHECKBOX_NUDGE_X - CHECKBOX_BLEED,
+    y: rect.y + CHECKBOX_NUDGE_Y - CHECKBOX_BLEED,
     width: rect.width + CHECKBOX_BLEED * 2,
     height: rect.height + CHECKBOX_BLEED * 2,
   };

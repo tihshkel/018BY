@@ -71,8 +71,8 @@ assert(
   'supabase-storage: загрузка URI из annotations'
 );
 assert(
-  supabaseStorage.includes('ALBUM_USER_PHOTO_INDEX_BASE'),
-  'supabase-storage: отдельный диапазон индексов для фото пользователя'
+  supabaseStorage.includes('@project_pv_'),
+  'supabase-storage: загрузка URI из incremental page value entries'
 );
 
 assert(

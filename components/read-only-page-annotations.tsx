@@ -12,18 +12,20 @@ import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTra
 import { getCachedPageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
+  isPregnancyWeeklyStructuredPage,
+  resolveWeeklyFieldLineSlots,
 } from '@/utils/textLineSlots';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
+  clampTextToFieldLines,
   distributeTextForTemplateAnnotation,
   getEffectiveTemplateFontSize,
   getTemplateBlockTextInsets,
-  getTemplateLineRowInsets,
-  getTemplateLineTextTop,
-  getTemplateLineTypography,
-  getWishSlotInputKind,
+  resolvePregnancyWeeklyFieldRowLayout,
+  resolveTemplateLineRowLayout,
+  resolveTemplateTextRenderBox,
+  shouldClipPregnancyWeeklyFieldRow,
   resolveBirthQuestionnaireBlockTextAlign,
-  usesStrokeBaselineLayout,
 } from '@/utils/templateLineText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
@@ -157,21 +159,21 @@ function ReadOnlyPageAnnotationsInner({
       !viewportWidth ||
       !viewportHeight ||
       viewportWidth <= 0 ||
-      viewportHeight <= 0 ||
-      !sourceWidth ||
-      !sourceHeight ||
-      sourceWidth <= 0 ||
-      sourceHeight <= 0
+      viewportHeight <= 0
     ) {
       return null;
     }
+    const resolvedSourceWidth =
+      sourceWidth && sourceWidth > 0 ? sourceWidth : viewportWidth;
+    const resolvedSourceHeight =
+      sourceHeight && sourceHeight > 0 ? sourceHeight : viewportHeight;
     return getLineSlotsForPage({
       lineGuideId,
       page: sourcePageNumber,
       viewportWidth,
       viewportHeight,
-      sourceWidth,
-      sourceHeight,
+      sourceWidth: resolvedSourceWidth,
+      sourceHeight: resolvedSourceHeight,
     });
   }, [
     lineGuideId,
@@ -196,11 +198,53 @@ function ReadOnlyPageAnnotationsInner({
           const usesTemplateLineSlots = typeof annotation.templateLineStart === 'number';
           const startIndex = annotation.templateLineStart ?? 0;
           const slotCount = annotation.templateLineCount ?? 1;
+          const isWeeklyMultilineField =
+            slotCount > 1 &&
+            lineGuideId &&
+            lineSlots != null &&
+            isPregnancyWeeklyStructuredPage(
+              lineGuideId,
+              lineSlots[startIndex]?.page ?? sourcePageNumber ?? 0,
+            );
 
-          if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
+          const fieldSlots =
+            usesTemplateLineSlots && lineSlots != null
+              ? isWeeklyMultilineField
+                ? resolveWeeklyFieldLineSlots(
+                    lineSlots,
+                    startIndex,
+                    slotCount,
+                    lineGuideId,
+                  )
+                : lineSlots[startIndex]
+                  ? [lineSlots[startIndex]]
+                  : []
+              : [];
+
+          const effectiveFieldSlots =
+            fieldSlots.length > 0
+              ? fieldSlots
+              : slotCount === 1 && lineSlots?.[startIndex]
+                ? [lineSlots[startIndex]]
+                : [];
+
+          if (usesTemplateLineSlots && effectiveFieldSlots.length > 0) {
             const measureTextWidth = resolveMeasureTextWidth(annotation.fontFamily);
+            const clampedText =
+              slotCount > 1 && lineGuideId
+                ? clampTextToFieldLines({
+                    text: annotation.content,
+                    startSlotIndex: startIndex,
+                    lineCount: slotCount,
+                    slots: lineSlots,
+                    fontSize,
+                    lineGuideId,
+                    fontId: annotation.fontFamily,
+                    measureTextWidth,
+                  })
+                : annotation.content;
             const { segments } = distributeTextForTemplateAnnotation({
-              text: annotation.content,
+              text: clampedText,
               startSlotIndex: startIndex,
               slots: lineSlots,
               fontSize,
@@ -210,13 +254,19 @@ function ReadOnlyPageAnnotationsInner({
               measureTextWidth,
             });
 
-            const linesToRender = segments
+            const linesToRender = (slotCount > 1 && isWeeklyMultilineField
+              ? segments
+              : segments.filter((segment) =>
+                  effectiveFieldSlots.some((slot) => slot.index === segment.slotIndex),
+                )
+            )
               .map((segment) => {
-                const lineSlot = lineSlots[segment.slotIndex];
-                if (!lineSlot || !segment.content) return null;
+                const lineSlot = lineSlots?.[segment.slotIndex];
+                const content = segment.content?.trim();
+                if (!lineSlot || !content) return null;
                 return {
                   slotIndex: segment.slotIndex,
-                  content: segment.content,
+                  content,
                   lineSlot,
                 };
               })
@@ -238,50 +288,59 @@ function ReadOnlyPageAnnotationsInner({
                       fontId: annotation.fontFamily,
                     },
                   );
-                  const rowTop = getTemplateLineTextTop(
-                    row.lineSlot,
-                    rowFontSize,
-                    lineGuideId,
-                    lineSlots ?? undefined,
-                  );
-                  const rowTypography = getTemplateLineTypography(
-                    rowFontSize,
-                    row.lineSlot.lineHeight,
-                    getWishSlotInputKind(row.lineSlot, lineGuideId),
-                    lineGuideId,
-                  );
-                  const wishInputKind = getWishSlotInputKind(row.lineSlot, lineGuideId);
-                  const usesStrokeBaseline = usesStrokeBaselineLayout(row.lineSlot, lineGuideId);
-                  const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
-                    row.lineSlot,
-                    rowTypography.fontSize,
-                    wishInputKind,
-                    lineGuideId,
-                  );
-                  const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-                  const rowTextAlign =
-                    annotation.textAlign ??
-                    resolveBirthQuestionnaireBlockTextAlign(row.lineSlot, lineGuideId);
                   const isKidsTeethOverlayLine =
                     lineGuideId === 'kids_48' &&
                     row.lineSlot.page === 10 &&
                     row.lineSlot.index !== 21;
+                  const rowLayout = resolveTemplateLineRowLayout({
+                    lineSlot: row.lineSlot,
+                    fontSize: rowFontSize,
+                    lineGuideId,
+                    lineSlots: lineSlots ?? undefined,
+                    fieldStartIndex: startIndex,
+                    isKidsTeethOverlayLine,
+                    fontId: annotation.fontFamily,
+                  });
+                  const textInsets = getTemplateBlockTextInsets(
+                    row.lineSlot,
+                    lineGuideId,
+                    lineSlots ?? undefined,
+                  );
+                  const measureTextWidth = resolveMeasureTextWidth(annotation.fontFamily);
+                  const renderBox = shouldClipPregnancyWeeklyFieldRow(
+                    row.lineSlot,
+                    lineGuideId,
+                    lineSlots ?? undefined,
+                  )
+                    ? resolvePregnancyWeeklyFieldRowLayout(
+                        row.lineSlot,
+                        row.content,
+                        lineGuideId,
+                        lineSlots ?? undefined,
+                        rowFontSize,
+                        annotation.fontFamily,
+                        measureTextWidth,
+                      )
+                    : resolveTemplateTextRenderBox(row.lineSlot, textInsets);
+                  const rowTextAlign =
+                    annotation.textAlign ??
+                    resolveBirthQuestionnaireBlockTextAlign(row.lineSlot, lineGuideId);
+                  const textAlign =
+                    row.lineSlot.inlineLabelTail && !annotation.textAlign
+                      ? 'left'
+                      : rowTextAlign;
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
                       style={[
                         styles.annotation,
                         {
-                          left: row.lineSlot.x + textInsets.left,
-                          top: rowTop - viewportTopInset,
-                          width: textInsets.width || row.lineSlot.width,
-                          height: isKidsTeethOverlayLine
-                            ? rowTypography.fontSize + 2
-                            : rowTypography.lineHeight + viewportTopInset,
+                          left: renderBox.viewLeft,
+                          top: rowLayout.rowViewTop,
+                          width: renderBox.viewWidth || row.lineSlot.width,
+                          height: rowLayout.rowViewHeight,
                           zIndex: annotation.zIndex,
-                          overflow: isKidsTeethOverlayLine || usesStrokeBaseline
-                            ? 'visible'
-                            : 'hidden',
+                          overflow: rowLayout.overflowVisible ? 'visible' : 'hidden',
                         },
                       ]}
                       pointerEvents="none"
@@ -291,16 +350,15 @@ function ReadOnlyPageAnnotationsInner({
                           styles.text,
                           {
                             position: 'absolute',
-                            top: textTopInset,
-                            left: 0,
+                            top: rowLayout.rowTextTop,
+                            left: renderBox.textLeft,
                             color: annotation.color ?? '#3D3D3D',
-                            fontSize: rowTypography.fontSize,
+                            fontSize: rowFontSize,
                             fontFamily,
-                            lineHeight: usesStrokeBaseline
-                              ? rowTypography.fontSize
-                              : rowTypography.lineHeight,
-                            textAlign: rowTextAlign,
-                            maxWidth: textInsets.width || row.lineSlot.width,
+                            lineHeight: rowLayout.lineHeight,
+                            textAlign: textAlign,
+                            width: renderBox.textWidth || row.lineSlot.width,
+                            maxWidth: renderBox.textWidth || row.lineSlot.width,
                             includeFontPadding: false,
                           },
                         ]}
@@ -314,6 +372,10 @@ function ReadOnlyPageAnnotationsInner({
                 })}
               </React.Fragment>
             );
+          }
+
+          if (usesTemplateLineSlots && slotCount > 1) {
+            return null;
           }
 
           const layout = {

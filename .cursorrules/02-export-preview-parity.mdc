@@ -1,0 +1,166 @@
+---
+description: Принцип 2 — PDF-экспорт должен совпадать с превью; обложки для electronic/soft
+globs: app/export-pdf.tsx,app/export-review.tsx,utils/exportTemplateText.ts,utils/exportViewport.ts,utils/exportPdfImageAnnotations.ts,utils/albumFirstLastPages.ts,utils/exportPdfCover.ts,utils/exportFormatOptions.ts,utils/exportPageDimensions.ts,utils/exportPageSelection.ts,utils/pageValuesAdapter.ts
+alwaysApply: false
+---
+
+# Принцип 2: Экспорт PDF = превью
+
+**Цель:** экспорт в PDF должен соответствовать тому, что пользователь видит в приложении после предпросмотра interior-страницы. Для **electronic** и **soft** в начало и конец PDF добавляются обложки (как реализовано сейчас).
+
+---
+
+## Определение «превью»
+
+То, что видит пользователь в:
+- `app/album-page-preview.tsx`
+- `components/page-renderer.tsx` + `components/read-only-page-annotations.tsx`
+
+**После** редактирования interior-страницы. Не wireframe blank-шаблонов (`template-wireframe-preview.tsx`).
+
+---
+
+## Инварианты (обязательны)
+
+### 1. Один источник данных
+`pageValuesToAnnotations()` в `utils/pageValuesAdapter.ts`:
+- **Preview:** `usePageAnnotationsForLayout` hook
+- **Export:** `buildExportPageAnnotations()` в `app/export-pdf.tsx`
+
+Никогда не строить аннотации для export отдельным путём.
+
+### 2. Один viewport
+- Preview пишет: `persistProjectViewport`
+- Export читает: `resolveProjectViewportForExport()` в `utils/exportViewport.ts`
+- Aspect ratio viewport **должен совпадать**; иначе геометрия текста и фото сдвинется
+
+### 3. Designed-альбомы: pdf-lib напрямую
+- Не snapshot PageRenderer для designed-альбомов
+- Геометрия: `getContentRect` + `getViewportToPdfScale`
+- Текст: `drawTemplateTextOnPdfPage()` в `utils/exportTemplateText.ts`
+- Фото: `exportPdfImageAnnotations.ts`
+
+### 4. Blank/travel: PageRenderer snapshot
+- `shouldUsePageRendererForExport()` → offscreen `PageRenderer` с `readOnly`
+- Паритет через тот же компонент, не дублировать логику в pdf-lib
+
+### 5. Общая геометрия текста
+| Preview | Export |
+|---------|--------|
+| `getTemplateLineTextTop()` | `getTemplateLinePdfBaselineY()` |
+| `distributeTextForTemplateAnnotation()` | то же |
+| `getLineSlotsForPage()` | то же |
+| `layoutTextAnnotationFromSlot()` | то же (effectiveFontSize) |
+
+### 6. Фото
+`exportPdfImageAnnotations.ts`:
+- `objectFit: cover` (как в preview)
+- Circle clip: center = `mapped.x + mapped.width/2`, `mapped.y + mapped.height/2` (pdf-lib ellipse, не bbox corner)
+- `clipShape`, `imageContentFit` — те же параметры что в preview
+
+---
+
+## Форматы экспорта
+
+| Формат | Размер | Поля | Состав PDF |
+|--------|--------|------|------------|
+| `electronic` | A5 / 180×240 / 210×210 | 10 мм (0 для diary electronic) | форзац + interior + closing |
+| `soft` | то же | 10 мм | форзац + interior + closing |
+| `hard` | 180×240 / квадрат | 15 мм | **два файла**: развёртка обложки + только interior |
+
+Размеры: `getExportPageDimensions()` в `utils/exportPageDimensions.ts`.
+
+### Electronic specifics
+- 300 DPI, JPEG quality, `ELECTRONIC_CAPTURE_SCALE` для PageRenderer-snapshot
+- Diary electronic: все interior full-bleed (`shouldUseFullBleedDiaryExport`)
+
+---
+
+## Обложки (сохранить текущее поведение)
+
+Источник: `getExportCoverPages(albumId, category, formatType, lineGuideId)` в `utils/albumFirstLastPages.ts`.
+
+### Soft + Electronic (`format !== 'hard'`)
+1. **Start (форзац):** `drawExportCoverFullBleed` + cover annotations → **до** interior
+2. **Interior pages:** выбранные страницы проекта
+3. **End (closing):** closing page → **после** interior
+4. Дедупликация: `isSameExportImageUri` — не дублировать first или last interior
+
+### Full-bleed interior
+- Первая и последняя interior-страница — full-bleed (без полей) для soft/electronic
+- Diary electronic — **все** interior full-bleed
+
+### Hard cover
+- Форзац start/end **не** в interior PDF
+- Шаг 1: `handleDownloadCoverPdf` → PDF развёртки из `albums/export`
+- Шаг 2: interior PDF — только выбранные страницы
+
+---
+
+## pdf-lib: baseline и измерение
+
+`page.drawText()` принимает `y` как **baseline** (не top). Поэтому:
+```typescript
+// exportTemplateText.ts
+getTemplateLinePdfBaselineY(top, fontSize, lineGuideId, slot) 
+// = top + capHeight (album-specific)
+```
+
+Для audit и измерения:
+- Ширина: `font.widthOfTextAtSize(text, size)`
+- Высота строки: `font.heightAtSize(size)`
+- Не гадать коэффициенты — использовать fontkit metrics
+
+Fontkit обязателен: `pdfDoc.registerFontkit(fontkit)` перед embed custom fonts.
+
+---
+
+## Пайплайн экспорта
+
+```
+export-review.tsx → выбор формата + buildExportSelection → AsyncStorage
+       ↓
+export-pdf.tsx → загрузка проекта, merge pageValues, filterProjectDataForExport
+       ↓
+resolveProjectViewportForExport + getExportPageDimensions
+       ↓
+pdf-lib: [обложка start?] → interior pages → [closing end?] → save/share
+```
+
+Для каждой interior-страницы:
+- Designed: pdf-lib fallback (background image + `drawTemplateTextOnPdfPage` + image annotations)
+- Blank/travel: скрытый PageRenderer snapshot → embed в PDF
+
+---
+
+## Запрещено
+
+- Строить аннотации для export отдельно от `pageValuesToAnnotations`
+- Менять `getTemplateLineTextTop` без зеркального изменения `getTemplateLinePdfBaselineY`
+- Убирать обложки из electronic/soft export
+- Добавлять обложки в hard interior PDF
+- Хардкодить scale/offset текста в `export-pdf.tsx` — только через `exportTemplateText.ts`
+- Использовать snapshot PageRenderer для designed-альбомов (медленно и теряет pdf-lib precision)
+
+---
+
+## Верификация
+
+```bash
+node scripts/verify-export-parity.js
+node scripts/verify-export-matrix.js
+node scripts/verify-photo-parity.js
+node scripts/verify-photo-flows.js
+npm run verify:designed-albums
+```
+
+### E2E
+- `e2e/playwright/diary-export.spec.ts`
+- `e2e/playwright/designed-albums-export.spec.ts`
+- `e2e/maestro/flows/05-export/`
+
+### При изменении export
+1. Проверить, что `buildExportPageAnnotations` использует тот же adapter что preview
+2. Проверить viewport parity (`resolveProjectViewportForExport`)
+3. Проверить cover pages для всех трёх форматов
+4. Визуально сравнить preview страницы с экспортированным PDF

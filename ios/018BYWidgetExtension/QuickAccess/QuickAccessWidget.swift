@@ -3,6 +3,7 @@ import WidgetKit
 
 struct QuickAccessEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetPalette) private var palette
     let entry: WidgetEntry
 
     var body: some View {
@@ -13,7 +14,7 @@ struct QuickAccessEntryView: View {
             case .systemMedium:
                 mediumView
             case .accessoryInline:
-                Text("018BY · Создать альбом")
+                Text("018BY · Мои истории")
                     .font(.system(size: 12, weight: .semibold))
             default:
                 smallView
@@ -24,14 +25,20 @@ struct QuickAccessEntryView: View {
 
     private var smallView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            WidgetBrandMark()
+            HStack {
+                WidgetBrandMark(compact: true)
+                Spacer(minLength: 0)
+                WidgetActionOrb(size: 34, iconSize: 16)
+            }
             Spacer(minLength: 0)
-            Text("Создать\nальбом")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(WidgetColors.textPrimary)
-            Text("Сохраняйте важные моменты")
-                .font(.system(size: 11))
-                .foregroundStyle(WidgetColors.textSecondary)
+            WidgetAccentPill(text: "Мои истории")
+            Text("Открыть\nистории")
+                .font(.system(size: 19, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.textPrimary)
+                .lineSpacing(1)
+            Text("Выберите категорию и шаблон альбома")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(palette.textSecondary)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -39,21 +46,21 @@ struct QuickAccessEntryView: View {
     }
 
     private var mediumView: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 WidgetBrandMark()
+                WidgetAccentPill(text: "Мои истории")
                 Text("Новый альбом")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(WidgetColors.textPrimary)
-                Text("Беременность, детство, семья и другие истории")
-                    .font(.system(size: 12))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.textPrimary)
+                Text("Категории с правильными обложками для каждой темы")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
-            Image(systemName: "plus.circle.fill")
-                .font(.system(size: 42))
-                .foregroundStyle(WidgetColors.primary)
+            WidgetActionOrb(size: 58, iconSize: 26)
         }
         .widgetCardBackground()
     }
@@ -68,7 +75,8 @@ struct QuickAccessWidget: Widget {
                 .widgetHomeScreenContainer()
         }
         .configurationDisplayName("Быстрый доступ")
-        .description("Создайте новый альбом в один тап.")
+        .description("Откройте «Мои истории» и выберите шаблон альбома.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline])
+        .containerBackgroundRemovable(true)
     }
 }

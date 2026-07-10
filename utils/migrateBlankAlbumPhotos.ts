@@ -1,6 +1,5 @@
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
-import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import {
   buildAlbumPhotoStorageKey,
   persistAlbumPhotoUri,
@@ -147,18 +146,26 @@ export async function migrateBlankAlbumPhotosMap(
   pageValuesMap: Record<string, PageValues>,
   lineGuideId: string,
 ): Promise<{ pageValuesMap: Record<string, PageValues>; changed: boolean }> {
-  if (!isBlankTemplateLineGuide(lineGuideId)) {
-    return { pageValuesMap, changed: false };
-  }
+  return migrateAlbumPhotosMap(projectId, instances, pageValuesMap, lineGuideId);
+}
 
+/** Persist user photos into album-photos/ for blank and designed albums. */
+export async function migrateAlbumPhotosMap(
+  projectId: string,
+  instances: PageInstance[],
+  pageValuesMap: Record<string, PageValues>,
+  lineGuideId?: string,
+): Promise<{ pageValuesMap: Record<string, PageValues>; changed: boolean }> {
   let changed = false;
   const nextMap = { ...pageValuesMap };
 
   for (const instance of instances) {
     const values = nextMap[instance.instanceId];
     if (!values) continue;
-    const schema = getSchemaForInstance(instance, lineGuideId);
-    if (!schema || !isBlankTemplateLineGuide(schema.lineGuideId)) continue;
+    if (lineGuideId) {
+      const schema = getSchemaForInstance(instance, lineGuideId);
+      if (!schema) continue;
+    }
     if (!hasPhotoSlots(values) && !values.freeElements?.some((el) => el.type === 'image')) {
       continue;
     }

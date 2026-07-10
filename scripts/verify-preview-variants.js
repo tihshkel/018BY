@@ -72,8 +72,13 @@ const pagePreviewBgSource = fs.readFileSync(
 );
 assert(pagePreviewBgSource.includes("quality?: 'full' | 'thumbnail'"), 'pagePreviewBackground: quality modes');
 assert(pagePreviewBgSource.includes('preferCleanPhotoBackground'), 'pagePreviewBackground: clean photo background');
+assert(pagePreviewBgSource.includes('resolvePageOutputBackgroundUri'), 'pagePreviewBackground: output background helper');
 assert(pagePreviewBgSource.includes('resolvePhotoPageCleanBackgroundUri'), 'pagePreviewBackground: per-page variant PNG');
 assert(pagePreviewBgSource.includes("quality === 'thumbnail'"), 'pagePreviewBackground: thumbnail vs full quality modes');
+assert(
+  pagePreviewBgSource.includes('hasVariantPreviewManifest'),
+  'pagePreviewBackground: sparse pages prefer per-page variant for layout preview',
+);
 
 const registrySource = fs.readFileSync(
   path.join(root, 'constants/generated/preview-asset-registry.ts'),

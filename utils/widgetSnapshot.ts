@@ -8,9 +8,14 @@ import {
   findNextPageToContinue,
 } from '@/utils/albumProgress';
 import { getInstanceTitle, getSchemaForInstance } from '@/utils/albumProjectInit';
+import {
+  getNotificationInbox,
+  type NotificationInboxItem,
+} from '@/utils/notificationInbox';
 import { loadPageInstances, loadPageValuesMap } from '@/utils/pageStorage';
 import {
-  getPregnancyWeek,
+  getPregnancyDay,
+  getWeeklyInsightForWeek,
   loadPregnancyInfo,
 } from '@/utils/pregnancyNotificationScheduler';
 import {
@@ -32,10 +37,12 @@ export type WidgetProjectSnapshot = {
   coverType?: string;
   pagesCount: number;
   photosCount: number;
+  unfinishedPages?: number;
 };
 
 export type WidgetContinueSnapshot = {
   projectId: string;
+  instanceId: string;
   projectTitle: string;
   pageTitle: string;
   percent: number;
@@ -51,10 +58,21 @@ export type WidgetReminderSnapshot = {
 
 export type WidgetPregnancySnapshot = {
   week: number;
+  day: number;
+  dayInWeek: number;
+  trimester: number;
+  weeklyInsight?: string;
   daysLeft: number;
   pdrISO: string;
   projectTitle: string;
   projectId: string;
+};
+
+export type WidgetInboxNotification = {
+  id: string;
+  title: string;
+  body: string;
+  receivedAt: string;
 };
 
 export type WidgetSnapshot = {
@@ -65,6 +83,9 @@ export type WidgetSnapshot = {
   nextReminder?: WidgetReminderSnapshot;
   reminders: WidgetReminderSnapshot[];
   pregnancy?: WidgetPregnancySnapshot;
+  todayNotifications: WidgetInboxNotification[];
+  latestNotification?: WidgetInboxNotification;
+  unreadTodayCount: number;
 };
 
 type StoredReminder = {
@@ -76,16 +97,39 @@ type StoredReminder = {
 
 const MAX_PROJECTS = 5;
 const MAX_PROGRESS_PROJECTS = 3;
+const MAX_TODAY_NOTIFICATIONS = 3;
 
 let syncInFlight: Promise<void> | null = null;
 
+function sanitizePercent(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
 function writeWidgetData(payload: string): void {
   if (Platform.OS !== 'ios') return;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const widgets = require('@bittingz/expo-widgets') as {
-    setWidgetData?: (value: string) => void;
-  };
-  widgets.setWidgetData?.(payload);
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const widgets = require('@bittingz/expo-widgets') as {
+      setWidgetData?: (value: string) => void;
+    };
+    if (typeof widgets.setWidgetData !== 'function') {
+      if (__DEV__) {
+        console.warn(
+          '[WidgetSnapshot] setWidgetData unavailable — нужна нативная сборка (не Expo Go)',
+        );
+      }
+      return;
+    }
+    widgets.setWidgetData(payload);
+    if (__DEV__) {
+      console.log('[WidgetSnapshot] synced payload', payload.length, 'bytes');
+    }
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[WidgetSnapshot] write failed:', error);
+    }
+  }
 }
 
 function daysUntil(isoDate: string): number {
@@ -95,6 +139,49 @@ function daysUntil(isoDate: string): number {
   now.setHours(0, 0, 0, 0);
   target.setHours(0, 0, 0, 0);
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function isSameLocalDay(isoDate: string, reference: Date = new Date()): boolean {
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return (
+    parsed.getFullYear() === reference.getFullYear() &&
+    parsed.getMonth() === reference.getMonth() &&
+    parsed.getDate() === reference.getDate()
+  );
+}
+
+function mapInboxNotification(item: NotificationInboxItem): WidgetInboxNotification {
+  return {
+    id: item.id,
+    title: item.title,
+    body: item.body,
+    receivedAt: item.receivedAt,
+  };
+}
+
+function buildNotificationSnapshot(inbox: NotificationInboxItem[]): {
+  todayNotifications: WidgetInboxNotification[];
+  latestNotification?: WidgetInboxNotification;
+  unreadTodayCount: number;
+} {
+  const sorted = [...inbox].sort(
+    (a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime(),
+  );
+  const todayNotifications = sorted
+    .filter((item) => isSameLocalDay(item.receivedAt))
+    .slice(0, MAX_TODAY_NOTIFICATIONS)
+    .map(mapInboxNotification);
+
+  const latestNotification =
+    todayNotifications[0] ??
+    (sorted[0] ? mapInboxNotification(sorted[0]) : undefined);
+
+  return {
+    todayNotifications,
+    latestNotification,
+    unreadTodayCount: todayNotifications.length,
+  };
 }
 
 async function loadReminders(): Promise<StoredReminder[]> {
@@ -144,9 +231,9 @@ async function loadProjectMeta(projectId: string): Promise<Record<string, unknow
   }
 }
 
-async function computeProjectPercent(
+async function computeProjectProgress(
   project: UserProject,
-): Promise<number> {
+): Promise<{ percent: number; unfinishedPages?: number }> {
   const meta = await loadProjectMeta(project.id);
   const category = String(meta.category ?? project.category ?? '');
   const coverType = (meta.coverType as string) ?? project.coverType ?? null;
@@ -159,12 +246,13 @@ async function computeProjectPercent(
   );
   if (instances.length === 0) {
     if (project.pagesCount > 0 && project.photosCount > 0) {
-      return Math.min(
-        100,
-        Math.round((project.photosCount / project.pagesCount) * 100),
-      );
+      return {
+        percent: sanitizePercent(
+          Math.min(100, Math.round((project.photosCount / project.pagesCount) * 100)),
+        ),
+      };
     }
-    return 0;
+    return { percent: 0 };
   }
 
   const pageValuesMap = await loadPageValuesMap(
@@ -174,13 +262,17 @@ async function computeProjectPercent(
   const progress = computeAlbumProgress(instances, pageValuesMap, (instance) =>
     getSchemaForInstance(instance, lineGuideId),
   );
-  return progress.percent;
+  const unfinishedPages = progress.totalCount - progress.filledCount;
+  return {
+    percent: sanitizePercent(progress.percent),
+    unfinishedPages: unfinishedPages > 0 ? unfinishedPages : undefined,
+  };
 }
 
 async function buildContinueSnapshot(
   projects: UserProject[],
 ): Promise<WidgetContinueSnapshot | undefined> {
-  for (const project of projects.slice(0, MAX_PROGRESS_PROJECTS)) {
+  for (const project of projects.slice(0, MAX_PROJECTS)) {
     const meta = await loadProjectMeta(project.id);
     const category = String(meta.category ?? project.category ?? '');
     const coverType = (meta.coverType as string) ?? project.coverType ?? null;
@@ -191,7 +283,25 @@ async function buildContinueSnapshot(
       (key) => AsyncStorage.getItem(key),
       project.id,
     );
-    if (instances.length === 0) continue;
+
+    if (instances.length === 0) {
+      const roughPercent =
+        project.pagesCount > 0
+          ? sanitizePercent(Math.round((project.photosCount / project.pagesCount) * 100))
+          : 0;
+      if (roughPercent > 0 && roughPercent < 100) {
+        return {
+          projectId: project.id,
+          instanceId: '',
+          projectTitle: project.title,
+          pageTitle: 'Продолжить заполнение',
+          percent: roughPercent,
+          celebration: category,
+          coverType: coverType ?? undefined,
+        };
+      }
+      continue;
+    }
 
     const pageValuesMap = await loadPageValuesMap(
       (key) => AsyncStorage.getItem(key),
@@ -200,18 +310,19 @@ async function buildContinueSnapshot(
     const getSchema = (instance: Parameters<typeof getSchemaForInstance>[0]) =>
       getSchemaForInstance(instance, lineGuideId);
     const progress = computeAlbumProgress(instances, pageValuesMap, getSchema);
-    if (progress.percent >= 100) continue;
+    if (sanitizePercent(progress.percent) >= 100) continue;
 
     const nextPage = findNextPageToContinue(instances, pageValuesMap, getSchema);
-    const pageTitle = nextPage
-      ? getInstanceTitle(nextPage, lineGuideId)
-      : 'Продолжить заполнение';
+    if (!nextPage) continue;
+
+    const pageTitle = getInstanceTitle(nextPage, lineGuideId);
 
     return {
       projectId: project.id,
+      instanceId: nextPage.instanceId,
       projectTitle: project.title,
       pageTitle,
-      percent: progress.percent,
+      percent: sanitizePercent(progress.percent),
       celebration: category,
       coverType: coverType ?? undefined,
     };
@@ -220,27 +331,32 @@ async function buildContinueSnapshot(
 }
 
 async function buildSnapshot(): Promise<WidgetSnapshot> {
-  const [userName, projects, pregnancyInfo, reminderRows] = await Promise.all([
+  const [userName, projects, pregnancyInfo, reminderRows, inbox] = await Promise.all([
     AsyncStorage.getItem('@user_name'),
     loadUserProjects(),
     loadPregnancyInfo(),
     loadReminders(),
+    getNotificationInbox(),
   ]);
 
   const reminders = mapReminderRows(reminderRows);
   const nextReminder = reminders[0];
+  const notificationSnapshot = buildNotificationSnapshot(inbox);
 
   const projectsWithProgress = await Promise.all(
     projects.slice(0, MAX_PROJECTS).map(async (project, index) => {
-      const percent =
+      const progress =
         index < MAX_PROGRESS_PROJECTS
-          ? await computeProjectPercent(project)
-          : project.pagesCount > 0
-            ? Math.min(
-                100,
-                Math.round((project.photosCount / project.pagesCount) * 100),
-              )
-            : 0;
+          ? await computeProjectProgress(project)
+          : {
+              percent:
+                project.pagesCount > 0
+                  ? Math.min(
+                      100,
+                      Math.round((project.photosCount / project.pagesCount) * 100),
+                    )
+                  : 0,
+            };
 
       const meta = await loadProjectMeta(project.id);
       const category = String(meta.category ?? project.category ?? '');
@@ -250,21 +366,26 @@ async function buildSnapshot(): Promise<WidgetSnapshot> {
         title: project.title,
         category,
         categoryLabel: getProjectCategoryLabel(category),
-        percent,
+        percent: sanitizePercent(progress.percent),
         celebration: category,
         coverType: project.coverType ?? undefined,
-        pagesCount: project.pagesCount,
-        photosCount: project.photosCount,
+        pagesCount: project.pagesCount ?? 0,
+        photosCount: project.photosCount ?? 0,
+        unfinishedPages: progress.unfinishedPages,
       } satisfies WidgetProjectSnapshot;
     }),
   );
 
   let pregnancy: WidgetPregnancySnapshot | undefined;
   if (pregnancyInfo) {
-    const week = getPregnancyWeek(pregnancyInfo.dueDate);
+    const dayInfo = getPregnancyDay(pregnancyInfo.dueDate);
     const project = projects.find((p) => p.id === pregnancyInfo.projectId);
     pregnancy = {
-      week,
+      week: dayInfo.week,
+      day: dayInfo.day,
+      dayInWeek: dayInfo.dayInWeek,
+      trimester: dayInfo.trimester,
+      weeklyInsight: getWeeklyInsightForWeek(dayInfo.week),
       daysLeft: daysUntil(pregnancyInfo.dueDate.toISOString()),
       pdrISO: pregnancyInfo.dueDate.toISOString(),
       projectTitle: project?.title ?? 'Беременность',
@@ -282,6 +403,7 @@ async function buildSnapshot(): Promise<WidgetSnapshot> {
     nextReminder,
     reminders,
     pregnancy,
+    ...notificationSnapshot,
   };
 }
 
@@ -308,6 +430,15 @@ export async function clearWidgetSnapshot(): Promise<void> {
     updatedAt: new Date().toISOString(),
     projects: [],
     reminders: [],
+    todayNotifications: [],
+    unreadTodayCount: 0,
   };
   writeWidgetData(JSON.stringify(empty));
 }
+
+/** @internal exported for regression tests */
+export const widgetSnapshotTestUtils = {
+  isSameLocalDay,
+  buildNotificationSnapshot,
+  daysUntil,
+};

@@ -79,9 +79,9 @@ const TEETH_LABELS_RU = [
 ];
 
 function resolveTeethBrushingSlotIndex(slots) {
-  // p10: слот 20 — штрих первой строки (y=0.8349) справа от подписи.
-  if ((slots?.length ?? 0) >= 21) return slots.length - 3;
-  return Math.max(0, (slots?.length ?? 22) - 2);
+  // p10: 20 дат (0–19) + первая чистка (20) + число зубов (21).
+  const length = slots?.length ?? 22;
+  return Math.max(0, length - 2);
 }
 
 function buildTeethFields(lineGuideId, pageNumber, slots) {

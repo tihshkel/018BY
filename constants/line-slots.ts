@@ -8254,14 +8254,6 @@ export const LINE_SLOTS = {
         "height": 0.0497,
         "hasLabel": false,
         "continuationGroup": 6
-      },
-      {
-        "x": 0.31649,
-        "y": 0.9118,
-        "width": 0.0773,
-        "height": 0.05783,
-        "hasLabel": false,
-        "continuationGroup": 7
       }
     ],
     "33": [
@@ -9569,7 +9561,7 @@ export const LINE_SLOTS = {
     "3": [
       {
         "x": 0.418,
-        "y": 0.65438,
+        "y": 0.6263799999999999,
         "width": 0.455,
         "height": 0.028,
         "hasLabel": false,
@@ -9580,7 +9572,7 @@ export const LINE_SLOTS = {
       },
       {
         "x": 0.508,
-        "y": 0.70937,
+        "y": 0.6813699999999999,
         "width": 0.362,
         "height": 0.028,
         "hasLabel": false,
@@ -9764,9 +9756,9 @@ export const LINE_SLOTS = {
     "7": [],
     "8": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
+        "x": 0.41555824264409513,
+        "y": 0.8680096735187424,
+        "width": 0.23458282950423218,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,

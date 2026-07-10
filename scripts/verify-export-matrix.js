@@ -116,8 +116,12 @@ assert(
   'exportPageSelection: template image by sourcePageNumber',
 );
 assert(
-  selectionSource.includes('resolvePhotoPageCleanBackgroundUri'),
+  selectionSource.includes('resolvePageOutputBackgroundUri'),
   'exportPageSelection: per-page variant background for photo pages',
+);
+assert(
+  selectionSource.includes('hasVariantPreviewManifest'),
+  'exportPageSelection: no PDF placeholder fallback when clean manifest exists',
 );
 assert(
   !selectionSource.includes('annotations.filter'),

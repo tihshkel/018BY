@@ -55,12 +55,57 @@ const getNotifications = (): typeof import('expo-notifications') | null => {
  * Рассчитать текущую неделю беременности по ПДР
  * ПДР = 40 недель от первого дня последней менструации
  */
+export const TOTAL_PREGNANCY_DAYS = 280;
+
 export function getPregnancyWeek(dueDate: Date): number {
     const now = new Date();
     const daysUntilDue = Math.floor((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     const weeksUntilDue = Math.floor(daysUntilDue / 7);
     const currentWeek = 40 - weeksUntilDue;
     return Math.max(1, Math.min(42, currentWeek));
+}
+
+export type PregnancyDayInfo = {
+    day: number;
+    dayInWeek: number;
+    week: number;
+    trimester: number;
+};
+
+/**
+ * Текущий день беременности (1…294) от LMP = ПДР − 280 дней.
+ */
+export function getPregnancyDay(dueDate: Date, now: Date = new Date()): PregnancyDayInfo {
+    const lmp = new Date(dueDate);
+    lmp.setDate(lmp.getDate() - TOTAL_PREGNANCY_DAYS);
+    lmp.setHours(0, 0, 0, 0);
+
+    const today = new Date(now);
+    today.setHours(0, 0, 0, 0);
+
+    const rawDay =
+        Math.floor((today.getTime() - lmp.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const day = Math.max(1, Math.min(TOTAL_PREGNANCY_DAYS + 14, rawDay));
+    const week = getPregnancyWeek(dueDate);
+    const dayInWeek = ((day - 1) % 7) + 1;
+
+    return {
+        day,
+        dayInWeek,
+        week,
+        trimester: getTrimester(week),
+    };
+}
+
+/**
+ * Короткий текст недели для виджета (из WEEKLY_NOTIFICATIONS).
+ */
+export function getWeeklyInsightForWeek(week: number, maxLength = 120): string | undefined {
+    const entry = WEEKLY_NOTIFICATIONS.find((item) => item.week === week);
+    if (!entry?.body) return undefined;
+    const body = entry.body.trim();
+    if (body.length <= maxLength) return body;
+    return `${body.slice(0, maxLength - 1).trim()}…`;
 }
 
 /**
@@ -234,6 +279,10 @@ export async function savePregnancyInfo(
         };
         await AsyncStorage.setItem('@pregnancy_info', JSON.stringify(pregnancyInfo));
         console.log('[PregnancyNotifications] Saved pregnancy info');
+        if (Platform.OS === 'ios') {
+            const { syncWidgetSnapshot } = await import('@/utils/widgetSnapshot');
+            void syncWidgetSnapshot();
+        }
     } catch (error) {
         console.error('[PregnancyNotifications] Failed to save pregnancy info:', error);
     }

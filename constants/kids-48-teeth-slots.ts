@@ -11,6 +11,9 @@ export const KIDS_48_TEETH_FIELD_SLOT_INDEX: readonly number[] = [
   11, 13, 15, 17, 18,
 ];
 
+export const KIDS_48_TEETH_BRUSHING_SLOT_INDEX = 20;
+export const KIDS_48_TEETH_COUNT_SLOT_INDEX = 21;
+
 export function isKids48TeethDateField(field: AlbumPageField): boolean {
   return (
     field.type === 'date' &&
@@ -24,12 +27,18 @@ export function resolveKids48TeethTemplateLineStart(
   lineGuideId: string,
 ): number {
   const fallback = field.templateLineStart ?? 0;
-  if (
-    lineGuideId !== 'kids_48' ||
-    schema.sourcePageNumber !== 10 ||
-    schema.pageType !== 'teeth' ||
-    !isKids48TeethDateField(field)
-  ) {
+  if (lineGuideId !== 'kids_48' || schema.sourcePageNumber !== 10 || schema.pageType !== 'teeth') {
+    return fallback;
+  }
+
+  if (field.fieldId.endsWith('_first_brushing')) {
+    return KIDS_48_TEETH_BRUSHING_SLOT_INDEX;
+  }
+  if (field.fieldId.endsWith('_teeth_count')) {
+    return KIDS_48_TEETH_COUNT_SLOT_INDEX;
+  }
+
+  if (!isKids48TeethDateField(field)) {
     return fallback;
   }
 

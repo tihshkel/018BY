@@ -221,8 +221,20 @@ assert(
   'PhotoSlotCropPreview: no slot gestures in preview',
 );
 assert(
+  readFile('app/album-page-preview.tsx').includes('AlbumPreviewPhotoBlockEditor'),
+  'album-page-preview: block editor scales photo zone on page (single + collage)',
+);
+assert(
   !readFile('app/album-page-preview.tsx').includes('AlbumPreviewPhotoGestureOverlay'),
-  'album-page-preview: no slot gesture overlay in final preview',
+  'album-page-preview: no per-slot crop overlay for multi-photo collage',
+);
+assert(
+  readFile('utils/pageValuesAdapter.ts').includes('resolvePhotoBlockSlotRects'),
+  'pageValuesAdapter: collage uses block layout + group transform',
+);
+assert(
+  !readFile('utils/pageValuesAdapter.ts').includes('isGridCollage'),
+  'pageValuesAdapter: no separate per-slot collage export path',
 );
 assert(
   readFile('components/read-only-page-annotations.tsx').includes('setPageSourceSize'),

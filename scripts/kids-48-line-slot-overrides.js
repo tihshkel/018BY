@@ -140,15 +140,26 @@ const PAGE_48_SLOTS = [bottomDateLine(1)];
 /**
  * Стр. 3 «Мы ждем тебя» — PDF даёт короткие сегменты линий (~24% ширины).
  * Печатная линия ответа тянется от конца подписи до правого поля (~0.87).
+ * y в LINE = верх полосы; штрихи — ручная разметка page_003_design.png.
  */
+const PAGE_3_PDR_STROKE_Y = 0.65438;
+const PAGE_3_KICKS_STROKE_Y = 0.70937;
 const PAGE_3_SLOTS = [
-  LINE(0.418, 0.65438, 0.455, TEETH_LINE_BAND, 1),
-  LINE(0.508, 0.70937, 0.362, TEETH_LINE_BAND, 2),
+  LINE(0.418, PAGE_3_PDR_STROKE_Y - TEETH_LINE_BAND, 0.455, TEETH_LINE_BAND, 1),
+  LINE(0.508, PAGE_3_KICKS_STROKE_Y - TEETH_LINE_BAND, 0.362, TEETH_LINE_BAND, 2),
 ];
 
-/** Дата внизу страницы (не путать со стр. 9, 20 — дата под заголовком). */
+/** kids_48 p8 — штрих «ДАТА» (ручная разметка page_008_300dpi.png). */
+const PAGE_8_EVENT_DATE_SLOT = LINE(
+  1031 / 2481,
+  2223 / 2481 - TEETH_LINE_BAND,
+  582 / 2481,
+  TEETH_LINE_BAND,
+  1,
+);
+
+/** Дата внизу страницы (не путать со стр. 8, 9, 20 — отдельная геометрия). */
 const EVENT_DATE_PAGES = new Set([
-  '8',
   '14',
   '15',
   '17',
@@ -169,7 +180,8 @@ const TOP_EVENT_DATE_PAGES = {
 const CAPTION_PAGES = new Set(['42', '43', '44', '45', '46', '47']);
 
 function slotGuideY(slot) {
-  if (slot.teethDate) return slot.y;
+  if (slot.teethDate) return slot.y + slot.height;
+  if (slot.lineStrokeAtBottom && slot.textAnchorTop) return slot.y + slot.height;
   return slot.y + slot.height / 2;
 }
 
@@ -187,6 +199,9 @@ function applyKids48LineSlotOverrides(slotsByPage, guidesByPage) {
     slots['10'] = buildPage10TeethSlots(slots['10']);
     guides['10'] = slots['10'].map(slotGuideY);
   }
+
+  slots['8'] = [PAGE_8_EVENT_DATE_SLOT];
+  guides['8'] = [slotGuideY(PAGE_8_EVENT_DATE_SLOT)];
 
   for (const page of EVENT_DATE_PAGES) {
     slots[page] = [bottomDateLine(1)];

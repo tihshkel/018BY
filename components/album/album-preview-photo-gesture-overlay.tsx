@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { PhotoSlotGestureLayer } from '@/components/album/photo-slot-gesture-layer';
+import { PhotoSlotHandleEditor } from '@/components/album/photo-slot-handle-editor';
 import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import type { PhotoBlockSchema, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
@@ -95,7 +95,7 @@ export function AlbumPreviewPhotoGestureOverlay({
               },
             ]}
           >
-            <PhotoSlotGestureLayer
+            <PhotoSlotHandleEditor
               uri={uri}
               slotLabel={slotLabel}
               slotIndex={slotIndex}

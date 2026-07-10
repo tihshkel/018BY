@@ -67,6 +67,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   const renderWidth = width ?? windowWidth;
   const renderHeight = height ?? windowHeight;
   const viewRef = useRef<View>(null);
+  const onReadyRef = useRef(onReady);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [loadedAnnotationImageUris, setLoadedAnnotationImageUris] = useState<Set<string>>(new Set());
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(
@@ -87,24 +88,42 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   const sourceHeight = sourceSize?.height ?? sourceHeightProp;
 
   useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  useEffect(() => {
     setIsImageLoaded(false);
+    setLoadedAnnotationImageUris(new Set());
     setSourceSize(
       sourceWidthProp && sourceHeightProp
         ? { width: sourceWidthProp, height: sourceHeightProp }
         : null,
     );
-  }, [imageUri, sourceWidthProp, sourceHeightProp]);
+  }, [imageUri]);
+
+  useEffect(() => {
+    if (!sourceWidthProp || !sourceHeightProp) return;
+    setSourceSize({ width: sourceWidthProp, height: sourceHeightProp });
+  }, [sourceWidthProp, sourceHeightProp]);
 
   useEffect(() => {
     setLoadedAnnotationImageUris(new Set());
-  }, [imageUri, pendingAnnotationImageUris.join('|')]);
+  }, [pendingAnnotationImageUris.join('|')]);
 
   useEffect(() => {
-    if (!isImageLoaded || !onReady) return;
+    if (!isImageLoaded) return;
+
+    const fireReady = () => {
+      onReadyRef.current?.();
+    };
 
     if (!waitForAnnotationImages) {
-      const timer = setTimeout(() => onReady(), 80);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(fireReady, 80);
+      const fallback = setTimeout(fireReady, 1500);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(fallback);
+      };
     }
 
     const annotationImagesReady =
@@ -118,7 +137,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     let cancelled = false;
     const timer = setTimeout(() => {
       if (!cancelled) {
-        onReady();
+        fireReady();
       }
     }, settleMs);
 
@@ -129,21 +148,20 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   }, [
     isImageLoaded,
     loadedAnnotationImageUris,
-    onReady,
     pendingAnnotationImageUris,
     waitForAnnotationImages,
   ]);
 
   useEffect(() => {
-    if (!isImageLoaded || !onReady || !waitForAnnotationImages) return;
+    if (!isImageLoaded || !waitForAnnotationImages) return;
 
     const timeoutMs = pendingAnnotationImageUris.length > 0 ? 5000 : 2500;
     const timer = setTimeout(() => {
-      onReady();
+      onReadyRef.current?.();
     }, timeoutMs);
 
     return () => clearTimeout(timer);
-  }, [imageUri, isImageLoaded, onReady, pendingAnnotationImageUris.length, waitForAnnotationImages]);
+  }, [imageUri, isImageLoaded, pendingAnnotationImageUris.length, waitForAnnotationImages]);
 
   const handleAnnotationImageLoad = React.useCallback((uri: string) => {
     setLoadedAnnotationImageUris((prev) => {

@@ -489,6 +489,8 @@ function BlockPhotos({
   blockId: string;
   slotTransforms: Record<string, PhotoSlotTransform>;
 }) {
+  const isMultiSlotCollage = layout.slots.length > 1;
+
   return (
     <>
       {layout.slots.map((slot) => (
@@ -508,8 +510,10 @@ function BlockPhotos({
           <PhotoSlotCropPreview
             uri={slot.uri}
             transform={
-              slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
-              DEFAULT_PHOTO_SLOT_TRANSFORM
+              isMultiSlotCollage
+                ? DEFAULT_PHOTO_SLOT_TRANSFORM
+                : slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
+                  DEFAULT_PHOTO_SLOT_TRANSFORM
             }
           />
         </View>

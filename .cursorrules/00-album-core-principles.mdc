@@ -1,0 +1,145 @@
+---
+description: Обзор проекта 018BY, глоссарий альбомов, три ключевых принципа и чеклист перед завершением задачи
+alwaysApply: true
+---
+
+# Проект 018BY — ядро правил
+
+React Native / Expo приложение для редактирования и экспорта фотоальбомов. Текст на designed-страницах привязан к **line slots** (OCR-геометрия из PNG/PDF). Превью — RN (`PageRenderer`, `pdf-annotations.tsx`). Экспорт — **pdf-lib** (`export-pdf.tsx`, `exportTemplateText.ts`). Паритет preview ↔ export выровнен через общие хелперы, но есть десятки album-specific overrides.
+
+Связанные правила (подробности):
+- `01-text-line-alignment.mdc` — текст на печатных линиях
+- `02-export-preview-parity.mdc` — экспорт = превью + обложки
+- `03-line-slot-capacity.mdc` — фактический размер каждой строки
+
+---
+
+## Три ключевых принципа (всегда соблюдать)
+
+### 1. Текст в зонах макета
+При редактировании страниц designed-альбомов весь текст должен попадать **ровно в ту зону макета, куда ему место по смыслу**:
+- на **печатную линию** (`inputKind: 'line'`) — дневники, kids_48, большинство полей;
+- в **прямоугольник/ячейку** (`inputKind: 'block'`) — день рождения, розовые блоки беременности, peach-ячейки дневника;
+- в **семантическую зону без видимой линии** — недельные страницы «В ожидании чуда» (вес, обхват, планы), где OCR/override задаёт слот по дизайну, а не по штриху.
+
+Исключение: **blank-альбомы** без дизайна (`family_blank`, `family_blank_21x21`, `holidays_blank`) — свободный floating-текст.
+
+### 2. Экспорт = превью
+PDF-экспорт должен соответствовать тому, что пользователь видит в приложении после предпросмотра interior-страницы. Для **electronic** и **soft** в начало и конец PDF добавляются обложки (форзац + closing) — как реализовано сейчас. **Hard** — два файла: развёртка обложки отдельно, interior отдельно.
+
+### 3. Фактический размер строки
+Каждая строка должна иметь **реальную** ёмкость (width × lineHeight × fontSize). Нельзя допускать ситуацию, когда пользователь вводит длинный текст (лимит формы позволяет), а на превью текст обрезается и не виден.
+
+---
+
+## Глоссарий
+
+| Термин | Значение |
+|--------|----------|
+| **Designed-альбом** | Альбом с печатными линиями и line slots: `pregnancy_60`, `pregnancy_a5`, `kids_48`, `holidays_birthday_60`, `diary_interior_brown`, `diary_interior_purple` |
+| **Blank-альбом** | Альбом без линованной сетки (`BLANK_LINE_GUIDE_IDS`): `family_blank`, `family_blank_21x21`, `holidays_blank` — floating-текст |
+| **Blank page image** | Белый фон страницы, но **с** designed line slots (напр. `kids_48`, `holidays_birthday_60`) — это designed, не blank |
+| **Line slot** | Прямоугольная зона одной строки: `{x, y, width, lineHeight, index, continuationGroup?, inputKind?}` |
+| **inputKind: 'line'** | Текст на штрихе/линии — baseline layout, `lineStrokeAtBottom`, `textAnchorTop` |
+| **inputKind: 'block'** | Текст внутри прямоугольника (белый/peach блок) — вертикальное центрирование, `getTemplateBlockTextInsets()` |
+| **Семантический слот** | Слот без видимой линии в PDF, но с зоной ввода по смыслу дизайна (недели беременности: вес, обхват, планы) |
+| **inlineLabelTail** | Хвост текста справа от печатной подписи на той же строке (недели: «ПЛАНЫ НА НЕДЕЛЮ:») |
+| **continuationGroup** | Несколько слотов = одно многострочное поле; перенос только внутри группы |
+| **templateLineStart / templateLineCount** | Привязка поля формы или аннотации к слотам |
+| **LINE_SLOTS** | OCR-данные из `constants/line-slots.json`, генерируются `scripts/generate-line-slots.js` |
+| **LINE_GUIDES** | Fallback: только Y-координаты штрихов из `constants/line-guides.ts` |
+| **contentRect** | Область изображения страницы в viewport (`getContentRect`, `contentFit: contain`) |
+| **Эталонный viewport** | `2480×2480` — для лимитов символов (`FIELD_LIMIT_REFERENCE_VIEWPORT`) |
+
+---
+
+## Designed vs Blank — как отличить
+
+```typescript
+// Designed: hasLineGuides() === true, usesTemplateLineTextEditing() === true
+// Blank: isBlankLineGuideAlbum() === true, usesFreeFormTextEditing() === true
+```
+
+| Аспект | Designed | Blank |
+|--------|----------|-------|
+| Текст | По line slots, `TemplateLineEditor` | Floating, произвольные x/y |
+| Слоты | `getLineSlotsForPage()` | Не используются |
+| Фото | `resolvePhotoPageLayouts()` | `BLANK_PAGE_PHOTO_SAFE`, wireframe manifest |
+| Экспорт текста | pdf-lib + `exportTemplateText.ts` | PageRenderer snapshot |
+| Схема полей | `templateLineStart` обязателен | `pageValuesAdapter` пропускает template fields |
+
+**Важно:** `kids_48` выглядит как blank (белые страницы), но это **designed**-альбом с полной сеткой слотов.
+
+### Три режима размещения текста (designed)
+
+| Режим | `inputKind` | Примеры | Как позиционируется |
+|-------|-------------|---------|---------------------|
+| **Линия** | `'line'` | Дневник, kids_48, линии дня рождения | Baseline над штрихом: `getTemplateLineTextTop`, stroke-baseline |
+| **Блок** | `'block'` | День рождения (белые ячейки), дневник (peach), вес/обхват на неделях | Центр прямоугольника: `centerRatio` + `fontOffsetRatio`, insets через `getTemplateBlockTextInsets()` |
+| **Семантический** | `'line'` или `'block'` без видимого штриха | Недели беременности (p9–p17, p19–p32, p34–p47), анкеты | Слоты вручную в overrides (`pregnancy-60-weekly-line-slot-overrides.js`, `refinePregnancy60WeeklyWeightBellySlots`) |
+
+Не все зоны ввода имеют видимую печатную линию — но у каждой **должен быть слот** в `LINE_SLOTS` или runtime override.
+
+---
+
+## Поток данных (кратко)
+
+```
+PNG/PDF → generate-line-slots.js → LINE_SLOTS + LINE_GUIDES
+                ↓
+getLineSlotsForPage(lineGuideId, page, viewport) → TextLineSlot[]
+                ↓
+Ввод: TemplateLineEditor / форма (AlbumPageField)
+                ↓
+distributeTextForTemplateAnnotation → segments per slot
+                ↓
+pageValuesToAnnotations() → Annotation[]
+                ↓
+Preview: ReadOnlyPageAnnotations / PdfAnnotations
+Export: exportTemplateText.ts → pdf-lib drawText
+```
+
+---
+
+## Ключевые файлы
+
+| Область | Файлы |
+|---------|-------|
+| Слоты | `utils/textLineSlots.ts`, `constants/line-slots.ts`, `scripts/generate-line-slots.js` |
+| Текст | `utils/templateLineText.ts`, `utils/textWrap.ts` |
+| Лимиты | `utils/albumFieldLimits.ts` |
+| Адаптер | `utils/pageValuesAdapter.ts` |
+| UI | `components/pdf-annotations.tsx`, `components/template-line-editor.tsx`, `components/read-only-page-annotations.tsx` |
+| Превью | `app/album-page-preview.tsx`, `components/page-renderer.tsx` |
+| Экспорт | `app/export-pdf.tsx`, `utils/exportTemplateText.ts`, `utils/exportViewport.ts` |
+| Обложки | `utils/albumFirstLastPages.ts`, `utils/exportPdfCover.ts` |
+| Схемы | `constants/generated/album-page-schemas.ts` |
+| Типографика | `constants/album-text-margins.ts` |
+
+---
+
+## Чеклист перед завершением задачи
+
+- [ ] Определён тип альбома: designed или blank? (разная логика)
+- [ ] Определён тип слота: `line`, `block` или семантический (weekly/анкета)?
+- [ ] Изменения в preview отражены в export (или вынесены в общий хелпер)
+- [ ] При изменении геометрии слотов: `node scripts/generate-line-slots.js` + bump cache-key в `textLineSlots.ts`
+- [ ] Лимиты символов согласованы с ёмкостью слотов (`audit:text-line-capacity`)
+- [ ] Прогнаны релевантные verify/audit (см. правила 01–03)
+- [ ] Debug-оверлеи обновлены при необходимости (`assets/debug/`)
+
+### Полная верификация designed-альбомов
+
+```bash
+npm run verify:designed-albums
+```
+
+---
+
+## Что НЕ делать
+
+- Не хардкодить позиции текста в компонентах — только через `getTemplateLineTextTop` / `getTemplateLinePdfBaselineY`
+- Не менять preview без зеркального изменения export (или общего хелпера)
+- Не применять line-slot логику к blank-альбомам
+- Не увеличивать `maxLength` в схеме без проверки layout capacity
+- Не коммитить `assets/debug/` без необходимости (генерируемые артефакты)

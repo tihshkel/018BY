@@ -3,6 +3,7 @@ import WidgetKit
 
 struct ContinueEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetPalette) private var palette
     let entry: WidgetEntry
 
     var body: some View {
@@ -12,7 +13,7 @@ struct ContinueEntryView: View {
             } else {
                 WidgetEmptyState(
                     title: "Всё заполнено",
-                    subtitle: "Откройте приложение или создайте новый альбом"
+                    subtitle: "Откройте «Мои истории» для нового альбома"
                 )
                 .widgetURL(WidgetDeepLinks.createAlbum)
             }
@@ -38,18 +39,16 @@ struct ContinueEntryView: View {
     private func smallView(_ item: WidgetContinueItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             WidgetBrandMark(compact: true)
-            Text("Продолжить")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(WidgetColors.primary)
+            WidgetAccentPill(text: "Продолжить")
             Text(item.pageTitle)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(WidgetColors.textPrimary)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
             Spacer(minLength: 0)
             HStack {
-                Text("\(item.percent)%")
-                    .font(.system(size: 11))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                Text("\(item.percent)% готово")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
                 Spacer()
                 WidgetProgressRing(percent: item.percent, lineWidth: 4, size: 36)
             }
@@ -63,16 +62,16 @@ struct ContinueEntryView: View {
             WidgetProgressRing(percent: item.percent, lineWidth: 6, size: 64)
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.projectTitle)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(WidgetColors.textPrimary)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.textPrimary)
                     .lineLimit(1)
                 Text(item.pageTitle)
-                    .font(.system(size: 12))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
-                Text("Продолжить заполнение")
+                Text("Открыть страницу")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(WidgetColors.primary)
+                    .foregroundStyle(WidgetColors.primaryDeep)
             }
             Spacer(minLength: 0)
         }
@@ -85,27 +84,24 @@ struct ContinueEntryView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Продолжить заполнение")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(WidgetColors.textPrimary)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(palette.textPrimary)
                     Text(item.projectTitle)
-                        .font(.system(size: 13))
-                        .foregroundStyle(WidgetColors.textSecondary)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(palette.textSecondary)
                 }
                 Spacer()
                 WidgetProgressRing(percent: item.percent, lineWidth: 7, size: 72)
             }
             VStack(alignment: .leading, spacing: 6) {
                 Text("Следующая страница")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(WidgetColors.textSecondary)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(palette.textSecondary)
                 Text(item.pageTitle)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(WidgetColors.textPrimary)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.textPrimary)
             }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(WidgetColors.primarySurface.opacity(0.7))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .widgetSectionCard()
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.continueProject(item))
@@ -134,5 +130,6 @@ struct ContinueWidget: Widget {
         .configurationDisplayName("Продолжить")
         .description("Быстро вернуться к незаполненной странице.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
+        .containerBackgroundRemovable(true)
     }
 }

@@ -3,6 +3,7 @@ import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
 import { projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
   getAlbumImageUrisForViewing,
@@ -250,6 +251,7 @@ export default function SelectAlbumScreen() {
       // Дожидаемся синхронизации уже после записи страниц, чтобы в облако не уходил полупустой проект.
       await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
       scheduleSyncToCloud();
+      void syncWidgetSnapshot();
 
       // Переходим к редактированию сразу: страницы уже доступны как кешированные URI или remote URL.
       console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);

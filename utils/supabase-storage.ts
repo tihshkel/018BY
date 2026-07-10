@@ -289,14 +289,34 @@ async function processPageValuesJson(
   for (const instanceId of Object.keys(nextMap)) {
     const pv = nextMap[instanceId];
     if (!pv || typeof pv !== 'object' || Array.isArray(pv)) continue;
-    const pageValues = pv as {
-      photoBlocks?: Record<string, { slots?: (string | null)[] }>;
-    };
-    if (!pageValues.photoBlocks) continue;
+    const processed = await processPageValuesPhotoUris(
+      pv as {
+        photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+        freeElements?: { type?: string; content?: string }[];
+      },
+      resolver,
+    );
+    if (processed.changed) {
+      nextMap[instanceId] = processed.pageValues;
+      changed = true;
+    }
+  }
 
+  return { json: changed ? JSON.stringify(nextMap) : value, changed };
+}
+
+async function processPageValuesPhotoUris(
+  pageValues: {
+    photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+    freeElements?: { type?: string; content?: string; id?: string }[];
+  },
+  resolver: UriResolver,
+): Promise<{ pageValues: typeof pageValues; changed: boolean }> {
+  let changed = false;
+  let next = pageValues;
+
+  if (pageValues.photoBlocks) {
     const blocks = { ...pageValues.photoBlocks };
-    let instanceChanged = false;
-
     for (const blockId of Object.keys(blocks)) {
       const block = blocks[blockId];
       if (!block?.slots || !Array.isArray(block.slots)) continue;
@@ -314,17 +334,62 @@ async function processPageValuesJson(
       }
       if (blockChanged) {
         blocks[blockId] = { ...block, slots: newSlots };
-        instanceChanged = true;
+        changed = true;
       }
     }
+    if (changed) {
+      next = { ...next, photoBlocks: blocks };
+    }
+  }
 
-    if (instanceChanged) {
-      nextMap[instanceId] = { ...pageValues, photoBlocks: blocks };
+  if (pageValues.freeElements?.length) {
+    const newElements = [];
+    let elementsChanged = false;
+    for (const element of pageValues.freeElements) {
+      if (element.type !== 'image' || typeof element.content !== 'string') {
+        newElements.push(element);
+        continue;
+      }
+      const { uri, changed: slotChanged } = await resolver.resolve(element.content);
+      if (slotChanged) {
+        newElements.push({ ...element, content: uri });
+        elementsChanged = true;
+      } else {
+        newElements.push(element);
+      }
+    }
+    if (elementsChanged) {
+      next = { ...next, freeElements: newElements };
       changed = true;
     }
   }
 
-  return { json: changed ? JSON.stringify(nextMap) : value, changed };
+  return { pageValues: next, changed };
+}
+
+async function processPageValueEntryJson(
+  value: string,
+  resolver: UriResolver,
+): Promise<{ json: string; changed: boolean }> {
+  let pageValues: {
+    photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+    freeElements?: { type?: string; content?: string; id?: string }[];
+  };
+  try {
+    const parsed = JSON.parse(value);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { json: value, changed: false };
+    }
+    pageValues = parsed;
+  } catch {
+    return { json: value, changed: false };
+  }
+
+  const processed = await processPageValuesPhotoUris(pageValues, resolver);
+  return {
+    json: processed.changed ? JSON.stringify(processed.pageValues) : value,
+    changed: processed.changed,
+  };
 }
 
 /**
@@ -423,6 +488,24 @@ export async function uploadProjectImagesBeforeSync(
       if (changed) result[key] = json;
     } catch (e) {
       console.warn('[SupabaseStorage] Failed to process page values', key, e);
+    }
+    await yieldToUI();
+  }
+
+  const pageValueEntryKeys = Object.keys(result).filter((k) => k.startsWith('@project_pv_'));
+  for (const key of pageValueEntryKeys) {
+    try {
+      const withoutPrefix = key.slice('@project_pv_'.length);
+      const instanceMarker = withoutPrefix.indexOf('_page_');
+      if (instanceMarker <= 0) continue;
+      const projectId = withoutPrefix.slice(0, instanceMarker);
+      const { json, changed } = await processPageValueEntryJson(
+        result[key],
+        getResolver(projectId),
+      );
+      if (changed) result[key] = json;
+    } catch (e) {
+      console.warn('[SupabaseStorage] Failed to process page value entry', key, e);
     }
     await yieldToUI();
   }

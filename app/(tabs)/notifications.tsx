@@ -1,6 +1,7 @@
 import { AppHeader, AppScreen, AppText } from '@/components/ui';
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getNotificationInbox, type NotificationInboxItem } from '@/utils/notificationInbox';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -45,6 +46,7 @@ export default function NotificationsScreen() {
   const loadInbox = useCallback(async () => {
     const inbox = await getNotificationInbox();
     setItems(inbox);
+    void syncWidgetSnapshot();
   }, []);
 
   useFocusEffect(

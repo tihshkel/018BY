@@ -40,11 +40,11 @@ export const KIDS_MONTH_LINE_X_INSET = 0.008;
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
-/** kids_48 p10 нижние поля — доп. зазор над штрихом (доля высоты line-slot band в px). */
-export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0.34;
+/** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
+export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0;
 
-/** kids_48 p10 даты у зубов — небольшой зазор над штрихом. */
-export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0.2;
+/** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
+export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0;
 
 /** Эталон PNG 300 dpi для ручной разметки p8/p9 (kids_48). */
 export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
@@ -69,8 +69,72 @@ export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;
 /** Доп. подъём над штрихом — RN/Связной рисуют глифы ниже расчётного cap height (доля lineHeight слота). */
 export const PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO = 0.82;
 
+/** «История родов» / «Письмо малышу» — Amatic SC на линованной странице (baseline на штрихе). */
+export const PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO = 0.88;
+
+/** Минимальный подъём для RN на линованных страницах (не weekly Связной). */
+export const PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO = 0.06;
+
+/**
+ * Когда strokeY уже из LINE_GUIDES (slot.strokeY), старый lift 0.82 поднимает текст
+ * на ~0.8×lineHeight выше штриха — используем линованный минимальный подъём.
+ */
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_CAP_HEIGHT_RATIO =
+  PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO;
+
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_LIFT_BAND_RATIO =
+  PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO;
+
+/** Baseline на штрихе для полей «Планы» / «Ощущения» (как kids month stroke layout). */
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET = 0.86;
+
+/**
+ * Где заканчивается печатная подпись — доля body-anchor (не OCR-x).
+ * p9 PNG: «Планы на неделю:» ~34%, «Мои ощущения…» ~53%.
+ */
+export const PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO = 0.34;
+
+export const PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO = 0.53;
+
+/**
+ * @deprecated Используйте PREGNANCY_WEEKLY_*_LABEL_BODY_END_RATIO по continuationGroup.
+ */
+export const PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO = 0.44;
+
+/** @deprecated OCR gap больше не используется для groups 3/5. */
+export const PREGNANCY_WEEKLY_LONG_LABEL_TAIL_GAP_THRESHOLD = 0.25;
+
+/**
+ * @deprecated Горизонталь берётся из OCR line-slots.json (p53/p60 различаются).
+ * Оставлено для совместимости тестовых скриптов.
+ */
+export const PREGNANCY_RULED_NOTEBOOK_LINE_LEFT_NORM = 0.1173;
+export const PREGNANCY_RULED_NOTEBOOK_LINE_WIDTH_NORM = 0.76691;
+
 /** Хвост после длинной подписи (ощущения): OCR-полоса выше обычной строки — доп. подъём первой строки. */
 export const PREGNANCY_WEEKLY_INLINE_TAIL_EXTRA_LIFT_BAND_RATIO = 0.1;
+
+/**
+ * Доля ширины inline-tail слота, доступная для текста пользователя после печатной подписи.
+ * OCR-бокс label+tail шире реальной зоны ввода (короткая подпись «Планы на неделю»).
+ */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO = 0.55;
+
+/**
+ * Длинная подпись на той же строке («Мои ощущения…») — хвост уже, иначе весь текст
+ * остаётся в первом слоте и визуально «перепрыгивает» строки.
+ */
+export const PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO = 0.15;
+
+/**
+ * OCR-бокс inline-tail начинается правее body-строки — подпись уже на PDF, не в слоте.
+ */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
+
+/**
+ * @deprecated Используйте PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP + ширину до правого края линии.
+ */
+export const PREGNANCY_WEEKLY_TAIL_ONLY_X_THRESHOLD = 0.35;
 
 /** Компактные поля (дата): узкая OCR-полоса под одну строку. */
 export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
@@ -80,6 +144,9 @@ export const PREGNANCY_WEEKLY_STANDARD_LINE_HEIGHT = 0.045;
 
 /** Межстрочный шаг на недельных стр. (норм. Y центров соседних строк, page 9). */
 export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
+
+/** Эталонная ширина viewport для переносов текста (preview = export). */
+export const TEMPLATE_TEXT_DISTRIBUTE_REFERENCE_WIDTH = 2480;
 
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).

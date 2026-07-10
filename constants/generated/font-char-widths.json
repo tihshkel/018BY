@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T15:31:45.528Z",
+  "generatedAt": "2026-07-10T11:19:25.907Z",
   "fontSize": 16,
   "fonts": {
     "SvyaznoyRF": {
@@ -7,6 +7,8 @@
       "file": "assets/fonts/SvyaznoyRF.ttf",
       "fontSize": 16,
       "avgCharWidthAt16": 8.768790123456796,
+      "rnAscentRatioAt16": 1,
+      "pdfAscentRatioAt16": 0.819,
       "chars": {
         "0": 8.128,
         "1": 8.128,
@@ -96,6 +98,8 @@
       "file": "assets/fonts/AmaticSC-Regular.ttf",
       "fontSize": 16,
       "avgCharWidthAt16": 5.206123456790124,
+      "rnAscentRatioAt16": 1,
+      "pdfAscentRatioAt16": 1.016,
       "chars": {
         "0": 5.136,
         "1": 4.4,
@@ -185,6 +189,8 @@
       "file": "assets/fonts/AmaticSC-Bold.ttf",
       "fontSize": 16,
       "avgCharWidthAt16": 5.476740740740741,
+      "rnAscentRatioAt16": 1,
+      "pdfAscentRatioAt16": 1.016,
       "chars": {
         "0": 5.136,
         "1": 4.304,
@@ -274,6 +280,8 @@
       "file": "assets/fonts/Nefelibata-Sans.otf",
       "fontSize": 16,
       "avgCharWidthAt16": 7.815901234567904,
+      "rnAscentRatioAt16": 1,
+      "pdfAscentRatioAt16": 1,
       "chars": {
         "0": 8.464,
         "1": 4.8,
@@ -363,6 +371,8 @@
       "file": "assets/fonts/Nefelibata-PenSans.otf",
       "fontSize": 16,
       "avgCharWidthAt16": 6.632098765432098,
+      "rnAscentRatioAt16": 1,
+      "pdfAscentRatioAt16": 1.05,
       "chars": {
         "0": 6.768,
         "1": 4.688,

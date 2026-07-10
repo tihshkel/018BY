@@ -1,37 +1,32 @@
 import {
-  getKids48EventDateLineNorm,
-} from '@/constants/kids-48-event-date-slots';
+    getAlbumTextMargins,
+    getKidsMonthAnswerLineLayout,
+    getKidsMonthAnswerStrokeY,
+    getKidsMonthAnswerWritableBounds,
+    getTemplateTypographyProfile,
+    isBlankLineGuideAlbum,
+    isKidsMonthPage,
+    KIDS_MONTH_LINE_BAND_HEIGHT,
+    PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
+    PREGNANCY_WEEKLY_LINE_PITCH,
+} from "@/constants/album-text-margins";
+import { getKids48EventDateLineNorm } from "@/constants/kids-48-event-date-slots";
+import { LINE_GUIDES } from "@/constants/line-guides";
+import { LINE_SLOTS, type NormalizedLineSlot } from "@/constants/line-slots";
+import type { Annotation } from "@/types/annotation";
+import { resolveLineGuideId } from "@/utils/albumImages";
 import {
-  getAlbumTextMargins,
-  getKidsMonthAnswerLineLayout,
-  getKidsMonthAnswerStrokeY,
-  getKidsMonthAnswerWritableBounds,
-  getTemplateTypographyProfile,
-  isBlankLineGuideAlbum,
-  isKidsMonthPage,
-  KIDS_MONTH_LINE_BAND_HEIGHT,
-  PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
-  PREGNANCY_WEEKLY_LINE_PITCH,
-} from '@/constants/album-text-margins';
-import { resolveLineGuideId } from '@/utils/albumImages';
-import { LINE_GUIDES } from '@/constants/line-guides';
+    getContentRect,
+    mapSourceNormToViewport,
+    type ContentRect,
+} from "@/utils/imageContentRect";
 import {
-  LINE_SLOTS,
-  type NormalizedLineSlot,
-} from '@/constants/line-slots';
-import type { Annotation } from '@/types/annotation';
-import {
-  getContentRect,
-  mapSourceNormToViewport,
-  type ContentRect,
-} from '@/utils/imageContentRect';
-import { wrapTextToLines } from '@/utils/textWrap';
-import {
-  getEffectiveTemplateFontSize,
-  getPregnancyWeeklyTypographyBandHeight,
-  getTemplateLineTextTop,
-  getTemplateLineTypography,
-} from '@/utils/templateLineText';
+    getEffectiveTemplateFontSize,
+    getPregnancyWeeklyTypographyBandHeight,
+    getTemplateLineTextTop,
+    getTemplateLineTypography,
+} from "@/utils/templateLineText";
+import { wrapTextToLines } from "@/utils/textWrap";
 
 export type TextLineSlot = {
   index: number;
@@ -42,11 +37,13 @@ export type TextLineSlot = {
   lineHeight: number;
   hasLabel: boolean;
   continuationGroup: number;
-  inputKind?: 'line' | 'block';
+  inputKind?: "line" | "block";
   /** Нормализованный центр слота по Y (0–1), для типографики */
   normY?: number;
   /** Нормализованная высота слота (0–1), для типографики */
   normHeight?: number;
+  /** Нормализованная ширина слота (0–1) — для переносов независимо от viewport. */
+  normWidth?: number;
   /** norm.y = штрих линии; полоса лежит над линией (как diary_interior) */
   lineStrokeAtBottom?: boolean;
   /** Y слота = верх полосы (калибровка «Вес» / «Обхват» на неделях pregnancy_60). */
@@ -69,11 +66,11 @@ export type GetLineSlotsParams = {
 
 function getNormalizedSlotsForPage(
   lineGuideId: string,
-  page: number
+  page: number,
 ): readonly NormalizedLineSlot[] {
-  const slotSet = (LINE_SLOTS as Record<string, Record<string, readonly NormalizedLineSlot[]>>)[
-    lineGuideId
-  ];
+  const slotSet = (
+    LINE_SLOTS as Record<string, Record<string, readonly NormalizedLineSlot[]>>
+  )[lineGuideId];
   const fromSlots = slotSet?.[String(page)];
   if (fromSlots?.length) {
     return fromSlots.filter(
@@ -94,20 +91,23 @@ function getNormalizedSlotsForPage(
         !isPurpleGirlProfileSpuriousSlot(lineGuideId, page, slot) &&
         !isBrownPage24FooterSpuriousSlot(lineGuideId, page, slot) &&
         !(
-          lineGuideId === 'diary_interior_brown' &&
+          lineGuideId === "diary_interior_brown" &&
           isBrownSpuriousQuestionRowSlot(page, slot, fromSlots)
-        )
+        ),
     );
   }
 
-  const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId];
+  const guideSet = (
+    LINE_GUIDES as Record<string, Record<string, readonly number[]>>
+  )[lineGuideId];
   const normalizedLines = guideSet?.[String(page)];
   if (!normalizedLines?.length) return [];
 
   const margins = getAlbumTextMargins(lineGuideId);
   return normalizedLines.map((normY, index) => {
     const prev = index > 0 ? normalizedLines[index - 1] : null;
-    const next = index < normalizedLines.length - 1 ? normalizedLines[index + 1] : null;
+    const next =
+      index < normalizedLines.length - 1 ? normalizedLines[index + 1] : null;
     let band = 0.028;
     if (prev !== null && next !== null) band = (next - prev) / 2;
     else if (next !== null) band = next - normY;
@@ -125,23 +125,38 @@ function getNormalizedSlotsForPage(
   });
 }
 
-export function hasLineGuides(lineGuideId?: string, category?: string | null): boolean {
+export function hasLineGuides(
+  lineGuideId?: string,
+  category?: string | null,
+): boolean {
   const resolved = resolveLineGuideId(lineGuideId, category);
   if (!resolved || isBlankLineGuideAlbum(resolved)) return false;
-  const slotSet = (LINE_SLOTS as Record<string, Record<string, readonly unknown[]>>)[resolved];
+  const slotSet = (
+    LINE_SLOTS as Record<string, Record<string, readonly unknown[]>>
+  )[resolved];
   if (slotSet && Object.keys(slotSet).length > 0) return true;
-  const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[resolved];
+  const guideSet = (
+    LINE_GUIDES as Record<string, Record<string, readonly number[]>>
+  )[resolved];
   return !!guideSet && Object.keys(guideSet).length > 0;
 }
 
-export function resolveContentRectForPage(params: GetLineSlotsParams): ContentRect {
-  const { viewportWidth, viewportHeight, sourceWidth, sourceHeight, contentRect } = params;
+export function resolveContentRectForPage(
+  params: GetLineSlotsParams,
+): ContentRect {
+  const {
+    viewportWidth,
+    viewportHeight,
+    sourceWidth,
+    sourceHeight,
+    contentRect,
+  } = params;
   if (contentRect) return contentRect;
   return getContentRect(
     viewportWidth,
     viewportHeight,
     sourceWidth ?? viewportWidth,
-    sourceHeight ?? viewportHeight
+    sourceHeight ?? viewportHeight,
   );
 }
 
@@ -151,7 +166,8 @@ function clamp01(value: number): number {
 
 function isDiaryInteriorLineGuide(lineGuideId: string): boolean {
   return (
-    lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple'
+    lineGuideId === "diary_interior_brown" ||
+    lineGuideId === "diary_interior_purple"
   );
 }
 
@@ -166,7 +182,7 @@ function isBrownGirlProfileSpuriousSlot(
   page: number,
   slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 6 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 6 || slot.hasLabel) {
     return false;
   }
   if (slot.y < 0.22) {
@@ -181,7 +197,7 @@ function isPurpleGirlProfileSpuriousSlot(
   page: number,
   slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_purple' || page !== 5 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_purple" || page !== 5 || slot.hasLabel) {
     return false;
   }
   if (slot.y < 0.28) {
@@ -194,33 +210,25 @@ function isPurpleGirlProfileSpuriousSlot(
 function isBrownPeachBottomTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 15 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 15 || slot.hasLabel) {
     return false;
   }
-  return (
-    slot.y >= 0.82 &&
-    slot.y <= 0.86 &&
-    slot.x < 0.2 &&
-    slot.width >= 0.4
-  );
+  return slot.y >= 0.82 && slot.y <= 0.86 && slot.x < 0.2 && slot.width >= 0.4;
 }
 
 /** Стр. 16: линия под заголовком розового блока — не поле ввода. */
 function isBrownPage16PeachTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 16 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 16 || slot.hasLabel) {
     return false;
   }
   return (
-    slot.y >= 0.695 &&
-    slot.y <= 0.715 &&
-    slot.x >= 0.08 &&
-    slot.width >= 0.65
+    slot.y >= 0.695 && slot.y <= 0.715 && slot.x >= 0.08 && slot.width >= 0.65
   );
 }
 
@@ -228,14 +236,13 @@ function isBrownPage16PeachTitleSpuriousSlot(
 function isBrownPage31ClassQuestionSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
   return false;
 }
 
 const BROWN_JOURNAL_TEMPLATE_PAGES = new Set([
-  16, 20, 23, 25, 28, 33,
-  45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
 ]);
 
 const PURPLE_JOURNAL_TEMPLATE_PAGES = new Set([
@@ -246,31 +253,26 @@ const PURPLE_DAY_SPREAD_PAGES = new Set([24, 25, 26, 27]);
 const PURPLE_FRIEND_QUESTIONNAIRE_PAGES = new Set([28, 29, 30, 31, 32, 33]);
 
 function getDiaryCareerQuestionPage(lineGuideId: string): number {
-  return lineGuideId === 'diary_interior_purple' ? 5 : 6;
+  return lineGuideId === "diary_interior_purple" ? 5 : 6;
 }
 
 /** Первый розовый блок «НАПИШИ ИЛИ НАРИСУЙ!» — не поле ввода. */
 function isBrownJournalFirstInstructionSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_brown" || slot.hasLabel) return false;
   if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
-  return (
-    slot.y >= 0.25 &&
-    slot.y <= 0.3 &&
-    slot.x < 0.15 &&
-    slot.width >= 0.65
-  );
+  return slot.y >= 0.25 && slot.y <= 0.3 && slot.x < 0.15 && slot.width >= 0.65;
 }
 
 function isBrownJournalInstructionSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_brown" || slot.hasLabel) return false;
   if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
   return false;
 }
@@ -278,29 +280,34 @@ function isBrownJournalInstructionSpuriousSlot(
 function isPurpleJournalFirstInstructionSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_purple" || slot.hasLabel) return false;
   if (!PURPLE_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
-  return (
-    slot.y >= 0.25 &&
-    slot.y <= 0.3 &&
-    slot.x < 0.15 &&
-    slot.width >= 0.65
-  );
+  return slot.y >= 0.25 && slot.y <= 0.3 && slot.x < 0.15 && slot.width >= 0.65;
 }
 
 function isPurpleJournalTemplateSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_purple" || slot.hasLabel) return false;
   if (!PURPLE_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
-  if (slot.y >= 0.57 && slot.y <= 0.64 && slot.width >= 0.35 && slot.width <= 0.55) {
+  if (
+    slot.y >= 0.57 &&
+    slot.y <= 0.64 &&
+    slot.width >= 0.35 &&
+    slot.width <= 0.55
+  ) {
     return true;
   }
-  if (slot.y >= 0.68 && slot.y <= 0.715 && slot.x < 0.15 && slot.width >= 0.65) {
+  if (
+    slot.y >= 0.68 &&
+    slot.y <= 0.715 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.65
+  ) {
     return true;
   }
   return false;
@@ -310,14 +317,24 @@ function isPurpleJournalTemplateSpuriousSlot(
 function isBrownJournalTemplateSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_brown" || slot.hasLabel) return false;
   if (!BROWN_JOURNAL_TEMPLATE_PAGES.has(page)) return false;
-  if (slot.y >= 0.57 && slot.y <= 0.64 && slot.width >= 0.35 && slot.width <= 0.55) {
+  if (
+    slot.y >= 0.57 &&
+    slot.y <= 0.64 &&
+    slot.width >= 0.35 &&
+    slot.width <= 0.55
+  ) {
     return true;
   }
-  if (slot.y >= 0.68 && slot.y <= 0.715 && slot.x < 0.15 && slot.width >= 0.65) {
+  if (
+    slot.y >= 0.68 &&
+    slot.y <= 0.715 &&
+    slot.x < 0.15 &&
+    slot.width >= 0.65
+  ) {
     return true;
   }
   return false;
@@ -327,9 +344,9 @@ function isBrownJournalTemplateSpuriousSlot(
 function isBrownDaySpreadTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_brown" || slot.hasLabel) return false;
   if (page < 34 || page > 40) return false;
   if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
     return true;
@@ -337,7 +354,12 @@ function isBrownDaySpreadTitleSpuriousSlot(
   if (slot.y >= 0.52 && slot.y <= 0.68 && slot.x < 0.15 && slot.width >= 0.55) {
     return true;
   }
-  if (slot.y >= 0.55 && slot.y <= 0.67 && slot.x >= 0.35 && slot.width <= 0.28) {
+  if (
+    slot.y >= 0.55 &&
+    slot.y <= 0.67 &&
+    slot.x >= 0.35 &&
+    slot.width <= 0.28
+  ) {
     return true;
   }
   return false;
@@ -346,9 +368,9 @@ function isBrownDaySpreadTitleSpuriousSlot(
 function isPurpleDaySpreadTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
+  if (lineGuideId !== "diary_interior_purple" || slot.hasLabel) return false;
   if (!PURPLE_DAY_SPREAD_PAGES.has(page)) return false;
   if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
     return true;
@@ -356,7 +378,12 @@ function isPurpleDaySpreadTitleSpuriousSlot(
   if (slot.y >= 0.48 && slot.y <= 0.58 && slot.x < 0.15 && slot.width >= 0.65) {
     return true;
   }
-  if (slot.y >= 0.55 && slot.y <= 0.67 && slot.x >= 0.35 && slot.width <= 0.28) {
+  if (
+    slot.y >= 0.55 &&
+    slot.y <= 0.67 &&
+    slot.x >= 0.35 &&
+    slot.width <= 0.28
+  ) {
     return true;
   }
   return false;
@@ -366,9 +393,9 @@ function isPurpleDaySpreadTitleSpuriousSlot(
 function isBrownPage24FooterSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 24 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 24 || slot.hasLabel) {
     return false;
   }
   return slot.y >= 0.915 && slot.x < 0.2 && slot.width >= 0.65;
@@ -379,7 +406,7 @@ const BROWN_DAY_SPREAD_ILLUSTRATION_MAX_WIDTH = 0.55;
 function refineBrownDaySpreadIllustrationNorm(
   page: number,
   norm: NormalizedLineSlot,
-  allNorms: readonly NormalizedLineSlot[]
+  allNorms: readonly NormalizedLineSlot[],
 ): NormalizedLineSlot {
   const isBrownDaySpread = page >= 34 && page <= 40;
   const isPurpleDaySpread = PURPLE_DAY_SPREAD_PAGES.has(page);
@@ -393,7 +420,8 @@ function refineBrownDaySpreadIllustrationNorm(
 
   const sortedBand = [...band].sort((a, b) => a.y - b.y || a.x - b.x);
   const normIndex = sortedBand.findIndex(
-    (slot) => Math.abs(slot.y - norm.y) < 0.001 && Math.abs(slot.x - norm.x) < 0.001
+    (slot) =>
+      Math.abs(slot.y - norm.y) < 0.001 && Math.abs(slot.x - norm.x) < 0.001,
   );
   if (normIndex < 0) return norm;
 
@@ -418,7 +446,8 @@ function refinePurpleFriendSocialRowNorm(
   page: number,
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
-  if (!PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page) || norm.hasLabel) return norm;
+  if (!PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page) || norm.hasLabel)
+    return norm;
   if (norm.y < 0.76 || norm.y > 0.94) return norm;
 
   const minAnswerLeft = 0.28;
@@ -434,9 +463,9 @@ function refinePurpleFriendSocialRowNorm(
 function isBrownPage17QuestionRowSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 17 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 17 || slot.hasLabel) {
     return false;
   }
   return false;
@@ -445,9 +474,9 @@ function isBrownPage17QuestionRowSpuriousSlot(
 function refineBrownPage16PeachBlockNorm(
   page: number,
   norm: NormalizedLineSlot,
-  allNorms: readonly NormalizedLineSlot[]
+  allNorms: readonly NormalizedLineSlot[],
 ): NormalizedLineSlot {
-  if (page !== 16 || norm.inputKind !== 'block' || norm.y < 0.74) {
+  if (page !== 16 || norm.inputKind !== "block" || norm.y < 0.74) {
     return norm;
   }
 
@@ -462,7 +491,7 @@ function refineBrownPage16PeachBlockNorm(
 /** Стр. 21: хвосты вопросов — не залезать на текст подписи. */
 function refineBrownPage21LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 21 || norm.hasLabel) return norm;
 
@@ -487,7 +516,7 @@ function refineBrownPage21LabeledRowNorm(
 /** Стр. 24: хвосты вопросов и список — не перекрывать подписи и кружки. */
 function refineBrownPage24ListRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 24 || norm.hasLabel) return norm;
 
@@ -520,7 +549,7 @@ function refineBrownPage24ListRowNorm(
 /** Стр. 17: единая высота полос на линиях. */
 function refineBrownPage17UniformHeightNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 17 || norm.hasLabel) return norm;
   if (norm.y < 0.24 || norm.y > 0.9) return norm;
@@ -530,7 +559,7 @@ function refineBrownPage17UniformHeightNorm(
 /** Стр. 17: нижний блок — только левая колонка, без иллюстрации кота. */
 function refineBrownPage17BottomBlockNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 17 || norm.y < 0.75) return norm;
 
@@ -541,7 +570,7 @@ function refineBrownPage17BottomBlockNorm(
 
 function applyBrownLabeledRowMinX(
   norm: NormalizedLineSlot,
-  rows: Array<{ minY: number; maxY: number; minX: number }>
+  rows: Array<{ minY: number; maxY: number; minX: number }>,
 ): NormalizedLineSlot {
   for (const row of rows) {
     if (norm.y < row.minY || norm.y > row.maxY) continue;
@@ -555,7 +584,7 @@ function applyBrownLabeledRowMinX(
 
 function applyLabeledRowMinX(
   norm: NormalizedLineSlot,
-  rows: { minY: number; maxY: number; minX: number }[]
+  rows: { minY: number; maxY: number; minX: number }[],
 ): NormalizedLineSlot {
   for (const row of rows) {
     if (norm.y < row.minY || norm.y > row.maxY) continue;
@@ -569,7 +598,7 @@ function applyLabeledRowMinX(
 
 function refinePurplePage5LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 5 || norm.hasLabel) return norm;
   return applyLabeledRowMinX(norm, [
@@ -580,7 +609,7 @@ function refinePurplePage5LabeledRowNorm(
 
 function refinePurplePage16LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 16 || norm.hasLabel) return norm;
   return applyLabeledRowMinX(norm, [
@@ -591,7 +620,7 @@ function refinePurplePage16LabeledRowNorm(
 
 function refinePurplePage22LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 22 || norm.hasLabel) return norm;
   return applyLabeledRowMinX(norm, [
@@ -604,7 +633,7 @@ function refinePurplePage22LabeledRowNorm(
 /** Стр. 26 «Одежда и стиль»: хвосты подписей — не на текст вопроса. */
 function refineBrownPage26LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 26 || norm.hasLabel) return norm;
   return applyBrownLabeledRowMinX(norm, [
@@ -617,7 +646,7 @@ function refineBrownPage26LabeledRowNorm(
 /** Стр. 31 «Школьная жизнь»: выравнивание хвостов и единая высота строк. */
 function refineBrownPage31LabeledRowNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 31 || norm.hasLabel) return norm;
 
@@ -629,7 +658,7 @@ function refineBrownPage31LabeledRowNorm(
     { minY: 0.868, maxY: 0.888, minX: 0.52 },
   ]);
 
-  if (refined.inputKind !== 'block' && refined.y >= 0.32 && refined.y <= 0.94) {
+  if (refined.inputKind !== "block" && refined.y >= 0.32 && refined.y <= 0.94) {
     refined = { ...refined, height: 0.032 };
   }
 
@@ -639,7 +668,7 @@ function refineBrownPage31LabeledRowNorm(
 /** Стр. 15 «Мечты»: единая высота полос на белых линиях. */
 function refineBrownPage15PeachLineNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (page !== 15 || norm.hasLabel) return norm;
   if (norm.y < 0.16 || norm.y > 0.95) return norm;
@@ -649,9 +678,9 @@ function refineBrownPage15PeachLineNorm(
 /** Стр. 26: единая высота строк ввода. */
 function refineBrownPage26UniformHeightNorm(
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
-  if (page !== 26 || norm.hasLabel || norm.inputKind === 'block') return norm;
+  if (page !== 26 || norm.hasLabel || norm.inputKind === "block") return norm;
   if (norm.y < 0.28 || norm.y > 0.94) return norm;
   return { ...norm, height: 0.032 };
 }
@@ -664,9 +693,9 @@ function isBrownWideBlockAnswerSlot(slot: NormalizedLineSlot): boolean {
 function isBrownPage13CartoonTailNorm(
   lineGuideId: string,
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || norm.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 13 || norm.hasLabel) {
     return false;
   }
   return (
@@ -682,9 +711,9 @@ function isBrownPage13CartoonTailNorm(
 function isBrownPage13FavoritesLabelTailSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 13 || slot.hasLabel) {
     return false;
   }
   return (
@@ -699,9 +728,9 @@ function isBrownPage13FavoritesLabelTailSlot(
 function isBrownPage13AloneQuestionSpuriousSlot(
   lineGuideId: string,
   page: number,
-  slot: NormalizedLineSlot
+  slot: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || slot.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 13 || slot.hasLabel) {
     return false;
   }
   if (isBrownPage13FavoritesLabelTailSlot(lineGuideId, page, slot)) {
@@ -726,7 +755,7 @@ function isBrownPage13AloneQuestionSpuriousSlot(
 function isBrownSpuriousQuestionRowSlot(
   page: number,
   slot: NormalizedLineSlot,
-  allSlots: readonly NormalizedLineSlot[]
+  allSlots: readonly NormalizedLineSlot[],
 ): boolean {
   if (page === 17) return false;
   if (slot.hasLabel || isBrownWideBlockAnswerSlot(slot)) return false;
@@ -735,7 +764,7 @@ function isBrownSpuriousQuestionRowSlot(
     (candidate) =>
       candidate !== slot &&
       candidate.continuationGroup === slot.continuationGroup &&
-      Math.abs(candidate.y - slot.y) > 0.015
+      Math.abs(candidate.y - slot.y) > 0.015,
   );
   if (continuationPartner) return false;
 
@@ -743,7 +772,7 @@ function isBrownSpuriousQuestionRowSlot(
     (candidate) =>
       candidate !== slot &&
       Math.abs(candidate.y - slot.y) < 0.005 &&
-      brownSlotHorizontalOverlapRatio(slot, candidate) > 0.8
+      brownSlotHorizontalOverlapRatio(slot, candidate) > 0.8,
   );
   if (sameRowDuplicate) return true;
 
@@ -751,8 +780,8 @@ function isBrownSpuriousQuestionRowSlot(
 }
 
 function brownSlotHorizontalOverlapRatio(
-  a: Pick<NormalizedLineSlot, 'x' | 'width'>,
-  b: Pick<NormalizedLineSlot, 'x' | 'width'>
+  a: Pick<NormalizedLineSlot, "x" | "width">,
+  b: Pick<NormalizedLineSlot, "x" | "width">,
 ): number {
   const aRight = a.x + a.width;
   const bRight = b.x + b.width;
@@ -765,9 +794,9 @@ function brownSlotHorizontalOverlapRatio(
 function isBrownPage13SportQuestionTailNorm(
   lineGuideId: string,
   page: number,
-  norm: NormalizedLineSlot
+  norm: NormalizedLineSlot,
 ): boolean {
-  if (lineGuideId !== 'diary_interior_brown' || page !== 13 || norm.hasLabel) {
+  if (lineGuideId !== "diary_interior_brown" || page !== 13 || norm.hasLabel) {
     return false;
   }
   return (
@@ -790,12 +819,13 @@ const BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM = 0.127;
 export function isBrownPage6CareerShortHeadNorm(
   lineGuideId: string,
   page: number,
-  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width' | 'hasLabel'>
+  norm: Pick<NormalizedLineSlot, "y" | "x" | "width" | "hasLabel">,
 ): boolean {
   const careerPage = getDiaryCareerQuestionPage(lineGuideId);
-  const minY = lineGuideId === 'diary_interior_purple' ? 0.728 : 0.755;
+  const minY = lineGuideId === "diary_interior_purple" ? 0.728 : 0.755;
   return (
-    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    (lineGuideId === "diary_interior_brown" ||
+      lineGuideId === "diary_interior_purple") &&
     page === careerPage &&
     !norm.hasLabel &&
     norm.y >= minY &&
@@ -809,11 +839,12 @@ export function isBrownPage6CareerShortHeadNorm(
 export function isBrownPage6CareerContinuationNorm(
   lineGuideId: string,
   page: number,
-  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'hasLabel' | 'width'>
+  norm: Pick<NormalizedLineSlot, "y" | "x" | "hasLabel" | "width">,
 ): boolean {
   const careerPage = getDiaryCareerQuestionPage(lineGuideId);
   return (
-    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    (lineGuideId === "diary_interior_brown" ||
+      lineGuideId === "diary_interior_purple") &&
     page === careerPage &&
     !norm.hasLabel &&
     norm.y >= 0.788 &&
@@ -825,10 +856,11 @@ export function isBrownPage6CareerContinuationNorm(
 
 export function isBrownWishShortHeadNorm(
   lineGuideId: string,
-  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width' | 'hasLabel'>
+  norm: Pick<NormalizedLineSlot, "y" | "x" | "width" | "hasLabel">,
 ): boolean {
   return (
-    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
+    (lineGuideId === "diary_interior_brown" ||
+      lineGuideId === "diary_interior_purple") &&
     !norm.hasLabel &&
     norm.y >= 0.772 &&
     norm.y <= 0.79 &&
@@ -840,11 +872,12 @@ export function isBrownWishShortHeadNorm(
 
 export function isBrownWishContinuationNorm(
   lineGuideId: string,
-  norm: Pick<NormalizedLineSlot, 'y' | 'inputKind' | 'hasLabel' | 'width'>
+  norm: Pick<NormalizedLineSlot, "y" | "inputKind" | "hasLabel" | "width">,
 ): boolean {
   return (
-    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
-    norm.inputKind === 'block' &&
+    (lineGuideId === "diary_interior_brown" ||
+      lineGuideId === "diary_interior_purple") &&
+    norm.inputKind === "block" &&
     !norm.hasLabel &&
     norm.y >= 0.815 &&
     norm.width >= 0.65
@@ -857,11 +890,12 @@ function refineBrownParentQuestionnaireRowNorm(
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   const isParentPage =
-    (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8)) ||
-    (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7));
-  const isGirlProfilePage = lineGuideId === 'diary_interior_brown' && page === 6;
+    (lineGuideId === "diary_interior_brown" && (page === 7 || page === 8)) ||
+    (lineGuideId === "diary_interior_purple" && (page === 6 || page === 7));
+  const isGirlProfilePage =
+    lineGuideId === "diary_interior_brown" && page === 6;
   if (!isParentPage && !isGirlProfilePage) return norm;
-  if (norm.inputKind === 'block') return norm;
+  if (norm.inputKind === "block") return norm;
   if (norm.y < 0.22 || norm.y > 0.82) return norm;
 
   const minAnswerLeft = 0.32;
@@ -889,11 +923,10 @@ function refineKidsMonthLineSlotNorm(
 
   const layout = getKidsMonthAnswerLineLayout(page);
   const strokeY = getKidsMonthAnswerStrokeY(page, slotIndex) ?? norm.y;
-  const writable =
-    getKidsMonthAnswerWritableBounds(page, slotIndex) ?? {
-      x: layout.canX,
-      width: layout.canWidth,
-    };
+  const writable = getKidsMonthAnswerWritableBounds(page, slotIndex) ?? {
+    x: layout.canX,
+    width: layout.canWidth,
+  };
 
   return {
     ...norm,
@@ -902,7 +935,7 @@ function refineKidsMonthLineSlotNorm(
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     continuationGroup: slotIndex,
-    inputKind: 'line',
+    inputKind: "line",
     lineStrokeAtBottom: true,
     textAnchorTop: true,
   };
@@ -921,10 +954,52 @@ function refineKids48GrowthWeightSlot(
     ...norm,
     y: strokeY - KIDS_MONTH_LINE_BAND_HEIGHT,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
-    inputKind: 'line',
+    inputKind: "line",
     lineStrokeAtBottom: true,
     textAnchorTop: true,
   };
+}
+
+/** OCR даёт широкие полосы на structured-страницах (p1, p4 и др.) — приводим к штрих-baseline. */
+function refineKids48StandardRuledLineSlot(
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (norm.inputKind === "block") {
+    return norm;
+  }
+  if (
+    norm.height <= KIDS_MONTH_LINE_BAND_HEIGHT &&
+    norm.lineStrokeAtBottom === true
+  ) {
+    return norm;
+  }
+  const strokeY = norm.y;
+  return {
+    ...norm,
+    y: strokeY - KIDS_MONTH_LINE_BAND_HEIGHT,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: "line",
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+  };
+}
+
+function shouldRefineKids48StandardRuledLineSlot(
+  page: number,
+  slotIndex: number,
+  norm: NormalizedLineSlot,
+): boolean {
+  if (norm.inputKind === "block") return false;
+  if (isKidsMonthPage(page)) return false;
+  if (page === 11) return false;
+  if (isKidsTeethPage(page)) return false;
+  if (isKidsEventDateLineSlot("kids_48", page, slotIndex)) return false;
+  if (isKidsBottomDateLineSlot(page, slotIndex)) return false;
+  if (isKidsP16DreamsDateLineSlot(page, slotIndex)) return false;
+  if (isKidsP13DateLineSlot(page, slotIndex)) return false;
+  if (isKidsP13AchievementLineSlot(page, slotIndex)) return false;
+  if (page === 5) return false;
+  return norm.height > KIDS_MONTH_LINE_BAND_HEIGHT || !norm.lineStrokeAtBottom;
 }
 
 /** kids_48 p8 «Первый день дома» — дата справа от статической подписи «ДАТА». */
@@ -954,11 +1029,8 @@ const KIDS_TEETH_LOWER_RIGHT_DATE_X_INSET_NORM = 0.02;
 /** Нижняя челюсть слева — симметрично левее. */
 const KIDS_TEETH_LOWER_LEFT_DATE_X_INSET_NORM = 0.016;
 const KIDS_TEETH_LOWER_JAW_STROKE_Y_MIN = 0.53;
-/** Y штриха из PDF / line-guides (не верх полосы). */
-const KIDS_TEETH_BRUSHING_STROKE_Y = 0.8349;
 const KIDS_TEETH_BRUSHING_WRITABLE_X = 0.562;
 const KIDS_TEETH_BRUSHING_WRITABLE_WIDTH = 0.36;
-const KIDS_TEETH_COUNT_STROKE_Y = 0.895;
 const KIDS_TEETH_COUNT_WRITABLE_X = 0.524;
 const KIDS_TEETH_COUNT_WRITABLE_WIDTH = 0.065;
 
@@ -967,23 +1039,21 @@ function isKidsTeethPage(page: number): boolean {
 }
 
 function isKidsTeethBottomInputSlot(page: number, slotIndex: number): boolean {
-  return isKidsTeethPage(page) && (slotIndex === 20 || slotIndex === 22);
+  return isKidsTeethPage(page) && (slotIndex === 20 || slotIndex === 21);
 }
 
-/** Слоты дат зубов и нижних полей — norm.y это штрих, не верх полосы. */
+/** Нижние даты p12+ — norm.y это штрих, не верх полосы. */
 function isKidsTeethStrokeLineInputSlot(
-  page: number,
-  slotIndex: number,
-  inputKind?: string,
+  _page: number,
+  _slotIndex: number,
+  _inputKind?: string,
 ): boolean {
-  if (!isKidsTeethPage(page) || slotIndex === 21) return false;
-  if (slotIndex <= 19) return (inputKind ?? 'line') === 'line';
-  return slotIndex === 20 || slotIndex === 22;
+  return false;
 }
 
 /** Как на month pages: norm.y — штрих, writable-полоса над линией. */
 function getKidsTeethLineSlotTopNormY(
-  norm: Pick<NormalizedLineSlot, 'y' | 'height'>,
+  norm: Pick<NormalizedLineSlot, "y" | "height">,
 ): number {
   return norm.y - norm.height;
 }
@@ -994,7 +1064,7 @@ function refineKidsTeethPageSlotNorm(
   norm: NormalizedLineSlot,
   slotIndex: number,
 ): NormalizedLineSlot {
-  if (lineGuideId !== 'kids_48' || !isKidsTeethPage(page)) return norm;
+  if (lineGuideId !== "kids_48" || !isKidsTeethPage(page)) return norm;
 
   if (slotIndex <= 19) {
     const centerX = norm.x + norm.width / 2;
@@ -1010,7 +1080,9 @@ function refineKidsTeethPageSlotNorm(
       ...norm,
       x,
       width: Math.max(0.05, Math.min(width, 0.98 - x)),
+      inputKind: "line",
       lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
@@ -1019,22 +1091,22 @@ function refineKidsTeethPageSlotNorm(
       ...norm,
       x: KIDS_TEETH_BRUSHING_WRITABLE_X,
       width: KIDS_TEETH_BRUSHING_WRITABLE_WIDTH,
-      y: KIDS_TEETH_BRUSHING_STROKE_Y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
-      inputKind: 'line',
+      inputKind: "line",
       lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
-  if (slotIndex === 22) {
+  if (slotIndex === 21) {
     return {
       ...norm,
       x: KIDS_TEETH_COUNT_WRITABLE_X,
       width: KIDS_TEETH_COUNT_WRITABLE_WIDTH,
-      y: KIDS_TEETH_COUNT_STROKE_Y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
-      inputKind: 'line',
+      inputKind: "line",
       lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
@@ -1047,13 +1119,14 @@ function isKidsEventDateLineSlot(
   page: number,
   slotIndex: number,
 ): boolean {
-  if (lineGuideId !== 'kids_48') return false;
-  return (page === 8 && slotIndex === 1) || (page === 9 && slotIndex === 0);
+  if (lineGuideId !== "kids_48") return false;
+  return (page === 8 && slotIndex === 0) || (page === 9 && slotIndex === 0);
 }
 
 function isKidsBottomDateLineSlot(page: number, slotIndex: number): boolean {
   if (slotIndex === 0 && KIDS_BOTTOM_DATE_PAGES.includes(page)) return true;
-  if (slotIndex === 1 && KIDS_BOTTOM_DATE_SLOT1_PAGES.includes(page)) return true;
+  if (slotIndex === 1 && KIDS_BOTTOM_DATE_SLOT1_PAGES.includes(page))
+    return true;
   return false;
 }
 
@@ -1061,11 +1134,17 @@ function isKidsP12DateLineSlot(page: number, slotIndex: number): boolean {
   return isKidsBottomDateLineSlot(page, slotIndex);
 }
 
-function isKidsBottomDateStrokeLineInputSlot(page: number, slotIndex: number): boolean {
+function isKidsBottomDateStrokeLineInputSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
   return isKidsBottomDateLineSlot(page, slotIndex);
 }
 
-function isKidsP12StrokeLineInputSlot(page: number, slotIndex: number): boolean {
+function isKidsP12StrokeLineInputSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
   return isKidsBottomDateStrokeLineInputSlot(page, slotIndex);
 }
 
@@ -1073,8 +1152,11 @@ function isKidsP16DreamsDateLineSlot(page: number, slotIndex: number): boolean {
   return page === KIDS_DREAMS_PAGE && slotIndex === 0;
 }
 
-function isKidsStrokeDateLineInputSlot(page: number, slotIndex: number): boolean {
-  if (isKidsEventDateLineSlot('kids_48', page, slotIndex)) return false;
+function isKidsStrokeDateLineInputSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
+  if (isKidsEventDateLineSlot("kids_48", page, slotIndex)) return false;
   return (
     isKidsBottomDateStrokeLineInputSlot(page, slotIndex) ||
     isKidsP16DreamsDateLineSlot(page, slotIndex)
@@ -1085,7 +1167,10 @@ function isKidsP13DateLineSlot(page: number, slotIndex: number): boolean {
   return page === KIDS_ACHIEVEMENTS_PAGE && slotIndex === 0;
 }
 
-function isKidsP13AchievementLineSlot(page: number, slotIndex: number): boolean {
+function isKidsP13AchievementLineSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
   return page === KIDS_ACHIEVEMENTS_PAGE && slotIndex >= 1 && slotIndex <= 7;
 }
 
@@ -1111,7 +1196,7 @@ function refineNormalizedSlotForTextLayout(
   allNorms: readonly NormalizedLineSlot[] = [],
   slotIndex = 0,
 ): NormalizedLineSlot {
-  if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
+  if (lineGuideId === "kids_48" && isKidsMonthPage(page)) {
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
   }
 
@@ -1124,14 +1209,17 @@ function refineNormalizedSlotForTextLayout(
         y: custom.y,
         width: custom.width,
         height: custom.height,
-        inputKind: 'line',
+        inputKind: "line",
         lineStrokeAtBottom: true,
         textAnchorTop: true,
       };
     }
   }
 
-  if (lineGuideId === 'kids_48' && isKidsP16DreamsDateLineSlot(page, slotIndex)) {
+  if (
+    lineGuideId === "kids_48" &&
+    isKidsP16DreamsDateLineSlot(page, slotIndex)
+  ) {
     const inset = KIDS_P16_DATE_LINE_TEXT_INSET_NORM;
     const x = clamp01(norm.x + inset);
     const width = Math.max(0.12, 0.98 - x);
@@ -1141,12 +1229,12 @@ function refineNormalizedSlotForTextLayout(
       width,
       y: norm.y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
-      inputKind: 'line',
+      inputKind: "line",
       lineStrokeAtBottom: true,
     };
   }
 
-  if (lineGuideId === 'kids_48' && isKidsBottomDateLineSlot(page, slotIndex)) {
+  if (lineGuideId === "kids_48" && isKidsBottomDateLineSlot(page, slotIndex)) {
     const inset = KIDS_BOTTOM_DATE_LINE_TEXT_INSET_NORM;
     const x = clamp01(norm.x + inset);
     const rightEdge = Math.min(
@@ -1160,28 +1248,45 @@ function refineNormalizedSlotForTextLayout(
       width,
       y: norm.y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
-      inputKind: 'line',
+      inputKind: "line",
       lineStrokeAtBottom: true,
     };
   }
 
-  if (lineGuideId === 'kids_48' && isKidsTeethPage(page)) {
+  if (lineGuideId === "kids_48" && isKidsTeethPage(page)) {
     return refineKidsTeethPageSlotNorm(lineGuideId, page, norm, slotIndex);
   }
 
-  if (lineGuideId === 'kids_48' && isKidsP13DateLineSlot(page, slotIndex)) {
+  if (lineGuideId === "kids_48" && isKidsP13DateLineSlot(page, slotIndex)) {
     return applyLabeledLineTextInset(norm, KIDS_P13_DATE_LINE_TEXT_INSET_NORM);
   }
 
-  if (lineGuideId === 'kids_48' && isKidsP13AchievementLineSlot(page, slotIndex)) {
-    return applyLabeledLineTextInset(norm, resolveKidsP13AchievementLineInset(slotIndex));
+  if (
+    lineGuideId === "kids_48" &&
+    isKidsP13AchievementLineSlot(page, slotIndex)
+  ) {
+    return applyLabeledLineTextInset(
+      norm,
+      resolveKidsP13AchievementLineInset(slotIndex),
+    );
   }
 
-  if (lineGuideId === 'kids_48' && page === 11) {
+  if (lineGuideId === "kids_48" && page === 11) {
     return refineKids48GrowthWeightSlot(page, norm);
   }
 
-  if (lineGuideId === 'pregnancy_60' && page === 52) {
+  if (
+    lineGuideId === "kids_48" &&
+    shouldRefineKids48StandardRuledLineSlot(page, slotIndex, norm)
+  ) {
+    return refineKids48StandardRuledLineSlot(norm);
+  }
+
+  if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
+    return norm;
+  }
+
+  if (lineGuideId === "pregnancy_60" && page === 52) {
     if (slotIndex === 6) {
       return applyLabeledLineTextInset(norm, 0.065);
     }
@@ -1200,12 +1305,12 @@ function refineNormalizedSlotForTextLayout(
     return norm;
   }
 
-  if (!lineGuideId?.startsWith('diary_interior_')) {
+  if (!lineGuideId?.startsWith("diary_interior_")) {
     return norm;
   }
 
   let refined = refineBrownParentQuestionnaireRowNorm(lineGuideId, page, norm);
-  if (lineGuideId === 'diary_interior_brown') {
+  if (lineGuideId === "diary_interior_brown") {
     refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
     refined = refineBrownPage15PeachLineNorm(page, refined);
     refined = refineBrownPage17UniformHeightNorm(page, refined);
@@ -1218,7 +1323,7 @@ function refineNormalizedSlotForTextLayout(
     refined = refineBrownPage31LabeledRowNorm(page, refined);
   }
 
-  if (lineGuideId === 'diary_interior_purple') {
+  if (lineGuideId === "diary_interior_purple") {
     refined = refineBrownDaySpreadIllustrationNorm(page, refined, allNorms);
     refined = refinePurplePage5LabeledRowNorm(page, refined);
     refined = refinePurplePage16LabeledRowNorm(page, refined);
@@ -1244,26 +1349,34 @@ function refineNormalizedSlotForTextLayout(
     const baseLeft =
       refined.x >= 0.55 ? refined.x : BROWN_PAGE6_CAREER_HEAD_LEFT_NORM;
     const baseWidth =
-      refined.width <= 0.22 ? refined.width : BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM;
+      refined.width <= 0.22
+        ? refined.width
+        : BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM;
     const x = clamp01(baseLeft + BROWN_WISH_HEAD_TEXT_INSET_NORM);
     const width = Math.max(
       0.05,
-      Math.min(baseWidth - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x)
+      Math.min(baseWidth - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x),
     );
     const { inputKind: _drop, ...rest } = refined;
     return { ...rest, x, width };
   }
 
   if (isBrownPage6CareerContinuationNorm(lineGuideId, page, refined)) {
-    const right = Math.max(refined.x + refined.width, BROWN_WISH_CONTINUATION_LEFT_NORM + 0.72);
+    const right = Math.max(
+      refined.x + refined.width,
+      BROWN_WISH_CONTINUATION_LEFT_NORM + 0.72,
+    );
     const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
     const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
-    return { ...refined, x, width, inputKind: 'block' as const };
+    return { ...refined, x, width, inputKind: "block" as const };
   }
 
   if (isBrownWishShortHeadNorm(lineGuideId, refined)) {
     const x = clamp01(refined.x + BROWN_WISH_HEAD_TEXT_INSET_NORM);
-    const width = Math.max(0.05, Math.min(refined.width - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x));
+    const width = Math.max(
+      0.05,
+      Math.min(refined.width - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x),
+    );
     return { ...refined, x, width };
   }
 
@@ -1274,7 +1387,7 @@ function refineNormalizedSlotForTextLayout(
     return { ...refined, x, width };
   }
 
-  const isBlock = refined.inputKind === 'block';
+  const isBlock = refined.inputKind === "block";
   const xInset = isBlock ? 0 : refined.hasLabel ? 0.003 : 0.006;
   const widthTrim = isBlock ? 0 : refined.hasLabel ? 0.004 : 0.01;
   const x = clamp01(refined.x + xInset);
@@ -1297,7 +1410,7 @@ type PregnancyWeeklyCalib = {
 
 /** PNG 300 DPI — калибровка «Вес» / «Обхват животика» на недельных стр. pregnancy_60 и pregnancy_a5. */
 const PREGNANCY_WEEKLY_CALIB: Readonly<
-  Record<'pregnancy_60' | 'pregnancy_a5', PregnancyWeeklyCalib>
+  Record<"pregnancy_60" | "pregnancy_a5", PregnancyWeeklyCalib>
 > = {
   pregnancy_60: {
     pageWidth: 2126,
@@ -1330,13 +1443,29 @@ export function isPregnancyWeeklyStructuredPage(
   lineGuideId: string | undefined,
   page: number,
 ): boolean {
-  if (lineGuideId === 'pregnancy_60') return isPregnancy60WeeklyPage(page);
-  if (lineGuideId === 'pregnancy_a5') return isPregnancyA5WeeklyPage(page);
+  if (lineGuideId === "pregnancy_60") return isPregnancy60WeeklyPage(page);
+  if (lineGuideId === "pregnancy_a5") return isPregnancyA5WeeklyPage(page);
   return false;
 }
 
 /** Мин. зазор между левым краем body-строки и хвостом после печатной подписи (norm X). */
 const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
+
+function getWeeklySlotViewportNormScale(
+  slot: Pick<TextLineSlot, "width" | "normWidth">,
+): number {
+  const normWidth = slot.normWidth ?? 0;
+  if (normWidth <= 0 || slot.width <= 0) return 1;
+  return slot.width / normWidth;
+}
+
+function pregnancyWeeklyInlineTailGapNorm(
+  labelSlot: Pick<TextLineSlot, "x">,
+  bodySlot: Pick<TextLineSlot, "x" | "width" | "normWidth">,
+): number {
+  const scale = getWeeklySlotViewportNormScale(bodySlot);
+  return (labelSlot.x - bodySlot.x) / scale;
+}
 
 function findPregnancyWeeklyBodyLineInGroup(
   slots: readonly TextLineSlot[],
@@ -1349,7 +1478,7 @@ function findPregnancyWeeklyBodyLineInGroup(
       (s) =>
         s.continuationGroup === groupId &&
         !s.hasLabel &&
-        (s.inputKind ?? 'line') === 'line' &&
+        (s.inputKind ?? "line") === "line" &&
         s.index > afterIndex &&
         s.index !== 1 &&
         s.index !== bellyIndex,
@@ -1362,15 +1491,22 @@ export function isPregnancyWeeklyInlineTailLabelSlot(
   lineGuideId: string | undefined,
   slot: Pick<
     TextLineSlot,
-    'page' | 'index' | 'hasLabel' | 'continuationGroup' | 'x' | 'normHeight' | 'inlineLabelTail'
+    | "page"
+    | "index"
+    | "hasLabel"
+    | "continuationGroup"
+    | "x"
+    | "normHeight"
+    | "inlineLabelTail"
   >,
   slots: readonly TextLineSlot[],
 ): boolean {
   if (slot.inlineLabelTail) return true;
-  if (!lineGuideId || !isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
+  if (!lineGuideId || !isPregnancyWeeklyStructuredPage(lineGuideId, slot.page))
+    return false;
   if (!slot.hasLabel) return false;
 
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
   const bodySlot = findPregnancyWeeklyBodyLineInGroup(
     slots,
     slot.continuationGroup,
@@ -1379,7 +1515,10 @@ export function isPregnancyWeeklyInlineTailLabelSlot(
   );
   if (!bodySlot) return false;
 
-  return slot.x > bodySlot.x + PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP;
+  return (
+    pregnancyWeeklyInlineTailGapNorm(slot, bodySlot) >
+    PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP
+  );
 }
 
 function markPregnancyWeeklyInlineTailSlots(
@@ -1389,7 +1528,7 @@ function markPregnancyWeeklyInlineTailSlots(
 ): TextLineSlot[] {
   if (!isPregnancyWeeklyStructuredPage(lineGuideId, page)) return slots;
 
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
   return slots.map((slot) => {
     if (!slot.hasLabel || slot.inlineLabelTail) return slot;
     const bodySlot = findPregnancyWeeklyBodyLineInGroup(
@@ -1398,7 +1537,11 @@ function markPregnancyWeeklyInlineTailSlots(
       slot.index,
       bellyIndex,
     );
-    if (!bodySlot || slot.x <= bodySlot.x + PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP) {
+    if (
+      !bodySlot ||
+      pregnancyWeeklyInlineTailGapNorm(slot, bodySlot) <=
+        PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP
+    ) {
       return slot;
     }
     return { ...slot, inlineLabelTail: true };
@@ -1411,23 +1554,34 @@ function findPregnancyWeeklyInlineLabelTailSlot(
   groupId: number,
   lineGuideId: string,
 ): TextLineSlot | null {
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
   const labelSlot = slots
     .filter(
       (s) =>
         s.continuationGroup === groupId &&
         s.hasLabel &&
         s.index < bodyStartIndex &&
-        (s.inputKind ?? 'line') === 'line' &&
+        (s.inputKind ?? "line") === "line" &&
         s.index !== 1 &&
         s.index !== bellyIndex,
     )
     .sort((a, b) => b.index - a.index)[0];
 
-  if (!labelSlot || !isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, labelSlot, slots)) {
+  if (
+    !labelSlot ||
+    !isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, labelSlot, slots)
+  ) {
     return null;
   }
   return labelSlot;
+}
+
+/** Страницы с линованным блокнотом (история родов, письмо малышу). */
+export function isPregnancyRuledNotebookPage(
+  lineGuideId: string | undefined,
+  page?: number,
+): boolean {
+  return lineGuideId === "pregnancy_60" && (page === 53 || page === 60);
 }
 
 /**
@@ -1437,23 +1591,32 @@ export function isPregnancyWeeklyTextLineSlot(
   lineGuideId: string | undefined,
   slot: Pick<
     TextLineSlot,
-    | 'page'
-    | 'index'
-    | 'inputKind'
-    | 'textAnchorTop'
-    | 'hasLabel'
-    | 'normHeight'
-    | 'inlineLabelTail'
-    | 'x'
-    | 'continuationGroup'
+    | "page"
+    | "index"
+    | "inputKind"
+    | "textAnchorTop"
+    | "hasLabel"
+    | "normHeight"
+    | "inlineLabelTail"
+    | "x"
+    | "continuationGroup"
   >,
   allSlots?: readonly TextLineSlot[],
 ): boolean {
+  if (
+    isPregnancyRuledNotebookPage(lineGuideId, slot.page) &&
+    (slot.inputKind ?? "line") === "line"
+  ) {
+    return true;
+  }
   if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
   if (isPregnancy60WeeklyValueSlot(lineGuideId, slot)) return false;
-  if ((slot.inputKind ?? 'line') !== 'line') return false;
+  if ((slot.inputKind ?? "line") !== "line") return false;
   if (slot.inlineLabelTail) return true;
-  if (allSlots && isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, slot, allSlots)) {
+  if (
+    allSlots &&
+    isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, slot, allSlots)
+  ) {
     return true;
   }
   if (slot.hasLabel) {
@@ -1468,15 +1631,15 @@ export function isPregnancyWeeklyRuledLineSlot(
   lineGuideId: string | undefined,
   slot: Pick<
     TextLineSlot,
-    | 'page'
-    | 'index'
-    | 'inputKind'
-    | 'textAnchorTop'
-    | 'hasLabel'
-    | 'normHeight'
-    | 'inlineLabelTail'
-    | 'x'
-    | 'continuationGroup'
+    | "page"
+    | "index"
+    | "inputKind"
+    | "textAnchorTop"
+    | "hasLabel"
+    | "normHeight"
+    | "inlineLabelTail"
+    | "x"
+    | "continuationGroup"
   >,
 ): boolean {
   return isPregnancyWeeklyTextLineSlot(lineGuideId, slot);
@@ -1490,7 +1653,13 @@ export function getPregnancyWeeklyFieldStartIndex(
   slotIndex: number,
   slots: readonly Pick<
     TextLineSlot,
-    'index' | 'continuationGroup' | 'hasLabel' | 'inputKind' | 'normHeight' | 'x' | 'inlineLabelTail'
+    | "index"
+    | "continuationGroup"
+    | "hasLabel"
+    | "inputKind"
+    | "normHeight"
+    | "x"
+    | "inlineLabelTail"
   >[],
 ): number {
   const slot = slots[slotIndex];
@@ -1502,12 +1671,11 @@ export function getPregnancyWeeklyFieldStartIndex(
   if (groupSlots.length === 0) return slotIndex;
 
   const first = groupSlots[0]!;
-  const bellyIndex =
-    groupSlots.some((s) => s.index === 6) ? 6 : 5;
+  const bellyIndex = groupSlots.some((s) => s.index === 6) ? 6 : 5;
   const unlabeled = groupSlots.filter(
     (s) =>
       !s.hasLabel &&
-      (s.inputKind ?? 'line') === 'line' &&
+      (s.inputKind ?? "line") === "line" &&
       s.index !== 1 &&
       s.index !== bellyIndex,
   );
@@ -1516,7 +1684,7 @@ export function getPregnancyWeeklyFieldStartIndex(
     .filter(
       (s) =>
         (s.inlineLabelTail || s.hasLabel) &&
-        (s.inputKind ?? 'line') === 'line' &&
+        (s.inputKind ?? "line") === "line" &&
         s.index !== 1 &&
         s.index !== bellyIndex,
     )
@@ -1526,7 +1694,7 @@ export function getPregnancyWeeklyFieldStartIndex(
       const bodySlot = groupSlots.find(
         (s) =>
           !s.hasLabel &&
-          (s.inputKind ?? 'line') === 'line' &&
+          (s.inputKind ?? "line") === "line" &&
           s.index > labelSlot.index &&
           s.index !== 1 &&
           s.index !== bellyIndex,
@@ -1542,15 +1710,31 @@ export function getPregnancyWeeklyFieldStartIndex(
   }
 
   const labelOnlyHead =
-    first.hasLabel &&
-    unlabeled.length > 0 &&
-    unlabeled[0]!.index > first.index;
+    first.hasLabel && unlabeled.length > 0 && unlabeled[0]!.index > first.index;
 
   if (labelOnlyHead) {
     return unlabeled[0]!.index;
   }
 
   return first.index;
+}
+
+/**
+ * pregnancy_60 weekly: insertThirdPlanLine ошибочно добавляет слот 5 (stroke ~0.454 в пустой зоне);
+ * настоящая 3-я печатная линия планов — слот 4 (stroke ~0.366).
+ */
+function filterPregnancyWeeklyPlanSpuriousBodySlots(
+  bodySlots: readonly TextLineSlot[],
+  lineGuideId?: string,
+): TextLineSlot[] {
+  if (lineGuideId !== "pregnancy_60" || bodySlots.length < 3) {
+    return [...bodySlots];
+  }
+  const indices = new Set(bodySlots.map((slot) => slot.index));
+  if (indices.has(3) && indices.has(4) && indices.has(5)) {
+    return bodySlots.filter((slot) => slot.index !== 5);
+  }
+  return [...bodySlots];
 }
 
 /** Слоты ввода для weekly-поля: хвост после подписи + body-строки ниже. */
@@ -1563,42 +1747,60 @@ export function resolveWeeklyFieldLineSlots(
   const startSlot = slots[startSlotIndex];
   if (!startSlot || lineCount <= 0) return [];
 
-  if (lineGuideId && isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page)) {
+  if (
+    lineGuideId &&
+    isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page)
+  ) {
     const groupId = startSlot.continuationGroup;
-    const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
-    const bodySlots = slots
-      .filter(
-        (s) =>
-          s.continuationGroup === groupId &&
-          s.index >= startSlotIndex &&
-          !s.hasLabel &&
-          (s.inputKind ?? 'line') === 'line' &&
-          s.index !== 1 &&
-          s.index !== bellyIndex,
-      )
-      .sort((a, b) => a.index - b.index);
+    const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
+    const bodySlots = filterPregnancyWeeklyPlanSpuriousBodySlots(
+      slots
+        .filter(
+          (s) =>
+            s.continuationGroup === groupId &&
+            s.index >= startSlotIndex &&
+            !s.hasLabel &&
+            (s.inputKind ?? "line") === "line" &&
+            s.index !== 1 &&
+            s.index !== bellyIndex,
+        )
+        .sort((a, b) => a.index - b.index),
+      lineGuideId,
+    );
 
-    const labelTail = findPregnancyWeeklyInlineLabelTailSlot(
+    let labelTail = findPregnancyWeeklyInlineLabelTailSlot(
       slots,
       startSlotIndex,
       groupId,
       lineGuideId,
     );
+    if (!labelTail && lineGuideId === "pregnancy_60") {
+      const fallbackTailIndex = groupId === 3 ? 2 : groupId === 5 ? 7 : null;
+      if (fallbackTailIndex != null && slots[fallbackTailIndex]) {
+        labelTail = slots[fallbackTailIndex];
+      }
+    }
+    if (lineCount === 1) {
+      return [startSlot];
+    }
     const fieldSlots = labelTail ? [labelTail, ...bodySlots] : bodySlots;
     return fieldSlots.slice(0, lineCount);
   }
 
-  return slots.slice(startSlotIndex, startSlotIndex + lineCount) as TextLineSlot[];
+  return slots.slice(
+    startSlotIndex,
+    startSlotIndex + lineCount,
+  ) as TextLineSlot[];
 }
 
 function getPregnancyWeeklyCalib(
   lineGuideId: string,
   page: number,
 ): PregnancyWeeklyCalib | null {
-  if (lineGuideId === 'pregnancy_60' && isPregnancy60WeeklyPage(page)) {
+  if (lineGuideId === "pregnancy_60" && isPregnancy60WeeklyPage(page)) {
     return PREGNANCY_WEEKLY_CALIB.pregnancy_60;
   }
-  if (lineGuideId === 'pregnancy_a5' && isPregnancyA5WeeklyPage(page)) {
+  if (lineGuideId === "pregnancy_a5" && isPregnancyA5WeeklyPage(page)) {
     return PREGNANCY_WEEKLY_CALIB.pregnancy_a5;
   }
   return null;
@@ -1606,13 +1808,13 @@ function getPregnancyWeeklyCalib(
 
 export function isPregnancy60WeeklyValueSlot(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'index' | 'textAnchorTop'>,
+  slot: Pick<TextLineSlot, "page" | "index" | "textAnchorTop">,
 ): boolean {
   return (
-    (lineGuideId === 'pregnancy_60' &&
+    (lineGuideId === "pregnancy_60" &&
       isPregnancy60WeeklyPage(slot.page) &&
       (slot.index === 1 || slot.index === 6)) ||
-    (lineGuideId === 'pregnancy_a5' &&
+    (lineGuideId === "pregnancy_a5" &&
       isPregnancyA5WeeklyPage(slot.page) &&
       (slot.index === 1 || slot.index === 5))
   );
@@ -1641,7 +1843,8 @@ function refinePregnancy60WeeklyWeightBellySlots(
     return [...norms];
   }
 
-  const { pageWidth, pageHeight, boxRight, lineHeightNorm, weight, belly } = calib;
+  const { pageWidth, pageHeight, boxRight, lineHeightNorm, weight, belly } =
+    calib;
   const result = norms.map((slot) => ({ ...slot }));
 
   const weightX = formatSlotNorm(weight.valueX / pageWidth);
@@ -1653,26 +1856,115 @@ function refinePregnancy60WeeklyWeightBellySlots(
     ...result[1],
     x: weightX,
     y: weightTopY,
-    width: formatSlotNorm(Math.max(0.05, (boxRight - weight.valueX) / pageWidth)),
+    width: formatSlotNorm(
+      Math.max(0.05, (boxRight - weight.valueX) / pageWidth),
+    ),
     height: lineHeightNorm,
     hasLabel: false,
-    inputKind: 'block',
+    inputKind: "block",
     textAnchorTop: true,
   };
 
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
   result[bellyIndex] = {
     ...result[bellyIndex],
     x: bellyX,
     y: bellyTopY,
-    width: formatSlotNorm(Math.max(0.05, (boxRight - belly.valueX) / pageWidth)),
+    width: formatSlotNorm(
+      Math.max(0.05, (boxRight - belly.valueX) / pageWidth),
+    ),
     height: lineHeightNorm,
     hasLabel: false,
-    inputKind: 'block',
+    inputKind: "block",
     textAnchorTop: true,
   };
 
   return result;
+}
+
+/** Схлопнутые штрихи в одной continuation group (inline-tail + body на одной Y). */
+function refinePregnancyWeeklyCollapsedGuideStrokes(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+  guides: readonly number[],
+): number[] {
+  if (
+    !isPregnancyWeeklyStructuredPage(lineGuideId, page) ||
+    guides.length === 0
+  ) {
+    return [...guides];
+  }
+
+  const pitch = PREGNANCY_WEEKLY_LINE_PITCH;
+  const minGap = pitch * 0.5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
+  const result = [...guides];
+
+  let i = 0;
+  while (i < result.length - 1) {
+    const normA = norms[i];
+    const normB = norms[i + 1];
+    if (
+      !normA ||
+      !normB ||
+      (normA.inputKind ?? "line") !== "line" ||
+      (normB.inputKind ?? "line") !== "line" ||
+      normA.continuationGroup !== normB.continuationGroup ||
+      i === 1 ||
+      i + 1 === bellyIndex ||
+      typeof result[i] !== "number" ||
+      typeof result[i + 1] !== "number"
+    ) {
+      i += 1;
+      continue;
+    }
+
+    if (result[i + 1]! - result[i]! < minGap) {
+      result[i + 1] = result[i]! + pitch;
+      let j = i + 2;
+      while (
+        j < norms.length &&
+        norms[j]?.continuationGroup === normA.continuationGroup
+      ) {
+        if (
+          j === bellyIndex ||
+          (norms[j]?.inputKind ?? "line") !== "line" ||
+          typeof result[j] !== "number" ||
+          typeof result[j - 1] !== "number"
+        ) {
+          j += 1;
+          continue;
+        }
+        if (result[j]! - result[j - 1]! < minGap) {
+          result[j] = result[j - 1]! + pitch;
+        }
+        j += 1;
+      }
+      i = j;
+      continue;
+    }
+    i += 1;
+  }
+
+  return result;
+}
+
+function getWeeklyGuideStrokesForPage(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): readonly number[] {
+  const raw =
+    (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+      lineGuideId
+    ]?.[String(page)] ?? [];
+  return refinePregnancyWeeklyCollapsedGuideStrokes(
+    lineGuideId,
+    page,
+    norms,
+    raw,
+  );
 }
 
 /** Недельные строки: штрих по LINE_GUIDES[i], высота полосы ≈ pitch (OCR часто раздувает до 0.08). */
@@ -1680,27 +1972,27 @@ function refinePregnancyWeeklyRuledLineNorms(
   lineGuideId: string,
   page: number,
   norms: readonly NormalizedLineSlot[],
+  guidesOverride?: readonly number[],
 ): NormalizedLineSlot[] {
   if (!isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
     return [...norms];
   }
 
-  const guides = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
-    lineGuideId
-  ]?.[String(page)];
+  const guides =
+    guidesOverride ??
+    (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+      lineGuideId
+    ]?.[String(page)];
   if (!guides?.length) return [...norms];
 
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
+  const bellyIndex = lineGuideId === "pregnancy_60" ? 6 : 5;
 
   return norms.map((norm, index) => {
     if (index === 1 || index === bellyIndex) return norm;
-    if ((norm.inputKind ?? 'line') !== 'line') return norm;
-    if (norm.hasLabel && norm.height > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) {
-      return norm;
-    }
+    if ((norm.inputKind ?? "line") !== "line") return norm;
 
     const guideStrokeY = guides[index];
-    if (typeof guideStrokeY !== 'number') return norm;
+    if (typeof guideStrokeY !== "number") return norm;
 
     const bandHeight =
       norm.hasLabel && norm.height <= PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT
@@ -1710,6 +2002,48 @@ function refinePregnancyWeeklyRuledLineNorms(
 
     return {
       ...norm,
+      y: formatSlotNorm(topY),
+      height: formatSlotNorm(bandHeight),
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  });
+}
+
+/** История родов / письмо малышу — штрих по LINE_GUIDES, полоса = шаг до следующей линии. */
+function refinePregnancyRuledNotebookLineNorms(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (!isPregnancyRuledNotebookPage(lineGuideId, page)) {
+    return [...norms];
+  }
+
+  const guides = (
+    LINE_GUIDES as Record<string, Record<string, readonly number[]>>
+  )[lineGuideId]?.[String(page)];
+  if (!guides?.length) return [...norms];
+
+  return norms.map((norm, index) => {
+    if ((norm.inputKind ?? "line") !== "line") return norm;
+
+    const guideStrokeY = guides[index];
+    if (typeof guideStrokeY !== "number") return norm;
+
+    const nextGuide = guides[index + 1];
+    const bandHeight =
+      typeof nextGuide === "number"
+        ? Math.max(
+            PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
+            nextGuide - guideStrokeY,
+          )
+        : PREGNANCY_WEEKLY_LINE_PITCH;
+    const topY = guideStrokeY - bandHeight;
+
+    return {
+      ...norm,
+      // OCR x/width совпадают с печатными линиями (p53 ≈ 0.09, p60 ≈ 0.117).
       y: formatSlotNorm(topY),
       height: formatSlotNorm(bandHeight),
       lineStrokeAtBottom: true,
@@ -1733,12 +2067,16 @@ function refineDenseContinuationGroupSpacing(
   page: number,
   norms: readonly NormalizedLineSlot[],
 ): NormalizedLineSlot[] {
-  if (lineGuideId !== 'pregnancy_60' && lineGuideId !== 'pregnancy_a5') {
+  if (lineGuideId !== "pregnancy_60" && lineGuideId !== "pregnancy_a5") {
     return [...norms];
   }
 
   // Weekly pages: OCR slots + LINE_GUIDES already aligned — do not redistribute.
   if (isPregnancyWeeklyStructuredPage(lineGuideId, page)) {
+    return [...norms];
+  }
+
+  if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
     return [...norms];
   }
 
@@ -1764,7 +2102,9 @@ function refineDenseContinuationGroupSpacing(
     const nextIdx = lastIdx + 1;
     const endY =
       nextIdx < result.length
-        ? result[nextIdx].y - result[nextIdx].height / 2 - PREGNANCY_LINE_GAP_NORM
+        ? result[nextIdx].y -
+          result[nextIdx].height / 2 -
+          PREGNANCY_LINE_GAP_NORM
         : result[lastIdx].y;
 
     if (endY <= startY + PREGNANCY_STANDARD_LINE_HEIGHT) continue;
@@ -1798,42 +2138,61 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     params.viewportHeight,
     params.sourceWidth ?? 0,
     params.sourceHeight ?? 0,
-    rect?.offsetX ?? '',
-    rect?.offsetY ?? '',
-    rect?.width ?? '',
-    rect?.height ?? '',
-    'kids-event-date-line-v2',
-    'kids-bottom-date-line-v5',
-    'kids-p16-dreams-date-v2',
-    'kids-p13-line-inset-v1',
-    'kids-teeth-page-v16',
-    'pregnancy-weekly-skip-dense-spacing-v1',
-    'pregnancy-weekly-guide-stroke-v4',
-  ].join('|');
+    rect?.offsetX ?? "",
+    rect?.offsetY ?? "",
+    rect?.width ?? "",
+    rect?.height ?? "",
+    "kids-event-date-line-v2",
+    "kids-bottom-date-line-v5",
+    "kids-p16-dreams-date-v2",
+    "kids-p13-line-inset-v1",
+    "kids-teeth-page-v20",
+    "kids-standard-ruled-line-v2",
+    "pregnancy-weekly-skip-dense-spacing-v1",
+    "pregnancy-weekly-guide-stroke-v11",
+    "pregnancy-ruled-notebook-v1",
+    "template-text-norm-width-v1",
+  ].join("|");
 }
 
-export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
+export function getLineSlotsForPage(
+  params: GetLineSlotsParams,
+): TextLineSlot[] {
   const cacheKey = lineSlotsCacheKey(params);
   const cached = lineSlotsResultCache.get(cacheKey);
   if (cached) return cached;
 
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
-  if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
+  if (
+    !hasLineGuides(lineGuideId) ||
+    viewportWidth <= 0 ||
+    viewportHeight <= 0
+  ) {
     lineSlotsResultCache.set(cacheKey, []);
     return [];
   }
 
-  const normalized = refinePregnancyWeeklyRuledLineNorms(
+  const weightNorms = refinePregnancy60WeeklyWeightBellySlots(
     lineGuideId,
     page,
-    refinePregnancy60WeeklyWeightBellySlots(
+    refineDenseContinuationGroupSpacing(
       lineGuideId,
       page,
-      refineDenseContinuationGroupSpacing(
-        lineGuideId,
-        page,
-        getNormalizedSlotsForPage(lineGuideId, page),
-      ),
+      getNormalizedSlotsForPage(lineGuideId, page),
+    ),
+  );
+  const weeklyGuides = isPregnancyWeeklyStructuredPage(lineGuideId, page)
+    ? getWeeklyGuideStrokesForPage(lineGuideId, page, weightNorms)
+    : undefined;
+
+  const normalized = refinePregnancyRuledNotebookLineNorms(
+    lineGuideId,
+    page,
+    refinePregnancyWeeklyRuledLineNorms(
+      lineGuideId,
+      page,
+      weightNorms,
+      weeklyGuides,
     ),
   );
   if (!normalized.length) {
@@ -1852,28 +2211,25 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       index,
     );
     const isWeeklyValueSlot =
-      (lineGuideId === 'pregnancy_60' &&
+      (lineGuideId === "pregnancy_60" &&
         isPregnancy60WeeklyPage(page) &&
         (index === 1 || index === 6)) ||
-      (lineGuideId === 'pregnancy_a5' &&
+      (lineGuideId === "pregnancy_a5" &&
         isPregnancyA5WeeklyPage(page) &&
         (index === 1 || index === 5));
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
       layoutNorm.lineStrokeAtBottom === true ||
-      (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1);
-    const topNormY =
-      isDiaryInteriorLineGuide(lineGuideId)
-        ? getDiarySlotTopNormY(layoutNorm)
-        : lineGuideId === 'kids_48' &&
-            isKidsMonthPage(page) &&
-            index >= 1
-          ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : lineGuideId === 'kids_48' &&
-              isKidsStrokeDateLineInputSlot(page, index)
-            ? getKidsTeethLineSlotTopNormY(layoutNorm)
-            : lineGuideId === 'kids_48' &&
+      (lineGuideId === "kids_48" && isKidsMonthPage(page) && index >= 1);
+    const topNormY = isDiaryInteriorLineGuide(lineGuideId)
+      ? getDiarySlotTopNormY(layoutNorm)
+      : lineGuideId === "kids_48" && isKidsMonthPage(page) && index >= 1
+        ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+        : lineGuideId === "kids_48" &&
+            isKidsStrokeDateLineInputSlot(page, index)
+          ? getKidsTeethLineSlotTopNormY(layoutNorm)
+          : lineGuideId === "kids_48" &&
               isKidsTeethStrokeLineInputSlot(page, index, layoutNorm.inputKind)
             ? getKidsTeethLineSlotTopNormY(layoutNorm)
             : anchorTop
@@ -1884,26 +2240,35 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       topNormY,
       layoutNorm.width,
       layoutNorm.height,
-      rect
+      rect,
     );
 
     const lineStrokeAtBottom =
       layoutNorm.lineStrokeAtBottom === true ||
-      (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1) ||
-      (lineGuideId === 'kids_48' && isKidsStrokeDateLineInputSlot(page, index)) ||
-      (lineGuideId === 'kids_48' &&
+      (lineGuideId === "kids_48" && isKidsMonthPage(page) && index >= 1) ||
+      (lineGuideId === "kids_48" &&
+        isKidsStrokeDateLineInputSlot(page, index)) ||
+      (lineGuideId === "kids_48" &&
         isKidsTeethPage(page) &&
-        (index <= 19 || index === 20 || index === 22) &&
-        (layoutNorm.inputKind ?? 'line') === 'line') ||
+        (index <= 19 || index === 20 || index === 21) &&
+        (layoutNorm.inputKind ?? "line") === "line") ||
       isDiaryInteriorLineGuide(lineGuideId);
 
+    const isAlreadyMomGuidePage =
+      (lineGuideId === "pregnancy_60" && page === 54) ||
+      (lineGuideId === "pregnancy_a5" && page === 46);
+    const pageGuideStrokes =
+      weeklyGuides ??
+      (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+        lineGuideId
+      ]?.[String(page)];
     const weeklyGuideNorm =
-      isPregnancyWeeklyStructuredPage(lineGuideId, page) &&
-      (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId]?.[
-        String(page)
-      ]?.[index];
+      (isPregnancyWeeklyStructuredPage(lineGuideId, page) ||
+        isPregnancyRuledNotebookPage(lineGuideId, page) ||
+        isAlreadyMomGuidePage) &&
+      pageGuideStrokes?.[index];
     const strokeY =
-      typeof weeklyGuideNorm === 'number'
+      typeof weeklyGuideNorm === "number"
         ? rect.offsetY + weeklyGuideNorm * rect.height
         : mapped.y + mapped.height;
 
@@ -1915,10 +2280,12 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       width: mapped.width,
       lineHeight: mapped.height,
       hasLabel: norm.hasLabel ?? true,
-      continuationGroup: layoutNorm.continuationGroup ?? norm.continuationGroup ?? index + 1,
+      continuationGroup:
+        layoutNorm.continuationGroup ?? norm.continuationGroup ?? index + 1,
       inputKind: layoutNorm.inputKind ?? norm.inputKind,
       normY: anchorTop ? layoutNorm.y + layoutNorm.height / 2 : layoutNorm.y,
       normHeight: layoutNorm.height,
+      normWidth: layoutNorm.width,
       lineStrokeAtBottom,
       textAnchorTop: anchorTop,
       strokeY,
@@ -1926,9 +2293,10 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
   });
 
   const finalizedSlots = markPregnancyWeeklyInlineTailSlots(
-    lineGuideId === 'pregnancy_60' && (page === 53 || page === 54 || page === 60)
+    lineGuideId === "pregnancy_60" &&
+      (page === 53 || page === 54 || page === 60)
       ? slots.map((slot) =>
-          (slot.inputKind ?? 'line') === 'line'
+          (slot.inputKind ?? "line") === "line"
             ? {
                 ...slot,
                 lineStrokeAtBottom: true,
@@ -1971,10 +2339,14 @@ export function getLineSlotGroups(slots: TextLineSlot[]): TextLineSlot[][] {
     map.get(slot.continuationGroup)!.push(slot);
   }
 
-  return [...map.values()].map((group) => group.sort((a, b) => a.index - b.index));
+  return [...map.values()].map((group) =>
+    group.sort((a, b) => a.index - b.index),
+  );
 }
 
-export function getLineSlotGroupBounds(groupSlots: TextLineSlot[]): LineSlotGroupBounds {
+export function getLineSlotGroupBounds(
+  groupSlots: TextLineSlot[],
+): LineSlotGroupBounds {
   const startSlot = groupSlots[0]!;
   let minX = startSlot.x;
   let maxX = startSlot.x + startSlot.width;
@@ -2000,7 +2372,7 @@ export function getLineSlotGroupBounds(groupSlots: TextLineSlot[]): LineSlotGrou
 function getSlotVerticalHitBounds(
   slot: TextLineSlot,
   slots: TextLineSlot[],
-  minHitPx = 28
+  minHitPx = 28,
 ): { top: number; height: number } {
   if (slot.lineHeight >= minHitPx) {
     return { top: slot.y, height: slot.lineHeight };
@@ -2010,7 +2382,9 @@ function getSlotVerticalHitBounds(
   const next = slots[slot.index + 1];
   const slotBottom = slot.y + slot.lineHeight;
 
-  const gapAbove = prev ? Math.max(0, slot.y - (prev.y + prev.lineHeight)) : Infinity;
+  const gapAbove = prev
+    ? Math.max(0, slot.y - (prev.y + prev.lineHeight))
+    : Infinity;
   const gapBelow = next ? Math.max(0, next.y - slotBottom) : Infinity;
 
   const needExpand = minHitPx - slot.lineHeight;
@@ -2022,7 +2396,10 @@ function getSlotVerticalHitBounds(
   }
   if (prev) {
     const slotTop = slot.y;
-    expandUp = Math.min(expandUp, Math.max(0, slotTop - (prev.y + prev.lineHeight) - 2));
+    expandUp = Math.min(
+      expandUp,
+      Math.max(0, slotTop - (prev.y + prev.lineHeight) - 2),
+    );
   }
 
   return {
@@ -2035,32 +2412,32 @@ function getSlotVerticalHitBounds(
 export function getSlotInteractionRect(
   slot: TextLineSlot,
   slots: TextLineSlot[],
-  slotParams: GetLineSlotsParams
+  slotParams: GetLineSlotsParams,
 ): { x: number; y: number; width: number; height: number } {
   const vertical = getSlotVerticalHitBounds(slot, slots);
   let left = slot.x;
   let width = slot.width;
 
   const isBrownWideAnswerRow =
-    slotParams.lineGuideId === 'diary_interior_brown' &&
+    slotParams.lineGuideId === "diary_interior_brown" &&
     !slot.hasLabel &&
     slot.normY != null &&
     slot.x < 0.16 &&
     slot.width >= 0.72;
 
   const isDiaryWishContinuation =
-    (slotParams.lineGuideId === 'diary_interior_brown' ||
-      slotParams.lineGuideId === 'diary_interior_purple') &&
+    (slotParams.lineGuideId === "diary_interior_brown" ||
+      slotParams.lineGuideId === "diary_interior_purple") &&
     !slot.hasLabel &&
-    slot.inputKind === 'block' &&
+    slot.inputKind === "block" &&
     slot.normY != null &&
     slot.normY >= 0.815 &&
     slot.width >= 0.65;
 
-  const careerPage = getDiaryCareerQuestionPage(slotParams.lineGuideId ?? '');
+  const careerPage = getDiaryCareerQuestionPage(slotParams.lineGuideId ?? "");
   const isPage6CareerContinuation =
-    (slotParams.lineGuideId === 'diary_interior_brown' ||
-      slotParams.lineGuideId === 'diary_interior_purple') &&
+    (slotParams.lineGuideId === "diary_interior_brown" ||
+      slotParams.lineGuideId === "diary_interior_purple") &&
     slotParams.page === careerPage &&
     !slot.hasLabel &&
     slot.normY != null &&
@@ -2070,12 +2447,13 @@ export function getSlotInteractionRect(
     slot.x < 0.16;
 
   if (
-    slotParams.lineGuideId === 'diary_interior_purple' ||
-    slotParams.lineGuideId === 'diary_interior_brown'
+    slotParams.lineGuideId === "diary_interior_purple" ||
+    slotParams.lineGuideId === "diary_interior_brown"
   ) {
     if (isDiaryWishContinuation || isPage6CareerContinuation) {
       const rect = resolveContentRectForPage(slotParams);
-      const minLeft = rect.offsetX + rect.width * BROWN_WISH_CONTINUATION_LEFT_NORM;
+      const minLeft =
+        rect.offsetX + rect.width * BROWN_WISH_CONTINUATION_LEFT_NORM;
       if (left > minLeft + 2) {
         width += left - minLeft;
         left = minLeft;
@@ -2130,7 +2508,7 @@ export function hitTestLineSlot(params: {
 
     const centerY = bounds.y + bounds.height / 2;
     const centerDistance = Math.abs(y - centerY);
-    const blockPriority = slot.inputKind === 'block' ? -1000 : 0;
+    const blockPriority = slot.inputKind === "block" ? -1000 : 0;
     const score = centerDistance + blockPriority;
 
     if (score < bestScore) {
@@ -2145,14 +2523,17 @@ export function hitTestLineSlot(params: {
 export function findAnnotationForSlot(
   annotations: Annotation[],
   page: number,
-  slotIndex: number
+  slotIndex: number,
 ): Annotation | undefined {
   return annotations.find((ann) => {
-    if (ann.type !== 'text' || ann.page !== page) return false;
-    if (typeof ann.templateLineStart !== 'number') return false;
+    if (ann.type !== "text" || ann.page !== page) return false;
+    if (typeof ann.templateLineStart !== "number") return false;
     const count = ann.templateLineCount ?? 1;
     if (count === 1) return ann.templateLineStart === slotIndex;
-    return slotIndex >= ann.templateLineStart && slotIndex < ann.templateLineStart + count;
+    return (
+      slotIndex >= ann.templateLineStart &&
+      slotIndex < ann.templateLineStart + count
+    );
   });
 }
 
@@ -2161,15 +2542,15 @@ export function findAnnotationForContinuationGroup(
   annotations: Annotation[],
   page: number,
   slots: TextLineSlot[],
-  slotIndex: number
+  slotIndex: number,
 ): Annotation | undefined {
   const tapped = slots[slotIndex];
   if (!tapped) return undefined;
 
   const groupId = tapped.continuationGroup;
   return annotations.find((ann) => {
-    if (ann.type !== 'text' || ann.page !== page) return false;
-    if (typeof ann.templateLineStart !== 'number') return false;
+    if (ann.type !== "text" || ann.page !== page) return false;
+    if (typeof ann.templateLineStart !== "number") return false;
     const start = slots[ann.templateLineStart];
     return start?.continuationGroup === groupId;
   });
@@ -2189,10 +2570,10 @@ export function distributeTextAcrossSlots(params: {
 
   const slotWidth = availableSlots[0]?.width ?? 200;
   const allLines: string[] = [];
-  const paragraphs = text.split('\n');
+  const paragraphs = text.split("\n");
   for (const paragraph of paragraphs) {
     if (paragraph.length === 0) {
-      allLines.push('');
+      allLines.push("");
       continue;
     }
     allLines.push(...wrapTextToLines(paragraph, slotWidth, fontSize));
@@ -2203,7 +2584,7 @@ export function distributeTextAcrossSlots(params: {
   const truncated = allLines.length > maxLines;
 
   return {
-    content: used.join('\n'),
+    content: used.join("\n"),
     lineCount: Math.max(1, used.length),
     truncated,
   };
@@ -2212,15 +2593,17 @@ export function distributeTextAcrossSlots(params: {
 export function getSlotYForLineIndex(
   slots: TextLineSlot[],
   startIndex: number,
-  lineOffset: number
+  lineOffset: number,
 ): number {
   const slot = slots[startIndex + lineOffset];
   return slot?.y ?? slots[startIndex]?.y ?? 0;
 }
 
-export function layoutAnnotationFromSlot(slot: TextLineSlot): Pick<
+export function layoutAnnotationFromSlot(
+  slot: TextLineSlot,
+): Pick<
   Annotation,
-  'x' | 'y' | 'width' | 'height' | 'templateLineStart' | 'templateLineCount'
+  "x" | "y" | "width" | "height" | "templateLineStart" | "templateLineCount"
 > {
   return {
     x: slot.x,
@@ -2239,20 +2622,28 @@ export function layoutTextAnnotationFromSlot(
   lineGuideId?: string,
   textContent?: string,
   fontId?: string,
-): Pick<Annotation, 'x' | 'y' | 'width' | 'height' | 'fontSize'> {
+): Pick<Annotation, "x" | "y" | "width" | "height" | "fontSize"> {
   const layout = layoutAnnotationFromSlot(slot);
-  const inputKind = slot.inputKind ?? 'line';
-  const typographyBandHeight = getPregnancyWeeklyTypographyBandHeight(slot, lineGuideId);
+  const inputKind = slot.inputKind ?? "line";
+  const typographyBandHeight = getPregnancyWeeklyTypographyBandHeight(
+    slot,
+    lineGuideId,
+  );
   const typography = getTemplateLineTypography(
     fontSize,
     typographyBandHeight,
     inputKind,
     lineGuideId,
   );
-  let effectiveFontSize = getEffectiveTemplateFontSize(lineGuideId, slot, fontSize, {
-    textContent,
-    fontId,
-  });
+  let effectiveFontSize = getEffectiveTemplateFontSize(
+    lineGuideId,
+    slot,
+    fontSize,
+    {
+      textContent,
+      fontId,
+    },
+  );
   if (
     isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
     textContent &&
@@ -2268,7 +2659,7 @@ export function layoutTextAnnotationFromSlot(
       );
     }
   } else if (
-    lineGuideId === 'kids_48' &&
+    lineGuideId === "kids_48" &&
     slot.page === KIDS_TEETH_PAGE &&
     textContent &&
     slot.width > 0
@@ -2286,7 +2677,8 @@ export function layoutTextAnnotationFromSlot(
   } else if (
     textContent &&
     slot.width > 0 &&
-    (lineGuideId === 'diary_interior_purple' || lineGuideId === 'diary_interior_brown')
+    (lineGuideId === "diary_interior_purple" ||
+      lineGuideId === "diary_interior_brown")
   ) {
     const profile = getTemplateTypographyProfile(lineGuideId);
     const charWidth = effectiveFontSize * profile.charWidthRatio;

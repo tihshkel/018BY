@@ -1,6 +1,6 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
-import type { AlbumPageField } from '@/types/album-page-schema';
+import type { AlbumPageField, AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import {
   getMeasurementDigitLimit,
   sanitizeMeasurementInput,
@@ -12,6 +12,7 @@ import {
 import { getLineSlotsForPage, resolveWeeklyFieldLineSlots } from '@/utils/textLineSlots';
 import { clampTextToFieldLines } from '@/utils/templateLineText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 
 /** Эталонная ширина PDF-растра — лимит не зависит от ширины телефона. */
 export const FIELD_LIMIT_REFERENCE_VIEWPORT = { width: 2480, height: 2480 };
@@ -26,7 +27,18 @@ type FieldLimitParams = {
   viewportWidth?: number;
   viewportHeight?: number;
   fontId?: string | null;
+  fontSize?: number | null;
 };
+
+function resolveLayoutFontSize(lineGuideId: string, requested?: number | null): number {
+  const profile = getTemplateTypographyProfile(lineGuideId);
+  const base = profile.fixedLineFontSize ?? 16;
+  if (requested == null) return base;
+  if (profile.fixedLineFontSize != null) {
+    return Math.min(requested, profile.fixedLineFontSize);
+  }
+  return requested;
+}
 
 function computeLayoutCharacterLimit(
   field: AlbumPageField,
@@ -35,6 +47,7 @@ function computeLayoutCharacterLimit(
   viewportWidth: number,
   viewportHeight: number,
   fontId?: string | null,
+  fontSize?: number | null,
 ): number | undefined {
   const slots = getLineSlotsForPage({
     lineGuideId,
@@ -53,21 +66,64 @@ function computeLayoutCharacterLimit(
   if (fieldSlots.length === 0) return undefined;
 
   const profile = getTemplateTypographyProfile(lineGuideId);
-  const fontSize = profile.fixedLineFontSize ?? 16;
-  const measureTextWidth = resolveMeasureTextWidth(fontId);
-
+  const resolvedFontSize = resolveLayoutFontSize(lineGuideId, fontSize);
+  const normalizedFontId = normalizeAlbumFontId(fontId);
+  const measureTextWidth = resolveMeasureTextWidth(normalizedFontId);
   const clamped = clampTextToFieldLines({
     text: FIELD_LIMIT_PROBE_CYRILLIC,
     startSlotIndex: field.templateLineStart,
-    lineCount: field.templateLineCount,
+    lineCount: field.templateLineCount ?? 1,
     slots,
-    fontSize,
+    fontSize: resolvedFontSize,
     lineGuideId,
-    fontId: normalizeAlbumFontId(fontId),
+    fontId: normalizedFontId,
     measureTextWidth,
   });
 
   return clamped.length;
+}
+
+type LayoutClampParams = {
+  field: AlbumPageField;
+  text: string;
+  lineGuideId: string;
+  sourcePageNumber: number;
+  fontId?: string | null;
+  fontSize?: number | null;
+};
+
+/** Обрезает ввод по реальной вместимости line-slots (с учётом шрифта и weekly inline-tail). */
+export function clampFieldInputToLineLayout(params: LayoutClampParams): string {
+  const { field, text, lineGuideId, sourcePageNumber, fontId, fontSize } = params;
+  if (field.type !== 'text' || !usesTemplateLineTextEditing(lineGuideId)) {
+    return sanitizeFieldInput(field.type, text);
+  }
+
+  const sanitized = sanitizeFieldInput(field.type, text);
+  if (!sanitized) return sanitized;
+
+  const slots = getLineSlotsForPage({
+    lineGuideId,
+    page: sourcePageNumber,
+    viewportWidth: FIELD_LIMIT_REFERENCE_VIEWPORT.width,
+    viewportHeight: FIELD_LIMIT_REFERENCE_VIEWPORT.height,
+  });
+  if (slots.length === 0) return sanitized;
+
+  const resolvedFontSize = resolveLayoutFontSize(lineGuideId, fontSize);
+  const normalizedFontId = normalizeAlbumFontId(fontId);
+  const lineCount = field.templateLineCount ?? 1;
+
+  return clampTextToFieldLines({
+    text: sanitized,
+    startSlotIndex: field.templateLineStart,
+    lineCount,
+    slots,
+    fontSize: resolvedFontSize,
+    lineGuideId,
+    fontId: normalizedFontId,
+    measureTextWidth: resolveMeasureTextWidth(normalizedFontId),
+  });
 }
 
 function getKids48FieldLimit(params: FieldLimitParams): number | undefined {
@@ -134,6 +190,7 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     viewportWidth,
     viewportHeight,
     params.fontId,
+    params.fontSize,
   );
 
   if (params.lineGuideId === 'kids_48' && params.field.type === 'text') {
@@ -154,12 +211,21 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
 export function clampFieldInput(
   field: AlbumPageField,
   text: string,
-  limit?: number
+  limit?: number,
+  layoutClamp?: Omit<LayoutClampParams, 'field' | 'text'>,
 ): string {
   const measurementLimit = getMeasurementDigitLimit(field);
   if (measurementLimit != null) {
     const effectiveLimit = limit ?? measurementLimit;
     return sanitizeMeasurementInput(text, Math.min(measurementLimit, effectiveLimit));
+  }
+
+  if (layoutClamp && field.type === 'text') {
+    return clampFieldInputToLineLayout({
+      field,
+      text,
+      ...layoutClamp,
+    });
   }
 
   const sanitized = sanitizeFieldInput(field.type, text);
@@ -169,4 +235,43 @@ export function clampFieldInput(
 
 export function countFieldCharacters(value: string): number {
   return value.length;
+}
+
+/** Пересчитывает многострочные поля при смене шрифта (превью / форма). */
+export function clampPageFieldValuesForLayoutFont(params: {
+  schema: AlbumPageSchema;
+  values: PageValues;
+  lineGuideId: string;
+  fontId?: string | null;
+}): PageValues {
+  const { schema, values, lineGuideId } = params;
+  if (!usesTemplateLineTextEditing(lineGuideId)) {
+    return values;
+  }
+
+  const normalizedFontId = normalizeAlbumFontId(params.fontId ?? values.textFontFamily);
+  let changed = false;
+  const nextFields = { ...values.fields };
+
+  for (const field of schema.fields ?? []) {
+    if (field.type !== 'text') continue;
+
+    const raw = nextFields[field.fieldId] ?? '';
+    if (!raw) continue;
+
+    const clamped = clampFieldInput(field, raw, undefined, {
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      fontId: normalizedFontId,
+      fontSize: values.fieldTextStyles?.[field.fieldId]?.fontSize,
+    });
+
+    if (clamped !== raw) {
+      nextFields[field.fieldId] = clamped;
+      changed = true;
+    }
+  }
+
+  if (!changed) return values;
+  return { ...values, fields: nextFields };
 }

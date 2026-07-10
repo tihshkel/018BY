@@ -514,8 +514,7 @@
         "hasPhoto": true,
         "blockId": "main_photo",
         "variants": [
-          "one_horizontal",
-          "two_horizontal"
+          "one_horizontal"
         ],
         "primaryVariant": "one_large",
         "layoutSource": "designed_event",
@@ -535,7 +534,7 @@
         "primaryGapMm": 17
       },
       "photoDescription": "≈162×112 мм, горизонталь 4:3, 62–174 мм от верха (центр)",
-      "photoSummary": "1–2 варианта",
+      "photoSummary": "1 фото",
       "layout": {
         "textZone": "верх 189–195 мм",
         "photoZone": "62–174 мм от верха",
@@ -699,12 +698,12 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 2,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 2,
+        "totalFields": 1,
         "captionField": false,
         "lineSlotCount": 2,
-        "displayCount": 2
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
@@ -805,12 +804,12 @@
       "editable": true,
       "section": "Начало истории",
       "textFields": {
-        "schemaCount": 2,
+        "schemaCount": 1,
         "radioCount": 0,
-        "totalFields": 2,
+        "totalFields": 1,
         "captionField": false,
         "lineSlotCount": 2,
-        "displayCount": 2
+        "displayCount": 1
       },
       "photo": {
         "hasPhoto": true,
@@ -1603,12 +1602,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -1703,12 +1702,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -1753,12 +1752,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -1803,12 +1802,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -1853,12 +1852,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -1903,12 +1902,12 @@
       "editable": true,
       "section": "Времена года, праздники и путешествия",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
         "hasPhoto": true,
@@ -2299,20 +2298,20 @@
     {
       "page": 48,
       "title": "Моя история только начинается",
-      "pageType": "event_photo",
-      "editable": true,
+      "pageType": "non_editable",
+      "editable": false,
       "section": "Памятные моменты и завершение",
       "textFields": {
-        "schemaCount": 1,
+        "schemaCount": 0,
         "radioCount": 0,
-        "totalFields": 1,
+        "totalFields": 0,
         "captionField": false,
         "lineSlotCount": 1,
-        "displayCount": 1
+        "displayCount": 0
       },
       "photo": {
-        "hasPhoto": true,
-        "blockId": "main_photo",
+        "hasPhoto": false,
+        "blockId": null,
         "variants": [
           "one_large",
           "two_vertical",
@@ -2334,14 +2333,14 @@
           }
         ],
         "worstCaseVariant": "two_vertical",
-        "primaryGapMm": 59
+        "primaryGapMm": null
       },
-      "photoDescription": "≈76×104 мм, горизонталь 4:3, 27–131 мм от верха (центр)",
-      "photoSummary": "1–4 варианта",
+      "photoDescription": "—",
+      "photoSummary": "нет",
       "layout": {
         "textZone": "верх 189–195 мм",
         "photoZone": "27–131 мм от верха",
-        "minGapToTextMm": 59,
+        "minGapToTextMm": null,
         "overlapIssues": []
       },
       "status": "ok"

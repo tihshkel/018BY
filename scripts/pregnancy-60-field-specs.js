@@ -6,9 +6,9 @@
 const WEEKLY_PAGE_FIELDS = [
   ['date', 'Дата', 'date', 1],
   ['weight', 'Вес', 'number', 1],
-  ['plans', 'Планы на неделю', 'text', 2],
+  ['plans', 'Планы на неделю', 'text', 3],
   ['belly', 'Обхват животика:', 'number', 1],
-  ['feelings', 'Мои ощущения, чувства, мысли', 'text', 2],
+  ['feelings', 'Мои ощущения, чувства, мысли', 'text', 3],
 ];
 
 const PAGE1_FIELDS = [
@@ -318,7 +318,7 @@ function buildWeeklyPageFields(lineGuideId, pageNumber, slots) {
       'Мои ощущения, чувства, мысли',
       'text',
       is60 ? 8 : 7,
-      2,
+      3,
       slots,
     ),
   ];

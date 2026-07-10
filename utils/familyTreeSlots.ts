@@ -42,53 +42,41 @@ export function getFamilyTreeSlotLabel(slotId?: string, slotIndex?: number): str
 
 const KIDS_FAMILY_TREE_PAGE = 5;
 
-/** Чуть больше диаметра — перекрыть персиковое кольцо на PNG/PDF (линия мамы). */
+/** Базовый bleed — перекрыть жёлтое декоративное кольцо макета (как gender fills на p3). */
+const FAMILY_TREE_VIEWPORT_DIAMETER_BLEED = 1.08;
+
+/** Линия мамы — чуть больше bleed для крупных кругов. */
 const FAMILY_TREE_MOTHER_VIEWPORT_DIAMETER_BLEED = 1.1;
 
-/** Линия папы — чуть меньше PDF-слота для зазора между кружками. */
-const FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE = 0.96;
+const FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_BLEED = 1.07;
 
-const FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_SCALE = 0.98;
-
-/** Форма выбора фото — те же пропорции, что в превью. */
-const FAMILY_TREE_FATHER_PICKER_DIAMETER_SCALE = 0.9;
-
-const FAMILY_TREE_CHILD_PICKER_DIAMETER_SCALE = 0.96;
-
-const FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE_BY_SLOT: Readonly<Record<string, number>> = {
-  father_great_grandmother: 0.97,
-  father_great_grandfather: 0.99,
-  father_grandmother: 0.98,
-  father_grandfather: 0.99,
-  extra_03: 0.97,
-  extra_04: 0.98,
-  extra_05: 0.97,
+const FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_BLEED_BY_SLOT: Readonly<Record<string, number>> = {
+  father_great_grandmother: 1.06,
+  father_great_grandfather: 1.08,
+  father_grandmother: 1.07,
+  father_grandfather: 1.08,
+  extra_03: 1.06,
+  extra_04: 1.07,
+  extra_05: 1.06,
 };
 
 function resolveFamilyTreeViewportDiameter(slot: NormalizedPhotoSlot): number {
   const base = Math.max(slot.width, slot.height);
   if (slot.branch === 'father') {
-    const scale =
-      (slot.slotId && FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE_BY_SLOT[slot.slotId]) ??
-      FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE;
-    return base * scale;
+    const bleed =
+      (slot.slotId && FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_BLEED_BY_SLOT[slot.slotId]) ??
+      FAMILY_TREE_VIEWPORT_DIAMETER_BLEED;
+    return base * bleed;
   }
   if (slot.branch === 'child') {
-    return base * FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_SCALE;
+    return base * FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_BLEED;
   }
   return base * FAMILY_TREE_MOTHER_VIEWPORT_DIAMETER_BLEED;
 }
 
 /** Диаметр слота в схеме дерева (норм. 0–1 относительно кадра). */
 export function getFamilyTreePickerSlotDiameterNorm(slot: NormalizedPhotoSlot): number {
-  const base = Math.max(slot.width, slot.height);
-  if (slot.branch === 'father') {
-    return base * FAMILY_TREE_FATHER_PICKER_DIAMETER_SCALE;
-  }
-  if (slot.branch === 'child') {
-    return base * FAMILY_TREE_CHILD_PICKER_DIAMETER_SCALE;
-  }
-  return base;
+  return resolveFamilyTreeViewportDiameter(slot);
 }
 
 /**

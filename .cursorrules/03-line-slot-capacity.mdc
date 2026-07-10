@@ -1,0 +1,206 @@
+---
+description: Принцип 3 — каждая строка должна иметь фактический размер; лимиты ввода = ёмкость слота
+globs: utils/albumFieldLimits.ts,utils/templateLineText.ts,scripts/audit-text-line-capacity.js,scripts/lib/text-capacity-core.js,constants/generated/album-page-schemas.ts,components/page-form-fields.tsx,utils/albumFieldInput.ts
+alwaysApply: false
+---
+
+# Принцип 3: Фактический размер каждой строки
+
+**Цель:** каждая строка должна иметь свой **фактический** размер (width × lineHeight). Пользователь не должен иметь возможность ввести текст, который на превью обрезается и не виден.
+
+---
+
+## Проблема
+
+OCR часто даёт `height` слота **слишком большим** (напр. 0.08 вместо 0.028–0.041). Симптомы:
+1. Лимит формы (`maxLength` / `getFieldCharacterLimit`) позволяет длинный текст
+2. На превью `numberOfLines={1}` + `overflow: hidden` + `ellipsizeMode="clip"` **обрезают** текст
+3. Пользователь видит пустую или усечённую строку, хотя в форме текст есть
+4. При сохранении может сработать Alert «Текст не помещается» (`truncated: true`)
+
+**Корневая причина:** рассогласование между геометрией слота (`lineHeight`), лимитом ввода и визуальным рендерингом.
+
+---
+
+## Инварианты (обязательны)
+
+### 1. Фактическая ёмкость строки
+Пересечение трёх ограничений:
+```
+capacity = min(
+  slot.width × fitFontSizeToSlot(lineHeight),
+  textFitsInSlot(text, fontSize, charWidthRatio),
+  clampTextToFieldLines(text, slots, lineCount)
+)
+```
+
+Компоненты:
+- **Геометрия слота:** `width`, `lineHeight` в `TextLineSlot`
+- **Тип слота:** `inputKind` — для `'block'` другие ratios (`lineHeight*0.78`, insets из `getTemplateBlockTextInsets()`)
+- **Размер шрифта:** `fitFontSizeToSlot()` — fontSize ≤ `lineHeight * ratio` (block vs line)
+- **Ширина глифов:** `textFitsInSlot()` / `estimateTextWidth()` / `resolveMeasureTextWidth()`
+
+### Ёмкость block-слотов (день рождения, дневник, недели)
+
+Block-слоты (`inputKind: 'block'`) имеют **другую** ёмкость чем line:
+- Эффективная ширина: `getTemplateBlockTextInsets()` уменьшает `width` (birthday: pad 8%, diary: left pad)
+- Высота: вертикальное центрирование — текст должен влезать в `lineHeight` с `centerRatio`
+- `audit-text-line-capacity` пропускает block при baseline drift, но проверяет `heuristicLimit`
+- Birthday block: `fitFontSizeToSlot` до `lineHeight*0.82`, max 18
+
+При правке block-поля проверять визуально на `holidays_birthday_60` и diary peach-ячейках.
+
+### 2. Лимит ввода в форме
+`getFieldCharacterLimit()` в `utils/albumFieldLimits.ts`:
+- Эталон: `FIELD_LIMIT_REFERENCE_VIEWPORT = { width: 2480, height: 2480 }`
+- Лимит **не должен** превышать layout capacity
+- Вычисляется через `clampTextToFieldLines()` с probe-текстом `FIELD_LIMIT_PROBE_CYRILLIC`
+
+```typescript
+// albumFieldLimits.ts — бинарный поиск max символов
+const clamped = clampTextToFieldLines({
+  text: FIELD_LIMIT_PROBE_CYRILLIC,
+  startSlotIndex: field.templateLineStart,
+  lineCount: field.templateLineCount,
+  slots, fontSize, lineGuideId, fontId, measureTextWidth,
+});
+return clamped.length;
+```
+
+### 3. truncated: true — недопустимая ситуация
+`distributeTextForTemplateAnnotation()` возвращает `truncated: true` если текст не влез.
+- Alert при сохранении уже есть в `pdf-annotations.tsx`
+- **Правило:** не допускать ситуации, когда лимит формы > layout capacity
+- При `truncated` — исправить слот height или уменьшить лимит
+
+### 4. Известные коррекции высоты слотов
+
+| Константа / функция | Альбом | Назначение |
+|---------------------|--------|------------|
+| `KIDS_MONTH_LINE_BAND_HEIGHT = 0.028` | kids_48 | Month pages: OCR даёт ~0.053, нужно 0.028 |
+| `PREGNANCY_WEEKLY_LINE_PITCH` | pregnancy_60 | Недельные страницы: фиксированный pitch |
+| `PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT` | pregnancy_60 | Компактные строки weekly |
+| `refinePregnancy60WeeklyWeightBellySlots()` | pregnancy_60 | Weight/belly slots |
+| `refineDenseContinuationGroupSpacing()` | pregnancy_60 | Плотные continuation groups |
+| `refinePregnancyWeeklyRuledLineNorms()` | pregnancy_60 | Weekly ruled lines |
+| `getPregnancyWeeklyTypographyBandHeight()` | pregnancy_60 | OCR height ~0.08 → ~0.041 |
+| `refineNormalizedSlotForTextLayout()` | diary, kids_48 | Десятки per-page overrides |
+| `PREGNANCY_WEEKLY_CALIB` + `refinePregnancy60WeeklyWeightBellySlots()` | pregnancy weekly | Вес/обхват в block без OCR-линии |
+| `pregnancy-60-weekly-line-slot-overrides.js` | pregnancy_60 | Третья строка планов, block для веса/обхват |
+
+Fallback из `LINE_GUIDES`: высота полосы = половина расстояния до соседней линии (clamp 0.012–0.12).
+
+### 5. iOS workaround
+`truncateTextToSlotWidth()` — бинарный поиск обрезки по ширине слота.
+- Применяется везде **кроме** `kids_48`
+- kids_48 полагается на slot geometry + shrink font в `layoutTextAnnotationFromSlot`
+- Не ломать эту ветку при правках
+
+### 6. Схемы полей
+Новые поля в `album-page-schemas`:
+- `templateLineStart` + `templateLineCount` → **реальные** слоты из `LINE_SLOTS`
+- `maxLength` в схеме — верхняя граница, но `getFieldCharacterLimit()` может вернуть меньше
+- Прогонять `audit-text-line-capacity` после добавления полей
+
+---
+
+## fitFontSizeToSlot (справочник)
+
+```typescript
+// templateLineText.ts
+// Diary/pregnancy: fixedLineFontSize (16) — не shrink
+// Block (inputKind): min(fontSize, lineHeight*0.78, blockMaxFontSize)
+// Birthday: min(fontSize, lineHeight*0.82, 18)
+// Default: min(fontSize, lineHeight*0.76, 16)
+```
+
+`layoutTextAnnotationFromSlot()`:
+```typescript
+rowHeight = max(typography.lineHeight, fontSize*1.05, slot.lineHeight)
+effectiveFontSize = shrink-to-fit для узких слотов
+```
+
+---
+
+## Алгоритм при правке слотов/полей
+
+```
+1. Проверить norm height слота в constants/line-slots.json
+   → если height >> соседних строк (напр. 0.08 vs 0.028) — это баг
+
+2. Исправить height:
+   a) refine в scripts/generate-line-slots.js (post-OCR override)
+   b) или runtime refine в utils/textLineSlots.ts (refineNormalizedSlotForTextLayout)
+
+3. Bump cache-key суффикса в textLineSlots.ts
+
+4. Пересчитать getFieldCharacterLimit для затронутых полей
+   → убедиться maxLength схемы ≥ layout limit (или уменьшить maxLength)
+
+5. npm run audit:text-line-capacity:fail
+
+6. Визуально: assets/debug/line-slots/<album>/page_XXX.png
+```
+
+---
+
+## audit-text-line-capacity
+
+Скрипт: `scripts/audit-text-line-capacity.js`
+
+Проверяет для каждого поля designed-альбома:
+- Слоты существуют и не пустые
+- `heuristicLimit` (layout) vs `exportLimit` (с font metrics)
+- `maxLength` схемы не превышает capacity
+- Узкие слоты (`SLOT_NARROW_RATIO`)
+- Baseline drift (`BASELINE_DRIFT_MM`)
+
+```bash
+# Полный audit с fail
+npm run audit:text-line-capacity:fail
+
+# Только один альбом
+ONLY_ALBUM=kids_48 FAIL_ON_ERROR=1 node scripts/audit-text-line-capacity.js
+```
+
+Blocking issue codes: `scripts/lib/text-capacity-core.js` → `BLOCKING_ISSUE_CODES`.
+
+---
+
+## Клиппинг на превью (понимание)
+
+1. `numberOfLines={1}` + `ellipsizeMode="clip"` — одна строка, обрезка без «…»
+2. `overflow: 'hidden'` на контейнерах
+3. `truncateTextToSlotWidth()` — защита от iOS сжатия (кроме kids_48)
+4. Логический клип: `truncated` flag → Alert
+5. Форма: `clampTextToFieldLines()` / `sanitizeFieldInput()` при вводе
+
+**Цель правок:** клиппинг не должен срабатывать для текста в пределах лимита формы.
+
+---
+
+## Запрещено
+
+- Увеличивать `maxLength` в схеме без `audit:text-line-capacity`
+- Оставлять OCR height 0.08+ на строках с pitch 0.028–0.041
+- Использовать `ellipsizeMode="tail"` (с «…») для template lines — только `"clip"`
+- Полагаться на viewport телефона для лимитов — только эталон 2480×2480
+- Игнорировать `truncated: true` при тестировании
+
+---
+
+## Верификация
+
+```bash
+npm run audit:text-line-capacity:fail
+npm run calibrate:font-char-widths
+FAIL_ON_ERROR=1 node scripts/audit-text-line-capacity.js
+npm run verify:designed-albums
+```
+
+### При добавлении нового поля
+1. Привязать к реальным слотам (`templateLineStart`, `templateLineCount`)
+2. Запустить `getFieldCharacterLimit()` для поля
+3. Установить `maxLength` в схеме ≤ layout limit
+4. Прогнать audit для страницы
+5. Визуально проверить ввод максимальной длины на превью

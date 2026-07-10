@@ -5,6 +5,8 @@
  */
 const LINE_SLOTS = require('../constants/line-slots.json');
 
+const { applyPregnancy60WeeklyLineSlotOverrides } = require('./pregnancy-60-weekly-line-slot-overrides');
+
 const COMPACT = 0.035;
 const PITCH = 0.0412;
 const INLINE_TAIL_MIN_X_GAP = 0.015;
@@ -48,21 +50,32 @@ function findInlineTail(slots, bodyStartIndex, groupId, bellyIndex) {
   return labelSlot;
 }
 
+function filterPregnancyWeeklyPlanSpuriousBodySlots(bodySlots) {
+  if (bodySlots.length < 3) return bodySlots;
+  const indices = new Set(bodySlots.map((slot) => slot.index));
+  if (indices.has(3) && indices.has(4) && indices.has(5)) {
+    return bodySlots.filter((slot) => slot.index !== 5);
+  }
+  return bodySlots;
+}
+
 function resolveWeeklyFieldLineSlots(slots, startSlotIndex, lineCount, bellyIndex) {
   const startSlot = slots[startSlotIndex];
   if (!startSlot || lineCount <= 0) return [];
   const groupId = startSlot.continuationGroup;
-  const bodySlots = slots
-    .filter(
-      (s) =>
-        s.continuationGroup === groupId &&
-        s.index >= startSlotIndex &&
-        !s.hasLabel &&
-        (s.inputKind ?? 'line') === 'line' &&
-        s.index !== 1 &&
-        s.index !== bellyIndex,
-    )
-    .sort((a, b) => a.index - b.index);
+  const bodySlots = filterPregnancyWeeklyPlanSpuriousBodySlots(
+    slots
+      .filter(
+        (s) =>
+          s.continuationGroup === groupId &&
+          s.index >= startSlotIndex &&
+          !s.hasLabel &&
+          (s.inputKind ?? 'line') === 'line' &&
+          s.index !== 1 &&
+          s.index !== bellyIndex,
+      )
+      .sort((a, b) => a.index - b.index),
+  );
   const labelTail = findInlineTail(slots, startSlotIndex, groupId, bellyIndex);
   const fieldSlots = labelTail ? [labelTail, ...bodySlots] : bodySlots;
   return fieldSlots.slice(0, lineCount);
@@ -92,8 +105,10 @@ function distributeWithinFieldLines(text, startSlotIndex, lineCount, slots, bell
 }
 
 const page = '9';
-const raw = LINE_SLOTS.pregnancy_60[page];
-const guides = require('../constants/line-guides.json').pregnancy_60[page];
+const rawBase = LINE_SLOTS.pregnancy_60[page];
+const guidesBase = require('../constants/line-guides.json').pregnancy_60;
+const raw = rawBase;
+const guides = guidesBase[page];
 const norms = refineWeeklyNorms(raw, guides, 6);
 const slots = norms.map((n, index) => ({ ...n, index }));
 
@@ -125,16 +140,16 @@ assert(
   `plans first segment on inline tail slot 2, got ${JSON.stringify(plans[0])}`,
 );
 
-const feelingsField = resolveWeeklyFieldLineSlots(slots, 8, 2, 6);
+const feelingsField = resolveWeeklyFieldLineSlots(slots, 8, 3, 6);
 assert(
-  feelingsField.map((s) => s.index).join(',') === '7,8',
+  feelingsField.map((s) => s.index).join(',') === '7,8,9',
   `feelings field slots: ${feelingsField.map((s) => s.index).join(',')}`,
 );
 
 const feelings = distributeWithinFieldLines(
   'тошнит иногда и живот болит',
   8,
-  2,
+  3,
   slots,
   6,
 );

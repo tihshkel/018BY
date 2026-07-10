@@ -8,6 +8,7 @@ struct BYWidgetBundle: WidgetBundle {
         MyProjectsWidget()
         ContinueWidget()
         ReminderWidget()
+        NotificationsWidget()
         PregnancyWidget()
     }
 }

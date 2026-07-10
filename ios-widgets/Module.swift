@@ -9,8 +9,13 @@ public class ExpoWidgetsModule: Module {
         Name("ExpoWidgets")
 
         Function("setWidgetData") { (data: String) -> Void in
-            let widgetSuite = UserDefaults(suiteName: widgetSuiteName)
-            widgetSuite?.set(data, forKey: widgetDataKey)
+            guard let widgetSuite = UserDefaults(suiteName: widgetSuiteName) else {
+                #if DEBUG
+                print("[ExpoWidgets] App Group unavailable: \(widgetSuiteName)")
+                #endif
+                return
+            }
+            widgetSuite.set(data, forKey: widgetDataKey)
 
             if #available(iOS 14.0, *) {
                 WidgetCenter.shared.reloadAllTimelines()

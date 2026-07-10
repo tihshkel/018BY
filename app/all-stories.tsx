@@ -21,6 +21,7 @@ const PHONE_HORIZONTAL_PAD = 20;
 import * as Haptics from 'expo-haptics';
 import { resolveAlbumEntryPath } from '@/utils/albumIntro';
 import { buildAlbumIntroHref, buildAlbumPagesHref } from '@/utils/albumNavigation';
+import { buildAlbumFlowParamsFromProject } from '@/utils/albumFlowParams';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
@@ -72,10 +73,11 @@ export default function AllStoriesScreen() {
 
   const openProject = async (project: UserProject) => {
     const entry = await resolveAlbumEntryPath(project.id);
+    const flowParams = buildAlbumFlowParamsFromProject(project);
     router.push(
       entry === 'album-intro'
-        ? buildAlbumIntroHref({ id: project.id })
-        : buildAlbumPagesHref({ id: project.id })
+        ? buildAlbumIntroHref(flowParams)
+        : buildAlbumPagesHref(flowParams)
     );
   };
 

@@ -1,4 +1,4 @@
-import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
+import type { AlbumPageSchema, FieldType, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Href } from 'expo-router';
 import { router } from 'expo-router';
 
@@ -23,10 +23,42 @@ export function usesUnifiedPhotoEditor(schema: AlbumPageSchema | undefined): boo
   return hasPhotoBlocks(schema);
 }
 
+const TYPOGRAPHY_FIELD_TYPES: ReadonlySet<FieldType> = new Set([
+  'text',
+  'date',
+  'time',
+  'number',
+]);
+
 /** Страницы с текстовым вводом помимо «голых» photoBlocks (customFieldDefs, free canvas и т.д.). */
 export function hasFormTextInput(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;
   if ((schema.fields?.length ?? 0) > 0) return true;
+  if (schema.captionEnabled) return true;
+  if (
+    schema.pageType === 'birthday_free_page' &&
+    (schema.customFieldDefs?.length ?? 0) > 0
+  ) {
+    return true;
+  }
+  if (
+    schema.pageType === 'free_page' ||
+    schema.pageType === 'timeline_page' ||
+    schema.pageType === 'text_page'
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Текст, который пользователь вводит и который рисуется выбранным шрифтом (не чекбоксы/радио). */
+export function hasTypographyEditableContent(
+  schema: AlbumPageSchema | undefined,
+): boolean {
+  if (!schema) return false;
+  if (schema.fields?.some((field) => TYPOGRAPHY_FIELD_TYPES.has(field.type))) {
+    return true;
+  }
   if (schema.captionEnabled) return true;
   if (
     schema.pageType === 'birthday_free_page' &&

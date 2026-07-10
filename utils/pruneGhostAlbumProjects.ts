@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { hasSeenAlbumIntro } from '@/utils/albumIntro';
 import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import type { UserProject } from '@/utils/userProjects';
 
@@ -60,6 +59,24 @@ function hasPageValuesContent(raw: string | null): boolean {
   });
 }
 
+async function hasIncrementalPageContent(projectId: string): Promise<boolean> {
+  const prefix = `@project_pv_${projectId}_`;
+  const keys = await AsyncStorage.getAllKeys();
+  for (const key of keys) {
+    if (!key.startsWith(prefix)) continue;
+    const raw = await AsyncStorage.getItem(key);
+    if (hasPageValuesContent(raw)) return true;
+  }
+  return false;
+}
+
+async function hasAnyPageContent(projectId: string): Promise<boolean> {
+  if (hasPageValuesContent(await AsyncStorage.getItem(`@project_page_values_${projectId}`))) {
+    return true;
+  }
+  return hasIncrementalPageContent(projectId);
+}
+
 function projectFingerprint(project: Record<string, unknown>): string {
   return [
     String(project.category ?? ''),
@@ -73,17 +90,9 @@ async function scoreProject(project: Record<string, unknown>): Promise<number> {
   if (!id) return -1;
 
   const images = safeParseArray(await AsyncStorage.getItem(`@project_images_${id}`));
-  const hasContent = hasPageValuesContent(
-    await AsyncStorage.getItem(`@project_page_values_${id}`),
-  );
-  const introSeen = await hasSeenAlbumIntro(id);
-  const pagesCount = typeof project.pagesCount === 'number' ? project.pagesCount : 0;
+  const hasContent = await hasAnyPageContent(id);
 
-  return (
-    (hasContent ? 20_000 : 0) +
-    (introSeen ? 5_000 : 0) +
-    Math.max(images.length, pagesCount)
-  );
+  return (hasContent ? 20_000 : 0) + images.length;
 }
 
 /**
@@ -127,7 +136,7 @@ export async function pruneGhostAlbumProjects(): Promise<number> {
 
     for (let index = 1; index < ranked.length; index += 1) {
       const entry = ranked[index];
-      if (entry.score >= 5_000) continue;
+      if (entry.score >= 20_000) continue;
 
       await deleteUserProjectLocally({
         id: String(entry.project.id),

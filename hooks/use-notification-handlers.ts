@@ -8,6 +8,7 @@ import { Platform } from 'react-native';
 
 import { useNotificationTabContext } from '@/contexts/notification-tab-context';
 import { recordNotificationToInbox } from '@/utils/notificationInbox';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 const LAST_HANDLED_RESPONSE_KEY = '@last_handled_notification_response';
@@ -50,12 +51,14 @@ export function useNotificationHandlers() {
       }
 
       await recordNotificationToInbox(response.notification);
+      void syncWidgetSnapshot();
       activateNotificationTab();
       await openNotificationsScreen();
     };
 
     const receivedSubscription = Notifications.addNotificationReceivedListener(async (event) => {
       await recordNotificationToInbox(event);
+      void syncWidgetSnapshot();
     });
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {

@@ -3,9 +3,10 @@ import type { Annotation } from '@/components/pdf-annotations';
 import { computePageStatus } from '@/utils/pageStatus';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
 import {
-  resolvePhotoPageCleanBackgroundUri,
+  resolvePageOutputBackgroundUri,
   resolvePrimaryPhotoVariantId,
 } from '@/utils/pagePreviewBackground';
+import { hasVariantPreviewManifest } from '@/utils/variantPreview';
 import { resolveExportPageImageUri } from '@/utils/resolveInstancePageImage';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { createEmptyPageValues } from '@/utils/pageStorage';
@@ -272,17 +273,34 @@ export function filterProjectDataForExport(params: {
     const values = pageValuesMap[instance.instanceId] ?? createEmptyPageValues();
     const resolvedSchema = enrichSchemaWithPhotoBlocks(schema);
     const sourcePageNumber = instance.sourcePageNumber ?? schema.sourcePageNumber;
-    let imageUri = baseImageUri;
-    if (resolvedSchema.photoBlocks?.length) {
+    const hasPhotoBlocks = Boolean(resolvedSchema.photoBlocks?.length);
+    const requiresCleanBackground =
+      hasPhotoBlocks && hasVariantPreviewManifest(lineGuideId, sourcePageNumber);
+
+    let imageUri: string | null = requiresCleanBackground ? null : baseImageUri;
+    if (hasPhotoBlocks) {
       const variantId = resolvePrimaryPhotoVariantId(values, resolvedSchema);
-      const cleanUri = resolvePhotoPageCleanBackgroundUri({
+      const outputUri = resolvePageOutputBackgroundUri({
         lineGuideId,
         sourcePageNumber,
         variantId,
-        fallbackUri: baseImageUri,
+        baseImageUri,
+        hasPhotoBlocks: true,
       });
-      if (cleanUri) imageUri = cleanUri;
+      if (outputUri) {
+        imageUri = outputUri;
+      } else if (requiresCleanBackground) {
+        console.warn(
+          `[export] Clean preview_variants background missing for ${lineGuideId} page ${sourcePageNumber} (variant=${variantId ?? 'default'})`,
+        );
+      } else if (!imageUri) {
+        imageUri = baseImageUri;
+      }
+    } else {
+      imageUri = baseImageUri;
     }
+
+    if (!imageUri) continue;
 
     filteredImages.push(imageUri);
     const targetPageNumber = filteredImages.length;
