@@ -1,4 +1,5 @@
 import type { Annotation } from '@/components/pdf-annotations';
+import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import type { ContentRect } from '@/utils/imageContentRect';
@@ -7,12 +8,14 @@ import {
   getTemplateLayout,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
+import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
   estimateTemplateFontSize,
   fitTextToTemplateBlock,
   mapTemplateFrameToViewport,
 } from '@/utils/templateTextLayout';
+import { wrapTextToLines } from '@/utils/textWrap';
 
 type AppendParams = {
   schema: AlbumPageSchema;
@@ -187,6 +190,168 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
       width: rect.width,
       height: rect.height,
     });
+  }
+
+  return { annotations, zIndex };
+}
+
+type PhotoSlotCaptionParams = AppendParams & {
+  viewportWidth: number;
+  viewportHeight: number;
+  sourceWidth?: number;
+  sourceHeight?: number;
+};
+
+const PHOTO_CAPTION_LINE_HEIGHT = 1.15;
+const PHOTO_CAPTION_PADDING = 4;
+
+function layoutCaptionBelowPhoto(params: {
+  text: string;
+  photoRect: { x: number; y: number; width: number; height: number };
+  contentRect: ContentRect;
+  fontSize: number;
+  textFontFamily: string;
+}): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  lines: string[];
+  fontSize: number;
+} | null {
+  const { text, photoRect, contentRect, fontSize, textFontFamily } = params;
+  const trimmed = text.trim();
+  if (!trimmed || photoRect.width <= 0) return null;
+
+  const gap = contentRect.height * 0.012;
+  const captionY = photoRect.y + photoRect.height + gap;
+  const pageBottom = contentRect.offsetY + contentRect.height * 0.93;
+  const maxHeight = Math.max(28, pageBottom - captionY);
+  const charWidthRatio =
+    0.62 * getAlbumFontCharWidthMultiplier(textFontFamily) * 1.04;
+  const preferredFontSize = Math.max(fontSize, 18);
+  const minFontSize = 14;
+
+  for (let captionFontSize = preferredFontSize; captionFontSize >= minFontSize; captionFontSize -= 1) {
+    const lines = wrapTextToLines(trimmed, photoRect.width, captionFontSize, {
+      paddingPx: PHOTO_CAPTION_PADDING,
+      charWidthRatio,
+    });
+    const neededHeight =
+      lines.length * captionFontSize * PHOTO_CAPTION_LINE_HEIGHT + PHOTO_CAPTION_PADDING;
+    if (neededHeight <= maxHeight) {
+      return {
+        x: photoRect.x,
+        y: captionY,
+        width: photoRect.width,
+        height: neededHeight,
+        lines,
+        fontSize: captionFontSize,
+      };
+    }
+  }
+
+  const captionFontSize = minFontSize;
+  const lines = wrapTextToLines(trimmed, photoRect.width, captionFontSize, {
+    paddingPx: PHOTO_CAPTION_PADDING,
+    charWidthRatio,
+  });
+  const lineBlockHeight = captionFontSize * PHOTO_CAPTION_LINE_HEIGHT;
+  const maxLines = Math.max(1, Math.floor((maxHeight - PHOTO_CAPTION_PADDING) / lineBlockHeight));
+  return {
+    x: photoRect.x,
+    y: captionY,
+    width: photoRect.width,
+    height: Math.min(maxHeight, maxLines * lineBlockHeight + PHOTO_CAPTION_PADDING),
+    lines: lines.slice(0, maxLines),
+    fontSize: captionFontSize,
+  };
+}
+
+/** Подписи под фото по позиции слота — для designed-альбомов без templateLibraryId и line-slots. */
+export function appendPhotoSlotCaptionAnnotations(params: PhotoSlotCaptionParams): {
+  annotations: Annotation[];
+  zIndex: number;
+} {
+  const {
+    schema,
+    values,
+    lineGuideId,
+    editorContentRect,
+    viewportWidth,
+    viewportHeight,
+    sourceWidth,
+    sourceHeight,
+    fontSize,
+    textFontFamily,
+  } = params;
+
+  let zIndex = params.zIndex;
+  const annotations: Annotation[] = [];
+
+  if (schema.pageType !== 'caption_photo_page' || !values.photoCaptions?.length) {
+    return { annotations, zIndex };
+  }
+
+  for (const block of schema.photoBlocks ?? []) {
+    const blockValues = values.photoBlocks?.[block.blockId];
+    if (!blockValues) continue;
+
+    const variant =
+      block.variants.find((item) => item.variantId === blockValues.variantId) ??
+      block.variants[0];
+    if (!variant) continue;
+
+    for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
+      const text = values.photoCaptions[slotIndex];
+      if (!hasText(text)) continue;
+
+      const photoRect = getPhotoSlotViewportRect({
+        lineGuideId,
+        page: schema.sourcePageNumber,
+        variantId: variant.variantId,
+        slotIndex,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth,
+        sourceHeight,
+        contentRect: editorContentRect,
+        templateLibraryId: schema.templateLibraryId,
+      });
+      if (!photoRect) continue;
+
+      const layout = layoutCaptionBelowPhoto({
+        text: text!,
+        photoRect,
+        contentRect: editorContentRect,
+        fontSize,
+        textFontFamily,
+      });
+      if (!layout || layout.lines.length === 0) continue;
+
+      annotations.push({
+        id: stableAnnotationId(
+          'photo-slot-caption',
+          lineGuideId,
+          schema.sourcePageNumber,
+          block.blockId,
+          slotIndex,
+        ),
+        type: 'text',
+        page: schema.sourcePageNumber,
+        content: layout.lines.join('\n'),
+        fontSize: layout.fontSize,
+        fontFamily: textFontFamily,
+        color: '#3D3D3D',
+        textAlign: 'center',
+        zIndex: zIndex++,
+        sourcePageNumber: schema.sourcePageNumber,
+        x: layout.x,
+        y: layout.y,
+        width: layout.width,
+        height: layout.height,
+      });
+    }
   }
 
   return { annotations, zIndex };

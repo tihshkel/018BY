@@ -854,6 +854,25 @@ export function isBrownWishContinuationNorm(
   );
 }
 
+/** Стр. 6 «Твоя анкета»: зона ответа справа от печатной подписи (норм. координаты). */
+const BROWN_PAGE6_ANSWER_ROWS: Readonly<Record<number, { x: number; width: number }>> = {
+  4: { x: 0.455, width: 0.457 },
+  5: { x: 0.655, width: 0.257 },
+  6: { x: 0.535, width: 0.377 },
+  7: { x: 0.475, width: 0.437 },
+};
+
+function refineBrownPage6GirlProfileAnswerNorm(
+  page: number,
+  slotIndex: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (page !== 6 || norm.hasLabel || norm.inputKind === 'block') return norm;
+  const row = BROWN_PAGE6_ANSWER_ROWS[slotIndex];
+  if (!row) return norm;
+  return { ...norm, x: row.x, width: row.width };
+}
+
 function refineBrownParentQuestionnaireRowNorm(
   lineGuideId: string,
   page: number,
@@ -1038,6 +1057,7 @@ function refineNormalizedSlotForTextLayout(
 
   let refined = refineBrownParentQuestionnaireRowNorm(lineGuideId, page, norm);
   if (lineGuideId === 'diary_interior_brown') {
+    refined = refineBrownPage6GirlProfileAnswerNorm(page, slotIndex, refined);
     refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
     refined = refineBrownPage15PeachLineNorm(page, refined);
     refined = refineBrownPage17UniformHeightNorm(page, refined);
@@ -1090,7 +1110,7 @@ function refineNormalizedSlotForTextLayout(
     const right = Math.max(refined.x + refined.width, BROWN_WISH_CONTINUATION_LEFT_NORM + 0.72);
     const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
     const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
-    return { ...refined, x, width, inputKind: 'block' as const };
+    return { ...refined, x, width, inputKind: 'line' as const };
   }
 
   if (isBrownWishShortHeadNorm(lineGuideId, refined)) {

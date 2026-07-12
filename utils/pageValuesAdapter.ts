@@ -40,6 +40,7 @@ import { mapMarkerToViewport } from '@/utils/travelMap';
 import {
   appendBlankTemplateFreeImageAnnotations,
   appendBlankTemplateTextAnnotations,
+  appendPhotoSlotCaptionAnnotations,
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
 
@@ -604,6 +605,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       schema.pageType === 'caption_photo_page'
     ) {
       const labelSlots = slots.filter((s) => s.hasLabel);
+      let labelCaptionCount = 0;
       for (let i = 0; i < values.photoCaptions.length; i += 1) {
         const text = values.photoCaptions[i]?.trim();
         if (!text) continue;
@@ -624,6 +626,25 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           templateLineStart: slot.index,
           templateLineCount: 1,
         });
+        labelCaptionCount += 1;
+      }
+
+      if (labelCaptionCount === 0) {
+        const slotCaptions = appendPhotoSlotCaptionAnnotations({
+          schema,
+          values,
+          lineGuideId,
+          editorContentRect,
+          viewportWidth,
+          viewportHeight,
+          sourceWidth,
+          sourceHeight,
+          fontSize,
+          textFontFamily,
+          zIndex,
+        });
+        annotations.push(...slotCaptions.annotations);
+        zIndex = slotCaptions.zIndex;
       }
     }
   }

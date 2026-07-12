@@ -13962,7 +13962,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 11,
-          "templateLineCount": 1
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,

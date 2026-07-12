@@ -15,7 +15,7 @@ const USER_QUESTIONNAIRE_FIELDS = [
   ['favoriteAnimal', 'Любимое животное', 'text', 1],
   ['bestFriend', 'Лучшая подруга', 'text', 1],
   ['bestFriendMale', 'Лучший друг', 'text', 1],
-  ['careerWish', 'Кем я хочу стать', 'text', 1],
+  ['careerWish', 'Кем я хочу стать', 'text', 2],
 ];
 
 const PARENT_MOM_FIELDS = [
