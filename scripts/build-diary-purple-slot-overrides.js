@@ -83,178 +83,189 @@ def diary_owner_slots():
     ]
 
 def diary_rules_slots():
-    return [slot_dict(0.219, 0.0895, 0.5003, 0.028, 0, 'line')]
+    # Страница «Правила» — только чтение, без полей ввода.
+    return []
 
 def girl_profile_slots():
     all_rows = questionnaire_slots(5, y_gap=0.034, y_min=0.225)
     main = [s for s in all_rows if s['y'] <= 0.72][:11]
-    career_rows = [s for s in all_rows if s['y'] >= 0.755 and s['width'] > 0.5]
+    # Хвост после «?» на строке вопроса + продолжение на следующей линии.
     slots = list(main)
-    if career_rows:
-        slots.append({**career_rows[0], 'inputKind': 'line'})
-    return finalize_answer_slots(slots[:12])
+    slots.append(slot_dict(0.7309, 0.6604, 0.2527, 0.028, len(slots), 'line'))
+    slots.append(slot_dict(0.7701, 0.0954, 0.8176, 0.028, len(slots) - 1, 'line'))
+    return finalize_answer_slots(slots)
 
 def parent_profile_slots(pnum):
     slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.20)
-    answer = slots[:12]
-    wish_blocks = [s for s in slots if s['width'] > 0.6 and s['y'] >= 0.78][:2]
-    wishes = []
-    for block in wish_blocks:
-        wishes.append(block)
-        wishes.append({**block, 'y': round(block['y'] - 0.036, 4), 'inputKind': 'block'})
-    return finalize_answer_slots(answer + wishes[:4])
+    answer = finalize_answer_slots(slots[:12])
+    # Хвост после «Пожелания хозяйке дневника:» + 3 строки ниже.
+    # x без +0.008 — отступ даёт applyDiaryUniformLineInset при отрисовке.
+    wishes = [
+        slot_dict(0.7709, 0.508, 0.409, 0.028, 12, 'line'),
+        slot_dict(0.8069, 0.0863, 0.8307, 0.028, 12, 'line'),
+        slot_dict(0.8429, 0.0863, 0.8307, 0.028, 12, 'line'),
+        slot_dict(0.8789, 0.0863, 0.8307, 0.028, 12, 'line'),
+    ]
+    return answer + wishes
 
 def hobby_slots():
-    slots = questionnaire_slots(8, y_gap=0.034, y_min=0.15)
-    filtered = []
-    for s in slots:
-        if (
-            s['y'] >= 0.34 and s['y'] <= 0.39
-            and s['x'] >= 0.65 and s['width'] <= 0.25
-        ):
-            continue
-        filtered.append(s)
-    return finalize_answer_slots(filtered[:12])
+    # 17 штрихов: хобби×2, спорт×2 (хвост+полная), одна×2, затем 11 одиночных.
+    return strokes_to_slots(pdf_writing_strokes(8, y_min=0.2, min_w=0.08)[:17])
 
-def my_day_slots(pnum=9):
+def pdf_writing_strokes(pnum, y_min=0.2, min_w=0.08, max_h=0.015):
+    """Горизонтальные штрихи полей ввода из PDF (y = низ линии)."""
     page = pdf[pnum - 1]
     W, H = page.rect.width, page.rect.height
-    strokes = []
+    raw = []
     for d in page.get_drawings():
         r = d['rect']
         w, h = r.width / W, (r.y1 - r.y0) / H
-        strokes.append((r.y1 / H, r.x0 / W, w, h))
+        y, x = r.y1 / H, r.x0 / W
+        if w >= min_w and h <= max_h and y > y_min:
+            raw.append((round(y, 4), round(x, 4), round(w, 4)))
+    return sorted(set(raw))
 
-    def pick_line(y_min, y_max, min_w=0.12, max_w=0.45):
-        for sy, x, w, h in sorted(strokes):
-            if y_min <= sy <= y_max and min_w <= w <= max_w:
-                return slot_dict(sy, x, w, 0.028, 0, 'line')
-        return None
-
-    # «За сегодня» (day_story): calibrated on page_009_my-day_300dpi.png (2219×2927).
-    # User text start top-left: x=944, y=635. Slot norm.y is the bottom stroke of the line band.
-    my_day_story_ref_w = 2219.0
-    my_day_story_ref_h = 2927.0
-    my_day_story_x = round(944 / my_day_story_ref_w, 4)
-    my_day_story_top = round(635 / my_day_story_ref_h, 4)
-    my_day_story_h = 0.032
-    my_day_story_row_gap = 0.0356
-    my_day_story_width = round(0.9192 - my_day_story_x, 4)
-    my_day_story_first_bottom = round(my_day_story_top + my_day_story_h, 4)
-
-    mood = pick_line(0.54, 0.62, 0.12, 0.45)
-    smile_lines = sorted([(sy, x, w) for sy, x, w, h in strokes if w > 0.6 and sy > 0.72])[:4]
-
+def strokes_to_slots(strokes):
     slots = []
-    for i in range(5):
-        sy = round(my_day_story_first_bottom + i * my_day_story_row_gap, 4)
-        slots.append(
-            slot_dict(sy, my_day_story_x, my_day_story_width, my_day_story_h, len(slots), 'block')
-        )
-    if mood:
-        slots.append(mood)
-    for sy, x, w in smile_lines:
-        slots.append(slot_dict(sy, x, w, 0.032, len(slots), 'line'))
-    for i, s in enumerate(slots):
-        s['continuationGroup'] = i + 1
-        s['hasLabel'] = False
+    for i, (y, x, w) in enumerate(strokes):
+        slots.append(slot_dict(y, x, w, 0.028, i, 'line'))
+        slots[-1]['continuationGroup'] = i + 1
+        slots[-1]['hasLabel'] = False
     return slots
 
+def my_day_slots(pnum=9):
+    # 8 строк «за сегодня» (x≈0.11) + 7 строк «улыбаться» (x≈0.15); без нижней кромки блока.
+    strokes = [
+        (y, x, w)
+        for y, x, w in pdf_writing_strokes(pnum, y_min=0.25)
+        if y < 0.96 and w >= 0.5
+    ]
+    return strokes_to_slots(strokes[:15])
+
 def pets_slots():
-    rows = questionnaire_slots(10, y_gap=0.034, y_min=0.18)
-    singles = sorted(
-        [s for s in rows if s['y'] < 0.48 and s['width'] >= 0.35],
-        key=lambda s: s['y'],
-    )[:5]
-    stories = sorted(
-        [s for s in rows if s['y'] >= 0.48 and s['width'] > 0.6],
-        key=lambda s: s['y'],
-    )[:3]
-    return finalize_answer_slots(singles + stories)
+    return strokes_to_slots(pdf_writing_strokes(10)[:11])
 
 def social_slots():
-    slots = questionnaire_slots(12, y_gap=0.034, y_min=0.25)
-    return finalize_answer_slots([s for s in slots if s['width'] >= 0.35][:6], prefer_line=True)
+    return strokes_to_slots(pdf_writing_strokes(12)[:15])
 
 def mood_slots():
-    slots = questionnaire_slots(14, y_gap=0.034, y_min=0.28)
-    return finalize_answer_slots([s for s in slots if s['y'] >= 0.28][:9])
+    return strokes_to_slots(pdf_writing_strokes(14)[:13])
+
+def style_slots():
+    # 8 ответов-хвостов + 4 «модные мечты»; разделитель ~0.663 не берём.
+    strokes = pdf_writing_strokes(16)
+    answers = [s for s in strokes if s[0] < 0.62][:8]
+    dreams = [s for s in strokes if s[0] > 0.75][:4]
+    return strokes_to_slots(answers + dreams)
+
+def first_love_slots():
+    return strokes_to_slots(pdf_writing_strokes(18)[:15])
 
 def school_slots():
-    slots = questionnaire_slots(22, y_gap=0.034, y_min=0.30)
-    return finalize_answer_slots([s for s in slots if s['y'] >= 0.31][:9])
+    return strokes_to_slots(pdf_writing_strokes(22)[:14])
 
 def sunday_slots():
-    slots = questionnaire_slots(27, y_gap=0.034, y_min=0.20)
-    wide = [s for s in slots if s['width'] > 0.55 and s['y'] < 0.55][:5]
-    return finalize_answer_slots(wide if len(wide) >= 5 else slots[:5])
-
-def friend_questionnaire_slots(pnum):
-    main_y_max = 0.695
-    rows = questionnaire_slots(pnum, y_gap=0.034, y_min=0.15)
-    ref_main = [
-        s for s in questionnaire_slots(28, y_gap=0.034, y_min=0.15) if s['y'] < main_y_max
-    ][:16]
-
-    main_rows = sorted([s for s in rows if s['y'] < main_y_max], key=lambda s: s['y'])
-    lower_rows = sorted([s for s in rows if s['y'] >= main_y_max], key=lambda s: s['y'])
-
-    singles = []
-    for i in range(16):
-        if i < len(main_rows):
-            singles.append(main_rows[i])
-        elif i < len(ref_main):
-            singles.append({**ref_main[i], 'continuationGroup': i + 1})
-
-    wish_candidates = [s for s in lower_rows if s['width'] > 0.55]
-    wishes = wish_candidates[:1] if wish_candidates else (lower_rows[:1] if lower_rows else [])
-    social = [s for s in lower_rows if s not in wishes][:3]
-
-    if not wishes and ref_main:
-        ref_lower = sorted(
-            [s for s in questionnaire_slots(28, y_gap=0.034, y_min=0.15) if s['y'] >= main_y_max],
-            key=lambda s: s['y'],
-        )
-        ref_wish = [s for s in ref_lower if s['width'] > 0.55][:1]
-        wishes = ref_wish[:1]
-        if not social:
-            social = [s for s in ref_lower if s not in wishes][:3]
-
-    if wishes and len(social) < 3:
-        anchor = wishes[0]
-        anchor_y = anchor['y']
-        anchor_x = min(anchor['x'], 0.088)
-        anchor_w = max(anchor['width'], 0.55)
-        while len(social) < 3:
-            y = round(anchor_y + 0.042 * (1 + len(social)), 4)
-            if y > 0.945:
-                break
-            social.append(
-                slot_dict(y, anchor_x, anchor_w, 0.028, 16 + len(wishes) + len(social), 'line')
-            )
-
-    return finalize_answer_slots(singles[:16] + wishes[:1] + social[:3])
-
-def weekly_page_26_slots():
-    raw = [
+    # Верхний блок: 5 полей, первая линия письма ≈0.1789 (не 0.2229).
+    top = [
+        (0.0865, 0.1789, 0.8318),
         (0.0865, 0.2229, 0.8318),
         (0.0865, 0.2669, 0.8318),
-        (0.0865, 0.3108, 0.619),
-        (0.0865, 0.3548, 0.5706),
-        (0.0893, 0.3988, 0.5923),
-        (0.0865, 0.6709, 0.8318),
-        (0.0865, 0.7148, 0.8318),
-        (0.0865, 0.7588, 0.8318),
-        (0.0865, 0.8028, 0.619),
-        (0.0865, 0.8468, 0.5706),
+        (0.2993, 0.3108, 0.619),
+        (0.3477, 0.3548, 0.5706),
     ]
     return finalize_answer_slots(
-        [slot_dict(y, x, w, 0.028, i, 'line') for i, (x, y, w) in enumerate(raw)],
+        [slot_dict(y, x, w, 0.028, i, 'line') for i, (x, y, w) in enumerate(top)],
         prefer_line=True,
     )
 
+def friend_wish_slots(pnum):
+    """2 линии пожеланий: хвост после «:» + продолжение с шагом ~0.034."""
+    head = friend_wish_head_slot(pnum)
+    cont_y = round(head['y'] + 0.034, 4)
+    # Не залезать на ряд Instagram (~0.82); «Ники…» ≈0.7887 — не Instagram.
+    cont_y = min(cont_y, 0.805)
+    cont = slot_dict(cont_y, 0.0886, 0.55, 0.028, 17, 'line')
+    head['continuationGroup'] = 17
+    cont['continuationGroup'] = 17
+    return [head, cont]
+
+def friend_wish_head_slot(pnum):
+    """Хвост сразу после «Пожелания хозяйке анкеты:»."""
+    strokes = pdf_writing_strokes(pnum, y_min=0.74, min_w=0.35, max_h=0.02)
+    heads = [
+        (y, x, w)
+        for y, x, w in strokes
+        if 0.74 <= y <= 0.77 and 0.35 <= x <= 0.55 and 0.35 <= w <= 0.55
+    ]
+    if heads:
+        y, x, w = sorted(heads, key=lambda t: t[0])[0]
+        return slot_dict(y, x, w, 0.028, 16, 'line')
+    return slot_dict(0.7532, 0.4382, 0.4815, 0.028, 16, 'line')
+
+def friend_questionnaire_slots(pnum):
+    """16 полей анкеты: одна сетка как на стр. 28.
+
+    На 29/30/33 PDF отдаёт меньше штрихов (иллюстрация закрывает линии),
+    а добор из ref_main раньше давал дубли Y → наслоение текстов.
+    """
+    main_y_max = 0.695
+    ref_main = [
+        s for s in questionnaire_slots(28, y_gap=0.034, y_min=0.15) if s['y'] < main_y_max
+    ][:16]
+    # Всегда 16 равномерных рядов со стр. 28; x/w можно чуть подкрутить с текущей стр.
+    page_rows = sorted(
+        [s for s in questionnaire_slots(pnum, y_gap=0.034, y_min=0.15) if s['y'] < main_y_max],
+        key=lambda s: s['y'],
+    )
+    singles = []
+    for i, ref in enumerate(ref_main):
+        slot = dict(ref)
+        slot['continuationGroup'] = i + 1
+        # Если на странице есть близкий штрих — взять его x/width (подпись может быть другой длины).
+        if page_rows:
+            nearest = min(page_rows, key=lambda s: abs(s['y'] - ref['y']))
+            if abs(nearest['y'] - ref['y']) < 0.02:
+                slot['x'] = nearest['x']
+                slot['width'] = nearest['width']
+                if nearest.get('inputKind'):
+                    slot['inputKind'] = nearest['inputKind']
+        singles.append(slot)
+
+    wishes = friend_wish_slots(pnum)
+
+    # Instagram / VK / TikTok — у иконок (0.848/0.882/0.913), на штрихах ниже «Ники…».
+    # Не 0.8219: это линия слишком высоко (текст налазит на «Ники…»).
+    social = [
+        slot_dict(0.8568, 0.28, 0.55, 0.028, 18, 'line'),
+        slot_dict(0.8925, 0.28, 0.55, 0.028, 19, 'line'),
+        slot_dict(0.9253, 0.28, 0.55, 0.028, 20, 'line'),
+    ]
+
+    result = finalize_answer_slots(singles[:16] + wishes + social)
+    if len(result) >= 18:
+        result[16]['continuationGroup'] = 17
+        result[17]['continuationGroup'] = 17
+    return result
+
+def weekly_two_day_slots(pnum):
+    """6 линий верхнего дня + 6 нижнего (без декоративной/лишней 7-й сверху)."""
+    strokes = pdf_writing_strokes(pnum, y_min=0.12, min_w=0.4)
+    if not strokes:
+        return finalize_answer_slots(questionnaire_slots(pnum, y_gap=0.022, y_min=0.12)[:12], prefer_line=True)
+    ys = sorted(strokes, key=lambda t: t[0])
+    split_at = 1
+    max_gap = 0.0
+    for i in range(1, len(ys)):
+        gap = ys[i][0] - ys[i - 1][0]
+        if gap > max_gap:
+            max_gap = gap
+            split_at = i
+    top = ys[:split_at][:6]
+    bottom = ys[split_at:][:6]
+    merged = top + bottom
+    return strokes_to_slots(merged)
+
 MY_DAY = [9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39]
-WEEKLY = [24, 25]
 FRIENDS = [28, 29, 30, 31, 32, 33]
 
 purple = {
@@ -268,20 +279,17 @@ purple = {
     '10': pets_slots(),
     '12': social_slots(),
     '14': mood_slots(),
-    '16': finalize_answer_slots(questionnaire_slots(16, y_gap=0.034, y_min=0.20)[:9]),
-    '18': finalize_answer_slots(questionnaire_slots(18, y_gap=0.034, y_min=0.20)[:11]),
+    '16': style_slots(),
+    '18': first_love_slots(),
     '22': school_slots(),
-    '26': weekly_page_26_slots(),
+    '24': weekly_two_day_slots(24),
+    '25': weekly_two_day_slots(25),
+    '26': weekly_two_day_slots(26),
     '27': sunday_slots(),
 }
 for p in MY_DAY:
     if p != 9:
         purple[str(p)] = my_day_slots(p)
-for p in WEEKLY:
-    purple[str(p)] = finalize_answer_slots(
-        questionnaire_slots(p, y_gap=0.022, y_min=0.12)[:12],
-        prefer_line=True,
-    )
 for p in FRIENDS:
     purple[str(p)] = friend_questionnaire_slots(p)
 
@@ -290,6 +298,11 @@ Path(out).write_text(json.dumps(purple, indent=2), encoding='utf-8')
 print('Wrote', out, 'pages', len(purple))
 `;
 
-const venvPy = path.join(projectRoot, '.venv/bin/python3');
-const pyCmd = fs.existsSync(venvPy) ? venvPy : 'python3';
+const venvPyUnix = path.join(projectRoot, '.venv/bin/python3');
+const venvPyWin = path.join(projectRoot, '.venv/Scripts/python.exe');
+const pyCmd = fs.existsSync(venvPyUnix)
+  ? venvPyUnix
+  : fs.existsSync(venvPyWin)
+    ? venvPyWin
+    : process.env.PYTHON || 'python';
 execSync(pyCmd, { input: py, cwd: projectRoot, stdio: ['pipe', 'inherit', 'inherit'] });

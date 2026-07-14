@@ -7,14 +7,18 @@ import {
   getTemplateTypographyProfile,
   isBlankLineGuideAlbum,
   isKids48BottomDateLineSlot,
-  isKids48CalibratedDateLineSlot,
   isKidsMonthPage,
   KIDS48_P8_DATE_LINE,
   KIDS48_P13_CRAWLS_LINE,
   KIDS48_P16_DREAMS_DATE_LINE,
   KIDS48_P10_FIRST_BRUSHING_LINE,
   KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH,
+  KIDS48_UNIFORM_LINE_X_INSET,
   KIDS_MONTH_LINE_BAND_HEIGHT,
+  DIARY_UNIFORM_LINE_X_INSET,
+  PREGNANCY_UNIFORM_LINE_X_INSET,
+  PURPLE_MY_DAY_DATE_AFTER_TODAY,
+  isPurpleMyDayPage,
 } from '@/constants/album-text-margins';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
@@ -79,7 +83,7 @@ function getNormalizedSlotsForPage(
   ];
   const fromSlots = slotSet?.[String(page)];
   if (fromSlots?.length) {
-    return fromSlots.filter(
+    const filtered = fromSlots.filter(
       (slot) =>
         !isBrownPage13AloneQuestionSpuriousSlot(lineGuideId, page, slot) &&
         !isBrownPage16PeachTitleSpuriousSlot(lineGuideId, page, slot) &&
@@ -101,6 +105,37 @@ function getNormalizedSlotsForPage(
           isBrownSpuriousQuestionRowSlot(page, slot, fromSlots)
         )
     );
+    if (lineGuideId === 'diary_interior_purple' && page === 5) {
+      return refinePurplePage5CareerSlots(page, filtered);
+    }
+    if (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7)) {
+      return refinePurpleParentWishSlots(page, filtered);
+    }
+    if (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8 || page === 11 || page === 12)) {
+      return refineBrownParentWishSlots(page, filtered);
+    }
+    if (
+      (lineGuideId === 'diary_interior_purple' && page === 8) ||
+      (lineGuideId === 'diary_interior_brown' && page === 13)
+    ) {
+      return refineDiaryHobbySlots(lineGuideId, page, filtered);
+    }
+    if (isPurpleMyDayPage(lineGuideId, page)) {
+      return refinePurpleMyDaySlots(filtered);
+    }
+    if (
+      lineGuideId === 'diary_interior_purple' &&
+      (page === 24 || page === 25 || page === 26)
+    ) {
+      return refinePurpleWeeklyTwoDaySlots(filtered);
+    }
+    if (
+      lineGuideId === 'diary_interior_purple' &&
+      PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page)
+    ) {
+      return refinePurpleFriendWishSlots(page, filtered);
+    }
+    return filtered;
   }
 
   const guideSet = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[lineGuideId];
@@ -158,9 +193,9 @@ function isDiaryInteriorLineGuide(lineGuideId: string): boolean {
   );
 }
 
-/** В PDF norm.y — координата штриха; полоса слота лежит над линией. */
+/** В PDF norm.y — координата штриха; слот якорится на штрихе (baseline = y). */
 function getDiarySlotTopNormY(norm: NormalizedLineSlot): number {
-  return norm.y - norm.height;
+  return norm.y;
 }
 
 /** Стр. 6 «Твоя анкета»: лишние линии над первым вопросом и peach-блоки внизу. */
@@ -353,7 +388,8 @@ function isPurpleDaySpreadTitleSpuriousSlot(
 ): boolean {
   if (lineGuideId !== 'diary_interior_purple' || slot.hasLabel) return false;
   if (!PURPLE_DAY_SPREAD_PAGES.has(page)) return false;
-  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
+  // Декор над первой линейкой письма (письмо с ≈0.178–0.184).
+  if (slot.y >= 0.14 && slot.y < 0.175 && slot.x < 0.15 && slot.width >= 0.55) {
     return true;
   }
   if (slot.y >= 0.48 && slot.y <= 0.58 && slot.x < 0.15 && slot.width >= 0.65) {
@@ -417,15 +453,149 @@ function refineBrownDaySpreadIllustrationNorm(
 }
 
 /** Анкета для друзей: Instagram / VK / TikTok — ответ справа от подписи. */
+/**
+ * «Пожелания хозяйке анкеты:» — 2 линии сразу под подписью.
+ * Instagram начинается с ≈0.7887 (под «Ники…»), эту линию не удаляем.
+ */
+function refinePurpleFriendWishSlots(
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (!PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page) || norms.length < 17) {
+    return [...norms];
+  }
+
+  const sorted = [...norms].sort((a, b) => a.y - b.y || a.x - b.x);
+  // Только декоративная линия над «Пожелания…».
+  const withoutSpurious = sorted.filter(
+    (s) => !(s.y >= 0.7 && s.y <= 0.735 && s.x < 0.15 && s.width >= 0.7),
+  );
+
+  const head = withoutSpurious.find(
+    (s) =>
+      s.y >= 0.74 &&
+      s.y <= 0.77 &&
+      s.x >= 0.35 &&
+      s.x <= 0.55 &&
+      s.width >= 0.35 &&
+      s.width <= 0.55,
+  );
+  if (!head) return withoutSpurious;
+
+  const contY = Math.round(Math.min(head.y + 0.034, 0.805) * 10000) / 10000;
+  const hasCont = withoutSpurious.some(
+    (s) => s !== head && Math.abs(s.y - contY) < 0.012 && s.y < 0.81,
+  );
+  if (hasCont) {
+    return pinPurpleFriendBottomSlots(
+      withoutSpurious.map((slot) => ({
+        ...slot,
+        height: slot.height > 0.01 ? slot.height : 0.028,
+        inputKind: 'line' as const,
+        lineStrokeAtBottom: true,
+      })),
+    );
+  }
+
+  const wishCont: NormalizedLineSlot = {
+    ...head,
+    x: 0.0886,
+    y: contY,
+    width: 0.55,
+    height: 0.028,
+    hasLabel: false,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    continuationGroup: 17,
+  };
+  const headIndex = withoutSpurious.indexOf(head);
+  const next = [...withoutSpurious];
+  next.splice(headIndex + 1, 0, wishCont);
+  return pinPurpleFriendBottomSlots(
+    next.map((slot) => ({
+      ...slot,
+      height: slot.height > 0.01 ? slot.height : 0.028,
+      inputKind: 'line' as const,
+      lineStrokeAtBottom: true,
+    })),
+  );
+}
+
+/** Instagram / VK / TikTok — у иконок (ниже «Ники…»); 2-я линия пожеланий не трогаем. */
+function pinPurpleFriendBottomSlots(
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (norms.length < 21) return [...norms];
+  const sorted = [...norms].sort((a, b) => a.y - b.y || a.x - b.x);
+  return sorted.map((slot, index) => {
+    // IG / VK / TT: 0.8568 / 0.8925 / 0.9253 (не 0.8219 — слишком высоко к «Ники…»).
+    if (index === 18) {
+      return {
+        ...slot,
+        x: 0.28,
+        y: 0.8568,
+        width: 0.55,
+        height: 0.028,
+        inputKind: 'line' as const,
+        lineStrokeAtBottom: true,
+      };
+    }
+    if (index === 19) {
+      return {
+        ...slot,
+        x: 0.28,
+        y: 0.8925,
+        width: 0.55,
+        height: 0.028,
+        inputKind: 'line' as const,
+        lineStrokeAtBottom: true,
+      };
+    }
+    if (index === 20) {
+      return {
+        ...slot,
+        x: 0.28,
+        y: 0.9253,
+        width: 0.55,
+        height: 0.028,
+        inputKind: 'line' as const,
+        lineStrokeAtBottom: true,
+      };
+    }
+    if (index === 17) {
+      // 2-я линия пожеланий — сразу под хвостом после «:», не на Instagram.
+      const head = sorted[16];
+      const contY = Math.round(Math.min((head?.y ?? 0.7532) + 0.034, 0.805) * 10000) / 10000;
+      return {
+        ...slot,
+        x: 0.0886,
+        y: contY,
+        width: 0.55,
+        height: 0.028,
+        inputKind: 'line' as const,
+        lineStrokeAtBottom: true,
+        continuationGroup: 17,
+      };
+    }
+    return {
+      ...slot,
+      height: slot.height > 0.01 ? slot.height : 0.028,
+      inputKind: 'line' as const,
+      lineStrokeAtBottom: true,
+    };
+  });
+}
+
 function refinePurpleFriendSocialRowNorm(
   page: number,
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   if (!PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page) || norm.hasLabel) return norm;
-  if (norm.y < 0.76 || norm.y > 0.94) return norm;
+  // Instagram / VK / TikTok — строго у иконок (не линия «Ники…» ≈0.788).
+  if (norm.y < 0.84 || norm.y > 0.94) return norm;
 
   const minAnswerLeft = 0.28;
-  if (norm.x >= minAnswerLeft || norm.width <= 0.45) return norm;
+  if (norm.x >= minAnswerLeft) return norm;
 
   const right = norm.x + norm.width;
   const x = minAnswerLeft;
@@ -577,8 +747,52 @@ function refinePurplePage5LabeledRowNorm(
   if (page !== 5 || norm.hasLabel) return norm;
   return applyLabeledRowMinX(norm, [
     { minY: 0.478, maxY: 0.508, minX: 0.52 },
-    { minY: 0.728, maxY: 0.758, minX: 0.52 },
   ]);
+}
+
+/** Стр. 5: ответ «Кем ты хочешь стать» — хвост после «?» и продолжение на следующей линии. */
+function refinePurplePage5CareerSlots(
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (page !== 5 || norms.length < 12) return [...norms];
+
+  const result = norms.map((slot) => ({ ...slot }));
+  result[11] = {
+    ...result[11],
+    x: PURPLE_PAGE5_CAREER_HEAD_LEFT_NORM,
+    y: PURPLE_PAGE5_CAREER_HEAD_Y,
+    width: PURPLE_PAGE5_CAREER_HEAD_WIDTH_NORM,
+    height: 0.028,
+    hasLabel: false,
+    inputKind: 'line',
+    continuationGroup: 12,
+  };
+
+  if (result.length === 12) {
+    result.push({
+      x: PURPLE_PAGE5_CAREER_CONTINUATION.x,
+      y: PURPLE_PAGE5_CAREER_CONTINUATION.y,
+      width: PURPLE_PAGE5_CAREER_CONTINUATION.width,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line',
+      continuationGroup: 12,
+    });
+  } else {
+    result[12] = {
+      ...result[12],
+      x: PURPLE_PAGE5_CAREER_CONTINUATION.x,
+      y: PURPLE_PAGE5_CAREER_CONTINUATION.y,
+      width: PURPLE_PAGE5_CAREER_CONTINUATION.width,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line',
+      continuationGroup: 12,
+    };
+  }
+
+  return result;
 }
 
 function refinePurplePage16LabeledRowNorm(
@@ -592,6 +806,132 @@ function refinePurplePage16LabeledRowNorm(
   ]);
 }
 
+/**
+ * Расписание на два дня (стр. 24–26): ровно 6 линий сверху + 6 снизу.
+ * Иначе лишняя линия у заголовка «Среда» съедает индекс, и день/четверг
+ * сдвигаются (текст среды со 2-й линии, первая линия четверга — хвост среды).
+ */
+function refinePurpleWeeklyTwoDaySlots(
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (norms.length < 8) return [...norms];
+
+  const sorted = [...norms].sort((a, b) => a.y - b.y || a.x - b.x);
+  let splitAt = -1;
+  let maxGap = 0;
+  for (let i = 1; i < sorted.length; i += 1) {
+    const gap = sorted[i]!.y - sorted[i - 1]!.y;
+    if (gap > maxGap) {
+      maxGap = gap;
+      splitAt = i;
+    }
+  }
+  if (splitAt < 1 || maxGap < 0.08) return [...norms];
+
+  const top = sorted.slice(0, splitAt).slice(0, 6);
+  const bottom = sorted.slice(splitAt).slice(0, 6);
+  const merged = [...top, ...bottom];
+
+  return merged.map((slot, index) => ({
+    ...slot,
+    height: slot.height > 0.01 ? slot.height : KIDS_MONTH_LINE_BAND_HEIGHT,
+    hasLabel: false,
+    inputKind: 'line' as const,
+    lineStrokeAtBottom: true,
+    continuationGroup: index + 1,
+  }));
+}
+
+/**
+ * Фиолетовый «Твой день»:
+ * - линии письма 0..14 (день 0..7, улыбка 8..14);
+ * - дата после «ЗА СЕГОДНЯ:» — слот в конце (index 15), без сдвига индексов письма.
+ *
+ * Y обеих текстовых зон поднимаем на шаг между линиями — текст иначе
+ * визуально оказывается на второй линейке (пустая первая).
+ */
+function refinePurpleMyDaySlots(
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  const band = KIDS_MONTH_LINE_BAND_HEIGHT;
+  const raw = norms.slice(0, 15);
+  const dayGap = raw.length >= 2 ? raw[1]!.y - raw[0]!.y : band;
+  const smileGap = raw.length >= 10 ? raw[9]!.y - raw[8]!.y : band;
+
+  const writing = raw.map((slot, index) => {
+    const lift = index < 8 ? dayGap : smileGap;
+    return {
+      ...slot,
+      y: slot.y - lift,
+      height: band,
+      hasLabel: false,
+      inputKind: 'line' as const,
+      lineStrokeAtBottom: true,
+      continuationGroup: index < 8 ? 1 : 2,
+    };
+  });
+
+  const dateSlot: NormalizedLineSlot = {
+    x: PURPLE_MY_DAY_DATE_AFTER_TODAY.writableX,
+    y: PURPLE_MY_DAY_DATE_AFTER_TODAY.strokeY,
+    width: PURPLE_MY_DAY_DATE_AFTER_TODAY.writableWidth,
+    height: band,
+    hasLabel: false,
+    inputKind: 'line',
+    continuationGroup: 99,
+    lineStrokeAtBottom: true,
+  };
+
+  return [...writing, dateSlot];
+}
+
+/**
+ * «Хобби»: purple p8 / brown p13.
+ * Координаты X/Y — из PDF-штрихов; все слоты line + единый inset 0.008 ниже.
+ * У purple первое поле (хобби) — 2 линии с общим continuationGroup.
+ */
+function refineDiaryHobbySlots(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  const isPurple = lineGuideId === 'diary_interior_purple' && page === 8;
+  const isBrown = lineGuideId === 'diary_interior_brown' && page === 13;
+  if (!isPurple && !isBrown) return [...norms];
+
+  return norms.map((slot, index) => {
+    let continuationGroup = index + 1;
+    if (isPurple) {
+      // 0–1 hobbies; 2–3 sports; 4–5 alone; дальше по одному полю.
+      if (index <= 1) continuationGroup = 1;
+      else if (index <= 3) continuationGroup = 2;
+      else if (index <= 5) continuationGroup = 3;
+      else continuationGroup = index - 2;
+    } else if (isBrown) {
+      // 0–1 hobbies; 2 sports; 3 alone; 4–10 singles; 11–12 music; 13–14 company; 15–17 recess.
+      // Важно: слот 4 = «Любимый мультфильм» (не 2-я строка alone).
+      if (index <= 1) continuationGroup = 1;
+      else if (index === 2) continuationGroup = 2;
+      else if (index === 3) continuationGroup = 3;
+      else if (index <= 10) continuationGroup = index;
+      else if (index <= 12) continuationGroup = 11;
+      else if (index <= 14) continuationGroup = 12;
+      else continuationGroup = 13;
+    }
+    return {
+      ...slot,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line' as const,
+      continuationGroup,
+    };
+  });
+}
+
+/**
+ * «Школьная жизнь» p22: хвосты после длинных вопросов.
+ * Нижние 4 строки воспоминаний (y≥0.82, x≈0.09) не трогаем.
+ */
 function refinePurplePage22LabeledRowNorm(
   page: number,
   norm: NormalizedLineSlot
@@ -599,25 +939,29 @@ function refinePurplePage22LabeledRowNorm(
   if (page !== 22 || norm.hasLabel) return norm;
   return applyLabeledRowMinX(norm, [
     { minY: 0.338, maxY: 0.368, minX: 0.52 },
-    { minY: 0.598, maxY: 0.628, minX: 0.58 },
-    { minY: 0.818, maxY: 0.848, minX: 0.52 },
+    { minY: 0.598, maxY: 0.628, minX: 0.66 },
+    { minY: 0.678, maxY: 0.708, minX: 0.68 },
   ]);
 }
 
-/** Стр. 26 «Одежда и стиль»: хвосты подписей — не на текст вопроса. */
+/** Стр. 26 «Одежда и стиль»: хвосты после подписей (PDF x уже почти верный). */
 function refineBrownPage26LabeledRowNorm(
   page: number,
   norm: NormalizedLineSlot
 ): NormalizedLineSlot {
   if (page !== 26 || norm.hasLabel) return norm;
   return applyBrownLabeledRowMinX(norm, [
-    { minY: 0.498, maxY: 0.518, minX: 0.58 },
-    { minY: 0.572, maxY: 0.592, minX: 0.58 },
-    { minY: 0.752, maxY: 0.772, minX: 0.52 },
+    { minY: 0.268, maxY: 0.288, minX: 0.64 },
+    { minY: 0.338, maxY: 0.358, minX: 0.68 },
+    { minY: 0.492, maxY: 0.512, minX: 0.56 },
+    { minY: 0.566, maxY: 0.586, minX: 0.56 },
+    { minY: 0.648, maxY: 0.668, minX: 0.72 },
+    { minY: 0.746, maxY: 0.766, minX: 0.51 },
+    { minY: 0.844, maxY: 0.864, minX: 0.72 },
   ]);
 }
 
-/** Стр. 31 «Школьная жизнь»: выравнивание хвостов и единая высота строк. */
+/** Стр. 31 «Школьная жизнь»: хвосты после длинных вопросов; полные строки не трогаем. */
 function refineBrownPage31LabeledRowNorm(
   page: number,
   norm: NormalizedLineSlot
@@ -625,15 +969,17 @@ function refineBrownPage31LabeledRowNorm(
   if (page !== 31 || norm.hasLabel) return norm;
 
   let refined = applyBrownLabeledRowMinX(norm, [
-    { minY: 0.412, maxY: 0.432, minX: 0.55 },
-    { minY: 0.478, maxY: 0.498, minX: 0.42 },
-    { minY: 0.544, maxY: 0.564, minX: 0.62 },
-    { minY: 0.618, maxY: 0.638, minX: 0.65 },
-    { minY: 0.868, maxY: 0.888, minX: 0.52 },
+    { minY: 0.310, maxY: 0.335, minX: 0.62 },
+    { minY: 0.405, maxY: 0.430, minX: 0.53 },
+    { minY: 0.470, maxY: 0.495, minX: 0.39 },
+    { minY: 0.538, maxY: 0.560, minX: 0.60 },
+    { minY: 0.610, maxY: 0.635, minX: 0.64 },
+    { minY: 0.688, maxY: 0.712, minX: 0.82 },
+    { minY: 0.860, maxY: 0.885, minX: 0.51 },
   ]);
 
   if (refined.inputKind !== 'block' && refined.y >= 0.32 && refined.y <= 0.94) {
-    refined = { ...refined, height: 0.032 };
+    refined = { ...refined, height: 0.028 };
   }
 
   return refined;
@@ -663,7 +1009,7 @@ function isBrownWideBlockAnswerSlot(slot: NormalizedLineSlot): boolean {
   return !slot.hasLabel && slot.x < 0.15 && slot.width >= 0.72;
 }
 
-/** Стр. 13: хвост «Любимый мультфильм» (PNG ny≈0.4663, left≈0.435). */
+/** Стр. 13: хвост «Любимый мультфильм» (PNG ny≈0.4293, left≈0.387). */
 function isBrownPage13CartoonTailNorm(
   lineGuideId: string,
   page: number,
@@ -673,11 +1019,11 @@ function isBrownPage13CartoonTailNorm(
     return false;
   }
   return (
-    norm.y >= 0.468 &&
-    norm.y <= 0.482 &&
-    norm.x >= 0.42 &&
+    norm.y >= 0.418 &&
+    norm.y <= 0.442 &&
+    norm.x >= 0.36 &&
     norm.width >= 0.38 &&
-    norm.width <= 0.52
+    norm.width <= 0.56
   );
 }
 
@@ -691,7 +1037,7 @@ function isBrownPage13FavoritesLabelTailSlot(
     return false;
   }
   return (
-    slot.y >= 0.455 &&
+    slot.y >= 0.418 &&
     slot.y <= 0.555 &&
     slot.x >= 0.28 &&
     slot.width >= 0.38 &&
@@ -786,9 +1132,18 @@ function isBrownPage13SportQuestionTailNorm(
 const BROWN_WISH_CONTINUATION_LEFT_NORM = 0.08479;
 /** Первая короткая строка справа от подписи — чуть правее слота. */
 const BROWN_WISH_HEAD_TEXT_INSET_NORM = 0.012;
-/** Стр. 6: короткая строка ответа справа от «?» (~75–80% ширины макета). */
+/** Стр. 5 фиолетовый / стр. 6 коричневый: короткая строка ответа справа от «?». */
 const BROWN_PAGE6_CAREER_HEAD_LEFT_NORM = 0.768;
 const BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM = 0.127;
+/** Фиолетовая анкета: хвост после длинной подписи шире, чем у коричневой. */
+const PURPLE_PAGE5_CAREER_HEAD_LEFT_NORM = 0.6604;
+const PURPLE_PAGE5_CAREER_HEAD_WIDTH_NORM = 0.2527;
+const PURPLE_PAGE5_CAREER_HEAD_Y = 0.7309;
+const PURPLE_PAGE5_CAREER_CONTINUATION = {
+  x: 0.0954,
+  y: 0.7701,
+  width: 0.8176,
+} as const;
 
 export function isBrownPage6CareerShortHeadNorm(
   lineGuideId: string,
@@ -796,13 +1151,14 @@ export function isBrownPage6CareerShortHeadNorm(
   norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width' | 'hasLabel'>
 ): boolean {
   const careerPage = getDiaryCareerQuestionPage(lineGuideId);
-  const minY = lineGuideId === 'diary_interior_purple' ? 0.728 : 0.755;
+  const minY = lineGuideId === 'diary_interior_purple' ? 0.72 : 0.755;
+  const maxY = lineGuideId === 'diary_interior_purple' ? 0.76 : 0.782;
   return (
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
     page === careerPage &&
     !norm.hasLabel &&
     norm.y >= minY &&
-    norm.y <= 0.782 &&
+    norm.y <= maxY &&
     norm.x >= 0.52 &&
     norm.width >= 0.06 &&
     norm.width <= 0.42
@@ -815,11 +1171,12 @@ export function isBrownPage6CareerContinuationNorm(
   norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'hasLabel' | 'width'>
 ): boolean {
   const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  const minY = lineGuideId === 'diary_interior_purple' ? 0.755 : 0.788;
   return (
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
     page === careerPage &&
     !norm.hasLabel &&
-    norm.y >= 0.788 &&
+    norm.y >= minY &&
     norm.y <= 0.845 &&
     norm.width >= 0.45 &&
     norm.x < 0.2
@@ -879,11 +1236,25 @@ function refineBrownParentQuestionnaireRowNorm(
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
   const isParentPage =
-    (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8)) ||
+    (lineGuideId === 'diary_interior_brown' &&
+      (page === 7 || page === 8 || page === 11 || page === 12)) ||
     (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7));
   const isGirlProfilePage = lineGuideId === 'diary_interior_brown' && page === 6;
   if (!isParentPage && !isGirlProfilePage) return norm;
+  // Анкеты мамы/папы/бабушки/дедушки: x уже у хвоста после «:» в PDF.
+  // Не тянуть к 0.32 — иначе у коротких подписей (Имя, Хобби…) огромный зазор.
+  // Единый пробел 0.008 даёт applyDiaryUniformLineInset.
+  if (
+    lineGuideId === 'diary_interior_brown' &&
+    (page === 7 || page === 8 || page === 11 || page === 12)
+  ) {
+    return norm;
+  }
+  if (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7)) {
+    return norm;
+  }
   if (norm.inputKind === 'block') return norm;
+  if (norm.y >= 0.76) return norm;
   if (norm.y < 0.22 || norm.y > 0.82) return norm;
 
   const minAnswerLeft = 0.32;
@@ -893,6 +1264,139 @@ function refineBrownParentQuestionnaireRowNorm(
   const x = minAnswerLeft;
   const width = Math.max(0.15, Math.min(right - x, 0.98 - x));
   return { ...norm, x, width };
+}
+
+/**
+ * Анкеты мамы/папы (p6/p7): фиксированный левый край сразу после «:».
+ * Дальше applyDiaryUniformLineInset (+0.008) — один пробел, как в остальных альбомах.
+ * Фиксируем (не Math.max с OCR), иначе «цвет» у папы остаётся на 0.50 с огромным зазором.
+ */
+const PURPLE_PARENT_ANSWER_FIXED_X: Readonly<Partial<Record<number, number>>> = {
+  0: 0.1622, // Имя
+  7: 0.2997, // Любимый цвет (OCR мамы сразу после подписи)
+};
+
+function refinePurpleParentAnswerSlots(
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if ((page !== 6 && page !== 7) || norms.length < 12) return [...norms];
+
+  return norms.map((slot, index) => {
+    if (index >= 12) return { ...slot };
+    const right = slot.x + slot.width;
+    const fixedX = PURPLE_PARENT_ANSWER_FIXED_X[index];
+    const x = fixedX != null ? fixedX : slot.x;
+    const width = Math.max(0.15, Math.min(right - x, 0.98 - x));
+    return { ...slot, x, width, inputKind: 'line' as const };
+  });
+}
+
+/**
+ * «Пожелания хозяйке дневника:» — хвост PDF после «:» (x≈0.50).
+ * Отступ 0.008 даёт applyDiaryUniformLineInset (не закладывать сюда повторно).
+ */
+const PURPLE_PARENT_WISH_AFTER_LABEL_X = 0.508;
+const PURPLE_PARENT_WISH_HEAD = {
+  x: PURPLE_PARENT_WISH_AFTER_LABEL_X,
+  y: 0.7709,
+  width: 0.917 - PURPLE_PARENT_WISH_AFTER_LABEL_X,
+} as const;
+const PURPLE_PARENT_WISH_CONTINUATION_YS = [0.8069, 0.8429, 0.8789] as const;
+
+function isPurpleParentWishHeadNorm(
+  page: number,
+  norm: Pick<NormalizedLineSlot, 'y' | 'x' | 'width'>,
+): boolean {
+  return (
+    (page === 6 || page === 7) &&
+    norm.y >= 0.76 &&
+    norm.y <= 0.785 &&
+    norm.x >= 0.45 &&
+    norm.width <= 0.5
+  );
+}
+
+function refinePurpleParentWishSlots(
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if ((page !== 6 && page !== 7) || norms.length < 12) return [...norms];
+
+  const withAnswers = refinePurpleParentAnswerSlots(page, norms);
+  const head = withAnswers.slice(0, 12);
+  const template = withAnswers[12] ?? withAnswers[11]!;
+  const wishes: NormalizedLineSlot[] = [
+    {
+      ...template,
+      x: PURPLE_PARENT_WISH_HEAD.x,
+      y: PURPLE_PARENT_WISH_HEAD.y,
+      width: PURPLE_PARENT_WISH_HEAD.width,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line',
+      continuationGroup: 13,
+    },
+    ...PURPLE_PARENT_WISH_CONTINUATION_YS.map((y) => ({
+      ...template,
+      x: 0.0863,
+      y,
+      width: 0.8307,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line' as const,
+      continuationGroup: 13,
+    })),
+  ];
+  return [...head, ...wishes];
+}
+
+/** Коричневый дневник: анкеты мамы/папы (7–8) и бабушки/дедушки (11–12). */
+const BROWN_PARENT_WISH_PAGES = new Set([7, 8, 11, 12]);
+/** Начало печатного хвоста после «:» (штрих PDF); +0.008 — в applyDiaryUniformLineInset. */
+const BROWN_PARENT_WISH_AFTER_LABEL_X = 0.5381;
+const BROWN_PARENT_WISH_BY_PAGE: Readonly<
+  Record<number, { headY: number; contYs: readonly number[] }>
+> = {
+  7: { headY: 0.7698, contYs: [0.8065, 0.8448, 0.8821] },
+  8: { headY: 0.7698, contYs: [0.8065, 0.8448, 0.8821] },
+  11: { headY: 0.7689, contYs: [0.8056, 0.8439, 0.8811] },
+  12: { headY: 0.7689, contYs: [0.8056, 0.8439, 0.8811] },
+};
+
+function refineBrownParentWishSlots(
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (!BROWN_PARENT_WISH_PAGES.has(page) || norms.length < 12) return [...norms];
+
+  const layout = BROWN_PARENT_WISH_BY_PAGE[page] ?? BROWN_PARENT_WISH_BY_PAGE[7]!;
+  const headX = BROWN_PARENT_WISH_AFTER_LABEL_X;
+  const head = norms.slice(0, 12).map((slot) => ({ ...slot }));
+  const template = norms[12] ?? norms[11]!;
+  const wishes: NormalizedLineSlot[] = [
+    {
+      ...template,
+      x: headX,
+      y: layout.headY,
+      width: 0.91 - headX,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line',
+      continuationGroup: 13,
+    },
+    ...layout.contYs.map((y) => ({
+      ...template,
+      x: 0.0901,
+      y,
+      width: 0.8201,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: 'line' as const,
+      continuationGroup: 13,
+    })),
+  ];
+  return [...head, ...wishes];
 }
 
 /** В PDF norm.y — штрих; полоса «Я люблю/умею» лежит над линией. */
@@ -1022,6 +1526,33 @@ function refineKidsMonthLineSlotNorm(
   };
 }
 
+/** Один визуальный пробел от начала линии (kids_48 / pregnancy / diary). */
+function applyUniformLineXInset(
+  norm: NormalizedLineSlot,
+  inset: number,
+): NormalizedLineSlot {
+  if (norm.textAnchorTop) return norm;
+  // Крупные peach/box-блоки без подписи слева — без inset.
+  // Компактные «block»-ответы на линейках (высота ~строки) — как line.
+  if (norm.inputKind === 'block' && (norm.height ?? 0) > 0.04) return norm;
+
+  const x = clamp01(norm.x + inset);
+  const width = Math.max(0.03, Math.min(norm.width - inset, 0.98 - x));
+  return { ...norm, x, width };
+}
+
+function applyKids48UniformLineInset(norm: NormalizedLineSlot): NormalizedLineSlot {
+  return applyUniformLineXInset(norm, KIDS48_UNIFORM_LINE_X_INSET);
+}
+
+function applyPregnancyUniformLineInset(norm: NormalizedLineSlot): NormalizedLineSlot {
+  return applyUniformLineXInset(norm, PREGNANCY_UNIFORM_LINE_X_INSET);
+}
+
+function applyDiaryUniformLineInset(norm: NormalizedLineSlot): NormalizedLineSlot {
+  return applyUniformLineXInset(norm, DIARY_UNIFORM_LINE_X_INSET);
+}
+
 /** Тонкая подстройка PDF-слотов под отрисовку текста (координаты из вектора, не margins). */
 function refineNormalizedSlotForTextLayout(
   lineGuideId: string,
@@ -1031,24 +1562,49 @@ function refineNormalizedSlotForTextLayout(
   slotIndex = 0,
 ): NormalizedLineSlot {
   if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
-    return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
+    return applyKids48UniformLineInset(
+      refineKidsMonthLineSlotNorm(page, norm, slotIndex),
+    );
   }
 
   if (lineGuideId === 'kids_48' && getKids48BottomDateLineStrokeY(page) != null) {
-    return refineKids48BottomDateLineSlotNorm(page, norm, slotIndex);
+    return applyKids48UniformLineInset(
+      refineKids48BottomDateLineSlotNorm(page, norm, slotIndex),
+    );
   }
 
   if (lineGuideId === 'kids_48' && page === 16) {
-    return refineKids48Page16DreamsDateLineSlotNorm(page, norm, slotIndex);
+    return applyKids48UniformLineInset(
+      refineKids48Page16DreamsDateLineSlotNorm(page, norm, slotIndex),
+    );
   }
 
   if (lineGuideId === 'kids_48' && page === 13) {
-    return refineKids48Page13CrawlsSlotNorm(page, norm, slotIndex);
+    return applyKids48UniformLineInset(
+      refineKids48Page13CrawlsSlotNorm(page, norm, slotIndex),
+    );
   }
 
   if (lineGuideId === 'kids_48' && page === 10) {
     const refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
-    return refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
+    const page10Refined = refineKids48Page10FirstBrushingSlotNorm(
+      page,
+      refined,
+      slotIndex,
+    );
+    return applyKids48UniformLineInset(
+      page10Refined.inputKind === 'block'
+        ? page10Refined
+        : { ...page10Refined, lineStrokeAtBottom: true },
+    );
+  }
+
+  if (lineGuideId === 'kids_48') {
+    return applyKids48UniformLineInset(norm);
+  }
+
+  if (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') {
+    return applyPregnancyUniformLineInset(norm);
   }
 
   if (!lineGuideId?.startsWith('diary_interior_')) {
@@ -1082,61 +1638,59 @@ function refineNormalizedSlotForTextLayout(
     const textInset = 0.014;
     const x = clamp01(refined.x + textInset);
     const width = Math.max(0.05, Math.min(refined.width - textInset, 0.98 - x));
-    return { ...refined, x, width };
+    // Доп. сдвиг хвоста + единый пробел 0.008.
+    return applyDiaryUniformLineInset({ ...refined, x, width });
   }
 
   if (isBrownPage13CartoonTailNorm(lineGuideId, page, refined)) {
     const textInset = 0.006;
     const x = clamp01(refined.x + textInset);
     const width = Math.max(0.05, Math.min(refined.width - textInset, 0.98 - x));
-    return { ...refined, x, width };
+    return applyDiaryUniformLineInset({ ...refined, x, width });
   }
 
   if (isBrownPage6CareerShortHeadNorm(lineGuideId, page, refined)) {
-    const baseLeft =
-      refined.x >= 0.55 ? refined.x : BROWN_PAGE6_CAREER_HEAD_LEFT_NORM;
-    const baseWidth =
-      refined.width <= 0.22 ? refined.width : BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM;
-    const x = clamp01(baseLeft + BROWN_WISH_HEAD_TEXT_INSET_NORM);
-    const width = Math.max(
-      0.05,
-      Math.min(baseWidth - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x)
-    );
+    const isPurpleCareer = lineGuideId === 'diary_interior_purple';
+    const baseLeft = isPurpleCareer
+      ? Math.max(refined.x, PURPLE_PAGE5_CAREER_HEAD_LEFT_NORM)
+      : refined.x >= 0.55
+        ? refined.x
+        : BROWN_PAGE6_CAREER_HEAD_LEFT_NORM;
+    const baseWidth = isPurpleCareer
+      ? Math.max(refined.width, PURPLE_PAGE5_CAREER_HEAD_WIDTH_NORM)
+      : refined.width <= 0.22
+        ? refined.width
+        : BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM;
     const { inputKind: _drop, ...rest } = refined;
-    return { ...rest, x, width };
+    return applyDiaryUniformLineInset({
+      ...rest,
+      x: clamp01(baseLeft),
+      width: Math.max(0.05, Math.min(baseWidth, 0.98 - clamp01(baseLeft))),
+      y: isPurpleCareer ? PURPLE_PAGE5_CAREER_HEAD_Y : rest.y,
+    });
   }
 
   if (isBrownPage6CareerContinuationNorm(lineGuideId, page, refined)) {
     const right = Math.max(refined.x + refined.width, BROWN_WISH_CONTINUATION_LEFT_NORM + 0.72);
     const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
     const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
-    return { ...refined, x, width, inputKind: 'line' as const };
+    return applyDiaryUniformLineInset({ ...refined, x, width, inputKind: 'line' as const });
   }
 
   if (isBrownWishShortHeadNorm(lineGuideId, refined)) {
-    const x = clamp01(refined.x + BROWN_WISH_HEAD_TEXT_INSET_NORM);
-    const width = Math.max(0.05, Math.min(refined.width - BROWN_WISH_HEAD_TEXT_INSET_NORM, 0.98 - x));
-    return { ...refined, x, width };
+    // Единый пробел 0.008 (не BROWN 0.012).
+    return applyDiaryUniformLineInset(refined);
   }
 
   if (isBrownWishContinuationNorm(lineGuideId, refined)) {
     const right = refined.x + refined.width;
     const x = BROWN_WISH_CONTINUATION_LEFT_NORM;
     const width = Math.max(0.05, Math.min(right - x, 0.98 - x));
-    return { ...refined, x, width };
+    return applyDiaryUniformLineInset({ ...refined, x, width });
   }
 
-  const isBlock = refined.inputKind === 'block';
-  const isPregnancyRuledLine =
-    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
-    !isBlock &&
-    !refined.hasLabel;
-  const xInset = isBlock ? 0 : refined.hasLabel ? 0.003 : isPregnancyRuledLine ? 0.003 : 0.006;
-  const widthTrim = isBlock ? 0 : refined.hasLabel ? 0.004 : isPregnancyRuledLine ? 0.004 : 0.01;
-  const x = clamp01(refined.x + xInset);
-  const width = Math.max(0.05, Math.min(refined.width - widthTrim, 0.98 - x));
-
-  return { ...refined, x, width };
+  // Единый отступ слева 0.008 для всех полей дневников 60/40.
+  return applyDiaryUniformLineInset(refined);
 }
 
 const PREGNANCY_LINE_GAP_NORM = 4 / 210;
@@ -1212,20 +1766,20 @@ export function isPregnancyWeeklyRuledLineSlot(
 }
 
 /**
- * Статические страницы pregnancy_60 (не недельные) — штрих из LINE_GUIDES, как на недельных.
- * Постановка на учёт: «Моё самочувствие», рекомендации и т.п.
+ * Статические страницы pregnancy_60 / pregnancy_a5 (не недельные) —
+ * штрих из LINE_GUIDES, как на недельных.
  */
 export function isPregnancy60GuideRuledLineSlot(
   lineGuideId: string | undefined,
   slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
 ): boolean {
-  if (lineGuideId !== 'pregnancy_60') return false;
-  if (isPregnancy60WeeklyPage(slot.page)) return false;
+  if (lineGuideId !== 'pregnancy_60' && lineGuideId !== 'pregnancy_a5') return false;
+  if (isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
   if ((slot.inputKind ?? 'line') !== 'line') return false;
   const guides = (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
     lineGuideId
   ]?.[String(slot.page)];
-  return !!guides && slot.index >= 0 && slot.index < guides.length;
+  return !!guides && guides.length > 0 && slot.index >= 0 && slot.index < guides.length;
 }
 
 /**
@@ -1431,7 +1985,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v11',
+    'weekly-stroke-v37-brown-hobby-alone-one-line',
   ].join('|');
 }
 
@@ -1477,22 +2031,22 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       (lineGuideId === 'pregnancy_a5' &&
         isPregnancyA5WeeklyPage(page) &&
         (index === 1 || index === 5));
+    const inputKind = layoutNorm.inputKind ?? norm.inputKind ?? 'line';
+    /** kids_48: PDF y — штрих; полоса и текст всегда над линией (как «Михаил» / month). */
+    const isKids48RuledLine = lineGuideId === 'kids_48' && inputKind !== 'block';
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
-      layoutNorm.lineStrokeAtBottom === true;
+      layoutNorm.lineStrokeAtBottom === true ||
+      isKids48RuledLine;
     const topNormY =
       isDiaryInteriorLineGuide(lineGuideId)
         ? getDiarySlotTopNormY(layoutNorm)
-        : lineGuideId === 'kids_48' &&
-            isKidsMonthPage(page) &&
-            index >= 1
+        : isKids48RuledLine
           ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : isKids48CalibratedDateLineSlot(lineGuideId, page, index)
-            ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-            : anchorTop
-              ? layoutNorm.y
-              : layoutNorm.y - layoutNorm.height / 2;
+          : anchorTop
+            ? layoutNorm.y
+            : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -1503,8 +2057,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
 
     const lineStrokeAtBottom =
       layoutNorm.lineStrokeAtBottom === true ||
-      (lineGuideId === 'kids_48' && isKidsMonthPage(page) && index >= 1) ||
-      isKids48CalibratedDateLineSlot(lineGuideId, page, index) ||
+      isKids48RuledLine ||
       isDiaryInteriorLineGuide(lineGuideId);
 
     return {

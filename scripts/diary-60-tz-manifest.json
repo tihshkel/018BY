@@ -19,10 +19,11 @@
   "3": {
     "title": "Правила этого дневника",
     "template": "DiaryRulesTemplate",
-    "pageType": "structured",
-    "editable": true,
+    "pageType": "non_editable",
+    "editable": false,
     "canDuplicate": false,
-    "hasPhoto": false
+    "hasPhoto": false,
+    "requiredInExport": false
   },
   "4": {
     "title": "Твое фото",

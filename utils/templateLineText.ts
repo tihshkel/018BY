@@ -1,10 +1,9 @@
 import {
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
-  isKids48BottomDateLineSlot,
-  isKids48CalibratedDateLineSlot,
-  KIDS48_P8_DATE_LINE_FONT_OFFSET,
+  KIDS48_UNIFORM_LINE_FONT_OFFSET,
   KIDS_MONTH_LINE_FONT_OFFSET,
+  PREGNANCY_UNIFORM_LINE_FONT_OFFSET,
   PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO,
   PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
   TEMPLATE_LINE_STROKE_CLEARANCE_RATIO,
@@ -359,35 +358,16 @@ function getStrokeBaselineFontOffset(
   slot: Pick<TextLineSlot, 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>,
   lineGuideId?: string,
 ): number {
-  if (lineGuideId === 'kids_48' && isKids48CalibratedDateLineSlot(lineGuideId, slot.page, slot.index ?? 0)) {
-    return KIDS48_P8_DATE_LINE_FONT_OFFSET;
+  if (lineGuideId === 'kids_48') {
+    return KIDS48_UNIFORM_LINE_FONT_OFFSET;
   }
-  if (lineGuideId === 'pregnancy_a5' && slot.page === 44) {
-    return 0.84;
-  }
-  if (lineGuideId === 'pregnancy_60' && slot.page === 52) {
-    return 0.84;
+  if (
+    (lineGuideId === 'pregnancy_a5' && slot.page === 44) ||
+    (lineGuideId === 'pregnancy_60' && slot.page === 52)
+  ) {
+    return PREGNANCY_UNIFORM_LINE_FONT_OFFSET;
   }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
-    const isBrownCoverField =
-      lineGuideId === 'diary_interior_brown' &&
-      slot.normY != null &&
-      slot.normY >= 0.52 &&
-      slot.normY <= 0.62;
-    const isPurpleCoverField =
-      lineGuideId === 'diary_interior_purple' &&
-      slot.normY != null &&
-      ((slot.normY >= 0.46 && slot.normY <= 0.52) ||
-        (slot.normY >= 0.54 && slot.normY <= 0.62));
-    if (isBrownCoverField || isPurpleCoverField) {
-      return 0.92;
-    }
-    if (isBrownWishSlot(slot, lineGuideId) || isBrownCareerAnswerSlot(slot, lineGuideId)) {
-      return 0.9;
-    }
-    if (lineGuideId === 'diary_interior_purple') {
-      return 0.9;
-    }
     return DIARY_LINE_FONT_OFFSET;
   }
   return KIDS_MONTH_LINE_FONT_OFFSET;
@@ -568,26 +548,7 @@ function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number |
   if (slot.page == null) return null;
   const template = getDiaryBrownPageTemplate(slot.page);
   if (!template) return null;
-
-  if (DIARY_BROWN_QUESTIONNAIRE_TEMPLATES.has(template)) {
-    return 0.93;
-  }
-  if (template === DIARY_BROWN_MY_DAY_TEMPLATE) {
-    return 0.94;
-  }
-  if (template === 'MoodTemplate' || template === 'TravelTemplate') {
-    return 0.9;
-  }
-  if (template === DIARY_BROWN_SCHOOL_LIFE_TEMPLATE) {
-    return 0.94;
-  }
-  if (DIARY_BROWN_WEEKLY_SCHEDULE_TEMPLATES.has(template)) {
-    return 0.9;
-  }
-  if (slot.page != null && slot.page >= 45 && slot.page <= 56) {
-    return 0.92;
-  }
-  return 0.92;
+  return DIARY_LINE_FONT_OFFSET;
 }
 
 function resolveTemplateTextVerticalRatios(
@@ -654,12 +615,7 @@ function resolveTemplateTextVerticalRatios(
 
       return {
         centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 1,
-        fontOffsetRatio:
-          isBrownCoverField || isPurpleCoverField
-            ? 0.92
-            : lineGuideId === 'diary_interior_purple'
-              ? 0.92
-              : 0.9,
+        fontOffsetRatio: DIARY_LINE_FONT_OFFSET,
       };
     }
 
@@ -751,12 +707,13 @@ export function isBrownCareerAnswerSlot(
   lineGuideId?: string
 ): boolean {
   const careerPage = getDiaryCareerQuestionPage(lineGuideId);
+  const minY = lineGuideId === 'diary_interior_purple' ? 0.72 : 0.755;
   return (
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
     slot.page === careerPage &&
     !slot.hasLabel &&
     slot.normY != null &&
-    slot.normY >= 0.755 &&
+    slot.normY >= minY &&
     slot.normY <= 0.845
   );
 }
@@ -1271,14 +1228,15 @@ export function getTemplateLineTextTop(
   }
 
   if (lineGuideId === 'diary_interior_brown' && slot.page === 15) {
-    const lineY = slot.y + slot.lineHeight;
+    const lineY = slot.y;
     const lineFitted = fitFontSizeToSlot(
       fontSize,
       slot.lineHeight,
       inputKind,
       lineGuideId,
     );
-    top = lineY - lineFitted * 1.05;
+    top = lineY - lineFitted * DIARY_LINE_FONT_OFFSET;
+    return top;
   } else if (isDiaryInteriorLineGuide(lineGuideId) && isDiaryPeachCellField(slot)) {
     const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(
       slot,
@@ -1301,7 +1259,10 @@ export function getTemplateLineTextTop(
     usesStrokeBaselineLayout(slot, lineGuideId) &&
     !isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
   ) {
-    const lineY = slot.y + slot.lineHeight;
+    // diary: slot.y уже штрих (getDiarySlotTopNormY); kids/pregnancy — верх полосы.
+    const lineY = isDiaryInteriorLineGuide(lineGuideId)
+      ? slot.y
+      : slot.y + slot.lineHeight;
     const lineFitted = fitFontSizeToSlot(
       fontSize,
       slot.lineHeight,
@@ -1318,6 +1279,7 @@ export function getTemplateLineTextTop(
     const lineY = slot.y + slot.lineHeight;
     top = lineY - fittedSize * 0.98;
   } else if (lineGuideId === 'kids_48' && inputKind === 'line') {
+    // Fallback: если stroke-флаг не выставлен — тот же просвет, что у эталона.
     const lineY = slot.y + slot.lineHeight / 2;
     const lineFitted = fitFontSizeToSlot(
       fontSize,
@@ -1325,8 +1287,21 @@ export function getTemplateLineTextTop(
       'line',
       lineGuideId
     );
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    top = lineY - lineFitted * profile.lineFontOffsetRatio;
+    top = lineY - lineFitted * KIDS48_UNIFORM_LINE_FONT_OFFSET;
+    return top;
+  } else if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    inputKind === 'line'
+  ) {
+    const lineY = slot.y + slot.lineHeight / 2;
+    const lineFitted = fitFontSizeToSlot(
+      fontSize,
+      slot.lineHeight,
+      'line',
+      lineGuideId,
+    );
+    top = lineY - lineFitted * PREGNANCY_UNIFORM_LINE_FONT_OFFSET;
+    return top;
   } else {
     const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
 
@@ -1377,7 +1352,7 @@ export function getTemplateLineStrokeY(
     const isBrownPeachDreamsPage =
       lineGuideId === 'diary_interior_brown' && slot.page === 15;
     if (isBrownPeachDreamsPage && inputKind === 'line') {
-      return slot.y + slot.lineHeight;
+      return slot.y;
     }
     const isPeachCellField =
       inputKind === 'block' &&
@@ -1385,7 +1360,8 @@ export function getTemplateLineStrokeY(
       slot.normY >= 0.74 &&
       slot.normY <= 0.93;
     if (!isPeachCellField) {
-      return slot.y + slot.lineHeight;
+      // diary: slot.y = штрих PDF (см. getDiarySlotTopNormY).
+      return slot.y;
     }
   }
 

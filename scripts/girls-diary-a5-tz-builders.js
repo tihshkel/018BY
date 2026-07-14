@@ -19,6 +19,7 @@ const A5_TEMPLATE_MAP = {
   SocialNetworksTemplate: 'SocialNetworksTemplate',
   MoodQuestionnaireTemplate: 'MoodQuestionnaireTemplate',
   StyleQuestionnaireTemplate: 'StyleQuestionnaireTemplate',
+  FashionStyleQuestionnaireTemplate: 'FashionStyleQuestionnaireTemplate',
   FirstLoveTemplate: 'FirstLoveTemplate',
   SchoolLifeQuestionnaireTemplate: 'SchoolLifeQuestionnaireTemplate',
   WeeklyScheduleTwoDaysTemplate: 'WeeklyScheduleTwoDaysTemplate',

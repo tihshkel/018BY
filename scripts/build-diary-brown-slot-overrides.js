@@ -62,30 +62,8 @@ def questionnaire_slots(pnum, y_gap=0.038, y_min=0.12):
   return slots
 
 def diary_rules_slots():
-    page = pdf[2]
-    W, H = page.rect.width, page.rect.height
-    candidates = []
-    for d in page.get_drawings():
-        r = d['rect']
-        w = r.width / W
-        h = (r.y1 - r.y0) / H
-        stroke_y = r.y1 / H
-        if w < 0.12 or w > 0.38 or h > 0.01 or stroke_y < 0.7 or stroke_y > 0.85:
-            continue
-        candidates.append((stroke_y, r.x0 / W, w))
-    if candidates:
-        stroke_y, x, w = min(candidates, key=lambda t: (t[1], -t[2]))
-    else:
-        stroke_y, x, w = 0.7644, 0.09, 0.3126
-    return [{
-        'x': round(x, 4),
-        'y': round(stroke_y, 4),
-        'width': round(w, 4),
-        'height': 0.028,
-        'hasLabel': False,
-        'inputKind': 'line',
-        'continuationGroup': 1,
-    }]
+    # Страница «Правила» — только чтение, без полей ввода.
+    return []
 
 def girl_profile_slots(pnum=6, y_min=0.225):
     all_rows = questionnaire_slots(pnum, y_gap=0.034, y_min=y_min)
@@ -119,20 +97,8 @@ def girl_profile_slots(pnum=6, y_min=0.225):
     return slots
 
 def grandparent_profile_slots(pnum):
-    slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.24)
-    filtered = []
-    for s in slots:
-        if s['width'] < 0.35:
-            continue
-        if s['x'] < 0.24 and s['width'] < 0.55:
-            continue
-        filtered.append(s)
-    filtered = filtered[:9]
-    for i, s in enumerate(filtered):
-        s['continuationGroup'] = i + 1
-        s['hasLabel'] = False
-        s['inputKind'] = 'block' if s['width'] >= 0.62 else 'line'
-    return filtered
+    """Тот же макет, что анкета мамы/папы (12 полей + пожелания 4 строки)."""
+    return parent_profile_slots(pnum)
 
 def diary_owner_slots():
     return [{
@@ -146,12 +112,45 @@ def diary_owner_slots():
     }]
 
 def parent_profile_slots(pnum):
-  slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.20)
-  if len(slots) >= 17:
-    return slots[:12] + slots[13:17]
-  if len(slots) >= 16:
-    return slots[:16]
-  return slots
+    """12 ответов + «Пожелания хозяйке дневника:» (хвост после «:» + 3 строки)."""
+    slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.20)
+    answer = finalize_answer_slots(slots[:12])
+    wish_strokes = [
+        (y, x, w)
+        for y, x, w in pdf_writing_strokes(pnum, y_min=0.74, min_w=0.2)
+        if y <= 0.92
+    ]
+    # Хвост после «:» — короткий справа; дальше полные строки.
+    heads = [(y, x, w) for y, x, w in wish_strokes if 0.35 <= w <= 0.55 and x >= 0.45]
+    fulls = [(y, x, w) for y, x, w in wish_strokes if w >= 0.7]
+    # Хвост PDF после «:»; +0.008 на отрисовке (applyDiaryUniformLineInset).
+    head_x = round(min(hx, 0.5381), 4) if heads else 0.5381
+    hy = sorted(heads, key=lambda t: t[0])[0][0] if heads else 0.7698
+    head = {
+        'x': head_x,
+        'y': hy,
+        'width': round(max(0.91 - head_x, 0.35), 4),
+        'height': 0.028,
+        'hasLabel': False,
+        'inputKind': 'line',
+        'continuationGroup': 13,
+    }
+    cont_ys = [y for y, x, w in sorted(fulls)[:3]]
+    if len(cont_ys) < 3:
+        cont_ys = [0.8065, 0.8448, 0.8821][:3]
+    wishes = [head] + [
+        {
+            'x': 0.0901,
+            'y': y,
+            'width': 0.8201,
+            'height': 0.028,
+            'hasLabel': False,
+            'inputKind': 'line',
+            'continuationGroup': 13,
+        }
+        for y in cont_ys
+    ]
+    return answer + wishes
 
 def weekly_with_note_slots():
     slots = questionnaire_slots(37, y_gap=0.022, y_min=0.10)
@@ -168,56 +167,56 @@ def weekly_with_note_slots():
         })
     return slots
 
-def my_day_slots():
-    page = pdf[15]
+def pdf_writing_strokes(pnum, y_min=0.2, min_w=0.08, max_h=0.015):
+    page = pdf[pnum - 1]
     W, H = page.rect.width, page.rect.height
-    strokes = []
+    raw = []
     for d in page.get_drawings():
         r = d['rect']
         w, h = r.width / W, (r.y1 - r.y0) / H
-        strokes.append((r.y1 / H, r.x0 / W, w, h))
+        y, x = r.y1 / H, r.x0 / W
+        if w >= min_w and h <= max_h and y > y_min:
+            raw.append((round(y, 4), round(x, 4), round(w, 4)))
+    return sorted(set(raw))
 
-    def pick_line(y_min, y_max, min_w=0.15, max_w=0.35):
-        for sy, x, w, h in sorted(strokes):
-            if y_min <= sy <= y_max and min_w <= w <= max_w:
-                return {
-                    'x': round(x, 4),
-                    'y': round(sy, 4),
-                    'width': round(w, 4),
-                    'height': 0.028,
-                    'inputKind': 'line',
-                }
-        return None
-
-    date = pick_line(0.18, 0.25)
-    mood = pick_line(0.54, 0.58)
-    story_lines = sorted([(sy, x, w) for sy, x, w, h in strokes if w > 0.75 and 0.28 < sy < 0.53])[:5]
-    smile_lines = sorted([(sy, x, w) for sy, x, w, h in strokes if w > 0.75 and sy > 0.72])[:4]
-
+def strokes_to_slots(strokes):
     slots = []
-    slots.append({**date, 'hasLabel': False, 'continuationGroup': 1})
-    for sy, x, w in story_lines:
+    for i, (y, x, w) in enumerate(strokes):
         slots.append({
-            'x': round(x, 4),
-            'y': round(sy, 4),
-            'width': round(w, 4),
-            'height': 0.032,
-            'hasLabel': False,
-            'inputKind': 'block',
-            'continuationGroup': 2,
-        })
-    slots.append({**mood, 'hasLabel': False, 'continuationGroup': 3})
-    for sy, x, w in smile_lines:
-        slots.append({
-            'x': round(x, 4),
-            'y': round(sy, 4),
-            'width': round(w, 4),
-            'height': 0.032,
+            'x': x,
+            'y': y,
+            'width': w,
+            'height': 0.028,
             'hasLabel': False,
             'inputKind': 'line',
-            'continuationGroup': 4,
+            'continuationGroup': i + 1,
         })
     return slots
+
+def my_day_slots(pnum=16):
+    strokes = [(y, x, w) for y, x, w in pdf_writing_strokes(pnum) if w >= 0.5][:11]
+    return strokes_to_slots(strokes)
+
+def hobby_slots():
+    strokes = [(y, x, w) for y, x, w in pdf_writing_strokes(13) if w >= 0.2][:18]
+    return strokes_to_slots(strokes)
+
+def pets_slots():
+    strokes = [
+        (y, x, w)
+        for y, x, w in pdf_writing_strokes(17)
+        if not (y > 0.88 and w < 0.15)
+    ][:12]
+    return strokes_to_slots(strokes)
+
+def school_slots():
+    return strokes_to_slots(pdf_writing_strokes(31)[:14])
+
+def mood_slots():
+    return strokes_to_slots(pdf_writing_strokes(24)[:11])
+
+def style_slots():
+    return strokes_to_slots(pdf_writing_strokes(26)[:16])
 
 def finalize_answer_slots(slots, prefer_line=True):
     for i, s in enumerate(slots):
@@ -228,15 +227,6 @@ def finalize_answer_slots(slots, prefer_line=True):
         else:
             s['inputKind'] = 'block'
     return slots
-
-def school_slots():
-    slots = questionnaire_slots(31, y_gap=0.034, y_min=0.30)
-    filtered = [s for s in slots if s['y'] >= 0.31]
-    return finalize_answer_slots(filtered[:9])
-
-def mood_slots():
-    slots = questionnaire_slots(24, y_gap=0.034, y_min=0.28)
-    return finalize_answer_slots(slots[:9])
 
 def travel_slots():
     page = pdf[20]
@@ -271,22 +261,6 @@ def travel_slots():
             })
     return finalize_answer_slots(rows[:8])
 
-def hobby_slots():
-    slots = questionnaire_slots(13, y_gap=0.034, y_min=0.15)
-    # Drop micro tail on «остаёшься одна» question row only.
-    filtered = []
-    for s in slots:
-        if (
-            s['y'] >= 0.34 and s['y'] <= 0.39
-            and s['x'] >= 0.65 and s['width'] <= 0.25
-        ):
-            continue
-        filtered.append(s)
-    for i, s in enumerate(filtered[:12]):
-        s['continuationGroup'] = i + 1
-        s['inputKind'] = 'block' if s['width'] >= 0.62 else 'line'
-    return filtered[:12]
-
 def friend_questionnaire_slots(pnum):
     slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.11)
     first_y = slots[0]['y'] if slots else 0.1643
@@ -318,16 +292,17 @@ brown = {
     '12': grandparent_profile_slots(12),
     '13': hobby_slots(),
     '15': questionnaire_slots(15),
-    '16': my_day_slots(),
-    '17': questionnaire_slots(17),
+    '16': my_day_slots(16),
+    '17': pets_slots(),
     '21': travel_slots(),
     '24': mood_slots(),
+    '26': style_slots(),
     '31': school_slots(),
     '38': questionnaire_slots(38, y_gap=0.032, y_min=0.14),
 }
 for p in MY_DAY:
     if p != 16:
-        brown[str(p)] = my_day_slots()
+        brown[str(p)] = my_day_slots(p)
 for p in WEEKLY:
     brown[str(p)] = questionnaire_slots(p, y_gap=0.022, y_min=0.12)
 brown['37'] = weekly_with_note_slots()
@@ -339,6 +314,11 @@ Path(out).write_text(json.dumps(brown, indent=2), encoding='utf-8')
 print('Wrote', out, 'pages', len(brown))
 `;
 
-const venvPy = path.join(projectRoot, '.venv/bin/python3');
-const pyCmd = fs.existsSync(venvPy) ? venvPy : 'python3';
+const venvPyUnix = path.join(projectRoot, '.venv/bin/python3');
+const venvPyWin = path.join(projectRoot, '.venv/Scripts/python.exe');
+const pyCmd = fs.existsSync(venvPyUnix)
+  ? venvPyUnix
+  : fs.existsSync(venvPyWin)
+    ? venvPyWin
+    : process.env.PYTHON || 'python';
 execSync(pyCmd, { input: py, cwd: projectRoot, stdio: ['pipe', 'inherit', 'inherit'] });

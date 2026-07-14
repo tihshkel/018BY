@@ -117,17 +117,36 @@ function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
   return undefined;
 }
 
-/** «Кем я хочу стать» (коричневый дневник, стр. 6) — две строки ответа. */
+/** «Кем я хочу стать» — две строки ответа (коричневый/фиолетовый дневник). */
 export const DIARY_BROWN_CAREER_WISH_MAX_LENGTH = 54;
+
+/** Анкета для друзей: Instagram / VK / TikTok — ники до 15 символов. */
+export const PURPLE_FRIEND_SOCIAL_MAX_LENGTH = 15;
+
+const PURPLE_FRIEND_SOCIAL_PAGES = new Set([28, 29, 30, 31, 32, 33]);
 
 function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
   if (
-    params.lineGuideId === 'diary_interior_brown' &&
-    params.sourcePageNumber === 6 &&
-    params.field.fieldId === 'diary_interior_brown_p6_careerWish'
+    (params.lineGuideId === 'diary_interior_brown' &&
+      params.sourcePageNumber === 6 &&
+      params.field.fieldId === 'diary_interior_brown_p6_careerWish') ||
+    (params.lineGuideId === 'diary_interior_purple' &&
+      params.sourcePageNumber === 5 &&
+      params.field.fieldId === 'diary_interior_purple_p5_careerWish')
   ) {
     return DIARY_BROWN_CAREER_WISH_MAX_LENGTH;
   }
+
+  if (
+    params.lineGuideId === 'diary_interior_purple' &&
+    PURPLE_FRIEND_SOCIAL_PAGES.has(params.sourcePageNumber) &&
+    (params.field.fieldId.endsWith('_instagram') ||
+      params.field.fieldId.endsWith('_vk') ||
+      params.field.fieldId.endsWith('_tiktok'))
+  ) {
+    return PURPLE_FRIEND_SOCIAL_MAX_LENGTH;
+  }
+
   return undefined;
 }
 

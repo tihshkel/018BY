@@ -17,13 +17,13 @@ const LINE = (x, y, width, height, continuationGroup = 1, inputKind = 'line') =>
   continuationGroup,
 });
 
-/** Page 3 — дата начала (коричневый макет). */
-const DIARY_RULES_PAGE_SLOTS = [LINE(0.09, 0.7644, 0.3126, 0.028, 1)];
+/** Page 3 — «Правила»: только чтение, слотов нет. */
+const DIARY_RULES_PAGE_SLOTS = [];
 
-/** Page 3 — дата (фиолетовый макет: линия y≈0.219). */
-const PURPLE_DIARY_RULES_PAGE_SLOTS = [LINE(0.0895, 0.219, 0.5003, 0.028, 1)];
+/** Page 3 — «Правила» (фиолетовый): только чтение, слотов нет. */
+const PURPLE_DIARY_RULES_PAGE_SLOTS = [];
 
-/** Page 5 — «Твоя анкета» (фиолетовый дневник), 12 полей. */
+/** Page 5 — «Твоя анкета» (фиолетовый дневник): 11 полей + 2 строки «кем хочу стать». */
 const PURPLE_GIRL_PROFILE_PAGE_SLOTS = [
   LINE(0.236, 0.292, 0.6754, 0.028, 1, 'block'),
   LINE(0.3162, 0.3318, 0.5963, 0.028, 2),
@@ -37,6 +37,7 @@ const PURPLE_GIRL_PROFILE_PAGE_SLOTS = [
   LINE(0.3179, 0.651, 0.5951, 0.028, 10),
   LINE(0.2926, 0.6918, 0.6205, 0.028, 11),
   LINE(0.6604, 0.7309, 0.2527, 0.028, 12),
+  LINE(0.0954, 0.7701, 0.8176, 0.028, 12),
 ];
 
 /** Page 26 — расписание пт/сб (фиолетовый), 10 полей. */
