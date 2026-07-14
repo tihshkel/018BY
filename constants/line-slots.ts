@@ -8809,193 +8809,193 @@ export const LINE_SLOTS = {
     "11": [
       {
         "x": 0.28812,
-        "y": 0.25884,
+        "y": 0.25925,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
         "x": 0.57136,
-        "y": 0.25884,
+        "y": 0.25925,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 2
       },
       {
         "x": 0.28812,
-        "y": 0.32083,
+        "y": 0.31978,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 3
       },
       {
         "x": 0.57136,
-        "y": 0.32083,
+        "y": 0.31978,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 4
       },
       {
         "x": 0.28812,
-        "y": 0.38281,
+        "y": 0.38069,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 5
       },
       {
         "x": 0.57136,
-        "y": 0.38281,
+        "y": 0.38069,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 6
       },
       {
         "x": 0.28812,
-        "y": 0.44479,
+        "y": 0.44161,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 7
       },
       {
         "x": 0.57136,
-        "y": 0.44479,
+        "y": 0.44161,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 8
       },
       {
         "x": 0.28812,
-        "y": 0.50677,
+        "y": 0.50232,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 9
       },
       {
         "x": 0.57136,
-        "y": 0.50677,
+        "y": 0.50232,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 10
       },
       {
         "x": 0.28812,
-        "y": 0.56875,
+        "y": 0.56285,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 11
       },
       {
         "x": 0.57136,
-        "y": 0.56875,
+        "y": 0.56285,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 12
       },
       {
         "x": 0.28812,
-        "y": 0.63073,
+        "y": 0.62416,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 13
       },
       {
         "x": 0.57136,
-        "y": 0.63073,
+        "y": 0.62416,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 14
       },
       {
         "x": 0.28812,
-        "y": 0.69271,
+        "y": 0.68449,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 15
       },
       {
         "x": 0.57136,
-        "y": 0.69271,
+        "y": 0.68449,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 16
       },
       {
         "x": 0.28812,
-        "y": 0.75469,
+        "y": 0.7458,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 17
       },
       {
         "x": 0.57136,
-        "y": 0.75469,
+        "y": 0.7458,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 18
       },
       {
         "x": 0.28728,
-        "y": 0.81667,
+        "y": 0.80593,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 19
       },
       {
         "x": 0.57052,
-        "y": 0.81667,
+        "y": 0.80593,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 20
       },
       {
         "x": 0.28812,
-        "y": 0.87865,
+        "y": 0.86724,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 21
       },
       {
         "x": 0.57136,
-        "y": 0.87865,
+        "y": 0.86724,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 22
       },
       {
         "x": 0.28728,
-        "y": 0.94064,
+        "y": 0.92776,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 23
       },
       {
         "x": 0.57052,
-        "y": 0.94064,
+        "y": 0.92776,
         "width": 0.14286,
-        "height": 0.06198,
+        "height": 0.055,
         "hasLabel": false,
         "continuationGroup": 24
       }

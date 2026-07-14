@@ -7472,7 +7472,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "1 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 22,
           "templateLineCount": 1
         },
         {
@@ -7480,7 +7480,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "1 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 23,
           "templateLineCount": 1
         },
         {
@@ -7488,7 +7488,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "2 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 20,
           "templateLineCount": 1
         },
         {
@@ -7496,7 +7496,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "2 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 21,
           "templateLineCount": 1
         },
         {
@@ -7504,7 +7504,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "3 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 4,
+          "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
@@ -7512,7 +7512,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "3 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
@@ -7520,7 +7520,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "4 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
@@ -7528,7 +7528,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "4 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
@@ -7536,7 +7536,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "5 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -7544,7 +7544,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "5 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -7552,7 +7552,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "6 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -7560,7 +7560,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "6 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -7568,7 +7568,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "7 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -7576,7 +7576,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "7 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -7584,7 +7584,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "8 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -7592,7 +7592,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "8 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -7600,7 +7600,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "9 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -7608,7 +7608,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "9 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 17,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -7616,7 +7616,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "10 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 18,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -7624,7 +7624,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "10 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 19,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -7632,7 +7632,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "11 мес. — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 20,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -7640,7 +7640,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "11 мес. — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 21,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -7648,7 +7648,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "1 год — рост (см)",
           "type": "number",
           "required": false,
-          "templateLineStart": 22,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
@@ -7656,7 +7656,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "1 год — вес (кг)",
           "type": "number",
           "required": false,
-          "templateLineStart": 23,
+          "templateLineStart": 1,
           "templateLineCount": 1
         }
       ],

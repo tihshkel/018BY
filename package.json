@@ -34,7 +34,8 @@
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
-    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js"
+    "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
+    "seed:albums": "npx tsx scripts/seed-filled-albums.ts"
   },
   "dependencies": {
     "@bittingz/expo-widgets": "^3.0.2",

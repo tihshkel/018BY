@@ -101,7 +101,8 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
 function buildGrowthFields(lineGuideId, pageNumber, slots) {
   const fields = [];
   for (let month = 1; month <= 12; month += 1) {
-    const heightStart = (month - 1) * 2;
+    // Макет: сверху «1 год», снизу «1 мес.»
+    const heightStart = (12 - month) * 2;
     fields.push({
       fieldId: `${lineGuideId}_p${pageNumber}_month_${String(month).padStart(2, '0')}_height`,
       label: `${month === 12 ? '1 год' : `${month} мес.`} — рост (см)`,
