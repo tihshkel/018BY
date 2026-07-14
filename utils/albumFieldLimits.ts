@@ -117,6 +117,20 @@ function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
   return undefined;
 }
 
+/** «Кем я хочу стать» (коричневый дневник, стр. 6) — две строки ответа. */
+export const DIARY_BROWN_CAREER_WISH_MAX_LENGTH = 54;
+
+function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
+  if (
+    params.lineGuideId === 'diary_interior_brown' &&
+    params.sourcePageNumber === 6 &&
+    params.field.fieldId === 'diary_interior_brown_p6_careerWish'
+  ) {
+    return DIARY_BROWN_CAREER_WISH_MAX_LENGTH;
+  }
+  return undefined;
+}
+
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
   const measurementLimit = getMeasurementDigitLimit(params.field);
   if (measurementLimit != null) {
@@ -131,6 +145,11 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
   const pregnancyLimit = getPregnancyFieldLimit(params);
   if (pregnancyLimit != null) {
     return pregnancyLimit;
+  }
+
+  const diaryLimit = getDiaryFieldLimit(params);
+  if (diaryLimit != null) {
+    return diaryLimit;
   }
 
   const familyTreeLimit = getFamilyTreeFieldLimit(params);

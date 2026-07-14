@@ -73,6 +73,9 @@ function getEffectiveCharWidthRatio(
     (slot.inputKind ?? 'line') === 'line'
   ) {
     ratio *= 0.88;
+  } else if (slot && isBrownCareerAnswerSlot(slot, lineGuideId)) {
+    // Две строки ответа «Кем я хочу стать» — чуть плотнее, чтобы уложиться в 54 символа.
+    ratio *= 0.82;
   }
   return ratio;
 }

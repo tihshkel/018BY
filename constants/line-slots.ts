@@ -11181,7 +11181,7 @@ export const LINE_SLOTS = {
       },
       {
         "x": 0.08479,
-        "y": 0.812,
+        "y": 0.826,
         "width": 0.82,
         "height": 0.028,
         "hasLabel": false,
