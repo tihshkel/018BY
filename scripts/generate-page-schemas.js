@@ -221,11 +221,21 @@ function buildFieldsFromContent(lineGuideId, pageNumber, contentFields) {
   }));
 }
 
+function matchesWeightOrHeightWord(label) {
+  const lower = label.trim().toLowerCase();
+  const left = '(?:^|[^а-яёa-z0-9_])';
+  const right = '(?=[^а-яёa-z0-9_]|$)';
+  return (
+    new RegExp(`${left}рост(?:а|у|ом|е)?${right}`).test(lower) ||
+    new RegExp(`${left}вес(?:а|у|ом|е)?${right}`).test(lower)
+  );
+}
+
 function inferFieldType(label) {
   const lower = label.toLowerCase();
   if (lower.includes('дата') || lower.includes('пдр')) return 'date';
   if (lower.includes('время')) return 'time';
-  if (lower.includes('вес') || lower.includes('рост')) return 'number';
+  if (matchesWeightOrHeightWord(label)) return 'number';
   return 'text';
 }
 

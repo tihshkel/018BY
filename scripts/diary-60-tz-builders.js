@@ -9,19 +9,25 @@ const {
   PARENT_MOM_FIELDS,
   PARENT_DAD_FIELDS,
   HOBBY_FIELDS,
+  PURPLE_HOBBY_FIELDS,
   PETS_FIELDS,
+  PURPLE_PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
+  PURPLE_SOCIAL_NETWORKS_FIELDS,
   FRIEND_SOCIAL_FIELDS,
   PURPLE_FRIEND_FIELDS,
   MOOD_FIELDS,
+  PURPLE_MOOD_FIELDS,
   STYLE_FIELDS,
+  PURPLE_STYLE_FIELDS,
   FIRST_LOVE_FIELDS,
+  PURPLE_FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
+  PURPLE_SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   DREAMS_FIELDS,
   TRAVEL_FIELDS,
-  DIARY_RULES_FIELDS,
   WEEKLY_SCHEDULE_DAY_PAIRS,
   BROWN_WEEKLY_SCHEDULE_PAGES,
   buildWeeklyScheduleSpec,
@@ -94,31 +100,30 @@ function friendFieldsSpecForPage(lineGuideId, pageNumber, slots) {
     return FRIEND_FIELDS;
   }
 
-  const baseWithSingleWish = PURPLE_FRIEND_FIELDS.map(([id, label, type, count]) =>
-    id === 'wishes' ? [id, label, type, 1] : [id, label, type, count],
-  );
-  const baseLines = countSpecLines(baseWithSingleWish);
+  // Пожелания — 2 строки (≈44 символа) + Instagram / VK / TikTok при достаточных слотах.
+  const baseLines = countSpecLines(PURPLE_FRIEND_FIELDS);
   const slotCount = slots?.length ?? 0;
 
   if (slotCount - baseLines >= FRIEND_SOCIAL_FIELDS.length) {
-    return [...baseWithSingleWish, ...FRIEND_SOCIAL_FIELDS];
+    return [...PURPLE_FRIEND_FIELDS, ...FRIEND_SOCIAL_FIELDS];
   }
 
   return PURPLE_FRIEND_FIELDS;
 }
 
+// Стр. 38 «Еда»: хвост+полная / хвост / 2 полные / хвост кафе / 5 полных под «вырастешь».
 const FOOD_FIELDS = [
-  ['favoriteFood', 'Перечисли самую вкусную для тебя еду', 'text', 1],
-  ['favoriteSweet', 'Что ты любишь из сладенького?', 'text', 1],
+  ['favoriteFood', 'Перечисли самую вкусную для тебя еду', 'text', 2],
+  ['favoriteSweet', 'Что ты любишь из сладенького?', 'text', 2],
   ['sweetTooth', 'Ты считаешь себя сладкоежкой', 'text', 1],
   ['recipeStory', 'Ты уже пробовала готовить? Если да, то поделись рецептом', 'text', 2],
-  ['favoriteCafeOrder', 'Ты любишь кушать в кафе? Если да, то что ты чаще всего заказываешь?', 'text', 2],
-  ['futureCookingPlans', 'Что ты чаще всего будешь готовить, когда вырастешь?', 'text', 2],
+  ['favoriteCafeOrder', 'Ты любишь кушать в кафе? Если да, то что ты чаще всего заказываешь?', 'text', 1],
+  ['futureCookingPlans', 'Что ты чаще всего будешь готовить, когда вырастешь?', 'text', 5],
 ];
 
 function buildField(lineGuideId, pageNumber, id, label, type, start, count, slots) {
   const maxStart = Math.max(0, (slots?.length ?? 1) - 1);
-  return {
+  const field = {
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
     label,
     type,
@@ -126,6 +131,31 @@ function buildField(lineGuideId, pageNumber, id, label, type, start, count, slot
     templateLineStart: Math.min(start, maxStart),
     templateLineCount: count,
   };
+  // «Пожелания хозяйке анкеты» — ровно 2 строки ≈ 44 символа.
+  if (
+    id === 'wishes' &&
+    lineGuideId === 'diary_interior_purple' &&
+    PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(pageNumber)
+  ) {
+    field.maxLength = 44;
+  }
+  // Instagram / VK / TikTok — короткие ники, 15 символов.
+  if (
+    (id === 'instagram' || id === 'vk' || id === 'tiktok') &&
+    lineGuideId === 'diary_interior_purple' &&
+    PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(pageNumber)
+  ) {
+    field.maxLength = 15;
+  }
+  // «Самое сокровенное» на стр. «Мечты» — до 10 символов.
+  if (
+    id === 'secretMost' &&
+    lineGuideId === 'diary_interior_brown' &&
+    pageNumber === 15
+  ) {
+    field.maxLength = 10;
+  }
+  return field;
 }
 
 function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset = 0) {
@@ -136,6 +166,30 @@ function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset =
     cursor += count;
   }
   return fields;
+}
+
+/**
+ * Коричневый «Одежда и стиль»: длинные вопросы (удобная / цвета) пишут на полные линии
+ * (слот 2 — узкий хвост после «удобная?» — пропускаем).
+ * 0–1 тренды; 3 удобная; 4 цвета; 5–6 дом; …
+ */
+function buildBrownStyleFields(lineGuideId, pageNumber, slots) {
+  const spec = [
+    ['trendFollow', 'Ты следишь за модными трендами?', 'text', 0, 2],
+    // Хвост сразу после «удобная?» + полная строка ниже (как у «для дома»).
+    ['comfortableClothes', 'Какая одежда для тебя самая удобная?', 'text', 2, 2],
+    // Длинный вопрос без хвоста — только полная линия ответа.
+    ['favoriteColorCombos', 'Какие сочетания цветов в одежде тебе нравятся?', 'text', 4, 1],
+    ['homeClothes', 'Твоя любимая одежда для дома', 'text', 5, 2],
+    ['holidayClothes', 'Любимая одежда для праздника', 'text', 7, 2],
+    ['friendsWalkClothes', 'Любимая одежда для прогулки с друзьями', 'text', 9, 2],
+    ['schoolClothes', 'Любимая одежда для школы', 'text', 11, 2],
+    // Хвост после «какие?» + 2 полные строки (начало сразу после «?»).
+    ['wearsJewelry', 'Ты носишь украшения? Если да, то какие?', 'text', 13, 3],
+  ];
+  return spec.map(([id, label, type, start, count]) =>
+    buildField(lineGuideId, pageNumber, id, label, type, start, count, slots),
+  );
 }
 
 function buildDiaryOwnerFields(lineGuideId, pageNumber, slots) {
@@ -172,8 +226,22 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
   const maxLines = slots?.length ?? 12;
 
   if (lineGuideId === 'diary_interior_purple') {
+    // Линии письма: 0–7 день, 8–14 улыбка.
+    // Дата — runtime-слот в конце (index 15); не через buildField,
+    // иначе Math.min(..., slots.length-1) сжимает 15→14 (в JSON ещё нет хвоста даты).
+    const dayStoryLines = 8;
+    const smileStart = dayStoryLines;
+    const smileLines = 7;
+    const dateSlotIndex = dayStoryLines + smileLines; // 15
     return [
-      buildField(lineGuideId, pageNumber, 'date', 'Дата', 'date', 0, 1, slots),
+      {
+        fieldId: `${lineGuideId}_p${pageNumber}_date`,
+        label: 'Дата',
+        type: 'date',
+        required: false,
+        templateLineStart: dateSlotIndex,
+        templateLineCount: 1,
+      },
       buildField(
         lineGuideId,
         pageNumber,
@@ -181,7 +249,7 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         'Как прошёл сегодняшний день',
         'text',
         0,
-        Math.min(5, Math.max(1, maxLines)),
+        dayStoryLines,
         slots,
       ),
       {
@@ -190,7 +258,7 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         type: 'radio',
         required: false,
         options: MOOD_OPTIONS,
-        templateLineStart: Math.min(5, maxLines - 1),
+        templateLineStart: 0,
         templateLineCount: 1,
       },
       buildField(
@@ -199,8 +267,55 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         'things_that_made_smile',
         'Вещи, которые заставили сегодня улыбаться',
         'text',
-        Math.min(6, maxLines - 1),
-        Math.min(4, Math.max(1, maxLines - 6)),
+        smileStart,
+        smileLines,
+        slots,
+      ),
+    ];
+  }
+
+  // Коричневый (6+5): дата — слот под «(ДАТА)» в конце (runtime append), не вливать в day_story.
+  if (lineGuideId === 'diary_interior_brown') {
+    const dayStoryLines = 6;
+    const smileStart = dayStoryLines;
+    const smileLines = 5;
+    const dateSlotIndex = dayStoryLines + smileLines; // 11
+    return [
+      {
+        fieldId: `${lineGuideId}_p${pageNumber}_date`,
+        label: 'Дата',
+        type: 'date',
+        required: false,
+        templateLineStart: dateSlotIndex,
+        templateLineCount: 1,
+      },
+      buildField(
+        lineGuideId,
+        pageNumber,
+        'day_story',
+        'Как прошёл сегодняшний день',
+        'text',
+        0,
+        dayStoryLines,
+        slots,
+      ),
+      {
+        fieldId: `${lineGuideId}_p${pageNumber}_mood`,
+        label: 'Настроение',
+        type: 'radio',
+        required: false,
+        options: MOOD_OPTIONS,
+        templateLineStart: 0,
+        templateLineCount: 1,
+      },
+      buildField(
+        lineGuideId,
+        pageNumber,
+        'things_that_made_smile',
+        'Вещи, которые заставили сегодня улыбаться',
+        'text',
+        smileStart,
+        smileLines,
         slots,
       ),
     ];
@@ -435,35 +550,62 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'DiaryRulesTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, DIARY_RULES_FIELDS);
+    return buildStaticPage(tzEntry);
   }
 
   if (template === 'HobbyTemplate' || template === 'HobbyQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, HOBBY_FIELDS);
+    const hobbySpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_HOBBY_FIELDS : HOBBY_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, hobbySpec);
   }
 
   if (template === 'PetsTemplate' || template === 'PetsQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PETS_FIELDS);
+    const petsSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_PETS_FIELDS : PETS_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, petsSpec);
   }
 
   if (template === 'SocialNetworksTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SOCIAL_NETWORKS_FIELDS);
+    const socialSpec =
+      lineGuideId === 'diary_interior_purple'
+        ? PURPLE_SOCIAL_NETWORKS_FIELDS
+        : SOCIAL_NETWORKS_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, socialSpec);
   }
 
   if (template === 'MoodTemplate' || template === 'MoodQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, MOOD_FIELDS);
+    const moodSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_MOOD_FIELDS : MOOD_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, moodSpec);
   }
 
-  if (template === 'StyleTemplate' || template === 'StyleQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, STYLE_FIELDS);
+  if (template === 'StyleTemplate' || template === 'StyleQuestionnaireTemplate' || template === 'FashionStyleQuestionnaireTemplate') {
+    if (lineGuideId === 'diary_interior_brown') {
+      return {
+        replaceFields: true,
+        replacePhotoBlocks: true,
+        photoBlocks: undefined,
+        title: tzEntry.title,
+        pageType: 'structured',
+        editable: true,
+        fields: buildBrownStyleFields(lineGuideId, pageNumber, slots),
+        formHint: tzEntry.formHint,
+        canDuplicate: tzEntry.canDuplicate ?? false,
+      };
+    }
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PURPLE_STYLE_FIELDS);
   }
 
   if (template === 'FirstLoveTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, FIRST_LOVE_FIELDS);
+    const loveSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_FIRST_LOVE_FIELDS : FIRST_LOVE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, loveSpec);
   }
 
   if (template === 'SchoolLifeTemplate' || template === 'SchoolLifeQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, SCHOOL_LIFE_FIELDS);
+    const schoolFields =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_SCHOOL_LIFE_FIELDS : SCHOOL_LIFE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, schoolFields);
   }
 
   if (template === 'DreamsTemplate') {

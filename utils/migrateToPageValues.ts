@@ -56,7 +56,7 @@ export async function migrateProjectToPageValues(projectId: string): Promise<boo
   }
 
   const parsed = JSON.parse(annotationsRaw) as Annotation[];
-  const { items: annotations } = normalizeProjectAnnotations(parsed);
+  const { items: annotations } = normalizeProjectAnnotations(parsed, lineGuideId);
 
   const pageValuesMap: Record<string, PageValues> = await loadPageValuesMap(
     (key) => AsyncStorage.getItem(key),

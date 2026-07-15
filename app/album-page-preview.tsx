@@ -23,6 +23,7 @@ import { useAlbumPagePreviewLayout } from "@/hooks/use-album-editor-layout";
 import { usePageAnnotationsForLayout } from "@/hooks/use-page-annotations-for-layout";
 import { useAlbumPagePhotoEditor } from "@/hooks/use-album-page-photo-editor";
 import { useAlbumProject } from "@/hooks/use-album-project";
+import { remapPurpleFriendSocialValuesForDraw } from "@/utils/pageValuesAdapter";
 import {
   buildAlbumPagesHref,
   navigateToAlbumPages,
@@ -310,6 +311,23 @@ export default function AlbumPagePreviewScreen() {
   useEffect(() => {
     setReady(false);
   }, [instanceId, imageUri]);
+
+  // Один раз сохраняем сдвиг IG/VK (не трогая геометрию пожеланий).
+  useEffect(() => {
+    if (!instanceId || !schema || !values) return;
+    const remapped = remapPurpleFriendSocialValuesForDraw(
+      schema,
+      values,
+      resolvedLineGuideId,
+    );
+    if (remapped === values) return;
+    const changed = Object.keys(remapped.fields).some(
+      (key) => (remapped.fields[key] ?? "") !== (values.fields[key] ?? ""),
+    );
+    if (!changed) return;
+    project.updatePageValues(instanceId, () => remapped);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- только при смене полей страницы
+  }, [instanceId, schema?.pageId, values?.fields, resolvedLineGuideId]);
 
   const handlePageReady = useCallback(() => {
     setReady(true);

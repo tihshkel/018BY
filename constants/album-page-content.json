@@ -6776,9 +6776,9 @@
         {
           "fieldId": "diary_interior_brown_p17_g9",
           "label": "Если питомца у тебя нет, поделись, кого бы тебе хотелось завести:",
-          "type": "number",
+          "type": "text",
           "templateLineStart": 8,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p17_g10",

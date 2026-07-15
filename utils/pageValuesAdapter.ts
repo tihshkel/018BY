@@ -19,6 +19,11 @@ import {
   layoutTextAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
+import {
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+} from '@/utils/diaryJewelryTextPack';
+import { joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
@@ -52,35 +57,165 @@ const PURPLE_MY_DAY_PAGES = new Set([
   9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
 ]);
 
-function isPurpleMyDayPage(lineGuideId: string, pageNumber: number): boolean {
-  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGES.has(pageNumber);
+const BROWN_MY_DAY_PAGES = new Set([
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+]);
+
+function isDiaryMyDayPage(lineGuideId: string, pageNumber: number): boolean {
+  if (lineGuideId === 'diary_interior_purple') {
+    return PURPLE_MY_DAY_PAGES.has(Number(pageNumber));
+  }
+  if (lineGuideId === 'diary_interior_brown') {
+    return BROWN_MY_DAY_PAGES.has(Number(pageNumber));
+  }
+  return false;
 }
 
-/** Фиолетовый «Твой день»: дата и текст «За сегодня» идут одним потоком по 5 строкам. */
+/**
+ * «Твой день»:
+ * - фиолетовый: дата отдельно напротив «ЗА СЕГОДНЯ:»;
+ * - коричневый: дата отдельно под «Твой день» (поле «(ДАТА)»), рассказ без префикса даты.
+ */
 function resolvePurpleMyDayFieldText(
   field: AlbumPageField,
   schema: AlbumPageSchema,
   values: PageValues,
   lineGuideId: string,
 ): string | null {
-  if (!isPurpleMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+  if (!isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
     return values.fields[field.fieldId]?.trim() || null;
   }
 
+  // Фиолетовый и коричневый: дата и рассказ — разные поля/слоты.
   if (field.fieldId.endsWith('_date')) {
-    return null;
+    const rawDate = values.fields[field.fieldId]?.trim() ?? '';
+    if (rawDate) return rawDate;
+    // Старые сохранения: дата только в начале day_story.
+    const storyFieldId = field.fieldId.replace(/_date$/, '_day_story');
+    const rawStory = values.fields[storyFieldId]?.trim() ?? '';
+    const match = rawStory.match(/^(\d{1,2}[./]\d{1,2}[./]\d{2,4})\b/);
+    return match?.[1] ?? null;
   }
 
   if (field.fieldId.endsWith('_day_story')) {
     const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
     const dateText = values.fields[dateFieldId]?.trim() ?? '';
-    const storyText = values.fields[field.fieldId]?.trim() ?? '';
-    if (!dateText && !storyText) return null;
-    if (dateText && storyText) return `${dateText} ${storyText}`;
-    return dateText || storyText;
+    let story = values.fields[field.fieldId]?.trim() ?? '';
+    if (!story) return null;
+    if (dateText && story.startsWith(dateText)) {
+      story = story.slice(dateText.length).trimStart();
+    } else {
+      story = story.replace(/^\d{1,2}[./]\d{1,2}[./]\d{2,4}\s*/, '').trimStart();
+    }
+    return story || null;
   }
 
   return values.fields[field.fieldId]?.trim() || null;
+}
+
+const PURPLE_FRIEND_QUESTIONNAIRE_PAGES = new Set([28, 29, 30, 31, 32, 33]);
+
+function findFriendFieldId(
+  schema: AlbumPageSchema,
+  suffix: '_wishes' | '_instagram' | '_vk' | '_tiktok',
+): string | undefined {
+  return schema.fields?.find((field) => {
+    if (!field.fieldId.endsWith(suffix)) return false;
+    if (suffix === '_instagram' && field.fieldId.includes('Nickname')) return false;
+    return true;
+  })?.fieldId;
+}
+
+function isPurpleFriendQuestionnaireSchema(schema: AlbumPageSchema, lineGuideId: string): boolean {
+  if (lineGuideId !== 'diary_interior_purple') return false;
+  if (PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(Number(schema.sourcePageNumber))) return true;
+  // Дубликаты / сдвиг sourcePageNumber — детектим по полям.
+  return Boolean(
+    findFriendFieldId(schema, '_wishes') &&
+      findFriendFieldId(schema, '_instagram') &&
+      findFriendFieldId(schema, '_vk') &&
+      findFriendFieldId(schema, '_tiktok'),
+  );
+}
+
+/**
+ * Только значения IG/VK: если «Сердце…» ещё в wishes, а «Было…» в Instagram и VK пуст —
+ * переносим на IG/VK. Слоты и геометрия «Пожелания…» не меняются.
+ */
+export function remapPurpleFriendSocialValuesForDraw(
+  schema: AlbumPageSchema,
+  values: PageValues,
+  lineGuideId: string,
+): PageValues {
+  if (!isPurpleFriendQuestionnaireSchema(schema, lineGuideId)) return values;
+
+  const wishesId = findFriendFieldId(schema, '_wishes');
+  const igId = findFriendFieldId(schema, '_instagram');
+  const vkId = findFriendFieldId(schema, '_vk');
+  if (!wishesId || !igId || !vkId) return values;
+
+  const wish = (values.fields[wishesId] ?? '').trim();
+  const ig = (values.fields[igId] ?? '').trim();
+  const vk = (values.fields[vkId] ?? '').trim();
+
+  // Уже разложено по IG/VK, но seed остался в wishes → убрать, линии пожеланий пустые.
+  if (vk && wish && (wish.slice(0, 15) === ig || ig.startsWith(wish.slice(0, Math.min(8, wish.length))))) {
+    return {
+      ...values,
+      fields: {
+        ...values.fields,
+        [wishesId]: '',
+      },
+    };
+  }
+
+  // Уже разложены по IG/VK.
+  if (vk) return values;
+  if (!wish || !ig) return values;
+
+  return {
+    ...values,
+    fields: {
+      ...values.fields,
+      // Убираем из wishes, чтобы 2-я линия не рисовала соцтекст у «Ники…».
+      [wishesId]: '',
+      [igId]: wish.slice(0, 15),
+      [vkId]: ig.slice(0, 15),
+    },
+  };
+}
+
+function resolvePurpleFriendFieldText(
+  field: AlbumPageField,
+  _schema: AlbumPageSchema,
+  values: PageValues,
+  lineGuideId: string,
+): string | null {
+  const text = values.fields[field.fieldId]?.trim() ?? '';
+  if (!text) return null;
+
+  if (
+    lineGuideId === 'diary_interior_purple' &&
+    (field.fieldId.endsWith('_instagram') ||
+      field.fieldId.endsWith('_vk') ||
+      field.fieldId.endsWith('_tiktok'))
+  ) {
+    return text.slice(0, 15);
+  }
+
+  return text;
+}
+
+function resolveAlbumFieldText(
+  field: AlbumPageField,
+  schema: AlbumPageSchema,
+  values: PageValues,
+  lineGuideId: string,
+): string | null {
+  if (isPurpleFriendQuestionnaireSchema(schema, lineGuideId)) {
+    return resolvePurpleFriendFieldText(field, schema, values, lineGuideId);
+  }
+  return resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
 }
 
 function slotTransformForAnnotation(
@@ -124,12 +259,15 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     lineGuideId,
     pageNumber,
     schema,
-    values,
+    values: rawValues,
     viewportWidth = DEFAULT_VIEWPORT.width,
     viewportHeight = DEFAULT_VIEWPORT.height,
     sourceWidth,
     sourceHeight,
   } = params;
+
+  // Опускаем только тексты IG/VK; слоты пожеланий не двигаем.
+  const values = remapPurpleFriendSocialValuesForDraw(schema, rawValues, lineGuideId);
 
   const slotParams = buildSlotParams(
     lineGuideId,
@@ -158,7 +296,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (field.type === 'radio' || field.type === 'checkbox') continue;
     if (isBlankTemplate) continue;
 
-    const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
+    const rawText = resolveAlbumFieldText(field, schema, values, lineGuideId);
     if (!rawText) continue;
 
     const characterLimit = getFieldCharacterLimit({
@@ -186,14 +324,66 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       lineGuideId,
       schema.sourcePageNumber,
     );
-    const displayText = isTeethToothDate
-      ? formatAlbumDateDayMonth(text)
-      : isAdmissionDate
-        ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
-        : text;
+    const displayText = (() => {
+      const formatted = isTeethToothDate
+        ? formatAlbumDateDayMonth(text)
+        : isAdmissionDate
+          ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
+          : text;
+      if (
+        (field.templateLineCount ?? 1) > 1 ||
+        (lineGuideId === 'diary_interior_brown' &&
+          (schema.sourcePageNumber === 26 || schema.sourcePageNumber === 38))
+      ) {
+        // Без trim: иначе пробел при наборе на превью пропадает.
+        return formatted
+          .replace(/[\r\n\u2028\u2029]+/g, ' ')
+          .replace(/[ \t]+/g, ' ');
+      }
+      return formatted;
+    })();
     if (!displayText) continue;
 
-    const startIndex = field.templateLineStart;
+    let startIndex = field.templateLineStart;
+    let lineCount = field.templateLineCount ?? 1;
+    // «Украшения» — жёстко хвост + 2 полные строки (не зависеть от устаревшей схемы).
+    if (
+      lineGuideId === 'diary_interior_brown' &&
+      schema.sourcePageNumber === 26 &&
+      field.fieldId.endsWith('_wearsJewelry')
+    ) {
+      startIndex = DIARY_BROWN_JEWELRY_START;
+      lineCount = DIARY_BROWN_JEWELRY_COUNT;
+    }
+    // Постановка на учёт: телефон только на хвосте после подписи (без 2-й OCR-линии).
+    if (
+      lineGuideId === 'pregnancy_60' &&
+      schema.sourcePageNumber === 4 &&
+      field.fieldId.endsWith('_phone')
+    ) {
+      startIndex = 8;
+      lineCount = 1;
+    }
+    if (isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+      if (field.fieldId.endsWith('_date')) {
+        startIndex = Math.max(0, slots.length - 1);
+      } else if (field.fieldId.endsWith('_day_story')) {
+        startIndex = 0;
+      } else if (field.fieldId.endsWith('_things_that_made_smile')) {
+        startIndex = lineGuideId === 'diary_interior_purple' ? 8 : 6;
+      }
+    }
+    // Анкета для друзей: IG/VK/TT жёстко на слотах 18/19/20 (иконки).
+    // Пожелания — schema start 16, count 2 (слоты 16–17), геометрию не трогаем.
+    if (isPurpleFriendQuestionnaireSchema(schema, lineGuideId) && slots.length >= 21) {
+      if (field.fieldId.endsWith('_instagram') && !field.fieldId.includes('Nickname')) {
+        startIndex = 18;
+      } else if (field.fieldId.endsWith('_vk')) {
+        startIndex = 19;
+      } else if (field.fieldId.endsWith('_tiktok')) {
+        startIndex = 20;
+      }
+    }
     if (!slots[startIndex]) continue;
 
     const fieldFontSize = isTeethToothDate ? KIDS48_TEETH_TOOTH_DATE_FONT_SIZE : fontSize;
@@ -201,7 +391,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       slots[startIndex],
       fieldFontSize,
       lineGuideId,
-      displayText,
+      // Не подгонять fontSize под весь многострочный текст через ширину хвоста.
+      lineCount > 1 ? undefined : displayText,
     );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
@@ -215,7 +406,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
       templateLineStart: startIndex,
-      templateLineCount: field.templateLineCount ?? 1,
+      templateLineCount: lineCount,
     });
   }
 
@@ -725,7 +916,10 @@ export function annotationsToPageValues(
       .sort((a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0));
 
     if (related.length > 0) {
-      fields[field.fieldId] = related.map((ann) => ann.content ?? '').join('\n');
+      // Пробел, не \n: иначе перенос на макете «залипает» по одной «словесной» строке на слот.
+      fields[field.fieldId] = joinContinuationSegmentTexts(
+        related.map((ann) => ({ content: ann.content ?? '' })),
+      );
     }
   }
 

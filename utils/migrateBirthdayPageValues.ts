@@ -85,6 +85,7 @@ const DIARY_FIELD_ID_ALIASES: Record<string, string> = {
   diary_interior_brown_p13_dreamSkill: 'diary_interior_brown_p13_favoriteWriter',
   diary_interior_brown_p13_freeTime: 'diary_interior_brown_p13_favoriteCompany',
   diary_interior_brown_p13_proudOf: 'diary_interior_brown_p13_favoriteMusic',
+  diary_interior_brown_p15_steps: 'diary_interior_brown_p15_dream4',
   diary_interior_brown_p31_schoolName: 'diary_interior_brown_p31_likesStudying',
   diary_interior_brown_p31_className: 'diary_interior_brown_p31_favoriteSubject',
   diary_interior_brown_p31_bestClassmate: 'diary_interior_brown_p31_classSize',
@@ -96,18 +97,75 @@ const DIARY_FIELD_ID_ALIASES: Record<string, string> = {
   diary_interior_brown_p42_favoriteMusician: 'diary_interior_brown_p42_favoriteCartoon',
   diary_interior_brown_p43_favoriteMusician: 'diary_interior_brown_p43_favoriteCartoon',
   diary_interior_brown_p44_favoriteMusician: 'diary_interior_brown_p44_favoriteCartoon',
+  diary_interior_brown_p21_favoritePlace: 'diary_interior_brown_p21_likedMost',
+  diary_interior_brown_p21_bestTrip: 'diary_interior_brown_p21_travelImpressions',
 };
 
 const PURPLE_FRIEND_PAGES = [28, 29, 30, 31, 32, 33] as const;
+
+/**
+ * Seed: «Сердце…» сидит в wishes (линия у «Ники…»), «Было…» в Instagram, VK пуст.
+ * Опускаем только эти два значения: wishes→IG, IG→VK. Слоты пожеланий не меняем.
+ */
+function migratePurpleFriendSocialRowShift(values: PageValues, pageNumber: number): PageValues {
+  if (!PURPLE_FRIEND_PAGES.includes(pageNumber as (typeof PURPLE_FRIEND_PAGES)[number])) {
+    return values;
+  }
+
+  const prefix = `diary_interior_purple_p${pageNumber}_`;
+  const markerId = `${prefix}social_row_shift_v4`;
+  if (values.fields[markerId] === '1') return values;
+
+  const wishesId = `${prefix}wishes`;
+  const igId = `${prefix}instagram`;
+  const vkId = `${prefix}vk`;
+  const ttId = `${prefix}tiktok`;
+
+  const wish = values.fields[wishesId]?.trim() ?? '';
+  const ig = values.fields[igId]?.trim() ?? '';
+  const vk = values.fields[vkId]?.trim() ?? '';
+  const tt = values.fields[ttId]?.trim() ?? '';
+  const clip = (text: string) => text.slice(0, 15);
+
+  if (!vk && wish && ig) {
+    return {
+      ...values,
+      fields: {
+        ...values.fields,
+        [wishesId]: '',
+        [igId]: clip(wish),
+        [vkId]: clip(ig),
+        [ttId]: clip(tt),
+        [markerId]: '1',
+      },
+    };
+  }
+
+  if (ig.length > 15 || vk.length > 15 || tt.length > 15) {
+    return {
+      ...values,
+      fields: {
+        ...values.fields,
+        [igId]: clip(ig),
+        [vkId]: clip(vk),
+        [ttId]: clip(tt),
+      },
+    };
+  }
+
+  return values;
+}
 
 function migratePurpleFriendQuestionnaireFields(values: PageValues, pageNumber: number): PageValues {
   if (!PURPLE_FRIEND_PAGES.includes(pageNumber as (typeof PURPLE_FRIEND_PAGES)[number])) {
     return values;
   }
 
+  let next = migratePurpleFriendSocialRowShift(values, pageNumber);
+
   const prefix = `diary_interior_purple_p${pageNumber}_`;
-  const nextFields = { ...values.fields };
-  let migrated = false;
+  const nextFields = { ...next.fields };
+  let migrated = next !== values;
 
   const cartoonId = `${prefix}favoriteCartoon`;
   const musicianId = `${prefix}favoriteMusician`;
@@ -119,7 +177,7 @@ function migratePurpleFriendQuestionnaireFields(values: PageValues, pageNumber: 
   }
 
   if (!migrated) return values;
-  return { ...values, fields: nextFields };
+  return { ...next, fields: nextFields };
 }
 
 export function migrateDiaryFieldValues(values: PageValues, pageNumber?: number): PageValues {

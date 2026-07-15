@@ -35,7 +35,8 @@
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
     "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
-    "seed:albums": "npx tsx scripts/seed-filled-albums.ts"
+    "seed:albums": "npx tsx scripts/seed-filled-albums.ts",
+    "fix:diary-x-inset": "node ./scripts/apply-diary-uniform-x-inset.js"
   },
   "dependencies": {
     "@bittingz/expo-widgets": "^3.0.2",
