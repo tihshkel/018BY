@@ -124,8 +124,8 @@ def parent_profile_slots(pnum):
     heads = [(y, x, w) for y, x, w in wish_strokes if 0.35 <= w <= 0.55 and x >= 0.45]
     fulls = [(y, x, w) for y, x, w in wish_strokes if w >= 0.7]
     # Хвост PDF после «:»; +0.008 на отрисовке (applyDiaryUniformLineInset).
-    head_x = round(min(hx, 0.5381), 4) if heads else 0.5381
-    hy = sorted(heads, key=lambda t: t[0])[0][0] if heads else 0.7698
+    hy, hx, _hw = sorted(heads, key=lambda t: t[0])[0] if heads else (0.7698, 0.5381, 0.35)
+    head_x = round(min(hx, 0.5381), 4)
     head = {
         'x': head_x,
         'y': hy,
@@ -201,11 +201,53 @@ def hobby_slots():
     strokes = [(y, x, w) for y, x, w in pdf_writing_strokes(13) if w >= 0.2][:18]
     return strokes_to_slots(strokes)
 
+def dreams_slots():
+    """Стр. 15 «Мечты»: 3 левых блока + правый столбец + «Самое сокровенное».
+    Порядок как у полей формы (не сортируем по Y).
+    """
+    left_x, left_w = 0.14785, 0.34319
+    right_x, right_w = 0.5932, 0.27072
+    bottom_x, bottom_w = 0.1418, 0.4862
+    h = 0.028
+    left_blocks = [
+        [0.23172, 0.27618, 0.32064],
+        [0.39228, 0.44612, 0.49058],
+        [0.58602, 0.65988, 0.70434, 0.7488],
+    ]
+    right_ys = [
+        0.23172, 0.27618, 0.32064, 0.3651, 0.40842, 0.45288, 0.49734,
+        0.54512, 0.58602, 0.63745, 0.6819, 0.72636,
+    ]
+    bottom_ys = [0.9014]
+    slots = []
+    cg = 0
+    for block in left_blocks:
+        cg += 1
+        for y in block:
+            slots.append({
+                'x': left_x, 'y': y, 'width': left_w, 'height': h,
+                'hasLabel': False, 'inputKind': 'block', 'continuationGroup': cg,
+            })
+    cg += 1
+    for y in right_ys:
+        slots.append({
+            'x': right_x, 'y': y, 'width': right_w, 'height': h,
+            'hasLabel': False, 'inputKind': 'block', 'continuationGroup': cg,
+        })
+    cg += 1
+    for y in bottom_ys:
+        slots.append({
+            'x': bottom_x, 'y': y, 'width': bottom_w, 'height': h,
+            'hasLabel': False, 'inputKind': 'block', 'continuationGroup': cg,
+        })
+    return slots
+
 def pets_slots():
     strokes = [
         (y, x, w)
         for y, x, w in pdf_writing_strokes(17)
         if not (y > 0.88 and w < 0.15)
+        and not (w < 0.22 and x >= 0.55)
     ][:12]
     return strokes_to_slots(strokes)
 
@@ -228,8 +270,9 @@ def finalize_answer_slots(slots, prefer_line=True):
             s['inputKind'] = 'block'
     return slots
 
-def travel_slots():
-    page = pdf[20]
+def thin_writing_strokes(pnum, y_min=0.16, y_max=0.92, min_w=0.12):
+    """Только тонкие штрихи линий ответа (h≈0); h>0.01 — контуры букв вопросов."""
+    page = pdf[pnum - 1]
     W, H = page.rect.width, page.rect.height
     strokes = []
     for d in page.get_drawings():
@@ -237,15 +280,16 @@ def travel_slots():
         w = r.width / W
         h = (r.y1 - r.y0) / H
         sy = r.y1 / H
-        if sy < 0.24 or sy > 0.92:
+        sx = r.x0 / W
+        if sy < y_min or sy > y_max:
             continue
-        if w < 0.55 or h > 0.04:
+        if h > 0.01 or w < min_w:
             continue
-        strokes.append((sy, r.x0 / W, w, max(h, 0.028)))
+        strokes.append((sy, sx, w, 0.028))
     strokes.sort()
     rows = []
     for sy, x, w, h in strokes:
-        if not rows or sy - rows[-1]['y'] > 0.025:
+        if not rows or sy - rows[-1]['y'] > 0.01:
             rows.append({
                 'x': round(x, 4),
                 'y': round(sy, 4),
@@ -259,7 +303,15 @@ def travel_slots():
                 'width': round(w, 4),
                 'height': round(h, 4),
             })
-    return finalize_answer_slots(rows[:8])
+    return rows
+
+def travel_slots():
+    """Все тонкие линии ответа (хвосты после вопроса + полные строки), без контуров текста."""
+    return finalize_answer_slots(thin_writing_strokes(21))
+
+def food_slots():
+    """Стр. 38 «Еда»: хвосты справа после «:»/? + полные строки; без подчёркиваний под вопросами (h≈0.026)."""
+    return finalize_answer_slots(thin_writing_strokes(38, y_min=0.14, y_max=0.92, min_w=0.12))
 
 def friend_questionnaire_slots(pnum):
     slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.11)
@@ -291,14 +343,14 @@ brown = {
     '11': grandparent_profile_slots(11),
     '12': grandparent_profile_slots(12),
     '13': hobby_slots(),
-    '15': questionnaire_slots(15),
+    '15': dreams_slots(),
     '16': my_day_slots(16),
     '17': pets_slots(),
     '21': travel_slots(),
     '24': mood_slots(),
     '26': style_slots(),
     '31': school_slots(),
-    '38': questionnaire_slots(38, y_gap=0.032, y_min=0.14),
+    '38': food_slots(),
 }
 for p in MY_DAY:
     if p != 16:

@@ -165,6 +165,7 @@ const TypedFormField = memo(function TypedFormField({
   onInputFocus,
   layoutClamp,
 }: TypedFormFieldProps) {
+  // Enter в форме → пробел (ниже в handleTypedInput); multiline нужен для визуального переноса.
   const isMultiline = field.templateLineCount > 1;
   const multilineMinHeight = 24 * field.templateLineCount + 24;
 
@@ -189,6 +190,7 @@ const TypedFormField = memo(function TypedFormField({
         scrollEnabled={isMultiline}
         textAlignVertical={isMultiline ? 'top' : 'center'}
         textBreakStrategy={isMultiline ? 'simple' : undefined}
+        blurOnSubmit
         inputMode={
           getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
             ? 'numeric'

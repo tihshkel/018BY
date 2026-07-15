@@ -7,13 +7,21 @@ import type { Annotation } from '@/components/pdf-annotations';
 import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
-import { getLineSlotsForPage, getPregnancyWeeklyFieldStartIndex } from '@/utils/textLineSlots';
+import { getLineSlotsForPage } from '@/utils/textLineSlots';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   distributeTextForTemplateAnnotation,
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
+  joinContinuationSegmentTexts,
 } from '@/utils/templateLineText';
+import {
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+  getJewelryFieldOwnerSlotIndex,
+  isDiaryBrownJewelryFieldLayout,
+  normalizeJewelryFieldText,
+} from '@/utils/diaryJewelryTextPack';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
 
@@ -28,6 +36,29 @@ type ReadOnlyPageAnnotationsProps = {
   onImageAnnotationLoad?: (uri: string) => void;
   onImageAnnotationError?: (uri: string) => void;
 };
+
+/** Склеить куски «украшений», если раньше сохранили по одной аннотации на слот. */
+function mergeJewelrySiblingContent(
+  annotations: readonly Annotation[],
+  page: number | undefined,
+  jewelryStart: number,
+  jewelryCount: number,
+): string {
+  // Включаем legacy-хвост (слот 13), даже если ввод теперь с полных строк (14+).
+  const mergeFrom = Math.min(13, jewelryStart);
+  const parts = annotations
+    .filter(
+      (ann) =>
+        ann.type === 'text' &&
+        Number(ann.page) === page &&
+        typeof ann.templateLineStart === 'number' &&
+        ann.templateLineStart >= mergeFrom &&
+        ann.templateLineStart < jewelryStart + jewelryCount,
+    )
+    .sort((a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0))
+    .map((ann) => ({ content: ann.content ?? '' }));
+  return normalizeJewelryFieldText(joinContinuationSegmentTexts(parts));
+}
 
 function WrappedTemplateText({
   content,
@@ -156,19 +187,73 @@ function ReadOnlyPageAnnotationsInner({
           const slotCount = annotation.templateLineCount ?? 1;
 
           if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
-            const { segments } = distributeTextForTemplateAnnotation({
-              text: formatTemplateLineSlotDisplayText(
-                annotation.content,
-                lineGuideId,
-                sourcePageNumber,
-                startIndex,
-              ),
-              startSlotIndex: startIndex,
-              slots: lineSlots,
-              fontSize,
+            const isJewelryField = isDiaryBrownJewelryFieldLayout({
               lineGuideId,
-              fontId: annotation.fontFamily,
+              sourcePageNumber,
+              startSlotIndex: startIndex,
               lineCount: slotCount,
+              annotationId: annotation.id,
+            });
+
+            const jewelryStart =
+              isJewelryField && lineSlots.length >= 16
+                ? DIARY_BROWN_JEWELRY_START
+                : startIndex;
+            const jewelryCount =
+              isJewelryField && lineSlots.length >= 16
+                ? DIARY_BROWN_JEWELRY_COUNT
+                : slotCount;
+
+            // Продолжения «украшений»: рисуем только с owner-слота, текст склеиваем.
+            if (isJewelryField && lineSlots.length >= 16) {
+              const siblingStarts = sorted
+                .filter(
+                  (ann) =>
+                    ann.type === 'text' &&
+                    Number(ann.page) === (sourcePageNumber ?? annotation.page) &&
+                    typeof ann.templateLineStart === 'number' &&
+                    ann.templateLineStart >= 13 &&
+                    ann.templateLineStart < jewelryStart + jewelryCount,
+                )
+                .map((ann) => ann.templateLineStart as number);
+              const ownerStart = getJewelryFieldOwnerSlotIndex(
+                siblingStarts,
+                jewelryStart,
+                jewelryCount,
+              );
+              if (
+                typeof annotation.templateLineStart === 'number' &&
+                annotation.templateLineStart !== ownerStart
+              ) {
+                return null;
+              }
+            }
+
+            const mergedJewelry =
+              isJewelryField
+                ? mergeJewelrySiblingContent(
+                    sorted,
+                    sourcePageNumber ?? annotation.page,
+                    jewelryStart,
+                    jewelryCount,
+                  )
+                : '';
+            const displayRaw = formatTemplateLineSlotDisplayText(
+              mergedJewelry || annotation.content,
+              lineGuideId,
+              sourcePageNumber,
+              jewelryStart,
+            );
+            const displayText = normalizeJewelryFieldText(String(displayRaw ?? ''));
+
+            const { segments } = distributeTextForTemplateAnnotation({
+              text: displayText,
+              startSlotIndex: jewelryStart,
+              slots: lineSlots,
+              fontSize: profile.fixedLineFontSize ?? fontSize,
+              lineGuideId: lineGuideId ?? 'diary_interior_brown',
+              fontId: annotation.fontFamily,
+              lineCount: jewelryCount,
             });
 
             const linesToRender = segments
@@ -187,22 +272,19 @@ function ReadOnlyPageAnnotationsInner({
               return null;
             }
 
-            const fieldStartForLayout =
-              slotCount > 1
-                ? startIndex
-                : getPregnancyWeeklyFieldStartIndex(startIndex, lineSlots);
+            const fieldStartForLayout = jewelryStart;
+            const renderFontSize = profile.fixedLineFontSize ?? 16;
 
             return (
               <React.Fragment key={annotation.id}>
                 {linesToRender.map((row) => {
                   const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
                     slot: row.lineSlot,
-                    fontSize,
+                    fontSize: renderFontSize,
                     lineGuideId,
                     fontId: annotation.fontFamily,
                     allSlots: lineSlots,
                     fieldStartIndex: fieldStartForLayout,
-                    textContent: row.content,
                   });
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
                   return (
@@ -214,9 +296,10 @@ function ReadOnlyPageAnnotationsInner({
                           left: row.lineSlot.x,
                           top: readOnlyLayout.containerTop,
                           width: row.lineSlot.width,
+                          // Не раздувать высоту: иначе textAlignVertical center поднимает глифы над штрихом.
                           height: readOnlyLayout.containerHeight,
                           zIndex: annotation.zIndex,
-                          overflow: readOnlyLayout.overflow,
+                          overflow: 'visible',
                         },
                       ]}
                       pointerEvents="none"
@@ -228,17 +311,21 @@ function ReadOnlyPageAnnotationsInner({
                           {
                             top: readOnlyLayout.textTop,
                             left: textInsets.left,
-                            width: textInsets.width,
+                            // Полная ширина слота — иначе clip съедает середину на «полных» строках.
+                            width: Math.max(1, row.lineSlot.width - textInsets.left),
                             color: annotation.color ?? '#3D3D3D',
-                            fontSize: readOnlyLayout.fontSize,
+                            fontSize: renderFontSize,
                             fontFamily,
-                            lineHeight: readOnlyLayout.textLineHeight,
+                            lineHeight: renderFontSize,
                             textAlign: annotation.textAlign ?? 'left',
                             includeFontPadding: false,
+                            textAlignVertical: 'bottom',
                           },
                         ]}
                         numberOfLines={1}
                         ellipsizeMode="clip"
+                        allowFontScaling={false}
+                        maxFontSizeMultiplier={1}
                       >
                         {row.content}
                       </Text>

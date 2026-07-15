@@ -3131,8 +3131,7 @@ function injectBrownPage17MissingTailSlots(slots, options = {}) {
   if (!isBrownPetsPage(options) || !slots.length) return;
 
   const tails = [
-    { y: 0.57208, x: 0.77355, width: 0.1224 },
-    { y: 0.65608, x: 0.78355, width: 0.1123 },
+    // Только полноценные хвосты; микро (~0.11) ломают лимиты ввода в форме.
   ];
   const extras = [
     { y: 0.84745, x: 0.07755, width: 0.8199, minWidth: 0.5 },
@@ -3376,7 +3375,10 @@ function getBrownPeachDreamsLeftStackId(normY) {
   return 4;
 }
 
-/** Стр. 15 «Мечты»: белые линии внутри розовых блоков (координаты из PDF). */
+/** Стр. 15 «Мечты»: белые линии внутри розовых блоков (координаты из PDF).
+ * Порядок = поля формы (слева сверху вниз, затем правый столбец, затем «сокровенное»),
+ * без сортировки по Y — иначе склеиваются левый/правый столбцы.
+ */
 function buildBrownPage15CanonicalSlots(options = {}) {
   const lineHeight = options.brownPeachLineHeight ?? 0.028;
   const leftX = 0.14785;
@@ -3395,7 +3397,8 @@ function buildBrownPage15CanonicalSlots(options = {}) {
     0.23172, 0.27618, 0.32064, 0.3651, 0.40842, 0.45288, 0.49734,
     0.54512, 0.58602, 0.63745, 0.6819, 0.72636,
   ];
-  const bottomLines = [0.8578, 0.9014];
+  // Одна строка под «САМОЕ СОКРОВЕННОЕ» (лимит 10 символов в форме).
+  const bottomLines = [0.9014];
 
   const slots = [];
   let groupId = 0;
@@ -3444,7 +3447,7 @@ function buildBrownPage15CanonicalSlots(options = {}) {
     });
   }
 
-  return slots.sort((a, b) => a.y - b.y || a.x - b.x);
+  return slots;
 }
 
 function injectBrownJournalDateSlot(slots, options = {}) {

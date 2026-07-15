@@ -19,6 +19,11 @@ import {
   layoutTextAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
+import {
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+} from '@/utils/diaryJewelryTextPack';
+import { joinContinuationSegmentTexts } from '@/utils/templateLineText';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
@@ -69,7 +74,7 @@ function isDiaryMyDayPage(lineGuideId: string, pageNumber: number): boolean {
 /**
  * «Твой день»:
  * - фиолетовый: дата отдельно напротив «ЗА СЕГОДНЯ:»;
- * - коричневый: дата + текст дня одним потоком по строкам day_story.
+ * - коричневый: дата отдельно под «Твой день» (поле «(ДАТА)»), рассказ без префикса даты.
  */
 function resolvePurpleMyDayFieldText(
   field: AlbumPageField,
@@ -81,45 +86,28 @@ function resolvePurpleMyDayFieldText(
     return values.fields[field.fieldId]?.trim() || null;
   }
 
-  // Фиолетовый: дата и рассказ — разные поля/слоты.
-  if (lineGuideId === 'diary_interior_purple') {
-    if (field.fieldId.endsWith('_date')) {
-      const rawDate = values.fields[field.fieldId]?.trim() ?? '';
-      if (rawDate) return rawDate;
-      // Старые сохранения: дата только в начале day_story.
-      const storyFieldId = field.fieldId.replace(/_date$/, '_day_story');
-      const rawStory = values.fields[storyFieldId]?.trim() ?? '';
-      const match = rawStory.match(/^(\d{1,2}[./]\d{1,2}[./]\d{2,4})\b/);
-      return match?.[1] ?? null;
-    }
-
-    if (field.fieldId.endsWith('_day_story')) {
-      const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
-      const dateText = values.fields[dateFieldId]?.trim() ?? '';
-      let story = values.fields[field.fieldId]?.trim() ?? '';
-      if (!story) return null;
-      if (dateText && story.startsWith(dateText)) {
-        story = story.slice(dateText.length).trimStart();
-      } else {
-        story = story.replace(/^\d{1,2}[./]\d{1,2}[./]\d{2,4}\s*/, '').trimStart();
-      }
-      return story || null;
-    }
-
-    return values.fields[field.fieldId]?.trim() || null;
-  }
-
+  // Фиолетовый и коричневый: дата и рассказ — разные поля/слоты.
   if (field.fieldId.endsWith('_date')) {
-    return null;
+    const rawDate = values.fields[field.fieldId]?.trim() ?? '';
+    if (rawDate) return rawDate;
+    // Старые сохранения: дата только в начале day_story.
+    const storyFieldId = field.fieldId.replace(/_date$/, '_day_story');
+    const rawStory = values.fields[storyFieldId]?.trim() ?? '';
+    const match = rawStory.match(/^(\d{1,2}[./]\d{1,2}[./]\d{2,4})\b/);
+    return match?.[1] ?? null;
   }
 
   if (field.fieldId.endsWith('_day_story')) {
     const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
     const dateText = values.fields[dateFieldId]?.trim() ?? '';
-    const storyText = values.fields[field.fieldId]?.trim() ?? '';
-    if (!dateText && !storyText) return null;
-    if (dateText && storyText) return `${dateText} ${storyText}`;
-    return dateText || storyText;
+    let story = values.fields[field.fieldId]?.trim() ?? '';
+    if (!story) return null;
+    if (dateText && story.startsWith(dateText)) {
+      story = story.slice(dateText.length).trimStart();
+    } else {
+      story = story.replace(/^\d{1,2}[./]\d{1,2}[./]\d{2,4}\s*/, '').trimStart();
+    }
+    return story || null;
   }
 
   return values.fields[field.fieldId]?.trim() || null;
@@ -336,22 +324,43 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       lineGuideId,
       schema.sourcePageNumber,
     );
-    const displayText = isTeethToothDate
-      ? formatAlbumDateDayMonth(text)
-      : isAdmissionDate
-        ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
-        : text;
+    const displayText = (() => {
+      const formatted = isTeethToothDate
+        ? formatAlbumDateDayMonth(text)
+        : isAdmissionDate
+          ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
+          : text;
+      if (
+        (field.templateLineCount ?? 1) > 1 ||
+        (lineGuideId === 'diary_interior_brown' && schema.sourcePageNumber === 26)
+      ) {
+        // Без trim: иначе пробел при наборе на превью пропадает.
+        return formatted
+          .replace(/[\r\n\u2028\u2029]+/g, ' ')
+          .replace(/[ \t]+/g, ' ');
+      }
+      return formatted;
+    })();
     if (!displayText) continue;
 
     let startIndex = field.templateLineStart;
-    // Фиолетовый «Твой день»: жёсткие индексы — дата в хвосте, рассказ/улыбка с первых линий.
-    if (lineGuideId === 'diary_interior_purple' && isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+    let lineCount = field.templateLineCount ?? 1;
+    // «Украшения» — жёстко хвост + 2 полные строки (не зависеть от устаревшей схемы).
+    if (
+      lineGuideId === 'diary_interior_brown' &&
+      schema.sourcePageNumber === 26 &&
+      field.fieldId.endsWith('_wearsJewelry')
+    ) {
+      startIndex = DIARY_BROWN_JEWELRY_START;
+      lineCount = DIARY_BROWN_JEWELRY_COUNT;
+    }
+    if (isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
       if (field.fieldId.endsWith('_date')) {
         startIndex = Math.max(0, slots.length - 1);
       } else if (field.fieldId.endsWith('_day_story')) {
         startIndex = 0;
       } else if (field.fieldId.endsWith('_things_that_made_smile')) {
-        startIndex = 8;
+        startIndex = lineGuideId === 'diary_interior_purple' ? 8 : 6;
       }
     }
     // Анкета для друзей: IG/VK/TT жёстко на слотах 18/19/20 (иконки).
@@ -372,7 +381,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       slots[startIndex],
       fieldFontSize,
       lineGuideId,
-      displayText,
+      // Не подгонять fontSize под весь многострочный текст через ширину хвоста.
+      lineCount > 1 ? undefined : displayText,
     );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
@@ -386,7 +396,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
       templateLineStart: startIndex,
-      templateLineCount: field.templateLineCount ?? 1,
+      templateLineCount: lineCount,
     });
   }
 
@@ -874,7 +884,10 @@ export function annotationsToPageValues(
       .sort((a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0));
 
     if (related.length > 0) {
-      fields[field.fieldId] = related.map((ann) => ann.content ?? '').join('\n');
+      // Пробел, не \n: иначе перенос на макете «залипает» по одной «словесной» строке на слот.
+      fields[field.fieldId] = joinContinuationSegmentTexts(
+        related.map((ann) => ({ content: ann.content ?? '' })),
+      );
     }
   }
 

@@ -77,6 +77,16 @@ export const PURPLE_MY_DAY_DATE_AFTER_TODAY = {
   strokeY: 0.238,
 } as const;
 
+/**
+ * Коричневый «Твой день»: дата на линии под заголовком (вместо «(ДАТА)»).
+ * Калибровка по page_016 — штрих ≈0.1416.
+ */
+export const BROWN_MY_DAY_DATE_UNDER_TITLE = {
+  writableX: 0.3376,
+  writableWidth: 0.3252,
+  strokeY: 0.1416,
+} as const;
+
 export const PURPLE_MY_DAY_DATE_FONT_OFFSET = KIDS48_UNIFORM_LINE_FONT_OFFSET;
 
 /** Страницы фиолетового «Твой день» (дата после «ЗА СЕГОДНЯ:»). */
@@ -84,10 +94,20 @@ export const PURPLE_MY_DAY_PAGES = [
   9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
 ] as const;
 
+/** Страницы коричневого «Твой день» (дата под заголовком). */
+export const BROWN_MY_DAY_PAGES = [
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+] as const;
+
 const PURPLE_MY_DAY_PAGE_SET = new Set<number>(PURPLE_MY_DAY_PAGES);
+const BROWN_MY_DAY_PAGE_SET = new Set<number>(BROWN_MY_DAY_PAGES);
 
 export function isPurpleMyDayPage(lineGuideId: string, page: number): boolean {
   return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGE_SET.has(Number(page));
+}
+
+export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'diary_interior_brown' && BROWN_MY_DAY_PAGE_SET.has(Number(page));
 }
 
 /** «Ожидание чуда» 60/48 — те же отступы, что у kids_48. */
@@ -360,8 +380,9 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   },
   diary_interior_brown: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 0.98,
+    // Шире оценка — иначе рукописный шрифт шире расчёта, RN clip обрезает хвост.
+    charWidthRatio: 0.62,
+    lineWidthSlackRatio: 0.96,
     lineCenterRatio: 1,
     lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,
@@ -370,8 +391,8 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 0.98,
+    charWidthRatio: 0.62,
+    lineWidthSlackRatio: 0.96,
     lineCenterRatio: 1,
     lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,

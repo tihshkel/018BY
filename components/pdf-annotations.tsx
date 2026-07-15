@@ -34,6 +34,13 @@ import {
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
 import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
+import {
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+  getJewelryFieldOwnerSlotIndex,
+  isDiaryBrownJewelryFieldLayout,
+  normalizeJewelryFieldText,
+} from '@/utils/diaryJewelryTextPack';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -365,6 +372,43 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       annotation.fontSize || 16
     );
     const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
+    const isJewelryField = isDiaryBrownJewelryFieldLayout({
+      lineGuideId,
+      sourcePageNumber: pageNumber,
+      startSlotIndex,
+      lineCount: annotation.templateLineCount ?? 1,
+      annotationId: annotation.id,
+    });
+
+    // «Украшения»: одно поле = полный текст (не резать на 3 аннотации по слотам —
+    // иначе на макете остаются короткие куски, а в форме — полный ввод).
+    if (isJewelryField && slots.length >= 16) {
+      const jewelryStart = DIARY_BROWN_JEWELRY_START;
+      const jewelryCount = DIARY_BROWN_JEWELRY_COUNT;
+      const jewelrySlot = slots[jewelryStart] ?? startSlot;
+      const layout = layoutAnnotationFromSlot(jewelrySlot);
+      const fullText = normalizeJewelryFieldText(editingText);
+      onAnnotationUpdate(editingAnnotation, {
+        content: fullText,
+        ...layout,
+        templateLineStart: jewelryStart,
+        templateLineCount: jewelryCount,
+        color: annotation.color,
+        fontSize: effectiveFontSize,
+        fontFamily: annotation.fontFamily,
+        textAlign: annotation.textAlign,
+      });
+      // Удаляем соседние слоты поля (14–15), оставляем канонический старт.
+      for (let slotIndex = jewelryStart + 1; slotIndex < jewelryStart + jewelryCount; slotIndex += 1) {
+        const orphan = findAnnotationForSlot(annotations, pageNumber, slotIndex);
+        if (orphan && orphan.id !== editingAnnotation) {
+          onAnnotationDelete(orphan.id);
+        }
+      }
+      lastSelectedFontIdRef.current = null;
+      return true;
+    }
+
     const { segments, truncated } = distributeTextForTemplateAnnotation({
       text: editingText,
       startSlotIndex,
@@ -2347,9 +2391,47 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         if (!slot) return null;
 
         const fieldSlotCount = annotation.templateLineCount ?? 1;
+        const isJewelryField = isDiaryBrownJewelryFieldLayout({
+          lineGuideId,
+          sourcePageNumber: pageNumberForSlots,
+          startSlotIndex: slotIndex,
+          lineCount: fieldSlotCount,
+          annotationId: annotation.id,
+        });
+        const jewelryStart =
+          isJewelryField && templateSlots.length >= 16
+            ? DIARY_BROWN_JEWELRY_START
+            : slotIndex;
+        const jewelryCount =
+          isJewelryField && templateSlots.length >= 16
+            ? DIARY_BROWN_JEWELRY_COUNT
+            : fieldSlotCount;
+
+        if (isJewelryField && templateSlots.length >= 16) {
+          const siblingStarts = annotations
+            .filter(
+              (ann) =>
+                ann.type === 'text' &&
+                getPageNumber(ann) === pageNumberForSlots &&
+                typeof ann.templateLineStart === 'number' &&
+                ann.templateLineStart >= 13 &&
+                ann.templateLineStart < jewelryStart + jewelryCount,
+            )
+            .map((ann) => ann.templateLineStart as number);
+          const ownerStart = getJewelryFieldOwnerSlotIndex(
+            siblingStarts,
+            jewelryStart,
+            jewelryCount,
+          );
+          if (slotIndex !== ownerStart) {
+            return null;
+          }
+        }
+
         const fieldSlots = templateSlots.filter(
           (lineSlot) =>
-            lineSlot.index >= slotIndex && lineSlot.index < slotIndex + fieldSlotCount,
+            lineSlot.index >= jewelryStart &&
+            lineSlot.index < jewelryStart + jewelryCount,
         );
 
         const effectiveFontSize = getEffectiveTemplateFontSize(
@@ -2361,10 +2443,10 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           return (
             <TemplateLineEditor
               key={annotation.id}
-              slot={slot}
+              slot={templateSlots[jewelryStart] ?? slot}
               groupSlots={fieldSlots.length > 0 ? fieldSlots : [slot]}
               allSlots={templateSlots}
-              value={editingText}
+              value={normalizeJewelryFieldText(editingText)}
               color={currentColor}
               fontSize={effectiveFontSize}
               fontFamily={currentFontFamily}
@@ -2380,20 +2462,43 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
-        const displayText = formatTemplateLineSlotDisplayText(
-          annotation.content || '',
-          lineGuideId,
-          pageNumberForSlots ?? undefined,
-          slotIndex,
+        const jewelryMerged = isJewelryField
+          ? normalizeJewelryFieldText(
+              joinContinuationSegmentTexts(
+                annotations
+                  .filter(
+                    (ann) =>
+                      ann.type === 'text' &&
+                      getPageNumber(ann) === pageNumberForSlots &&
+                      typeof ann.templateLineStart === 'number' &&
+                      ann.templateLineStart >= Math.min(13, jewelryStart) &&
+                      ann.templateLineStart < jewelryStart + jewelryCount,
+                  )
+                  .sort(
+                    (a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0),
+                  )
+                  .map((ann) => ({ content: ann.content ?? '' })),
+              ),
+            )
+          : '';
+
+        const displayText = normalizeJewelryFieldText(
+          formatTemplateLineSlotDisplayText(
+            jewelryMerged || annotation.content || '',
+            lineGuideId,
+            pageNumberForSlots ?? undefined,
+            jewelryStart,
+          ),
         );
+        const renderFontSize = effectiveFontSize;
         const { segments: displaySegments } = distributeTextForTemplateAnnotation({
           text: displayText,
-          startSlotIndex: slotIndex,
+          startSlotIndex: jewelryStart,
           slots: templateSlots,
-          fontSize: effectiveFontSize,
+          fontSize: renderFontSize,
           lineGuideId,
           fontId: normalizedFontId,
-          lineCount: annotation.templateLineCount ?? 1,
+          lineCount: jewelryCount,
         });
         const linesToRender = displaySegments
           .map((segment) => {
@@ -2408,8 +2513,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           .filter((row): row is NonNullable<typeof row> => row != null);
 
         const fieldStartForLayout =
-          fieldSlotCount > 1
-            ? slotIndex
+          jewelryCount > 1
+            ? jewelryStart
             : getPregnancyWeeklyFieldStartIndex(slotIndex, templateSlots);
 
         return (
@@ -2417,12 +2522,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             {linesToRender.map((row) => {
               const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
                 slot: row.lineSlot,
-                fontSize: effectiveFontSize,
+                fontSize: renderFontSize,
                 lineGuideId,
                 fontId: normalizedFontId,
                 allSlots: templateSlots,
                 fieldStartIndex: fieldStartForLayout,
-                textContent: row.content,
               });
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
               return (
@@ -2434,7 +2538,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     top: readOnlyLayout.containerTop,
                     width: row.lineSlot.width,
                     height: readOnlyLayout.containerHeight,
-                    overflow: readOnlyLayout.overflow,
+                    overflow: 'visible',
                     zIndex: annotation.zIndex,
                   }}
                   pointerEvents="none"
@@ -2447,17 +2551,20 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         position: 'absolute',
                         top: readOnlyLayout.textTop,
                         left: textInsets.left,
-                        width: textInsets.width,
+                        width: Math.max(1, row.lineSlot.width - textInsets.left),
                         color: currentColor,
-                        fontSize: readOnlyLayout.fontSize,
+                        fontSize: renderFontSize,
                         fontFamily: currentFontFamily,
-                        lineHeight: readOnlyLayout.textLineHeight,
+                        lineHeight: renderFontSize,
                         includeFontPadding: false,
+                        textAlignVertical: 'bottom',
                         textAlign: getTextAlign(annotation),
                       },
                     ]}
                     numberOfLines={1}
                     ellipsizeMode="clip"
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1}
                   >
                     {row.content}
                   </Text>

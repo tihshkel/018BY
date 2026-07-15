@@ -95,10 +95,21 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           fontSize,
           lineGuideId,
           fontId,
+          lineCount: slotsToRender.length,
         })
       );
     },
-    [activeInputSlotIndex, allSlots, fontId, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [
+      activeInputSlotIndex,
+      allSlots,
+      fontId,
+      fontSize,
+      lineGuideId,
+      onChangeText,
+      slotsToRender.length,
+      startSlotIndex,
+      value,
+    ]
   );
 
   useEffect(() => {

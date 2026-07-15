@@ -18,7 +18,9 @@ import {
   DIARY_UNIFORM_LINE_X_INSET,
   PREGNANCY_UNIFORM_LINE_X_INSET,
   PURPLE_MY_DAY_DATE_AFTER_TODAY,
+  BROWN_MY_DAY_DATE_UNDER_TITLE,
   isPurpleMyDayPage,
+  isBrownMyDayPage,
 } from '@/constants/album-text-margins';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
@@ -120,8 +122,17 @@ function getNormalizedSlotsForPage(
     ) {
       return refineDiaryHobbySlots(lineGuideId, page, filtered);
     }
+    if (lineGuideId === 'diary_interior_brown' && page === 15) {
+      return refineDiaryDreamsSlots(lineGuideId, page, filtered);
+    }
+    if (lineGuideId === 'diary_interior_brown' && page === 26) {
+      return refineBrownPage26JewelryContinuation(filtered);
+    }
     if (isPurpleMyDayPage(lineGuideId, page)) {
       return refinePurpleMyDaySlots(filtered);
+    }
+    if (isBrownMyDayPage(lineGuideId, page)) {
+      return refineBrownMyDaySlots(filtered);
     }
     if (
       lineGuideId === 'diary_interior_purple' &&
@@ -603,7 +614,7 @@ function refinePurpleFriendSocialRowNorm(
   return { ...norm, x, width };
 }
 
-/** Стр. 17: ложный слот на строке вопроса «Ты любишь животных?». */
+/** Стр. 17: ложный микро-хвост справа на строке вопроса (не поле ответа). */
 function isBrownPage17QuestionRowSpuriousSlot(
   lineGuideId: string,
   page: number,
@@ -612,7 +623,8 @@ function isBrownPage17QuestionRowSpuriousSlot(
   if (lineGuideId !== 'diary_interior_brown' || page !== 17 || slot.hasLabel) {
     return false;
   }
-  return false;
+  // Хвостики ~0.11–0.12 после «появились:» / «питомцами?» — лимит в форме падает до 3 символов.
+  return slot.x >= 0.55 && slot.width > 0 && slot.width < 0.22;
 }
 
 function refineBrownPage16PeachBlockNorm(
@@ -632,28 +644,15 @@ function refineBrownPage16PeachBlockNorm(
   return { ...norm, height: cellHeight };
 }
 
-/** Стр. 21: хвосты вопросов — не залезать на текст подписи. */
+/**
+ * Стр. 21: слоты уже из PDF thin-strokes (хвосты + полные линии).
+ * Раньше minX сдвигал «Ты летала…» вправо и обрезал ширину.
+ */
 function refineBrownPage21LabeledRowNorm(
   page: number,
   norm: NormalizedLineSlot
 ): NormalizedLineSlot {
   if (page !== 21 || norm.hasLabel) return norm;
-
-  const rowMinX: Array<{ minY: number; maxY: number; minX: number }> = [
-    { minY: 0.318, maxY: 0.338, minX: 0.52 },
-    { minY: 0.398, maxY: 0.418, minX: 0.5 },
-    { minY: 0.458, maxY: 0.478, minX: 0.56 },
-    { minY: 0.628, maxY: 0.648, minX: 0.58 },
-  ];
-
-  for (const row of rowMinX) {
-    if (norm.y < row.minY || norm.y > row.maxY) continue;
-    if (norm.x >= row.minX) return norm;
-    const right = norm.x + norm.width;
-    const x = row.minX;
-    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
-  }
-
   return norm;
 }
 
@@ -698,18 +697,6 @@ function refineBrownPage17UniformHeightNorm(
   if (page !== 17 || norm.hasLabel) return norm;
   if (norm.y < 0.24 || norm.y > 0.9) return norm;
   return { ...norm, height: 0.032 };
-}
-
-/** Стр. 17: нижний блок — только левая колонка, без иллюстрации кота. */
-function refineBrownPage17BottomBlockNorm(
-  page: number,
-  norm: NormalizedLineSlot
-): NormalizedLineSlot {
-  if (page !== 17 || norm.y < 0.75) return norm;
-
-  const maxWidth = 0.59;
-  if (norm.width <= maxWidth) return norm;
-  return { ...norm, width: maxWidth };
 }
 
 function applyBrownLabeledRowMinX(
@@ -886,6 +873,37 @@ function refinePurpleMyDaySlots(
 }
 
 /**
+ * Коричневый «Твой день»:
+ * - линии письма 0..10 (день 0..5, улыбка 6..10);
+ * - дата под заголовком — слот в конце (index 11), без сдвига индексов письма.
+ */
+function refineBrownMyDaySlots(
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  const writing = norms.slice(0, 11).map((slot, index) => ({
+    ...slot,
+    height: 0.028,
+    hasLabel: false,
+    inputKind: 'line' as const,
+    lineStrokeAtBottom: true,
+    continuationGroup: index < 6 ? 1 : 2,
+  }));
+
+  const dateSlot: NormalizedLineSlot = {
+    x: BROWN_MY_DAY_DATE_UNDER_TITLE.writableX,
+    y: BROWN_MY_DAY_DATE_UNDER_TITLE.strokeY,
+    width: BROWN_MY_DAY_DATE_UNDER_TITLE.writableWidth,
+    height: 0.028,
+    hasLabel: false,
+    inputKind: 'line',
+    continuationGroup: 99,
+    lineStrokeAtBottom: true,
+  };
+
+  return [...writing, dateSlot];
+}
+
+/**
  * «Хобби»: purple p8 / brown p13.
  * Координаты X/Y — из PDF-штрихов; все слоты line + единый inset 0.008 ниже.
  * У purple первое поле (хобби) — 2 линии с общим continuationGroup.
@@ -923,6 +941,33 @@ function refineDiaryHobbySlots(
       height: 0.028,
       hasLabel: false,
       inputKind: 'line' as const,
+      continuationGroup,
+    };
+  });
+}
+
+/**
+ * «Мечты» brown p15: 4 блока мечт + «Самое сокровенное».
+ * Слоты уже в порядке полей (лево 3+3+4, право 12, низ 1).
+ */
+function refineDiaryDreamsSlots(
+  lineGuideId: string,
+  page: number,
+  norms: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 15) return [...norms];
+
+  return norms.map((slot, index) => {
+    let continuationGroup = 5;
+    if (index <= 2) continuationGroup = 1;
+    else if (index <= 5) continuationGroup = 2;
+    else if (index <= 9) continuationGroup = 3;
+    else if (index <= 21) continuationGroup = 4;
+    return {
+      ...slot,
+      height: 0.028,
+      hasLabel: false,
+      inputKind: (slot.inputKind ?? 'block') as 'line' | 'block',
       continuationGroup,
     };
   });
@@ -1003,6 +1048,43 @@ function refineBrownPage26UniformHeightNorm(
   if (page !== 26 || norm.hasLabel || norm.inputKind === 'block') return norm;
   if (norm.y < 0.28 || norm.y > 0.94) return norm;
   return { ...norm, height: 0.032 };
+}
+
+/** Стр. 26 «украшения»: слоты 13–15 — одна группа продолжения (хвост + 2 полные строки). */
+function refineBrownPage26JewelryContinuation(
+  slots: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (slots.length < 16) return [...slots];
+  return slots.map((slot, index) => {
+    if (index < 13 || index > 15) return slot;
+    return {
+      ...slot,
+      continuationGroup: 14,
+      hasLabel: false,
+      inputKind: 'line' as const,
+    };
+  });
+}
+
+/** Стр. 26: полные линии ответа — слева и на всю ширину (в т.ч. «украшения»). */
+function refineBrownPage26FullAnswerWidthNorm(
+  page: number,
+  norm: NormalizedLineSlot
+): NormalizedLineSlot {
+  if (page !== 26 || norm.hasLabel) return norm;
+  const isComfortableFull = norm.y >= 0.368 && norm.y <= 0.388;
+  const isColorFull = norm.y >= 0.438 && norm.y <= 0.458;
+  // Две полные строки под «украшения» (и любые широкие линии внизу страницы).
+  const isJewelryFull =
+    norm.y >= 0.888 && norm.y <= 0.96 && norm.x < 0.2 && norm.width >= 0.7;
+  if (!isComfortableFull && !isColorFull && !isJewelryFull) return norm;
+  return {
+    ...norm,
+    x: 0.07,
+    width: 0.85,
+    height: Math.max(norm.height, 0.032),
+    inputKind: 'line',
+  };
 }
 
 function isBrownWideBlockAnswerSlot(slot: NormalizedLineSlot): boolean {
@@ -1617,12 +1699,12 @@ function refineNormalizedSlotForTextLayout(
     refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
     refined = refineBrownPage15PeachLineNorm(page, refined);
     refined = refineBrownPage17UniformHeightNorm(page, refined);
-    refined = refineBrownPage17BottomBlockNorm(page, refined);
     refined = refineBrownPage21LabeledRowNorm(page, refined);
     refined = refineBrownPage24ListRowNorm(page, refined);
     refined = refineBrownDaySpreadIllustrationNorm(page, refined, allNorms);
     refined = refineBrownPage26LabeledRowNorm(page, refined);
     refined = refineBrownPage26UniformHeightNorm(page, refined);
+    refined = refineBrownPage26FullAnswerWidthNorm(page, refined);
     refined = refineBrownPage31LabeledRowNorm(page, refined);
   }
 
@@ -1985,7 +2067,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v37-brown-hobby-alone-one-line',
+    'weekly-stroke-v60-style-spaces-tip-budget',
   ].join('|');
 }
 
@@ -2078,8 +2160,52 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     };
   });
 
-  lineSlotsResultCache.set(cacheKey, slots);
-  return slots;
+  const patched = patchBrownPage26JewelrySlotGeometry(lineGuideId, page, slots, rect);
+  lineSlotsResultCache.set(cacheKey, patched);
+  return patched;
+}
+
+/** Стр. 26: «украшения» — хвост после «?» + 2 полные строки на всю ширину. */
+function patchBrownPage26JewelrySlotGeometry(
+  lineGuideId: string,
+  page: number,
+  slots: TextLineSlot[],
+  rect: ContentRect,
+): TextLineSlot[] {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 26 || slots.length < 16) {
+    return slots;
+  }
+
+  // Жёсткие норм. координаты по PDF (не брать эталон слота 12 — на части сборок он узкий).
+  const tipX = rect.offsetX + rect.width * 0.735;
+  const tipW = rect.width * 0.185;
+  const fullX = rect.offsetX + rect.width * 0.07;
+  const fullW = rect.width * 0.85;
+
+  return slots.map((slot, index) => {
+    if (index === 13) {
+      return {
+        ...slot,
+        x: tipX,
+        width: tipW,
+        normWidth: 0.185,
+        continuationGroup: 13,
+        inputKind: 'line',
+        lineStrokeAtBottom: true,
+      };
+    }
+    if (index !== 14 && index !== 15) return slot;
+    return {
+      ...slot,
+      x: fullX,
+      width: fullW,
+      normWidth: 0.85,
+      inputKind: 'line',
+      continuationGroup: 13,
+      lineHeight: Math.max(slot.lineHeight, rect.height * 0.028),
+      lineStrokeAtBottom: true,
+    };
+  });
 }
 
 export type LineSlotGroupBounds = {
@@ -2418,15 +2544,20 @@ export function layoutTextAnnotationFromSlot(
     slot.width > 0 &&
     (lineGuideId === 'diary_interior_purple' || lineGuideId === 'diary_interior_brown')
   ) {
+    // Не сжимать шрифт по ВСЕМУ тексту поля относительно ширины первой (часто хвост) линии.
+    // Иначе «украшения» (хвост 0.19) превращает 16px в 11px и ломает перенос.
     const profile = getTemplateTypographyProfile(lineGuideId);
     const charWidth = effectiveFontSize * profile.charWidthRatio;
     const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.98);
-    const neededWidth = textContent.length * charWidth;
-    if (neededWidth > slackWidth) {
-      effectiveFontSize = Math.max(
-        11,
-        Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
-      );
+    const approxSingleLine = textContent.length * charWidth <= slackWidth * 1.35;
+    if (approxSingleLine) {
+      const neededWidth = textContent.length * charWidth;
+      if (neededWidth > slackWidth) {
+        effectiveFontSize = Math.max(
+          11,
+          Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
+        );
+      }
     }
   }
   const rowHeight = Math.max(

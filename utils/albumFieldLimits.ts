@@ -120,6 +120,24 @@ function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
 /** «Кем я хочу стать» — две строки ответа (коричневый/фиолетовый дневник). */
 export const DIARY_BROWN_CAREER_WISH_MAX_LENGTH = 54;
 
+/** «Самое сокровенное» на стр. «Мечты» коричневого дневника. */
+export const DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH = 10;
+
+/** «Будущий питомец» — запасной минимум, если слот OCR слишком узкий. */
+export const DIARY_BROWN_FUTURE_PET_MIN_LENGTH = 72;
+
+/** «Одежда и стиль» стр. 26: удобная одежда / сочетания цветов. */
+export const DIARY_BROWN_STYLE_SHORT_MAX_LENGTH = 40;
+
+/** Два полных ряда (дома, праздник, школа и т.д.). */
+export const DIARY_BROWN_STYLE_TWO_LINE_MAX_LENGTH = 50;
+
+/** «Украшения»: хвост + 2 полные строки (~6+36+36). */
+export const DIARY_BROWN_STYLE_JEWELRY_MAX_LENGTH = 78;
+
+/** @deprecated используйте DIARY_BROWN_STYLE_SHORT_MAX_LENGTH */
+export const DIARY_BROWN_STYLE_ANSWER_MAX_LENGTH = DIARY_BROWN_STYLE_SHORT_MAX_LENGTH;
+
 /** Анкета для друзей: Instagram / VK / TikTok — ники до 15 символов. */
 export const PURPLE_FRIEND_SOCIAL_MAX_LENGTH = 15;
 
@@ -135,6 +153,31 @@ function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
       params.field.fieldId === 'diary_interior_purple_p5_careerWish')
   ) {
     return DIARY_BROWN_CAREER_WISH_MAX_LENGTH;
+  }
+
+  if (
+    params.lineGuideId === 'diary_interior_brown' &&
+    params.sourcePageNumber === 15 &&
+    params.field.fieldId.endsWith('_secretMost')
+  ) {
+    return DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH;
+  }
+
+  if (
+    params.lineGuideId === 'diary_interior_brown' &&
+    params.sourcePageNumber === 26 &&
+    params.field.type === 'text'
+  ) {
+    if (
+      params.field.fieldId.endsWith('_comfortableClothes') ||
+      params.field.fieldId.endsWith('_favoriteColorCombos')
+    ) {
+      return DIARY_BROWN_STYLE_SHORT_MAX_LENGTH;
+    }
+    if (params.field.fieldId.endsWith('_wearsJewelry')) {
+      return DIARY_BROWN_STYLE_JEWELRY_MAX_LENGTH;
+    }
+    return DIARY_BROWN_STYLE_TWO_LINE_MAX_LENGTH;
   }
 
   if (
@@ -192,10 +235,26 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     viewportHeight
   );
 
-  const limits = [params.field.maxLength, typeLimit, layoutLimit].filter(
+  // Питомцы: не давать микро-хвосту OCR сжать лимит «будущего питомца» до 2–3 символов.
+  const futurePetFloor =
+    params.field.fieldId.endsWith('_futurePet') &&
+    ((params.lineGuideId === 'diary_interior_brown' && params.sourcePageNumber === 17) ||
+      (params.lineGuideId === 'diary_interior_purple' && params.sourcePageNumber === 10))
+      ? DIARY_BROWN_FUTURE_PET_MIN_LENGTH
+      : undefined;
+
+  const limits = [params.field.maxLength, typeLimit, layoutLimit, futurePetFloor].filter(
     (limit): limit is number => limit != null,
   );
   if (limits.length === 0) return undefined;
+  // Floor для futurePet — через Math.max, остальное через Math.min.
+  if (futurePetFloor != null) {
+    const capped = [params.field.maxLength, typeLimit, layoutLimit].filter(
+      (limit): limit is number => limit != null,
+    );
+    const base = capped.length > 0 ? Math.min(...capped) : futurePetFloor;
+    return Math.max(base, futurePetFloor);
+  }
   return Math.min(...limits);
 }
 
@@ -215,16 +274,25 @@ export function clampFieldInput(
   let result = limit == null ? sanitized : sanitized.slice(0, limit);
 
   if (field.templateLineCount > 1) {
-    result = result.replace(/\r?\n/g, ' ');
+    result = result.replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/[ \t]+/g, ' ');
   }
 
+  // Стр. 26 «Одежда и стиль»: счётчик 40–55, не резать повторно по узким хвостам OCR.
+  // Без .trim() — иначе пробел в конце слова сразу пропадает при наборе.
   if (
     layout &&
-    field.templateLineCount > 1 &&
-    result.length > 0
+    layout.lineGuideId === 'diary_interior_brown' &&
+    layout.sourcePageNumber === 26 &&
+    field.type === 'text'
   ) {
-    const viewportWidth = layout.viewportWidth ?? DEFAULT_VIEWPORT.width;
-    const viewportHeight = layout.viewportHeight ?? DEFAULT_VIEWPORT.height;
+    return result.replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/[ \t]+/g, ' ');
+  }
+
+  if (layout && field.templateLineCount >= 1 && result.length > 0) {
+    // Вместимость в символах не должна зависеть от ширины окна формы
+    // (fontSize фиксирован, а ширина слота в px масштабируется с viewport).
+    const viewportWidth = DEFAULT_VIEWPORT.width;
+    const viewportHeight = DEFAULT_VIEWPORT.height;
     const slots = getLineSlotsForPage({
       lineGuideId: layout.lineGuideId,
       page: layout.sourcePageNumber,

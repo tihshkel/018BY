@@ -85,6 +85,7 @@ const DIARY_FIELD_ID_ALIASES: Record<string, string> = {
   diary_interior_brown_p13_dreamSkill: 'diary_interior_brown_p13_favoriteWriter',
   diary_interior_brown_p13_freeTime: 'diary_interior_brown_p13_favoriteCompany',
   diary_interior_brown_p13_proudOf: 'diary_interior_brown_p13_favoriteMusic',
+  diary_interior_brown_p15_steps: 'diary_interior_brown_p15_dream4',
   diary_interior_brown_p31_schoolName: 'diary_interior_brown_p31_likesStudying',
   diary_interior_brown_p31_className: 'diary_interior_brown_p31_favoriteSubject',
   diary_interior_brown_p31_bestClassmate: 'diary_interior_brown_p31_classSize',
@@ -96,6 +97,8 @@ const DIARY_FIELD_ID_ALIASES: Record<string, string> = {
   diary_interior_brown_p42_favoriteMusician: 'diary_interior_brown_p42_favoriteCartoon',
   diary_interior_brown_p43_favoriteMusician: 'diary_interior_brown_p43_favoriteCartoon',
   diary_interior_brown_p44_favoriteMusician: 'diary_interior_brown_p44_favoriteCartoon',
+  diary_interior_brown_p21_favoritePlace: 'diary_interior_brown_p21_likedMost',
+  diary_interior_brown_p21_bestTrip: 'diary_interior_brown_p21_travelImpressions',
 };
 
 const PURPLE_FRIEND_PAGES = [28, 29, 30, 31, 32, 33] as const;

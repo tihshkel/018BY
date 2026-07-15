@@ -1,4 +1,12 @@
 import {
+  DIARY_BROWN_JEWELRY_BUDGETS,
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+  isDiaryBrownJewelryFieldLayout,
+  normalizeJewelryFieldText,
+  packJewelryFieldText,
+} from '@/utils/diaryJewelryTextPack';
+import {
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
   KIDS48_UNIFORM_LINE_FONT_OFFSET,
@@ -31,8 +39,16 @@ const SPACE_WIDTH_FACTOR = 0.35;
 
 /** Единая нормализация многострочных полей: iOS/Android → одинаковый перенос по слотам. */
 export function normalizeTemplateMultilineText(text: string, lineCount?: number): string {
-  if (!text || lineCount == null || lineCount <= 1) return text;
-  return text.replace(/\r?\n/g, ' ');
+  if (!text) return text;
+  // Старые сохранения / multiline TextInput могли вставить \n — из‑за этого одно слово на строку.
+  // Без trim: пробел в конце при наборе должен доходить до раскладки по линиям.
+  const collapsed = text
+    .replace(/[\r\n\u2028\u2029]+/g, ' ')
+    .replace(/[ \t\f\v]+/g, ' ');
+  if (lineCount == null || lineCount <= 1) {
+    return /[\r\n\u2028\u2029]/.test(text) ? collapsed : text;
+  }
+  return collapsed;
 }
 
 function isDiaryInteriorLineGuide(lineGuideId?: string): boolean {
@@ -75,6 +91,13 @@ function getEffectiveCharWidthRatio(
   } else if (slot && isBrownCareerAnswerSlot(slot, lineGuideId)) {
     // Две строки ответа «Кем я хочу стать» — чуть плотнее, чтобы уложиться в 54 символа.
     ratio *= 0.82;
+  } else if (
+    isDiaryInteriorLineGuide(lineGuideId) &&
+    slot &&
+    (slot.inputKind ?? 'line') === 'line'
+  ) {
+    // Дневники: оценка 0.62 завышена для переноса — иначе слова рано уезжают на следующую строку.
+    ratio *= 0.88;
   }
   return ratio;
 }
@@ -173,11 +196,60 @@ export function textFitsInSlot(
   allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (!text) return true;
+
+  // Дневники / слоты с normWidth: budget по ширине линии, без pixel-оценки.
+  if (shouldUseDiaryCharBudget(lineGuideId, slot)) {
+    return text.length <= getDiaryLineCharBudget(slot);
+  }
+
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
+  const wrapWidth = getWrapWidthForSlot(slot, lineGuideId, allSlots);
   return (
-    measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth, slot) <=
-    getWrapWidthForSlot(slot, lineGuideId, allSlots)
+    measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth, slot) <= wrapWidth
   );
+}
+
+function shouldUseDiaryCharBudget(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'normWidth' | 'inputKind' | 'index'>,
+): boolean {
+  if ((slot.inputKind ?? 'line') !== 'line') return false;
+  if (isDiaryInteriorLineGuide(lineGuideId)) return true;
+  // Fallback если lineGuideId не дошёл (циклы импортов / превью).
+  if (slot.page === 26) return true;
+  return slot.normWidth != null && slot.normWidth > 0;
+}
+
+/** Сколько символов реально влезает на линию дневника по нормализованной ширине слота. */
+function getDiaryLineCharBudget(
+  slot: Pick<TextLineSlot, 'normWidth' | 'width' | 'page' | 'index'>,
+): number {
+  // Стр. 26 «украшения»: слот 13 tip (~0.19), 14–15 полные.
+  if (slot.page === 26 && typeof slot.index === 'number' && slot.index === 13) {
+    return 6;
+  }
+  if (slot.page === 26 && typeof slot.index === 'number' && slot.index >= 14) {
+    return 36;
+  }
+
+  // Tip travelImpressions (p21 / index 14).
+  if (slot.page === 21 && typeof slot.index === 'number' && slot.index === 14) {
+    return 10;
+  }
+  if (slot.page === 21 && typeof slot.index === 'number' && slot.index >= 15) {
+    return 34;
+  }
+
+  const normW =
+    slot.normWidth != null && slot.normWidth > 0
+      ? slot.normWidth
+      : slot.width > 0 && slot.width <= 1.2
+        ? slot.width
+        : 0.85;
+  // Консервативнее handwriting — иначе clip на хвостах (стр. 26 и т.п.).
+  if (normW >= 0.7) return Math.max(24, Math.floor(normW * 36));
+  if (normW >= 0.35) return Math.max(8, Math.floor(normW * 30));
+  return Math.max(4, Math.floor(normW * 28));
 }
 
 function splitWordToFit(
@@ -189,6 +261,14 @@ function splitWordToFit(
   measureTextWidth?: TextWidthMeasure,
   allSlots?: readonly TextLineSlot[],
 ): { line: string; rest: string } {
+  if (shouldUseDiaryCharBudget(lineGuideId, slot)) {
+    const budget = getDiaryLineCharBudget(slot);
+    if (word.length <= budget) {
+      return { line: word, rest: '' };
+    }
+    return { line: word.slice(0, Math.max(1, budget)), rest: word.slice(Math.max(1, budget)) };
+  }
+
   const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
   const charWidthRatio = getEffectiveCharWidthRatio(lineGuideId, fontId, slot);
 
@@ -368,6 +448,15 @@ function getStrokeBaselineFontOffset(
     return PREGNANCY_UNIFORM_LINE_FONT_OFFSET;
   }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
+    // «Украшения» p26: ближе к штриху (0.88), иначе текст «летит» над линией.
+    if (
+      lineGuideId === 'diary_interior_brown' &&
+      slot.page === 26 &&
+      typeof slot.index === 'number' &&
+      slot.index >= 13
+    ) {
+      return 0.88;
+    }
     return DIARY_LINE_FONT_OFFSET;
   }
   return KIDS_MONTH_LINE_FONT_OFFSET;
@@ -1621,6 +1710,8 @@ export function mergeActiveLineEdit(params: {
   fontSize: number;
   lineGuideId?: string;
   fontId?: string;
+  /** Сколько линий у поля (иначе берется вся continuation group — ломает «украшения»). */
+  lineCount?: number;
 }): string {
   const {
     newLineText,
@@ -1631,16 +1722,29 @@ export function mergeActiveLineEdit(params: {
     fontSize,
     lineGuideId,
     fontId,
+    lineCount,
   } = params;
 
-  const { segments } = distributeTextWithinContinuationGroup({
-    text: previousText,
-    startSlotIndex,
-    slots,
-    fontSize,
-    lineGuideId,
-    fontId,
-  });
+  const { segments } =
+    lineCount != null && lineCount > 0
+      ? distributeTextWithinFieldLines({
+          text: previousText,
+          startSlotIndex,
+          lineCount,
+          slots,
+          fontSize,
+          lineGuideId,
+          fontId,
+          packOverflowOnLastLine: false,
+        })
+      : distributeTextWithinContinuationGroup({
+          text: previousText,
+          startSlotIndex,
+          slots,
+          fontSize,
+          lineGuideId,
+          fontId,
+        });
 
   const updated = segments.map((segment) =>
     segment.slotIndex === editSlotIndex
@@ -1799,7 +1903,29 @@ export function distributeTextForTemplateAnnotation(params: {
   } = params;
   const text = normalizeTemplateMultilineText(rawText, lineCount);
 
-  if (lineCount > 1) {
+  // «Украшения»: явные budget (хвост+2 полные), остаток всегда на последней строке.
+  if (
+    isDiaryBrownJewelryFieldLayout({
+      lineGuideId,
+      sourcePageNumber: slots[startSlotIndex]?.page,
+      startSlotIndex,
+      lineCount,
+    })
+  ) {
+    const jewelryText = normalizeJewelryFieldText(text);
+    const slotIndices = Array.from({ length: lineCount }, (_, i) => startSlotIndex + i).filter(
+      (index) => slots[index] != null,
+    );
+    return packJewelryFieldText({
+      text: jewelryText,
+      slotIndices,
+      budgets: DIARY_BROWN_JEWELRY_BUDGETS,
+    });
+  }
+
+  // Всегда через field lines: на последней строке остаток не отбрасывается
+  // (иначе «сочетания цветов» с 1 линией показывало одно слово из 40).
+  if (lineCount >= 1) {
     return distributeTextWithinFieldLines({
       text,
       startSlotIndex,
@@ -1809,6 +1935,8 @@ export function distributeTextForTemplateAnnotation(params: {
       lineGuideId,
       fontId,
       measureTextWidth,
+      // Остаток на последней доступной строке поля.
+      packOverflowOnLastLine: true,
     });
   }
 
@@ -1834,6 +1962,11 @@ export function distributeTextWithinFieldLines(params: {
   lineGuideId?: string;
   fontId?: string;
   measureTextWidth?: TextWidthMeasure;
+  /**
+   * true: остаток целиком на последней строке (потом shrink — даёт мелкий шрифт).
+   * false (по умолчанию): как обычные поля — только то, что влезает при 16px.
+   */
+  packOverflowOnLastLine?: boolean;
 }): {
   segments: { slotIndex: number; content: string }[];
   truncated: boolean;
@@ -1847,6 +1980,7 @@ export function distributeTextWithinFieldLines(params: {
     lineGuideId,
     fontId,
     measureTextWidth,
+    packOverflowOnLastLine = false,
   } = params;
   const text = normalizeTemplateMultilineText(rawText, lineCount);
   const fieldSlots = slots.slice(startSlotIndex, startSlotIndex + lineCount);
@@ -1855,14 +1989,39 @@ export function distributeTextWithinFieldLines(params: {
     return { segments: [], truncated: text.length > 0 };
   }
 
+  // Как «Путешествия → впечатления»: diary char-budget, без спец-packer.
+  const useDiaryPack =
+    isDiaryInteriorLineGuide(lineGuideId) ||
+    fieldSlots.some((slot) => shouldUseDiaryCharBudget(lineGuideId, slot));
+
+  if (useDiaryPack) {
+    return packDiaryTextByCharBudget({
+      text,
+      fieldSlots,
+      // Остаток на последней строке (как длинные поля дневника), без потери текста.
+      // Сжатие шрифта на превью отключено отдельно — иначе микро-текст.
+      packOverflowOnLastLine: true,
+    });
+  }
+
   const segments: { slotIndex: number; content: string }[] = [];
   let remaining = text;
   const headIndex = fieldSlots[0]?.index ?? startSlotIndex;
 
-  for (const slot of fieldSlots) {
+  for (let i = 0; i < fieldSlots.length; i += 1) {
+    const slot = fieldSlots[i];
+    const isLast = i === fieldSlots.length - 1;
+
     if (!remaining) {
       segments.push({ slotIndex: slot.index, content: '' });
       continue;
+    }
+
+    if (isLast && packOverflowOnLastLine) {
+      const content = slot.index === headIndex ? remaining : remaining.replace(/^\s+/, '');
+      segments.push({ slotIndex: slot.index, content });
+      remaining = '';
+      break;
     }
 
     const { line, rest } = consumeOneLineForSlot(
@@ -1880,6 +2039,63 @@ export function distributeTextWithinFieldLines(params: {
   }
 
   return { segments, truncated: remaining.length > 0 };
+}
+
+/** Упаковка текста дневника строго по символьному budget слотов (без pixel-оценки). */
+function packDiaryTextByCharBudget(params: {
+  text: string;
+  fieldSlots: TextLineSlot[];
+  packOverflowOnLastLine: boolean;
+  /** Жёсткие лимиты по индексам fieldSlots (например 8/32/32 для «украшения»). */
+  fixedBudgets?: number[];
+}): {
+  segments: { slotIndex: number; content: string }[];
+  truncated: boolean;
+} {
+  const { text, fieldSlots, packOverflowOnLastLine, fixedBudgets } = params;
+  const words = text.split(/\s+/).filter(Boolean);
+  const segments: { slotIndex: number; content: string }[] = [];
+  let wordIndex = 0;
+
+  for (let i = 0; i < fieldSlots.length; i += 1) {
+    const slot = fieldSlots[i]!;
+    const isLast = i === fieldSlots.length - 1;
+
+    if (wordIndex >= words.length) {
+      segments.push({ slotIndex: slot.index, content: '' });
+      continue;
+    }
+
+    if (isLast && packOverflowOnLastLine) {
+      segments.push({
+        slotIndex: slot.index,
+        content: words.slice(wordIndex).join(' '),
+      });
+      wordIndex = words.length;
+      break;
+    }
+
+    const budget = fixedBudgets?.[i] ?? getDiaryLineCharBudget(slot);
+    let line = '';
+    while (wordIndex < words.length) {
+      const word = words[wordIndex]!;
+      const candidate = line ? `${line} ${word}` : word;
+      if (candidate.length <= budget) {
+        line = candidate;
+        wordIndex += 1;
+        continue;
+      }
+      if (!line) {
+        line = word.slice(0, Math.max(1, budget));
+        words[wordIndex] = word.slice(line.length);
+        if (!words[wordIndex]) wordIndex += 1;
+      }
+      break;
+    }
+    segments.push({ slotIndex: slot.index, content: line });
+  }
+
+  return { segments, truncated: wordIndex < words.length };
 }
 
 export function clampTextToFieldLines(params: {
@@ -1905,6 +2121,7 @@ export function clampTextToFieldLines(params: {
     fontSize,
     lineGuideId,
     fontId,
+    packOverflowOnLastLine: false,
   });
 
   if (!truncated) return text;
@@ -1924,6 +2141,7 @@ export function clampTextToFieldLines(params: {
       fontSize,
       lineGuideId,
       fontId,
+      packOverflowOnLastLine: false,
     });
 
     if (stillTruncated) {
