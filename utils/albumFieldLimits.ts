@@ -100,14 +100,14 @@ function getFamilyTreeFieldLimit(params: FieldLimitParams): number | undefined {
   return FAMILY_TREE_NAME_MAX_LENGTH;
 }
 
-/** Постановка на учёт: телефон — одна строка на макете, длинный ввод не помещается. */
+/** Постановка на учёт: телефон — одна строка после «НОМЕР ТЕЛЕФОНА». */
 function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
   if (params.lineGuideId !== 'pregnancy_60' || params.sourcePageNumber !== 4) {
     return undefined;
   }
 
   if (params.field.fieldId === 'pregnancy_60_p4_phone') {
-    return 25;
+    return 18;
   }
 
   if (params.field.fieldId === 'pregnancy_60_p4_wellbeing') {
@@ -134,6 +134,13 @@ export const DIARY_BROWN_STYLE_TWO_LINE_MAX_LENGTH = 50;
 
 /** «Украшения»: хвост + 2 полные строки (~6+36+36). */
 export const DIARY_BROWN_STYLE_JEWELRY_MAX_LENGTH = 78;
+
+/** «Еда» стр. 38: две полные строки рецепта. */
+export const DIARY_BROWN_FOOD_RECIPE_MAX_LENGTH = 72;
+/** «Еда»: tip+full (~10+34). */
+export const DIARY_BROWN_FOOD_TWO_LINE_MAX_LENGTH = 44;
+/** «Еда»: 5 полных под «вырастешь» (~36×5). */
+export const DIARY_BROWN_FOOD_COOKING_PLANS_MAX_LENGTH = 180;
 
 /** @deprecated используйте DIARY_BROWN_STYLE_SHORT_MAX_LENGTH */
 export const DIARY_BROWN_STYLE_ANSWER_MAX_LENGTH = DIARY_BROWN_STYLE_SHORT_MAX_LENGTH;
@@ -178,6 +185,23 @@ function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
       return DIARY_BROWN_STYLE_JEWELRY_MAX_LENGTH;
     }
     return DIARY_BROWN_STYLE_TWO_LINE_MAX_LENGTH;
+  }
+
+  if (
+    params.lineGuideId === 'diary_interior_brown' &&
+    params.sourcePageNumber === 38 &&
+    params.field.type === 'text'
+  ) {
+    if (params.field.fieldId.endsWith('_recipeStory')) {
+      return DIARY_BROWN_FOOD_RECIPE_MAX_LENGTH;
+    }
+    if (params.field.fieldId.endsWith('_futureCookingPlans')) {
+      return DIARY_BROWN_FOOD_COOKING_PLANS_MAX_LENGTH;
+    }
+    if (params.field.templateLineCount > 1) {
+      return DIARY_BROWN_FOOD_TWO_LINE_MAX_LENGTH;
+    }
+    return 24;
   }
 
   if (
@@ -277,12 +301,12 @@ export function clampFieldInput(
     result = result.replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/[ \t]+/g, ' ');
   }
 
-  // Стр. 26 «Одежда и стиль»: счётчик 40–55, не резать повторно по узким хвостам OCR.
+  // Стр. 26 «Одежда и стиль» / стр. 38 «Еда»: счётчик формы, не резать по узким хвостам OCR.
   // Без .trim() — иначе пробел в конце слова сразу пропадает при наборе.
   if (
     layout &&
     layout.lineGuideId === 'diary_interior_brown' &&
-    layout.sourcePageNumber === 26 &&
+    (layout.sourcePageNumber === 26 || layout.sourcePageNumber === 38) &&
     field.type === 'text'
   ) {
     return result.replace(/[\r\n\u2028\u2029]+/g, ' ').replace(/[ \t]+/g, ' ');

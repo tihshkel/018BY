@@ -332,7 +332,8 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           : text;
       if (
         (field.templateLineCount ?? 1) > 1 ||
-        (lineGuideId === 'diary_interior_brown' && schema.sourcePageNumber === 26)
+        (lineGuideId === 'diary_interior_brown' &&
+          (schema.sourcePageNumber === 26 || schema.sourcePageNumber === 38))
       ) {
         // Без trim: иначе пробел при наборе на превью пропадает.
         return formatted
@@ -353,6 +354,15 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     ) {
       startIndex = DIARY_BROWN_JEWELRY_START;
       lineCount = DIARY_BROWN_JEWELRY_COUNT;
+    }
+    // Постановка на учёт: телефон только на хвосте после подписи (без 2-й OCR-линии).
+    if (
+      lineGuideId === 'pregnancy_60' &&
+      schema.sourcePageNumber === 4 &&
+      field.fieldId.endsWith('_phone')
+    ) {
+      startIndex = 8;
+      lineCount = 1;
     }
     if (isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
       if (field.fieldId.endsWith('_date')) {

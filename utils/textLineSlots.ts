@@ -128,6 +128,19 @@ function getNormalizedSlotsForPage(
     if (lineGuideId === 'diary_interior_brown' && page === 26) {
       return refineBrownPage26JewelryContinuation(filtered);
     }
+    if (lineGuideId === 'diary_interior_brown' && page === 38) {
+      return refineBrownPage38FoodContinuation(filtered);
+    }
+    if (lineGuideId === 'pregnancy_60' && page === 4) {
+      return refinePregnancy60RegistrationPhoneSlots(filtered);
+    }
+    if (
+      lineGuideId === 'diary_interior_brown' &&
+      page >= 39 &&
+      page <= 44
+    ) {
+      return refineBrownFriendQuestionnaireNameSlot(filtered);
+    }
     if (isPurpleMyDayPage(lineGuideId, page)) {
       return refinePurpleMyDaySlots(filtered);
     }
@@ -373,13 +386,16 @@ function isBrownJournalTemplateSpuriousSlot(
 }
 
 /** Двойные дневные страницы: слоты на названии дня недели. */
+const BROWN_DAY_SPREAD_PAGES = new Set([34, 35, 36, 37]);
+
 function isBrownDaySpreadTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
   slot: NormalizedLineSlot
 ): boolean {
   if (lineGuideId !== 'diary_interior_brown' || slot.hasLabel) return false;
-  if (page < 34 || page > 40) return false;
+  // Только пн–чт недельного разворота — НЕ «Еда» (38) и НЕ анкеты друзей (39–44).
+  if (!BROWN_DAY_SPREAD_PAGES.has(page)) return false;
   if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
     return true;
   }
@@ -431,7 +447,7 @@ function refineBrownDaySpreadIllustrationNorm(
   norm: NormalizedLineSlot,
   allNorms: readonly NormalizedLineSlot[]
 ): NormalizedLineSlot {
-  const isBrownDaySpread = page >= 34 && page <= 40;
+  const isBrownDaySpread = BROWN_DAY_SPREAD_PAGES.has(page);
   const isPurpleDaySpread = PURPLE_DAY_SPREAD_PAGES.has(page);
   if ((!isBrownDaySpread && !isPurpleDaySpread) || norm.hasLabel) return norm;
 
@@ -1064,6 +1080,77 @@ function refineBrownPage26JewelryContinuation(
       inputKind: 'line' as const,
     };
   });
+}
+
+/**
+ * Стр. 38 «Еда»: tip+full и рецепт/планы — общие continuationGroup,
+ * чтобы не резать текст на «первое/последнее слово» по разным слотам.
+ */
+function refineBrownPage38FoodContinuation(
+  slots: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (slots.length < 13) return [...slots];
+  const groupByIndex = [
+    1, 1, // favoriteFood tip+full
+    3, 3, // favoriteSweet tip+full
+    5, // sweetTooth tip
+    6, 6, // recipeStory 2 fulls
+    8, // cafe tip
+    9, 9, 9, 9, 9, // futureCookingPlans
+  ];
+  return slots.map((slot, index) => {
+    const group = groupByIndex[index];
+    if (group == null) return slot;
+    return {
+      ...slot,
+      continuationGroup: group,
+      hasLabel: false,
+      inputKind: 'line' as const,
+    };
+  });
+}
+
+/**
+ * Постановка на учёт (p4): телефон — только слот после подписи.
+ * Нижняя OCR-линия (бывший continuation) в отдельной группе, без переноса.
+ */
+function refinePregnancy60RegistrationPhoneSlots(
+  slots: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  if (slots.length < 10) return [...slots];
+  return slots.map((slot, index) => {
+    if (index === 8) {
+      return {
+        ...slot,
+        continuationGroup: 8,
+        hasLabel: true,
+        inputKind: 'line' as const,
+      };
+    }
+    if (index === 9) {
+      return {
+        ...slot,
+        continuationGroup: 9,
+        hasLabel: false,
+        inputKind: 'line' as const,
+      };
+    }
+    return slot;
+  });
+}
+
+/**
+ * Анкета друзей (39–44): линии после подписей; без синтетического слота над title.
+ */
+function refineBrownFriendQuestionnaireNameSlot(
+  slots: readonly NormalizedLineSlot[],
+): NormalizedLineSlot[] {
+  return slots.map((slot, index) => ({
+    ...slot,
+    continuationGroup: slot.continuationGroup ?? index + 1,
+    inputKind: 'line' as const,
+    hasLabel: false,
+  }));
 }
 
 /** Стр. 26: полные линии ответа — слева и на всю ширину (в т.ч. «украшения»). */
@@ -2067,7 +2154,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v60-style-spaces-tip-budget',
+    'weekly-stroke-v68-pregnancy-phone-one-line',
   ].join('|');
 }
 
@@ -2160,7 +2247,13 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     };
   });
 
-  const patched = patchBrownPage26JewelrySlotGeometry(lineGuideId, page, slots, rect);
+  const patchedJewelry = patchBrownPage26JewelrySlotGeometry(lineGuideId, page, slots, rect);
+  const patched = patchBrownPage38FoodSlotGeometry(
+    lineGuideId,
+    page,
+    patchedJewelry,
+    rect,
+  );
   lineSlotsResultCache.set(cacheKey, patched);
   return patched;
 }
@@ -2202,6 +2295,41 @@ function patchBrownPage26JewelrySlotGeometry(
       normWidth: 0.85,
       inputKind: 'line',
       continuationGroup: 13,
+      lineHeight: Math.max(slot.lineHeight, rect.height * 0.028),
+      lineStrokeAtBottom: true,
+    };
+  });
+}
+
+/** Стр. 38 «Еда»: полные строки (рецепт / планы) на всю ширину — иначе clip съедает середину. */
+function patchBrownPage38FoodSlotGeometry(
+  lineGuideId: string,
+  page: number,
+  slots: TextLineSlot[],
+  rect: ContentRect,
+): TextLineSlot[] {
+  if (lineGuideId !== 'diary_interior_brown' || page !== 38 || slots.length < 13) {
+    return slots;
+  }
+
+  const fullX = rect.offsetX + rect.width * 0.096;
+  const fullW = rect.width * 0.765;
+
+  return slots.map((slot, index) => {
+    // Полные линии: 1,3,5–6,8–12 (не tip 0/2/4/7).
+    const isFull =
+      index === 1 ||
+      index === 3 ||
+      index === 5 ||
+      index === 6 ||
+      (index >= 8 && index <= 12);
+    if (!isFull) return slot;
+    return {
+      ...slot,
+      x: fullX,
+      width: fullW,
+      normWidth: 0.765,
+      inputKind: 'line',
       lineHeight: Math.max(slot.lineHeight, rect.height * 0.028),
       lineStrokeAtBottom: true,
     };

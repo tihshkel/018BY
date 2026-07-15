@@ -314,22 +314,14 @@ def food_slots():
     return finalize_answer_slots(thin_writing_strokes(38, y_min=0.14, y_max=0.92, min_w=0.12))
 
 def friend_questionnaire_slots(pnum):
+    """Анкета друзей: первая линия PDF — «Имя» (не изобретать слот над заголовком)."""
     slots = questionnaire_slots(pnum, y_gap=0.034, y_min=0.11)
-    first_y = slots[0]['y'] if slots else 0.1643
-    name_y = round(max(0.118, first_y - 0.041), 4)
-    name_slot = {
-        'x': 0.1484,
-        'y': name_y,
-        'width': 0.789,
-        'height': 0.028,
-        'hasLabel': False,
-        'inputKind': 'block',
-        'continuationGroup': 0,
-    }
-    result = [name_slot] + slots
-    for i, s in enumerate(result):
+    for i, s in enumerate(slots):
         s['continuationGroup'] = i + 1
-    return result
+        # Хвосты после подписей — line (baseline на штрихе), не block.
+        s['inputKind'] = 'line'
+        s['hasLabel'] = False
+    return slots
 
 MY_DAY = [16,20,23,25,28,33,45,46,47,48,49,50,51,52,53,54,55,56]
 WEEKLY = [34,35,36,37]

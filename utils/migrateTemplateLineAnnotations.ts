@@ -22,14 +22,36 @@ export function migrateTemplateLineAnnotations(annotations: Annotation[]): Annot
   });
 }
 
-export function normalizeProjectAnnotations(parsed: Annotation[]): {
+/**
+ * pregnancy_60 «Постановка на учёт»: слот 9 — мёртвый OCR-хвост телефона.
+ * Там часто остаётся демо-фраза seed после старого templateLineCount: 2.
+ */
+export function stripPregnancyRegistrationPhoneTailAnnotations(
+  annotations: Annotation[],
+  lineGuideId?: string,
+): Annotation[] {
+  if (lineGuideId !== 'pregnancy_60') return annotations;
+  return annotations.filter((ann) => {
+    if (ann.type !== 'text') return true;
+    if (Number(ann.page) !== 4) return true;
+    if (ann.templateLineStart !== 9) return true;
+    return false;
+  });
+}
+
+export function normalizeProjectAnnotations(
+  parsed: Annotation[],
+  lineGuideId?: string,
+): {
   items: Annotation[];
   changed: boolean;
 } {
   const { items: unique, changed: idsChanged } = ensureUniqueIds(parsed, 'ann');
   const migrated = migrateTemplateLineAnnotations(unique);
+  const stripped = stripPregnancyRegistrationPhoneTailAnnotations(migrated, lineGuideId);
   const migrationChanged = migrated.some(
     (ann, index) => ann.content !== unique[index]?.content,
   );
-  return { items: migrated, changed: idsChanged || migrationChanged };
+  const stripChanged = stripped.length !== migrated.length;
+  return { items: stripped, changed: idsChanged || migrationChanged || stripChanged };
 }

@@ -396,7 +396,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 8,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
           "fieldId": "pregnancy_60_p4_mon",

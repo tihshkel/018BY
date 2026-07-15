@@ -176,7 +176,13 @@ function ReadOnlyPageAnnotationsInner({
 
   return (
     <View style={styles.layer} pointerEvents="box-none">
-      {sorted.map((annotation) => {
+      {sorted
+        .filter((annotation) => {
+          if (lineGuideId !== 'pregnancy_60' || annotation.type !== 'text') return true;
+          if (Number(annotation.page) !== 4 || annotation.templateLineStart !== 9) return true;
+          return false;
+        })
+        .map((annotation) => {
         if (annotation.type === 'text' && annotation.content) {
           const fontFamily = fontsLoaded
             ? getAlbumFontFamilyName(annotation.fontFamily)
@@ -187,24 +193,63 @@ function ReadOnlyPageAnnotationsInner({
           const slotCount = annotation.templateLineCount ?? 1;
 
           if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
+            // Слот 9 на «Постановка на учёт» — мёртвый OCR-хвост телефона.
+            if (lineGuideId === 'pregnancy_60' && sourcePageNumber === 4 && startIndex === 9) {
+              return null;
+            }
+            const isRegistrationPhone =
+              lineGuideId === 'pregnancy_60' &&
+              sourcePageNumber === 4 &&
+              startIndex === 8;
+            const effectiveSlotCount = isRegistrationPhone ? 1 : slotCount;
             const isJewelryField = isDiaryBrownJewelryFieldLayout({
               lineGuideId,
               sourcePageNumber,
               startSlotIndex: startIndex,
-              lineCount: slotCount,
+              lineCount: effectiveSlotCount,
               annotationId: annotation.id,
             });
 
+            const groupSlotsReadonly =
+              lineSlots.length > 0
+                ? lineSlots.filter(
+                    (s) =>
+                      s.continuationGroup ===
+                      (lineSlots[startIndex]?.continuationGroup ?? startIndex + 1),
+                  )
+                : [];
             const jewelryStart =
               isJewelryField && lineSlots.length >= 16
                 ? DIARY_BROWN_JEWELRY_START
-                : startIndex;
+                : isRegistrationPhone
+                  ? 8
+                  : effectiveSlotCount > 1
+                    ? startIndex
+                    : (groupSlotsReadonly[0]?.index ?? startIndex);
             const jewelryCount =
               isJewelryField && lineSlots.length >= 16
                 ? DIARY_BROWN_JEWELRY_COUNT
-                : slotCount;
+                : isRegistrationPhone
+                  ? 1
+                  : effectiveSlotCount > 1
+                    ? effectiveSlotCount
+                    : Math.max(
+                        1,
+                        groupSlotsReadonly.filter((s) => s.index >= jewelryStart).length,
+                      );
 
-            // Продолжения «украшений»: рисуем только с owner-слота, текст склеиваем.
+            // Продолжения поля: рисуем только с owner-слота, текст склеиваем.
+            if (jewelryCount > 1) {
+              if (
+                typeof annotation.templateLineStart === 'number' &&
+                annotation.templateLineStart !== jewelryStart &&
+                annotation.templateLineStart >= jewelryStart &&
+                annotation.templateLineStart < jewelryStart + jewelryCount
+              ) {
+                return null;
+              }
+            }
+
             if (isJewelryField && lineSlots.length >= 16) {
               const siblingStarts = sorted
                 .filter(
@@ -230,7 +275,7 @@ function ReadOnlyPageAnnotationsInner({
             }
 
             const mergedJewelry =
-              isJewelryField
+              jewelryCount > 1
                 ? mergeJewelrySiblingContent(
                     sorted,
                     sourcePageNumber ?? annotation.page,
@@ -238,8 +283,21 @@ function ReadOnlyPageAnnotationsInner({
                     jewelryCount,
                   )
                 : '';
+            let rawContent = mergedJewelry || annotation.content || '';
+            if (isRegistrationPhone) {
+              const phoneTail = sorted.find(
+                (ann) =>
+                  ann.type === 'text' &&
+                  Number(ann.page) === (sourcePageNumber ?? annotation.page) &&
+                  ann.templateLineStart === 9,
+              );
+              const tail = String(phoneTail?.content ?? '').trim();
+              if (tail && /^[+\d][\d\s\-().]*$/.test(tail) && !rawContent.includes(tail)) {
+                rawContent = `${rawContent} ${tail}`.trim();
+              }
+            }
             const displayRaw = formatTemplateLineSlotDisplayText(
-              mergedJewelry || annotation.content,
+              rawContent,
               lineGuideId,
               sourcePageNumber,
               jewelryStart,

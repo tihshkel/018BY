@@ -240,6 +240,21 @@ function getDiaryLineCharBudget(
     return 34;
   }
 
+  // Стр. 38 «Еда»: полные линии ~0.76 — не *36≈27 (раньше перенос, справа пусто).
+  if (slot.page === 38 && typeof slot.index === 'number') {
+    if (
+      slot.index === 1 ||
+      slot.index === 3 ||
+      slot.index === 5 ||
+      slot.index === 6 ||
+      (slot.index >= 8 && slot.index <= 12)
+    ) {
+      return 36;
+    }
+    if (slot.index === 7) return 18; // хвост «кафе»
+    return 10; // короткие хвосты у вопросов
+  }
+
   const normW =
     slot.normWidth != null && slot.normWidth > 0
       ? slot.normWidth

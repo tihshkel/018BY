@@ -211,6 +211,20 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     [lineGuideId, lineSlotsContext, resolveSlotParams]
   );
 
+  // Удалить legacy/seed-текст на мёртвом OCR-хвосте телефона (слот 9, стр. 4).
+  useEffect(() => {
+    if (lineGuideId !== 'pregnancy_60') return;
+    const orphans = annotations.filter(
+      (ann) =>
+        ann.type === 'text' &&
+        Number(ann.page) === 4 &&
+        ann.templateLineStart === 9,
+    );
+    for (const orphan of orphans) {
+      onAnnotationDelete(orphan.id);
+    }
+  }, [annotations, lineGuideId, onAnnotationDelete]);
+
   const usesAlbumWideFieldNavigation = (totalPages ?? 0) > 1 && !!resolveSlotParams;
 
   const isTemplateLineAlbum = usesTemplateLineTextEditing(lineGuideId);
@@ -265,6 +279,20 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     return merged.trim() || annotation.content || '';
   };
 
+  /** Склеить куски поля (legacy split) в [start, start+count). */
+  const mergeFieldRangeText = (
+    pageNumber: number,
+    fieldStart: number,
+    fieldCount: number,
+  ): string => {
+    const parts: { content: string }[] = [];
+    for (let index = fieldStart; index < fieldStart + fieldCount; index += 1) {
+      const sibling = findAnnotationForSlot(annotations, pageNumber, index);
+      if (sibling?.content) parts.push({ content: sibling.content });
+    }
+    return normalizeJewelryFieldText(joinContinuationSegmentTexts(parts));
+  };
+
   const openTextEditing = (annotation: Annotation) => {
     if (annotation.type !== 'text') return;
 
@@ -281,6 +309,18 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         }
         if (isSingleLineTemplateSlotAnnotation(annotation)) {
           text = getMergedTemplateGroupText(annotation, pageNumber, annotation.templateLineStart, slots);
+        }
+        const isRegistrationPhone =
+          lineGuideId === 'pregnancy_60' &&
+          pageNumber === 4 &&
+          (annotation.templateLineStart === 8 || annotation.templateLineStart === 9);
+        if (isRegistrationPhone) {
+          const tip = findAnnotationForSlot(annotations, pageNumber, 8)?.content ?? text;
+          const tail = String(findAnnotationForSlot(annotations, pageNumber, 9)?.content ?? '').trim();
+          text =
+            tail && /^[+\d][\d\s\-().]*$/.test(tail) && !tip.includes(tail)
+              ? normalizeJewelryFieldText(`${tip} ${tail}`)
+              : normalizeJewelryFieldText(tip);
         }
       }
     }
@@ -309,7 +349,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
     return editGroup != null && editGroup === annGroup;
   };
 
-  /** После сохранения по строкам — не дублировать текст; показываем только «главную» аннотацию группы. */
+  /** После сохранения по строкам — не дублировать; рисуем только «главную» аннотацию группы. */
   const shouldHideTemplateGroupDisplaySibling = (
     annotation: Annotation,
     pageNumberForSlots: number | null,
@@ -379,27 +419,60 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       lineCount: annotation.templateLineCount ?? 1,
       annotationId: annotation.id,
     });
+    const isRegistrationPhone =
+      lineGuideId === 'pregnancy_60' &&
+      pageNumber === 4 &&
+      (startSlotIndex === 8 || startSlotIndex === 9);
 
-    // «Украшения»: одно поле = полный текст (не резать на 3 аннотации по слотам —
-    // иначе на макете остаются короткие куски, а в форме — полный ввод).
-    if (isJewelryField && slots.length >= 16) {
-      const jewelryStart = DIARY_BROWN_JEWELRY_START;
-      const jewelryCount = DIARY_BROWN_JEWELRY_COUNT;
-      const jewelrySlot = slots[jewelryStart] ?? startSlot;
-      const layout = layoutAnnotationFromSlot(jewelrySlot);
+    // Телефон: одна строка на слоте 8; хвост OCR (слот 9) не использовать.
+    if (isRegistrationPhone) {
+      const fieldSlot = slots[8] ?? startSlot;
+      const layout = layoutAnnotationFromSlot(fieldSlot);
       const fullText = normalizeJewelryFieldText(editingText);
       onAnnotationUpdate(editingAnnotation, {
         content: fullText,
         ...layout,
-        templateLineStart: jewelryStart,
-        templateLineCount: jewelryCount,
+        templateLineStart: 8,
+        templateLineCount: 1,
         color: annotation.color,
         fontSize: effectiveFontSize,
         fontFamily: annotation.fontFamily,
         textAlign: annotation.textAlign,
       });
-      // Удаляем соседние слоты поля (14–15), оставляем канонический старт.
-      for (let slotIndex = jewelryStart + 1; slotIndex < jewelryStart + jewelryCount; slotIndex += 1) {
+      const orphanPhone = findAnnotationForSlot(annotations, pageNumber, 9);
+      if (orphanPhone && orphanPhone.id !== editingAnnotation) {
+        onAnnotationDelete(orphanPhone.id);
+      }
+      lastSelectedFontIdRef.current = null;
+      return true;
+    }
+
+    // Многострочные поля макета: один annotation с полным текстом
+    // (split по слотам даёт «первое + последнее слово», середина пропадает).
+    const fieldLineCount = annotation.templateLineCount ?? 1;
+    if (fieldLineCount > 1 || (isJewelryField && slots.length >= 16)) {
+      const fieldStart =
+        isJewelryField && slots.length >= 16
+          ? DIARY_BROWN_JEWELRY_START
+          : startSlotIndex;
+      const fieldCount =
+        isJewelryField && slots.length >= 16
+          ? DIARY_BROWN_JEWELRY_COUNT
+          : fieldLineCount;
+      const fieldSlot = slots[fieldStart] ?? startSlot;
+      const layout = layoutAnnotationFromSlot(fieldSlot);
+      const fullText = normalizeJewelryFieldText(editingText);
+      onAnnotationUpdate(editingAnnotation, {
+        content: fullText,
+        ...layout,
+        templateLineStart: fieldStart,
+        templateLineCount: fieldCount,
+        color: annotation.color,
+        fontSize: effectiveFontSize,
+        fontFamily: annotation.fontFamily,
+        textAlign: annotation.textAlign,
+      });
+      for (let slotIndex = fieldStart + 1; slotIndex < fieldStart + fieldCount; slotIndex += 1) {
         const orphan = findAnnotationForSlot(annotations, pageNumber, slotIndex);
         if (orphan && orphan.id !== editingAnnotation) {
           onAnnotationDelete(orphan.id);
@@ -2390,7 +2463,20 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         const slot = templateSlots[slotIndex];
         if (!slot) return null;
 
-        const fieldSlotCount = annotation.templateLineCount ?? 1;
+        const fieldSlotCountRaw = annotation.templateLineCount ?? 1;
+        // Слот 9 на p4 — мёртвый OCR-хвост телефона; не рисуем.
+        const isRegistrationDeadPhoneTail =
+          lineGuideId === 'pregnancy_60' &&
+          pageNumberForSlots === 4 &&
+          slotIndex === 9;
+        if (isRegistrationDeadPhoneTail) {
+          return null;
+        }
+        const isRegistrationPhone =
+          lineGuideId === 'pregnancy_60' &&
+          pageNumberForSlots === 4 &&
+          slotIndex === 8;
+        const fieldSlotCount = isRegistrationPhone ? 1 : fieldSlotCountRaw;
         const isJewelryField = isDiaryBrownJewelryFieldLayout({
           lineGuideId,
           sourcePageNumber: pageNumberForSlots,
@@ -2398,14 +2484,36 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           lineCount: fieldSlotCount,
           annotationId: annotation.id,
         });
+        const { startSlotIndex: groupStart, groupSlots } = getContinuationGroupSlots(
+          templateSlots,
+          slotIndex,
+        );
         const jewelryStart =
           isJewelryField && templateSlots.length >= 16
             ? DIARY_BROWN_JEWELRY_START
-            : slotIndex;
+            : isRegistrationPhone
+              ? 8
+              : fieldSlotCount > 1
+                ? slotIndex
+                : groupStart;
         const jewelryCount =
           isJewelryField && templateSlots.length >= 16
             ? DIARY_BROWN_JEWELRY_COUNT
-            : fieldSlotCount;
+            : isRegistrationPhone
+              ? 1
+              : fieldSlotCount > 1
+                ? fieldSlotCount
+                : Math.max(1, groupSlots.filter((s) => s.index >= jewelryStart).length);
+
+        // Рисуем только с владельца поля; соседние куски (legacy split) склеиваем ниже.
+        if (
+          jewelryCount > 1 &&
+          slotIndex !== jewelryStart &&
+          slotIndex >= jewelryStart &&
+          slotIndex < jewelryStart + jewelryCount
+        ) {
+          return null;
+        }
 
         if (isJewelryField && templateSlots.length >= 16) {
           const siblingStarts = annotations
@@ -2462,29 +2570,24 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           );
         }
 
-        const jewelryMerged = isJewelryField
-          ? normalizeJewelryFieldText(
-              joinContinuationSegmentTexts(
-                annotations
-                  .filter(
-                    (ann) =>
-                      ann.type === 'text' &&
-                      getPageNumber(ann) === pageNumberForSlots &&
-                      typeof ann.templateLineStart === 'number' &&
-                      ann.templateLineStart >= Math.min(13, jewelryStart) &&
-                      ann.templateLineStart < jewelryStart + jewelryCount,
-                  )
-                  .sort(
-                    (a, b) => (a.templateLineStart ?? 0) - (b.templateLineStart ?? 0),
-                  )
-                  .map((ann) => ({ content: ann.content ?? '' })),
-              ),
-            )
-          : '';
+        const jewelryMerged =
+          jewelryCount > 1 && pageNumberForSlots != null
+            ? mergeFieldRangeText(pageNumberForSlots, jewelryStart, jewelryCount)
+            : '';
+
+        // Legacy split телефона: склеить только digit-хвост со слота 9 (не чужой текст).
+        let registrationPhoneText = jewelryMerged || annotation.content || '';
+        if (isRegistrationPhone && pageNumberForSlots != null) {
+          const phoneTail = findAnnotationForSlot(annotations, pageNumberForSlots, 9);
+          const tail = String(phoneTail?.content ?? '').trim();
+          if (tail && /^[+\d][\d\s\-().]*$/.test(tail) && !registrationPhoneText.includes(tail)) {
+            registrationPhoneText = `${registrationPhoneText} ${tail}`.trim();
+          }
+        }
 
         const displayText = normalizeJewelryFieldText(
           formatTemplateLineSlotDisplayText(
-            jewelryMerged || annotation.content || '',
+            registrationPhoneText,
             lineGuideId,
             pageNumberForSlots ?? undefined,
             jewelryStart,
@@ -3114,7 +3217,14 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           currentTool && !editingAnnotation && { pointerEvents: 'box-none' }
         ]}
       >
-        {annotations.map(renderAnnotation)}
+        {annotations
+          .filter((ann) => {
+            // Seed/legacy: демо-фраза на мёртвом OCR-хвосте телефона (слот 9).
+            if (lineGuideId !== 'pregnancy_60' || ann.type !== 'text') return true;
+            if (Number(ann.page) !== 4 || ann.templateLineStart !== 9) return true;
+            return false;
+          })
+          .map(renderAnnotation)}
       </View>
 
 
