@@ -1,0 +1,144 @@
+{
+  "target": 0.85,
+  "albums": [
+    "pregnancy_60",
+    "pregnancy_a5",
+    "kids_48",
+    "diary_interior_brown",
+    "diary_interior_purple"
+  ],
+  "generatedAt": "2026-07-15T17:47:05.297Z",
+  "summary": {
+    "total": 20,
+    "ok": 20,
+    "fail": 0
+  },
+  "findings": [
+    {
+      "album": "*",
+      "source": "DIARY_UNIFORM_LINE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "DIARY_LINE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "KIDS_MONTH_LINE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "KIDS48_P8_DATE_LINE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "PURPLE_MY_DAY_DATE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "pregnancy_60",
+      "source": "ALBUM_TYPOGRAPHY.pregnancy_60.lineFontOffsetRatio",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "pregnancy_a5",
+      "source": "ALBUM_TYPOGRAPHY.pregnancy_a5.lineFontOffsetRatio",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "kids_48",
+      "source": "ALBUM_TYPOGRAPHY.kids_48.lineFontOffsetRatio",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "diary_interior_brown",
+      "source": "ALBUM_TYPOGRAPHY.diary_interior_brown.lineFontOffsetRatio",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "diary_interior_purple",
+      "source": "ALBUM_TYPOGRAPHY.diary_interior_purple.lineFontOffsetRatio",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "holidays_birthday_60",
+      "source": "templateLineText.ts:574",
+      "value": 0.98,
+      "ok": true,
+      "note": "вне scope (ДР)"
+    },
+    {
+      "album": "holidays_birthday_60",
+      "source": "templateLineText.ts:615",
+      "value": 0.8,
+      "ok": true,
+      "note": "вне scope (ДР)"
+    },
+    {
+      "album": "holidays_birthday_60",
+      "source": "templateLineText.ts:617",
+      "value": 0.78,
+      "ok": true,
+      "note": "вне scope (ДР)"
+    },
+    {
+      "album": "holidays_birthday_60",
+      "source": "templateLineText.ts:621",
+      "value": 0.72,
+      "ok": true,
+      "note": "вне scope (ДР)"
+    },
+    {
+      "album": "holidays_birthday_60",
+      "source": "templateLineText.ts:625",
+      "value": 0.72,
+      "ok": true,
+      "note": "вне scope (ДР)"
+    },
+    {
+      "album": "*",
+      "source": "getStrokeBaselineFontOffset",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "*",
+      "source": "resolveUniformStrokeFontOffset",
+      "value": "max(0.85, cap)+clearance",
+      "ok": true
+    },
+    {
+      "album": "diary_interior_brown",
+      "source": "diary-brown-baseline-metrics.DIARY_LINE_FONT_OFFSET",
+      "value": 0.85,
+      "ok": true
+    },
+    {
+      "album": "diary_interior_brown",
+      "source": "diary-brown-baseline-metrics no 0.88 override",
+      "value": 0.85,
+      "ok": true
+    }
+  ],
+  "fails": []
+}

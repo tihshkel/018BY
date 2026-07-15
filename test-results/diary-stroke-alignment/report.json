@@ -1,0 +1,283 @@
+{
+  "generatedAt": "2026-07-15T17:20:29.230134Z",
+  "tolerance": 0.015,
+  "failureCount": 34,
+  "failures": [
+    {
+      "albumId": "diary_interior_brown",
+      "page": 6,
+      "slotIndex": 12,
+      "fieldId": "diary_interior_brown_p6_careerWish",
+      "label": "\u041a\u0435\u043c \u044f \u0445\u043e\u0447\u0443 \u0441\u0442\u0430\u0442\u044c",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 16,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p16_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 20,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p20_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 23,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p23_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 25,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p25_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 28,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p28_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 33,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p33_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 45,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p45_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 46,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p46_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 47,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p47_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 48,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p48_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 49,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p49_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 50,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p50_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 51,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p51_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 52,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p52_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 53,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p53_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 54,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p54_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 55,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p55_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_brown",
+      "page": 56,
+      "slotIndex": 11,
+      "fieldId": "diary_interior_brown_p56_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 6,
+      "slotIndex": 15,
+      "slotY": 0.8789,
+      "nearestStroke": 0.8429,
+      "fieldId": "diary_interior_purple_p6_wishes",
+      "label": "\u041f\u043e\u0436\u0435\u043b\u0430\u043d\u0438\u044f \u043c\u0430\u043c\u044b \u0445\u043e\u0437\u044f\u0439\u043a\u0435 \u0434\u043d\u0435\u0432\u043d\u0438\u043a\u0430",
+      "code": "STROKE_MISMATCH"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 7,
+      "slotIndex": 15,
+      "slotY": 0.8789,
+      "nearestStroke": 0.8429,
+      "fieldId": "diary_interior_purple_p7_wishes",
+      "label": "\u041f\u043e\u0436\u0435\u043b\u0430\u043d\u0438\u044f \u043f\u0430\u043f\u044b \u0445\u043e\u0437\u044f\u0439\u043a\u0435 \u0434\u043d\u0435\u0432\u043d\u0438\u043a\u0430",
+      "code": "STROKE_MISMATCH"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 9,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p9_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 11,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p11_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 13,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p13_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 15,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p15_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 17,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p17_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 19,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p19_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 23,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p23_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 34,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p34_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 35,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p35_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 36,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p36_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 37,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p37_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 38,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p38_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    },
+    {
+      "albumId": "diary_interior_purple",
+      "page": 39,
+      "slotIndex": 15,
+      "fieldId": "diary_interior_purple_p39_date",
+      "label": "\u0414\u0430\u0442\u0430",
+      "code": "MISSING_SLOT"
+    }
+  ]
+}
