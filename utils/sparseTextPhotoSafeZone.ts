@@ -10,9 +10,8 @@ import {
   type SafeZone,
 } from '@/constants/photo-layout-templates';
 import {
-  BLANK_PAGE_PHOTO_SAFE,
   classifyPhotoSafeZoneStrategy,
-  EVENT_PHOTO_SAFE,
+  PHOTO_ONLY_PAGE_SAFE,
   getSparsePhotoAlbumConfig,
   hasSparsePhotoConfig,
   isPregnancyUpperBandPage,
@@ -365,14 +364,8 @@ function resolveStrategySafeZone(
     case 'bottom_band':
       return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
     case 'photo_only': {
-      const blankSafe =
-        config.eventSafe === BLANK_PAGE_PHOTO_SAFE ||
-        lineGuideId === 'family_blank' ||
-        lineGuideId === 'holidays_blank' ||
-        lineGuideId === 'family_blank_21x21'
-          ? config.eventSafe
-          : BLANK_PAGE_PHOTO_SAFE;
-      return constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
+      // Единый стандарт ~80% страницы во всех альбомах (kids, diary, blank, birthday…).
+      return constrainPhotoSafeZone(lineGuideId, page, PHOTO_ONLY_PAGE_SAFE, config);
     }
     case 'mixed':
       return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
@@ -395,6 +388,12 @@ export function resolveSparsePhotoSafeZone(
 
   if (isPregnancyUpperBandPage(lineGuideId, page)) {
     return buildUpperBandPhotoSafeZone(lineGuideId, page, config);
+  }
+
+  const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
+  // Photo-only: всегда ~80% во всех альбомах, включая kids_48.
+  if (strategy === 'photo_only') {
+    return constrainPhotoSafeZone(lineGuideId, page, PHOTO_ONLY_PAGE_SAFE, config);
   }
 
   const strategyZone = resolveStrategySafeZone(lineGuideId, page, primarySlot, config);
@@ -535,14 +534,15 @@ export function expandDesignedAlbumCollageVariants(
   return applyTwoPhotoLayouts(lineGuideId, page, safeZone, expanded);
 }
 
-/** Event pages без PDF-слота: safe zone по текстовым линиям + стандартные шаблоны. */
+/** Event pages без PDF-слота: safe zone ~80% + стандартные шаблоны. */
 function buildDesignedAlbumEventPhotoLayouts(lineGuideId: string, page: number): PhotoPageLayouts {
-  const eventSafe = getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe ?? EVENT_PHOTO_SAFE;
+  const eventSafe =
+    getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe ?? PHOTO_ONLY_PAGE_SAFE;
   const syntheticPrimary = {
     x: eventSafe.x + eventSafe.width / 2,
     y: eventSafe.y + eventSafe.height / 2,
     width: eventSafe.width,
-    height: eventSafe.height * 0.85,
+    height: eventSafe.height * 0.9,
   };
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);

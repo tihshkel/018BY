@@ -18,6 +18,10 @@ import {
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
 import {
+  resolvePhotoCaptionsForMigration,
+  shouldShowPerPhotoCaptions,
+} from '@/utils/photoCaptions';
+import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
@@ -53,10 +57,10 @@ export function useAlbumPagePhotoEditor({
     const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
     return Boolean(layout?.perPhotoCaptions);
   })();
-  const showPerPhotoCaptions =
-    resolvedSchema?.pageType === 'caption_photo_page' ||
-    resolvedSchema?.pageType === 'birthday_free_page' ||
-    templateHasPerPhotoCaptions;
+  const showPerPhotoCaptions = shouldShowPerPhotoCaptions(
+    resolvedSchema,
+    templateHasPerPhotoCaptions,
+  );
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {
@@ -175,7 +179,9 @@ export function useAlbumPagePhotoEditor({
         blockId,
         prevSlots: prevBlock?.slots ?? [],
         newSlotCount: variant.slots,
-        prevCaptions: pageValues.photoCaptions,
+        prevCaptions: showPerPhotoCaptions
+          ? resolvePhotoCaptionsForMigration(pageValues.photoCaptions, pageValues.caption)
+          : pageValues.photoCaptions,
         prevSlotTransforms: pageValues.photoSlotTransforms,
       });
 
@@ -187,12 +193,15 @@ export function useAlbumPagePhotoEditor({
       updatePageValues((prev) => ({
         ...prev,
         photoCaptions: showPerPhotoCaptions ? migrated.photoCaptions : prev.photoCaptions,
+        // Переносим единую подпись в per-photo, чтобы не дублировать в UI.
+        caption: showPerPhotoCaptions ? undefined : prev.caption,
         photoSlotTransforms: migrated.photoSlotTransforms,
         photoGroupTransform: { scale: 1, offsetX: 0, offsetY: 0 },
       }));
     },
     [
       blocks,
+      pageValues.caption,
       pageValues.photoCaptions,
       pageValues.photoSlotTransforms,
       photoBlocks,

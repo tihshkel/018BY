@@ -28,6 +28,7 @@ import {
   sansFont,
   spacing,
 } from "@/constants/design-tokens";
+import { touchProjectLastOpened } from "@/utils/userProjects";
 import { useAlbumProject } from "@/hooks/use-album-project";
 import { useAlbumPageListLayout } from "@/hooks/use-album-editor-layout";
 import type { AlbumPageSchema, PageInstance, PageValues } from "@/types/album-page-schema";
@@ -149,6 +150,7 @@ export default function AlbumPagesScreen() {
   useFocusEffect(
     useCallback(() => {
       if (!project.projectId || project.isLoading) return;
+      void touchProjectLastOpened(project.projectId);
       if (skipNextReloadRef.current) {
         skipNextReloadRef.current = false;
         return;

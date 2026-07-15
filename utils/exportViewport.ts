@@ -24,7 +24,8 @@ export function getDefaultPageAspectRatio(params?: {
     params?.lineGuideId === 'diary_interior_brown' ||
     params?.lineGuideId === 'diary_interior_purple'
   ) {
-    return 240 / 180;
+    // PNG блок 180×240 @ ~300dpi: 2219×2927 (не 240/180=1.333)
+    return 2927 / 2219;
   }
   if (
     params?.sourceWidth &&

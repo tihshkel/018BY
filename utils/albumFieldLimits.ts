@@ -120,14 +120,26 @@ function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
 /** «Кем я хочу стать» (коричневый дневник, стр. 6) — две строки ответа. */
 export const DIARY_BROWN_CAREER_WISH_MAX_LENGTH = 54;
 
+/** «Самое сокровенное» на странице «Мечты». */
+export const DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH = 10;
+
 function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
   if (
-    params.lineGuideId === 'diary_interior_brown' &&
-    params.sourcePageNumber === 6 &&
-    params.field.fieldId === 'diary_interior_brown_p6_careerWish'
+    (params.lineGuideId === 'diary_interior_brown' &&
+      params.field.fieldId === 'diary_interior_brown_p6_careerWish') ||
+    (params.lineGuideId === 'diary_interior_purple' &&
+      params.field.fieldId === 'diary_interior_purple_p5_careerWish')
   ) {
     return DIARY_BROWN_CAREER_WISH_MAX_LENGTH;
   }
+
+  if (
+    params.lineGuideId === 'diary_interior_brown' &&
+    params.field.fieldId.endsWith('_secretMost')
+  ) {
+    return DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH;
+  }
+
   return undefined;
 }
 

@@ -37,13 +37,34 @@ export const KIDS_MONTH_LINE_BAND_HEIGHT = 0.028;
 /** Небольшой отступ от левого края PDF-слота (после печатной подписи). */
 export const KIDS_MONTH_LINE_X_INSET = 0.008;
 
+/** Единый отступ line-полей (pregnancy / kids / diary). */
+export const DIARY_UNIFORM_LINE_X_INSET = 0.008;
+
+/**
+ * Единый просвет текста до штриха для ruled-строк всех шаблонных альбомов
+ * (pregnancy_60/a5, kids_48, diary brown/purple).
+ * Минимум = CAP_HEIGHT PDF (0.85). Runtime берёт max(это, previewCap шрифта) + CLEARANCE,
+ * иначе рукописные шрифты (cap 0.92+) тонут в линии.
+ */
+export const DIARY_UNIFORM_LINE_FONT_OFFSET = 0.85;
+
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
-export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
+export const KIDS_MONTH_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
 
 /** kids_48 p13 «Мои достижения» — строка «Ползаю» (PDF-слот слишком влево). */
 export const KIDS48_P13_CRAWLS_LINE = {
   writableX: 0.3258,
   writableWidth: 0.53767,
+} as const;
+
+/** kids_48 p1: значения после подписей — единый левый зазор + дата целиком. */
+export const KIDS48_P1_VALUE_LINE_X_INSET = 0.028;
+
+/** kids_48 p1 «Дата рождения» — после «ДАТА РОЖДЕНИЯ», ширина под «ДД.ММ.ГГГГ». */
+export const KIDS48_P1_BIRTH_DATE_LINE = {
+  writableX: 0.518,
+  writableWidth: 0.26,
+  strokeY: 0.76114,
 } as const;
 
 /** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА». */
@@ -54,8 +75,47 @@ export const KIDS48_P8_DATE_LINE = {
   strokeY: 0.8956,
 } as const;
 
-/** Зазор между низом даты и штрихом линии. */
-export const KIDS48_P8_DATE_LINE_FONT_OFFSET = 1.07;
+/** Зазор между низом даты и штрихом линии — тот же единый offset. */
+export const KIDS48_P8_DATE_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+
+/**
+ * Фиолетовый «Твой день»: дата сразу после «ЗА СЕГОДНЯ:».
+ */
+export const PURPLE_MY_DAY_DATE_AFTER_TODAY = {
+  writableX: 0.422,
+  writableWidth: 0.28,
+  strokeY: 0.238,
+} as const;
+
+/**
+ * Коричневый «Твой день»: дата на линии под заголовком (вместо «(ДАТА)»).
+ */
+export const BROWN_MY_DAY_DATE_UNDER_TITLE = {
+  writableX: 0.3376,
+  writableWidth: 0.3252,
+  strokeY: 0.1416,
+} as const;
+
+export const PURPLE_MY_DAY_DATE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+
+export const PURPLE_MY_DAY_PAGES = [
+  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
+] as const;
+
+export const BROWN_MY_DAY_PAGES = [
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+] as const;
+
+const PURPLE_MY_DAY_PAGE_SET = new Set<number>(PURPLE_MY_DAY_PAGES);
+const BROWN_MY_DAY_PAGE_SET = new Set<number>(BROWN_MY_DAY_PAGES);
+
+export function isPurpleMyDayPage(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGE_SET.has(Number(page));
+}
+
+export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
+  return lineGuideId === 'diary_interior_brown' && BROWN_MY_DAY_PAGE_SET.has(Number(page));
+}
 
 /** Y штриха нижней линии «ДАТА» по номеру страницы kids_48. */
 const KIDS48_BOTTOM_DATE_STROKE_Y: Record<number, number> = {
@@ -127,11 +187,35 @@ export const KIDS48_P10_FIRST_BRUSHING_LINE = {
   strokeY: 0.8349,
 } as const;
 
-/** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
-export const DIARY_LINE_FONT_OFFSET = 0.86;
+/** Коричневый/фиолетовый дневник — baseline на штрихе линии. */
+export const DIARY_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+
+/**
+ * «Мечты» (brown p15): baseline на белом штрихе.
+ * Координаты линий сняты с page_015.png — offset = previewCap шрифта (без CLEARANCE).
+ */
+export const DIARY_DREAMS_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+
+/**
+ * Точные Y белых линий «Мечты» (norm 0–1), детект с PNG 2174×2882.
+ * Порядок: dream1×3, dream2×3, dream3×3, dream4×12, secret×1.
+ */
+export const DIARY_BROWN_P15_DREAM_LINE_YS = [
+  // dream1 (лево верх)
+  0.22346, 0.26787, 0.31228,
+  // dream2 (лево середина)
+  0.43754, 0.4823, 0.52672,
+  // dream3 (лево низ) — в макете 3 линии, не 4
+  0.65146, 0.69604, 0.74046,
+  // dream4 (право, 12 линий)
+  0.22346, 0.26787, 0.31228, 0.35496, 0.39938, 0.44414,
+  0.49167, 0.53609, 0.5805, 0.62908, 0.67349, 0.7179,
+  // самое сокровенное
+  0.89452,
+] as const;
 
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
-export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 0.85;
+export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = DIARY_UNIFORM_LINE_FONT_OFFSET;
 
 /** Компактные поля (дата): штрих через центр слота. */
 export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
@@ -144,9 +228,15 @@ export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).
- * Применяется к полям inputKind=line в preview и PDF.
+ * Вместе с cap шрифта даёт видимый зазор «линия → отступ → текст».
  */
-export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.06;
+export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.12;
+
+/**
+ * Доп. подъём текста над штрихом только для kids_48 («Первые годы малыша»).
+ * Остальные альбомы уже ок; здесь буквы визуально сидят на линии — поднимаем выше.
+ */
+export const KIDS48_EXTRA_STROKE_CLEARANCE_RATIO = 0.14;
 
 export type KidsMonthAnswerLineLayout = {
   loveX: number;
@@ -267,7 +357,7 @@ const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
   charWidthRatio: 0.56,
   lineWidthSlackRatio: 0.97,
   lineCenterRatio: 0.5,
-  lineFontOffsetRatio: 0.84,
+  lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
   blockCenterRatio: 0.58,
   blockFontOffsetRatio: 0.66,
   blockMaxFontSize: 20,
@@ -279,7 +369,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.8,
+    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -289,7 +379,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.96,
+    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -299,7 +389,7 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: 0.98,
+    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.56,
     blockFontOffsetRatio: 0.68,
     blockMaxFontSize: 20,
@@ -316,20 +406,20 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   },
   diary_interior_brown: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 0.98,
+    charWidthRatio: 0.62,
+    lineWidthSlackRatio: 0.96,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.86,
+    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.86,
     blockMaxFontSize: 16,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.5,
-    lineWidthSlackRatio: 0.98,
+    charWidthRatio: 0.62,
+    lineWidthSlackRatio: 0.96,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: 0.86,
+    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.86,
     blockMaxFontSize: 16,

@@ -304,7 +304,10 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                 </AppText>
                 <TextInput
                   style={styles.captionInput}
-                  value={pageValues.photoCaptions?.[slotIndex] ?? ''}
+                  value={
+                    pageValues.photoCaptions?.[slotIndex] ??
+                    (slotIndex === 0 ? pageValues.caption ?? '' : '')
+                  }
                   onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                   placeholder="Необязательно"
                   placeholderTextColor={colors.placeholder}

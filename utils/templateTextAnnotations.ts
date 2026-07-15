@@ -1,6 +1,7 @@
 import type { Annotation } from '@/components/pdf-annotations';
 import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import { shouldRenderPhotoSlotCaptions } from '@/utils/photoCaptions';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import type { ContentRect } from '@/utils/imageContentRect';
 import {
@@ -294,7 +295,7 @@ export function appendPhotoSlotCaptionAnnotations(params: PhotoSlotCaptionParams
   let zIndex = params.zIndex;
   const annotations: Annotation[] = [];
 
-  if (schema.pageType !== 'caption_photo_page' || !values.photoCaptions?.length) {
+  if (!shouldRenderPhotoSlotCaptions(schema) || !values.photoCaptions?.length) {
     return { annotations, zIndex };
   }
 

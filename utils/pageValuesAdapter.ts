@@ -19,6 +19,10 @@ import {
   layoutTextAnnotationFromSlot,
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
+import {
+  DIARY_BROWN_JEWELRY_COUNT,
+  DIARY_BROWN_JEWELRY_START,
+} from '@/utils/diaryJewelryTextPack';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
@@ -43,6 +47,10 @@ import {
   appendPhotoSlotCaptionAnnotations,
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
+import {
+  effectivePhotoCaptions,
+  shouldRenderPhotoSlotCaptions,
+} from '@/utils/photoCaptions';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 /** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
@@ -52,32 +60,55 @@ const PURPLE_MY_DAY_PAGES = new Set([
   9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
 ]);
 
-function isPurpleMyDayPage(lineGuideId: string, pageNumber: number): boolean {
-  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGES.has(pageNumber);
+const BROWN_MY_DAY_PAGES = new Set([
+  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
+]);
+
+function isDiaryMyDayPage(lineGuideId: string, pageNumber: number): boolean {
+  if (lineGuideId === 'diary_interior_purple') {
+    return PURPLE_MY_DAY_PAGES.has(Number(pageNumber));
+  }
+  if (lineGuideId === 'diary_interior_brown') {
+    return BROWN_MY_DAY_PAGES.has(Number(pageNumber));
+  }
+  return false;
 }
 
-/** Фиолетовый «Твой день»: дата и текст «За сегодня» идут одним потоком по 5 строкам. */
-function resolvePurpleMyDayFieldText(
+/**
+ * «Твой день»:
+ * - фиолетовый: дата отдельно напротив «ЗА СЕГОДНЯ:»;
+ * - коричневый: дата отдельно под «Твой день» (поле «(ДАТА)»), рассказ без префикса даты.
+ */
+function resolveDiaryMyDayFieldText(
   field: AlbumPageField,
   schema: AlbumPageSchema,
   values: PageValues,
   lineGuideId: string,
 ): string | null {
-  if (!isPurpleMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+  if (!isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
     return values.fields[field.fieldId]?.trim() || null;
   }
 
   if (field.fieldId.endsWith('_date')) {
-    return null;
+    const rawDate = values.fields[field.fieldId]?.trim() ?? '';
+    if (rawDate) return rawDate;
+    const storyFieldId = field.fieldId.replace(/_date$/, '_day_story');
+    const rawStory = values.fields[storyFieldId]?.trim() ?? '';
+    const match = rawStory.match(/^(\d{1,2}[./]\d{1,2}[./]\d{2,4})\b/);
+    return match?.[1] ?? null;
   }
 
   if (field.fieldId.endsWith('_day_story')) {
     const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
     const dateText = values.fields[dateFieldId]?.trim() ?? '';
-    const storyText = values.fields[field.fieldId]?.trim() ?? '';
-    if (!dateText && !storyText) return null;
-    if (dateText && storyText) return `${dateText} ${storyText}`;
-    return dateText || storyText;
+    let story = values.fields[field.fieldId]?.trim() ?? '';
+    if (!story) return null;
+    if (dateText && story.startsWith(dateText)) {
+      story = story.slice(dateText.length).trimStart();
+    } else {
+      story = story.replace(/^\d{1,2}[./]\d{1,2}[./]\d{2,4}\s*/, '').trimStart();
+    }
+    return story || null;
   }
 
   return values.fields[field.fieldId]?.trim() || null;
@@ -158,7 +189,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     if (field.type === 'radio' || field.type === 'checkbox') continue;
     if (isBlankTemplate) continue;
 
-    const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
+    const rawText = resolveDiaryMyDayFieldText(field, schema, values, lineGuideId);
     if (!rawText) continue;
 
     const characterLimit = getFieldCharacterLimit({
@@ -193,7 +224,26 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         : text;
     if (!displayText) continue;
 
-    const startIndex = field.templateLineStart;
+    let startIndex = field.templateLineStart;
+    let lineCount = field.templateLineCount ?? 1;
+    if (
+      lineGuideId === 'diary_interior_brown' &&
+      schema.sourcePageNumber === 26 &&
+      field.fieldId.endsWith('_wearsJewelry')
+    ) {
+      startIndex = DIARY_BROWN_JEWELRY_START;
+      lineCount = DIARY_BROWN_JEWELRY_COUNT;
+    }
+    if (isDiaryMyDayPage(lineGuideId, schema.sourcePageNumber)) {
+      if (field.fieldId.endsWith('_date')) {
+        startIndex = Math.max(0, slots.length - 1);
+        lineCount = 1;
+      } else if (field.fieldId.endsWith('_day_story')) {
+        startIndex = 0;
+      } else if (field.fieldId.endsWith('_things_that_made_smile')) {
+        startIndex = lineGuideId === 'diary_interior_purple' ? 8 : 6;
+      }
+    }
     if (!slots[startIndex]) continue;
 
     const fieldFontSize = isTeethToothDate ? KIDS48_TEETH_TOOTH_DATE_FONT_SIZE : fontSize;
@@ -202,6 +252,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       fieldFontSize,
       lineGuideId,
       displayText,
+      textFontFamily,
     );
     annotations.push({
       id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
@@ -215,7 +266,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
       templateLineStart: startIndex,
-      templateLineCount: field.templateLineCount ?? 1,
+      templateLineCount: lineCount,
     });
   }
 
@@ -234,7 +285,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       const lineCount = Math.min(preferredLines, remainingSlots);
       const startSlot = slots[slotCursor];
       if (startSlot) {
-        const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId);
+        const layout = layoutTextAnnotationFromSlot(startSlot, fontSize, lineGuideId, text, textFontFamily);
         annotations.push({
           id: stableAnnotationId('custom', lineGuideId, schema.sourcePageNumber, field.id),
           type: 'text',
@@ -259,6 +310,11 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   for (const target of optionFillTargets) {
     const selected = values.fields[target.fieldId]?.trim();
     if (selected !== target.option) continue;
+
+    // Diary mood stickers: no circle fill — printed faces stay uncolored.
+    if (typeof target.fieldId === 'string' && /_mood$/i.test(target.fieldId)) {
+      continue;
+    }
 
     const rect =
       'shape' in target && target.shape === 'rect'
@@ -568,7 +624,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   if (!isBlankTemplate && values.caption?.trim()) {
     const captionSlot = slots.find((s) => s.hasLabel) ?? slots[0];
     if (captionSlot) {
-      const layout = layoutTextAnnotationFromSlot(captionSlot, fontSize, lineGuideId);
+      const layout = layoutTextAnnotationFromSlot(captionSlot, fontSize, lineGuideId, undefined, textFontFamily);
       annotations.push({
         id: stableAnnotationId('caption', lineGuideId, schema.sourcePageNumber),
         type: 'text',
@@ -586,10 +642,20 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  if (!isBlankTemplate && values.photoCaptions?.length) {
+  const photoCaptionsForRender = effectivePhotoCaptions({
+    photoCaptions: values.photoCaptions,
+    caption:
+      // Если уже отрисовали caption через line-slot — не дублируем под фото.
+      annotations.some((ann) => ann.id.includes('caption'))
+        ? undefined
+        : values.caption,
+  });
+
+  if (!isBlankTemplate && photoCaptionsForRender.length) {
+    const valuesWithCaptions = { ...values, photoCaptions: photoCaptionsForRender };
     const templateCaptions = appendTemplatePhotoCaptionAnnotations({
       schema,
-      values,
+      values: valuesWithCaptions,
       lineGuideId,
       editorContentRect,
       viewportHeight,
@@ -602,16 +668,16 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
     if (
       templateCaptions.annotations.length === 0 &&
-      schema.pageType === 'caption_photo_page'
+      shouldRenderPhotoSlotCaptions(schema)
     ) {
       const labelSlots = slots.filter((s) => s.hasLabel);
       let labelCaptionCount = 0;
-      for (let i = 0; i < values.photoCaptions.length; i += 1) {
-        const text = values.photoCaptions[i]?.trim();
+      for (let i = 0; i < photoCaptionsForRender.length; i += 1) {
+        const text = photoCaptionsForRender[i]?.trim();
         if (!text) continue;
         const slot = labelSlots[i];
         if (!slot) continue;
-        const layout = layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId);
+        const layout = layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId, text, textFontFamily);
         annotations.push({
           id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, i),
           type: 'text',
@@ -632,7 +698,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       if (labelCaptionCount === 0) {
         const slotCaptions = appendPhotoSlotCaptionAnnotations({
           schema,
-          values,
+          values: valuesWithCaptions,
           lineGuideId,
           editorContentRect,
           viewportWidth,

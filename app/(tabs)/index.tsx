@@ -8,6 +8,7 @@ import { deleteUserProjectLocally } from '@/utils/delete-user-project';
 import {
   formatProjectsCountLabel,
   HOME_PROJECTS_PREVIEW_LIMIT,
+  HOME_SHOW_ALL_STORIES_MIN_COUNT,
   loadUserProjects,
   type UserProject,
 } from '@/utils/userProjects';
@@ -73,10 +74,10 @@ export default function HomeScreen() {
   const [actionModalStep, setActionModalStep] = useState<'menu' | 'confirmDelete'>('menu');
 
   const previewProjects =
-    projects.length > HOME_PROJECTS_PREVIEW_LIMIT
+    projects.length >= HOME_SHOW_ALL_STORIES_MIN_COUNT
       ? projects.slice(0, HOME_PROJECTS_PREVIEW_LIMIT)
       : projects;
-  const showAllStoriesLink = projects.length > HOME_PROJECTS_PREVIEW_LIMIT;
+  const showAllStoriesLink = projects.length >= HOME_SHOW_ALL_STORIES_MIN_COUNT;
   const opacity = useSharedValue(0);
 
   useEffect(() => {

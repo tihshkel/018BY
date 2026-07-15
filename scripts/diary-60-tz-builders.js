@@ -59,8 +59,6 @@ const FREE_PHOTO_NOTES_BLOCK = {
   ],
 };
 
-const MOOD_OPTIONS = ['😢', '😕', '😐', '🙂', '😄', '🥰'];
-
 const FRIEND_FIELDS = [
   ['name', 'Имя', 'text', 1],
   ['birthDate', 'Дата рождения', 'date', 1],
@@ -184,15 +182,6 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         Math.min(5, Math.max(1, maxLines)),
         slots,
       ),
-      {
-        fieldId: `${lineGuideId}_p${pageNumber}_mood`,
-        label: 'Настроение',
-        type: 'radio',
-        required: false,
-        options: MOOD_OPTIONS,
-        templateLineStart: Math.min(5, maxLines - 1),
-        templateLineCount: 1,
-      },
       buildField(
         lineGuideId,
         pageNumber,
@@ -218,15 +207,6 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
       Math.min(5, Math.max(1, maxLines - 4)),
       slots
     ),
-    {
-      fieldId: `${lineGuideId}_p${pageNumber}_mood`,
-      label: 'Настроение',
-      type: 'radio',
-      required: false,
-      options: MOOD_OPTIONS,
-      templateLineStart: Math.min(6, maxLines - 1),
-      templateLineCount: 1,
-    },
     buildField(
       lineGuideId,
       pageNumber,

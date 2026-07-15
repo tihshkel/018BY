@@ -1,28 +1,22 @@
 /**
- * Метрики baseline текста коричневого дневника (без RN-зависимостей).
+ * Метрики baseline текста коричневого дневника — синхрон с runtime:
+ * getDiarySlotTopNormY(norm) = norm.y (штрих)
+ * getTemplateLineTextTop: top = strokeY - fontSize * DIARY_LINE_FONT_OFFSET
  */
 const fs = require('fs');
 const path = require('path');
 
 const CAP_HEIGHT_RATIO = 0.85;
 const FONT_SIZE = 16;
-const DIARY_LINE_FONT_OFFSET = 0.86;
+/** Как constants/album-text-margins.ts → DIARY_UNIFORM_LINE_FONT_OFFSET */
+const DIARY_LINE_FONT_OFFSET = 0.85;
+/** Как TEMPLATE_LINE_STROKE_CLEARANCE_RATIO + default Nefelibata previewCap (0.92) */
+const STROKE_CLEARANCE = 0.12;
+const DEFAULT_PREVIEW_CAP = 0.92;
 
-const QUESTIONNAIRE_TEMPLATES = new Set([
-  'GirlProfileTemplate',
-  'ParentProfileTemplate_Mom',
-  'ParentProfileTemplate_Dad',
-  'GrandparentProfileTemplate',
-  'FriendQuestionnaireTemplate',
-  'HobbyTemplate',
-  'DreamsTemplate',
-  'PetsTemplate',
-  'TravelTemplate',
-  'MoodTemplate',
-  'FoodTemplate',
-]);
-
-const WEEKLY_TEMPLATES = new Set(['WeeklyScheduleTemplate', 'WeeklyScheduleWithNoteTemplate']);
+function resolveUniformStrokeFontOffset(previewCap = DEFAULT_PREVIEW_CAP) {
+  return Math.max(DIARY_LINE_FONT_OFFSET, previewCap) + STROKE_CLEARANCE;
+}
 
 function loadPageTemplates(root) {
   const manifest = JSON.parse(
@@ -36,45 +30,17 @@ function loadPageTemplates(root) {
   );
 }
 
-function fitFontSize(lineHeight, inputKind = 'line') {
+function fitFontSize() {
   return FONT_SIZE;
 }
 
-function resolveLineFontOffset(page, template, normY) {
-  if (QUESTIONNAIRE_TEMPLATES.has(template)) return 0.9;
-  if (template === 'MyDayTemplate') return 0.92;
-  if (template === 'SchoolLifeTemplate') return 0.9;
-  if (WEEKLY_TEMPLATES.has(template)) return 0.9;
-  if (page >= 45 && page <= 56) return 0.92;
-  return 0.92;
-}
-
-function isBrownCoverField(normY) {
-  return normY >= 0.52 && normY <= 0.62;
-}
-
-function isBrownWishSlot(page, normY, hasLabel) {
-  if (hasLabel) return false;
-  if (page === 6 && normY >= 0.755 && normY <= 0.845) return false;
-  return normY >= 0.772 && normY <= 0.92;
-}
-
-function isBrownCareerAnswerSlot(page, normY, hasLabel) {
-  return (
-    page === 6 &&
-    !hasLabel &&
-    normY >= 0.755 &&
-    normY <= 0.845
-  );
-}
-
+/** Viewport: верх полосы = штрих (norm.y), полоса уходит вниз на height. */
 function mapNormSlotToViewport(norm, pngW, pngH, index, page) {
-  const topNormY = norm.y - norm.height;
   return {
     index,
     page,
     x: norm.x * pngW,
-    y: topNormY * pngH,
+    y: norm.y * pngH,
     width: norm.width * pngW,
     lineHeight: norm.height * pngH,
     hasLabel: norm.hasLabel ?? false,
@@ -83,21 +49,6 @@ function mapNormSlotToViewport(norm, pngW, pngH, index, page) {
     normHeight: norm.height,
     continuationGroup: norm.continuationGroup ?? index + 1,
   };
-}
-
-function getStrokeY(slot) {
-  if (slot.page === 15 && slot.inputKind === 'line') {
-    return slot.y + slot.lineHeight;
-  }
-  const isPeachCell =
-    slot.inputKind === 'block' &&
-    slot.normY >= 0.74 &&
-    slot.normY <= 0.93 &&
-    (slot.normHeight ?? 0) > 0.035;
-  if (!isPeachCell) {
-    return slot.y + slot.lineHeight;
-  }
-  return slot.y + slot.lineHeight * 0.58;
 }
 
 function isPeachCell(slot) {
@@ -109,53 +60,49 @@ function isPeachCell(slot) {
   );
 }
 
-function getTextTop(slot, pageTemplates) {
-  const inputKind = slot.inputKind ?? 'line';
-  const fitted = fitFontSize(slot.lineHeight, inputKind);
-
-  if (slot.page === 15) {
-    return slot.y + slot.lineHeight - fitted * 1.05;
-  }
-
+function getStrokeY(slot) {
   if (isPeachCell(slot)) {
-    return slot.y + slot.lineHeight * 0.58 - fitted * 0.88;
+    return slot.y + slot.lineHeight * 0.58;
   }
-
-  const lineY = slot.y + slot.lineHeight;
-
-  if (isBrownCoverField(slot.normY)) {
-    return lineY - fitted * 0.92;
-  }
-  if (isBrownWishSlot(slot.page, slot.normY, slot.hasLabel)) {
-    return lineY - fitted * 0.9;
-  }
-  if (isBrownCareerAnswerSlot(slot.page, slot.normY, slot.hasLabel)) {
-    return lineY - fitted * 0.9;
-  }
-
-  return lineY - fitted * DIARY_LINE_FONT_OFFSET;
+  // runtime: slot.y уже штрих
+  return slot.y;
 }
 
-function getBaselineY(slot, pageTemplates) {
-  const fitted = fitFontSize(slot.lineHeight, slot.inputKind ?? 'line');
-  const top = getTextTop(slot, pageTemplates);
-  if (isPeachCell(slot)) {
-    return getStrokeY(slot) - fitted * 0.04;
-  }
-  return top + fitted * CAP_HEIGHT_RATIO;
+function resolveDiaryFontOffset(_slot) {
+  return resolveUniformStrokeFontOffset();
 }
 
-function measureDrift(slot, pageTemplates) {
+function getTextTop(slot) {
+  const fitted = fitFontSize();
+  if (isPeachCell(slot)) {
+    return slot.y + slot.lineHeight * 0.58 - fitted * resolveUniformStrokeFontOffset();
+  }
+  const lineY = getStrokeY(slot);
+  return lineY - fitted * resolveDiaryFontOffset(slot);
+}
+
+function getBaselineY(slot) {
+  const fitted = fitFontSize();
+  const top = getTextTop(slot);
+  if (isPeachCell(slot)) {
+    return getStrokeY(slot) - fitted * STROKE_CLEARANCE;
+  }
+  // previewCap для default шрифта — baseline чуть выше штриха на CLEARANCE
+  return top + fitted * DEFAULT_PREVIEW_CAP;
+}
+
+function measureDrift(slot) {
   const strokeY = getStrokeY(slot);
-  const baselineY = getBaselineY(slot, pageTemplates);
+  const baselineY = getBaselineY(slot);
+  const driftPx = baselineY - strokeY;
   const driftRatio =
-    slot.lineHeight > 0 ? Math.abs(baselineY - strokeY) / slot.lineHeight : 0;
-  return { strokeY, baselineY, driftRatio };
+    slot.lineHeight > 0 ? Math.abs(driftPx) / slot.lineHeight : Math.abs(driftPx);
+  return { strokeY, baselineY, driftPx, driftRatio };
 }
 
 function textFitsInSlot(text, slot, fontSize) {
-  const charWidth = fontSize * 0.5;
-  const maxWidth = slot.width * 0.98;
+  const charWidth = fontSize * 0.62;
+  const maxWidth = slot.width * 0.96;
   return text.length * charWidth <= maxWidth;
 }
 
@@ -173,7 +120,8 @@ function consumeOneLine(text, slot, fontSize) {
     } else if (built) {
       return { line: built, rest: words.slice(wordCount).join(' ') };
     } else {
-      return { line: word.slice(0, Math.max(1, Math.floor(slot.width / (fontSize * 0.5)))), rest: words.slice(1).join(' ') };
+      const maxChars = Math.max(1, Math.floor(slot.width / (fontSize * 0.62)));
+      return { line: word.slice(0, maxChars), rest: words.slice(1).join(' ') };
     }
   }
   return { line: built, rest: '' };
@@ -188,7 +136,7 @@ function distributeWithinFieldLines(text, startIndex, lineCount, slots) {
       segments.push({ slotIndex: slot.index, content: '' });
       continue;
     }
-    const fitted = fitFontSize(slot.lineHeight, slot.inputKind);
+    const fitted = fitFontSize();
     const { line, rest } = consumeOneLine(remaining, slot, fitted);
     segments.push({ slotIndex: slot.index, content: line });
     remaining = rest;
@@ -198,10 +146,15 @@ function distributeWithinFieldLines(text, startIndex, lineCount, slots) {
 
 module.exports = {
   FONT_SIZE,
+  DIARY_LINE_FONT_OFFSET,
+  CAP_HEIGHT_RATIO,
   loadPageTemplates,
   mapNormSlotToViewport,
   measureDrift,
   distributeWithinFieldLines,
   fitFontSize,
   isPeachCell,
+  getStrokeY,
+  getBaselineY,
+  getTextTop,
 };

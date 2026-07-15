@@ -23,10 +23,11 @@ const COLLAGE_TEMPLATE_SETS = {
   default: ['one_large', 'two_vertical', 'four_grid'],
 };
 
-const EVENT_PHOTO_SAFE = { x: 0.04, y: 0.06, width: 0.92, height: 0.82 };
+const PHOTO_ONLY_PAGE_SAFE = { x: 0.1, y: 0.1, width: 0.8, height: 0.8 };
+const EVENT_PHOTO_SAFE = PHOTO_ONLY_PAGE_SAFE;
 const PREGNANCY_PHOTO_SAFE = { x: 0.05, y: 0.14, width: 0.9, height: 0.76 };
-const PREGNANCY_MEMORY_PHOTO_SAFE = { x: 0.04, y: 0.08, width: 0.92, height: 0.72 };
-const BLANK_PAGE_PHOTO_SAFE = { x: 0.05, y: 0.05, width: 0.9, height: 0.84 };
+const PREGNANCY_MEMORY_PHOTO_SAFE = PHOTO_ONLY_PAGE_SAFE;
+const BLANK_PAGE_PHOTO_SAFE = PHOTO_ONLY_PAGE_SAFE;
 
 const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);

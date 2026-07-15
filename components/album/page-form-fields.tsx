@@ -29,6 +29,11 @@ import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
 export const TODO_CHECKBOX_VALUE = '1';
 
+/** Diary «Настроение» sticker radio — hidden from the fill form. */
+function isHiddenDiaryMoodField(fieldId: string): boolean {
+  return /_mood$/i.test(fieldId);
+}
+
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
@@ -300,9 +305,14 @@ export const PageFormFields = memo(function PageFormFields({
     [lineGuideId, windowWidth],
   );
 
+  const visibleFields = useMemo(
+    () => fields.filter((field) => !isHiddenDiaryMoodField(field.fieldId)),
+    [fields],
+  );
+
   const fieldLimits = useMemo(() => {
     const limits: Record<string, number | undefined> = {};
-    for (const field of fields) {
+    for (const field of visibleFields) {
       limits[field.fieldId] = getFieldCharacterLimit({
         field,
         lineGuideId,
@@ -312,7 +322,7 @@ export const PageFormFields = memo(function PageFormFields({
       });
     }
     return limits;
-  }, [coordinateViewport.height, coordinateViewport.width, fields, lineGuideId, sourcePageNumber]);
+  }, [coordinateViewport.height, coordinateViewport.width, visibleFields, lineGuideId, sourcePageNumber]);
 
   const layoutClamp = useMemo(
     () => ({
@@ -324,7 +334,7 @@ export const PageFormFields = memo(function PageFormFields({
     [coordinateViewport.height, coordinateViewport.width, lineGuideId, sourcePageNumber],
   );
 
-  if (fields.length === 0) return null;
+  if (visibleFields.length === 0) return null;
 
   return (
     <View style={styles.section}>
@@ -333,7 +343,7 @@ export const PageFormFields = memo(function PageFormFields({
           {sectionTitle}
         </AppText>
       ) : null}
-      {fields.map((field) => {
+      {visibleFields.map((field) => {
         const characterLimit = fieldLimits[field.fieldId];
         const value = values[field.fieldId] ?? '';
 

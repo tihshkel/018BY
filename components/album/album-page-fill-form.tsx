@@ -138,7 +138,11 @@ export function AlbumPageFillForm({
                       Подпись к фото {slotIndex + 1}
                     </AppText>
                     <CaptionTextInput
-                      value={photoCaptions[slotIndex] ?? ''}
+                      value={
+                        photoCaptions[slotIndex] ??
+                        (slotIndex === 0 ? caption : '') ??
+                        ''
+                      }
                       onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                       placeholder="Необязательно"
                     />

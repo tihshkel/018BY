@@ -91,9 +91,17 @@ const photoSlotsSource = readFile('constants/photo-slots.ts');
 assert(
   photoSlotsSource.includes('const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59]') &&
     photoSlotsSource.includes('function pregnancyMemoryPhotoLayouts') &&
-    photoSlotsSource.includes('PREGNANCY_MEMORY_PHOTO_SAFE') &&
+    photoSlotsSource.includes('PHOTO_ONLY_PAGE_SAFE') &&
+    photoSlotsSource.includes('fillSafeZoneSlots') &&
     photoSlotsSource.includes('FULL_PHOTO_TEMPLATES'),
   'pregnancy_60: photo-slots 56–59 with calibrated variants',
+);
+assert(
+  readFile('constants/sparse-photo-album-config.ts').includes('PHOTO_ONLY_PAGE_SAFE') &&
+    /PHOTO_ONLY_PAGE_SAFE[\s\S]*?height:\s*0\.8/.test(
+      readFile('constants/sparse-photo-album-config.ts'),
+    ),
+  'all albums share ~80% PHOTO_ONLY_PAGE_SAFE',
 );
 assert(photoSlotsSource.includes('three_hero'), 'photo-slots: three_hero template');
 assert(photoSlotsSource.includes('four_grid'), 'photo-slots: four_grid template');
@@ -106,6 +114,9 @@ const pregnancy56 = getSchemaSnippet(schemasSource, 'pregnancy_60_p56');
 assert(pregnancy56.includes('"three_hero"'), 'schema pregnancy p56: three_hero');
 assert(pregnancy56.includes('"four_grid"'), 'schema pregnancy p56: four_grid');
 assert(pregnancy56.includes('"captionEnabled": true'), 'schema pregnancy p56: captionEnabled');
+
+const pregnancyA5p47 = getSchemaSnippet(schemasSource, 'pregnancy_a5_p47');
+assert(pregnancyA5p47.includes('"captionEnabled": true'), 'schema pregnancy_a5 p47: captionEnabled');
 
 const kidsP6 = getSchemaSnippet(schemasSource, 'kids_48_p6');
 assert(kidsP6.includes('"three_hero"'), 'schema kids p6: three_hero');
@@ -164,6 +175,18 @@ assert(
 const photoEditorSource = readFile('hooks/use-album-page-photo-editor.ts');
 assert(photoEditorSource.includes('photoGroupTransform'), 'useAlbumPagePhotoEditor: group transform support');
 assert(photoEditorSource.includes('photoBlocks'), 'useAlbumPagePhotoEditor: photoBlocks state');
+assert(
+  photoEditorSource.includes('shouldShowPerPhotoCaptions'),
+  'useAlbumPagePhotoEditor: per-photo captions for multi-slot caption pages',
+);
+
+const photoCaptionsUtil = readFile('utils/photoCaptions.ts');
+assert(
+  photoCaptionsUtil.includes('shouldShowPerPhotoCaptions') &&
+    photoCaptionsUtil.includes('shouldRenderPhotoSlotCaptions') &&
+    photoCaptionsUtil.includes('free_photo_caption'),
+  'photoCaptions util: dual-caption support across album types',
+);
 
 // --- 9. PDF-detected photo slots ---
 const pdfSlotsPath = path.join(projectRoot, 'constants/generated/pdf-photo-slots.json');

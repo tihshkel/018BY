@@ -7,6 +7,7 @@ import {
   buildPageLayoutsFromTemplates,
   type SafeZone,
 } from '@/constants/photo-layout-templates';
+import { PHOTO_ONLY_PAGE_SAFE } from '@/constants/sparse-photo-album-config';
 import { getPageAspectRatio } from '@/utils/photoSlotAspect';
 import { normalizeDesignedAlbumVariantId } from '@/utils/variantPreview';
 
@@ -30,27 +31,7 @@ export type PhotoPageLayouts = {
   variants: PhotoVariantLayout[];
 };
 
-/** Calibrated safe zone for pregnancy «Для фото» — below top decor, above bottom margin */
-const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.05,
-  y: 0.14,
-  width: 0.9,
-  height: 0.76,
-};
-
-const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.04,
-  y: 0.06,
-  width: 0.92,
-  height: 0.82,
-};
-
-const BLANK_PAGE_SAFE: SafeZone = {
-  x: 0.05,
-  y: 0.05,
-  width: 0.9,
-  height: 0.84,
-};
+export { PHOTO_ONLY_PAGE_SAFE };
 
 const FULL_PHOTO_TEMPLATES = [
   'one_large',
@@ -71,40 +52,43 @@ function layoutsFromTemplates(
   safeZone: SafeZone,
   templateIds: readonly string[],
   lineGuideId?: string,
+  options?: { fillSafeZoneSlots?: boolean },
 ): PhotoPageLayouts {
   return buildPageLayoutsFromTemplates(
     safeZone,
     [...templateIds],
     getPageAspectRatio(lineGuideId),
+    options,
   ) as PhotoPageLayouts;
 }
 
-/** «Люблю» / memory block (p56–59): center zone below title, above rose decor */
-const PREGNANCY_MEMORY_PHOTO_SAFE: SafeZone = {
-  x: 0.04,
-  y: 0.08,
-  width: 0.92,
-  height: 0.72,
-};
+/** Photo-only pages: ~80% листа во всех альбомах. */
+function photoOnlyPageLayouts(lineGuideId?: string): PhotoPageLayouts {
+  return layoutsFromTemplates(PHOTO_ONLY_PAGE_SAFE, FULL_PHOTO_TEMPLATES, lineGuideId, {
+    fillSafeZoneSlots: true,
+  });
+}
 
 function pregnancyMemoryPhotoLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(PREGNANCY_MEMORY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES, 'pregnancy_60');
+  return photoOnlyPageLayouts('pregnancy_60');
 }
 
 const PREGNANCY_60_MEMORY_PAGES = [56, 57, 58, 59];
 
 function pregnancyPhotoLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES, 'pregnancy_a5');
+  return photoOnlyPageLayouts('pregnancy_a5');
 }
 
 function eventPhotoLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(EVENT_PHOTO_SAFE, EVENT_PHOTO_TEMPLATES);
+  return layoutsFromTemplates(PHOTO_ONLY_PAGE_SAFE, EVENT_PHOTO_TEMPLATES, undefined, {
+    fillSafeZoneSlots: true,
+  });
 }
 
 export { EVENT_PHOTO_TEMPLATES, eventPhotoLayouts };
 
 function blankPageLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(BLANK_PAGE_SAFE, FULL_PHOTO_TEMPLATES);
+  return photoOnlyPageLayouts();
 }
 
 /** Fallback for photo/event pages without explicit profile */

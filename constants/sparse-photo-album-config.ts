@@ -14,15 +14,24 @@ export type AlbumSparsePhotoConfig = {
   minPhotoSafeHeight?: number;
 };
 
-/** Широкая зона для event/diary/kids: одиночное фото ≈ 80–90% ширины страницы. */
-export const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.04,
-  y: 0.06,
-  width: 0.92,
-  height: 0.82,
+/**
+ * Единый стандарт: страницы «для фото» во всех альбомах —
+ * шаблоны занимают ~80% страницы.
+ */
+export const PHOTO_ONLY_PAGE_SAFE: SafeZone = {
+  x: 0.1,
+  y: 0.1,
+  width: 0.8,
+  height: 0.8,
 };
 
-/** Pregnancy «Для фото» / совместное фото — крупнее, с запасом под подписи сверху. */
+/** Event / diary / kids / birthday free — тот же 80% стандарт. */
+export const EVENT_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
+
+/** Blank / свободные страницы — тот же 80% стандарт. */
+export const BLANK_PAGE_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
+
+/** Pregnancy weekly / mixed — зона между текстом, не 80% листа. */
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
   x: 0.05,
   y: 0.14,
@@ -30,13 +39,10 @@ export const PREGNANCY_PHOTO_SAFE: SafeZone = {
   height: 0.76,
 };
 
-/** Blank / свободные страницы: почти весь лист под фото (+ место под caption снизу). */
-export const BLANK_PAGE_PHOTO_SAFE: SafeZone = {
-  x: 0.05,
-  y: 0.05,
-  width: 0.9,
-  height: 0.84,
-};
+/** Крупная зона (≥ ~72%) — заполняем слоты без сжатия 4:3/3:4. */
+export function isLargePhotoSafeZone(safeZone: SafeZone): boolean {
+  return safeZone.width >= 0.72 && safeZone.height >= 0.72;
+}
 
 const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);

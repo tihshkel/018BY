@@ -14,6 +14,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const HOME_PROJECTS_PREVIEW_LIMIT = 2;
 
+/** Показывать «Все» / переход ко всем историям, только если проектов больше двух. */
+export const HOME_SHOW_ALL_STORIES_MIN_COUNT = HOME_PROJECTS_PREVIEW_LIMIT + 1;
+
 export type UserProject = {
   id: string;
   title: string;
@@ -25,6 +28,8 @@ export type UserProject = {
   photosCount: number;
   remindersCount: number;
   dateStarted: string;
+  /** ISO — последнее открытие альбома; для сортировки «недавно открытые первыми». */
+  lastOpenedAt?: string | null;
   isReadyMadeAlbum?: boolean;
   hasPdfTemplate?: boolean;
   thumbnailPath?: unknown;
@@ -186,6 +191,35 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     // ignore
   }
 
+  let lastOpenedAt =
+    typeof p?.lastOpenedAt === 'string' && p.lastOpenedAt.trim()
+      ? p.lastOpenedAt
+      : null;
+
+  // Предпочитаем свежее значение из карточки проекта, если оно новее списка.
+  try {
+    const projectRaw = await AsyncStorage.getItem(`@project_${projectId}`);
+    if (projectRaw) {
+      const parsed = JSON.parse(projectRaw) as Record<string, unknown>;
+      const fromProject =
+        typeof parsed?.lastOpenedAt === 'string' && parsed.lastOpenedAt.trim()
+          ? parsed.lastOpenedAt
+          : null;
+      if (fromProject) {
+        const listTime = lastOpenedAt ? Date.parse(lastOpenedAt) : 0;
+        const projectTime = Date.parse(fromProject);
+        if (
+          !lastOpenedAt ||
+          (Number.isFinite(projectTime) && projectTime >= listTime)
+        ) {
+          lastOpenedAt = fromProject;
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
   return {
     id: projectId,
     title: resolveProjectTitleFromWildberries({
@@ -200,6 +234,7 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
     photosCount,
     remindersCount,
     dateStarted: createdAt,
+    lastOpenedAt,
     isReadyMadeAlbum: !!p?.isReadyMadeAlbum,
     hasPdfTemplate: !!p?.hasPdfTemplate,
     thumbnailPath: p?.thumbnailPath ?? null,
@@ -208,7 +243,57 @@ async function hydrateProject(p: Record<string, unknown>): Promise<UserProject> 
   };
 }
 
-/** Все проекты пользователя из AsyncStorage, новые первыми */
+function projectRecencyTime(project: UserProject): number {
+  const opened = project.lastOpenedAt ? Date.parse(project.lastOpenedAt) : NaN;
+  if (Number.isFinite(opened)) return opened;
+  const started = Date.parse(project.dateStarted);
+  return Number.isFinite(started) ? started : 0;
+}
+
+/** Отметить проект как недавно открытый — поднимает его в начало списков. */
+export async function touchProjectLastOpened(projectId: string): Promise<void> {
+  const id = String(projectId ?? '').trim();
+  if (!id) return;
+
+  const now = new Date().toISOString();
+
+  try {
+    const projectRaw = await AsyncStorage.getItem(`@project_${id}`);
+    if (projectRaw) {
+      const parsed = JSON.parse(projectRaw) as Record<string, unknown>;
+      if (parsed && typeof parsed === 'object') {
+        parsed.lastOpenedAt = now;
+        await AsyncStorage.setItem(`@project_${id}`, JSON.stringify(parsed));
+      }
+    }
+  } catch {
+    // ignore per-project write failures
+  }
+
+  try {
+    const listRaw = await AsyncStorage.getItem('@user_projects');
+    if (!listRaw) return;
+    const list = JSON.parse(listRaw) as unknown[];
+    if (!Array.isArray(list) || list.length === 0) return;
+
+    let changed = false;
+    const next = list.map((entry) => {
+      if (!entry || typeof entry !== 'object') return entry;
+      const item = entry as Record<string, unknown>;
+      if (String(item.id ?? '') !== id) return entry;
+      changed = true;
+      return { ...item, lastOpenedAt: now };
+    });
+
+    if (changed) {
+      await AsyncStorage.setItem('@user_projects', JSON.stringify(next));
+    }
+  } catch {
+    // ignore list write failures
+  }
+}
+
+/** Все проекты пользователя из AsyncStorage, недавно открытые первыми */
 export async function loadUserProjects(): Promise<UserProject[]> {
   try {
     await pruneLegacyFreeformProjects();
@@ -239,7 +324,5 @@ export async function loadUserProjects(): Promise<UserProject[]> {
     visibleProjects.map((p) => hydrateProject(p as Record<string, unknown>))
   );
 
-  return formatted.sort(
-    (a, b) => new Date(b.dateStarted).getTime() - new Date(a.dateStarted).getTime()
-  );
+  return formatted.sort((a, b) => projectRecencyTime(b) - projectRecencyTime(a));
 }

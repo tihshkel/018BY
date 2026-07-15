@@ -6,6 +6,8 @@
  * All multi-photo templates share one 2-column grid (same margins, column width, gaps).
  */
 
+import { fitNormalizedSlotToAspect } from '@/utils/photoSlotAspect';
+
 export type TemplatePhotoSlot = {
   x: number;
   y: number;
@@ -60,6 +62,7 @@ export const COLLAGE_GRID = {
 /**
  * 1 hero photo: почти вся safe zone (~80–90% страницы после aspect-fit),
  * снизу небольшой запас под caption.
+ * На квадратных страницах — 4:3; на портретных photo-only подменяется на fill (см. buildPageLayoutsFromTemplates).
  */
 export const TEMPLATE_ONE_LARGE: PhotoLayoutTemplate = {
   variantId: 'one_large',
@@ -219,13 +222,12 @@ export type SafeZone = {
   height: number;
 };
 
-import { fitNormalizedSlotToAspect } from '@/utils/photoSlotAspect';
-
 /** Map template slots (safe-zone relative) to absolute page-normalized coords (y = center). */
 export function buildVariantLayoutFromTemplate(
   template: PhotoLayoutTemplate,
   safeZone: SafeZone,
   pageAspect = 1,
+  options?: { fillSafeZoneSlots?: boolean },
 ): { variantId: string; slots: Array<{
   x: number;
   y: number;
@@ -236,14 +238,20 @@ export function buildVariantLayoutFromTemplate(
   const templateSlots =
     template.variantId === 'three_hero' ? buildThreeHeroSlots(safeZone) : template.slots;
 
+  // Крупные зоны (~80% страницы): заполняем ячейки без сжатия 4:3/3:4 во всех альбомах.
+  const fillSafeZoneSlots =
+    options?.fillSafeZoneSlots ??
+    (safeZone.width >= 0.72 && safeZone.height >= 0.72);
+
   const slots = templateSlots.map((s) => {
     const cellW = s.width * safeZone.width;
     const cellH = s.height * safeZone.height;
+    const aspectRatio = fillSafeZoneSlots ? undefined : s.aspectRatio;
     const { width: absW, height: absH } = fitNormalizedSlotToAspect(
       cellW,
       cellH,
       pageAspect,
-      s.aspectRatio,
+      aspectRatio,
     );
     const topY = safeZone.y + s.y * safeZone.height;
     const centerY = topY + (cellH - absH) / 2 + absH / 2;
@@ -253,7 +261,7 @@ export function buildVariantLayoutFromTemplate(
       y: centerY,
       width: absW,
       height: absH,
-      aspectRatio: s.aspectRatio,
+      aspectRatio,
     };
   });
 
@@ -264,11 +272,12 @@ export function buildPageLayoutsFromTemplates(
   safeZone: SafeZone,
   templateIds: string[],
   pageAspect = 1,
+  options?: { fillSafeZoneSlots?: boolean },
 ): { variants: ReturnType<typeof buildVariantLayoutFromTemplate>[] } {
   const variants = templateIds
     .map((id) => PHOTO_LAYOUT_TEMPLATES[id])
     .filter(Boolean)
-    .map((t) => buildVariantLayoutFromTemplate(t, safeZone, pageAspect));
+    .map((t) => buildVariantLayoutFromTemplate(t, safeZone, pageAspect, options));
   return { variants };
 }
 

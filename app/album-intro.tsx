@@ -23,6 +23,7 @@ import {
 import { markAlbumIntroSeen } from '@/utils/albumIntro';
 import { getProjectCoverImageSource } from '@/utils/projectCoverImage';
 import { useResponsiveLayout, getTabletContentShell } from '@/utils/responsive';
+import { touchProjectLastOpened } from '@/utils/userProjects';
 
 export default function AlbumIntroScreen() {
   const { id, celebration, coverType, interiorType, eventDate } =
@@ -77,12 +78,14 @@ export default function AlbumIntroScreen() {
   const handleStart = async () => {
     if (!project.projectId) return;
     await markAlbumIntroSeen(project.projectId);
+    await touchProjectLastOpened(project.projectId);
     router.replace(buildAlbumPagesHref(albumFlowParams));
   };
 
   const handleViewStructure = async () => {
     if (!project.projectId) return;
     await markAlbumIntroSeen(project.projectId);
+    await touchProjectLastOpened(project.projectId);
     router.push(buildAlbumStructureGridHref(albumFlowParams));
   };
 

@@ -227,13 +227,34 @@ export async function importAccountData(
           }
         })();
         const byId = new Map<string, any>();
+        const pickNewerLastOpened = (a: any, b: any) => {
+          const aTime = Date.parse(String(a?.lastOpenedAt ?? ''));
+          const bTime = Date.parse(String(b?.lastOpenedAt ?? ''));
+          const aOk = Number.isFinite(aTime);
+          const bOk = Number.isFinite(bTime);
+          if (aOk && bOk) return bTime > aTime ? b : a;
+          if (bOk) return b;
+          return a;
+        };
         for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(cloudList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
           if (id) byId.set(id, p);
         }
         for (const p of filterOutLegacyFreeformProjects(filterProjectsByDeleted(localList, deletedIds))) {
           const id = p?.id != null ? String(p.id) : '';
-          if (id && !byId.has(id)) byId.set(id, p);
+          if (!id) continue;
+          const existing = byId.get(id);
+          if (!existing) {
+            byId.set(id, p);
+            continue;
+          }
+          // Сохраняем более свежий lastOpenedAt при мерже облако↔локально.
+          const newer = pickNewerLastOpened(existing, p);
+          byId.set(id, {
+            ...existing,
+            ...p,
+            lastOpenedAt: newer?.lastOpenedAt ?? existing?.lastOpenedAt ?? p?.lastOpenedAt,
+          });
         }
         const merged = Array.from(byId.values());
         await AsyncStorage.setItem('@user_projects', JSON.stringify(merged));

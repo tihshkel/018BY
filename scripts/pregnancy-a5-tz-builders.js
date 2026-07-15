@@ -74,7 +74,7 @@ function applyPregnancyA5PageFields(pageNumber, lineGuideId, slots = []) {
         pageType: 'photo',
         editable: true,
         fields: [],
-        captionEnabled: false,
+        captionEnabled: true,
       });
     default:
       return null;
