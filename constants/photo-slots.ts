@@ -32,24 +32,24 @@ export type PhotoPageLayouts = {
 
 /** Calibrated safe zone for pregnancy «Для фото» — below top decor, above bottom margin */
 const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.11,
-  y: 0.26,
-  width: 0.78,
-  height: 0.5,
+  x: 0.05,
+  y: 0.14,
+  width: 0.9,
+  height: 0.76,
 };
 
 const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.08,
-  y: 0.2,
-  width: 0.84,
-  height: 0.6,
+  x: 0.04,
+  y: 0.06,
+  width: 0.92,
+  height: 0.82,
 };
 
 const BLANK_PAGE_SAFE: SafeZone = {
-  x: 0.1,
-  y: 0.15,
-  width: 0.8,
-  height: 0.7,
+  x: 0.05,
+  y: 0.05,
+  width: 0.9,
+  height: 0.84,
 };
 
 const FULL_PHOTO_TEMPLATES = [
@@ -81,10 +81,10 @@ function layoutsFromTemplates(
 
 /** «Люблю» / memory block (p56–59): center zone below title, above rose decor */
 const PREGNANCY_MEMORY_PHOTO_SAFE: SafeZone = {
-  x: 0.08,
-  y: 0.14,
-  width: 0.84,
-  height: 0.52,
+  x: 0.04,
+  y: 0.08,
+  width: 0.92,
+  height: 0.72,
 };
 
 function pregnancyMemoryPhotoLayouts(): PhotoPageLayouts {

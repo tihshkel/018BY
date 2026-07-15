@@ -1,4 +1,4 @@
-import type { KeyboardTypeOptions } from 'react-native';
+import { Platform, type KeyboardTypeOptions } from 'react-native';
 
 import type { AlbumPageField, FieldType } from '@/types/album-page-schema';
 import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
@@ -67,9 +67,10 @@ export function getFieldKeyboardType(type: FieldType): KeyboardTypeOptions {
   switch (type) {
     case 'date':
     case 'time':
-      return 'number-pad';
+      // Android: numeric показывает кнопку OK/Done; number-pad часто без return.
+      return Platform.OS === 'android' ? 'numeric' : 'number-pad';
     case 'number':
-      return 'decimal-pad';
+      return Platform.OS === 'android' ? 'numeric' : 'decimal-pad';
     default:
       return 'default';
   }
@@ -77,7 +78,7 @@ export function getFieldKeyboardType(type: FieldType): KeyboardTypeOptions {
 
 export function getFieldKeyboardTypeForField(field: AlbumPageField): KeyboardTypeOptions {
   if (getMeasurementDigitLimit(field) != null) {
-    return 'number-pad';
+    return Platform.OS === 'android' ? 'numeric' : 'number-pad';
   }
   return getFieldKeyboardType(field.type);
 }

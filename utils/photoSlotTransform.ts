@@ -6,7 +6,7 @@ export const DEFAULT_PHOTO_SLOT_TRANSFORM: PhotoSlotTransform = {
   offsetY: 0,
 };
 
-export const MIN_PHOTO_SCALE = 0.6;
+export const MIN_PHOTO_SCALE = 0.35;
 export const MAX_PHOTO_SCALE = 3.5;
 export const MAX_PHOTO_OFFSET = 1.2;
 

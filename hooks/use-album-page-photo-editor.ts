@@ -11,6 +11,10 @@ import {
 } from '@/utils/persistAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import {
+  getPageFormatForLineGuide,
+  getTemplateLayout,
+} from '@/utils/photoPageTemplateManifest';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
 import {
@@ -43,9 +47,16 @@ export function useAlbumPagePhotoEditor({
 
   const showCaption = resolvedSchema?.captionEnabled === true;
   const captionMaxLength = resolvedSchema?.captionMaxLength;
+  const templateHasPerPhotoCaptions = (() => {
+    if (!resolvedSchema?.templateLibraryId) return false;
+    const format = getPageFormatForLineGuide(resolvedSchema.lineGuideId);
+    const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
+    return Boolean(layout?.perPhotoCaptions);
+  })();
   const showPerPhotoCaptions =
     resolvedSchema?.pageType === 'caption_photo_page' ||
-    resolvedSchema?.pageType === 'birthday_free_page';
+    resolvedSchema?.pageType === 'birthday_free_page' ||
+    templateHasPerPhotoCaptions;
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {

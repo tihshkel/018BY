@@ -1,5 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import {
+  Keyboard,
   Platform,
   StyleSheet,
   TextInput,
@@ -41,6 +42,11 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
     onFocus,
     onBlur,
     multiline,
+    returnKeyType,
+    returnKeyLabel,
+    enterKeyHint,
+    blurOnSubmit,
+    onSubmitEditing,
     ...rest
   },
   ref,
@@ -48,6 +54,8 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   const [focused, setFocused] = useState(false);
   const helperMessage = error ?? helperText;
   const isMultiline = multiline === true;
+  const resolvedReturnKeyType = returnKeyType ?? (isMultiline ? 'default' : 'done');
+  const resolvedBlurOnSubmit = blurOnSubmit ?? !isMultiline;
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -72,6 +80,18 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
           multiline={multiline}
           scrollEnabled={isMultiline ? rest.scrollEnabled : false}
           underlineColorAndroid="transparent"
+          returnKeyType={resolvedReturnKeyType}
+          returnKeyLabel={returnKeyLabel ?? (isMultiline ? undefined : 'OK')}
+          enterKeyHint={enterKeyHint ?? (isMultiline ? 'enter' : 'done')}
+          blurOnSubmit={resolvedBlurOnSubmit}
+          onSubmitEditing={
+            onSubmitEditing ??
+            (isMultiline
+              ? undefined
+              : () => {
+                  Keyboard.dismiss();
+                })
+          }
           style={[
             styles.input,
             isMultiline ? styles.inputMultiline : styles.inputSingleLine,

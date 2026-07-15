@@ -14,25 +14,28 @@ export type AlbumSparsePhotoConfig = {
   minPhotoSafeHeight?: number;
 };
 
+/** Широкая зона для event/diary/kids: одиночное фото ≈ 80–90% ширины страницы. */
 export const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.08,
-  y: 0.2,
-  width: 0.84,
-  height: 0.6,
+  x: 0.04,
+  y: 0.06,
+  width: 0.92,
+  height: 0.82,
 };
 
+/** Pregnancy «Для фото» / совместное фото — крупнее, с запасом под подписи сверху. */
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.11,
-  y: 0.26,
-  width: 0.78,
-  height: 0.5,
+  x: 0.05,
+  y: 0.14,
+  width: 0.9,
+  height: 0.76,
 };
 
+/** Blank / свободные страницы: почти весь лист под фото (+ место под caption снизу). */
 export const BLANK_PAGE_PHOTO_SAFE: SafeZone = {
-  x: 0.1,
-  y: 0.15,
-  width: 0.8,
-  height: 0.7,
+  x: 0.05,
+  y: 0.05,
+  width: 0.9,
+  height: 0.84,
 };
 
 const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
@@ -43,10 +46,10 @@ const DEFAULTS = {
   gapMm: 4,
   pageSizeMm: 210,
   sparseMaxLineSlots: 4,
-  photoBandMaxBottom: 0.86,
-  stackedTwoMinBandHeight: 0.54,
-  minFullWidthBandHeight: 0.35,
-  minPhotoSafeHeight: 0.12,
+  photoBandMaxBottom: 0.96,
+  stackedTwoMinBandHeight: 0.68,
+  minFullWidthBandHeight: 0.28,
+  minPhotoSafeHeight: 0.16,
 };
 
 function config(partial: Omit<AlbumSparsePhotoConfig, 'gapMm' | 'pageSizeMm' | 'sparseMaxLineSlots'> & {

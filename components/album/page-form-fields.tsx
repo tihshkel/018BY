@@ -1,5 +1,13 @@
 import React, { useMemo, useRef, memo, useCallback } from 'react';
-import { Platform, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
@@ -194,6 +202,11 @@ const TypedFormField = memo(function TypedFormField({
             ? 'numeric'
             : 'text'
         }
+        returnKeyType={isMultiline ? 'default' : 'done'}
+        returnKeyLabel={isMultiline ? undefined : 'OK'}
+        enterKeyHint={isMultiline ? 'enter' : 'done'}
+        blurOnSubmit={!isMultiline}
+        onSubmitEditing={isMultiline ? undefined : () => Keyboard.dismiss()}
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
       />

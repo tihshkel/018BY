@@ -129,7 +129,7 @@ function resolveDesignedAlbumLayouts(
 
   if (pdfLayouts?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
     if (!isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
-      const standard = buildStandardDesignedAlbumLayouts(pdfLayouts, lineGuideId);
+      const standard = buildStandardDesignedAlbumLayouts(pdfLayouts, lineGuideId, page);
       if (standard) return finalizeLayouts(standard, lineGuideId, page);
       return finalizeLayouts(pdfLayouts, lineGuideId, page);
     }

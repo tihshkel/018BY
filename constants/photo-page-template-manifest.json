@@ -7,10 +7,10 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.1,
-            "w": 0.84,
-            "h": 0.72
+            "x": 0.06,
+            "y": 0.05,
+            "w": 0.88,
+            "h": 0.8
           }
         ],
         "textBlocks": [
@@ -19,9 +19,9 @@
             "type": "caption",
             "required": false,
             "maxLength": 32,
-            "x": 0.12,
-            "y": 0.84,
-            "w": 0.76,
+            "x": 0.1,
+            "y": 0.87,
+            "w": 0.8,
             "h": 0.06
           }
         ],
@@ -36,10 +36,10 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.1,
-            "w": 0.82,
-            "h": 0.7
+            "x": 0.06,
+            "y": 0.05,
+            "w": 0.88,
+            "h": 0.78
           }
         ],
         "textBlocks": [
@@ -48,9 +48,9 @@
             "type": "caption",
             "required": false,
             "maxLength": 120,
-            "x": 0.14,
-            "y": 0.83,
-            "w": 0.72,
+            "x": 0.1,
+            "y": 0.86,
+            "w": 0.8,
             "h": 0.06
           }
         ],
@@ -67,10 +67,10 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.1,
-            "w": 0.84,
-            "h": 0.46
+            "x": 0.06,
+            "y": 0.04,
+            "w": 0.88,
+            "h": 0.52
           }
         ],
         "textBlocks": [
@@ -106,10 +106,10 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.09,
-            "w": 0.82,
-            "h": 0.48
+            "x": 0.06,
+            "y": 0.04,
+            "w": 0.88,
+            "h": 0.52
           }
         ],
         "textBlocks": [
@@ -147,19 +147,19 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.13,
-            "w": 0.39,
-            "h": 0.68
+            "x": 0.05,
+            "y": 0.05,
+            "w": 0.43,
+            "h": 0.8
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
-            "x": 0.53,
-            "y": 0.13,
-            "w": 0.39,
-            "h": 0.68
+            "x": 0.52,
+            "y": 0.05,
+            "w": 0.43,
+            "h": 0.8
           }
         ],
         "textBlocks": [
@@ -168,26 +168,27 @@
             "type": "caption",
             "required": false,
             "maxLength": 80,
-            "x": 0.08,
-            "y": 0.83,
-            "w": 0.39,
-            "h": 0.05
+            "x": 0.05,
+            "y": 0.87,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption2",
             "type": "caption",
             "required": false,
             "maxLength": 80,
-            "x": 0.53,
-            "y": 0.83,
-            "w": 0.39,
-            "h": 0.05
+            "x": 0.52,
+            "y": 0.87,
+            "w": 0.43,
+            "h": 0.06
           }
         ],
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "caption_photo_page",
+        "perPhotoCaptions": true
       },
       "21x21": {
         "photoSlots": [
@@ -195,19 +196,19 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.12,
-            "w": 0.39,
-            "h": 0.64
+            "x": 0.05,
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.8
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
             "x": 0.52,
-            "y": 0.12,
-            "w": 0.39,
-            "h": 0.64
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.8
           }
         ],
         "textBlocks": [
@@ -216,9 +217,9 @@
             "type": "caption",
             "required": false,
             "maxLength": 80,
-            "x": 0.09,
-            "y": 0.79,
-            "w": 0.39,
+            "x": 0.05,
+            "y": 0.86,
+            "w": 0.43,
             "h": 0.06
           },
           {
@@ -227,15 +228,16 @@
             "required": false,
             "maxLength": 80,
             "x": 0.52,
-            "y": 0.79,
-            "w": 0.39,
+            "y": 0.86,
+            "w": 0.43,
             "h": 0.06
           }
         ],
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "caption_photo_page",
+        "perPhotoCaptions": true
       }
     },
     "TwoHorizontalPhotosTemplate": {
@@ -245,19 +247,19 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.12,
-            "w": 0.84,
-            "h": 0.32
+            "x": 0.06,
+            "y": 0.04,
+            "w": 0.88,
+            "h": 0.4
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.49,
-            "w": 0.84,
-            "h": 0.32
+            "x": 0.06,
+            "y": 0.46,
+            "w": 0.88,
+            "h": 0.4
           }
         ],
         "textBlocks": [
@@ -266,10 +268,10 @@
             "type": "caption",
             "required": false,
             "maxLength": 90,
-            "x": 0.12,
-            "y": 0.84,
-            "w": 0.76,
-            "h": 0.06
+            "x": 0.1,
+            "y": 0.88,
+            "w": 0.8,
+            "h": 0.05
           }
         ],
         "minFilledRule": {
@@ -283,19 +285,19 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.1,
-            "w": 0.82,
-            "h": 0.33
+            "x": 0.06,
+            "y": 0.03,
+            "w": 0.88,
+            "h": 0.38
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.51,
-            "w": 0.82,
-            "h": 0.33
+            "x": 0.06,
+            "y": 0.48,
+            "w": 0.88,
+            "h": 0.38
           }
         ],
         "textBlocks": [
@@ -304,9 +306,9 @@
             "type": "caption",
             "required": false,
             "maxLength": 90,
-            "x": 0.12,
-            "y": 0.445,
-            "w": 0.76,
+            "x": 0.1,
+            "y": 0.42,
+            "w": 0.8,
             "h": 0.045
           },
           {
@@ -314,16 +316,17 @@
             "type": "caption",
             "required": false,
             "maxLength": 90,
-            "x": 0.12,
-            "y": 0.855,
-            "w": 0.76,
+            "x": 0.1,
+            "y": 0.88,
+            "w": 0.8,
             "h": 0.045
           }
         ],
         "minFilledRule": {
           "minPhotos": 2
         },
-        "pageType": "photo"
+        "pageType": "caption_photo_page",
+        "perPhotoCaptions": true
       }
     },
     "ThreePhotosTemplate": {
@@ -333,28 +336,28 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.08,
-            "y": 0.1,
-            "w": 0.84,
-            "h": 0.42
+            "x": 0.06,
+            "y": 0.04,
+            "w": 0.88,
+            "h": 0.48
           },
           {
             "id": "photo2",
             "type": "image",
             "required": false,
-            "x": 0.08,
-            "y": 0.56,
-            "w": 0.4,
-            "h": 0.29
+            "x": 0.06,
+            "y": 0.55,
+            "w": 0.42,
+            "h": 0.32
           },
           {
             "id": "photo3",
             "type": "image",
             "required": false,
             "x": 0.52,
-            "y": 0.56,
-            "w": 0.4,
-            "h": 0.29
+            "y": 0.55,
+            "w": 0.42,
+            "h": 0.32
           }
         ],
         "textBlocks": [
@@ -380,28 +383,28 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.09,
-            "w": 0.82,
-            "h": 0.42
+            "x": 0.06,
+            "y": 0.04,
+            "w": 0.88,
+            "h": 0.46
           },
           {
             "id": "photo2",
             "type": "image",
-            "required": true,
-            "x": 0.09,
-            "y": 0.55,
-            "w": 0.39,
-            "h": 0.26
+            "required": false,
+            "x": 0.06,
+            "y": 0.54,
+            "w": 0.42,
+            "h": 0.34
           },
           {
             "id": "photo3",
             "type": "image",
-            "required": true,
+            "required": false,
             "x": 0.52,
-            "y": 0.55,
-            "w": 0.39,
-            "h": 0.26
+            "y": 0.54,
+            "w": 0.42,
+            "h": 0.34
           }
         ],
         "textBlocks": [
@@ -429,28 +432,28 @@
             "id": "photo1",
             "type": "image",
             "required": false,
-            "x": 0.08,
-            "y": 0.12,
-            "w": 0.4,
-            "h": 0.32
+            "x": 0.05,
+            "y": 0.05,
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo2",
             "type": "image",
             "required": false,
             "x": 0.52,
-            "y": 0.12,
-            "w": 0.4,
-            "h": 0.32
+            "y": 0.05,
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo3",
             "type": "image",
             "required": false,
-            "x": 0.08,
+            "x": 0.05,
             "y": 0.48,
-            "w": 0.4,
-            "h": 0.32
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo4",
@@ -458,8 +461,8 @@
             "required": false,
             "x": 0.52,
             "y": 0.48,
-            "w": 0.4,
-            "h": 0.32
+            "w": 0.43,
+            "h": 0.4
           }
         ],
         "textBlocks": [
@@ -468,10 +471,10 @@
             "type": "caption",
             "required": false,
             "maxLength": 120,
-            "x": 0.12,
-            "y": 0.84,
-            "w": 0.76,
-            "h": 0.06
+            "x": 0.1,
+            "y": 0.9,
+            "w": 0.8,
+            "h": 0.05
           }
         ],
         "minFilledRule": {
@@ -485,37 +488,37 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.1,
-            "w": 0.39,
-            "h": 0.33
+            "x": 0.05,
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
             "x": 0.52,
-            "y": 0.1,
-            "w": 0.39,
-            "h": 0.33
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo3",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.47,
-            "w": 0.39,
-            "h": 0.33
+            "x": 0.05,
+            "y": 0.48,
+            "w": 0.43,
+            "h": 0.4
           },
           {
             "id": "photo4",
             "type": "image",
             "required": true,
             "x": 0.52,
-            "y": 0.47,
-            "w": 0.39,
-            "h": 0.33
+            "y": 0.48,
+            "w": 0.43,
+            "h": 0.4
           }
         ],
         "textBlocks": [
@@ -524,10 +527,10 @@
             "type": "caption",
             "required": false,
             "maxLength": 120,
-            "x": 0.12,
-            "y": 0.84,
-            "w": 0.76,
-            "h": 0.055
+            "x": 0.1,
+            "y": 0.9,
+            "w": 0.8,
+            "h": 0.05
           }
         ],
         "minFilledRule": {
@@ -543,37 +546,37 @@
             "id": "photo1",
             "type": "image",
             "required": false,
-            "x": 0.08,
-            "y": 0.1,
-            "w": 0.4,
-            "h": 0.25
+            "x": 0.05,
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo2",
             "type": "image",
             "required": false,
             "x": 0.52,
-            "y": 0.1,
-            "w": 0.4,
-            "h": 0.25
+            "y": 0.04,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo3",
             "type": "image",
             "required": false,
-            "x": 0.08,
-            "y": 0.46,
-            "w": 0.4,
-            "h": 0.25
+            "x": 0.05,
+            "y": 0.48,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo4",
             "type": "image",
             "required": false,
             "x": 0.52,
-            "y": 0.46,
-            "w": 0.4,
-            "h": 0.25
+            "y": 0.48,
+            "w": 0.43,
+            "h": 0.34
           }
         ],
         "textBlocks": [
@@ -582,10 +585,10 @@
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.08,
-            "y": 0.36,
-            "w": 0.4,
-            "h": 0.05
+            "x": 0.05,
+            "y": 0.39,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption2",
@@ -593,19 +596,19 @@
             "required": false,
             "maxLength": 70,
             "x": 0.52,
-            "y": 0.36,
-            "w": 0.4,
-            "h": 0.05
+            "y": 0.39,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption3",
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.08,
-            "y": 0.72,
-            "w": 0.4,
-            "h": 0.05
+            "x": 0.05,
+            "y": 0.83,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption4",
@@ -613,9 +616,9 @@
             "required": false,
             "maxLength": 70,
             "x": 0.52,
-            "y": 0.72,
-            "w": 0.4,
-            "h": 0.05
+            "y": 0.83,
+            "w": 0.43,
+            "h": 0.06
           }
         ],
         "minFilledRule": {
@@ -630,37 +633,37 @@
             "id": "photo1",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.09,
-            "w": 0.37,
-            "h": 0.25
+            "x": 0.05,
+            "y": 0.03,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo2",
             "type": "image",
             "required": true,
-            "x": 0.54,
-            "y": 0.09,
-            "w": 0.37,
-            "h": 0.25
+            "x": 0.52,
+            "y": 0.03,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo3",
             "type": "image",
             "required": true,
-            "x": 0.09,
-            "y": 0.45,
-            "w": 0.37,
-            "h": 0.25
+            "x": 0.05,
+            "y": 0.47,
+            "w": 0.43,
+            "h": 0.34
           },
           {
             "id": "photo4",
             "type": "image",
             "required": true,
-            "x": 0.54,
-            "y": 0.45,
-            "w": 0.37,
-            "h": 0.25
+            "x": 0.52,
+            "y": 0.47,
+            "w": 0.43,
+            "h": 0.34
           }
         ],
         "textBlocks": [
@@ -669,40 +672,40 @@
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.09,
-            "y": 0.355,
-            "w": 0.37,
-            "h": 0.05
+            "x": 0.05,
+            "y": 0.38,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption2",
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.54,
-            "y": 0.355,
-            "w": 0.37,
-            "h": 0.05
+            "x": 0.52,
+            "y": 0.38,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption3",
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.09,
-            "y": 0.715,
-            "w": 0.37,
-            "h": 0.05
+            "x": 0.05,
+            "y": 0.82,
+            "w": 0.43,
+            "h": 0.06
           },
           {
             "id": "caption4",
             "type": "caption",
             "required": false,
             "maxLength": 70,
-            "x": 0.54,
-            "y": 0.715,
-            "w": 0.37,
-            "h": 0.05
+            "x": 0.52,
+            "y": 0.82,
+            "w": 0.43,
+            "h": 0.06
           }
         ],
         "minFilledRule": {

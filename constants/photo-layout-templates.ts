@@ -19,9 +19,9 @@ export type PhotoLayoutTemplate = {
   slots: TemplatePhotoSlot[];
 };
 
-const GAP = 0.03;
-const MARGIN_X = 0.04;
-const MARGIN_Y = 0.04;
+const GAP = 0.016;
+const MARGIN_X = 0.01;
+const MARGIN_Y = 0.02;
 
 const FULL_WIDTH = 1 - MARGIN_X * 2;
 const COL_WIDTH = (FULL_WIDTH - GAP) / 2;
@@ -57,16 +57,19 @@ export const COLLAGE_GRID = {
   colXRight: COL_X_RIGHT,
 };
 
-/** 1 hero photo centered in safe zone */
+/**
+ * 1 hero photo: почти вся safe zone (~80–90% страницы после aspect-fit),
+ * снизу небольшой запас под caption.
+ */
 export const TEMPLATE_ONE_LARGE: PhotoLayoutTemplate = {
   variantId: 'one_large',
-  slots: [slot(MARGIN_X, 0.08, FULL_WIDTH, 0.84, [4, 3])],
+  slots: [slot(MARGIN_X, 0.01, FULL_WIDTH, 0.94, [4, 3])],
 };
 
 /** Alias for event pages — tall 4:3 band (not ultra-narrow strip) */
 export const TEMPLATE_ONE_HORIZONTAL: PhotoLayoutTemplate = {
   variantId: 'one_horizontal',
-  slots: [slot(MARGIN_X, 0.03, FULL_WIDTH, 0.92, [4, 3])],
+  slots: [slot(MARGIN_X, 0.01, FULL_WIDTH, 0.94, [4, 3])],
 };
 
 /** 2 horizontal strips stacked */
@@ -183,15 +186,15 @@ export const TEMPLATE_FOUR_VERTICAL: PhotoLayoutTemplate = {
 /** Structured page: single horizontal strip at top */
 export const TEMPLATE_STRUCTURED_ONE: PhotoLayoutTemplate = {
   variantId: 'one_horizontal',
-  slots: [slot(0.05, 0.1, 0.9, 0.8, [4, 3])],
+  slots: [slot(0.04, 0.06, 0.92, 0.86, [4, 3])],
 };
 
 /** Structured page: two vertical side by side */
 export const TEMPLATE_STRUCTURED_TWO_VERTICAL: PhotoLayoutTemplate = {
   variantId: 'two_vertical',
   slots: [
-    slot(0.05, 0.1, 0.42, 0.8, [3, 4]),
-    slot(0.53, 0.1, 0.42, 0.8, [3, 4]),
+    slot(0.03, 0.06, 0.45, 0.86, [3, 4]),
+    slot(0.52, 0.06, 0.45, 0.86, [3, 4]),
   ],
 };
 

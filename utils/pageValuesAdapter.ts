@@ -663,6 +663,28 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     annotations.push(...textResult.annotations);
     zIndex = textResult.zIndex;
 
+    // Fallback: подписи под слотами, если в layout нет textBlocks-кадров или они пустые.
+    if (
+      values.photoCaptions?.some((item) => typeof item === 'string' && item.trim()) &&
+      !textResult.annotations.some((ann) => ann.id.includes('caption'))
+    ) {
+      const slotCaptions = appendPhotoSlotCaptionAnnotations({
+        schema: { ...schema, pageType: 'caption_photo_page' },
+        values,
+        lineGuideId,
+        editorContentRect,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth,
+        sourceHeight,
+        fontSize,
+        textFontFamily,
+        zIndex,
+      });
+      annotations.push(...slotCaptions.annotations);
+      zIndex = slotCaptions.zIndex;
+    }
+
     const freeResult = appendBlankTemplateFreeImageAnnotations({
       schema,
       values,

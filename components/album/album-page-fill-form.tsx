@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
 
 import { PhotoBlockPicker } from '@/components/album/photo-block-picker';
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
+import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 
@@ -28,6 +29,39 @@ type AlbumPageFillFormProps = {
   showPerPhotoCaptions: boolean;
   captionMaxLength?: number;
 };
+
+function CaptionTextInput({
+  value,
+  onChangeText,
+  placeholder,
+  maxLength,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  maxLength?: number;
+}) {
+  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
+
+  return (
+    <View ref={fieldRef} collapsable={false}>
+      <TextInput
+        style={styles.captionInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.placeholder}
+        maxLength={maxLength}
+        returnKeyType="done"
+        returnKeyLabel="OK"
+        enterKeyHint="done"
+        blurOnSubmit
+        onSubmitEditing={() => Keyboard.dismiss()}
+        onFocus={onInputFocus}
+      />
+    </View>
+  );
+}
 
 export function AlbumPageFillForm({
   schema,
@@ -103,12 +137,10 @@ export function AlbumPageFillForm({
                     <AppText variant="caption" style={styles.captionLabel}>
                       Подпись к фото {slotIndex + 1}
                     </AppText>
-                    <TextInput
-                      style={styles.captionInput}
+                    <CaptionTextInput
                       value={photoCaptions[slotIndex] ?? ''}
                       onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                       placeholder="Необязательно"
-                      placeholderTextColor={colors.placeholder}
                     />
                   </AppCard>
                 ))
@@ -125,8 +157,7 @@ export function AlbumPageFillForm({
             Подпись (необязательно)
             {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
-          <TextInput
-            style={styles.captionInput}
+          <CaptionTextInput
             value={caption}
             onChangeText={(text) =>
               onCaptionChange(
@@ -134,7 +165,6 @@ export function AlbumPageFillForm({
               )
             }
             placeholder="Короткая подпись"
-            placeholderTextColor={colors.placeholder}
             maxLength={captionMaxLength}
           />
         </AppCard>

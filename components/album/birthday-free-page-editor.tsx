@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { AppButton, AppCard, AppText } from '@/components/ui';
 import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
@@ -187,6 +187,11 @@ function BirthdayFieldBlock({
             placeholder={def?.defaultLabel ?? 'Название поля'}
             placeholderTextColor={colors.textSecondary}
             maxLength={labelLimit}
+            returnKeyType="done"
+            returnKeyLabel="OK"
+            enterKeyHint="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             onFocus={onInputFocus}
           />
         </>
@@ -213,6 +218,13 @@ function BirthdayFieldBlock({
         placeholderTextColor={colors.textSecondary}
         multiline={field.fieldType === 'long_text'}
         maxLength={valueLimit}
+        returnKeyType={field.fieldType === 'long_text' ? 'default' : 'done'}
+        returnKeyLabel={field.fieldType === 'long_text' ? undefined : 'OK'}
+        enterKeyHint={field.fieldType === 'long_text' ? 'enter' : 'done'}
+        blurOnSubmit={field.fieldType !== 'long_text'}
+        onSubmitEditing={
+          field.fieldType === 'long_text' ? undefined : () => Keyboard.dismiss()
+        }
         accessibilityLabel={displayLabel}
         onFocus={onInputFocus}
       />

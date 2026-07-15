@@ -10,9 +10,11 @@ import React, {
 } from 'react';
 import {
   Keyboard,
+  LayoutAnimation,
   Platform,
   ScrollView,
   StyleSheet,
+  UIManager,
   View,
   useWindowDimensions,
   type NativeScrollEvent,
@@ -29,6 +31,13 @@ import {
   ONBOARDING_CONTENT_MAX_WIDTH,
   useResponsiveLayout,
 } from '@/utils/responsive';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type AppScreenScrollContextValue = {
   scrollToField: (fieldRef: RefObject<View | null>) => void;
@@ -65,18 +74,10 @@ export interface AppScreenProps {
 }
 
 const DEFAULT_KEYBOARD_FOOTER_OFFSET = 72;
-const KEYBOARD_SCROLL_DELAYS_MS =
-  Platform.OS === 'ios' ? [100, 280, 450] : [50, 180, 350, 520, 700];
 
-function scheduleScrollToField(
-  performScroll: (field: View | null) => void,
-  field: View | null,
-) {
-  if (!field) return;
-  for (const delayMs of KEYBOARD_SCROLL_DELAYS_MS) {
-    setTimeout(() => performScroll(field), delayMs);
-  }
-}
+/** Короткий «дожим» после появления клавиатуры — без серии рывков. */
+const KEYBOARD_SCROLL_DELAYS_MS =
+  Platform.OS === 'ios' ? [80, 280] : [100, 280];
 
 export function AppScreen({
   children,
@@ -100,32 +101,63 @@ export function AppScreen({
   const scrollOffsetRef = useRef(0);
   const keyboardHeightRef = useRef(0);
   const pendingFieldRef = useRef<View | null>(null);
+  const scrollTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [keyboardInset, setKeyboardInset] = useState(0);
 
-  const performScrollToField = useCallback((field: View | null) => {
-    if (!field || !scrollRef.current) return;
-    const keyboardHeight = keyboardHeightRef.current;
-    if (keyboardHeight <= 0) return;
+  const clearScrollTimeouts = useCallback(() => {
+    for (const timeoutId of scrollTimeoutsRef.current) {
+      clearTimeout(timeoutId);
+    }
+    scrollTimeoutsRef.current = [];
+  }, []);
 
-    field.measureInWindow((_x, y, _width, height) => {
-      const visibleBottom =
-        windowHeight - keyboardHeight - keyboardFooterOffset - spacing.md;
-      const fieldBottom = y + height;
+  const performScrollToField = useCallback(
+    (field: View | null) => {
+      if (!field || !scrollRef.current) return;
+      const keyboardHeight = keyboardHeightRef.current;
+      if (keyboardHeight <= 0) return;
 
-      if (fieldBottom <= visibleBottom) return;
+      field.measureInWindow((_x, y, _width, height) => {
+        // Клавиатура оверлеем (iOS и Android edge-to-edge / pan) — вычитаем её высоту.
+        // Небольшой зазор, как на iOS, чтобы поле и тулбар не прилипали к клавиатуре.
+        const comfortGap = spacing.lg;
+        const visibleBottom =
+          windowHeight - keyboardHeight - keyboardFooterOffset - comfortGap;
+        const fieldBottom = y + height;
 
-      const delta = fieldBottom - visibleBottom + spacing.md;
-      scrollRef.current?.scrollTo({
-        y: scrollOffsetRef.current + delta,
-        animated: true,
+        if (fieldBottom <= visibleBottom) return;
+
+        const delta = fieldBottom - visibleBottom + spacing.sm;
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, scrollOffsetRef.current + delta),
+          animated: true,
+        });
       });
-    });
-  }, [keyboardFooterOffset, windowHeight]);
+    },
+    [keyboardFooterOffset, windowHeight],
+  );
 
-  const scrollToField = useCallback((fieldRef: RefObject<View | null>) => {
-    pendingFieldRef.current = fieldRef.current;
-    scheduleScrollToField(performScrollToField, fieldRef.current);
-  }, [performScrollToField]);
+  const scheduleScrollToField = useCallback(
+    (field: View | null) => {
+      if (!field) return;
+      clearScrollTimeouts();
+      for (const delayMs of KEYBOARD_SCROLL_DELAYS_MS) {
+        const timeoutId = setTimeout(() => {
+          performScrollToField(field);
+        }, delayMs);
+        scrollTimeoutsRef.current.push(timeoutId);
+      }
+    },
+    [clearScrollTimeouts, performScrollToField],
+  );
+
+  const scrollToField = useCallback(
+    (fieldRef: RefObject<View | null>) => {
+      pendingFieldRef.current = fieldRef.current;
+      scheduleScrollToField(fieldRef.current);
+    },
+    [scheduleScrollToField],
+  );
 
   useEffect(() => {
     if (!isKeyboardAware) return;
@@ -136,13 +168,24 @@ export function AppScreen({
     const showSub = Keyboard.addListener(showEvent, (event) => {
       const height = event.endCoordinates.height;
       keyboardHeightRef.current = height;
+      try {
+        Keyboard.scheduleLayoutAnimation(event);
+      } catch {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       setKeyboardInset(height);
       if (pendingFieldRef.current) {
-        scheduleScrollToField(performScrollToField, pendingFieldRef.current);
+        scheduleScrollToField(pendingFieldRef.current);
       }
     });
-    const hideSub = Keyboard.addListener(hideEvent, () => {
+    const hideSub = Keyboard.addListener(hideEvent, (event) => {
       keyboardHeightRef.current = 0;
+      clearScrollTimeouts();
+      try {
+        Keyboard.scheduleLayoutAnimation(event);
+      } catch {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       setKeyboardInset(0);
       pendingFieldRef.current = null;
     });
@@ -150,13 +193,14 @@ export function AppScreen({
     return () => {
       showSub.remove();
       hideSub.remove();
+      clearScrollTimeouts();
     };
-  }, [isKeyboardAware, performScrollToField]);
+  }, [clearScrollTimeouts, isKeyboardAware, scheduleScrollToField]);
 
   useEffect(() => {
     if (!isKeyboardAware || keyboardInset <= 0 || !pendingFieldRef.current) return;
-    scheduleScrollToField(performScrollToField, pendingFieldRef.current);
-  }, [isKeyboardAware, keyboardInset, performScrollToField]);
+    scheduleScrollToField(pendingFieldRef.current);
+  }, [isKeyboardAware, keyboardInset, scheduleScrollToField]);
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
@@ -202,7 +246,7 @@ export function AppScreen({
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         automaticallyAdjustKeyboardInsets={isKeyboardAware && Platform.OS === 'ios'}
         onScroll={isKeyboardAware ? handleScroll : undefined}
         scrollEventThrottle={16}

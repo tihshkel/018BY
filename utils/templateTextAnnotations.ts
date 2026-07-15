@@ -4,11 +4,15 @@ import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import type { ContentRect } from '@/utils/imageContentRect';
 import {
+  computePhotoBlockLayout,
+  resolvePhotoBlockSlotRects,
+} from '@/utils/photoBlockLayout';
+import {
   getPageFormatForLineGuide,
   getTemplateLayout,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
-import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
+import { isNonDefaultPhotoSlotTransform } from '@/utils/photoSlotTransform';
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
   estimateTemplateFontSize,
@@ -223,10 +227,11 @@ function layoutCaptionBelowPhoto(params: {
   const trimmed = text.trim();
   if (!trimmed || photoRect.width <= 0) return null;
 
-  const gap = contentRect.height * 0.012;
+  const gap = contentRect.height * 0.016;
   const captionY = photoRect.y + photoRect.height + gap;
-  const pageBottom = contentRect.offsetY + contentRect.height * 0.93;
-  const maxHeight = Math.max(28, pageBottom - captionY);
+  // Оставляем нижний край страницы под подписью; не залезаем на декор.
+  const pageBottom = contentRect.offsetY + contentRect.height * 0.94;
+  const maxHeight = Math.max(32, pageBottom - captionY);
   const charWidthRatio =
     0.62 * getAlbumFontCharWidthMultiplier(textFontFamily) * 1.04;
   const preferredFontSize = Math.max(fontSize, 18);
@@ -302,22 +307,31 @@ export function appendPhotoSlotCaptionAnnotations(params: PhotoSlotCaptionParams
       block.variants[0];
     if (!variant) continue;
 
+    const blockLayout = computePhotoBlockLayout({
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      variantId: variant.variantId,
+      slotUris: blockValues.slots,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      contentRect: editorContentRect,
+      templateLibraryId: schema.templateLibraryId,
+    });
+    if (!blockLayout) continue;
+
+    const groupTransform = isNonDefaultPhotoSlotTransform(values.photoGroupTransform)
+      ? values.photoGroupTransform
+      : null;
+    const slotRects = resolvePhotoBlockSlotRects(blockLayout, groupTransform);
+
     for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
       const text = values.photoCaptions[slotIndex];
       if (!hasText(text)) continue;
 
-      const photoRect = getPhotoSlotViewportRect({
-        lineGuideId,
-        page: schema.sourcePageNumber,
-        variantId: variant.variantId,
-        slotIndex,
-        viewportWidth,
-        viewportHeight,
-        sourceWidth,
-        sourceHeight,
-        contentRect: editorContentRect,
-        templateLibraryId: schema.templateLibraryId,
-      });
+      const photoRect =
+        slotRects.find((slot) => slot.slotIndex === slotIndex)?.rect ?? null;
       if (!photoRect) continue;
 
       const layout = layoutCaptionBelowPhoto({

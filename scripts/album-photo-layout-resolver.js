@@ -23,10 +23,10 @@ const COLLAGE_TEMPLATE_SETS = {
   default: ['one_large', 'two_vertical', 'four_grid'],
 };
 
-const EVENT_PHOTO_SAFE = { x: 0.08, y: 0.2, width: 0.84, height: 0.6 };
-const PREGNANCY_PHOTO_SAFE = { x: 0.11, y: 0.26, width: 0.78, height: 0.5 };
-const PREGNANCY_MEMORY_PHOTO_SAFE = { x: 0.08, y: 0.14, width: 0.84, height: 0.52 };
-const BLANK_PAGE_PHOTO_SAFE = { x: 0.1, y: 0.15, width: 0.8, height: 0.7 };
+const EVENT_PHOTO_SAFE = { x: 0.04, y: 0.06, width: 0.92, height: 0.82 };
+const PREGNANCY_PHOTO_SAFE = { x: 0.05, y: 0.14, width: 0.9, height: 0.76 };
+const PREGNANCY_MEMORY_PHOTO_SAFE = { x: 0.04, y: 0.08, width: 0.92, height: 0.72 };
+const BLANK_PAGE_PHOTO_SAFE = { x: 0.05, y: 0.05, width: 0.9, height: 0.84 };
 
 const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);
@@ -40,40 +40,40 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
     sparseMaxLineSlots: 4,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
     excludePages: KIDS_EXCLUDE,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   pregnancy_60: {
     eventSafe: PREGNANCY_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   pregnancy_a5: {
     eventSafe: PREGNANCY_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   holidays_birthday_60: {
     eventSafe: EVENT_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
     excludePages: BIRTHDAY_EXCLUDE_PAGES,
   },
   diary_interior_brown: {
@@ -81,50 +81,50 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   diary_interior_purple: {
     eventSafe: EVENT_PHOTO_SAFE,
     gapMm: 3,
     pageSizeMm: 148,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   family_blank: {
     eventSafe: BLANK_PAGE_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   holidays_blank: {
     eventSafe: BLANK_PAGE_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
   family_blank_21x21: {
     eventSafe: BLANK_PAGE_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
-    stackedTwoMinBandHeight: 0.54,
-    minFullWidthBandHeight: 0.35,
-    minPhotoSafeHeight: 0.12,
+    photoBandMaxBottom: 0.94,
+    stackedTwoMinBandHeight: 0.6,
+    minFullWidthBandHeight: 0.3,
+    minPhotoSafeHeight: 0.14,
   },
 };
 
@@ -161,9 +161,9 @@ const BIRTHDAY_HELLO_PHOTO_LAYOUT = {
   ],
 };
 
-const MARGIN_X = 0.04;
-const MARGIN_Y = 0.04;
-const GAP = 0.03;
+const MARGIN_X = 0.02;
+const MARGIN_Y = 0.03;
+const GAP = 0.024;
 const FULL_WIDTH = 1 - MARGIN_X * 2;
 const COL_WIDTH = (FULL_WIDTH - GAP) / 2;
 const COL_X_LEFT = MARGIN_X;
@@ -218,11 +218,11 @@ function slot(x, y, width, height, aspectRatio) {
 const PHOTO_LAYOUT_TEMPLATES = {
   one_large: {
     variantId: 'one_large',
-    slots: [slot(MARGIN_X, 0.08, FULL_WIDTH, 0.84, [4, 3])],
+    slots: [slot(MARGIN_X, 0.02, FULL_WIDTH, 0.9, [4, 3])],
   },
   one_horizontal: {
     variantId: 'one_horizontal',
-    slots: [slot(MARGIN_X, 0.03, FULL_WIDTH, 0.92, [4, 3])],
+    slots: [slot(MARGIN_X, 0.02, FULL_WIDTH, 0.9, [4, 3])],
   },
   two_photos: {
     variantId: 'two_photos',
@@ -462,26 +462,35 @@ function getMinLineTextTop(lineGuideId, page) {
 
 function buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config) {
   const photoTextGap = gapNorm(config);
-  const minTop = getMaxLineTextBottom(lineGuideId, page) + photoTextGap;
+  const textBottom = getMaxLineTextBottom(lineGuideId, page);
   const slotZone = slotToSafeZone(primarySlot);
-  const top = Math.max(minTop, slotZone.y);
   const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
-  const bottom = Math.min(
-    bandMaxBottom,
-    Math.max(slotZone.y + slotZone.height, top + (config.minPhotoSafeHeight ?? 0.12)),
-  );
-  const height = bottom - top;
+  const wideX = config.eventSafe.x;
+  const wideW = config.eventSafe.width;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
+
+  const top =
+    textBottom > 0
+      ? Math.min(slotZone.y, Math.max(config.eventSafe.y, textBottom + photoTextGap))
+      : Math.min(slotZone.y, config.eventSafe.y + 0.08);
+  const bottom = Math.max(slotZone.y + slotZone.height, bandMaxBottom);
+  const height = bottom - top;
+
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, slotZone, config);
+    return constrainPhotoSafeZone(
+      lineGuideId,
+      page,
+      { x: wideX, y: slotZone.y, width: wideW, height: slotZone.height },
+      config,
+    );
   }
 
-  return constrainPhotoSafeZone(
-    lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: top, width: config.eventSafe.width, height },
-    config,
-  );
+  return {
+    x: wideX,
+    y: top,
+    width: wideW,
+    height,
+  };
 }
 
 function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
@@ -706,12 +715,12 @@ function resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot) {
   safeZone = expandPhotoBandDownToLowerText(lineGuideId, page, safeZone, config);
   safeZone = applyFullWidthIfSparse(lineGuideId, page, safeZone, config);
 
-  if (config.sideBySideTwoPhotoPages?.has(page)) {
-    return safeZone;
-  }
-
   if (isBottomAnchoredPhotoSlot(primarySlot)) {
     return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
+  }
+
+  if (config.sideBySideTwoPhotoPages?.has(page)) {
+    return safeZone;
   }
 
   const stackedMin = config.stackedTwoMinBandHeight ?? 0.54;
@@ -743,13 +752,22 @@ function getCollageTemplateSet(lineGuideId) {
   return EVENT_PHOTO_TEMPLATES;
 }
 
-function buildStandardDesignedAlbumLayouts(layouts) {
+function buildStandardDesignedAlbumLayouts(layouts, lineGuideId, page) {
   const primarySlot = layouts.variants[0]?.slots[0];
   if (!primarySlot || primarySlot.height < 0.12 || primarySlot.width < 0.25) {
     return null;
   }
 
-  const safeZone = slotToSafeZone(primarySlot);
+  let safeZone = slotToSafeZone(primarySlot);
+  if (
+    lineGuideId &&
+    page !== undefined &&
+    hasSparsePhotoConfig(lineGuideId) &&
+    !shouldSkipSparsePhotoExpansion(lineGuideId, page)
+  ) {
+    safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
+  }
+
   const expanded = buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS]);
   if (expanded.variants.length === 0) return null;
   const feasible = filterFeasiblePhotoLayouts(expanded);
@@ -787,7 +805,7 @@ function applyTwoPhotoLayouts(lineGuideId, page, safeZone, layouts) {
 function expandDesignedAlbumCollageVariants(lineGuideId, page, layouts) {
   if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) return null;
 
-  const standard = buildStandardDesignedAlbumLayouts(layouts);
+  const standard = buildStandardDesignedAlbumLayouts(layouts, lineGuideId, page);
   if (standard) {
     return { ...standard, source: 'pdf_standard' };
   }
@@ -859,7 +877,7 @@ function resolveKidsPhotoPageLayouts(page, pdfAlbum, circlePageRaw) {
   const lineGuideId = 'kids_48';
 
   if (pdf && !shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
-    const standard = buildStandardDesignedAlbumLayouts(pdf);
+    const standard = buildStandardDesignedAlbumLayouts(pdf, lineGuideId, page);
     if (standard) return { ...standard, source: 'pdf_standard' };
     const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
     if (expanded) return expanded;
@@ -907,7 +925,7 @@ function resolveDesignedAlbumLayouts(lineGuideId, page, pdf, manual) {
   }
 
   if (pdf?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
-    const standard = buildStandardDesignedAlbumLayouts(pdf);
+    const standard = buildStandardDesignedAlbumLayouts(pdf, lineGuideId, page);
     if (standard) return { ...standard, source: 'pdf_standard' };
     return { ...expandCollageVariants(pdf, lineGuideId, page), source: 'pdf' };
   }

@@ -11,19 +11,19 @@ export type CollageSlotFrame = {
 };
 
 const FALLBACK_ONE: CollageSlotFrame[] = [
-  { slotIndex: 0, leftPercent: 4, topPercent: 8, widthPercent: 92, heightPercent: 84 },
+  { slotIndex: 0, leftPercent: 1, topPercent: 1, widthPercent: 98, heightPercent: 94 },
 ];
 
 const FALLBACK_TWO: CollageSlotFrame[] = [
-  { slotIndex: 0, leftPercent: 4, topPercent: 4, widthPercent: 92, heightPercent: 44 },
-  { slotIndex: 1, leftPercent: 4, topPercent: 52, widthPercent: 92, heightPercent: 44 },
+  { slotIndex: 0, leftPercent: 1, topPercent: 2, widthPercent: 98, heightPercent: 47 },
+  { slotIndex: 1, leftPercent: 1, topPercent: 51, widthPercent: 98, heightPercent: 47 },
 ];
 
 const FALLBACK_FOUR: CollageSlotFrame[] = [
-  { slotIndex: 0, leftPercent: 2, topPercent: 2, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 1, leftPercent: 52, topPercent: 2, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 2, leftPercent: 2, topPercent: 52, widthPercent: 46, heightPercent: 46 },
-  { slotIndex: 3, leftPercent: 52, topPercent: 52, widthPercent: 46, heightPercent: 46 },
+  { slotIndex: 0, leftPercent: 1, topPercent: 1, widthPercent: 48, heightPercent: 48 },
+  { slotIndex: 1, leftPercent: 51, topPercent: 1, widthPercent: 48, heightPercent: 48 },
+  { slotIndex: 2, leftPercent: 1, topPercent: 51, widthPercent: 48, heightPercent: 48 },
+  { slotIndex: 3, leftPercent: 51, topPercent: 51, widthPercent: 48, heightPercent: 48 },
 ];
 
 function resolveTemplateId(variantId: string): string {

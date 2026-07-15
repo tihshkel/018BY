@@ -210,8 +210,7 @@ export function buildSchemaFromTemplate(params: {
     templateLibraryId: resolvedId,
     captionEnabled: Boolean(
       layout?.perPhotoCaptions ||
-        (layout?.textBlocks?.filter((b) => b.type === 'caption').length === 1 &&
-          !layout?.perPhotoCaptions),
+        layout?.textBlocks?.some((block) => block.type === 'caption'),
     ),
     captionMaxLength,
     fields: fields.length ? fields : undefined,

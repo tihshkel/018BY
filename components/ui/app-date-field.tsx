@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import {
   AppDatePickerSheet,
@@ -145,6 +145,11 @@ export function AppDateField({
             keyboardType={getFieldKeyboardType('date')}
             maxLength={characterLimit ?? getFieldMaxLength('date')}
             inputMode="numeric"
+            returnKeyType="done"
+            returnKeyLabel="OK"
+            enterKeyHint="done"
+            blurOnSubmit
+            onSubmitEditing={() => Keyboard.dismiss()}
             accessibilityLabel={accessibilityLabel ?? label}
             onFocus={onInputFocus}
           />

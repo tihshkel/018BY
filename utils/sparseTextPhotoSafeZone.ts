@@ -142,7 +142,7 @@ function buildUpperBandPhotoSafeZone(
   );
 }
 
-/** Полоса фото под текстом анкеты — привязка к рамке «Место для фото» из PDF. */
+/** Полоса фото под текстом анкеты — ширина eventSafe (~80% страницы), низ до bandMaxBottom. */
 function buildBottomAnchoredPhotoSafeZone(
   lineGuideId: string,
   page: number,
@@ -150,31 +150,35 @@ function buildBottomAnchoredPhotoSafeZone(
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
   const photoTextGap = gapNorm(config);
-  const minTop = getMaxLineTextBottom(lineGuideId, page) + photoTextGap;
+  const textBottom = getMaxLineTextBottom(lineGuideId, page);
   const slotZone = slotToSafeZone(primarySlot);
-
-  // Текст не заходит в PDF-рамку — используем координаты рамки как есть.
-  if (minTop <= slotZone.y + 0.005) {
-    return slotZone;
-  }
-
   const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
-  const bottom = Math.min(
-    bandMaxBottom,
-    slotZone.y + slotZone.height,
-  );
-  const top = Math.max(minTop, slotZone.y);
-  const height = bottom - top;
+  const wideX = config.eventSafe.x;
+  const wideW = config.eventSafe.width;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
+  // Поднимаем верх к тексту анкеты (не к узкой PDF-рамке), чтобы 4:3 могло занять ~80% ширины.
+  // Декоративные подписи на PDF («Совместное фото») остаются под фото по z-order маски.
+  const top =
+    textBottom > 0
+      ? Math.min(slotZone.y, Math.max(config.eventSafe.y, textBottom + photoTextGap))
+      : Math.min(slotZone.y, config.eventSafe.y + 0.08);
+  const bottom = Math.max(slotZone.y + slotZone.height, bandMaxBottom);
+  const height = bottom - top;
+
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, slotZone, config);
+    return constrainPhotoSafeZone(
+      lineGuideId,
+      page,
+      { x: wideX, y: slotZone.y, width: wideW, height: slotZone.height },
+      config,
+    );
   }
 
   return {
-    x: slotZone.x,
+    x: wideX,
     y: top,
-    width: slotZone.width,
+    width: wideW,
     height,
   };
 }
@@ -236,7 +240,12 @@ function expandVerticalPhotoBand(
 
   if (height <= safeZone.height + 0.02) return safeZone;
 
-  return { x: safeZone.x, y: minTop, width: safeZone.width, height };
+  return {
+    x: config.eventSafe.x,
+    y: minTop,
+    width: config.eventSafe.width,
+    height,
+  };
 }
 
 /** Текст внизу страницы — расширяем фото-полосу вниз до зазора 4 мм (p3 «Мы ждём тебя» и др.). */
@@ -398,12 +407,14 @@ export function resolveSparsePhotoSafeZone(
   safeZone = expandPhotoBandDownToLowerText(lineGuideId, page, safeZone, config);
   safeZone = applyFullWidthIfSparse(lineGuideId, page, safeZone, config);
 
-  if (config.sideBySideTwoPhotoPages?.has(page)) {
-    return safeZone;
-  }
-
+  // Нижняя PDF-рамка: сначала расширяем полосу (ширина + низ), иначе side-by-side
+  // early-return оставляет слишком низкую полосу и 4:3 снова сжимает ширину.
   if (isBottomAnchoredPhotoSlot(primarySlot)) {
     return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
+  }
+
+  if (config.sideBySideTwoPhotoPages?.has(page)) {
+    return safeZone;
   }
 
   const stackedMin = config.stackedTwoMinBandHeight ?? 0.54;
@@ -435,17 +446,30 @@ export function getCollageTemplateSet(lineGuideId: string): readonly string[] {
   return EVENT_PHOTO_TEMPLATES;
 }
 
-/** 4 standard variants scaled to PDF «Место для фото» bbox (no sparse expansion). */
+/**
+ * Стандартные варианты коллажа в расширенной safe zone (~80% ширины для одного фото),
+ * а не в узкой PDF-рамке «Место для фото».
+ */
 export function buildStandardDesignedAlbumLayouts(
   layouts: PhotoPageLayouts,
   lineGuideId?: string,
+  page?: number,
 ): PhotoPageLayouts | undefined {
   const primarySlot = layouts.variants[0]?.slots[0];
   if (!primarySlot || primarySlot.height < 0.12 || primarySlot.width < 0.25) {
     return undefined;
   }
 
-  const safeZone = slotToSafeZone(primarySlot);
+  let safeZone = slotToSafeZone(primarySlot);
+  if (
+    lineGuideId &&
+    page !== undefined &&
+    hasSparsePhotoConfig(lineGuideId) &&
+    !shouldSkipSparsePhotoExpansion(lineGuideId, page)
+  ) {
+    safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot);
+  }
+
   const pageAspect = getPageAspectRatio(lineGuideId);
   const expanded = buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS], pageAspect);
   if (expanded.variants.length === 0) return undefined;
@@ -494,7 +518,7 @@ export function expandDesignedAlbumCollageVariants(
 ): PhotoPageLayouts | undefined {
   if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) return undefined;
 
-  const standard = buildStandardDesignedAlbumLayouts(layouts, lineGuideId);
+  const standard = buildStandardDesignedAlbumLayouts(layouts, lineGuideId, page);
   if (standard) return standard;
 
   const primarySlot = layouts.variants[0]?.slots[0];
@@ -592,7 +616,7 @@ export function resolveKidsPhotoPageLayouts(
 
   if (pdf?.variants?.length && !shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
     const standard =
-      buildStandardDesignedAlbumLayouts(pdf, lineGuideId) ??
+      buildStandardDesignedAlbumLayouts(pdf, lineGuideId, page) ??
       expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
     if (standard) return filterFeasiblePhotoLayouts(standard);
   }
