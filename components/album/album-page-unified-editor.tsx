@@ -17,6 +17,7 @@ import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
 
@@ -25,6 +26,7 @@ type AlbumPageUnifiedEditorProps = {
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
+  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -53,6 +55,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   pageValues,
   lineGuideId,
   onFieldChange,
+  onFieldTextAlignChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -137,6 +140,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
+    textAligns: pageValues.fieldTextAlign,
+    onTextAlignChange: onFieldTextAlignChange,
     lineGuideId,
     sourcePageNumber: resolvedSchema.sourcePageNumber,
   };
@@ -149,6 +154,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           pageValues={pageValues}
           lineGuideId={lineGuideId}
           onFieldChange={onFieldChange}
+          onFieldTextAlignChange={onFieldTextAlignChange}
           onPickPhoto={(slotIndex) => {
             if (!primaryBlock) return;
             onPickPhoto(primaryBlock.blockId, slotIndex);

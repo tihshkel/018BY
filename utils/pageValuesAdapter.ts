@@ -24,6 +24,7 @@ import {
   DIARY_BROWN_JEWELRY_START,
 } from '@/utils/diaryJewelryTextPack';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
+import { resolveFieldTextAlign } from '@/utils/albumFieldTextAlign';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -259,12 +260,13 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       type: 'text',
       page: schema.sourcePageNumber,
       content: displayText,
-      fontSize: fieldFontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
+      fontSize: layout.fontSize ?? fieldFontSize,
+      textAlign: resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
       templateLineStart: startIndex,
       templateLineCount: lineCount,
     });

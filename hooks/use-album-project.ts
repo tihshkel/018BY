@@ -340,16 +340,11 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     const pid = effectiveProjectId;
     return () => {
       if (pid) {
-        void (async () => {
-          await flushAlbumProjectPersist(pid);
-          const latest = latestStateRef.current;
-          await persistAll(pid, latest.images, latest.instances, latest.pageValuesMap, metaRef.current, {
-            flushFullMap: true,
-          });
-        })();
+        // Только сброс debounced-очереди — без повторного full dump всего map (лаги при уходе с экрана)
+        void flushAlbumProjectPersist(pid);
       }
     };
-  }, [effectiveProjectId, persistAll]);
+  }, [effectiveProjectId]);
 
   const updatePageValues = useCallback(
     (instanceId: string, updater: (prev: PageValues) => PageValues) => {
@@ -383,9 +378,11 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       setPageValuesMap(merged);
       publishSnapshot(merged, instances, images);
       if (effectiveProjectId) {
+        // Инкрементально: только эта страница — full map stringify блокировал JS на 60 стр. с фото
         await flushAlbumProjectPersist(effectiveProjectId);
         await persistAll(effectiveProjectId, images, instances, merged, metaRef.current, {
-          flushFullMap: true,
+          changedInstanceId: instanceId,
+          flushFullMap: false,
         });
       }
       return refreshed;
@@ -659,6 +656,16 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             setPageValuesMap(memorySnapshot.pageValuesMap);
             setImages(memorySnapshot.images);
             setIsLoading(false);
+            // Meta подтянем лёгким запросом; тяжёлый parse/sanitize map пропускаем — snapshot уже актуален
+            void AsyncStorage.getItem(`@project_${projectId}`).then((projectRaw) => {
+              if (cancelled || !projectRaw) return;
+              try {
+                setMeta(JSON.parse(projectRaw) as AlbumProjectMeta);
+              } catch {
+                // ignore corrupt meta
+              }
+            });
+            return;
           }
 
           await migrateProjectToPageValues(projectId);

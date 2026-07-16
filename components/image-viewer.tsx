@@ -1,4 +1,5 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { DEFAULT_ALBUM_TEXT_FONT_ID } from '@/constants/album-fonts';
 import type { EditorTool } from '@/constants/album-text-margins';
 import {
   usesFreeFormTextEditing,
@@ -428,9 +429,9 @@ export default function ImageViewer({
       savedFont ??
       defaultTextStyle?.fontFamily ??
       lastTextStyle?.fontFamily ??
-      (isPregnancyFirstPage ? 'Nefelibata-PenSans' : 'default');
+      (isPregnancyFirstPage ? 'Nefelibata-PenSans' : DEFAULT_ALBUM_TEXT_FONT_ID);
 
-    return { color, fontSize, fontFamily: fontFamily || 'default' };
+    return { color, fontSize, fontFamily: fontFamily || DEFAULT_ALBUM_TEXT_FONT_ID };
   };
 
   const startAnnotationEditing = (annotationId: string) => {

@@ -19,8 +19,7 @@ import { getRemindersStorageKey } from '@/utils/account-sync';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { getAlbumImages } from '@/utils/albumImages';
-import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { getAllDiaryCovers } from '@/utils/diaryAlbumsLoader';
 import {
   getGridColumnCount,
   getGridColumnWrapperStyle,
@@ -287,7 +286,7 @@ export default function ProjectTemplatesScreen() {
     return [];
   }, [categoryId]);
 
-  // МАКСИМАЛЬНАЯ предзагрузка всех изображений для выбранной категории
+  // Предзагрузка только видимых обложек (без 100 внутренних страниц дневников — это лагало Android)
   useFocusEffect(
     React.useCallback(() => {
       const preloadCategoryImages = async () => {
@@ -297,79 +296,22 @@ export default function ProjectTemplatesScreen() {
 
         try {
           let imagesToPreload: any[] = [];
-          let interiorPagesToPreload: Promise<any>[] = [];
 
-          // Для беременности и kids загружаем изображения альбомов
           if (categoryId === 'pregnancy' && pregnancyAlbums.length > 0) {
             imagesToPreload = pregnancyAlbums
               .filter(album => album.thumbnailPath)
               .map(album => album.thumbnailPath!);
-            
-            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы беременности
-            Promise.resolve().then(async () => {
-              try {
-                const pregnancyImages = getAlbumImages('pregnancy_60');
-                if (pregnancyImages.length > 0) {
-                  await Promise.all(
-                    pregnancyImages.map(async (imageModule) => {
-                      try {
-                        const asset = Asset.fromModule(imageModule);
-                        await asset.downloadAsync();
-                      } catch (err) {
-                        // Игнорируем ошибки
-                      }
-                    })
-                  );
-                  console.log(`✅ Предзагружено ${pregnancyImages.length} внутренних страниц беременности`);
-                }
-              } catch (err) {
-                // Игнорируем ошибки фоновой загрузки
-              }
-            });
           } else if (categoryId === 'kids' && kidsAlbums.length > 0) {
             imagesToPreload = kidsAlbums
               .filter(album => album.thumbnailPath)
               .map(album => album.thumbnailPath!);
-            
-            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы kids
-            Promise.resolve().then(async () => {
-              try {
-                const kidsImages = getAlbumImages('kids_48');
-                if (kidsImages.length > 0) {
-                  await Promise.all(
-                    kidsImages.map(async (imageModule) => {
-                      try {
-                        const asset = Asset.fromModule(imageModule);
-                        await asset.downloadAsync();
-                      } catch (err) {
-                        // Игнорируем ошибки
-                      }
-                    })
-                  );
-                  console.log(`✅ Предзагружено ${kidsImages.length} внутренних страниц kids`);
-                }
-              } catch (err) {
-                // Игнорируем ошибки фоновой загрузки
-              }
-            });
           } else if (categoryId === 'diary' && diaryCovers.length > 0) {
+            // Только первые обложки в viewport — не весь список и не interiors
             imagesToPreload = diaryCovers
               .filter(cover => cover.image)
+              .slice(0, 8)
               .map(cover => cover.image!);
-            
-            // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы дневников (оба варианта)
-            Promise.resolve().then(async () => {
-              try {
-                const brownUris = await getDiaryInteriorImageUris('diary_interior_brown');
-                const purpleUris = await getDiaryInteriorImageUris('diary_interior_purple');
-                const totalPages = (brownUris?.length || 0) + (purpleUris?.length || 0);
-                console.log(`✅ Предзагружено ${totalPages} внутренних страниц дневников (коричневый: ${brownUris?.length || 0}, фиолетовый: ${purpleUris?.length || 0})`);
-              } catch (err) {
-                // Игнорируем ошибки фоновой загрузки
-              }
-            });
           } else if (categoryProducts.length > 0) {
-            // Для других категорий загружаем изображения продуктов
             imagesToPreload = categoryProducts
               .filter(product => product.coverImage)
               .map(product => product.coverImage!);
@@ -379,14 +321,12 @@ export default function ProjectTemplatesScreen() {
             return;
           }
 
-          // Предзагружаем все обложки параллельно (и строки, и require модули)
           await Promise.all(
             imagesToPreload.map(async (imageSource) => {
               try {
                 if (typeof imageSource === 'string') {
                   await Image.prefetch(imageSource);
                 } else {
-                  // Для require() модулей используем Asset API
                   const asset = Asset.fromModule(imageSource);
                   await asset.downloadAsync();
                 }
@@ -395,8 +335,6 @@ export default function ProjectTemplatesScreen() {
               }
             })
           );
-
-          console.log(`✅ Все обложки категории "${categoryId}" предзагружены (${imagesToPreload.length} шт.)`);
         } catch (error) {
           console.error('❌ Ошибка предзагрузки изображений:', error);
         }
@@ -633,45 +571,6 @@ export default function ProjectTemplatesScreen() {
     []
   );
 
-  const renderCoverPickerList = useCallback(
-    (items: CoverPickerRow[], emptyMessage: string) => {
-      if (items.length === 0) {
-        return (
-          <View style={styles.emptyStateInline}>
-            <Ionicons name="document-outline" size={40} color={colors.tabInactive} />
-            <Text style={styles.emptyStateInlineText}>{emptyMessage}</Text>
-          </View>
-        );
-      }
-      if (layout.isTablet) {
-        return (
-          <FlatList
-            key={`cover-picker-cols-${coverColumnCount}`}
-            data={items}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => renderCoverCard(item, 'tile')}
-            numColumns={coverColumnCount}
-            scrollEnabled={false}
-            style={gridListStyle}
-            columnWrapperStyle={
-              coverColumnCount > 1 ? gridColumnWrapper : undefined
-            }
-          />
-        );
-      }
-      return (
-        <>
-          {items.map((item) => (
-            <React.Fragment key={item.id}>
-              {renderCoverCard(item, 'row')}
-            </React.Fragment>
-          ))}
-        </>
-      );
-    },
-    [layout.isTablet, coverColumnCount, renderCoverCard, gridListStyle, gridColumnWrapper]
-  );
-
   const albumToPickerRow = useCallback(
     (album: AlbumTemplate, index: number): CoverPickerRow => ({
       id: album.id,
@@ -682,6 +581,111 @@ export default function ProjectTemplatesScreen() {
       priorityIndex: index,
     }),
     [handleCoverSelect]
+  );
+
+  const coverPickerRows = useMemo((): CoverPickerRow[] => {
+    if (categoryId === 'pregnancy') {
+      return pregnancyAlbums.map((album, index) => albumToPickerRow(album, index));
+    }
+    if (categoryId === 'kids') {
+      return kidsAlbums.map((album, index) => albumToPickerRow(album, index));
+    }
+    if (categoryId === 'holidays') {
+      return holidayAlbums.map((album, index) => albumToPickerRow(album, index));
+    }
+    if (categoryId === 'family') {
+      return familyAlbums.map((album, index) => albumToPickerRow(album, index));
+    }
+    if (categoryId === 'wedding') {
+      return weddingAlbums.map((album, index) => albumToPickerRow(album, index));
+    }
+    if (categoryId === 'diary') {
+      return diaryCovers.map((cover, index) => ({
+        id: cover.id,
+        name: getCoverSelectTitleBySku(cover.sku, 'diary'),
+        description: 'Личный дневник для записи мыслей и воспоминаний',
+        imageSource: cover.image,
+        onPress: () => handleCoverSelect(cover),
+        priorityIndex: index,
+      }));
+    }
+    return categoryProducts.map((product, index) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      imageSource: product.coverImage,
+      onPress: () => handleProductSelect(product),
+      priorityIndex: index,
+      features:
+        product.hasReminders &&
+        (categoryId === 'pregnancy' || categoryId === 'kids') ? (
+          <View style={styles.productFeatures}>
+            <View style={styles.feature}>
+              <Ionicons
+                name="notifications-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.featureText}>Напоминания</Text>
+            </View>
+          </View>
+        ) : undefined,
+    }));
+  }, [
+    categoryId,
+    pregnancyAlbums,
+    kidsAlbums,
+    holidayAlbums,
+    familyAlbums,
+    weddingAlbums,
+    diaryCovers,
+    categoryProducts,
+    albumToPickerRow,
+    handleCoverSelect,
+    handleProductSelect,
+  ]);
+
+  const coverPickerEmptyMessage =
+    categoryId === 'diary' ? emptyDiaryMessage : emptyAlbumsMessage;
+
+  const coverListSubtitle =
+    categoryId === 'pregnancy' ||
+    categoryId === 'kids' ||
+    categoryId === 'diary' ||
+    categoryId === 'wedding' ||
+    categoryId === 'family' ||
+    categoryId === 'holidays'
+      ? 'Выберите обложку'
+      : 'Выберите готовый вариант альбома';
+
+  const renderCoverPickerList = useCallback(
+    (items: CoverPickerRow[], emptyMessage: string) => {
+      if (items.length === 0) {
+        return (
+          <View style={styles.emptyStateInline}>
+            <Ionicons name="document-outline" size={40} color={colors.tabInactive} />
+            <Text style={styles.emptyStateInlineText}>{emptyMessage}</Text>
+          </View>
+        );
+      }
+      return (
+        <FlatList
+          key={`cover-picker-cols-${coverColumnCount}`}
+          data={items}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) =>
+            renderCoverCard(item, layout.isTablet ? 'tile' : 'row')
+          }
+          numColumns={layout.isTablet ? coverColumnCount : 1}
+          scrollEnabled={false}
+          style={layout.isTablet ? gridListStyle : undefined}
+          columnWrapperStyle={
+            layout.isTablet && coverColumnCount > 1 ? gridColumnWrapper : undefined
+          }
+        />
+      );
+    },
+    [layout.isTablet, coverColumnCount, renderCoverCard, gridListStyle, gridColumnWrapper]
   );
 
   if (!categoryId) {
@@ -720,103 +724,47 @@ export default function ProjectTemplatesScreen() {
           <Text style={styles.headerTitle}>{categoryTitle}</Text>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.scrollContent,
-            sectionWrap,
-            { paddingBottom: bottomInset + 40 },
-          ]}
-        >
-          <Text style={styles.subtitle}>
-            {(categoryId === 'pregnancy' ||
-              categoryId === 'kids' ||
-              categoryId === 'diary' ||
-              categoryId === 'wedding' ||
-              categoryId === 'family' ||
-              categoryId === 'holidays')
-              ? 'Выберите обложку'
-              : 'Выберите готовый вариант альбома'}
-          </Text>
-
-          {/* Для беременности, kids и diary показываем альбомы/обложки */}
-          {categoryId === 'pregnancy'
-            ? renderCoverPickerList(
-                pregnancyAlbums.map((album, index) =>
-                  albumToPickerRow(album, index)
-                ),
-                emptyAlbumsMessage
-              )
-            : categoryId === 'kids'
-              ? renderCoverPickerList(
-                  kidsAlbums.map((album, index) =>
-                    albumToPickerRow(album, index)
-                  ),
-                  emptyAlbumsMessage
-                )
-              : categoryId === 'holidays'
-                ? renderCoverPickerList(
-                    holidayAlbums.map((album, index) =>
-                      albumToPickerRow(album, index)
-                    ),
-                    emptyAlbumsMessage
-                  )
-                : categoryId === 'family'
-                  ? renderCoverPickerList(
-                      familyAlbums.map((album, index) =>
-                        albumToPickerRow(album, index)
-                      ),
-                      emptyAlbumsMessage
-                    )
-                  : categoryId === 'wedding'
-                    ? renderCoverPickerList(
-                        weddingAlbums.map((album, index) =>
-                          albumToPickerRow(album, index)
-                        ),
-                        emptyAlbumsMessage
-                      )
-                    : categoryId === 'diary'
-                    ? renderCoverPickerList(
-                        diaryCovers.map((cover, index) => ({
-                          id: cover.id,
-                          name: getCoverSelectTitleBySku(cover.sku, 'diary'),
-                          description:
-                            'Личный дневник для записи мыслей и воспоминаний',
-                          imageSource: cover.image,
-                          onPress: () => handleCoverSelect(cover),
-                          priorityIndex: index,
-                        })),
-                        emptyDiaryMessage
-                      )
-                    : renderCoverPickerList(
-                        categoryProducts.map((product, index) => ({
-                          id: product.id,
-                          name: product.name,
-                          description: product.description,
-                          imageSource: product.coverImage,
-                          onPress: () => handleProductSelect(product),
-                          priorityIndex: index,
-                          features:
-                            product.hasReminders &&
-                            (categoryId === 'pregnancy' || categoryId === 'kids') ? (
-                              <View style={styles.productFeatures}>
-                                <View style={styles.feature}>
-                                  <Ionicons
-                                    name="notifications-outline"
-                                    size={16}
-                                    color={colors.textSecondary}
-                                  />
-                                  <Text style={styles.featureText}>
-                                    Напоминания
-                                  </Text>
-                                </View>
-                              </View>
-                            ) : undefined,
-                        })),
-                        emptyAlbumsMessage
-                      )}
-        </ScrollView>
+        {!layout.isTablet ? (
+          <FlatList
+            style={styles.scrollView}
+            data={coverPickerRows}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              sectionWrap,
+              { paddingBottom: bottomInset + 40 },
+            ]}
+            ListHeaderComponent={
+              <Text style={styles.subtitle}>{coverListSubtitle}</Text>
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyStateInline}>
+                <Ionicons name="document-outline" size={40} color={colors.tabInactive} />
+                <Text style={styles.emptyStateInlineText}>{coverPickerEmptyMessage}</Text>
+              </View>
+            }
+            renderItem={({ item }) => renderCoverCard(item, 'row')}
+            initialNumToRender={6}
+            maxToRenderPerBatch={4}
+            windowSize={5}
+            removeClippedSubviews={Platform.OS === 'android'}
+            updateCellsBatchingPeriod={50}
+          />
+        ) : (
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              sectionWrap,
+              { paddingBottom: bottomInset + 40 },
+            ]}
+          >
+            <Text style={styles.subtitle}>{coverListSubtitle}</Text>
+            {renderCoverPickerList(coverPickerRows, coverPickerEmptyMessage)}
+          </ScrollView>
+        )}
       </Animated.View>
 
       {showCoverDateModal && categoryId && (categoryId === 'pregnancy' || categoryId === 'kids') && (

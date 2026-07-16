@@ -2,9 +2,9 @@
   "summary": {
     "albumId": "pregnancy_a5",
     "pageCount": 48,
-    "photoPages": 39,
-    "pagesOk": 1,
-    "pagesWarn": 38,
+    "photoPages": 40,
+    "pagesOk": 39,
+    "pagesWarn": 1,
     "pagesFail": 0
   },
   "pages": [
@@ -71,19 +71,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -93,19 +87,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -115,19 +103,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -137,19 +119,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈164×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -159,19 +135,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -181,19 +151,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -203,19 +167,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -225,19 +183,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -247,19 +199,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -283,19 +229,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -305,19 +245,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -327,19 +261,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -349,19 +277,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -371,19 +293,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -393,19 +309,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -415,19 +325,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -437,19 +341,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -459,19 +357,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -481,19 +373,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -503,19 +389,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -525,19 +405,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -547,19 +421,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -569,19 +437,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -605,19 +467,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -627,19 +483,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -649,19 +499,13 @@
       "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -671,19 +515,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -693,19 +531,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -715,19 +547,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -737,19 +563,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -759,19 +579,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -781,19 +595,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -803,19 +611,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -825,19 +627,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -847,19 +643,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -869,19 +659,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
@@ -891,26 +675,20 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 4,
+        "variantCount": 2,
         "layoutSource": "pdf_standard",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈165×78 мм, 77–154 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "PHOTO_TEXT_GAP_SMALL",
-          "detail": "line slot 6 gap 1 mm < 4 mm"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈181×59 мм, 80–139 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Недели беременности"
     },
     {
       "page": 44,
       "title": "Анкета родов",
       "pageType": "structured",
-      "lineSlotCount": 20,
+      "lineSlotCount": 19,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -953,13 +731,15 @@
     {
       "page": 47,
       "title": "Памятные моменты",
-      "pageType": "non_editable",
+      "pageType": "photo",
       "lineSlotCount": 0,
       "photo": {
-        "hasPhoto": false,
-        "variantCount": 0
+        "hasPhoto": true,
+        "variantCount": 4,
+        "layoutSource": "manual_expanded",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "—",
+      "photoDescription": "≈161×151 мм, 24–176 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Завершение"
@@ -975,7 +755,7 @@
         "layoutSource": "manual_expanded",
         "primaryVariant": "one_large"
       },
-      "photoDescription": "≈151×122 мм, 37–159 мм (центр)",
+      "photoDescription": "≈181×126 мм, 28–154 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Завершение"

@@ -15,8 +15,7 @@ import {
   WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
-import { getAlbumImages } from '@/utils/albumImages';
-import { getAllDiaryCovers, getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { getAllDiaryCovers } from '@/utils/diaryAlbumsLoader';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlbumDateSheet, getAlbumCategoryDateBounds } from '@/components/album/album-date-sheet';
@@ -261,13 +260,14 @@ export default function SelectCoverScreen() {
     containerOpacity.value = withTiming(1, { duration: 400 });
   }, []);
 
-  // МАКСИМАЛЬНАЯ предзагрузка всех изображений обложек и внутренних страниц
+  // Предзагрузка только обложек (без 100 внутренних страниц дневников — лаги на Android)
   useFocusEffect(
     React.useCallback(() => {
       const preloadCoverImages = async () => {
         try {
           const imagesToPreload = coverTypes
             .filter(cover => cover.image)
+            .slice(0, celebration === 'diary' ? 8 : coverTypes.length)
             .map(cover => cover.image!);
 
           await Promise.all(
@@ -284,53 +284,6 @@ export default function SelectCoverScreen() {
               }
             })
           );
-
-          console.log(`✅ Предзагружено ${imagesToPreload.length} изображений обложек`);
-          
-          // МАКСИМАЛЬНАЯ загрузка: предзагружаем ВСЕ внутренние страницы для pregnancy, kids и diary
-          Promise.resolve().then(async () => {
-            try {
-              if (celebration === 'pregnancy') {
-                const pregnancyImages = getAlbumImages('pregnancy_60');
-                if (pregnancyImages.length > 0) {
-                  await Promise.all(
-                    pregnancyImages.map(async (imageModule) => {
-                      try {
-                        const asset = Asset.fromModule(imageModule);
-                        await asset.downloadAsync();
-                      } catch (err) {
-                        // Игнорируем ошибки
-                      }
-                    })
-                  );
-                  console.log(`✅ Предзагружено ${pregnancyImages.length} внутренних страниц беременности`);
-                }
-              } else if (celebration === 'kids') {
-                const kidsImages = getAlbumImages('kids_48');
-                if (kidsImages.length > 0) {
-                  await Promise.all(
-                    kidsImages.map(async (imageModule) => {
-                      try {
-                        const asset = Asset.fromModule(imageModule);
-                        await asset.downloadAsync();
-                      } catch (err) {
-                        // Игнорируем ошибки
-                      }
-                    })
-                  );
-                  console.log(`✅ Предзагружено ${kidsImages.length} внутренних страниц kids`);
-                }
-              } else if (celebration === 'diary') {
-                // Предзагружаем оба варианта внутренних страниц дневников
-                const brownUris = await getDiaryInteriorImageUris('diary_interior_brown');
-                const purpleUris = await getDiaryInteriorImageUris('diary_interior_purple');
-                const totalPages = (brownUris?.length || 0) + (purpleUris?.length || 0);
-                console.log(`✅ Предзагружено ${totalPages} внутренних страниц дневников (коричневый: ${brownUris?.length || 0}, фиолетовый: ${purpleUris?.length || 0})`);
-              }
-            } catch (err) {
-              // Игнорируем ошибки фоновой загрузки
-            }
-          });
         } catch (error) {
           // Игнорируем общие ошибки
         }
@@ -339,76 +292,6 @@ export default function SelectCoverScreen() {
       preloadCoverImages();
     }, [coverTypes, celebration])
   );
-
-  // Также предзагружаем при монтировании (дублируем логику для максимальной скорости)
-  React.useEffect(() => {
-    const preloadOnMount = async () => {
-      try {
-        const imagesToPreload = coverTypes
-          .filter(cover => cover.image)
-          .map(cover => cover.image!);
-
-        await Promise.all(
-          imagesToPreload.map(async (imageSource) => {
-            try {
-              if (typeof imageSource === 'string') {
-                await Image.prefetch(imageSource);
-              } else {
-                const asset = Asset.fromModule(imageSource);
-                await asset.downloadAsync();
-              }
-            } catch (err) {
-              // Игнорируем ошибки
-            }
-          })
-        );
-        
-        // МАКСИМАЛЬНАЯ загрузка: предзагружаем внутренние страницы при монтировании
-        Promise.resolve().then(async () => {
-          try {
-            if (celebration === 'pregnancy') {
-              const pregnancyImages = getAlbumImages('pregnancy_60');
-              if (pregnancyImages.length > 0) {
-                await Promise.all(
-                  pregnancyImages.map(async (imageModule) => {
-                    try {
-                      const asset = Asset.fromModule(imageModule);
-                      await asset.downloadAsync();
-                    } catch (err) {
-                      // Игнорируем ошибки
-                    }
-                  })
-                );
-              }
-            } else if (celebration === 'kids') {
-              const kidsImages = getAlbumImages('kids_48');
-              if (kidsImages.length > 0) {
-                await Promise.all(
-                  kidsImages.map(async (imageModule) => {
-                    try {
-                      const asset = Asset.fromModule(imageModule);
-                      await asset.downloadAsync();
-                    } catch (err) {
-                      // Игнорируем ошибки
-                    }
-                  })
-                );
-              }
-            } else if (celebration === 'diary') {
-              await getDiaryInteriorImageUris('diary_interior_brown');
-              await getDiaryInteriorImageUris('diary_interior_purple');
-            }
-          } catch (err) {
-            // Игнорируем ошибки фоновой загрузки
-          }
-        });
-      } catch (error) {
-        // Игнорируем ошибки
-      }
-    };
-
-    preloadOnMount();
-  }, [coverTypes, celebration]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => {
     return {

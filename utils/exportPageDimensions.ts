@@ -117,14 +117,15 @@ export function getExportPageDimensions(
 }
 
 /**
- * Электронная версия: лист A5, растр ~72 DPI + умеренное JPEG-сжатие.
- * На экране читаемо; для печати (нужно ~300 DPI) — выберите печатный формат.
+ * Электронная версия: резкий растр для экрана (≈160 DPI), без печатного 300 DPI.
+ * ~2.2× линейно / ~5× пикселей vs старый 72 DPI — читаемо на телефоне, экспорт всё ещё быстрый.
  */
-export const ELECTRONIC_EXPORT_DPI = 72;
-export const ELECTRONIC_JPEG_QUALITY_PAGE = 0.8;
-export const ELECTRONIC_JPEG_QUALITY_COVER = 0.72;
-export const ELECTRONIC_CAPTURE_SCALE = 1.5;
-export const ELECTRONIC_CAPTURE_QUALITY = 0.82;
+export const ELECTRONIC_EXPORT_DPI = 160;
+export const ELECTRONIC_JPEG_QUALITY_PAGE = 0.88;
+export const ELECTRONIC_JPEG_QUALITY_COVER = 0.85;
+/** Viewport ≈390pt → capture ≈975–1400 px, близко к 160 DPI растру фона. */
+export const ELECTRONIC_CAPTURE_SCALE = 2.5;
+export const ELECTRONIC_CAPTURE_QUALITY = 0.9;
 
 /** Длинная сторона области страницы в пикселях при заданном DPI */
 export function exportLongSidePx(

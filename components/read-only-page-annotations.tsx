@@ -235,6 +235,7 @@ function ReadOnlyPageAnnotationsInner({
                             lineHeight: readOnlyLayout.textLineHeight,
                             textAlign: annotation.textAlign ?? 'left',
                             includeFontPadding: false,
+                            minHeight: 0,
                           },
                         ]}
                         numberOfLines={1}

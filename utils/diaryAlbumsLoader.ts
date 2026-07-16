@@ -247,15 +247,17 @@ export function getDiaryInteriorById(id: string): DiaryInterior | null {
 }
 
 async function warmDiaryInteriorAssets(images: unknown[]): Promise<void> {
-  const maxParallel = 4;
+  // Прогреваем только ближайшие страницы — полный прогон 60/40 PNG лагает Android UI
+  const toWarm = images.slice(0, 4);
+  const maxParallel = 2;
   let index = 0;
 
   const worker = async () => {
-    while (index < images.length) {
+    while (index < toWarm.length) {
       const current = index;
       index += 1;
       try {
-        await Asset.fromModule(images[current] as number).downloadAsync();
+        await Asset.fromModule(toWarm[current] as number).downloadAsync();
       } catch {
         // The returned bundled URI is still usable; warming is best-effort.
       }

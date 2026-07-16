@@ -50,6 +50,12 @@ const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
   },
 ];
 
+/** Отдельные ASCII-превью: Unicode-пути страниц на Android часто дают один и тот же кеш/ассет. */
+const DIARY_INTERIOR_PREVIEWS: Record<string, number> = {
+  diary_interior_brown: require('@/assets/app-bundled/diary_brown_preview.png'),
+  diary_interior_purple: require('@/assets/app-bundled/diary_purple_preview.png'),
+};
+
 // Функция для получения вариантов внутренних частей в зависимости от категории
 function getInteriorOptions(celebration: string): InteriorOption[] {
   if (celebration === 'diary') {
@@ -59,7 +65,8 @@ function getInteriorOptions(celebration: string): InteriorOption[] {
       title: interior.name,
       description: interior.description,
       pdfPath: null, // Для дневников не используем PDF
-      previewImagePath: interior.images[0] || null,
+      previewImagePath:
+        DIARY_INTERIOR_PREVIEWS[interior.id] ?? interior.images[0] ?? null,
     }));
   }
   return PREGNANCY_INTERIOR_OPTIONS;
@@ -213,6 +220,7 @@ export default function SelectInteriorScreen() {
                         cachePolicy="disk"
                         transition={0}
                         fadeDuration={0}
+                        recyclingKey={interior.id}
                       />
                     )}
                     {selectedInterior === interior.id && (

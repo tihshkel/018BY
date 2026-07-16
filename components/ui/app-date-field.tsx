@@ -46,6 +46,7 @@ export interface AppDateFieldProps {
   field?: AlbumPageField;
   characterLimit?: number;
   onInputFocus?: () => void;
+  textAlign?: 'left' | 'center' | 'right';
 }
 
 function formatDisplayDate(date: Date, mode: 'date' | 'datetime'): string {
@@ -81,6 +82,7 @@ export function AppDateField({
   field,
   characterLimit,
   onInputFocus,
+  textAlign = 'left',
 }: AppDateFieldProps) {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [inlineOpen, setInlineOpen] = useState(embedded);
@@ -145,6 +147,7 @@ export function AppDateField({
             keyboardType={getFieldKeyboardType('date')}
             maxLength={characterLimit ?? getFieldMaxLength('date')}
             inputMode="numeric"
+            textAlign={textAlign}
             returnKeyType="done"
             returnKeyLabel="OK"
             enterKeyHint="done"

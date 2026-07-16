@@ -153,12 +153,16 @@ for (const id of ['pregnancy_db2', 'pregnancy_a5', 'pregnancy_db3_soft']) {
 // --- Профиль качества (electronic vs print) — без Platform.OS ---
 const dimsFile = read('utils/exportPageDimensions.ts');
 assert(
-  dimsFile.includes('ELECTRONIC_EXPORT_DPI = 72'),
-  'exportPageDimensions: electronic ~72 DPI',
+  dimsFile.includes('ELECTRONIC_EXPORT_DPI = 160'),
+  'exportPageDimensions: electronic ~160 DPI',
 );
 assert(
-  dimsFile.includes('ELECTRONIC_JPEG_QUALITY_PAGE = 0.55'),
-  'exportPageDimensions: electronic JPEG page 0.55',
+  dimsFile.includes('ELECTRONIC_JPEG_QUALITY_PAGE = 0.88'),
+  'exportPageDimensions: electronic JPEG page 0.88',
+);
+assert(
+  dimsFile.includes('ELECTRONIC_CAPTURE_SCALE = 2.5'),
+  'exportPageDimensions: electronic capture scale 2.5',
 );
 assert(
   exportPdf.includes('getElectronicRasterMaxSide') &&
@@ -167,7 +171,7 @@ assert(
 );
 assert(
   exportPdf.includes('isElectronicExport ? ELECTRONIC_CAPTURE_SCALE'),
-  'export-pdf: PageRenderer scale снижен для electronic',
+  'export-pdf: PageRenderer scale для electronic',
 );
 assert(
   !exportPdf.match(/Platform\.OS\s*===\s*['"]android['"][\s\S]{0,120}quality/) &&
@@ -186,7 +190,7 @@ assert(
 );
 
 console.log('\n--- Профиль качества ---');
-console.log('  electronic: ~72 DPI, JPEG 0.55 (стр.) / 0.6 (обл.), capture scale 1');
+console.log('  electronic: ~160 DPI, JPEG 0.88 (стр.) / 0.85 (обл.), capture scale 2.5');
 console.log('  soft/hard:  maxSide 2000px (стр.) / 2400px (обл.), JPEG 0.9');
 console.log('  Android = iOS (один JS-код, expo-image-manipulator)');
 

@@ -13,12 +13,14 @@ import { AppCard, AppText } from '@/components/ui';
 import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
 
 type AlbumPageFillFormProps = {
   schema: AlbumPageSchema;
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
+  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -68,6 +70,7 @@ export function AlbumPageFillForm({
   pageValues,
   lineGuideId,
   onFieldChange,
+  onFieldTextAlignChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -88,6 +91,8 @@ export function AlbumPageFillForm({
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
+    textAligns: pageValues.fieldTextAlign,
+    onTextAlignChange: onFieldTextAlignChange,
     lineGuideId,
     sourcePageNumber: schema.sourcePageNumber,
   };

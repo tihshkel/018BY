@@ -53,8 +53,15 @@ function getLineSlots(lineGuideId: string, page: number): readonly NormalizedLin
   );
 }
 
-function gapNorm(config: AlbumSparsePhotoConfig): number {
-  return config.gapMm / config.pageSizeMm;
+/** Зазор до editable line-slots + декоративных подписей PDF. */
+function topClearanceNorm(config: AlbumSparsePhotoConfig): number {
+  return (config.gapMm + (config.staticLabelClearanceMm ?? 0)) / config.pageSizeMm;
+}
+
+/** Нижний зазор чуть меньше верхнего — размер фото почти сохраняем. */
+function bottomClearanceNorm(config: AlbumSparsePhotoConfig): number {
+  const label = config.staticLabelClearanceMm ?? 0;
+  return (config.gapMm + label * 0.5) / config.pageSizeMm;
 }
 
 /** PDF «Место для фото» в нижней части страницы (анкеты беременности p1/p3 и др.). */
@@ -81,7 +88,8 @@ function buildWeeklyMiddlePhotoSafeZone(
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
   const slots = getLineSlots(lineGuideId, page);
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
   const upperLines = slots.filter((slot) => slot.y < 0.45);
@@ -96,8 +104,8 @@ function buildWeeklyMiddlePhotoSafeZone(
     );
   }
 
-  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + photoTextGap;
-  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - photoTextGap;
+  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + topGap;
+  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - bottomGap;
   const height = maxBottom - minTop;
 
   if (height < minHeight) {
@@ -118,9 +126,9 @@ function buildUpperBandPhotoSafeZone(
   page: number,
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
-  const photoTextGap = gapNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minTop = 0.12;
-  const maxBottom = getMinLineTextTop(lineGuideId, page) - photoTextGap;
+  const maxBottom = getMinLineTextTop(lineGuideId, page) - bottomGap;
   const height = maxBottom - minTop;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
@@ -148,7 +156,7 @@ function buildBottomAnchoredPhotoSafeZone(
   primarySlot: { x: number; y: number; width: number; height: number },
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
   const textBottom = getMaxLineTextBottom(lineGuideId, page);
   const slotZone = slotToSafeZone(primarySlot);
   const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
@@ -156,11 +164,11 @@ function buildBottomAnchoredPhotoSafeZone(
   const wideW = config.eventSafe.width;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
-  // Поднимаем верх к тексту анкеты (не к узкой PDF-рамке), чтобы 4:3 могло занять ~80% ширины.
-  // Декоративные подписи на PDF («Совместное фото») остаются под фото по z-order маски.
+  // Верх строго ниже последнего поля + декоративной подписи PDF («Фото, где мы вместе»).
+  // Не ограничиваем slotZone.y сверху — PDF-рамка часто начинается поверх подписи.
   const top =
     textBottom > 0
-      ? Math.min(slotZone.y, Math.max(config.eventSafe.y, textBottom + photoTextGap))
+      ? Math.max(config.eventSafe.y, textBottom + topGap)
       : Math.min(slotZone.y, config.eventSafe.y + 0.08);
   const bottom = Math.max(slotZone.y + slotZone.height, bandMaxBottom);
   const height = bottom - top;
@@ -191,7 +199,8 @@ function constrainPhotoSafeZone(
   const slots = getLineSlots(lineGuideId, page);
   if (!slots.length) return safeZone;
 
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
   let minTop = safeZone.y;
@@ -201,9 +210,9 @@ function constrainPhotoSafeZone(
     const top = slot.y - slot.height / 2;
     const bottom = slot.y + slot.height / 2;
     if (slot.y < 0.5) {
-      minTop = Math.max(minTop, bottom + photoTextGap);
+      minTop = Math.max(minTop, bottom + topGap);
     } else {
-      maxBottom = Math.min(maxBottom, top - photoTextGap);
+      maxBottom = Math.min(maxBottom, top - bottomGap);
     }
   }
 
@@ -227,9 +236,9 @@ function expandVerticalPhotoBand(
   const upperLines = slots.filter((slot) => slot.y < 0.45);
   if (upperLines.length === 0 || upperLines.length !== slots.length) return safeZone;
 
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
   const maxTextBottom = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2));
-  const minTop = Math.max(safeZone.y, maxTextBottom + photoTextGap);
+  const minTop = Math.max(safeZone.y, maxTextBottom + topGap);
   const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
   const maxBottom = Math.min(
     bandMaxBottom,
@@ -247,7 +256,7 @@ function expandVerticalPhotoBand(
   };
 }
 
-/** Текст внизу страницы — расширяем фото-полосу вниз до зазора 4 мм (p3 «Мы ждём тебя» и др.). */
+/** Текст внизу страницы — расширяем фото-полосу вниз до зазора (p3 «Мы ждём тебя» и др.). */
 function expandPhotoBandDownToLowerText(
   lineGuideId: string,
   page: number,
@@ -257,14 +266,14 @@ function expandPhotoBandDownToLowerText(
   const slots = getLineSlots(lineGuideId, page);
   if (!slots.length) return safeZone;
 
-  const photoTextGap = gapNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const lowerTextSlots = slots.filter((slot) => slot.y >= 0.45);
   if (!lowerTextSlots.length) return safeZone;
 
   const nearestTextTop = Math.min(
     ...lowerTextSlots.map((slot) => slot.y - slot.height / 2),
   );
-  const maxBottom = nearestTextTop - photoTextGap;
+  const maxBottom = nearestTextTop - bottomGap;
   const currentBottom = safeZone.y + safeZone.height;
   if (maxBottom <= currentBottom + 0.005) return safeZone;
 
@@ -315,7 +324,8 @@ function buildBandAroundTextBlock(
   const slots = getLineSlots(lineGuideId, page);
   if (!slots.length) return safeZone;
 
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
   const minTopBound = safeZone.y;
   const maxBottomBound = Math.min(
@@ -326,20 +336,20 @@ function buildBandAroundTextBlock(
   const minTextTop = Math.min(...slots.map((slot) => slot.y - slot.height / 2));
   const maxTextBottom = Math.max(...slots.map((slot) => slot.y + slot.height / 2));
 
-  const spaceAbove = minTextTop - photoTextGap - minTopBound;
-  const spaceBelow = maxBottomBound - maxTextBottom - photoTextGap;
+  const spaceAbove = minTextTop - bottomGap - minTopBound;
+  const spaceBelow = maxBottomBound - maxTextBottom - topGap;
 
   let top: number;
   let height: number;
 
   if (spaceBelow >= spaceAbove && spaceBelow >= minHeight) {
-    top = maxTextBottom + photoTextGap;
+    top = maxTextBottom + topGap;
     height = maxBottomBound - top;
   } else if (spaceAbove >= minHeight) {
     top = minTopBound;
-    height = minTextTop - photoTextGap - minTopBound;
+    height = minTextTop - bottomGap - minTopBound;
   } else if (spaceBelow >= minHeight) {
-    top = maxTextBottom + photoTextGap;
+    top = maxTextBottom + topGap;
     height = maxBottomBound - top;
   } else {
     return safeZone;
@@ -394,6 +404,11 @@ export function resolveSparsePhotoSafeZone(
   // Photo-only: всегда ~80% во всех альбомах, включая kids_48.
   if (strategy === 'photo_only') {
     return constrainPhotoSafeZone(lineGuideId, page, PHOTO_ONLY_PAGE_SAFE, config);
+  }
+
+  // PDF-рамка внизу (анкеты) — всегда bottom_band, даже если line-slots чуть ниже 0.55
+  if (isBottomAnchoredPhotoSlot(primarySlot) && strategy !== 'weekly_middle' && strategy !== 'upper_band') {
+    return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
   }
 
   const strategyZone = resolveStrategySafeZone(lineGuideId, page, primarySlot, config);

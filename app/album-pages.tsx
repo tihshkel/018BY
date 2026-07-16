@@ -46,6 +46,8 @@ import {
   canShowPageActions,
   openAlbumPage,
 } from "@/utils/albumPageNavigation";
+import { hasPendingAlbumProjectPersist } from "@/utils/albumProjectPersist";
+import { getAlbumProjectSnapshot } from "@/utils/albumProjectStateSync";
 import { isBlankTemplateLineGuide } from "@/utils/photoPageTemplateManifest";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { computePageStatus } from "@/utils/pageStatus";
@@ -155,6 +157,14 @@ export default function AlbumPagesScreen() {
         skipNextReloadRef.current = false;
         return;
       }
+      // Не перечитывать весь map с диска при каждом возврате — это лагало при 60 заполненных
+      if (hasPendingAlbumProjectPersist(project.projectId)) {
+        void project.reloadProjectData();
+        return;
+      }
+      if (getAlbumProjectSnapshot(project.projectId)?.pageValuesMap) {
+        return;
+      }
       void project.reloadProjectData();
     }, [project.projectId, project.isLoading, project.reloadProjectData]),
   );
@@ -227,7 +237,70 @@ export default function AlbumPagesScreen() {
     return map;
   }, [sections, project.instances]);
 
-  const handleOpenPage = (instanceId: string) => {
+  const instanceIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    project.instances.forEach((item, index) => {
+      map.set(item.instanceId, index);
+    });
+    return map;
+  }, [project.instances]);
+
+  const sectionRowsById = useMemo(() => {
+    const map = new Map<
+      string,
+      Array<{
+        instance: PageInstance;
+        title: string;
+        subtitle?: string;
+        status: ReturnType<typeof computePageStatus> | "empty";
+        thumbnailUri?: string;
+        schema?: AlbumPageSchema;
+        pageValues?: PageValues;
+        canShowMenu: boolean;
+        canDuplicate: boolean;
+        canDeleteCopy: boolean;
+        canReorder: boolean;
+        canChangeTemplate?: boolean;
+        globalIndex: number;
+      }>
+    >();
+
+    for (const section of sections) {
+      const sectionInstances = instancesBySection.get(section.sectionId) ?? [];
+      const rows = sectionInstances.map((instance) => {
+        const schema = project.getSchemaForInstance(instance);
+        const values = project.pageValuesMap[instance.instanceId];
+        const status = schema ? computePageStatus(schema, values) : "empty";
+        return {
+          instance,
+          title: project.getInstanceTitle(instance),
+          subtitle: getPageSubtitle(instance, schema, values),
+          status,
+          thumbnailUri: resolveInstancePageImageUri(project.images, instance),
+          schema,
+          pageValues: values,
+          canShowMenu: canShowPageActions(schema, instance),
+          canDuplicate: schema?.canDuplicate ?? false,
+          canDeleteCopy: instance.addedByUser,
+          canReorder: instance.addedByUser,
+          canChangeTemplate: isBlankTemplateLineGuide(project.lineGuideId),
+          globalIndex: instanceIndexById.get(instance.instanceId) ?? -1,
+        };
+      });
+      map.set(section.sectionId, rows);
+    }
+    return map;
+  }, [
+    sections,
+    instancesBySection,
+    instanceIndexById,
+    project.pageValuesMap,
+    project.images,
+    project.lineGuideId,
+    project,
+  ]);
+
+  const handleOpenPage = useCallback((instanceId: string) => {
     const instance = project.instances.find((i) => i.instanceId === instanceId);
     if (!instance) return;
     const schema = project.getSchemaForInstance(instance);
@@ -241,9 +314,9 @@ export default function AlbumPagesScreen() {
       coverType,
       interiorType,
     });
-  };
+  }, [project, celebration, coverType, interiorType]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     const next = findNextPageToContinue(
       project.instances,
       project.pageValuesMap,
@@ -257,9 +330,9 @@ export default function AlbumPagesScreen() {
       "Отлично!",
       "Все редактируемые страницы заполнены или уже в работе.",
     );
-  };
+  }, [project, handleOpenPage]);
 
-  const handleAddPage = () => {
+  const handleAddPage = useCallback(() => {
     const pathname = isBlankTemplateLineGuide(project.lineGuideId)
       ? "/album-template-library"
       : "/album-add-page";
@@ -273,9 +346,9 @@ export default function AlbumPagesScreen() {
         interiorType,
       },
     } as unknown as Href);
-  };
+  }, [project.lineGuideId, project.projectId, celebration, coverType, interiorType]);
 
-  const handleChangeTemplate = (instanceId: string) => {
+  const handleChangeTemplate = useCallback((instanceId: string) => {
     router.push({
       pathname: "/album-template-library",
       params: {
@@ -287,9 +360,9 @@ export default function AlbumPagesScreen() {
         mode: "replace",
       },
     } as unknown as Href);
-  };
+  }, [project.projectId, celebration, coverType, interiorType]);
 
-  const handleDeleteCopy = (instanceId: string, title: string) => {
+  const handleDeleteCopy = useCallback((instanceId: string, title: string) => {
     Alert.alert("Удалить копию?", `«${title}» будет удалена из альбома.`, [
       { text: "Отмена", style: "cancel" },
       {
@@ -298,20 +371,27 @@ export default function AlbumPagesScreen() {
         onPress: () => void project.removePage(instanceId),
       },
     ]);
-  };
+  }, [project]);
 
-  const handleMove = (instanceId: string, direction: -1 | 1) => {
+  const handleMove = useCallback((instanceId: string, direction: -1 | 1) => {
     const index = project.instances.findIndex((i) => i.instanceId === instanceId);
     const instance = project.instances[index];
     if (!instance?.addedByUser) return;
     const target = index + direction;
     if (index < 0 || target < 0 || target >= project.instances.length) return;
     void project.movePage(instanceId, target);
-  };
+  }, [project]);
 
-  const handleReorderPage = (instanceId: string, toIndex: number) => {
+  const handleReorderPage = useCallback((instanceId: string, toIndex: number) => {
     void project.movePage(instanceId, toIndex);
-  };
+  }, [project]);
+
+  const handleToggleExcluded = useCallback(
+    (instanceId: string, excluded: boolean) => {
+      project.setPageExcluded(instanceId, excluded);
+    },
+    [project],
+  );
 
   if (project.isLoading) {
     return (
@@ -376,7 +456,14 @@ export default function AlbumPagesScreen() {
         <View ref={scrollContentRef}>
         <View style={styles.hero}>
           {coverSource ? (
-            <Image source={coverSource} style={styles.heroCover} contentFit="cover" />
+            <Image
+              source={coverSource}
+              style={styles.heroCover}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              recyclingKey={`album-cover-${project.projectId}`}
+              transition={0}
+            />
           ) : (
             <View style={styles.heroCoverPlaceholder}>
               <Ionicons name="book-outline" size={32} color={colors.tabInactive} />
@@ -416,34 +503,9 @@ export default function AlbumPagesScreen() {
         </AppText>
 
         {sections.map((section, index) => {
-          const sectionInstances = instancesBySection.get(section.sectionId) ?? [];
           const progress = sectionProgressList.find((p) => p.sectionId === section.sectionId);
           if (!progress) return null;
-
-          const rows = sectionInstances.map((instance) => {
-            const schema = project.getSchemaForInstance(instance);
-            const values = project.pageValuesMap[instance.instanceId];
-            const status = schema
-              ? computePageStatus(schema, values)
-              : "empty";
-            return {
-              instance,
-              title: project.getInstanceTitle(instance),
-              subtitle: getPageSubtitle(instance, schema, values),
-              status,
-              thumbnailUri: resolveInstancePageImageUri(project.images, instance),
-              schema,
-              pageValues: values,
-              canShowMenu: canShowPageActions(schema, instance),
-              canDuplicate: schema?.canDuplicate ?? false,
-              canDeleteCopy: instance.addedByUser,
-              canReorder: instance.addedByUser,
-              canChangeTemplate: isBlankTemplateLineGuide(project.lineGuideId),
-              globalIndex: project.instances.findIndex(
-                (item) => item.instanceId === instance.instanceId,
-              ),
-            };
-          });
+          const rows = sectionRowsById.get(section.sectionId) ?? [];
 
           return (
             <AlbumSectionAccordion
@@ -463,9 +525,7 @@ export default function AlbumPagesScreen() {
               onReorderPage={handleReorderPage}
               totalPages={project.instances.length}
               reorderDisabled={project.isSaving}
-              onToggleExcluded={(instanceId, excluded) =>
-                project.setPageExcluded(instanceId, excluded)
-              }
+              onToggleExcluded={handleToggleExcluded}
               highlightInstanceId={
                 highlightDismissed ? undefined : scrollTargetInstanceId
               }

@@ -152,6 +152,8 @@ export interface PageValues {
   photoGroupTransform?: PhotoSlotTransform;
   /** ID шрифта из AVAILABLE_FONTS для всего текста страницы */
   textFontFamily?: string;
+  /** Выравнивание коротких значений полей (дата, вес, рост и т.п.) на макете */
+  fieldTextAlign?: Record<string, 'left' | 'center' | 'right'>;
   status: PageStatus;
   updatedAt: string;
   excludedFromExport?: boolean;

@@ -6,6 +6,7 @@ import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageField, AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -16,6 +17,7 @@ type TimelinePageEditorProps = {
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
+  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
   onPickPhoto: (slotIndex: number) => void;
   onRemovePhoto: (slotIndex: number) => void;
 };
@@ -25,6 +27,7 @@ export const TimelinePageEditor = React.memo(function TimelinePageEditor({
   pageValues,
   lineGuideId,
   onFieldChange,
+  onFieldTextAlignChange,
   onPickPhoto,
   onRemovePhoto,
 }: TimelinePageEditorProps) {
@@ -85,6 +88,8 @@ export const TimelinePageEditor = React.memo(function TimelinePageEditor({
                 fields={eventFields}
                 values={pageValues.fields}
                 onChange={onFieldChange}
+                textAligns={pageValues.fieldTextAlign}
+                onTextAlignChange={onFieldTextAlignChange}
                 lineGuideId={lineGuideId}
                 sourcePageNumber={schema.sourcePageNumber}
               />

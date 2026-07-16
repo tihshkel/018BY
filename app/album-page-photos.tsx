@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams, type Href } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AlbumPageUnifiedEditor } from '@/components/album/album-page-unified-editor';
@@ -28,6 +28,7 @@ export default function AlbumPagePhotosScreen() {
     interiorType,
   });
   const { shellStyle } = useAlbumFormLayout();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const albumFlowParams: AlbumFlowParams = {
     id,
@@ -55,20 +56,25 @@ export default function AlbumPagePhotosScreen() {
   });
 
   const handleSave = async () => {
-    if (!instanceId) return;
-    const current = project.pageValuesMap[instanceId] ?? pageValues;
-    await project.savePageValuesNow(instanceId, current);
-    router.push({
-      pathname: '/album-page-preview',
-      params: {
-        id,
-        instanceId,
-        celebration,
-        coverType,
-        interiorType,
-        mode: 'final',
-      },
-    } as unknown as Href);
+    if (!instanceId || isNavigating) return;
+    setIsNavigating(true);
+    try {
+      const current = project.pageValuesMap[instanceId] ?? pageValues;
+      await project.savePageValuesNow(instanceId, current);
+      router.push({
+        pathname: '/album-page-preview',
+        params: {
+          id,
+          instanceId,
+          celebration,
+          coverType,
+          interiorType,
+          mode: 'final',
+        },
+      } as unknown as Href);
+    } finally {
+      setIsNavigating(false);
+    }
   };
 
   if (project.isLoading || !instance || !schema) {
@@ -134,7 +140,13 @@ export default function AlbumPagePhotosScreen() {
       />
 
       <View style={styles.footer}>
-        <AppButton testID="unified-editor-save" title="Просмотр страницы" onPress={handleSave} />
+        <AppButton
+          testID="unified-editor-save"
+          title="Просмотр страницы"
+          onPress={handleSave}
+          disabled={isNavigating || project.isSaving}
+          loading={isNavigating || project.isSaving}
+        />
       </View>
     </AppScreen>
   );

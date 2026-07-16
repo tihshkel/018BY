@@ -1,5 +1,6 @@
 import type { AlbumPageField } from '@/types/album-page-schema';
 import { formatAlbumDateDayMonth } from '@/utils/albumDateFormat';
+import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
 
 /** «Дата поступления в дородовое отделение» — слот 7 на анкете родов. */
 export const PREGNANCY_BIRTH_QUESTIONNAIRE_ADMISSION_SLOT_INDEX = 7;
@@ -38,6 +39,9 @@ export function formatTemplateLineSlotDisplayText(
   slotIndex: number | undefined,
 ): string {
   if (!text || !lineGuideId || page == null || slotIndex == null) return text;
+  if (isKids48TeethToothDateSlot(lineGuideId, page, slotIndex)) {
+    return formatAlbumDateDayMonth(text);
+  }
   if (isPregnancyBirthQuestionnaireAdmissionDateSlot(lineGuideId, page, slotIndex)) {
     return formatPregnancyBirthQuestionnaireAdmissionDate(text);
   }

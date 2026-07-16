@@ -1019,7 +1019,7 @@ export default function ExportPdfScreen() {
       };
 
       // Оптимизация изображений перед встраиванием в PDF.
-      // electronic: A5 по размеру листа, ~72 DPI + низкое JPEG (экран, не печать).
+      // electronic: A5, ~160 DPI + JPEG (экран retina-класс); soft/hard — печатный maxSide.
       const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover', isLargeDoc?: boolean) => {
         if (!uri) return uri;
         if (Platform.OS === 'web') return uri;

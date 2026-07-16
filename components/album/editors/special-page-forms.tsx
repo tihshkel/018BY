@@ -5,17 +5,28 @@ import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppText } from '@/components/ui';
 import { colors, spacing } from '@/constants/design-tokens';
 import type { AlbumPageField } from '@/types/album-page-schema';
+import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
 
 type SpecialFormProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
   onChange: (fieldId: string, value: string) => void;
+  textAligns?: Record<string, FieldTextAlign>;
+  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
   lineGuideId: string;
   sourcePageNumber: number;
 };
 
 export function FamilyTreeForm(props: SpecialFormProps) {
-  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
+  const {
+    fields,
+    values,
+    onChange,
+    textAligns,
+    onTextAlignChange,
+    lineGuideId,
+    sourcePageNumber,
+  } = props;
   const childFields = fields.filter((f) => f.fieldId.includes('child_name'));
   const motherFields = fields.filter((f) => f.fieldId.includes('mother_'));
   const fatherFields = fields.filter((f) => f.fieldId.includes('father_'));
@@ -26,6 +37,8 @@ export function FamilyTreeForm(props: SpecialFormProps) {
         fields={childFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Ребенок"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -34,6 +47,8 @@ export function FamilyTreeForm(props: SpecialFormProps) {
         fields={motherFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Линия мамы"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -42,6 +57,8 @@ export function FamilyTreeForm(props: SpecialFormProps) {
         fields={fatherFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Линия папы"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -51,7 +68,15 @@ export function FamilyTreeForm(props: SpecialFormProps) {
 }
 
 export function TeethForm(props: SpecialFormProps) {
-  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
+  const {
+    fields,
+    values,
+    onChange,
+    textAligns,
+    onTextAlignChange,
+    lineGuideId,
+    sourcePageNumber,
+  } = props;
   const upperFields = fields.filter((f) => f.fieldId.includes('upper_'));
   const lowerFields = fields.filter((f) => f.fieldId.includes('lower_'));
   const extraFields = fields.filter(
@@ -67,6 +92,8 @@ export function TeethForm(props: SpecialFormProps) {
         fields={upperFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Верхняя челюсть"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -75,6 +102,8 @@ export function TeethForm(props: SpecialFormProps) {
         fields={lowerFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Нижняя челюсть"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -83,6 +112,8 @@ export function TeethForm(props: SpecialFormProps) {
         fields={extraFields}
         values={values}
         onChange={onChange}
+        textAligns={textAligns}
+        onTextAlignChange={onTextAlignChange}
         sectionTitle="Дополнительно"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
@@ -92,7 +123,15 @@ export function TeethForm(props: SpecialFormProps) {
 }
 
 export function GrowthWeightForm(props: SpecialFormProps) {
-  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
+  const {
+    fields,
+    values,
+    onChange,
+    textAligns,
+    onTextAlignChange,
+    lineGuideId,
+    sourcePageNumber,
+  } = props;
 
   const monthGroups: AlbumPageField[][] = [];
   for (let month = 1; month <= 12; month += 1) {
@@ -111,6 +150,8 @@ export function GrowthWeightForm(props: SpecialFormProps) {
             fields={group}
             values={values}
             onChange={onChange}
+            textAligns={textAligns}
+            onTextAlignChange={onTextAlignChange}
             sectionTitle={label}
             lineGuideId={lineGuideId}
             sourcePageNumber={sourcePageNumber}

@@ -2,9 +2,9 @@
   "summary": {
     "albumId": "kids_48",
     "pageCount": 48,
-    "photoPages": 44,
-    "pagesOk": 41,
-    "pagesWarn": 3,
+    "photoPages": 45,
+    "pagesOk": 44,
+    "pagesWarn": 1,
     "pagesFail": 0
   },
   "pages": [
@@ -16,10 +16,10 @@
       "photo": {
         "hasPhoto": true,
         "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×77 мм, 69–146 мм (центр)",
+      "photoDescription": "≈161×71 мм, 69–140 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -46,18 +46,12 @@
       "photo": {
         "hasPhoto": true,
         "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×82 мм, 44–126 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 82 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈161×76 мм, 44–120 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
@@ -67,19 +61,13 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×72 мм, 115–187 мм (низ)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 72 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈161×105 мм, 83–188 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
@@ -89,13 +77,13 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 1,
+        "variantCount": 0,
         "layoutSource": "circle",
-        "primaryVariant": "tree"
+        "primaryVariant": null
       },
-      "photoDescription": "15 кругов",
+      "photoDescription": "0 кругов",
       "layoutIssues": [],
-      "status": "ok",
+      "status": "warn",
       "section": "Начало истории"
     },
     {
@@ -105,11 +93,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×109 мм, 44–153 мм (центр)",
+      "photoDescription": "≈161×113 мм, 29–142 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -121,11 +109,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×137 мм, 57–194 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -137,19 +125,13 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×83 мм, 86–170 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 83 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈161×67 мм, 86–154 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
@@ -159,11 +141,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×109 мм, 50–159 мм (центр)",
+      "photoDescription": "≈161×117 мм, 70–187 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -203,11 +185,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "kids_event",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "designed_event",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×128 мм, 54–182 мм (центр)",
+      "photoDescription": "≈161×135 мм, 37–172 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -219,11 +201,11 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 3,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×72 мм, 118–190 мм (низ)",
+      "photoDescription": "≈161×73 мм, 118–191 мм (низ)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -235,11 +217,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 64–182 мм (центр)",
+      "photoDescription": "≈161×110 мм, 64–174 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -251,11 +233,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×118 мм, 65–183 мм (центр)",
+      "photoDescription": "≈161×107 мм, 65–172 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -267,11 +249,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×137 мм, 57–194 мм (центр)",
+      "photoDescription": "≈161×127 мм, 59–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -283,11 +265,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×140 мм, 42–182 мм (центр)",
+      "photoDescription": "≈161×131 мм, 42–172 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -299,11 +281,11 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×113 мм, 60–173 мм (центр)",
+      "photoDescription": "≈161×104 мм, 61–165 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -315,11 +297,11 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×113 мм, 60–173 мм (центр)",
+      "photoDescription": "≈161×104 мм, 61–165 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -331,11 +313,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×122 мм, 64–187 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -347,11 +329,11 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×112 мм, 66–178 мм (центр)",
+      "photoDescription": "≈161×120 мм, 66–187 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -363,11 +345,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -379,11 +361,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -395,11 +377,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -411,11 +393,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -427,11 +409,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -443,11 +425,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -459,11 +441,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -475,11 +457,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -491,11 +473,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -507,11 +489,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -523,11 +505,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×125 мм, 61–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -539,11 +521,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×118 мм, 74–192 мм (центр)",
+      "photoDescription": "≈161×109 мм, 79–188 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -555,11 +537,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -571,11 +553,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -587,11 +569,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -603,11 +585,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -619,11 +601,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -635,11 +617,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -651,11 +633,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -667,11 +649,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×160 мм, 24–184 мм (центр)",
+      "photoDescription": "≈161×149 мм, 24–173 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -683,11 +665,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈161×144 мм, 41–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -699,11 +681,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -715,11 +697,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -731,11 +713,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -747,11 +729,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -763,11 +745,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈161×113 мм, 45–158 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -778,10 +760,12 @@
       "pageType": "non_editable",
       "lineSlotCount": 0,
       "photo": {
-        "hasPhoto": false,
-        "variantCount": 0
+        "hasPhoto": true,
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "—",
+      "photoDescription": "≈161×113 мм, 24–137 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"

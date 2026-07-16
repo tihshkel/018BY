@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 
+import { FieldTextAlignButtons } from '@/components/album/field-text-align-buttons';
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
 import { useAppScreenScrollToField } from '@/components/ui/app-screen';
@@ -25,6 +26,11 @@ import {
   getFieldCharacterLimit,
 } from '@/utils/albumFieldLimits';
 import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
+import {
+  resolveFieldTextAlign,
+  supportsFieldTextAlign,
+  type FieldTextAlign,
+} from '@/utils/albumFieldTextAlign';
 import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
 
 export const TODO_CHECKBOX_VALUE = '1';
@@ -38,6 +44,8 @@ type PageFormFieldsProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
   onChange: (fieldId: string, value: string) => void;
+  textAligns?: Record<string, FieldTextAlign>;
+  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
   sectionTitle?: string;
   lineGuideId: string;
   sourcePageNumber: number;
@@ -49,6 +57,7 @@ type TypedFormFieldProps = {
   onChange: (value: string) => void;
   characterLimit?: number;
   onInputFocus?: () => void;
+  textAlign?: FieldTextAlign;
   layoutClamp?: {
     lineGuideId: string;
     sourcePageNumber: number;
@@ -108,6 +117,7 @@ function DateFormField({
   onChange,
   characterLimit,
   onInputFocus,
+  textAlign,
 }: TypedFormFieldProps) {
   const pickerValue = useMemo(() => parseAlbumDate(value) ?? new Date(), [value]);
 
@@ -125,6 +135,7 @@ function DateFormField({
       placeholder={field.placeholder ?? 'дд.мм.гггг'}
       accessibilityLabel={field.label}
       onInputFocus={onInputFocus}
+      textAlign={textAlign}
     />
   );
 }
@@ -177,6 +188,7 @@ const TypedFormField = memo(function TypedFormField({
   characterLimit,
   onInputFocus,
   layoutClamp,
+  textAlign = 'left',
 }: TypedFormFieldProps) {
   const isMultiline = field.templateLineCount > 1;
   const multilineMinHeight = 24 * field.templateLineCount + 24;
@@ -200,6 +212,7 @@ const TypedFormField = memo(function TypedFormField({
         maxLength={characterLimit}
         multiline={isMultiline}
         scrollEnabled={isMultiline}
+        textAlign={textAlign}
         textAlignVertical={isMultiline ? 'top' : 'center'}
         textBreakStrategy={isMultiline ? 'simple' : undefined}
         inputMode={
@@ -227,6 +240,8 @@ const AlbumFormField = memo(function AlbumFormField({
   onFieldChange,
   characterLimit,
   layoutClamp,
+  textAlign,
+  onTextAlignChange,
 }: {
   field: AlbumPageField;
   value: string;
@@ -234,9 +249,13 @@ const AlbumFormField = memo(function AlbumFormField({
   onFieldChange: (fieldId: string, value: string) => void;
   characterLimit?: number;
   layoutClamp?: TypedFormFieldProps['layoutClamp'];
+  textAlign?: FieldTextAlign;
+  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
 }) {
   const fieldRef = useRef<View>(null);
   const scrollToField = useAppScreenScrollToField();
+  const showAlign = supportsFieldTextAlign(field) && onTextAlignChange != null;
+  const resolvedAlign = textAlign ?? 'left';
 
   const handleInputFocus = () => {
     scrollToField?.(fieldRef);
@@ -245,6 +264,11 @@ const AlbumFormField = memo(function AlbumFormField({
   const onChange = useCallback(
     (text: string) => onFieldChange(fieldId, text),
     [fieldId, onFieldChange]
+  );
+
+  const handleAlignChange = useCallback(
+    (align: FieldTextAlign) => onTextAlignChange?.(fieldId, align),
+    [fieldId, onTextAlignChange],
   );
 
   return (
@@ -256,6 +280,9 @@ const AlbumFormField = memo(function AlbumFormField({
           <AppText variant="caption" style={styles.label}>
             {field.label}
           </AppText>
+          {showAlign ? (
+            <FieldTextAlignButtons value={resolvedAlign} onChange={handleAlignChange} />
+          ) : null}
           {field.type === 'date' ? (
             <View>
               <DateFormField
@@ -264,6 +291,7 @@ const AlbumFormField = memo(function AlbumFormField({
                 onChange={onChange}
                 characterLimit={characterLimit}
                 onInputFocus={handleInputFocus}
+                textAlign={resolvedAlign}
               />
               <FieldCharacterCounter value={value} limit={characterLimit} />
             </View>
@@ -277,6 +305,7 @@ const AlbumFormField = memo(function AlbumFormField({
               characterLimit={characterLimit}
               onInputFocus={handleInputFocus}
               layoutClamp={layoutClamp}
+              textAlign={resolvedAlign}
             />
           )}
         </>
@@ -289,6 +318,8 @@ export const PageFormFields = memo(function PageFormFields({
   fields,
   values,
   onChange,
+  textAligns,
+  onTextAlignChange,
   sectionTitle,
   lineGuideId,
   sourcePageNumber,
@@ -356,6 +387,8 @@ export const PageFormFields = memo(function PageFormFields({
             onFieldChange={onChange}
             characterLimit={characterLimit}
             layoutClamp={layoutClamp}
+            textAlign={resolveFieldTextAlign(field.fieldId, textAligns)}
+            onTextAlignChange={onTextAlignChange}
           />
         );
       })}

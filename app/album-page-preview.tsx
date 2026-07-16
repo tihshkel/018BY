@@ -66,6 +66,7 @@ export default function AlbumPagePreviewScreen() {
   const isFinalPreview = mode === "final";
   const rendererRef = useRef<PageRendererRef>(null);
   const [ready, setReady] = useState(false);
+  const [isSavingPage, setIsSavingPage] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState(() =>
     getDefaultPageAspectRatio({ lineGuideId: interiorType === "kids_48" ? "kids_48" : undefined }),
   );
@@ -406,17 +407,22 @@ export default function AlbumPagePreviewScreen() {
   };
 
   const handleSave = async () => {
-    if (!instanceId) return;
-    const current = project.pageValuesMap[instanceId] ?? values;
-    if (current) {
-      await project.savePageValuesNow(instanceId, current);
+    if (!instanceId || isSavingPage) return;
+    setIsSavingPage(true);
+    try {
+      const current = project.pageValuesMap[instanceId] ?? values;
+      if (current) {
+        await project.savePageValuesNow(instanceId, current);
+      }
+      router.replace(
+        buildAlbumPagesHref({
+          ...albumFlowParams,
+          scrollToInstanceId: instanceId,
+        }),
+      );
+    } finally {
+      setIsSavingPage(false);
     }
-    router.replace(
-      buildAlbumPagesHref({
-        ...albumFlowParams,
-        scrollToInstanceId: instanceId,
-      }),
-    );
   };
 
   const fontPicker =
@@ -567,7 +573,12 @@ export default function AlbumPagePreviewScreen() {
     </View>
   ) : isFinalPreview ? (
     <View style={styles.actions}>
-      <AppButton title="Сохранить страницу" onPress={handleSave} />
+      <AppButton
+        title="Сохранить страницу"
+        onPress={handleSave}
+        disabled={isSavingPage || project.isSaving}
+        loading={isSavingPage || project.isSaving}
+      />
       <AppButton title="Изменить" variant="outline" onPress={handleFill} />
       <AppButton
         title="Далее →"

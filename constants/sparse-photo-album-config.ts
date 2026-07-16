@@ -6,6 +6,11 @@ export type AlbumSparsePhotoConfig = {
   gapMm: number;
   pageSizeMm: number;
   sparseMaxLineSlots: number;
+  /**
+   * Доп. зазор под декоративные подписи на PDF («Планы на неделю», «Фото, где мы вместе»),
+   * которых нет в line-slots — иначе фото налазит на статичный текст.
+   */
+  staticLabelClearanceMm?: number;
   sideBySideTwoPhotoPages?: ReadonlySet<number>;
   excludePages?: ReadonlySet<number>;
   photoBandMaxBottom?: number;
@@ -62,11 +67,13 @@ function config(partial: Omit<AlbumSparsePhotoConfig, 'gapMm' | 'pageSizeMm' | '
   gapMm?: number;
   pageSizeMm?: number;
   sparseMaxLineSlots?: number;
+  staticLabelClearanceMm?: number;
 }): AlbumSparsePhotoConfig {
   return {
     gapMm: partial.gapMm ?? DEFAULTS.gapMm,
     pageSizeMm: partial.pageSizeMm ?? DEFAULTS.pageSizeMm,
     sparseMaxLineSlots: partial.sparseMaxLineSlots ?? DEFAULTS.sparseMaxLineSlots,
+    staticLabelClearanceMm: partial.staticLabelClearanceMm,
     photoBandMaxBottom: partial.photoBandMaxBottom ?? DEFAULTS.photoBandMaxBottom,
     stackedTwoMinBandHeight: partial.stackedTwoMinBandHeight ?? DEFAULTS.stackedTwoMinBandHeight,
     minFullWidthBandHeight: partial.minFullWidthBandHeight ?? DEFAULTS.minFullWidthBandHeight,
@@ -80,16 +87,22 @@ function config(partial: Omit<AlbumSparsePhotoConfig, 'gapMm' | 'pageSizeMm' | '
 export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> = {
   kids_48: config({
     eventSafe: EVENT_PHOTO_SAFE,
+    gapMm: 5,
+    staticLabelClearanceMm: 4,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
     excludePages: KIDS_EXCLUDE,
   }),
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
+    gapMm: 5,
+    staticLabelClearanceMm: 9,
   }),
   pregnancy_a5: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
+    gapMm: 5,
+    staticLabelClearanceMm: 9,
   }),
   holidays_birthday_60: config({
     eventSafe: EVENT_PHOTO_SAFE,
@@ -221,7 +234,8 @@ export function classifyPhotoSafeZoneStrategy(
   if (minTextTop > 0.55) return 'upper_band';
 
   const maxTextBottom = Math.max(...slots.map((slot) => slot.y + slot.height / 2));
-  if (maxTextBottom < 0.55) return 'bottom_band';
+  // Чуть выше 0.55: на «Будущий папа» textBottom ≈0.55, иначе уходит в mixed и фото лезет на подпись
+  if (maxTextBottom < 0.58) return 'bottom_band';
 
   return 'mixed';
 }

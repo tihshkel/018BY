@@ -2454,6 +2454,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         lineHeight: readOnlyLayout.textLineHeight,
                         includeFontPadding: false,
                         textAlign: getTextAlign(annotation),
+                        minHeight: 0,
                       },
                     ]}
                     numberOfLines={1}

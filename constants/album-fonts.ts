@@ -18,7 +18,7 @@ export interface FontOption {
   previewCapHeightRatio?: number;
 }
 
-export const DEFAULT_ALBUM_TEXT_FONT_ID = 'Nefelibata-Sans';
+export const DEFAULT_ALBUM_TEXT_FONT_ID = 'AmaticSC-Bold';
 
 /** Baseline PDF (pdf-lib drawText) — доля fontSize от top до baseline. */
 export const PDF_TEXT_CAP_HEIGHT_RATIO = 0.85;

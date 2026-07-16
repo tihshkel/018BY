@@ -1,5 +1,6 @@
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 import { PAGE_SCHEMA_VERSION } from '@/types/album-page-schema';
+import { DEFAULT_ALBUM_TEXT_FONT_ID } from '@/constants/album-fonts';
 
 export function getPageInstancesKey(projectId: string): string {
   return `@project_page_instances_${projectId}`;
@@ -111,6 +112,7 @@ export function createEmptyPageValues(): PageValues {
   return {
     fields: {},
     photoBlocks: {},
+    textFontFamily: DEFAULT_ALBUM_TEXT_FONT_ID,
     status: 'empty',
     updatedAt: new Date().toISOString(),
   };

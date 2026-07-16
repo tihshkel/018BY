@@ -36,7 +36,8 @@ const BIRTHDAY_EXCLUDE_PAGES = new Set([1, 40, 48]);
 const SPARSE_PHOTO_ALBUM_CONFIG = {
   kids_48: {
     eventSafe: EVENT_PHOTO_SAFE,
-    gapMm: 4,
+    gapMm: 5,
+    staticLabelClearanceMm: 4,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
@@ -48,7 +49,8 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
   },
   pregnancy_60: {
     eventSafe: PREGNANCY_PHOTO_SAFE,
-    gapMm: 4,
+    gapMm: 5,
+    staticLabelClearanceMm: 9,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
     photoBandMaxBottom: 0.94,
@@ -58,7 +60,8 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
   },
   pregnancy_a5: {
     eventSafe: PREGNANCY_PHOTO_SAFE,
-    gapMm: 4,
+    gapMm: 5,
+    staticLabelClearanceMm: 9,
     pageSizeMm: 210,
     sparseMaxLineSlots: 4,
     photoBandMaxBottom: 0.94,
@@ -432,7 +435,7 @@ function classifyPhotoSafeZoneStrategy(lineGuideId, page) {
   if (minTextTop > 0.55) return 'upper_band';
 
   const maxTextBottom = Math.max(...slots.map((slot) => slot.y + slot.height / 2));
-  if (maxTextBottom < 0.55) return 'bottom_band';
+  if (maxTextBottom < 0.58) return 'bottom_band';
 
   return 'mixed';
 }
@@ -443,6 +446,15 @@ function getLineSlots(lineGuideId, page) {
 
 function gapNorm(config) {
   return config.gapMm / config.pageSizeMm;
+}
+
+function topClearanceNorm(config) {
+  return (config.gapMm + (config.staticLabelClearanceMm || 0)) / config.pageSizeMm;
+}
+
+function bottomClearanceNorm(config) {
+  const label = config.staticLabelClearanceMm || 0;
+  return (config.gapMm + label * 0.5) / config.pageSizeMm;
 }
 
 function isBottomAnchoredPhotoSlot(primarySlot) {
@@ -462,7 +474,7 @@ function getMinLineTextTop(lineGuideId, page) {
 }
 
 function buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config) {
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
   const textBottom = getMaxLineTextBottom(lineGuideId, page);
   const slotZone = slotToSafeZone(primarySlot);
   const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
@@ -472,7 +484,7 @@ function buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config
 
   const top =
     textBottom > 0
-      ? Math.min(slotZone.y, Math.max(config.eventSafe.y, textBottom + photoTextGap))
+      ? Math.max(config.eventSafe.y, textBottom + topGap)
       : Math.min(slotZone.y, config.eventSafe.y + 0.08);
   const bottom = Math.max(slotZone.y + slotZone.height, bandMaxBottom);
   const height = bottom - top;
@@ -496,7 +508,8 @@ function buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config
 
 function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
   const slots = getLineSlots(lineGuideId, page);
-  const photoTextGap = gapNorm(config);
+  const topGap = topClearanceNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
   const upperLines = slots.filter((slot) => slot.y < 0.45);
@@ -506,8 +519,8 @@ function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
     return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
   }
 
-  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + photoTextGap;
-  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - photoTextGap;
+  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + topGap;
+  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - bottomGap;
   const height = maxBottom - minTop;
 
   if (height < minHeight) {
@@ -523,9 +536,9 @@ function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
 }
 
 function buildUpperBandPhotoSafeZone(lineGuideId, page, config) {
-  const photoTextGap = gapNorm(config);
+  const bottomGap = bottomClearanceNorm(config);
   const minTop = 0.12;
-  const maxBottom = getMinLineTextTop(lineGuideId, page) - photoTextGap;
+  const maxBottom = getMinLineTextTop(lineGuideId, page) - bottomGap;
   const height = maxBottom - minTop;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
@@ -704,6 +717,15 @@ function resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot) {
 
   if (isPregnancyUpperBandPage(lineGuideId, page)) {
     return buildUpperBandPhotoSafeZone(lineGuideId, page, config);
+  }
+
+  const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
+  if (strategy === 'photo_only') {
+    return constrainPhotoSafeZone(lineGuideId, page, PHOTO_ONLY_PAGE_SAFE, config);
+  }
+
+  if (isBottomAnchoredPhotoSlot(primarySlot) && strategy !== 'weekly_middle' && strategy !== 'upper_band') {
+    return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
   }
 
   const strategyZone = resolveStrategySafeZone(lineGuideId, page, primarySlot, config);

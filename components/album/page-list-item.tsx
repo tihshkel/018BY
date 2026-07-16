@@ -102,7 +102,14 @@ function PageCard({
         {thumbnailNode ? (
           thumbnailNode
         ) : thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} style={styles.thumbnail} contentFit="cover" />
+          <Image
+            source={{ uri: thumbnailUri }}
+            style={styles.thumbnail}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            recyclingKey={thumbnailUri}
+            transition={0}
+          />
         ) : (
           <View style={styles.thumbnailPlaceholder}>
             <Ionicons name="image-outline" size={28} color={colors.tabInactive} />

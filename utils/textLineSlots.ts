@@ -4,7 +4,6 @@ import {
   getKidsMonthAnswerLineLayout,
   getKidsMonthAnswerStrokeY,
   getKidsMonthAnswerWritableBounds,
-  getTemplateTypographyProfile,
   isBlankLineGuideAlbum,
   isKids48BottomDateLineSlot,
   isKidsMonthPage,
@@ -39,9 +38,9 @@ import { wrapTextToLines } from '@/utils/textWrap';
 import {
   getTemplateLineTextTop,
   getTemplateLineTypography,
-  getTemplateBlockTextInsets,
-  isPregnancyBirthQuestionnaireNarrowTailLineSlot,
-  shrinkFontSizeToFitSlot,
+  resolveTemplateLineFontSizeForText,
+  usesStrokeBaselineLayout,
+  usesPregnancyGuideRuledTextLayout,
 } from '@/utils/templateLineText';
 import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
 
@@ -1925,7 +1924,8 @@ const PREGNANCY_WEEKLY_CALIB: Readonly<
     pageWidth: 2126,
     pageHeight: 2835,
     boxRight: 2126,
-    lineHeightNorm: 0.032,
+    // Чуть выше полоса: Amatic Bold не клипает верх/низ цифр веса и обхвата.
+    lineHeightNorm: 0.038,
     weight: { valueX: 1419, topY: 542 },
     belly: { valueX: 1809, topY: 672 },
   },
@@ -1933,7 +1933,7 @@ const PREGNANCY_WEEKLY_CALIB: Readonly<
     pageWidth: 1796,
     pageHeight: 2528,
     boxRight: 1673,
-    lineHeightNorm: 0.038,
+    lineHeightNorm: 0.042,
     weight: { valueX: 1210, topY: 514 },
     belly: { valueX: 1527, topY: 618 },
   },
@@ -2197,7 +2197,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v68-pregnancy-phone-one-line',
+    'weekly-stroke-v69-weight-belly-noclip',
   ].join('|');
 }
 
@@ -2676,64 +2676,32 @@ export function layoutTextAnnotationFromSlot(
 ): Pick<Annotation, 'x' | 'y' | 'width' | 'height' | 'fontSize'> {
   const layout = layoutAnnotationFromSlot(slot);
   const inputKind = slot.inputKind ?? 'line';
-  const textTop = getTemplateLineTextTop(slot, fontSize, lineGuideId, undefined, undefined, fontId);
-  const typography = getTemplateLineTypography(
+  const effectiveFontSize = resolveTemplateLineFontSizeForText({
     fontSize,
+    slot,
+    lineGuideId,
+    fontId,
+    textContent,
+  });
+  const textTop = getTemplateLineTextTop(
+    slot,
+    effectiveFontSize,
+    lineGuideId,
+    undefined,
+    undefined,
+    fontId,
+  );
+  const typography = getTemplateLineTypography(
+    effectiveFontSize,
     slot.lineHeight,
     inputKind,
     lineGuideId,
   );
-  let effectiveFontSize = typography.fontSize;
-  if (
-    isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
-    textContent &&
-    slot.width > 0
-  ) {
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    const charWidth = effectiveFontSize * profile.charWidthRatio;
-    const neededWidth = textContent.length * charWidth;
-    if (neededWidth > slot.width) {
-      effectiveFontSize = Math.max(
-        9,
-        Math.floor(effectiveFontSize * (slot.width / neededWidth)),
-      );
-    }
-  } else if (
-    textContent &&
-    slot.width > 0 &&
-    isPregnancyBirthQuestionnaireNarrowTailLineSlot(lineGuideId, slot)
-  ) {
-    const insets = getTemplateBlockTextInsets(slot, lineGuideId);
-    const slotForFit = { ...slot, width: insets.width } as TextLineSlot;
-    effectiveFontSize = shrinkFontSizeToFitSlot(
-      effectiveFontSize,
-      slotForFit,
-      textContent,
-      lineGuideId,
-    );
-  } else if (
-    textContent &&
-    slot.width > 0 &&
-    (lineGuideId === 'diary_interior_purple' || lineGuideId === 'diary_interior_brown')
-  ) {
-    // Не сжимать шрифт по ВСЕМУ тексту поля относительно ширины первой (часто хвост) линии.
-    // Иначе «украшения» (хвост 0.19) превращает 16px в 11px и ломает перенос.
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    const charWidth = effectiveFontSize * profile.charWidthRatio;
-    const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.98);
-    const approxSingleLine = textContent.length * charWidth <= slackWidth * 1.35;
-    if (approxSingleLine) {
-      const neededWidth = textContent.length * charWidth;
-      if (neededWidth > slackWidth) {
-        effectiveFontSize = Math.max(
-          11,
-          Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
-        );
-      }
-    }
-  }
+  const usesStroke =
+    usesStrokeBaselineLayout(slot, lineGuideId) ||
+    usesPregnancyGuideRuledTextLayout(lineGuideId, slot);
   const rowHeight = Math.max(
-    typography.lineHeight,
+    usesStroke ? Math.ceil(effectiveFontSize * 1.18) : typography.lineHeight,
     effectiveFontSize * 1.05,
     slot.lineHeight,
   );

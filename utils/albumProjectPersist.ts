@@ -28,6 +28,15 @@ type PersistRunner = (payload: PersistPayload) => Promise<void>;
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const payloads = new Map<string, PersistPayload>();
 const runners = new Map<string, PersistRunner>();
+let widgetSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+function scheduleWidgetSync(): void {
+  if (widgetSyncTimer) clearTimeout(widgetSyncTimer);
+  widgetSyncTimer = setTimeout(() => {
+    widgetSyncTimer = null;
+    void syncWidgetSnapshot();
+  }, 2500);
+}
 
 export function cancelAlbumProjectPersist(projectId: string): void {
   const timer = timers.get(projectId);
@@ -74,7 +83,7 @@ export async function flushAlbumProjectPersist(projectId: string): Promise<boole
   payloads.delete(projectId);
   runners.delete(projectId);
   await run(payload);
-  void syncWidgetSnapshot();
+  scheduleWidgetSync();
   return true;
 }
 

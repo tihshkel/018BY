@@ -1,5 +1,5 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Platform,
   FlatList,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -38,6 +38,7 @@ export default function ProjectsScreen() {
   const categoryColumnCount = getGridColumnCount(layout);
   const gridListStyle = getGridListStyle(layout);
   const gridColumnWrapper = getGridColumnWrapperStyle(12);
+  const scrollRef = useRef<ScrollView>(null);
 
   const opacity = useSharedValue(0);
 
@@ -48,6 +49,13 @@ export default function ProjectsScreen() {
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
+
+  // Всегда показывать категории с начала списка (таб мог сохранить offset снизу)
+  useFocusEffect(
+    useCallback(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
+    }, [])
+  );
 
   const handleCategorySelect = (categoryId: string) => {
     router.push({
@@ -108,8 +116,10 @@ export default function ProjectsScreen() {
         </View>
 
         <ScrollView
+          ref={scrollRef}
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          contentOffset={{ x: 0, y: 0 }}
           contentContainerStyle={[
             styles.scrollContent,
             layout.isTablet && styles.scrollContentTablet,

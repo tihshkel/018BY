@@ -200,6 +200,19 @@ export const AlbumPageFormEditor = forwardRef<
     [setDraftField],
   );
 
+  const handleFieldTextAlignChange = useCallback(
+    (fieldId: string, align: 'left' | 'center' | 'right') => {
+      projectActions.commitPagePatch(instanceId, (prev) => ({
+        ...prev,
+        fieldTextAlign: {
+          ...(prev.fieldTextAlign ?? {}),
+          [fieldId]: align,
+        },
+      }));
+    },
+    [instanceId, projectActions],
+  );
+
   const handleCaptionChange = useCallback(
     (text: string) => {
       setDraftCaption(text);
@@ -287,6 +300,7 @@ export const AlbumPageFormEditor = forwardRef<
       projectId={projectId}
       instanceId={instanceId}
       onFieldChange={handleFieldChange}
+      onFieldTextAlignChange={handleFieldTextAlignChange}
       onCaptionChange={handleCaptionChange}
       onPhotoCaptionChange={handlePhotoCaptionChange}
       onSelectVariant={photoEditor.handleSelectVariant}
@@ -313,6 +327,7 @@ export const AlbumPageFormEditor = forwardRef<
       pageValues={editorPageValues}
       lineGuideId={lineGuideId}
       onFieldChange={handleFieldChange}
+      onFieldTextAlignChange={handleFieldTextAlignChange}
       onCaptionChange={handleCaptionChange}
       onPhotoCaptionChange={handlePhotoCaptionChange}
       onSelectVariant={photoEditor.handleSelectVariant}

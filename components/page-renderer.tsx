@@ -236,7 +236,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           fadeDuration={0}
           cachePolicy="disk"
           priority="high"
-          allowDownscaling
+          allowDownscaling={false}
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;

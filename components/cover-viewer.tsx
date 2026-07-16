@@ -1,4 +1,5 @@
 import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
+import { DEFAULT_ALBUM_TEXT_FONT_ID } from '@/constants/album-fonts';
 import { getAlbumTemplateById } from '@/albums';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import { getCoverImageUris } from '@/utils/coverImagesLoader';
@@ -352,7 +353,7 @@ export default function CoverViewer({
         } catch (_) {}
         const color = savedStyle?.color ?? defaultTextStyle?.color ?? lastTextStyle?.color ?? '#000000';
         const fontSize = savedStyle?.fontSize ?? defaultTextStyle?.fontSize ?? lastTextStyle?.fontSize ?? 16;
-        const fontFamily = getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily ?? 'default';
+        const fontFamily = getLastFontFamily?.() ?? savedStyle?.fontFamily ?? savedFont ?? defaultTextStyle?.fontFamily ?? lastTextStyle?.fontFamily ?? DEFAULT_ALBUM_TEXT_FONT_ID;
 
         const newAnnotation: Annotation = {
           id: createId('ann'),
@@ -364,7 +365,7 @@ export default function CoverViewer({
           content: 'Новый текст',
           color,
           fontSize,
-          fontFamily: fontFamily || 'default',
+          fontFamily: fontFamily || DEFAULT_ALBUM_TEXT_FONT_ID,
           zIndex: maxZIndex + 1,
           page: 'cover',
         };
