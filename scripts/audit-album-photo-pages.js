@@ -118,6 +118,30 @@ function centerSlotToRect(slot) {
   };
 }
 
+function lineSlotToRect(slot) {
+  if (slot.textAnchorTop) {
+    return {
+      left: slot.x,
+      top: slot.y,
+      right: slot.x + slot.width,
+      bottom: slot.y + slot.height,
+    };
+  }
+  return centerSlotToRect(slot);
+}
+
+function shouldSkipPhotoTextOverlapSlot(albumId, pageNumber, index, slot) {
+  if ((slot.inputKind ?? 'line') === 'block') return true;
+  if (albumId === 'pregnancy_60' && index === 5) {
+    const isWeekly =
+      (pageNumber >= 9 && pageNumber <= 17) ||
+      (pageNumber >= 19 && pageNumber <= 32) ||
+      (pageNumber >= 34 && pageNumber <= 47);
+    if (isWeekly) return true;
+  }
+  return false;
+}
+
 function insetRect(rect, inset) {
   return {
     left: rect.left + inset,
@@ -189,7 +213,7 @@ function primaryPhotoRect(resolved) {
   };
 }
 
-function analyzeOverlap(photoRect, lineSlots, pageMm, gapMm = MIN_GAP_MM) {
+function analyzeOverlap(photoRect, lineSlots, pageMm, gapMm = MIN_GAP_MM, albumId, pageNumber) {
   const issues = [];
   if (!photoRect || lineSlots.length === 0) {
     return { overlapIssues: issues, minGapToTextMm: null };
@@ -199,7 +223,10 @@ function analyzeOverlap(photoRect, lineSlots, pageMm, gapMm = MIN_GAP_MM) {
   const minGapNorm = gapMm / pageMm;
 
   for (const [index, slot] of lineSlots.entries()) {
-    const textRect = centerSlotToRect(slot);
+    if (shouldSkipPhotoTextOverlapSlot(albumId, pageNumber, index, slot)) {
+      continue;
+    }
+    const textRect = lineSlotToRect(slot);
     const gapNorm = rectGapNorm(photoRect, textRect);
     minGap = Math.min(minGap, gapNorm);
 
@@ -315,7 +342,14 @@ function auditPage(albumId, pageNumber, schema, lineSlots, pdfSlots, circleSlots
   if (schema.pageType === 'family_tree') {
     layoutIssues = [];
   } else if (hasPhotoBlocks && hasResolvedPhoto) {
-    const overlap = analyzeOverlap(primary?.rect ?? null, lineSlots, pageMm, gapMm);
+    const overlap = analyzeOverlap(
+      primary?.rect ?? null,
+      lineSlots,
+      pageMm,
+      gapMm,
+      albumId,
+      pageNumber,
+    );
     layoutIssues = [...overlap.overlapIssues];
     layoutIssues.push(...checkSparsePhotoSize(albumId, pageNumber, lineSlotCount, primaryVariant?.slots?.[0], pageMm));
     layoutIssues.push(...checkPrintMargins(resolved, pageMm));

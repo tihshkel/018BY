@@ -20,6 +20,8 @@ import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import {
+  resolveGodparentsNameViewportLayouts,
+  resolvePhotoCaptionGroupScale,
   resolvePhotoCaptionViewportLayouts,
   resolvePrimaryPhotoCaptionLayout,
 } from '@/utils/photoCaptionLayout';
@@ -43,6 +45,7 @@ import {
   appendBlankTemplateTextAnnotations,
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
+import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 /** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
@@ -56,15 +59,41 @@ function resolveFieldAnnotationTextAlign(
 ): 'left' | 'center' | 'right' {
   if (fieldStyle?.textAlign) return fieldStyle.textAlign;
   if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') return 'center';
+  // Дни рождения: короткие pill (вес/рост) — по центру;
+  // свободные страницы / многострочные подписи — с начала белого блока.
+  if (lineGuideId === 'holidays_birthday_60') {
+    if ((startSlot.inputKind ?? 'line') !== 'block') return 'left';
+    const isFreePageCaption =
+      (field.templateLineCount ?? 1) > 1 || /_field_\d+$/.test(field.fieldId);
+    return isFreePageCaption ? 'left' : 'center';
+  }
+  // «Твой день» — дата по центру над печатным «(ДАТА)».
+  if (
+    lineGuideId === 'diary_interior_brown' &&
+    field.type === 'date' &&
+    field.fieldId.endsWith('_date')
+  ) {
+    return 'center';
+  }
+  // Семейное дерево — короткие имена в узких внешних полосах, центр читается лучше.
+  if (lineGuideId === 'kids_48' && startSlot.page === 5) return 'center';
+  // Крестные — имена под фото, по центру кадра.
+  if (lineGuideId === 'kids_48' && startSlot.page === 21) return 'center';
+  // Достижения — дата слева от «(ДАТА)», по центру своего слота.
+  if (lineGuideId === 'kids_48' && startSlot.page === 13 && startSlot.index === 0) {
+    return 'center';
+  }
   return resolveBirthQuestionnaireBlockTextAlign(startSlot, lineGuideId);
 }
 
-const PURPLE_MY_DAY_PAGES = new Set([
-  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
-]);
-
-function isPurpleMyDayPage(lineGuideId: string, pageNumber: number): boolean {
-  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGES.has(pageNumber);
+function isKidsGodparentsPage(
+  lineGuideId: string,
+  schema: Pick<AlbumPageSchema, 'pageType' | 'sourcePageNumber'>,
+): boolean {
+  return (
+    lineGuideId === 'kids_48' &&
+    (schema.pageType === 'godparents_page' || schema.sourcePageNumber === 21)
+  );
 }
 
 function resolvePregnancyWeeklyFieldText(
@@ -90,44 +119,19 @@ function resolvePregnancyWeeklyFieldText(
   return values.fields[field.fieldId]?.trim() || null;
 }
 
-/** Фиолетовый «Твой день»: дата и текст «За сегодня» идут одним потоком по 5 строкам. */
-function resolvePurpleMyDayFieldText(
+/** Resolve structured field text (pregnancy weekly merges + plain diary fields). */
+function resolveStructuredFieldText(
   field: AlbumPageField,
   schema: AlbumPageSchema,
   values: PageValues,
   lineGuideId: string,
 ): string | null {
-  const weeklyText = resolvePregnancyWeeklyFieldText(
+  return resolvePregnancyWeeklyFieldText(
     field,
     values,
     lineGuideId,
     schema.sourcePageNumber,
   );
-  if (
-    isPregnancyWeeklyStructuredPage(lineGuideId, schema.sourcePageNumber) &&
-    field.fieldId.endsWith('_plans')
-  ) {
-    return weeklyText;
-  }
-
-  if (!isPurpleMyDayPage(lineGuideId, schema.sourcePageNumber)) {
-    return weeklyText;
-  }
-
-  if (field.fieldId.endsWith('_date')) {
-    return null;
-  }
-
-  if (field.fieldId.endsWith('_day_story')) {
-    const dateFieldId = field.fieldId.replace(/_day_story$/, '_date');
-    const dateText = values.fields[dateFieldId]?.trim() ?? '';
-    const storyText = values.fields[field.fieldId]?.trim() ?? '';
-    if (!dateText && !storyText) return null;
-    if (dateText && storyText) return `${dateText} ${storyText}`;
-    return dateText || storyText;
-  }
-
-  return values.fields[field.fieldId]?.trim() || null;
 }
 
 function slotTransformForAnnotation(
@@ -166,6 +170,101 @@ function buildSlotParams(
   };
 }
 
+function resolveEffectivePhotoCaptions(
+  schema: AlbumPageSchema,
+  lineGuideId: string,
+  values: PageValues,
+): (string | null)[] | undefined {
+  if (values.photoCaptions?.some((c) => Boolean(c?.trim()))) {
+    return values.photoCaptions;
+  }
+  if (
+    (usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId) ||
+      (isBlankTemplateLineGuide(lineGuideId) && schema.captionEnabled)) &&
+    values.caption?.trim()
+  ) {
+    return [values.caption];
+  }
+  return values.photoCaptions;
+}
+
+/** Подписи под фото blank — те же viewport-bands, что у designed (следуют за pinch). */
+function appendBlankPhotoCaptionsFollowingPhotos(params: {
+  schema: AlbumPageSchema;
+  values: PageValues;
+  lineGuideId: string;
+  viewportWidth: number;
+  viewportHeight: number;
+  sourceWidth?: number;
+  sourceHeight?: number;
+  editorContentRect: ReturnType<typeof getContentRect>;
+  fontSize: number;
+  textFontFamily: string;
+  zIndex: number;
+  annotations: Annotation[];
+}): number {
+  const {
+    schema,
+    values,
+    lineGuideId,
+    viewportWidth,
+    viewportHeight,
+    sourceWidth,
+    sourceHeight,
+    editorContentRect,
+    fontSize,
+    textFontFamily,
+    annotations,
+  } = params;
+  let zIndex = params.zIndex;
+
+  if (!schema.captionEnabled && schema.pageType !== 'caption_photo_page') {
+    return zIndex;
+  }
+
+  const effectivePhotoCaptions = resolveEffectivePhotoCaptions(schema, lineGuideId, values);
+  if (!effectivePhotoCaptions?.some((c) => Boolean(c?.trim()))) {
+    return zIndex;
+  }
+
+  const captionLayoutParams = {
+    schema,
+    values,
+    lineGuideId,
+    viewportWidth,
+    viewportHeight,
+    sourceWidth,
+    sourceHeight,
+    contentRect: editorContentRect,
+  };
+  const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
+  const captionScale = resolvePhotoCaptionGroupScale(captionLayoutParams);
+
+  for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
+    const text = effectivePhotoCaptions[i]?.trim();
+    if (!text) continue;
+    const layout = photoCaptionLayouts[i];
+    if (!layout) continue;
+    const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
+    const baseSize = fieldStyle?.fontSize ?? fontSize;
+    annotations.push({
+      id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, i),
+      type: 'text',
+      page: schema.sourcePageNumber,
+      content: text,
+      fontSize: baseSize * captionScale,
+      fontFamily: textFontFamily,
+      color: '#3D3D3D',
+      textAlign: fieldStyle?.textAlign ?? 'center',
+      zIndex: zIndex++,
+      sourcePageNumber: schema.sourcePageNumber,
+      ...layout,
+    });
+  }
+
+  return zIndex;
+}
+
 export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   const {
     lineGuideId,
@@ -201,11 +300,19 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   const annotations: Annotation[] = [];
   let zIndex = 1;
 
+  const godparentsNameFields: AlbumPageField[] = [];
+
   for (const field of schema.fields ?? []) {
     if (field.type === 'radio') continue;
     if (isBlankTemplate) continue;
 
-    const rawText = resolvePurpleMyDayFieldText(field, schema, values, lineGuideId);
+    // Имена крестных — под фото (ниже), не на фиксированных line slots.
+    if (isKidsGodparentsPage(lineGuideId, schema)) {
+      godparentsNameFields.push(field);
+      continue;
+    }
+
+    const rawText = resolveStructuredFieldText(field, schema, values, lineGuideId);
     if (!rawText) continue;
 
     const fieldStyle = values.fieldTextStyles?.[field.fieldId];
@@ -242,16 +349,90 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       type: 'text',
       page: schema.sourcePageNumber,
       content: text,
-      fontSize: fieldStyle?.fontSize ?? layout.fontSize ?? fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
+      // После ...layout: иначе layout.fontSize затирает стиль / дефолт альбома.
+      fontSize: fieldStyle?.fontSize ?? fontSize,
       textAlign: resolveFieldAnnotationTextAlign(field, startSlot, lineGuideId, fieldStyle),
       templateLineStart: lineSlotStart,
       templateLineCount: field.templateLineCount ?? 1,
     });
+  }
+
+  if (godparentsNameFields.length > 0) {
+    const nameLayouts = resolveGodparentsNameViewportLayouts(
+      {
+        schema,
+        values,
+        lineGuideId,
+        viewportWidth,
+        viewportHeight,
+        sourceWidth,
+        sourceHeight,
+        contentRect: editorContentRect,
+      },
+      godparentsNameFields.length,
+    );
+    const captionScale = resolvePhotoCaptionGroupScale({
+      schema,
+      values,
+      lineGuideId,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      contentRect: editorContentRect,
+    });
+
+    for (let i = 0; i < godparentsNameFields.length; i += 1) {
+      const field = godparentsNameFields[i];
+      const layout = nameLayouts[i];
+      if (!layout) continue;
+
+      const textValue = resolveStructuredFieldText(field, schema, values, lineGuideId);
+      if (!textValue?.trim()) continue;
+
+      const fieldStyle = values.fieldTextStyles?.[field.fieldId];
+      const characterLimit = getFieldCharacterLimit({
+        field,
+        lineGuideId,
+        sourcePageNumber: schema.sourcePageNumber,
+        viewportWidth,
+        viewportHeight,
+        fontId: textFontFamily,
+        fontSize: fieldStyle?.fontSize,
+      });
+      const text = clampFieldInput(field, textValue, characterLimit, {
+        lineGuideId,
+        sourcePageNumber: schema.sourcePageNumber,
+        fontId: textFontFamily,
+        fontSize: fieldStyle?.fontSize,
+      });
+      if (!text) continue;
+
+      const baseSize = fieldStyle?.fontSize ?? fontSize;
+      // Без templateLineStart — иначе export/preview привяжут к OCR-слотам и текст
+      // перестанет следовать за photoGroupTransform.
+      annotations.push({
+        id: stableAnnotationId('field', lineGuideId, schema.sourcePageNumber, field.fieldId),
+        type: 'text',
+        page: schema.sourcePageNumber,
+        content: text,
+        fontSize: baseSize * captionScale,
+        fontFamily: textFontFamily,
+        color: '#3D3D3D',
+        textAlign: fieldStyle?.textAlign ?? 'center',
+        zIndex: zIndex++,
+        sourcePageNumber: schema.sourcePageNumber,
+        x: layout.x,
+        y: layout.y,
+        width: layout.width,
+        height: layout.height,
+      });
+    }
   }
 
   if (schema.pageType === 'birthday_free_page' && !(schema.fields?.length)) {
@@ -527,7 +708,18 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  if (!isBlankTemplate && values.caption?.trim()) {
+  const designedPerPhotoCaptions = usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId);
+  const effectivePhotoCaptions = resolveEffectivePhotoCaptions(
+    schema,
+    lineGuideId,
+    values,
+  );
+
+  if (
+    !isBlankTemplate &&
+    values.caption?.trim() &&
+    !(designedPerPhotoCaptions && effectivePhotoCaptions?.some((c) => Boolean(c?.trim())))
+  ) {
     const captionStyle = values.captionTextStyle;
     const captionFontSize = captionStyle?.fontSize ?? fontSize;
     const captionLayoutParams = {
@@ -582,10 +774,10 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  if (!isBlankTemplate && values.photoCaptions?.length) {
+  if (!isBlankTemplate && effectivePhotoCaptions?.length) {
     const templateCaptions = appendTemplatePhotoCaptionAnnotations({
       schema,
-      values,
+      values: { ...values, photoCaptions: effectivePhotoCaptions },
       lineGuideId,
       editorContentRect,
       viewportHeight,
@@ -598,7 +790,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
 
     if (
       templateCaptions.annotations.length === 0 &&
-      values.photoCaptions?.length &&
+      effectivePhotoCaptions.length &&
       (schema.pageType === 'caption_photo_page' ||
         schema.pageType === 'photo' ||
         schema.captionEnabled)
@@ -615,42 +807,47 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
         contentRect: editorContentRect,
       };
       const photoCaptionLayouts = resolvePhotoCaptionViewportLayouts(captionLayoutParams);
+      const captionScale = resolvePhotoCaptionGroupScale(captionLayoutParams);
 
       const appendCaption = (
         index: number,
         text: string,
         layout: { x: number; y: number; width: number; height: number },
-        slotIndex = index,
+        options?: { templateLineStart?: number },
       ) => {
         const fieldStyle = values.fieldTextStyles?.[`caption${index + 1}`];
+        const baseSize = fieldStyle?.fontSize ?? fontSize;
+        // Under-photo captions must NOT set templateLineStart — otherwise preview/export
+        // snap them to OCR line slots and they stop following photoGroupTransform.
         annotations.push({
           id: stableAnnotationId('photo-caption', lineGuideId, schema.sourcePageNumber, index),
           type: 'text',
           page: schema.sourcePageNumber,
           content: text,
-          fontSize: fieldStyle?.fontSize ?? fontSize,
+          fontSize: baseSize * captionScale,
           fontFamily: textFontFamily,
           color: '#3D3D3D',
           textAlign: fieldStyle?.textAlign ?? 'center',
           zIndex: zIndex++,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,
-          templateLineStart: slotIndex,
-          templateLineCount: 1,
+          ...(typeof options?.templateLineStart === 'number'
+            ? { templateLineStart: options.templateLineStart, templateLineCount: 1 }
+            : {}),
         });
       };
 
       if (photoCaptionLayouts.length > 0) {
-        for (let i = 0; i < values.photoCaptions.length; i += 1) {
-          const text = values.photoCaptions[i]?.trim();
+        for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
+          const text = effectivePhotoCaptions[i]?.trim();
           if (!text) continue;
           const layout = photoCaptionLayouts[i];
           if (!layout) continue;
           appendCaption(i, text, layout);
         }
       } else if (labelSlots.length > 0) {
-        for (let i = 0; i < values.photoCaptions.length; i += 1) {
-          const text = values.photoCaptions[i]?.trim();
+        for (let i = 0; i < effectivePhotoCaptions.length; i += 1) {
+          const text = effectivePhotoCaptions[i]?.trim();
           if (!text) continue;
           const slot = labelSlots[i];
           if (!slot) continue;
@@ -658,7 +855,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
             i,
             text,
             layoutTextAnnotationFromSlot(slot, fontSize, lineGuideId),
-            slot.index,
+            { templateLineStart: slot.index },
           );
         }
       }
@@ -678,6 +875,21 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     });
     annotations.push(...textResult.annotations);
     zIndex = textResult.zIndex;
+
+    zIndex = appendBlankPhotoCaptionsFollowingPhotos({
+      schema,
+      values,
+      lineGuideId,
+      viewportWidth,
+      viewportHeight,
+      sourceWidth,
+      sourceHeight,
+      editorContentRect,
+      fontSize,
+      textFontFamily,
+      zIndex,
+      annotations,
+    });
 
     const freeResult = appendBlankTemplateFreeImageAnnotations({
       schema,

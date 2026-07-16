@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, type TextInput } from 'react-native';
 
-import { AppInput, type AppInputProps } from '@/components/ui';
+import { AppInput, type AppInputProps } from '@/components/ui/app-input';
 import { colors } from '@/constants/design-tokens';
 
 type AuthPasswordFieldProps = Omit<AppInputProps, 'secureTextEntry' | 'rightAccessory'> & {

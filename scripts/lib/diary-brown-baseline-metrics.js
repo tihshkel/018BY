@@ -6,7 +6,12 @@ const path = require('path');
 
 const CAP_HEIGHT_RATIO = 0.85;
 const FONT_SIZE = 16;
-const DIARY_LINE_FONT_OFFSET = 0.86;
+const DIARY_LINE_FONT_OFFSET = 0.78;
+const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
+
+function applyDiaryAmaticVisualSink(fontOffsetRatio) {
+  return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
+}
 
 const QUESTIONNAIRE_TEMPLATES = new Set([
   'GirlProfileTemplate',
@@ -41,12 +46,17 @@ function fitFontSize(lineHeight, inputKind = 'line') {
 }
 
 function resolveLineFontOffset(page, template, normY) {
-  if (QUESTIONNAIRE_TEMPLATES.has(template)) return 0.9;
-  if (template === 'MyDayTemplate') return 0.92;
-  if (template === 'SchoolLifeTemplate') return 0.9;
-  if (WEEKLY_TEMPLATES.has(template)) return 0.9;
-  if (page >= 45 && page <= 56) return 0.92;
-  return 0.92;
+  let offset = 0.92;
+  if (QUESTIONNAIRE_TEMPLATES.has(template)) offset = 0.93;
+  else if (template === 'MyDayTemplate') {
+    const isDateSlot = normY != null && normY <= 0.22;
+    offset = isDateSlot ? 0.86 : 0.94;
+  }
+  else if (template === 'MoodTemplate' || template === 'TravelTemplate') offset = 0.96;
+  else if (template === 'SchoolLifeTemplate') offset = 0.96;
+  else if (WEEKLY_TEMPLATES.has(template)) offset = 0.96;
+  else if (page >= 45 && page <= 56) offset = 0.92;
+  return applyDiaryAmaticVisualSink(offset);
 }
 
 function isBrownCoverField(normY) {
@@ -127,13 +137,14 @@ function getTextTop(slot, pageTemplates) {
     return lineY - fitted * 0.92;
   }
   if (isBrownWishSlot(slot.page, slot.normY, slot.hasLabel)) {
-    return lineY - fitted * 0.9;
+    return lineY - fitted * applyDiaryAmaticVisualSink(0.9);
   }
   if (isBrownCareerAnswerSlot(slot.page, slot.normY, slot.hasLabel)) {
-    return lineY - fitted * 0.9;
+    return lineY - fitted * applyDiaryAmaticVisualSink(0.9);
   }
 
-  return lineY - fitted * DIARY_LINE_FONT_OFFSET;
+  const templateOffset = resolveLineFontOffset(slot.page, pageTemplates?.[slot.page], slot.normY);
+  return lineY - fitted * (templateOffset ?? applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET));
 }
 
 function getBaselineY(slot, pageTemplates) {

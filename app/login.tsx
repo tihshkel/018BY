@@ -9,13 +9,13 @@ import {
 } from '@/utils/auth-session';
 import { ensureDefaultAvatar } from '@/utils/user-avatar';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 
 import { AuthErrorBanner } from '@/components/auth/auth-error-banner';
 import { AuthFooterLink, AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { AuthPasswordField } from '@/components/auth/auth-password-field';
-import { AppButton, AppCard, AppInput, AppText, SocialAuthButtons } from '@/components/ui';
+import { AppButton, AppInput, AppText, SocialAuthButtons } from '@/components/ui';
 import { colors, spacing } from '@/constants/design-tokens';
 
 export default function LoginScreen() {
@@ -27,11 +27,6 @@ export default function LoginScreen() {
 
   const emailRef = useRef<TextInput | null>(null);
   const passwordRef = useRef<TextInput | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => emailRef.current?.focus(), 240);
-    return () => clearTimeout(timer);
-  }, []);
 
   const navigateAfterAuth = async () => {
     const restored = await restoreLocalAccountKeysFromSupabase();
@@ -94,20 +89,22 @@ export default function LoginScreen() {
     }
   };
 
+  const busy = isSubmitting || !!socialLoading;
+
   return (
     <AuthScreenLayout
       title="Вход"
-      subtitle="Войдите, чтобы продолжить работу с альбомами и экспортом."
+      subtitle="Продолжите работу с альбомами"
       showBack={router.canGoBack()}
       footer={
         <AuthFooterLink
           prefix="Нет аккаунта?"
-          actionLabel="Зарегистрироваться"
+          actionLabel="Регистрация"
           onPress={() => router.push('/register' as never)}
         />
       }
     >
-      <AppCard style={styles.formCard}>
+      <View style={styles.form}>
         <AppInput
           ref={emailRef}
           testID="login-email"
@@ -130,21 +127,23 @@ export default function LoginScreen() {
           label="Пароль"
           value={password}
           onChangeText={setPassword}
-          placeholder="Введите пароль"
+          placeholder="Пароль"
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="done"
           onSubmitEditing={handleSubmit}
         />
 
-        <View style={styles.forgotRow}>
-          <Pressable onPress={() => router.push('/forgot-password' as never)} hitSlop={8}>
-            <AppText variant="bodySm" style={styles.forgotLink}>
-              Забыли пароль?
-            </AppText>
-          </Pressable>
-        </View>
-      </AppCard>
+        <Pressable
+          onPress={() => router.push('/forgot-password' as never)}
+          hitSlop={8}
+          style={styles.forgotRow}
+        >
+          <AppText variant="bodySm" style={styles.forgotLink}>
+            Забыли пароль?
+          </AppText>
+        </Pressable>
+      </View>
 
       {errorText ? <AuthErrorBanner message={errorText} /> : null}
 
@@ -153,35 +152,50 @@ export default function LoginScreen() {
         title="Войти"
         onPress={handleSubmit}
         loading={isSubmitting}
-        disabled={isSubmitting || !!socialLoading}
+        disabled={busy}
       />
+
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <AppText variant="caption" style={styles.dividerText}>
+          или
+        </AppText>
+        <View style={styles.dividerLine} />
+      </View>
 
       <SocialAuthButtons
         mode="login"
-        disabled={isSubmitting || !!socialLoading}
+        disabled={busy}
         loadingProvider={socialLoading}
         onGooglePress={() => handleSocialSignIn('google')}
         onApplePress={() => handleSocialSignIn('apple')}
-        style={styles.socialButtons}
+        showDivider={false}
       />
     </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  formCard: {
-    padding: spacing.md,
-    gap: spacing.md,
+  form: {
+    gap: spacing.sm,
   },
   forgotRow: {
-    alignItems: 'flex-end',
-    marginTop: -4,
+    alignSelf: 'flex-end',
   },
   forgotLink: {
-    color: colors.primary,
-    fontWeight: '600',
+    color: colors.textSecondary,
   },
-  socialButtons: {
-    marginTop: 0,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textSecondary,
   },
 });

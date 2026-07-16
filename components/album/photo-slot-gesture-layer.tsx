@@ -254,6 +254,7 @@ function PhotoSlotFilled({
           source={{ uri }}
           style={styles.image}
           contentFit="cover"
+          recyclingKey={uri}
           onError={() => {
             if (!isRemotePhotoUri(uri)) {
               onRemovePhoto?.();

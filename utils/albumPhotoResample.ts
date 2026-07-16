@@ -1,7 +1,7 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 
 import { ALBUM_DESIGN_DPI } from '@/utils/exportPageDimensions';
-import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import { resolvePageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
 import { MAX_PHOTO_SCALE } from '@/utils/photoSlotTransform';
@@ -166,7 +166,11 @@ export async function resamplePhotoForAlbumStorage(
       format: ImageManipulator.SaveFormat.JPEG,
     });
     if (result?.uri) {
-      return normalizeFileUri(result.uri);
+      const outUri = normalizeFileUri(result.uri);
+      if (result.width > 0 && result.height > 0) {
+        setPageSourceSize(outUri, { width: result.width, height: result.height });
+      }
+      return outUri;
     }
   } catch (error) {
     console.warn('[resamplePhotoForAlbumStorage] failed, keeping source URI', error);
@@ -182,7 +186,11 @@ async function normalizePhotoOrientationOnly(sourceUri: string): Promise<string>
       format: ImageManipulator.SaveFormat.JPEG,
     });
     if (result?.uri) {
-      return normalizeFileUri(result.uri);
+      const outUri = normalizeFileUri(result.uri);
+      if (result.width > 0 && result.height > 0) {
+        setPageSourceSize(outUri, { width: result.width, height: result.height });
+      }
+      return outUri;
     }
   } catch (error) {
     console.warn('[normalizePhotoOrientationOnly] failed, keeping source URI', error);

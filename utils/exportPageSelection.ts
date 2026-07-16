@@ -265,7 +265,7 @@ export function filterProjectDataForExport(params: {
     if (!schema) continue;
 
     const baseImageUri =
-      resolveExportPageImageUri(images, instance, templatePageUris) ??
+      resolveExportPageImageUri(images, instance, templatePageUris, lineGuideId) ??
       blankPageUri ??
       null;
     if (!baseImageUri) continue;

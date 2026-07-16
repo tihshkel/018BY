@@ -18,6 +18,7 @@ import {
   expandDesignedAlbumCollageVariants,
   expandManualSparseLayouts,
   resolveKidsPhotoPageLayouts,
+  shouldExpandSparseBandLayouts,
   slotToSafeZone,
 } from '@/utils/sparseTextPhotoSafeZone';
 import { getTemplatePhotoLayouts } from '@/utils/resolveTemplatePageLayout';
@@ -83,7 +84,8 @@ function resolveDesignedAlbumLayouts(
   manual: PhotoPageLayouts | undefined,
 ): PhotoPageLayouts | undefined {
   if (lineGuideId === 'kids_48') {
-    return resolveKidsPhotoPageLayouts(page, pdf);
+    const kids = resolveKidsPhotoPageLayouts(page, pdf);
+    return kids ? finalizeLayouts(kids, lineGuideId, page) : undefined;
   }
 
   if (!hasSparsePhotoConfig(lineGuideId) || usesBlankPagePhotoFallback(lineGuideId)) {
@@ -92,6 +94,12 @@ function resolveDesignedAlbumLayouts(
 
   if (pdf?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
     if (!isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+      const primarySlot = pdf.variants[0]?.slots[0];
+      // bottom/upper band (+ mixed с нижней PDF-рамкой): expand в пустоту, не pin.
+      if (shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot)) {
+        const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
+        if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
+      }
       const standard = buildStandardDesignedAlbumLayouts(pdf);
       if (standard) return finalizeLayouts(standard, lineGuideId, page);
       return finalizeLayouts(pdf, lineGuideId, page);
@@ -104,6 +112,11 @@ function resolveDesignedAlbumLayouts(
   }
 
   if (manual?.variants?.length) {
+    const primarySlot = manual.variants[0]?.slots[0];
+    if (shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot)) {
+      const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, manual);
+      if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
+    }
     const expanded = expandManualSparseLayouts(lineGuideId, page, manual);
     if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
   }

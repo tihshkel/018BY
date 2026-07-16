@@ -48,7 +48,8 @@ function resolveLayoutVariantId(variantId: string): string {
 const STRUCTURED_VARIANT_ALIASES: Record<string, string[]> = {
   one_horizontal: ['one_horizontal', 'one_large', 'template'],
   one_large: ['one_large', 'one_horizontal', 'template'],
-  two_photos: ['two_photos', 'two_vertical', 'two_horizontal'],
+  two_photos: ['two_photos', 'two_horizontal', 'two_vertical'],
+  two_horizontal: ['two_horizontal', 'two_photos', 'two_vertical'],
   two_vertical: ['two_vertical', 'two_photos', 'two_horizontal'],
   four_vertical: ['four_vertical', 'four_grid'],
   four_grid: ['four_grid', 'four_vertical'],
@@ -58,13 +59,18 @@ function resolvePageLayoutVariant(
   pageLayouts: PhotoPageLayouts,
   variantId: string,
 ): PhotoPageLayouts['variants'][number] | undefined {
+  // Точный id важнее alias: two_horizontal (стеки 4:3) не должен
+  // подменяться на two_vertical («башни»), если стек есть в layouts.
+  const exact = pageLayouts.variants.find((variant) => variant.variantId === variantId);
+  if (exact) return exact;
+
   const resolvedVariantId = resolveLayoutVariantId(variantId);
   const candidates = [
     resolvedVariantId,
-    variantId,
     ...(STRUCTURED_VARIANT_ALIASES[resolvedVariantId] ?? []),
+    ...(STRUCTURED_VARIANT_ALIASES[variantId] ?? []),
   ];
-  const seen = new Set<string>();
+  const seen = new Set<string>([variantId]);
   for (const id of candidates) {
     if (seen.has(id)) continue;
     seen.add(id);

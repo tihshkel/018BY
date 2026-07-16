@@ -157,13 +157,23 @@ export function hasVariantPreviewManifest(
   lineGuideId: string,
   sourcePageNumber: number,
 ): boolean {
-  if (usesGlobalLayoutPreviews(lineGuideId)) {
-    return Object.keys(globalLayoutPreviewManifest).length > 0;
+  const legacyManifest = LEGACY_MANIFESTS[lineGuideId];
+  if (legacyManifest) {
+    const entry = legacyManifest[String(sourcePageNumber)];
+    return !!entry && Object.keys(entry).length > 0;
   }
-  const manifest = LEGACY_MANIFESTS[lineGuideId];
-  if (!manifest) return false;
-  const entry = manifest[String(sourcePageNumber)];
-  return !!entry && Object.keys(entry).length > 0;
+
+  if (PREVIEW_VARIANT_ALBUM_FOLDERS[lineGuideId]) {
+    return (
+      resolveConventionalPerPageVariantUri({
+        lineGuideId,
+        sourcePageNumber,
+        variantId: null,
+      }) != null
+    );
+  }
+
+  return false;
 }
 
 /** Per-page variant PNG without «Место для фото» — not global layout chips. */

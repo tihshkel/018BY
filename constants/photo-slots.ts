@@ -38,18 +38,29 @@ const PREGNANCY_PHOTO_SAFE: SafeZone = {
 };
 
 const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.08,
-  y: 0.2,
-  width: 0.84,
-  height: 0.6,
+  x: 0.05,
+  y: 0.18,
+  width: 0.9,
+  height: 0.64,
 };
 
-const BLANK_PAGE_SAFE: SafeZone = {
-  x: 0.1,
-  y: 0.15,
-  width: 0.8,
-  height: 0.7,
+/** 15 mm print margins — sync with getBlankPagePhotoSafe(180, 240). */
+const BLANK_PAGE_SAFE_18X24: SafeZone = {
+  x: 15 / 180,
+  y: 15 / 240,
+  width: 1 - 30 / 180,
+  height: 1 - 30 / 240,
 };
+
+/** 15 mm print margins — sync with getBlankPagePhotoSafe(210, 210). */
+const BLANK_PAGE_SAFE_21X21: SafeZone = {
+  x: 15 / 210,
+  y: 15 / 210,
+  width: 1 - 30 / 210,
+  height: 1 - 30 / 210,
+};
+
+const BLANK_PAGE_SAFE = BLANK_PAGE_SAFE_18X24;
 
 const FULL_PHOTO_TEMPLATES = [
   'one_large',
@@ -94,8 +105,8 @@ function eventPhotoLayouts(): PhotoPageLayouts {
 
 export { EVENT_PHOTO_TEMPLATES, eventPhotoLayouts };
 
-function blankPageLayouts(): PhotoPageLayouts {
-  return layoutsFromTemplates(BLANK_PAGE_SAFE, FULL_PHOTO_TEMPLATES);
+function blankPageLayouts(safeZone: SafeZone = BLANK_PAGE_SAFE): PhotoPageLayouts {
+  return layoutsFromTemplates(safeZone, FULL_PHOTO_TEMPLATES);
 }
 
 /** Fallback for photo/event pages without explicit profile */
@@ -106,8 +117,11 @@ function eventPages(pages: number[]): Record<string, PhotoPageLayouts> {
   return Object.fromEntries(pages.map((p) => [String(p), layout]));
 }
 
-function blankAlbumPages(count: number): Record<string, PhotoPageLayouts> {
-  const layout = blankPageLayouts();
+function blankAlbumPages(
+  count: number,
+  safeZone: SafeZone = BLANK_PAGE_SAFE_18X24,
+): Record<string, PhotoPageLayouts> {
+  const layout = blankPageLayouts(safeZone);
   return Object.fromEntries(
     Array.from({ length: count }, (_, i) => [String(i + 1), layout]),
   );
@@ -295,6 +309,7 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   },
   pregnancy_a5: {
     '46': pregnancyPhotoLayouts(),
+    '47': pregnancyPhotoLayouts(),
     '48': pregnancyPhotoLayouts(),
   },
     kids_48: {
@@ -1583,9 +1598,9 @@ export const PHOTO_SLOTS: Record<string, Record<string, PhotoPageLayouts>> = {
   diary_interior_brown: {
     '5': blankPageLayouts(),
   },
-  family_blank: blankAlbumPages(20),
-  holidays_blank: blankAlbumPages(20),
-  family_blank_21x21: blankAlbumPages(20),
+  family_blank: blankAlbumPages(20, BLANK_PAGE_SAFE_18X24),
+  holidays_blank: blankAlbumPages(20, BLANK_PAGE_SAFE_18X24),
+  family_blank_21x21: blankAlbumPages(20, BLANK_PAGE_SAFE_21X21),
 };
 
 export function getPhotoPageLayouts(

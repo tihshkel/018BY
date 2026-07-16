@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
-import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
+import { resolvePageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { applyPhotoSlotTransform, DEFAULT_PHOTO_SLOT_TRANSFORM } from '@/utils/photoSlotTransform';
 
@@ -14,7 +14,8 @@ type PhotoSlotCropPreviewProps = {
 
 /**
  * Read-only crop from the form editor — no slot gestures.
- * Used in final preview so only the photo block scale/position can change.
+ * Preview/export: cover-fill the slot (no letterbox empty half for portrait photos).
+ * Zoom-in crop (scale > 1) is preserved; scale < 1 is upgraded to cover.
  */
 export function PhotoSlotCropPreview({
   uri,
@@ -34,14 +35,27 @@ export function PhotoSlotCropPreview({
     };
   }, [uri]);
 
-  const innerStyle = useMemo(() => {
-    if (slotSize.width <= 0 || slotSize.height <= 0) return null;
-    const displayTransform = resolvePhotoSlotTransformForDisplay(
+  const displayTransform = useMemo(() => {
+    if (slotSize.width <= 0 || slotSize.height <= 0) {
+      return resolvePhotoSlotTransformForDisplay(transform, 1, 1, undefined, {
+        fillLetterbox: true,
+      });
+    }
+    return resolvePhotoSlotTransformForDisplay(
       transform,
       slotSize.width,
       slotSize.height,
       imageAspect > 0 ? imageAspect : undefined,
+      { fillLetterbox: true },
     );
+  }, [imageAspect, slotSize.height, slotSize.width, transform]);
+
+  const scale = displayTransform.scale ?? 1;
+  const isZoomedIn = scale > 1.02;
+
+  const innerStyle = useMemo(() => {
+    if (!isZoomedIn || slotSize.width <= 0 || slotSize.height <= 0) return null;
+
     const rect = applyPhotoSlotTransform(
       { x: 0, y: 0, width: slotSize.width, height: slotSize.height },
       displayTransform,
@@ -53,7 +67,7 @@ export function PhotoSlotCropPreview({
       width: rect.width,
       height: rect.height,
     };
-  }, [imageAspect, slotSize.height, slotSize.width, transform]);
+  }, [displayTransform, imageAspect, isZoomedIn, slotSize.height, slotSize.width]);
 
   return (
     <View
@@ -68,10 +82,34 @@ export function PhotoSlotCropPreview({
     >
       {innerStyle ? (
         <View style={[styles.inner, innerStyle]}>
-          <Image source={{ uri }} style={styles.image} contentFit="cover" />
+          <Image
+            source={{ uri }}
+            style={styles.image}
+            contentFit="cover"
+            recyclingKey={uri}
+            onLoad={(event) => {
+              const { width, height } = event.source;
+              if (width > 0 && height > 0) {
+                setPageSourceSize(uri, { width, height });
+                setImageAspect(width / height);
+              }
+            }}
+          />
         </View>
       ) : (
-        <Image source={{ uri }} style={styles.fallback} contentFit="cover" />
+        <Image
+          source={{ uri }}
+          style={styles.fallback}
+          contentFit="cover"
+          recyclingKey={uri}
+          onLoad={(event) => {
+            const { width, height } = event.source;
+            if (width > 0 && height > 0) {
+              setPageSourceSize(uri, { width, height });
+              setImageAspect(width / height);
+            }
+          }}
+        />
       )}
     </View>
   );
@@ -79,7 +117,7 @@ export function PhotoSlotCropPreview({
 
 const styles = StyleSheet.create({
   wrap: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
   inner: {
@@ -91,7 +129,6 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   fallback: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
 });

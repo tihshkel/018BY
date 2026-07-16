@@ -4,8 +4,7 @@
  * node scripts/verify-pregnancy-weekly-distribute.js
  */
 const LINE_SLOTS = require('../constants/line-slots.json');
-
-const { applyPregnancy60WeeklyLineSlotOverrides } = require('./pregnancy-60-weekly-line-slot-overrides');
+const { buildWeeklyPageFields } = require('./pregnancy-60-field-specs');
 
 const COMPACT = 0.035;
 const PITCH = 0.0412;
@@ -161,6 +160,69 @@ assert(
 assert(
   slots[2].x > slots[3].x + INLINE_TAIL_MIN_X_GAP,
   'plans inline tail slot is to the right of body line left edge',
+);
+
+const a5Raw = LINE_SLOTS.pregnancy_a5['5'];
+const a5Guides = require('../constants/line-guides.json').pregnancy_a5['5'];
+const a5Slots = refineWeeklyNorms(a5Raw, a5Guides, 5).map((slot, index) => ({
+  ...slot,
+  index,
+}));
+const a5PlansField = resolveWeeklyFieldLineSlots(a5Slots, 3, 3, 5);
+const a5FeelingsField = resolveWeeklyFieldLineSlots(a5Slots, 7, 3, 5);
+const a5PlansSchemaField = buildWeeklyPageFields('pregnancy_a5', 5, a5Raw).find(
+  (field) => field.fieldId === 'pregnancy_a5_p5_plans',
+);
+
+assert(
+  a5PlansField.map((slot) => slot.index).join(',') === '2,3,4',
+  `A5 plans field slots: ${a5PlansField.map((slot) => slot.index).join(',')}`,
+);
+assert(
+  a5PlansSchemaField?.templateLineCount === 3,
+  `A5 plans schema uses all 3 printed lines, got ${a5PlansSchemaField?.templateLineCount}`,
+);
+assert(
+  a5FeelingsField.map((slot) => slot.index).join(',') === '6,7,8',
+  `A5 feelings field slots: ${a5FeelingsField.map((slot) => slot.index).join(',')}`,
+);
+assert(
+  Math.abs(guides[3] - guides[2] - PITCH) < 0.003 &&
+    Math.abs(guides[4] - guides[3] - PITCH) < 0.003,
+  'pregnancy_60 plans use consecutive printed strokes',
+);
+assert(
+  Math.abs(guides[8] - guides[7] - PITCH) < 0.003 &&
+    Math.abs(guides[9] - guides[8] - PITCH) < 0.003,
+  'pregnancy_60 feelings use consecutive printed strokes',
+);
+assert(
+  Math.abs(a5Guides[3] - a5Guides[2] - PITCH) < 0.003 &&
+    Math.abs(a5Guides[4] - a5Guides[3] - PITCH) < 0.003,
+  'pregnancy_a5 plans use consecutive printed strokes',
+);
+assert(
+  Math.abs(a5Guides[7] - a5Guides[6] - PITCH) < 0.003 &&
+    Math.abs(a5Guides[8] - a5Guides[7] - PITCH) < 0.003,
+  'pregnancy_a5 feelings use consecutive printed strokes',
+);
+assert(
+  Math.abs(a5PlansField[0].x - a5Raw[2].x) < 0.00001 &&
+    Math.abs(a5PlansField[0].width - a5Raw[2].width) < 0.00001,
+  'A5 plans inline tail starts after label and ends at stroke edge',
+);
+assert(
+  Math.abs(guides[0] - raw[0].y) < 0.00001,
+  'pregnancy_60 date baseline uses the printed stroke at the top of the date band',
+);
+assert(
+  Math.abs(a5Guides[0] - a5Raw[0].y) < 0.00001,
+  'pregnancy_a5 date baseline uses the printed stroke at the top of the date band',
+);
+assert(
+  Math.abs(plansField[0].x - raw[2].x) < 0.00001 &&
+    Math.abs(plansField[0].width - raw[2].width) < 0.00001,
+  'pregnancy_60 plans inline tail starts after label and ends at stroke edge',
 );
 
 if (failed) process.exit(1);

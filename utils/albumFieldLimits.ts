@@ -3,22 +3,41 @@ import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import type { AlbumPageField, AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import {
   getMeasurementDigitLimit,
+  isKids48GrowthPageMeasurementField,
+  sanitizeKids48GrowthMeasurementInput,
   sanitizeMeasurementInput,
 } from '@/utils/albumMeasurementFields';
 import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
+import { getDefaultPageAspectRatio } from '@/utils/exportViewport';
 import { getLineSlotsForPage, resolveWeeklyFieldLineSlots } from '@/utils/textLineSlots';
 import { clampTextToFieldLines } from '@/utils/templateLineText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { usesTemplateLineTextEditing } from '@/utils/albumImages';
+import { EDITOR_PAGE_VIEWPORT_WIDTH } from '@/utils/responsive';
 
-/** Эталонная ширина PDF-растра — лимит не зависит от ширины телефона. */
-export const FIELD_LIMIT_REFERENCE_VIEWPORT = { width: 2480, height: 2480 };
+/**
+ * Эталон лимитов = coordinate space редактора/экспорта (~390×aspect).
+ * Шрифт designed-альбомов фиксирован (~16pt), поэтому считать ёмкость на 2480×2480
+ * завышает лимит в ~6 раз относительно превью и PDF.
+ */
+export function getFieldLimitReferenceViewport(lineGuideId?: string): {
+  width: number;
+  height: number;
+} {
+  const width = EDITOR_PAGE_VIEWPORT_WIDTH;
+  const aspect = getDefaultPageAspectRatio({ lineGuideId });
+  return { width, height: Math.round(width * aspect) };
+}
 
+/** @deprecated Prefer getFieldLimitReferenceViewport(lineGuideId). */
+export const FIELD_LIMIT_REFERENCE_VIEWPORT = getFieldLimitReferenceViewport();
+
+/** Проза с пробелами — ближе к реальному вводу, чем сплошные ЗАГЛАВНЫЕ. */
 const FIELD_LIMIT_PROBE_CYRILLIC =
-  'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789. '.repeat(20);
+  'Много отдыхать и радоваться жизни хочу купить арбуз и устроить пикник на выходных. '.repeat(20);
 
 type FieldLimitParams = {
   field: AlbumPageField;
@@ -34,6 +53,13 @@ function resolveLayoutFontSize(lineGuideId: string, requested?: number | null): 
   const profile = getTemplateTypographyProfile(lineGuideId);
   const base = profile.fixedLineFontSize ?? 16;
   if (requested == null) return base;
+  // Дневник: лимит символов должен следовать выбранному A+/A−.
+  if (
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  ) {
+    return Math.min(Math.max(requested, 10), 28);
+  }
   if (profile.fixedLineFontSize != null) {
     return Math.min(requested, profile.fixedLineFontSize);
   }
@@ -80,7 +106,8 @@ function computeLayoutCharacterLimit(
     measureTextWidth,
   });
 
-  return clamped.length;
+  // Небольшой запас: пробельный ввод вмещает чуть больше, чем средний probe.
+  return Math.ceil(clamped.length * 1.1);
 }
 
 type LayoutClampParams = {
@@ -102,11 +129,12 @@ export function clampFieldInputToLineLayout(params: LayoutClampParams): string {
   const sanitized = sanitizeFieldInput(field.type, text);
   if (!sanitized) return sanitized;
 
+  const referenceViewport = getFieldLimitReferenceViewport(lineGuideId);
   const slots = getLineSlotsForPage({
     lineGuideId,
     page: sourcePageNumber,
-    viewportWidth: FIELD_LIMIT_REFERENCE_VIEWPORT.width,
-    viewportHeight: FIELD_LIMIT_REFERENCE_VIEWPORT.height,
+    viewportWidth: referenceViewport.width,
+    viewportHeight: referenceViewport.height,
   });
   if (slots.length === 0) return sanitized;
 
@@ -124,18 +152,6 @@ export function clampFieldInputToLineLayout(params: LayoutClampParams): string {
     fontId: normalizedFontId,
     measureTextWidth: resolveMeasureTextWidth(normalizedFontId),
   });
-}
-
-function getKids48FieldLimit(params: FieldLimitParams): number | undefined {
-  if (params.lineGuideId !== 'kids_48') {
-    return undefined;
-  }
-
-  if (params.sourcePageNumber === 5 && params.field.type === 'text') {
-    return params.field.maxLength ?? 28;
-  }
-
-  return undefined;
 }
 
 function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
@@ -161,6 +177,11 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
 }
 
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
+  if (isKids48GrowthPageMeasurementField(params.field)) {
+    // «12,50» / «52,5»
+    return 5;
+  }
+
   const measurementLimit = getMeasurementDigitLimit(params.field);
   if (measurementLimit != null) {
     return measurementLimit;
@@ -171,18 +192,14 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     return birthdayLimit;
   }
 
-  const kids48Limit = getKids48FieldLimit(params);
-  if (kids48Limit != null) {
-    return kids48Limit;
-  }
-
   const typeLimit = getFieldMaxLength(params.field.type);
   if (params.field.type === 'date' || params.field.type === 'time') {
     return typeLimit;
   }
 
-  const viewportWidth = params.viewportWidth ?? FIELD_LIMIT_REFERENCE_VIEWPORT.width;
-  const viewportHeight = params.viewportHeight ?? FIELD_LIMIT_REFERENCE_VIEWPORT.height;
+  const referenceViewport = getFieldLimitReferenceViewport(params.lineGuideId);
+  const viewportWidth = params.viewportWidth ?? referenceViewport.width;
+  const viewportHeight = params.viewportHeight ?? referenceViewport.height;
   const layoutLimit = computeLayoutCharacterLimit(
     params.field,
     params.lineGuideId,
@@ -194,9 +211,12 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
   );
 
   if (params.lineGuideId === 'kids_48' && params.field.type === 'text') {
-    const limits = [params.field.maxLength, typeLimit].filter(
-      (limit): limit is number => limit != null,
-    );
+    // p5 семейное дерево: всегда учитываем узкую полосу у круга.
+    const limits = [
+      params.field.maxLength,
+      typeLimit,
+      ...(params.sourcePageNumber === 5 ? [layoutLimit] : []),
+    ].filter((limit): limit is number => limit != null);
     if (limits.length === 0) return layoutLimit;
     return Math.min(...limits);
   }
@@ -214,6 +234,10 @@ export function clampFieldInput(
   limit?: number,
   layoutClamp?: Omit<LayoutClampParams, 'field' | 'text'>,
 ): string {
+  if (isKids48GrowthPageMeasurementField(field)) {
+    return sanitizeKids48GrowthMeasurementInput(field, text);
+  }
+
   const measurementLimit = getMeasurementDigitLimit(field);
   if (measurementLimit != null) {
     const effectiveLimit = limit ?? measurementLimit;

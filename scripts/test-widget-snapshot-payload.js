@@ -101,6 +101,7 @@ for (const field of [
   'weeklyInsight',
   'instanceId: string',
   'unfinishedPages',
+  'albumsCount',
   'todayNotifications',
   'latestNotification',
   'unreadTodayCount',
@@ -137,12 +138,17 @@ for (const rel of swiftPaths) {
     'let weeklyInsight: String?',
     'let instanceId: String',
     'let unfinishedPages: Int?',
+    'albumsCount',
     'todayNotifications',
     'latestNotification',
     'unreadTodayCount',
     'static let notifications',
+    'static let setPdr',
+    'daysUntilPdrLabel',
+    'albumsCountLabel',
     'album-page-form',
     'app018by://my-stories',
+    'paper-album-notifications',
   ]) {
     assert(swift.includes(field), `${rel}: contains ${field}`);
   }

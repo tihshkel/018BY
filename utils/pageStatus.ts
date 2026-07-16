@@ -3,6 +3,7 @@ import type {
   PageStatus,
   PageValues,
 } from '@/types/album-page-schema';
+import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -309,7 +310,11 @@ export function getMissingPageItems(
     }
   }
 
-  if (schema.pageType === 'caption_photo_page') {
+  if (
+    schema.pageType === 'caption_photo_page' ||
+    (schema.lineGuideId === 'kids_48' &&
+      usesDesignedAlbumPerPhotoCaptions(schema, schema.lineGuideId))
+  ) {
     const block = schema.photoBlocks?.[0];
     const blockValues = block ? values?.photoBlocks[block.blockId] : undefined;
     const variant =

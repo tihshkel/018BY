@@ -114,6 +114,11 @@ export function AppDateField({
     } else if (onStringChange) {
       onStringChange(formatAlbumDate(date));
     }
+    // После выбора даты скрываем календарь (кроме embedded — там он всегда в контенте).
+    if (!embedded) {
+      setInlineOpen(false);
+      setSheetVisible(false);
+    }
   };
 
   const openPicker = () => {

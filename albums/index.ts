@@ -1,8 +1,8 @@
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
 import {
-  getWeddingCoverPickerDescription,
-  getWeddingCoverPickerTitle,
-  WEDDING_COVER_DESIGNS,
+    getWeddingCoverPickerDescription,
+    getWeddingCoverPickerTitle,
+    WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
 
 export interface PhotoPosition {
@@ -158,6 +158,17 @@ export const albumTemplates: AlbumTemplate[] = [
     sections: [],
   },
   // Дополнительные альбомы DFA (Фотоальбом от 0 до 1 года)
+  {
+    id: 'kids_48',
+    name: 'Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр',
+    description: 'Детский фотоальбом 48 страниц в мягкой обложке',
+    category: 'kids',
+    pages: 48,
+    pdfPath: githubRawFileUrl('assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр.pdf'),
+    thumbnailPath: require('../assets/images/albums/DFA7.png'),
+    hasPdfTemplate: true,
+    sections: [],
+  },
   {
     id: 'dfa_7',
     name: 'Фотоальбом от 0 до 1 года',

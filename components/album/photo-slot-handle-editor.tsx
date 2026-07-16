@@ -346,6 +346,7 @@ function PhotoSlotHandleFilled({
           source={{ uri }}
           style={styles.image}
           contentFit="cover"
+          recyclingKey={uri}
           onError={() => {
             if (!isRemotePhotoUri(uri)) {
               onRemovePhoto?.();
@@ -516,7 +517,6 @@ export function PhotoSlotHandleEditor({
       transform={transform}
       gesturesEnabled={gesturesEnabled}
       chromeStyle={chromeStyle}
-      onPressEmpty={onPressEmpty}
       onReplacePhoto={onReplacePhoto}
       onRemovePhoto={onRemovePhoto}
       onTransformChange={onTransformChange}

@@ -2,6 +2,10 @@ import { useMemo } from 'react';
 
 import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { Annotation } from '@/components/pdf-annotations';
+import {
+  KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX,
+  KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM,
+} from '@/constants/album-text-margins';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { pageValuesToAnnotations } from '@/utils/pageValuesAdapter';
@@ -31,6 +35,11 @@ export function usePageAnnotationsForLayout({
   debounceMs = 0,
 }: UsePageAnnotationsForLayoutParams): Annotation[] {
   const debouncedValues = useDebouncedValue(values, debounceMs);
+  // Fast Refresh: смена раскладки имён дерева должна пересобрать аннотации.
+  const familyTreeNameLayoutKey =
+    lineGuideId === 'kids_48'
+      ? `${JSON.stringify(KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX)}:${KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM}`
+      : '';
 
   return useMemo(() => {
     const resolvedValues = debounceMs > 0 ? debouncedValues : values;
@@ -53,6 +62,7 @@ export function usePageAnnotationsForLayout({
   }, [
     debounceMs,
     debouncedValues,
+    familyTreeNameLayoutKey,
     instance,
     lineGuideId,
     schema,

@@ -2,13 +2,18 @@ import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
   distributeTextWithinContinuationGroup,
   getActiveEditSlotIndex,
+  getTemplateBlockTextInsets,
   getTemplateLineRowInsets,
   getTemplateLineTextTop,
   getTemplateLineTypography,
   getWishSlotInputKind,
   getSlotTemplateTextAlign,
   mergeActiveLineEdit,
+  resolvePregnancyWeeklyFieldRowLayout,
+  resolveTemplateLineRowLayout,
   resolveTemplateLineFontSize,
+  resolveTemplateTextRenderBox,
+  shouldClipPregnancyWeeklyFieldRow,
   truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
@@ -98,7 +103,16 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
       map.set(segment.slotIndex, displayContent);
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
-  }, [allSlots, fontId, fontSize, lineGuideId, measureTextWidth, startSlotIndex, value]);
+  }, [
+    allSlots,
+    fontId,
+    fontSize,
+    lineGuideId,
+    measureTextWidth,
+    slotsToRender.length,
+    startSlotIndex,
+    value,
+  ]);
 
   const activeInputSlotIndex = useMemo(
     () => getActiveEditSlotIndex(segments, startSlotIndex),
@@ -123,7 +137,17 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
         })
       );
     },
-    [activeInputSlotIndex, allSlots, fontId, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [
+      activeInputSlotIndex,
+      allSlots,
+      fontId,
+      fontSize,
+      lineGuideId,
+      onChangeText,
+      slotsToRender.length,
+      startSlotIndex,
+      value,
+    ]
   );
 
   useEffect(() => {
@@ -169,6 +193,33 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           wishInputKind,
           lineGuideId
         );
+        const usesWeeklyFieldLayout = shouldClipPregnancyWeeklyFieldRow(
+          lineSlot,
+          lineGuideId,
+          allSlots,
+        );
+        const rowLayout = usesWeeklyFieldLayout
+          ? resolveTemplateLineRowLayout({
+              lineSlot,
+              fontSize: rowFontSize,
+              lineGuideId,
+              lineSlots: allSlots,
+              fieldStartIndex: startSlotIndex,
+              fontId,
+            })
+          : null;
+        const textInsets = getTemplateBlockTextInsets(lineSlot, lineGuideId, allSlots);
+        const renderBox = usesWeeklyFieldLayout
+          ? resolvePregnancyWeeklyFieldRowLayout(
+              lineSlot,
+              lineText,
+              lineGuideId,
+              allSlots,
+              rowFontSize,
+              fontId,
+              measureTextWidth,
+            )
+          : resolveTemplateTextRenderBox(lineSlot, textInsets);
 
         return (
           <View
@@ -176,10 +227,10 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
             style={[
               styles.host,
               {
-                left: lineSlot.x,
-                top: textTop - viewportTopInset,
-                width: lineSlot.width,
-                height: lineTypography.inputHeight + viewportTopInset,
+                left: renderBox.viewLeft,
+                top: rowLayout?.rowViewTop ?? textTop - viewportTopInset,
+                width: renderBox.viewWidth,
+                height: rowLayout?.rowViewHeight ?? lineTypography.inputHeight + viewportTopInset,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}
@@ -195,9 +246,10 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: rowLineHeight,
-                    height: rowLineHeight,
-                    top: textTopInset,
-                    width: lineSlot.width,
+                    height: rowLayout?.lineHeight ?? rowLineHeight,
+                    top: rowLayout?.rowTextTop ?? textTopInset,
+                    left: renderBox.textLeft,
+                    width: renderBox.textWidth,
                     textAlign: rowTextAlign,
                   },
                 ]}
@@ -229,8 +281,9 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
                     lineHeight: rowLineHeight,
-                    top: textTopInset,
-                    width: lineSlot.width,
+                    top: rowLayout?.rowTextTop ?? textTopInset,
+                    left: renderBox.textLeft,
+                    width: renderBox.textWidth,
                     textAlign: rowTextAlign,
                   },
                 ]}

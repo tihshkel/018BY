@@ -2,7 +2,7 @@ import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import type { ContentRect } from '@/utils/imageContentRect';
 import {
   computePhotoBlockLayout,
-  resolvePhotoBlockRect,
+  resolvePhotoBlockSlotRects,
   type ViewportRect,
 } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -51,11 +51,18 @@ function resolveBlockPhotoZoneRects(
   block: NonNullable<AlbumPageSchema['photoBlocks']>[number],
   variant: NonNullable<AlbumPageSchema['photoBlocks']>[number]['variants'][number],
 ): ViewportRect[] {
+  const rawSlots = params.values.photoBlocks?.[block.blockId]?.slots ?? [];
+  // Dense slot list so caption index i always matches photo slot i (even if some empty).
+  const slotUris = Array.from({ length: variant.slots }, (_, slotIndex) => {
+    const uri = rawSlots[slotIndex];
+    return uri && uri.trim() ? uri : `__caption_slot_${slotIndex}`;
+  });
+
   const blockLayout = computePhotoBlockLayout({
     lineGuideId: params.lineGuideId,
     sourcePageNumber: params.schema.sourcePageNumber,
     variantId: variant.variantId,
-    slotUris: params.values.photoBlocks?.[block.blockId]?.slots ?? [],
+    slotUris,
     viewportWidth: params.viewportWidth,
     viewportHeight: params.viewportHeight,
     sourceWidth: params.sourceWidth,
@@ -66,12 +73,17 @@ function resolveBlockPhotoZoneRects(
 
   if (blockLayout) {
     const groupTransform = params.values.photoGroupTransform;
-    return [
-      resolvePhotoBlockRect(
-        blockLayout.baseBlock,
-        isNonDefaultPhotoSlotTransform(groupTransform) ? groupTransform : null,
-      ),
-    ];
+    const transform = isNonDefaultPhotoSlotTransform(groupTransform)
+      ? groupTransform
+      : null;
+    const resolved = resolvePhotoBlockSlotRects(blockLayout, transform);
+    const byIndex = new Map(resolved.map((slot) => [slot.slotIndex, slot.rect]));
+    const rects: ViewportRect[] = [];
+    for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
+      const rect = byIndex.get(slotIndex);
+      if (rect) rects.push(rect);
+    }
+    if (rects.length === variant.slots) return rects;
   }
 
   if (variant.slots === 1) {

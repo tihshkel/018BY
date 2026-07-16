@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
+
 import { getSupabase } from '@/lib/supabase';
 import { setAccountSyncId } from '@/utils/account-identity';
 import { getAccountFromSupabase, saveAccountToSupabase } from '@/utils/supabase-account';
@@ -202,7 +205,58 @@ export async function signInWithEmailPassword(params: {
 
 /** Redirect URL для OAuth (добавьте в Supabase → Authentication → URL configuration). */
 export function getOAuthRedirectUrl(): string {
-  return Linking.createURL('/');
+  // Стабильный path; scheme из app.json → `app018by://auth/callback`
+  return Linking.createURL('auth/callback');
+}
+
+function isExpoGoRuntime(): boolean {
+  return Constants.executionEnvironment === 'storeClient';
+}
+
+async function signInWithBrowserOAuth(
+  provider: OAuthProvider
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  }
+
+  const redirectTo = getOAuthRedirectUrl();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+      ...(provider === 'google'
+        ? { queryParams: { access_type: 'offline', prompt: 'select_account' } }
+        : {}),
+    },
+  });
+
+  if (error) {
+    return { success: false, error: error.message || 'OAUTH_START_FAILED' };
+  }
+  if (!data?.url) {
+    return { success: false, error: 'OAUTH_URL_MISSING' };
+  }
+
+  if (Platform.OS === 'android') {
+    try {
+      await WebBrowser.warmUpAsync();
+    } catch {
+      // optional
+    }
+  }
+
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+  if (result.type === 'cancel' || result.type === 'dismiss') {
+    return { success: false, error: 'OAUTH_CANCELLED' };
+  }
+  if (result.type !== 'success' || !result.url) {
+    return { success: false, error: 'OAUTH_FAILED' };
+  }
+
+  return completeOAuthFromRedirectUrl(result.url);
 }
 
 async function completeOAuthFromRedirectUrl(url: string): Promise<{ success: boolean; error?: string }> {
@@ -278,6 +332,36 @@ export function mapOAuthErrorMessage(
   if (error === 'GOOGLE_DEVELOPER_ERROR' || error?.includes('DEVELOPER_ERROR')) {
     return 'Google Sign-In: неверная настройка Android (SHA-1). Добавьте отпечаток debug-сборки в Google Cloud → Credentials → 018BY Android.';
   }
+  if (error === 'APPLE_NATIVE_UNAVAILABLE' || error === 'APPLE_ID_TOKEN_MISSING') {
+    return 'Вход через Apple недоступен на этом устройстве. Попробуйте email или Google.';
+  }
+
+  const normalized = (error ?? '').toLowerCase();
+  if (
+    normalized.includes('provider is not enabled') ||
+    normalized.includes('unsupported provider')
+  ) {
+    return (
+      'Вход через Google/Apple не включён в Supabase. ' +
+      'Dashboard → Authentication → Providers → включите Google и Apple и сохраните Client ID / Secret.'
+    );
+  }
+  if (
+    normalized.includes('unexpected_failure') ||
+    normalized.includes('unexpected failure')
+  ) {
+    return (
+      'Ошибка сервера входа (Supabase). Проверьте Client ID и Secret у провайдера Google/Apple ' +
+      'и Redirect URL: app018by://auth/callback.'
+    );
+  }
+  if (normalized.includes('redirect_uri') || normalized.includes('redirect uri')) {
+    return (
+      'Redirect URL не совпадает с настройками Supabase. ' +
+      'Добавьте app018by://auth/callback в Authentication → URL Configuration.'
+    );
+  }
+
   if (error && error.length > 0) {
     const prefix = mode === 'signUp' ? 'Не удалось зарегистрироваться' : 'Не удалось войти';
     return `${prefix}: ${error}`;
@@ -288,45 +372,47 @@ export function mapOAuthErrorMessage(
 export async function signInWithOAuthProvider(
   provider: OAuthProvider
 ): Promise<{ success: boolean; error?: string }> {
-  if (provider === 'google') {
-    const { canUseNativeGoogleSignIn, signInWithGoogleNative } = await import(
-      '@/utils/google-native-sign-in'
-    );
-    if (canUseNativeGoogleSignIn()) {
-      return signInWithGoogleNative();
+  // Нативный Google (dev/production client). При сбое — браузерный OAuth.
+  if (provider === 'google' && !isExpoGoRuntime() && Platform.OS !== 'web') {
+    try {
+      const { canUseNativeGoogleSignIn, signInWithGoogleNative } = await import(
+        '@/utils/google-native-sign-in'
+      );
+      if (canUseNativeGoogleSignIn()) {
+        const native = await signInWithGoogleNative();
+        if (native.success || native.error === 'OAUTH_CANCELLED') {
+          return native;
+        }
+        if (__DEV__) {
+          console.warn('[auth-session] native Google failed, browser fallback:', native.error);
+        }
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[auth-session] native Google unavailable:', err);
     }
   }
 
-  const supabase = getSupabase();
-  if (!supabase) {
-    return { success: false, error: 'SUPABASE_NOT_CONFIGURED' };
+  // Нативный Sign in with Apple (iOS). При сбое — браузерный OAuth.
+  if (provider === 'apple' && Platform.OS === 'ios' && !isExpoGoRuntime()) {
+    try {
+      const { canUseNativeAppleSignIn, signInWithAppleNative } = await import(
+        '@/utils/apple-native-sign-in'
+      );
+      if (await canUseNativeAppleSignIn()) {
+        const native = await signInWithAppleNative();
+        if (native.success || native.error === 'OAUTH_CANCELLED') {
+          return native;
+        }
+        if (__DEV__) {
+          console.warn('[auth-session] native Apple failed, browser fallback:', native.error);
+        }
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[auth-session] native Apple unavailable:', err);
+    }
   }
 
-  const redirectTo = getOAuthRedirectUrl();
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-    },
-  });
-
-  if (error) {
-    return { success: false, error: error.message || 'OAUTH_START_FAILED' };
-  }
-  if (!data?.url) {
-    return { success: false, error: 'OAUTH_URL_MISSING' };
-  }
-
-  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-  if (result.type === 'cancel' || result.type === 'dismiss') {
-    return { success: false, error: 'OAUTH_CANCELLED' };
-  }
-  if (result.type !== 'success' || !result.url) {
-    return { success: false, error: 'OAUTH_FAILED' };
-  }
-
-  return completeOAuthFromRedirectUrl(result.url);
+  return signInWithBrowserOAuth(provider);
 }
 
 /** @deprecated Используйте signInWithEmailPassword; поле username = email. */

@@ -5,14 +5,19 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import type { Annotation } from '@/components/pdf-annotations';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
-import { AVAILABLE_FONTS, getAlbumFontFamilyName } from '@/constants/album-fonts';
+import {
+  AVAILABLE_FONTS,
+  getAlbumFontFamilyName,
+} from '@/constants/album-fonts';
+import { BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { getTemplateBlockCharWidthRatio } from '@/utils/templateTextLayout';
 import { useDevRenderCount } from '@/hooks/use-dev-render-count';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { getCachedPageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import {
   getLineSlotsForPage,
-  isPregnancyWeeklyStructuredPage,
   resolveWeeklyFieldLineSlots,
 } from '@/utils/textLineSlots';
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
@@ -63,7 +68,11 @@ function WrappedTemplateText({
   const boxHeight = Math.max(fontSize, height || fontSize * 2);
   const lineHeight = fontSize * 1.2;
   const maxLines = maxLinesForBoxHeight(boxHeight, fontSize);
-  const lines = wrapTextToLines(content, boxWidth, fontSize).slice(0, maxLines);
+  const charWidthRatio = getTemplateBlockCharWidthRatio(fontFamily);
+  const lines = wrapTextToLines(content, boxWidth, fontSize, {
+    charWidthRatio,
+    paddingPx: 4,
+  }).slice(0, maxLines);
 
   return (
     <>
@@ -198,27 +207,14 @@ function ReadOnlyPageAnnotationsInner({
           const usesTemplateLineSlots = typeof annotation.templateLineStart === 'number';
           const startIndex = annotation.templateLineStart ?? 0;
           const slotCount = annotation.templateLineCount ?? 1;
-          const isWeeklyMultilineField =
-            slotCount > 1 &&
-            lineGuideId &&
-            lineSlots != null &&
-            isPregnancyWeeklyStructuredPage(
-              lineGuideId,
-              lineSlots[startIndex]?.page ?? sourcePageNumber ?? 0,
-            );
-
           const fieldSlots =
-            usesTemplateLineSlots && lineSlots != null
-              ? isWeeklyMultilineField
-                ? resolveWeeklyFieldLineSlots(
-                    lineSlots,
-                    startIndex,
-                    slotCount,
-                    lineGuideId,
-                  )
-                : lineSlots[startIndex]
-                  ? [lineSlots[startIndex]]
-                  : []
+            usesTemplateLineSlots && lineSlots != null && slotCount > 0
+              ? resolveWeeklyFieldLineSlots(
+                  lineSlots,
+                  startIndex,
+                  slotCount,
+                  lineGuideId,
+                )
               : [];
 
           const effectiveFieldSlots =
@@ -254,12 +250,11 @@ function ReadOnlyPageAnnotationsInner({
               measureTextWidth,
             });
 
-            const linesToRender = (slotCount > 1 && isWeeklyMultilineField
-              ? segments
-              : segments.filter((segment) =>
-                  effectiveFieldSlots.some((slot) => slot.index === segment.slotIndex),
-                )
-            )
+            const fieldSlotIndices = new Set(
+              effectiveFieldSlots.map((slot) => slot.index),
+            );
+            const linesToRender = segments
+              .filter((segment) => fieldSlotIndices.has(segment.slotIndex))
               .map((segment) => {
                 const lineSlot = lineSlots?.[segment.slotIndex];
                 const content = segment.content?.trim();
@@ -329,6 +324,11 @@ function ReadOnlyPageAnnotationsInner({
                     row.lineSlot.inlineLabelTail && !annotation.textAlign
                       ? 'left'
                       : rowTextAlign;
+                  // Без ширины RN игнорирует center/right; для left на stroke-строках
+                  // ширину не задаём — длинные даты (зубы) могут выйти за слот.
+                  const needsAlignBoxWidth =
+                    textAlign === 'center' || textAlign === 'right';
+                  const textBoxWidth = renderBox.textWidth || row.lineSlot.width;
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
@@ -357,8 +357,12 @@ function ReadOnlyPageAnnotationsInner({
                             fontFamily,
                             lineHeight: rowLayout.lineHeight,
                             textAlign: textAlign,
-                            width: renderBox.textWidth || row.lineSlot.width,
-                            maxWidth: renderBox.textWidth || row.lineSlot.width,
+                            ...(!rowLayout.overflowVisible || needsAlignBoxWidth
+                              ? {
+                                  width: textBoxWidth,
+                                  maxWidth: textBoxWidth,
+                                }
+                              : {}),
                             includeFontPadding: false,
                           },
                         ]}
@@ -419,9 +423,13 @@ function ReadOnlyPageAnnotationsInner({
         const circleRadius = isCircle
           ? Math.min(annotation.width, annotation.height) / 2
           : 0;
-        const circleClipStyle = isCircle
-          ? { borderRadius: circleRadius, overflow: 'hidden' as const }
-          : undefined;
+        const rectRadius = isBlankTemplateLineGuide(lineGuideId ?? '')
+          ? BLANK_ALBUM_PHOTO_RADIUS
+          : radii.sm;
+        const photoClipStyle = {
+          borderRadius: isCircle ? circleRadius : rectRadius,
+          overflow: 'hidden' as const,
+        };
 
         if (!annotation.imageUri && annotation.fillColor) {
           const fillSize = isCircle
@@ -486,6 +494,7 @@ function ReadOnlyPageAnnotationsInner({
                 annotation.width,
                 annotation.height,
                 imageAspect,
+                { fillLetterbox: true },
               );
               const inner = applyPhotoSlotTransform(
                 { x: 0, y: 0, width: annotation.width, height: annotation.height },
@@ -516,12 +525,12 @@ function ReadOnlyPageAnnotationsInner({
             ]}
             pointerEvents="none"
           >
-            <View style={[styles.imageClip, circleClipStyle]}>
+            <View style={[styles.imageClip, photoClipStyle]}>
               {innerStyle ? (
-                <View style={[styles.imageInner, innerStyle]}>
+                <View style={[styles.imageInner, photoClipStyle, innerStyle]}>
                   <Image
                     source={{ uri: annotation.imageUri }}
-                    style={styles.imageFill}
+                    style={[styles.imageFill, photoClipStyle]}
                     contentFit={annotation.imageContentFit ?? 'cover'}
                     cachePolicy="disk"
                     transition={0}
@@ -535,7 +544,7 @@ function ReadOnlyPageAnnotationsInner({
               ) : (
                 <Image
                   source={{ uri: annotation.imageUri }}
-                  style={styles.imageFill}
+                  style={[styles.imageFill, photoClipStyle]}
                   contentFit={annotation.imageContentFit ?? 'cover'}
                   cachePolicy="disk"
                   transition={0}

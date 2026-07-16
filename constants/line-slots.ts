@@ -12,6 +12,9 @@ export type NormalizedLineSlot = {
   textAnchorTop?: boolean;
   lineStrokeAtBottom?: boolean;
   teethDate?: boolean;
+  /** kids_48 date lines: y is printed stroke, not band top. */
+  strokeAtNormY?: boolean;
+  inlineLabelTail?: boolean;
 };
 
 export const LINE_SLOTS = {
@@ -345,154 +348,222 @@ export const LINE_SLOTS = {
     "4": [
       {
         "x": 0.35709,
-        "y": 0.16734,
+        "y": 0.12078,
         "width": 0.35453,
         "height": 0.04656,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.33791,
-        "y": 0.2139,
+        "y": 0.17047,
         "width": 0.23911,
         "height": 0.04343,
         "hasLabel": true,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.63916,
-        "y": 0.21482,
+        "y": 0.17139,
         "width": 0.25009,
         "height": 0.04343,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.35577,
-        "y": 0.25421,
+        "y": 0.2156,
         "width": 0.53451,
-        "height": 0.03972,
+        "height": 0.038,
         "hasLabel": true,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
         "continuationGroup": 4
       },
       {
         "x": 0.11419,
-        "y": 0.29427,
+        "y": 0.2559,
         "width": 0.77608,
-        "height": 0.03065,
+        "height": 0.038,
         "hasLabel": false,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
         "continuationGroup": 4
       },
       {
-        "x": 0.16221,
-        "y": 0.31551,
-        "width": 0.67557,
-        "height": 0.06042,
+        "x": 0.11419,
+        "y": 0.2559,
+        "width": 0.77608,
+        "height": 0.038,
         "hasLabel": false,
-        "continuationGroup": 4
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
+        "continuationGroup": 99
       },
       {
         "x": 0.22272,
-        "y": 0.41511,
+        "y": 0.34617,
         "width": 0.61256,
         "height": 0.06894,
         "hasLabel": true,
-        "continuationGroup": 5
+        "continuationGroup": 5,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.2683,
-        "y": 0.45338,
+        "y": 0.41473,
         "width": 0.56699,
         "height": 0.03865,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.37733,
-        "y": 0.49242,
+        "y": 0.46131,
         "width": 0.45795,
         "height": 0.03111,
         "hasLabel": true,
-        "continuationGroup": 7
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.16221,
-        "y": 0.51559,
+        "y": 0.45069,
         "width": 0.67557,
         "height": 0.0649,
         "hasLabel": false,
-        "continuationGroup": 7
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.16698,
-        "y": 0.62222,
+        "y": 0.55106,
         "width": 0.32034,
         "height": 0.07116,
         "hasLabel": true,
-        "continuationGroup": 8
+        "continuationGroup": 8,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.54852,
-        "y": 0.62222,
+        "y": 0.55106,
         "width": 0.32034,
         "height": 0.07116,
         "hasLabel": true,
-        "continuationGroup": 9
+        "continuationGroup": 9,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.16698,
-        "y": 0.65791,
+        "y": 0.62127,
         "width": 0.32034,
         "height": 0.03664,
         "hasLabel": true,
-        "continuationGroup": 10
+        "continuationGroup": 10,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.54852,
-        "y": 0.65791,
+        "y": 0.62127,
         "width": 0.32034,
         "height": 0.03664,
         "hasLabel": true,
-        "continuationGroup": 11
+        "continuationGroup": 11,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.16698,
-        "y": 0.6955,
+        "y": 0.61991,
         "width": 0.32034,
         "height": 0.07559,
         "hasLabel": true,
-        "continuationGroup": 12
+        "continuationGroup": 12,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.54852,
-        "y": 0.6955,
+        "y": 0.61991,
         "width": 0.32034,
         "height": 0.07559,
         "hasLabel": true,
-        "continuationGroup": 13
+        "continuationGroup": 13,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.1132,
-        "y": 0.80909,
+        "y": 0.77026,
         "width": 0.77359,
-        "height": 0.07607,
-        "hasLabel": false,
+        "height": 0.03855,
+        "hasLabel": true,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
         "continuationGroup": 14
       },
       {
         "x": 0.1132,
-        "y": 0.84764,
+        "y": 0.80878,
         "width": 0.77359,
         "height": 0.03855,
         "hasLabel": false,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
         "continuationGroup": 14
       },
       {
         "x": 0.1132,
-        "y": 0.8862,
+        "y": 0.84729,
         "width": 0.77359,
         "height": 0.03855,
         "hasLabel": false,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
+        "continuationGroup": 14
+      },
+      {
+        "x": 0.1132,
+        "y": 0.88598,
+        "width": 0.77359,
+        "height": 0.03855,
+        "hasLabel": false,
+        "inputKind": "line",
+        "textAnchorTop": true,
+        "lineStrokeAtBottom": true,
         "continuationGroup": 14
       }
     ],
@@ -4946,10 +5017,10 @@ export const LINE_SLOTS = {
     "51": [],
     "52": [
       {
-        "x": 0.4511,
-        "y": 0.1708,
-        "width": 0.4453,
-        "height": 0.0418,
+        "x": 0.4445,
+        "y": 0.1382,
+        "width": 0.4433,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -4957,10 +5028,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.3827,
-        "y": 0.2126,
-        "width": 0.1033,
-        "height": 0.0428,
+        "x": 0.3776,
+        "y": 0.1793,
+        "width": 0.1087,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -4968,10 +5039,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 2
       },
       {
-        "x": 0.7044,
-        "y": 0.2126,
-        "width": 0.1913,
-        "height": 0.0428,
+        "x": 0.6923,
+        "y": 0.1793,
+        "width": 0.1948,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -4979,10 +5050,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.1522,
-        "y": 0.2565,
-        "width": 0.2365,
-        "height": 0.0434,
+        "x": 0.1521,
+        "y": 0.22240000000000001,
+        "width": 0.239,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -4990,10 +5061,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.5444,
-        "y": 0.2572,
+        "x": 0.5358,
+        "y": 0.22319999999999998,
         "width": 0.3522,
-        "height": 0.0434,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5001,10 +5072,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 5
       },
       {
-        "x": 0.6783,
-        "y": 0.2993,
-        "width": 0.2175,
-        "height": 0.0412,
+        "x": 0.6667,
+        "y": 0.2646,
+        "width": 0.2205,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5012,10 +5083,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 6
       },
       {
-        "x": 0.2167,
-        "y": 0.3396,
-        "width": 0.6799,
-        "height": 0.041,
+        "x": 0.2152,
+        "y": 0.3042,
+        "width": 0.6728,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5023,10 +5094,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 7
       },
       {
-        "x": 0.6636,
-        "y": 0.3812,
-        "width": 0.2327,
-        "height": 0.035,
+        "x": 0.6523,
+        "y": 0.3452,
+        "width": 0.2353,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5034,73 +5105,73 @@ export const LINE_SLOTS = {
         "continuationGroup": 8
       },
       {
-        "x": 0.1077,
-        "y": 0.48829999999999996,
-        "width": 0.4275,
-        "height": 0.1576,
+        "x": 0.1162,
+        "y": 0.48855,
+        "width": 0.4182,
+        "height": 0.1551,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 9
       },
       {
-        "x": 0.181,
-        "y": 0.46840000000000004,
-        "width": 0.1343,
-        "height": 0.025,
+        "x": 0.1879,
+        "y": 0.469,
+        "width": 0.1313,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 10
       },
       {
-        "x": 0.3936,
-        "y": 0.46950000000000003,
-        "width": 0.1215,
-        "height": 0.025,
+        "x": 0.3959,
+        "y": 0.47,
+        "width": 0.1189,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 11
       },
       {
-        "x": 0.1824,
-        "y": 0.4329,
-        "width": 0.0333,
-        "height": 0.025,
+        "x": 0.1893,
+        "y": 0.434,
+        "width": 0.0326,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 12
       },
       {
-        "x": 0.3725,
-        "y": 0.4329,
-        "width": 0.0333,
-        "height": 0.025,
+        "x": 0.3753,
+        "y": 0.434,
+        "width": 0.0326,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 13
       },
       {
-        "x": 0.2932,
-        "y": 0.5075999999999999,
-        "width": 0.222,
-        "height": 0.025,
+        "x": 0.2977,
+        "y": 0.5075,
+        "width": 0.2171,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 14
       },
       {
-        "x": 0.2088,
-        "y": 0.5463,
-        "width": 0.3064,
-        "height": 0.025,
+        "x": 0.2151,
+        "y": 0.5455,
+        "width": 0.2997,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 15
       },
       {
-        "x": 0.6229,
-        "y": 0.5448,
-        "width": 0.2606,
-        "height": 0.025,
+        "x": 0.6203,
+        "y": 0.5441,
+        "width": 0.255,
+        "height": 0.0246,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 16
@@ -5150,10 +5221,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 20
       },
       {
-        "x": 0.3336,
-        "y": 0.6212000000000001,
-        "width": 0.5587,
-        "height": 0.0478,
+        "x": 0.3295,
+        "y": 0.5812999999999999,
+        "width": 0.5542,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5161,10 +5232,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 22
       },
       {
-        "x": 0.4703,
-        "y": 0.6627000000000001,
-        "width": 0.4219,
-        "height": 0.0415,
+        "x": 0.4633,
+        "y": 0.622,
+        "width": 0.4204,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5172,10 +5243,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 23
       },
       {
-        "x": 0.5476,
-        "y": 0.7042,
-        "width": 0.3428,
-        "height": 0.0423,
+        "x": 0.5389,
+        "y": 0.6628,
+        "width": 0.343,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5183,10 +5254,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 24
       },
       {
-        "x": 0.4145,
-        "y": 0.7473000000000001,
-        "width": 0.4805,
-        "height": 0.0428,
+        "x": 0.4087,
+        "y": 0.7052999999999999,
+        "width": 0.4777,
+        "height": 0.038,
         "hasLabel": true,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5194,10 +5265,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 25
       },
       {
-        "x": 0.1048,
-        "y": 0.7897,
-        "width": 0.7902,
-        "height": 0.0423,
+        "x": 0.1134,
+        "y": 0.747,
+        "width": 0.773,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5205,10 +5276,10 @@ export const LINE_SLOTS = {
         "continuationGroup": 25
       },
       {
-        "x": 0.1048,
-        "y": 0.8321,
-        "width": 0.7902,
-        "height": 0.0423,
+        "x": 0.1134,
+        "y": 0.7886,
+        "width": 0.773,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
@@ -5451,7 +5522,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5459,7 +5533,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5467,7 +5544,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5475,7 +5555,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5483,7 +5566,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5491,7 +5577,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03935,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5499,7 +5588,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03935,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5507,7 +5599,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5515,7 +5610,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5523,7 +5621,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5531,7 +5632,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5539,7 +5643,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.04094,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5547,7 +5654,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.04094,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5555,7 +5665,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5563,7 +5676,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5571,7 +5687,10 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.1173,
@@ -5579,7 +5698,21 @@ export const LINE_SLOTS = {
         "width": 0.76691,
         "height": 0.03942,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.1173,
+        "y": 0.88555,
+        "width": 0.76691,
+        "height": 0.03942,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ]
   },
@@ -6055,7 +6188,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.61246,
@@ -6063,7 +6199,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6071,7 +6209,10 @@ export const LINE_SLOTS = {
         "width": 0.21833,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6079,7 +6220,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6087,7 +6231,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.61246,
@@ -6095,7 +6242,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6103,7 +6252,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6111,7 +6263,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6119,7 +6274,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "6": [
@@ -6129,7 +6287,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6137,7 +6298,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6145,7 +6308,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6153,7 +6319,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6161,7 +6330,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6169,7 +6341,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6177,7 +6351,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6185,7 +6362,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6193,7 +6373,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "7": [
@@ -6203,7 +6386,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6211,7 +6397,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6219,7 +6407,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6227,7 +6418,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6235,7 +6429,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6243,7 +6440,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6251,7 +6450,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6259,7 +6461,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6267,7 +6472,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "8": [
@@ -6277,7 +6485,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6285,7 +6496,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6293,7 +6506,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6301,7 +6517,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6309,7 +6528,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6317,7 +6539,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53936,
@@ -6325,7 +6549,10 @@ export const LINE_SLOTS = {
         "width": 0.35973,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.10163,
@@ -6333,7 +6560,10 @@ export const LINE_SLOTS = {
         "width": 0.79746,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.10163,
@@ -6341,7 +6571,10 @@ export const LINE_SLOTS = {
         "width": 0.79746,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "9": [
@@ -6351,7 +6584,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6359,7 +6595,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6367,7 +6605,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6375,7 +6616,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6383,7 +6627,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6391,7 +6638,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6399,7 +6648,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6407,7 +6659,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6415,7 +6670,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "10": [
@@ -6425,7 +6683,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6433,7 +6694,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6441,7 +6704,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6449,7 +6715,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6457,7 +6726,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6465,7 +6737,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6473,7 +6747,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6481,7 +6758,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6489,7 +6769,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "11": [
@@ -6499,7 +6782,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6507,7 +6793,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6515,7 +6803,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6523,7 +6814,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6531,7 +6825,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6539,7 +6836,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6547,7 +6846,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6555,7 +6857,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6563,7 +6868,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "12": [
@@ -6573,7 +6881,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6581,7 +6892,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6589,7 +6902,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6597,7 +6913,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6605,7 +6924,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6613,7 +6935,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6621,7 +6945,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6629,7 +6956,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6637,7 +6967,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "13": [
@@ -6647,7 +6980,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6655,7 +6991,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6663,7 +7001,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6671,7 +7012,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6679,7 +7023,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6687,7 +7034,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6695,7 +7044,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6703,7 +7055,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6711,7 +7066,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "14": [
@@ -6859,7 +7217,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6867,7 +7228,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6875,7 +7238,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6883,7 +7249,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6891,7 +7260,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6899,7 +7271,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6907,7 +7281,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6915,7 +7292,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6923,7 +7303,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "16": [
@@ -6933,7 +7316,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6941,7 +7327,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -6949,7 +7337,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6957,7 +7348,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6965,7 +7359,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -6973,7 +7370,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -6981,7 +7380,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6989,7 +7391,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -6997,7 +7402,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "17": [
@@ -7007,7 +7415,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7015,7 +7426,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7023,7 +7436,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7031,7 +7447,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7039,7 +7458,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7047,7 +7469,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7055,7 +7479,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7063,7 +7490,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7071,7 +7501,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "18": [
@@ -7081,7 +7514,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7089,7 +7525,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7097,7 +7535,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7105,7 +7546,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7113,7 +7557,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7121,7 +7568,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7129,7 +7578,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7137,7 +7589,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7145,7 +7600,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "19": [
@@ -7155,7 +7613,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7163,7 +7624,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7171,7 +7634,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7179,7 +7645,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7187,7 +7656,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7195,7 +7667,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7203,7 +7677,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7211,7 +7688,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7219,7 +7699,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "20": [
@@ -7229,7 +7712,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7237,7 +7723,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7245,7 +7733,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7253,7 +7744,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7261,7 +7755,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7269,7 +7766,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7277,7 +7776,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7285,7 +7787,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7293,7 +7798,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "21": [
@@ -7303,7 +7811,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7311,7 +7822,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7319,7 +7832,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7327,7 +7843,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7335,7 +7854,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7343,7 +7865,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7351,7 +7875,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7359,7 +7886,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7367,7 +7897,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "22": [
@@ -7377,7 +7910,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7385,7 +7921,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7393,7 +7931,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7401,7 +7942,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7409,7 +7953,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7417,7 +7964,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7425,7 +7974,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7433,7 +7985,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7441,7 +7996,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "23": [
@@ -7451,7 +8009,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7459,7 +8020,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7467,7 +8030,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7475,7 +8041,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7483,7 +8052,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7491,7 +8063,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7499,7 +8073,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7507,7 +8084,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7515,7 +8095,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "24": [
@@ -7525,7 +8108,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7533,7 +8119,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7541,7 +8129,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7549,7 +8140,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7557,7 +8151,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7565,7 +8162,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7573,7 +8172,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7581,7 +8183,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7589,7 +8194,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "25": [
@@ -7599,7 +8207,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7607,7 +8218,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7615,7 +8228,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7623,7 +8239,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7631,7 +8250,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7639,7 +8261,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7647,7 +8271,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7655,7 +8282,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7663,7 +8293,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "26": [
@@ -7673,7 +8306,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7681,7 +8317,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7689,7 +8327,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7697,7 +8338,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7705,7 +8349,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7713,7 +8360,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7721,7 +8370,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7729,7 +8381,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7737,7 +8392,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "27": [
@@ -7747,7 +8405,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7755,7 +8416,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7763,7 +8426,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7771,7 +8437,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7779,7 +8448,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7787,7 +8459,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7795,7 +8469,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7803,7 +8480,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7811,7 +8491,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "28": [
@@ -7821,7 +8504,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7829,7 +8515,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -7837,7 +8525,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7845,7 +8536,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7853,7 +8547,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -7861,7 +8558,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -7869,7 +8568,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7877,7 +8579,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -7885,7 +8590,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "29": [
@@ -8041,7 +8749,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8049,7 +8760,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8057,7 +8770,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8065,7 +8781,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8073,7 +8792,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8081,7 +8803,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8089,7 +8813,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8097,7 +8824,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8105,7 +8835,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "31": [
@@ -8115,7 +8848,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8123,7 +8859,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8131,7 +8869,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8139,7 +8880,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8147,7 +8891,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8155,7 +8902,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8163,7 +8912,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8171,7 +8923,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8179,7 +8934,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "32": [
@@ -8189,7 +8947,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8197,7 +8958,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8205,7 +8968,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8213,7 +8979,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8221,7 +8990,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8229,7 +9001,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8237,7 +9011,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8245,7 +9022,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8253,7 +9033,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.0497,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "33": [
@@ -8263,7 +9046,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8271,7 +9057,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8279,7 +9067,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8287,7 +9078,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8295,7 +9089,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8303,7 +9100,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8311,7 +9110,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8319,7 +9121,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8327,7 +9132,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "34": [
@@ -8337,7 +9145,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8345,7 +9156,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8353,7 +9166,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8361,7 +9177,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8369,7 +9188,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8377,7 +9199,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8385,7 +9209,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8393,7 +9220,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8401,7 +9231,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "35": [
@@ -8411,7 +9244,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8419,7 +9255,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8427,7 +9265,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8435,7 +9276,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8443,7 +9287,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8451,7 +9298,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8459,7 +9308,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8467,7 +9319,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8475,7 +9330,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "36": [
@@ -8485,7 +9343,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8493,7 +9354,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8501,7 +9364,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8509,7 +9375,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8517,7 +9386,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8525,7 +9397,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8533,7 +9407,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8541,7 +9418,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8549,7 +9429,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "37": [
@@ -8559,7 +9442,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8567,7 +9453,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8575,7 +9463,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8583,7 +9474,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8591,7 +9485,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8599,7 +9496,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8607,7 +9506,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8615,7 +9517,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8623,7 +9528,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "38": [
@@ -8633,7 +9541,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8641,7 +9552,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8649,7 +9562,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8657,7 +9573,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8665,7 +9584,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8673,7 +9595,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8681,7 +9605,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8689,7 +9616,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8697,7 +9627,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "39": [
@@ -8707,7 +9640,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8715,7 +9651,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8723,7 +9661,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8731,7 +9672,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8739,7 +9683,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8747,7 +9694,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8755,7 +9704,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8763,7 +9715,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8771,7 +9726,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "40": [
@@ -8781,7 +9739,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8789,7 +9750,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8797,7 +9760,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8805,7 +9771,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8813,7 +9782,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8821,7 +9793,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8829,7 +9803,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8837,7 +9814,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8845,7 +9825,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "41": [
@@ -8855,7 +9838,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8863,7 +9849,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8871,7 +9859,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8879,7 +9870,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8887,7 +9881,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8895,7 +9892,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8903,7 +9902,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8911,7 +9913,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8919,7 +9924,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "42": [
@@ -8929,7 +9937,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8937,7 +9948,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -8945,7 +9958,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8953,7 +9969,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8961,7 +9980,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -8969,7 +9991,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -8977,7 +10001,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8985,7 +10012,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -8993,7 +10023,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "43": [
@@ -9003,7 +10036,10 @@ export const LINE_SLOTS = {
         "width": 0.36447,
         "height": 0.03203,
         "hasLabel": true,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -9011,7 +10047,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.02989,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.35332,
@@ -9019,7 +10057,10 @@ export const LINE_SLOTS = {
         "width": 0.24737,
         "height": 0.03462,
         "hasLabel": true,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -9027,7 +10068,10 @@ export const LINE_SLOTS = {
         "width": 0.46476,
         "height": 0.04157,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -9035,7 +10079,10 @@ export const LINE_SLOTS = {
         "width": 0.46454,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.63473,
@@ -9043,7 +10090,9 @@ export const LINE_SLOTS = {
         "width": 0.26942,
         "height": 0.04308,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "block",
+        "textAnchorTop": true
       },
       {
         "x": 0.53677,
@@ -9051,7 +10100,10 @@ export const LINE_SLOTS = {
         "width": 0.43178,
         "height": 0.08,
         "hasLabel": true,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -9059,7 +10111,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04146,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.11617,
@@ -9067,7 +10122,10 @@ export const LINE_SLOTS = {
         "width": 0.85238,
         "height": 0.04156,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "44": [
@@ -9560,9 +10618,9 @@ export const LINE_SLOTS = {
     ],
     "3": [
       {
-        "x": 0.418,
-        "y": 0.6263799999999999,
-        "width": 0.455,
+        "x": 0.435,
+        "y": 0.6234999999999999,
+        "width": 0.438,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
@@ -9571,9 +10629,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.508,
-        "y": 0.6813699999999999,
-        "width": 0.362,
+        "x": 0.525,
+        "y": 0.6773,
+        "width": 0.345,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 2,
@@ -9602,9 +10660,9 @@ export const LINE_SLOTS = {
     ],
     "5": [
       {
-        "x": 0.369692,
-        "y": 0.25945,
-        "width": 0.15041600000000002,
+        "x": 0.379,
+        "y": 0.264,
+        "width": 0.13,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
@@ -9612,9 +10670,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.11249999999999998,
-        "y": 0.3924,
-        "width": 0.19040000000000004,
+        "x": 0.137,
+        "y": 0.385,
+        "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 2,
@@ -9622,9 +10680,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.27899999999999997,
-        "y": 0.5124,
-        "width": 0.19040000000000004,
+        "x": 0.303,
+        "y": 0.504,
+        "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 3,
@@ -9632,9 +10690,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.094628,
-        "y": 0.5911,
-        "width": 0.17494400000000002,
+        "x": 0.116,
+        "y": 0.583,
+        "width": 0.13,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 4,
@@ -9642,9 +10700,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.302232,
-        "y": 0.7273,
-        "width": 0.165536,
+        "x": 0.304,
+        "y": 0.722,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 5,
@@ -9652,9 +10710,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.582828,
-        "y": 0.3039,
-        "width": 0.17494400000000002,
+        "x": 0.594,
+        "y": 0.296,
+        "width": 0.13,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 6,
@@ -9662,9 +10720,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.7484999999999999,
-        "y": 0.42500000000000004,
-        "width": 0.19040000000000004,
+        "x": 0.82,
+        "y": 0.418,
+        "width": 0.13,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 7,
@@ -9672,80 +10730,80 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.567328,
-        "y": 0.5024,
-        "width": 0.17494400000000002,
-        "height": 0.028,
+        "x": 0.544,
+        "y": 0.492,
+        "width": 0.1,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 8,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.739212,
-        "y": 0.64155,
-        "width": 0.176176,
-        "height": 0.028,
+        "x": 0.77,
+        "y": 0.636,
+        "width": 0.12,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 9,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.144208,
-        "y": 0.80415,
-        "width": 0.151984,
-        "height": 0.028,
+        "x": 0.152,
+        "y": 0.798,
+        "width": 0.14,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 10,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.28082,
-        "y": 0.93025,
-        "width": 0.14056000000000002,
-        "height": 0.028,
+        "x": 0.288,
+        "y": 0.924,
+        "width": 0.13,
+        "height": 0.024,
         "hasLabel": false,
         "continuationGroup": 11,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.525588,
-        "y": 0.6972,
-        "width": 0.17382400000000003,
-        "height": 0.028,
+        "x": 0.54,
+        "y": 0.692,
+        "width": 0.14,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 12,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.671628,
-        "y": 0.7977000000000001,
-        "width": 0.17494400000000002,
-        "height": 0.028,
+        "x": 0.72,
+        "y": 0.792,
+        "width": 0.14,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 13,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.5954320000000001,
-        "y": 0.9303,
-        "width": 0.165536,
-        "height": 0.028,
+        "x": 0.64,
+        "y": 0.924,
+        "width": 0.14,
+        "height": 0.024,
         "hasLabel": false,
         "continuationGroup": 14,
         "inputKind": "block",
         "textAnchorTop": true
       },
       {
-        "x": 0.432976,
-        "y": 0.85915,
-        "width": 0.16004800000000002,
-        "height": 0.028,
+        "x": 0.448,
+        "y": 0.854,
+        "width": 0.14,
+        "height": 0.026,
         "hasLabel": false,
         "continuationGroup": 15,
         "inputKind": "block",
@@ -9757,7 +10815,7 @@ export const LINE_SLOTS = {
     "8": [
       {
         "x": 0.41555824264409513,
-        "y": 0.8680096735187424,
+        "y": 0.8597,
         "width": 0.23458282950423218,
         "height": 0.028,
         "hasLabel": false,
@@ -9770,7 +10828,7 @@ export const LINE_SLOTS = {
     "9": [
       {
         "x": 0.38,
-        "y": 0.18584,
+        "y": 0.1639,
         "width": 0.5,
         "height": 0.028,
         "hasLabel": false,
@@ -9782,209 +10840,249 @@ export const LINE_SLOTS = {
     ],
     "10": [
       {
-        "x": 0.49750000000000005,
-        "y": 0.2465,
-        "width": 0.145,
+        "x": 0.5189,
+        "y": 0.218,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.358445,
-        "y": 0.24652,
-        "width": 0.145,
+        "x": 0.39640000000000003,
+        "y": 0.218,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 2,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.291495,
-        "y": 0.28317,
-        "width": 0.145,
+        "x": 0.33,
+        "y": 0.25499999999999995,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 3,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.5649949999999999,
-        "y": 0.28317,
-        "width": 0.145,
+        "x": 0.5869,
+        "y": 0.25499999999999995,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 4,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.253235,
-        "y": 0.32063,
-        "width": 0.145,
+        "x": 0.2914,
+        "y": 0.29269999999999996,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 5,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.603255,
-        "y": 0.32063,
-        "width": 0.145,
+        "x": 0.6255,
+        "y": 0.29269999999999996,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 6,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.229925,
-        "y": 0.35918,
-        "width": 0.145,
+        "x": 0.2679,
+        "y": 0.3314,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 7,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.6265649999999999,
-        "y": 0.35918,
-        "width": 0.145,
+        "x": 0.6482,
+        "y": 0.3314,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 8,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.21670499999999998,
-        "y": 0.40189,
-        "width": 0.145,
+        "x": 0.2545,
+        "y": 0.3742,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 9,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.6397949999999999,
-        "y": 0.40189,
-        "width": 0.145,
+        "x": 0.6616,
+        "y": 0.3742,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 10,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.21630499999999997,
-        "y": 0.54192,
-        "width": 0.145,
+        "x": 0.2545,
+        "y": 0.5136,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 11,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.6401849999999999,
-        "y": 0.54383,
-        "width": 0.145,
+        "x": 0.6625,
+        "y": 0.5161,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 12,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.231225,
-        "y": 0.58272,
-        "width": 0.145,
+        "x": 0.2696,
+        "y": 0.5547,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 13,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.625265,
-        "y": 0.58462,
-        "width": 0.145,
+        "x": 0.6474,
+        "y": 0.5564,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 14,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.255015,
-        "y": 0.62079,
-        "width": 0.145,
+        "x": 0.2931,
+        "y": 0.5925,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 15,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.601475,
-        "y": 0.6227,
-        "width": 0.145,
+        "x": 0.6238,
+        "y": 0.5942,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 16,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.288715,
-        "y": 0.66017,
-        "width": 0.145,
+        "x": 0.3267,
+        "y": 0.6319,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 17,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.5658749999999999,
-        "y": 0.66208,
-        "width": 0.145,
+        "x": 0.5877,
+        "y": 0.6335999999999999,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 18,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.49750000000000005,
-        "y": 0.7006,
-        "width": 0.145,
+        "x": 0.5197,
+        "y": 0.6723,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 19,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.358705,
-        "y": 0.70062,
-        "width": 0.145,
+        "x": 0.3972,
+        "y": 0.6723,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 20,
         "inputKind": "line",
-        "teethDate": true
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.559,
-        "y": 0.8349,
-        "width": 0.174,
+        "x": 0.5584,
+        "y": 0.8099999999999999,
+        "width": 0.1738,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 21,
@@ -9993,9 +11091,9 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       },
       {
-        "x": 0.525,
-        "y": 0.895,
-        "width": 0.058,
+        "x": 0.5248,
+        "y": 0.8694999999999999,
+        "width": 0.052,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 22,
@@ -10200,199 +11298,204 @@ export const LINE_SLOTS = {
     ],
     "12": [
       {
-        "x": 0.41474,
-        "y": 0.91383,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "13": [
       {
-        "x": 0.15194,
-        "y": 0.18585,
-        "width": 0.69762,
-        "height": 0.0434,
+        "x": 0.24,
+        "y": 0.15785,
+        "width": 0.17,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.3258,
-        "y": 0.22925,
-        "width": 0.53767,
-        "height": 0.04172,
+        "y": 0.20122,
+        "width": 0.5357,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.53941,
-        "y": 0.2693,
-        "width": 0.32405,
-        "height": 0.04019,
+        "x": 0.539,
+        "y": 0.24067999999999998,
+        "width": 0.3225,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.2451,
-        "y": 0.30963,
-        "width": 0.61837,
-        "height": 0.04235,
+        "x": 0.3258,
+        "y": 0.28097999999999995,
+        "width": 0.5357,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.43232,
-        "y": 0.354,
-        "width": 0.43064,
-        "height": 0.04299,
+        "x": 0.4316,
+        "y": 0.32548,
+        "width": 0.4299,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 5
+        "continuationGroup": 5,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.32749,
-        "y": 0.39561,
-        "width": 0.53572,
-        "height": 0.04224,
+        "x": 0.3266,
+        "y": 0.36746999999999996,
+        "width": 0.5349,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.32019,
-        "y": 0.43848,
-        "width": 0.54328,
-        "height": 0.04403,
+        "x": 0.3199,
+        "y": 0.41029,
+        "width": 0.5416,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.43911,
-        "y": 0.48367,
-        "width": 0.42461,
-        "height": 0.03201,
+        "x": 0.4383,
+        "y": 0.45563,
+        "width": 0.4232,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 7
-      },
-      {
-        "x": 0.15194,
-        "y": 0.5025,
-        "width": 0.69762,
-        "height": 0.01883,
-        "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 8,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "14": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "15": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "16": [
       {
-        "x": 0.52,
-        "y": 0.21164,
-        "width": 0.38,
+        "x": 0.7152000000000001,
+        "y": 0.2116,
+        "width": 0.1421,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      },
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 2,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "17": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "18": [
       {
-        "x": 0.36,
-        "y": 0.19337,
-        "width": 0.14,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      },
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 2,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "19": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "20": [
       {
-        "x": 0.38,
-        "y": 0.23648,
-        "width": 0.5,
+        "x": 0.418,
+        "y": 0.2368,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
         "lineStrokeAtBottom": true,
-        "textAnchorTop": true
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "21": [
@@ -10751,12 +11854,13 @@ export const LINE_SLOTS = {
         "inputKind": "line"
       }
     ],
-    "34": [
+    "34": [],
+    "35": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
@@ -10764,72 +11868,11 @@ export const LINE_SLOTS = {
         "textAnchorTop": true
       }
     ],
-    "35": [],
-    "36": [
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      }
-    ],
-    "37": [
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      }
-    ],
-    "38": [
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      }
-    ],
-    "39": [
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      }
-    ],
-    "40": [
-      {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "line",
-        "lineStrokeAtBottom": true,
-        "textAnchorTop": true
-      }
-    ],
+    "36": [],
+    "37": [],
+    "38": [],
+    "39": [],
+    "40": [],
     "41": [
       {
         "x": 0.12,
@@ -10923,10 +11966,10 @@ export const LINE_SLOTS = {
     ],
     "48": [
       {
-        "x": 0.38,
-        "y": 0.91383,
-        "width": 0.5,
-        "height": 0.028,
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
         "hasLabel": false,
         "continuationGroup": 1,
         "inputKind": "line",
@@ -10948,12 +11991,13 @@ export const LINE_SLOTS = {
       },
       {
         "x": 0.23482,
-        "y": 0.59148,
+        "y": 0.544,
         "width": 0.53319,
-        "height": 0.065,
+        "height": 0.045,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 2
+        "inputKind": "line",
+        "continuationGroup": 2,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.18359,
@@ -10967,55 +12011,46 @@ export const LINE_SLOTS = {
     ],
     "2": [
       {
-        "x": 0.06295,
-        "y": 0.30949,
-        "width": 0.23503,
-        "height": 0.04381,
+        "x": 0.0593,
+        "y": 0.3125,
+        "width": 0.2547,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.3484,
-        "y": 0.30949,
-        "width": 0.1957,
-        "height": 0.04381,
+        "x": 0.3394,
+        "y": 0.3125,
+        "width": 0.2152,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.59975,
-        "y": 0.30949,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5847,
+        "y": 0.3125,
+        "width": 0.163,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
       },
       {
-        "x": 0.79219,
-        "y": 0.30949,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.7745,
+        "y": 0.3125,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 4
       },
       {
-        "x": 0.26414,
-        "y": 0.902,
-        "width": 0.66308,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 5
-      },
-      {
-        "x": 0.26414,
-        "y": 0.946,
-        "width": 0.66308,
-        "height": 0.04381,
+        "x": 0.2555,
+        "y": 0.9059,
+        "width": 0.6756,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 5
@@ -11023,19 +12058,19 @@ export const LINE_SLOTS = {
     ],
     "3": [
       {
-        "x": 0.21457,
-        "y": 0.90492,
-        "width": 0.25884,
-        "height": 0.04381,
+        "x": 0.2081,
+        "y": 0.8972,
+        "width": 0.2785,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.65722,
-        "y": 0.90492,
-        "width": 0.25884,
-        "height": 0.04381,
+        "x": 0.6416,
+        "y": 0.8972,
+        "width": 0.2785,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
@@ -11052,28 +12087,28 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.2191,
+        "y": 0.2828,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.4201,
+        "y": 0.2828,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
       },
       {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.6195,
+        "y": 0.2828,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 4
@@ -11081,40 +12116,31 @@ export const LINE_SLOTS = {
     ],
     "5": [
       {
-        "x": 0.0625,
-        "y": 0.802,
-        "width": 0.87732,
-        "height": 0.036,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.842,
-        "width": 0.87732,
-        "height": 0.036,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0625,
-        "y": 0.882,
-        "width": 0.87732,
-        "height": 0.036,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.22484,
-        "y": 0.922,
-        "width": 0.71499,
-        "height": 0.036,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "6": [
@@ -11128,57 +12154,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "7": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11195,57 +12212,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2749,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2749,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "9": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11262,57 +12270,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "11": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11329,57 +12328,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2766,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2766,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "13": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11396,57 +12386,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2701,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2701,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "15": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11463,57 +12444,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2717,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2717,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "17": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11530,57 +12502,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "19": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11597,57 +12560,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2725,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "21": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11664,57 +12618,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2688,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2688,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "23": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11731,57 +12676,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2607,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2607,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "25": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11798,57 +12734,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2579,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2579,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "27": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11865,57 +12792,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2646,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2646,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "29": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11932,57 +12850,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2607,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2607,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "31": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -11999,57 +12908,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "33": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -12066,57 +12966,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2638,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "35": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -12133,57 +13024,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2669,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2669,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "37": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -12200,57 +13082,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 1
       },
       {
-        "x": 0.22646,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.322,
+        "y": 0.2646,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.43062,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
+        "x": 0.5166,
+        "y": 0.2646,
+        "width": 0.1614,
+        "height": 0.0459,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
-      },
-      {
-        "x": 0.63479,
-        "y": 0.27896,
-        "width": 0.13979,
-        "height": 0.04381,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
       }
     ],
     "39": [
       {
-        "x": 0.31124,
-        "y": 0.82789,
-        "width": 0.62859,
-        "height": 0.03724,
+        "x": 0.303,
+        "y": 0.8212,
+        "width": 0.6408,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.88178,
-        "width": 0.87732,
-        "height": 0.03724,
+        "x": 0.0578,
+        "y": 0.8742,
+        "width": 0.8861,
+        "height": 0.0364,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.22484,
-        "y": 0.93567,
-        "width": 0.71499,
-        "height": 0.03724,
+        "x": 0.2176,
+        "y": 0.9272,
+        "width": 0.7263,
+        "height": 0.038,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 3
@@ -12258,58 +13131,31 @@ export const LINE_SLOTS = {
     ],
     "40": [
       {
-        "x": 0.62,
-        "y": 0.752,
-        "width": 0.12,
-        "height": 0.04,
+        "x": 0.4573,
+        "y": 0.8463,
+        "width": 0.1748,
+        "height": 0.0392,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 1
       },
       {
-        "x": 0.0625,
-        "y": 0.802,
-        "width": 0.87732,
-        "height": 0.036,
+        "x": 0.4241,
+        "y": 0.894,
+        "width": 0.5233,
+        "height": 0.0396,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0625,
-        "y": 0.842,
-        "width": 0.87732,
-        "height": 0.036,
+        "x": 0.0605,
+        "y": 0.9458,
+        "width": 0.8869,
+        "height": 0.0396,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
-      },
-      {
-        "x": 0.0625,
-        "y": 0.882,
-        "width": 0.87732,
-        "height": 0.036,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
-      },
-      {
-        "x": 0.0625,
-        "y": 0.912,
-        "width": 0.87732,
-        "height": 0.036,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 5
-      },
-      {
-        "x": 0.0625,
-        "y": 0.942,
-        "width": 0.87732,
-        "height": 0.036,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 2
       }
     ],
     "41": [],
@@ -12322,111 +13168,123 @@ export const LINE_SLOTS = {
     "48": [
       {
         "x": 0.10433,
-        "y": 0.23893,
+        "y": 0.1963,
         "width": 0.79238,
         "height": 0.04263,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.28156,
+        "y": 0.23888,
         "width": 0.79238,
         "height": 0.04268,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.32429,
+        "y": 0.28161,
         "width": 0.79238,
         "height": 0.04268,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.36692,
+        "y": 0.32463,
         "width": 0.79238,
         "height": 0.04229,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.40886,
+        "y": 0.36678,
         "width": 0.79238,
         "height": 0.04208,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.45107,
+        "y": 0.40865,
         "width": 0.79238,
         "height": 0.04242,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.4937,
+        "y": 0.45102,
         "width": 0.79238,
         "height": 0.04268,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.53642,
+        "y": 0.49374,
         "width": 0.79238,
         "height": 0.04268,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
+      },
+      {
+        "x": 0.10433,
+        "y": 0.53676,
+        "width": 0.79238,
+        "height": 0.04229,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
         "y": 0.57905,
         "width": 0.79238,
-        "height": 0.04229,
-        "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.10433,
-        "y": 0.621,
-        "width": 0.79238,
         "height": 0.04195,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.66337,
+        "y": 0.62082,
         "width": 0.79238,
         "height": 0.04255,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       },
       {
         "x": 0.10433,
-        "y": 0.70609,
+        "y": 0.66336,
         "width": 0.79238,
         "height": 0.04273,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "lineStrokeAtBottom": true
       }
     ]
   },
@@ -13028,12 +13886,13 @@ export const LINE_SLOTS = {
     ],
     "13": [
       {
-        "x": 0.2301,
-        "y": 0.1722,
-        "width": 0.5399,
+        "x": 0.4254,
+        "y": 0.2225,
+        "width": 0.4798,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 1
       },
       {
@@ -13042,8 +13901,9 @@ export const LINE_SLOTS = {
         "width": 0.8196,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 2
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 1
       },
       {
         "x": 0.0917,
@@ -13051,8 +13911,9 @@ export const LINE_SLOTS = {
         "width": 0.8181,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 3
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 2
       },
       {
         "x": 0.0903,
@@ -13060,8 +13921,9 @@ export const LINE_SLOTS = {
         "width": 0.8199,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 3
       },
       {
         "x": 0.3875,
@@ -13070,7 +13932,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 5
+        "inlineLabelTail": true,
+        "continuationGroup": 4
       },
       {
         "x": 0.4346,
@@ -13079,7 +13942,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 6
+        "inlineLabelTail": true,
+        "continuationGroup": 5
       },
       {
         "x": 0.323,
@@ -13088,7 +13952,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "inlineLabelTail": true,
+        "continuationGroup": 6
       },
       {
         "x": 0.4293,
@@ -13097,7 +13962,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 8
+        "inlineLabelTail": true,
+        "continuationGroup": 7
       },
       {
         "x": 0.3206,
@@ -13106,7 +13972,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "inlineLabelTail": true,
+        "continuationGroup": 8
       },
       {
         "x": 0.4109,
@@ -13115,7 +13982,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "inlineLabelTail": true,
+        "continuationGroup": 9
       },
       {
         "x": 0.49,
@@ -13124,6 +13992,17 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 10
+      },
+      {
+        "x": 0.6589,
+        "y": 0.6875,
+        "width": 0.249,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 11
       },
       {
@@ -13132,8 +14011,59 @@ export const LINE_SLOTS = {
         "width": 0.8165,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 11
+      },
+      {
+        "x": 0.6019,
+        "y": 0.7578,
+        "width": 0.3083,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 12
+      },
+      {
+        "x": 0.0918,
+        "y": 0.7888,
+        "width": 0.817,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 12
+      },
+      {
+        "x": 0.6611,
+        "y": 0.8302,
+        "width": 0.2488,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 13
+      },
+      {
+        "x": 0.0918,
+        "y": 0.8726,
+        "width": 0.817,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 13
+      },
+      {
+        "x": 0.0918,
+        "y": 0.9195,
+        "width": 0.817,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 13
       }
     ],
     "14": [
@@ -13148,146 +14078,209 @@ export const LINE_SLOTS = {
     ],
     "15": [
       {
-        "x": 0.3246,
-        "y": 0.1578,
-        "width": 0.2345,
-        "height": 0.0333,
-        "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 1
-      },
-      {
         "x": 0.1587,
         "y": 0.2235,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 1,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 2
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.268,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 1,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 3
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.3124,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 1,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 4
-      },
-      {
-        "x": 0.6041,
-        "y": 0.3553,
-        "width": 0.2707,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 5
-      },
-      {
-        "x": 0.6041,
-        "y": 0.3997,
-        "width": 0.2707,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 6
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.4379,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 2,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 7
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.4824,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 2,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 8
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.5268,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 2,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 9
-      },
-      {
-        "x": 0.6041,
-        "y": 0.5808,
-        "width": 0.2707,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 10
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.6517,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 3,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 11
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.6961,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 3,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 12
+        "inputKind": "block"
       },
       {
         "x": 0.1587,
         "y": 0.7406,
         "width": 0.3432,
         "height": 0.028,
+        "continuationGroup": 3,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 13
+        "inputKind": "block"
       },
       {
-        "x": 0.3054,
-        "y": 0.8312,
-        "width": 0.1586,
+        "x": 0.6041,
+        "y": 0.2235,
+        "width": 0.2707,
         "height": 0.028,
+        "continuationGroup": 4,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 14
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.268,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.3124,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.3553,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.3997,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.4442,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.4919,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.5364,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.5808,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.6292,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.6737,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
+      },
+      {
+        "x": 0.6041,
+        "y": 0.7182,
+        "width": 0.2707,
+        "height": 0.028,
+        "continuationGroup": 4,
+        "hasLabel": false,
+        "inputKind": "block"
       },
       {
         "x": 0.1554,
         "y": 0.8947,
         "width": 0.4806,
         "height": 0.028,
+        "continuationGroup": 5,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 15
+        "inputKind": "block"
       }
     ],
     "16": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.3377,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
@@ -13386,22 +14379,13 @@ export const LINE_SLOTS = {
     ],
     "17": [
       {
-        "x": 0.1143,
-        "y": 0.1768,
-        "width": 0.7929,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
-      {
         "x": 0.4594,
         "y": 0.2374,
         "width": 0.4472,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.0882,
@@ -13409,8 +14393,8 @@ export const LINE_SLOTS = {
         "width": 0.8184,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 3
+        "inputKind": "line",
+        "continuationGroup": 2
       },
       {
         "x": 0.0877,
@@ -13418,8 +14402,8 @@ export const LINE_SLOTS = {
         "width": 0.8192,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
+        "inputKind": "line",
+        "continuationGroup": 3
       },
       {
         "x": 0.457,
@@ -13428,7 +14412,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.3897,
@@ -13437,13 +14421,22 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.0876,
         "y": 0.5124,
         "width": 0.5224,
         "height": 0.0297,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 6
+      },
+      {
+        "x": 0.0872,
+        "y": 0.5697,
+        "width": 0.6936,
+        "height": 0.0294,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 7
@@ -13454,7 +14447,7 @@ export const LINE_SLOTS = {
         "width": 0.8187,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 8
       },
       {
@@ -13463,8 +14456,17 @@ export const LINE_SLOTS = {
         "width": 0.8188,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 9
+      },
+      {
+        "x": 0.0868,
+        "y": 0.728,
+        "width": 0.7759,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 10
       },
       {
         "x": 0.0884,
@@ -13472,22 +14474,13 @@ export const LINE_SLOTS = {
         "width": 0.8199,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 10
+        "inputKind": "line",
+        "continuationGroup": 11
       },
       {
         "x": 0.0884,
         "y": 0.7973,
         "width": 0.8199,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 11
-      },
-      {
-        "x": 0.0887,
-        "y": 0.9342,
-        "width": 0.3001,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
@@ -13498,61 +14491,61 @@ export const LINE_SLOTS = {
     "19": [],
     "20": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.3377,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0668,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0668,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0668,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0668,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0668,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0699,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -13561,7 +14554,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1018,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -13570,7 +14563,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1018,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -13579,7 +14572,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1018,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -13588,7 +14581,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1018,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -13599,76 +14592,184 @@ export const LINE_SLOTS = {
     ],
     "21": [
       {
+        "x": 0.4558,
+        "y": 0.1759,
+        "width": 0.4546,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 1
+      },
+      {
         "x": 0.0904,
         "y": 0.2524,
         "width": 0.8189,
         "height": 0.028,
-        "continuationGroup": 1,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 2
       },
       {
         "x": 0.0904,
         "y": 0.2853,
         "width": 0.8189,
         "height": 0.028,
-        "continuationGroup": 2,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 2
+      },
+      {
+        "x": 0.5206,
+        "y": 0.3233,
+        "width": 0.3912,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 3
       },
       {
         "x": 0.0896,
         "y": 0.3543,
         "width": 0.8209,
         "height": 0.028,
-        "continuationGroup": 3,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 3
       },
       {
-        "x": 0.0894,
-        "y": 0.477,
-        "width": 0.6953,
+        "x": 0.3909,
+        "y": 0.3984,
+        "width": 0.5209,
         "height": 0.028,
-        "continuationGroup": 4,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 4
+      },
+      {
+        "x": 0.4652,
+        "y": 0.4339,
+        "width": 0.4466,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 5
+      },
+      {
+        "x": 0.7852,
+        "y": 0.474,
+        "width": 0.1266,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 6
       },
       {
         "x": 0.0908,
         "y": 0.5112,
         "width": 0.8197,
         "height": 0.028,
-        "continuationGroup": 5,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
-        "x": 0.0893,
-        "y": 0.5546,
-        "width": 0.6068,
+        "x": 0.6987,
+        "y": 0.5522,
+        "width": 0.2118,
         "height": 0.028,
-        "continuationGroup": 6,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 7
       },
       {
         "x": 0.0903,
         "y": 0.5927,
         "width": 0.8201,
         "height": 0.028,
-        "continuationGroup": 7,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 7
+      },
+      {
+        "x": 0.5817,
+        "y": 0.6308,
+        "width": 0.3288,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 8
+      },
+      {
+        "x": 0.58,
+        "y": 0.6706,
+        "width": 0.3304,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 9
       },
       {
         "x": 0.0879,
         "y": 0.7092,
         "width": 0.8247,
         "height": 0.028,
-        "continuationGroup": 8,
         "hasLabel": false,
-        "inputKind": "line"
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 9
+      },
+      {
+        "x": 0.6937,
+        "y": 0.7528,
+        "width": 0.2189,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 10
+      },
+      {
+        "x": 0.0879,
+        "y": 0.7988,
+        "width": 0.8218,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 10
+      },
+      {
+        "x": 0.0879,
+        "y": 0.8424,
+        "width": 0.8218,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 10
+      },
+      {
+        "x": 0.0879,
+        "y": 0.8865,
+        "width": 0.8218,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 10
       }
     ],
     "22": [
@@ -13710,61 +14811,61 @@ export const LINE_SLOTS = {
     ],
     "23": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0894,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -13773,7 +14874,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -13782,7 +14883,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -13791,7 +14892,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -13800,7 +14901,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -13817,6 +14918,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 1
       },
       {
@@ -13826,15 +14928,17 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 2
       },
       {
-        "x": 0.0881,
-        "y": 0.3894,
-        "width": 0.4094,
+        "x": 0.5,
+        "y": 0.3839,
+        "width": 0.4073,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 3
       },
       {
@@ -13844,111 +14948,137 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 4
       },
       {
-        "x": 0.0881,
-        "y": 0.4762,
-        "width": 0.5059,
+        "x": 0.592,
+        "y": 0.4721,
+        "width": 0.3152,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 5
       },
       {
-        "x": 0.0881,
-        "y": 0.5143,
-        "width": 0.4769,
+        "x": 0.5632,
+        "y": 0.5141,
+        "width": 0.3441,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 6
       },
       {
-        "x": 0.2281,
-        "y": 0.5834,
-        "width": 0.2221,
-        "height": 0.0297,
+        "x": 0.155,
+        "y": 0.642,
+        "width": 0.7415,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": false,
         "continuationGroup": 7
       },
       {
-        "x": 0.1674,
-        "y": 0.642,
-        "width": 0.7291,
+        "x": 0.155,
+        "y": 0.7024,
+        "width": 0.7415,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": false,
         "continuationGroup": 8
       },
       {
-        "x": 0.1674,
-        "y": 0.7024,
-        "width": 0.7291,
+        "x": 0.155,
+        "y": 0.7635,
+        "width": 0.7415,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": false,
         "continuationGroup": 9
+      },
+      {
+        "x": 0.155,
+        "y": 0.8238,
+        "width": 0.7415,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 10
+      },
+      {
+        "x": 0.155,
+        "y": 0.8842,
+        "width": 0.7415,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 11
       }
     ],
     "25": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0894,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -13957,7 +15087,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -13966,7 +15096,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -13975,7 +15105,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -13984,7 +15114,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -13995,198 +15125,208 @@ export const LINE_SLOTS = {
     ],
     "26": [
       {
-        "x": 0.63001,
-        "y": 0.28587,
-        "width": 0.27898,
-        "height": 0.02854,
-        "hasLabel": false,
+        "x": 0.0644,
+        "y": 0.2822,
+        "width": 0.5674,
+        "height": 0.0297,
         "continuationGroup": 1,
-        "inputKind": "block"
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
-        "x": 0.05883,
-        "y": 0.31758,
-        "width": 0.85016,
-        "height": 0.02854,
+        "x": 0.0697,
+        "y": 0.3094,
+        "width": 0.8502,
+        "height": 0.028,
+        "continuationGroup": 2,
         "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.05883,
-        "y": 0.35958,
-        "width": 0.85016,
-        "height": 0.02854,
+        "x": 0.0643,
+        "y": 0.3509,
+        "width": 0.6144,
+        "height": 0.0296,
+        "continuationGroup": 3,
         "hasLabel": false,
-        "continuationGroup": 1,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.05933,
-        "y": 0.3859,
-        "width": 0.84966,
-        "height": 0.058,
-        "hasLabel": false,
+        "x": 0.0702,
+        "y": 0.3777,
+        "width": 0.8497,
+        "height": 0.028,
         "continuationGroup": 4,
-        "inputKind": "block"
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
-        "x": 0.05904,
-        "y": 0.4279,
-        "width": 0.84995,
-        "height": 0.04805,
+        "x": 0.0699,
+        "y": 0.4479,
+        "width": 0.8499,
+        "height": 0.028,
+        "continuationGroup": 5,
         "hasLabel": false,
-        "continuationGroup": 4,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.05904,
-        "y": 0.45607,
-        "width": 0.84995,
-        "height": 0.04805,
+        "x": 0.0644,
+        "y": 0.5034,
+        "width": 0.4964,
+        "height": 0.0297,
+        "continuationGroup": 6,
         "hasLabel": false,
-        "continuationGroup": 4,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.58,
-        "y": 0.50946,
-        "width": 0.32899,
-        "height": 0.0336,
-        "hasLabel": false,
+        "x": 0.069,
+        "y": 0.5386,
+        "width": 0.8508,
+        "height": 0.028,
         "continuationGroup": 7,
-        "inputKind": "block"
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
-        "x": 0.05816,
-        "y": 0.54679,
-        "width": 0.85083,
-        "height": 0.0336,
+        "x": 0.0644,
+        "y": 0.5791,
+        "width": 0.4974,
+        "height": 0.0295,
+        "continuationGroup": 8,
         "hasLabel": false,
-        "continuationGroup": 7,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.58,
-        "y": 0.58413,
-        "width": 0.32899,
-        "height": 0.03271,
-        "hasLabel": false,
+        "x": 0.0692,
+        "y": 0.6123,
+        "width": 0.8507,
+        "height": 0.028,
         "continuationGroup": 9,
-        "inputKind": "block"
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
-        "x": 0.0583,
-        "y": 0.62047,
-        "width": 0.85069,
-        "height": 0.03271,
+        "x": 0.0644,
+        "y": 0.6642,
+        "width": 0.6631,
+        "height": 0.0295,
+        "continuationGroup": 10,
         "hasLabel": false,
-        "continuationGroup": 9,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.0583,
-        "y": 0.66247,
-        "width": 0.85069,
-        "height": 0.03271,
+        "x": 0.0692,
+        "y": 0.6997,
+        "width": 0.8507,
+        "height": 0.028,
+        "continuationGroup": 11,
         "hasLabel": false,
-        "continuationGroup": 9,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.0583,
-        "y": 0.70786,
-        "width": 0.85069,
-        "height": 0.05139,
+        "x": 0.0644,
+        "y": 0.7614,
+        "width": 0.4496,
+        "height": 0.0295,
+        "continuationGroup": 12,
         "hasLabel": false,
-        "continuationGroup": 9,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.52,
-        "y": 0.76496,
-        "width": 0.38899,
-        "height": 0.04041,
-        "hasLabel": false,
+        "x": 0.0692,
+        "y": 0.8017,
+        "width": 0.8507,
+        "height": 0.028,
         "continuationGroup": 13,
-        "inputKind": "block"
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
-        "x": 0.0583,
-        "y": 0.80986,
-        "width": 0.85069,
-        "height": 0.04041,
+        "x": 0.0644,
+        "y": 0.8594,
+        "width": 0.6654,
+        "height": 0.0297,
+        "continuationGroup": 14,
         "hasLabel": false,
-        "continuationGroup": 13,
-        "inputKind": "block"
+        "inputKind": "line"
       },
       {
-        "x": 0.05765,
-        "y": 0.91105,
-        "width": 0.84977,
-        "height": 0.032,
+        "x": 0.0685,
+        "y": 0.9029,
+        "width": 0.8498,
+        "height": 0.028,
+        "continuationGroup": 15,
         "hasLabel": false,
-        "continuationGroup": 15
+        "inputKind": "line"
+      },
+      {
+        "x": 0.0685,
+        "y": 0.9435,
+        "width": 0.8498,
+        "height": 0.028,
+        "continuationGroup": 16,
+        "hasLabel": false,
+        "inputKind": "line"
       }
     ],
     "27": [],
     "28": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0655,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0655,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0655,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0655,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0655,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0665,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -14195,7 +15335,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.0996,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -14204,7 +15344,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.0996,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -14213,7 +15353,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.0996,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -14222,7 +15362,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.0996,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -14322,12 +15462,13 @@ export const LINE_SLOTS = {
     ],
     "31": [
       {
-        "x": 0.089,
-        "y": 0.3251,
-        "width": 0.5186,
-        "height": 0.0297,
+        "x": 0.6151,
+        "y": 0.3208,
+        "width": 0.3199,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 1
       },
       {
@@ -14337,16 +15478,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 2
+        "inlineLabelTail": false,
+        "continuationGroup": 1
       },
       {
-        "x": 0.089,
-        "y": 0.4213,
-        "width": 0.4387,
-        "height": 0.0296,
+        "x": 0.5376,
+        "y": 0.4171,
+        "width": 0.3974,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 3
+        "inlineLabelTail": true,
+        "continuationGroup": 2
       },
       {
         "x": 0.3963,
@@ -14355,16 +15498,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 4
+        "inlineLabelTail": true,
+        "continuationGroup": 3
       },
       {
-        "x": 0.089,
-        "y": 0.5472,
-        "width": 0.519,
+        "x": 0.61,
+        "y": 0.5491,
+        "width": 0.325,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 5
+        "inlineLabelTail": true,
+        "continuationGroup": 4
       },
       {
         "x": 0.0924,
@@ -14373,7 +15518,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 6
+        "inlineLabelTail": false,
+        "continuationGroup": 4
+      },
+      {
+        "x": 0.6435,
+        "y": 0.6213,
+        "width": 0.2915,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 5
       },
       {
         "x": 0.0924,
@@ -14382,7 +15538,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "inlineLabelTail": false,
+        "continuationGroup": 5
+      },
+      {
+        "x": 0.8243,
+        "y": 0.6989,
+        "width": 0.1107,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 6
       },
       {
         "x": 0.0924,
@@ -14391,7 +15558,8 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 8
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
         "x": 0.0951,
@@ -14400,67 +15568,98 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "inlineLabelTail": false,
+        "continuationGroup": 7
+      },
+      {
+        "x": 0.5125,
+        "y": 0.8714,
+        "width": 0.4225,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 8
+      },
+      {
+        "x": 0.0955,
+        "y": 0.9077,
+        "width": 0.8395,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 8
+      },
+      {
+        "x": 0.0955,
+        "y": 0.9439,
+        "width": 0.8395,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 8
       }
     ],
     "32": [],
     "33": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0883,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0894,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -14469,7 +15668,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -14478,7 +15677,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -14487,7 +15686,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -14496,7 +15695,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1225,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -14507,117 +15706,117 @@ export const LINE_SLOTS = {
     ],
     "34": [
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.2662,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 1
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.3109,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 2
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.3555,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 3
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.4002,
-        "width": 0.6318,
+        "width": 0.5898,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 4
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.4448,
-        "width": 0.5824,
+        "width": 0.5404,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 5
       },
       {
-        "x": 0.0707,
+        "x": 0.1127,
         "y": 0.4895,
-        "width": 0.6045,
+        "width": 0.5625,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 6
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.6316,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 7
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.6763,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 8
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.7209,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 9
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.7656,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 10
       },
       {
-        "x": 0.0678,
+        "x": 0.1098,
         "y": 0.8103,
-        "width": 0.6085,
+        "width": 0.5665,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 11
       },
       {
-        "x": 0.0707,
+        "x": 0.1127,
         "y": 0.8549,
-        "width": 0.6045,
+        "width": 0.5625,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 12
       },
       {
-        "x": 0.0713,
+        "x": 0.1133,
         "y": 0.8983,
-        "width": 0.6131,
+        "width": 0.5711,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
@@ -14626,126 +15825,126 @@ export const LINE_SLOTS = {
     ],
     "35": [
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.1784,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 1
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.223,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 2
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.2677,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 3
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.3123,
-        "width": 0.7261,
+        "width": 0.6841,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 4
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.357,
-        "width": 0.6909,
+        "width": 0.6489,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 5
       },
       {
-        "x": 0.093,
+        "x": 0.135,
         "y": 0.4017,
-        "width": 0.6504,
+        "width": 0.6084,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 6
       },
       {
-        "x": 0.093,
+        "x": 0.135,
         "y": 0.4451,
-        "width": 0.6466,
+        "width": 0.6046,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 7
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.6548,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 8
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.6995,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 9
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.7441,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 10
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.7888,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 11
       },
       {
-        "x": 0.0901,
+        "x": 0.1321,
         "y": 0.8335,
-        "width": 0.6085,
+        "width": 0.5665,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 12
       },
       {
-        "x": 0.093,
+        "x": 0.135,
         "y": 0.8781,
-        "width": 0.6045,
+        "width": 0.5625,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 13
       },
       {
-        "x": 0.0936,
+        "x": 0.1356,
         "y": 0.9215,
-        "width": 0.6131,
+        "width": 0.5711,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
@@ -14754,108 +15953,108 @@ export const LINE_SLOTS = {
     ],
     "36": [
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.1737,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 1
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.2184,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 2
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.263,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 3
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.3077,
-        "width": 0.6318,
+        "width": 0.5898,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 4
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.3523,
-        "width": 0.5824,
+        "width": 0.5404,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 5
       },
       {
-        "x": 0.0686,
+        "x": 0.1106,
         "y": 0.397,
-        "width": 0.6045,
+        "width": 0.5625,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 6
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.6733,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 7
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.7179,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 8
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.7626,
-        "width": 0.849,
+        "width": 0.807,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 9
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.8073,
-        "width": 0.6318,
+        "width": 0.5898,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
         "continuationGroup": 10
       },
       {
-        "x": 0.0657,
+        "x": 0.1077,
         "y": 0.8519,
-        "width": 0.5824,
+        "width": 0.5404,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
         "continuationGroup": 11
       },
       {
-        "x": 0.0686,
+        "x": 0.1106,
         "y": 0.8966,
-        "width": 0.5615,
+        "width": 0.5195,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
@@ -15010,12 +16209,13 @@ export const LINE_SLOTS = {
     ],
     "38": [
       {
-        "x": 0.0957,
-        "y": 0.2402,
-        "width": 0.5527,
+        "x": 0.651,
+        "y": 0.2399,
+        "width": 0.2108,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 1
       },
       {
@@ -15024,7 +16224,18 @@ export const LINE_SLOTS = {
         "width": 0.7659,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.5656,
+        "y": 0.331,
+        "width": 0.2969,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "inlineLabelTail": true,
         "continuationGroup": 2
       },
       {
@@ -15033,26 +16244,19 @@ export const LINE_SLOTS = {
         "width": 0.7653,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 3
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 2
       },
       {
-        "x": 0.0898,
-        "y": 0.3908,
-        "width": 0.4447,
+        "x": 0.5387,
+        "y": 0.3876,
+        "width": 0.3231,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 4
-      },
-      {
-        "x": 0.0932,
-        "y": 0.4398,
-        "width": 0.8026,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 5
+        "inlineLabelTail": true,
+        "continuationGroup": 3
       },
       {
         "x": 0.0971,
@@ -15060,8 +16264,9 @@ export const LINE_SLOTS = {
         "width": 0.7647,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 6
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 4
       },
       {
         "x": 0.0971,
@@ -15069,26 +16274,19 @@ export const LINE_SLOTS = {
         "width": 0.7647,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 7
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 4
       },
       {
-        "x": 0.0966,
-        "y": 0.5664,
-        "width": 0.7502,
+        "x": 0.3729,
+        "y": 0.5949,
+        "width": 0.4889,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 8
-      },
-      {
-        "x": 0.0887,
-        "y": 0.6668,
-        "width": 0.8064,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 9
+        "inputKind": "line",
+        "inlineLabelTail": true,
+        "continuationGroup": 5
       },
       {
         "x": 0.0961,
@@ -15096,8 +16294,9 @@ export const LINE_SLOTS = {
         "width": 0.7628,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 10
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
         "x": 0.0961,
@@ -15105,8 +16304,9 @@ export const LINE_SLOTS = {
         "width": 0.7628,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 11
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
         "x": 0.0961,
@@ -15114,8 +16314,9 @@ export const LINE_SLOTS = {
         "width": 0.7628,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 12
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
         "x": 0.0961,
@@ -15123,8 +16324,9 @@ export const LINE_SLOTS = {
         "width": 0.7628,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 13
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       },
       {
         "x": 0.0961,
@@ -15132,28 +16334,20 @@ export const LINE_SLOTS = {
         "width": 0.7628,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 14
+        "inputKind": "line",
+        "inlineLabelTail": false,
+        "continuationGroup": 6
       }
     ],
     "39": [
       {
         "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.1484,
         "y": 0.1643,
         "width": 0.789,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2974,
@@ -15162,7 +16356,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.259,
@@ -15171,7 +16365,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.3054,
@@ -15180,7 +16374,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2887,
@@ -15189,7 +16383,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3619,
@@ -15198,7 +16392,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2934,
@@ -15207,7 +16401,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3224,
@@ -15216,7 +16410,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3446,
@@ -15225,7 +16419,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1679,
@@ -15234,7 +16428,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2564,
@@ -15243,7 +16437,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.3105,
@@ -15252,7 +16446,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3669,
@@ -15261,7 +16455,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2923,
@@ -15270,7 +16464,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2956,
@@ -15279,7 +16473,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2514,
@@ -15288,7 +16482,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4466,
@@ -15297,7 +16491,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0907,
@@ -15306,7 +16500,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0907,
@@ -15315,7 +16509,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0907,
@@ -15324,19 +16518,10 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "40": [
-      {
-        "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
       {
         "x": 0.1283,
         "y": 0.1643,
@@ -15344,7 +16529,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2773,
@@ -15353,7 +16538,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.2389,
@@ -15362,7 +16547,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.2853,
@@ -15371,7 +16556,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2686,
@@ -15380,7 +16565,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3418,
@@ -15389,7 +16574,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2733,
@@ -15398,7 +16583,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3023,
@@ -15407,7 +16592,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3245,
@@ -15416,7 +16601,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1478,
@@ -15425,7 +16610,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2363,
@@ -15434,7 +16619,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.2904,
@@ -15443,7 +16628,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3468,
@@ -15452,7 +16637,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2722,
@@ -15461,7 +16646,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2755,
@@ -15470,7 +16655,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2313,
@@ -15479,7 +16664,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4265,
@@ -15488,7 +16673,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0706,
@@ -15497,7 +16682,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0706,
@@ -15506,7 +16691,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0706,
@@ -15515,27 +16700,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "41": [
       {
         "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.1484,
         "y": 0.1643,
         "width": 0.789,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2974,
@@ -15544,7 +16720,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.259,
@@ -15553,7 +16729,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.3054,
@@ -15562,7 +16738,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2887,
@@ -15571,7 +16747,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3619,
@@ -15580,7 +16756,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2934,
@@ -15589,7 +16765,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3224,
@@ -15598,7 +16774,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3446,
@@ -15607,7 +16783,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1679,
@@ -15616,7 +16792,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2564,
@@ -15625,7 +16801,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.3105,
@@ -15634,7 +16810,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3669,
@@ -15643,7 +16819,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2923,
@@ -15652,7 +16828,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2956,
@@ -15661,7 +16837,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2514,
@@ -15670,7 +16846,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4466,
@@ -15679,7 +16855,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0907,
@@ -15688,7 +16864,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0907,
@@ -15697,7 +16873,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0907,
@@ -15706,19 +16882,10 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "42": [
-      {
-        "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
       {
         "x": 0.1283,
         "y": 0.1643,
@@ -15726,7 +16893,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2773,
@@ -15735,7 +16902,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.2389,
@@ -15744,7 +16911,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.2853,
@@ -15753,7 +16920,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2686,
@@ -15762,7 +16929,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3418,
@@ -15771,7 +16938,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2733,
@@ -15780,7 +16947,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3023,
@@ -15789,7 +16956,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3245,
@@ -15798,7 +16965,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1478,
@@ -15807,7 +16974,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2363,
@@ -15816,7 +16983,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.2904,
@@ -15825,7 +16992,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3468,
@@ -15834,7 +17001,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2722,
@@ -15843,7 +17010,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2755,
@@ -15852,7 +17019,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2313,
@@ -15861,7 +17028,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4265,
@@ -15870,7 +17037,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0706,
@@ -15879,7 +17046,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0706,
@@ -15888,7 +17055,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0706,
@@ -15897,27 +17064,18 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "43": [
       {
         "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.1484,
         "y": 0.1643,
         "width": 0.789,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2974,
@@ -15926,7 +17084,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.259,
@@ -15935,7 +17093,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.3054,
@@ -15944,7 +17102,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2887,
@@ -15953,7 +17111,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3619,
@@ -15962,7 +17120,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2934,
@@ -15971,7 +17129,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3224,
@@ -15980,7 +17138,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3446,
@@ -15989,7 +17147,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1679,
@@ -15998,7 +17156,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2564,
@@ -16007,7 +17165,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.3105,
@@ -16016,7 +17174,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3669,
@@ -16025,7 +17183,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2923,
@@ -16034,7 +17192,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2956,
@@ -16043,7 +17201,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2514,
@@ -16052,7 +17210,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4466,
@@ -16061,7 +17219,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0907,
@@ -16070,7 +17228,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0907,
@@ -16079,7 +17237,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0907,
@@ -16088,19 +17246,10 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "44": [
-      {
-        "x": 0.1484,
-        "y": 0.1233,
-        "width": 0.789,
-        "height": 0.028,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
       {
         "x": 0.1283,
         "y": 0.1643,
@@ -16108,7 +17257,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.2773,
@@ -16117,7 +17266,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.2389,
@@ -16126,7 +17275,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.2853,
@@ -16135,7 +17284,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.2686,
@@ -16144,7 +17293,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 6
+        "continuationGroup": 5
       },
       {
         "x": 0.3418,
@@ -16153,7 +17302,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 7
+        "continuationGroup": 6
       },
       {
         "x": 0.2733,
@@ -16162,7 +17311,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 8
+        "continuationGroup": 7
       },
       {
         "x": 0.3023,
@@ -16171,7 +17320,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 9
+        "continuationGroup": 8
       },
       {
         "x": 0.3245,
@@ -16180,7 +17329,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 10
+        "continuationGroup": 9
       },
       {
         "x": 0.1478,
@@ -16189,7 +17338,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 11
+        "continuationGroup": 10
       },
       {
         "x": 0.2363,
@@ -16198,7 +17347,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 12
+        "continuationGroup": 11
       },
       {
         "x": 0.2904,
@@ -16207,7 +17356,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 13
+        "continuationGroup": 12
       },
       {
         "x": 0.3468,
@@ -16216,7 +17365,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 14
+        "continuationGroup": 13
       },
       {
         "x": 0.2722,
@@ -16225,7 +17374,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 15
+        "continuationGroup": 14
       },
       {
         "x": 0.2755,
@@ -16234,7 +17383,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 16
+        "continuationGroup": 15
       },
       {
         "x": 0.2313,
@@ -16243,7 +17392,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 17
+        "continuationGroup": 16
       },
       {
         "x": 0.4265,
@@ -16252,7 +17401,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 18
+        "continuationGroup": 17
       },
       {
         "x": 0.0706,
@@ -16261,7 +17410,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 19
+        "continuationGroup": 18
       },
       {
         "x": 0.0706,
@@ -16270,7 +17419,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 20
+        "continuationGroup": 19
       },
       {
         "x": 0.0706,
@@ -16279,66 +17428,66 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
-        "continuationGroup": 21
+        "continuationGroup": 20
       }
     ],
     "45": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16347,7 +17496,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16356,7 +17505,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16365,7 +17514,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16374,7 +17523,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16385,61 +17534,61 @@ export const LINE_SLOTS = {
     ],
     "46": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16448,7 +17597,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16457,7 +17606,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16466,7 +17615,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16475,7 +17624,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16486,61 +17635,61 @@ export const LINE_SLOTS = {
     ],
     "47": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16549,7 +17698,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16558,7 +17707,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16567,7 +17716,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16576,7 +17725,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16587,61 +17736,61 @@ export const LINE_SLOTS = {
     ],
     "48": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16650,7 +17799,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16659,7 +17808,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16668,7 +17817,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16677,7 +17826,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16688,61 +17837,61 @@ export const LINE_SLOTS = {
     ],
     "49": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16751,7 +17900,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16760,7 +17909,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16769,7 +17918,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16778,7 +17927,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16789,61 +17938,61 @@ export const LINE_SLOTS = {
     ],
     "50": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16852,7 +18001,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16861,7 +18010,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16870,7 +18019,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16879,7 +18028,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16890,61 +18039,61 @@ export const LINE_SLOTS = {
     ],
     "51": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -16953,7 +18102,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -16962,7 +18111,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -16971,7 +18120,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -16980,7 +18129,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -16991,61 +18140,61 @@ export const LINE_SLOTS = {
     ],
     "52": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -17054,7 +18203,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -17063,7 +18212,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -17072,7 +18221,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -17081,7 +18230,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -17092,61 +18241,61 @@ export const LINE_SLOTS = {
     ],
     "53": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -17155,7 +18304,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -17164,7 +18313,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -17173,7 +18322,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -17182,7 +18331,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -17193,61 +18342,61 @@ export const LINE_SLOTS = {
     ],
     "54": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -17256,7 +18405,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -17265,7 +18414,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -17274,7 +18423,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -17283,7 +18432,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -17294,61 +18443,61 @@ export const LINE_SLOTS = {
     ],
     "55": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0948,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0959,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -17357,7 +18506,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -17366,7 +18515,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -17375,7 +18524,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -17384,7 +18533,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1241,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -17395,61 +18544,61 @@ export const LINE_SLOTS = {
     ],
     "56": [
       {
-        "x": 0.0869,
-        "y": 0.2193,
-        "width": 0.2101,
+        "x": 0.337,
+        "y": 0.1654,
+        "width": 0.3261,
         "height": 0.028,
         "inputKind": "line",
         "hasLabel": false,
         "continuationGroup": 1
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3017,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3422,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.3838,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4264,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.4669,
-        "width": 0.8315,
+        "width": 0.8424,
         "height": 0.032,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 2
       },
       {
-        "x": 0.0869,
+        "x": 0.0693,
         "y": 0.5628,
         "width": 0.2093,
         "height": 0.028,
@@ -17458,7 +18607,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 3
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.739,
         "width": 0.774,
         "height": 0.032,
@@ -17467,7 +18616,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.7795,
         "width": 0.774,
         "height": 0.032,
@@ -17476,7 +18625,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8211,
         "width": 0.774,
         "height": 0.032,
@@ -17485,7 +18634,7 @@ export const LINE_SLOTS = {
         "continuationGroup": 4
       },
       {
-        "x": 0.113,
+        "x": 0.1007,
         "y": 0.8637,
         "width": 0.774,
         "height": 0.032,
@@ -18164,22 +19313,13 @@ export const LINE_SLOTS = {
     ],
     "10": [
       {
-        "x": 0.087,
-        "y": 0.2164,
-        "width": 0.8207,
-        "height": 0.0321,
-        "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
-      },
-      {
         "x": 0.3689,
         "y": 0.3047,
         "width": 0.5468,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 2
+        "continuationGroup": 1
       },
       {
         "x": 0.0867,
@@ -18188,7 +19328,7 @@ export const LINE_SLOTS = {
         "height": 0.0315,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 3
+        "continuationGroup": 2
       },
       {
         "x": 0.3131,
@@ -18197,7 +19337,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 4
+        "continuationGroup": 3
       },
       {
         "x": 0.4881,
@@ -18206,7 +19346,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 5
+        "continuationGroup": 4
       },
       {
         "x": 0.0867,
@@ -18214,8 +19354,8 @@ export const LINE_SLOTS = {
         "width": 0.8296,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 6
+        "inputKind": "line",
+        "continuationGroup": 5
       },
       {
         "x": 0.0867,
@@ -18223,8 +19363,8 @@ export const LINE_SLOTS = {
         "width": 0.8296,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 7
+        "inputKind": "line",
+        "continuationGroup": 6
       },
       {
         "x": 0.0869,
@@ -18232,8 +19372,35 @@ export const LINE_SLOTS = {
         "width": 0.8293,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
+        "inputKind": "line",
+        "continuationGroup": 7
+      },
+      {
+        "x": 0.0869,
+        "y": 0.6864,
+        "width": 0.8304,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
         "continuationGroup": 8
+      },
+      {
+        "x": 0.085,
+        "y": 0.8411,
+        "width": 0.3998,
+        "height": 0.0312,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 9
+      },
+      {
+        "x": 0.0855,
+        "y": 0.8755,
+        "width": 0.6091,
+        "height": 0.0312,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 10
       }
     ],
     "11": [
@@ -18478,13 +19645,31 @@ export const LINE_SLOTS = {
     ],
     "14": [
       {
+        "x": 0.085,
+        "y": 0.2328,
+        "width": 0.8207,
+        "height": 0.0321,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 1
+      },
+      {
+        "x": 0.086,
+        "y": 0.2672,
+        "width": 0.5558,
+        "height": 0.031,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 2
+      },
+      {
         "x": 0.4327,
         "y": 0.3188,
         "width": 0.4864,
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 1
+        "continuationGroup": 3
       },
       {
         "x": 0.3576,
@@ -18493,7 +19678,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 2
+        "continuationGroup": 4
       },
       {
         "x": 0.3943,
@@ -18502,7 +19687,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 3
+        "continuationGroup": 5
       },
       {
         "x": 0.0844,
@@ -18510,8 +19695,17 @@ export const LINE_SLOTS = {
         "width": 0.8348,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 4
+        "inputKind": "line",
+        "continuationGroup": 6
+      },
+      {
+        "x": 0.0889,
+        "y": 0.5046,
+        "width": 0.4689,
+        "height": 0.0315,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 7
       },
       {
         "x": 0.0844,
@@ -18519,8 +19713,8 @@ export const LINE_SLOTS = {
         "width": 0.8348,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 5
+        "inputKind": "line",
+        "continuationGroup": 8
       },
       {
         "x": 0.0889,
@@ -18529,7 +19723,7 @@ export const LINE_SLOTS = {
         "height": 0.028,
         "hasLabel": false,
         "inputKind": "line",
-        "continuationGroup": 6
+        "continuationGroup": 9
       },
       {
         "x": 0.0871,
@@ -18537,8 +19731,8 @@ export const LINE_SLOTS = {
         "width": 0.8296,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 7
+        "inputKind": "line",
+        "continuationGroup": 10
       },
       {
         "x": 0.112,
@@ -18546,8 +19740,8 @@ export const LINE_SLOTS = {
         "width": 0.8047,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 8
+        "inputKind": "line",
+        "continuationGroup": 11
       },
       {
         "x": 0.112,
@@ -18555,8 +19749,26 @@ export const LINE_SLOTS = {
         "width": 0.8047,
         "height": 0.028,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 9
+        "inputKind": "line",
+        "continuationGroup": 12
+      },
+      {
+        "x": 0.1167,
+        "y": 0.7314,
+        "width": 0.8,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 13
+      },
+      {
+        "x": 0.112,
+        "y": 0.7656,
+        "width": 0.8047,
+        "height": 0.028,
+        "hasLabel": false,
+        "inputKind": "line",
+        "continuationGroup": 14
       }
     ],
     "15": [
@@ -18657,81 +19869,108 @@ export const LINE_SLOTS = {
         "y": 0.2213,
         "width": 0.7419,
         "height": 0.0321,
+        "continuationGroup": 1,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 1
+        "inputKind": "line"
       },
       {
         "x": 0.0879,
         "y": 0.2557,
         "width": 0.5249,
         "height": 0.0321,
+        "continuationGroup": 2,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 2
+        "inputKind": "line"
       },
       {
         "x": 0.0879,
         "y": 0.3244,
         "width": 0.4435,
         "height": 0.0327,
+        "continuationGroup": 3,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 3
+        "inputKind": "line"
       },
       {
         "x": 0.0879,
         "y": 0.3554,
         "width": 0.4746,
         "height": 0.0281,
+        "continuationGroup": 4,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 4
+        "inputKind": "line"
       },
       {
         "x": 0.0879,
         "y": 0.3932,
         "width": 0.619,
         "height": 0.0315,
+        "continuationGroup": 5,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 5
+        "inputKind": "line"
+      },
+      {
+        "x": 0.4925,
+        "y": 0.4154,
+        "width": 0.4267,
+        "height": 0.028,
+        "continuationGroup": 6,
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
         "x": 0.4925,
         "y": 0.4501,
         "width": 0.4267,
         "height": 0.028,
+        "continuationGroup": 7,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 6
+        "inputKind": "line"
       },
       {
         "x": 0.0879,
         "y": 0.4963,
         "width": 0.5349,
         "height": 0.0321,
+        "continuationGroup": 8,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 7
+        "inputKind": "line"
       },
       {
-        "x": 0.0879,
-        "y": 0.5651,
-        "width": 0.5195,
-        "height": 0.0327,
+        "x": 0.0829,
+        "y": 0.732,
+        "width": 0.8282,
+        "height": 0.0294,
+        "continuationGroup": 9,
         "hasLabel": false,
-        "inputKind": "line",
-        "continuationGroup": 8
+        "inputKind": "line"
+      },
+      {
+        "x": 0.0829,
+        "y": 0.7697,
+        "width": 0.6166,
+        "height": 0.031,
+        "continuationGroup": 10,
+        "hasLabel": false,
+        "inputKind": "line"
       },
       {
         "x": 0.085,
-        "y": 0.6632,
-        "width": 0.8341,
+        "y": 0.8044,
+        "width": 0.5957,
         "height": 0.028,
+        "continuationGroup": 11,
         "hasLabel": false,
-        "inputKind": "block",
-        "continuationGroup": 9
+        "inputKind": "line"
+      },
+      {
+        "x": 0.085,
+        "y": 0.8531,
+        "width": 0.5957,
+        "height": 0.028,
+        "continuationGroup": 12,
+        "hasLabel": false,
+        "inputKind": "line"
       }
     ],
     "17": [

@@ -11,6 +11,12 @@ const SLOT_LABELS: Record<string, string> = {
   father_great_grandfather: 'Прадедушка (папа)',
   father_grandmother: 'Бабушка (папа)',
   father_grandfather: 'Дедушка (папа)',
+  extra_01: 'Мама',
+  extra_02: 'Ещё родственник (мама)',
+  extra_03: 'Папа',
+  extra_04: 'Ещё родственник (папа)',
+  extra_05: 'Ещё родственник (папа)',
+  extra_06: 'Ещё родственник',
 };
 
 export type FamilyTreeSlotMeta = NormalizedPhotoSlot & {
@@ -42,101 +48,46 @@ export function getFamilyTreeSlotLabel(slotId?: string, slotIndex?: number): str
 
 const KIDS_FAMILY_TREE_PAGE = 5;
 
-/** Базовый bleed — перекрыть жёлтое декоративное кольцо макета (как gender fills на p3). */
-const FAMILY_TREE_VIEWPORT_DIAMETER_BLEED = 1.08;
-
-/** Линия мамы — чуть больше bleed для крупных кругов. */
-const FAMILY_TREE_MOTHER_VIEWPORT_DIAMETER_BLEED = 1.1;
-
-const FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_BLEED = 1.07;
-
-const FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_BLEED_BY_SLOT: Readonly<Record<string, number>> = {
-  father_great_grandmother: 1.06,
-  father_great_grandfather: 1.08,
-  father_grandmother: 1.07,
-  father_grandfather: 1.08,
-  extra_03: 1.06,
-  extra_04: 1.07,
-  extra_05: 1.06,
+/**
+ * Калибровка по жёлтым кругам design PNG (page_005_design.png, CC + raycast).
+ * Старые +X на ветке папы (до +0.044) сдвигали фото вправо — слева оставался жёлтый серп.
+ * diameter = detectedYellowDiameter × 1.06 (перекрывает заливку и белую обводку).
+ */
+type FamilyTreeViewportCalibration = {
+  dx: number;
+  dy: number;
+  diameter: number;
 };
 
-function resolveFamilyTreeViewportDiameter(slot: NormalizedPhotoSlot): number {
-  const base = Math.max(slot.width, slot.height);
-  if (slot.branch === 'father') {
-    const bleed =
-      (slot.slotId && FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_BLEED_BY_SLOT[slot.slotId]) ??
-      FAMILY_TREE_VIEWPORT_DIAMETER_BLEED;
-    return base * bleed;
-  }
-  if (slot.branch === 'child') {
-    return base * FAMILY_TREE_CHILD_VIEWPORT_DIAMETER_BLEED;
-  }
-  return base * FAMILY_TREE_MOTHER_VIEWPORT_DIAMETER_BLEED;
-}
+const FAMILY_TREE_VIEWPORT_CALIBRATION: Readonly<
+  Record<string, FamilyTreeViewportCalibration>
+> = {
+  child: { dx: -0.001, dy: 0.0002, diameter: 0.1531 },
+  mother_great_grandmother: { dx: -0.001, dy: -0.0001, diameter: 0.1656 },
+  mother_great_grandfather: { dx: -0.0011, dy: 0, diameter: 0.1638 },
+  mother_grandmother: { dx: -0.001, dy: -0.0001, diameter: 0.1496 },
+  mother_grandfather: { dx: -0.0011, dy: -0.0001, diameter: 0.1407 },
+  father_great_grandmother: { dx: -0.0012, dy: 0.0001, diameter: 0.1496 },
+  father_great_grandfather: { dx: -0.0013, dy: 0, diameter: 0.1638 },
+  father_grandmother: { dx: -0.0011, dy: 0, diameter: 0.1496 },
+  father_grandfather: { dx: -0.0012, dy: -0.0001, diameter: 0.1549 },
+  extra_01: { dx: -0.001, dy: -0.0002, diameter: 0.1318 },
+  extra_02: { dx: -0.001, dy: -0.0002, diameter: 0.1211 },
+  extra_03: { dx: -0.0012, dy: -0.0001, diameter: 0.1478 },
+  extra_04: { dx: -0.0012, dy: -0.0001, diameter: 0.1496 },
+  extra_05: { dx: -0.0012, dy: -0.0002, diameter: 0.1407 },
+  extra_06: { dx: -0.0011, dy: -0.0001, diameter: 0.1407 },
+};
+
+/** Fallback: слегка левее PDF-слота + умеренный bleed (без правого «уезда»). */
+const FAMILY_TREE_DEFAULT_DIAMETER_BLEED = 1.04;
+const FAMILY_TREE_DEFAULT_X_NUDGE = -0.0011;
 
 /** Диаметр слота в схеме дерева (норм. 0–1 относительно кадра). */
 export function getFamilyTreePickerSlotDiameterNorm(slot: NormalizedPhotoSlot): number {
-  return resolveFamilyTreeViewportDiameter(slot);
-}
-
-/**
- * Покруговая калибровка X (норм. 0–1): жёлтое кольцо макета смещено относительно PDF-слота.
- */
-const FAMILY_TREE_VIEWPORT_X_OFFSET: Readonly<Record<string, number>> = {
-  child: 0,
-  extra_06: 0.006,
-  mother_great_grandmother: 0,
-  mother_great_grandfather: 0,
-  mother_grandmother: 0,
-  mother_grandfather: 0,
-  extra_01: 0,
-  extra_02: 0,
-  father_great_grandmother: 0.008,
-  father_great_grandfather: 0.044,
-  father_grandmother: 0.004,
-  father_grandfather: 0.031,
-  extra_03: 0.006,
-  extra_04: 0.005,
-  extra_05: 0.004,
-};
-
-/** Покруговой сдвиг Y под жёлтое кольцо макета. */
-const FAMILY_TREE_VIEWPORT_Y_OFFSET: Readonly<Record<string, number>> = {
-  child: 0,
-  extra_06: 0.003,
-  mother_great_grandmother: 0,
-  mother_great_grandfather: 0,
-  mother_grandmother: 0,
-  mother_grandfather: 0,
-  extra_01: 0,
-  extra_02: 0,
-  father_great_grandmother: 0.002,
-  father_great_grandfather: 0.003,
-  father_grandmother: 0.005,
-  father_grandfather: 0.006,
-  extra_03: 0.006,
-  extra_04: 0.004,
-  extra_05: 0.003,
-};
-
-function resolveFamilyTreeViewportXOffset(slot: NormalizedPhotoSlot): number {
-  if (slot.slotId && slot.slotId in FAMILY_TREE_VIEWPORT_X_OFFSET) {
-    return FAMILY_TREE_VIEWPORT_X_OFFSET[slot.slotId]!;
-  }
-  if (slot.branch === 'father') {
-    if (slot.x >= 0.8) return 0.034;
-    if (slot.x >= 0.74) return 0.024;
-    return 0.008;
-  }
-  return 0;
-}
-
-function resolveFamilyTreeViewportYOffset(slot: NormalizedPhotoSlot): number {
-  if (slot.slotId && slot.slotId in FAMILY_TREE_VIEWPORT_Y_OFFSET) {
-    return FAMILY_TREE_VIEWPORT_Y_OFFSET[slot.slotId]!;
-  }
-  if (slot.branch === 'father') return 0.004;
-  return 0;
+  const calibrated = slot.slotId ? FAMILY_TREE_VIEWPORT_CALIBRATION[slot.slotId] : undefined;
+  if (calibrated) return calibrated.diameter;
+  return Math.max(slot.width, slot.height) * FAMILY_TREE_DEFAULT_DIAMETER_BLEED;
 }
 
 /** Калибровка только для превью/экспорта; picker дерева использует сырые слоты. */
@@ -149,9 +100,11 @@ export function refineFamilyTreeSlotForViewport(
     return slot;
   }
 
-  const viewportX = slot.x + resolveFamilyTreeViewportXOffset(slot);
-  const viewportY = slot.y + resolveFamilyTreeViewportYOffset(slot);
-  const viewportDiameter = resolveFamilyTreeViewportDiameter(slot);
+  const calibrated = slot.slotId ? FAMILY_TREE_VIEWPORT_CALIBRATION[slot.slotId] : undefined;
+  const viewportX = slot.x + (calibrated?.dx ?? FAMILY_TREE_DEFAULT_X_NUDGE);
+  const viewportY = slot.y + (calibrated?.dy ?? 0);
+  const viewportDiameter =
+    calibrated?.diameter ?? Math.max(slot.width, slot.height) * FAMILY_TREE_DEFAULT_DIAMETER_BLEED;
 
   return {
     ...slot,

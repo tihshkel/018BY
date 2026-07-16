@@ -2,9 +2,9 @@
   "summary": {
     "albumId": "kids_48",
     "pageCount": 48,
-    "photoPages": 44,
-    "pagesOk": 41,
-    "pagesWarn": 3,
+    "photoPages": 45,
+    "pagesOk": 44,
+    "pagesWarn": 1,
     "pagesFail": 0
   },
   "pages": [
@@ -15,11 +15,11 @@
       "lineSlotCount": 5,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×77 мм, 69–146 мм (центр)",
+      "photoDescription": "≈103×63 мм, 74–136 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -45,19 +45,13 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×82 мм, 44–126 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 82 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈103×63 мм, 48–111 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
@@ -67,35 +61,29 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 3,
-        "layoutSource": "pdf_collage",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×72 мм, 115–187 мм (низ)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 72 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈103×63 мм, 119–182 мм (низ)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
       "page": 5,
       "title": "Семейное дерево",
       "pageType": "family_tree",
-      "lineSlotCount": 9,
+      "lineSlotCount": 15,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 1,
+        "variantCount": 0,
         "layoutSource": "circle",
-        "primaryVariant": "tree"
+        "primaryVariant": null
       },
-      "photoDescription": "15 кругов",
+      "photoDescription": "0 кругов",
       "layoutIssues": [],
-      "status": "ok",
+      "status": "warn",
       "section": "Начало истории"
     },
     {
@@ -105,11 +93,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×109 мм, 44–153 мм (центр)",
+      "photoDescription": "≈103×63 мм, 58–121 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -121,11 +109,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×137 мм, 57–194 мм (центр)",
+      "photoDescription": "≈88×120 мм, 66–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -134,22 +122,16 @@
       "page": 8,
       "title": "Первый день дома",
       "pageType": "event_photo",
-      "lineSlotCount": 2,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×83 мм, 86–170 мм (центр)",
-      "layoutIssues": [
-        {
-          "severity": "warn",
-          "code": "SPARSE_PHOTO_TOO_SHORT",
-          "detail": "height 83 mm < 90 mm on sparse page"
-        }
-      ],
-      "status": "warn",
+      "photoDescription": "≈103×63 мм, 91–154 мм (центр)",
+      "layoutIssues": [],
+      "status": "ok",
       "section": "Начало истории"
     },
     {
@@ -159,11 +141,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×109 мм, 50–159 мм (центр)",
+      "photoDescription": "≈103×63 мм, 73–136 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -172,7 +154,7 @@
       "page": 10,
       "title": "Мои зубки",
       "pageType": "teeth",
-      "lineSlotCount": 23,
+      "lineSlotCount": 22,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -203,11 +185,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "kids_event",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "designed_event",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×128 мм, 54–182 мм (центр)",
+      "photoDescription": "≈162×112 мм, 62–174 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -219,11 +201,11 @@
       "lineSlotCount": 9,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×72 мм, 118–190 мм (низ)",
+      "photoDescription": "≈103×63 мм, 122–185 мм (низ)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -235,11 +217,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 64–182 мм (центр)",
+      "photoDescription": "≈79×108 мм, 72–180 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -251,11 +233,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 2,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×118 мм, 65–183 мм (центр)",
+      "photoDescription": "≈73×100 мм, 72–172 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -264,14 +246,14 @@
       "page": 16,
       "title": "Мои сновидения",
       "pageType": "event_photo",
-      "lineSlotCount": 1,
+      "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×137 мм, 57–194 мм (центр)",
+      "photoDescription": "≈88×120 мм, 66–186 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -283,11 +265,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×140 мм, 42–182 мм (центр)",
+      "photoDescription": "≈88×120 мм, 50–170 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -299,11 +281,11 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×113 мм, 60–173 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -312,14 +294,14 @@
       "page": 19,
       "title": "Я стою",
       "pageType": "event_photo",
-      "lineSlotCount": 2,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×113 мм, 60–173 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -331,11 +313,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -347,11 +329,11 @@
       "lineSlotCount": 2,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×112 мм, 66–178 мм (центр)",
+      "photoDescription": "≈148×90 мм, 72–162 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало истории"
@@ -363,11 +345,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -379,11 +361,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -395,11 +377,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -411,11 +393,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -427,11 +409,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -443,11 +425,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -459,11 +441,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -475,11 +457,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -491,11 +473,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -507,11 +489,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -523,11 +505,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -539,11 +521,11 @@
       "lineSlotCount": 3,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×118 мм, 74–192 мм (центр)",
+      "photoDescription": "≈76×104 мм, 80–185 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Первый год жизни"
@@ -552,14 +534,14 @@
       "page": 34,
       "title": "Мой первый Новый год",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -567,15 +549,15 @@
     {
       "page": 35,
       "title": "Свободная страница для Нового года",
-      "pageType": "free_photo_caption",
+      "pageType": "photo",
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -584,14 +566,14 @@
       "page": 36,
       "title": "Моя первая зима",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -600,14 +582,14 @@
       "page": 37,
       "title": "Моя первая весна",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -616,14 +598,14 @@
       "page": 38,
       "title": "Мое первое лето",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -632,14 +614,14 @@
       "page": 39,
       "title": "Моя первая осень",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -648,14 +630,14 @@
       "page": 40,
       "title": "Мое первое путешествие",
       "pageType": "event_photo",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -663,15 +645,15 @@
     {
       "page": 41,
       "title": "Свободная страница для путешествия",
-      "pageType": "free_photo_caption",
+      "pageType": "photo",
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×160 мм, 24–184 мм (центр)",
+      "photoDescription": "≈76×104 мм, 31–135 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Времена года, праздники и путешествия"
@@ -679,15 +661,15 @@
     {
       "page": 42,
       "title": "Памятные моменты",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 59–179 мм (центр)",
+      "photoDescription": "≈76×104 мм, 67–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -695,15 +677,15 @@
     {
       "page": 43,
       "title": "Свободная страница для памятных моментов",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -711,15 +693,15 @@
     {
       "page": 44,
       "title": "Свободная страница для памятных моментов",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -727,15 +709,15 @@
     {
       "page": 45,
       "title": "Свободная страница для памятных моментов",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -743,15 +725,15 @@
     {
       "page": 46,
       "title": "Свободная страница для памятных моментов",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -759,15 +741,15 @@
     {
       "page": 47,
       "title": "Свободная страница для памятных моментов",
-      "pageType": "caption_photo_page",
-      "lineSlotCount": 0,
+      "pageType": "photo",
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×119 мм, 45–165 мм (центр)",
+      "photoDescription": "≈76×104 мм, 53–157 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"
@@ -776,12 +758,14 @@
       "page": 48,
       "title": "Моя история только начинается",
       "pageType": "non_editable",
-      "lineSlotCount": 0,
+      "lineSlotCount": 1,
       "photo": {
-        "hasPhoto": false,
-        "variantCount": 0
+        "hasPhoto": true,
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "—",
+      "photoDescription": "≈76×104 мм, 27–131 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Памятные моменты и завершение"

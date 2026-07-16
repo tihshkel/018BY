@@ -179,8 +179,16 @@ assert(
 const p52Slots = require('../constants/line-slots.json').pregnancy_60['52'];
 assert(p52Slots[20]?.inputKind === 'line', 'pregnancy_60 p52 slot 20 is condition line');
 assert(
-  Math.abs(p52Slots[20].y + p52Slots[20].height - 0.669) < 0.003,
-  'pregnancy_60 p52 condition line stroke at 0.669',
+  Math.abs(p52Slots[20].y + p52Slots[20].height - 0.6193) < 0.003,
+  'pregnancy_60 p52 condition line stroke at 0.6193',
+);
+assert(
+  p52Slots[0]?.textAnchorTop === true && p52Slots[0]?.lineStrokeAtBottom === true,
+  'pregnancy_60 p52 line slots use textAnchorTop + lineStrokeAtBottom',
+);
+assert(
+  Math.abs(p52Slots[0].y + p52Slots[0].height - 0.1762) < 0.003,
+  'pregnancy_60 p52 age line stroke at 0.1762',
 );
 assert(p52Slots[15]?.hasLabel === false, 'pregnancy_60 p52 delivery block has external label');
 assert(
@@ -198,6 +206,20 @@ assert(
     (fill) => fill.id === 'gender_boy' && fill.fieldId === 'pregnancy_60_p52_baby_gender',
   ),
   'pregnancy_60 p52 gender boy fill registered',
+);
+assert(
+  p52Fills.optionFills[0].width >= 0.033 && p52Fills.optionFills[0].height >= 0.025,
+  'pregnancy_60 p52 checkbox fills cover printed boxes',
+);
+const p50Fills = require('../constants/generated/pdf-circle-slots.json').pregnancy_60['50'];
+assert(
+  Array.isArray(p50Fills?.optionFills) && p50Fills.optionFills.length === 36,
+  'pregnancy_60 p50 shopping list has 36 checkbox option fills',
+);
+assert(
+  p50Fills.optionFills[0]?.fieldId === 'pregnancy_60_p50_purchased_1' &&
+    p50Fills.optionFills[0]?.option === 'Да',
+  'pregnancy_60 p50 first shopping checkbox maps to purchased_1',
 );
 
 assert(
@@ -220,9 +242,18 @@ assert(
 assert(
   templateSource.includes('resolveAlreadyMomLineStrokeY') &&
     templateSource.includes('resolveTemplateLineViewportBaseline') &&
+    templateSource.includes('PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO') &&
+    templateSource.includes('PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO') &&
+    templateSource.includes('PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO') &&
+    templateSource.includes('getAlreadyMomLineTextTop') &&
     !exportTemplateSource.includes('heightAtSize') &&
     exportTemplateSource.includes('fontId'),
-  'p54 already-mom export uses unified viewport baseline resolver (no heightAtSize)',
+  'p54 already-mom: EXTRA_LIFT preview + PDF-only baseline lift',
+);
+assert(
+  marginsSource.includes('PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO') &&
+    marginsSource.includes('PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO'),
+  'already-mom stroke clearance + PDF baseline lift constants are defined',
 );
 assert(
   readOnlySource.includes('resolveTemplateLineRowLayout'),
@@ -232,6 +263,12 @@ const pdfAnnotationsSource = read('components/pdf-annotations.tsx');
 assert(
   pdfAnnotationsSource.includes('resolveTemplateLineRowLayout'),
   'pdf-annotations uses shared resolveTemplateLineRowLayout',
+);
+assert(
+  templateSource.includes("lineGuideId === 'pregnancy_60' && slot.page === 4") &&
+    templateSource.includes('applyDiaryAmaticVisualSink(Math.min(ascent, 0.96))') &&
+    templateSource.includes('usesPregnancyAlbumRnLineHeightAscent'),
+  'pregnancy_60 p4: Amatic sink in preview; PDF ascent matches (not raw rnRatio)',
 );
 assert(
   templateSource.includes('getRnAscentRatioAt16') &&

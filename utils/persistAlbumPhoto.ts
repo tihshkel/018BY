@@ -17,6 +17,15 @@ function stripFileScheme(uri: string): string {
   return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
 }
 
+/** Drop cache-bust query from managed file URIs before FS checks. */
+export function stripPhotoCacheBust(uri: string): string {
+  if (!uri) return uri;
+  const queryIndex = uri.indexOf('?');
+  if (queryIndex < 0) return uri;
+  if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
+  return uri.slice(0, queryIndex);
+}
+
 function inferPhotoExtension(sourceUri: string): 'jpg' | 'png' | 'heic' {
   const lower = sourceUri.toLowerCase();
   if (lower.includes('.png')) return 'png';
@@ -32,9 +41,16 @@ export function isRemotePhotoUri(uri: string): boolean {
   return uri.startsWith('https://') || uri.startsWith('http://');
 }
 
+/** Force expo-image to reload when the on-disk path is reused after replace. */
+export function withPhotoCacheBust(uri: string, revision: number = Date.now()): string {
+  const base = stripPhotoCacheBust(uri);
+  if (!base || isRemotePhotoUri(base)) return uri;
+  return `${base}?v=${revision}`;
+}
+
 export function isManagedAlbumPhotoUri(uri: string): boolean {
   const normalizedDir = stripFileScheme(ALBUM_PHOTOS_DIR);
-  const normalizedUri = stripFileScheme(uri);
+  const normalizedUri = stripFileScheme(stripPhotoCacheBust(uri));
   return normalizedUri.startsWith(normalizedDir);
 }
 
@@ -58,7 +74,7 @@ export async function photoUriExists(uri: string): Promise<boolean> {
   if (!uri.trim()) return false;
   if (isRemotePhotoUri(uri)) return true;
   try {
-    const info = await FileSystem.getInfoAsync(uri);
+    const info = await FileSystem.getInfoAsync(stripPhotoCacheBust(uri));
     return info.exists && !info.isDirectory;
   } catch {
     return false;
@@ -78,7 +94,7 @@ export async function persistAlbumPhotoUri(
 ): Promise<string> {
   if (!sourceUri.trim()) return sourceUri;
   if (isRemotePhotoUri(sourceUri)) return sourceUri;
-  if (isManagedAlbumPhotoUri(sourceUri)) return normalizeFileUri(sourceUri);
+  if (isManagedAlbumPhotoUri(sourceUri)) return normalizeFileUri(stripPhotoCacheBust(sourceUri));
 
   await FileSystem.makeDirectoryAsync(ALBUM_PHOTOS_DIR, { intermediates: true });
 
@@ -86,11 +102,16 @@ export async function persistAlbumPhotoUri(
   const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}.${ext}`;
   const destUri = normalizeFileUri(destPath);
 
-  if (stripFileScheme(sourceUri) === destPath) {
+  if (stripFileScheme(stripPhotoCacheBust(sourceUri)) === destPath) {
     return destUri;
   }
 
   try {
+    // Overwrite stale bitmap so a later cache-bust query loads the new file.
+    const existing = await FileSystem.getInfoAsync(destPath);
+    if (existing.exists) {
+      await FileSystem.deleteAsync(destPath, { idempotent: true });
+    }
     const processedUri = await resamplePhotoForAlbumStorage(sourceUri, options?.targetPixels);
     await FileSystem.copyAsync({ from: processedUri, to: destPath });
     return destUri;

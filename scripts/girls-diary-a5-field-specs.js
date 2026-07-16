@@ -1,7 +1,22 @@
 /**
  * Field specifications for Girls Diary A5 and shared brown templates.
  * Labels from TZ docx — mapped to templateLineStart via slot order.
+ * Album-specific mood/pets/travel/etc. live in diary-semantic-field-map.js.
  */
+
+const {
+  BROWN_MOOD_FIELDS,
+  PURPLE_MOOD_FIELDS,
+  BROWN_PETS_FIELDS,
+  BROWN_TRAVEL_FIELDS,
+  BROWN_HOBBY_FIELDS,
+  BROWN_STYLE_FIELDS,
+  PURPLE_STYLE_FIELDS,
+  PURPLE_PETS_FIELDS,
+  BROWN_FOOD_FIELDS,
+  BROWN_DREAMS_FIELDS,
+  MY_DAY_MOOD_OPTIONS,
+} = require('./diary-semantic-field-map');
 
 const USER_QUESTIONNAIRE_FIELDS = [
   ['name', 'Имя', 'text', 1],
@@ -50,6 +65,7 @@ const PARENT_DAD_FIELDS = [
   ['wishes', 'Пожелания папы хозяйке дневника', 'text', 4],
 ];
 
+/** Purple hobby page keeps the shorter TZ set; brown uses BROWN_HOBBY_FIELDS. */
 const HOBBY_FIELDS = [
   ['hobbiesStory', 'Расскажи о своих хобби', 'text', 1],
   ['favoriteSports', 'Какими видами спорта тебе нравится заниматься?', 'text', 1],
@@ -65,14 +81,8 @@ const HOBBY_FIELDS = [
   ['favoriteCompany', 'С кем тебе нравится проводить время?', 'text', 1],
 ];
 
-const PETS_FIELDS = [
-  ['petName', 'Кличка питомца', 'text', 1],
-  ['petType', 'Вид / порода', 'text', 1],
-  ['petAge', 'Возраст', 'text', 1],
-  ['petCharacter', 'Характер', 'text', 1],
-  ['petFood', 'Любимая еда', 'text', 1],
-  ['petStory', 'История знакомства', 'text', 3],
-];
+/** @deprecated Prefer BROWN_PETS_FIELDS / PURPLE_PETS_FIELDS. */
+const PETS_FIELDS = PURPLE_PETS_FIELDS;
 
 const SOCIAL_NETWORKS_FIELDS = [
   ['nickname', 'Ник в соцсетях', 'text', 1],
@@ -111,23 +121,10 @@ const PURPLE_FRIEND_FIELDS = [
   ['wishes', 'Пожелания хозяйке анкеты', 'text', 2],
 ];
 
-const MOOD_FIELDS = [
-  ['moodNote', 'Моё настроение сегодня', 'text', 1],
-  ['whatMadeHappy', 'Что меня порадовало', 'text', 2],
-  ['whatMadeSad', 'Что расстроило', 'text', 2],
-  ['gratitude', 'За что я благодарна', 'text', 2],
-  ['tomorrowWish', 'Чего жду завтра', 'text', 2],
-];
+/** @deprecated Prefer BROWN_MOOD_FIELDS / PURPLE_MOOD_FIELDS. */
+const MOOD_FIELDS = BROWN_MOOD_FIELDS;
 
-const STYLE_FIELDS = [
-  ['style', 'Мой стиль', 'text', 1],
-  ['favoriteColors', 'Любимые цвета в одежде', 'text', 1],
-  ['favoriteBrands', 'Любимые бренды', 'text', 1],
-  ['favoriteOutfit', 'Любимый наряд', 'text', 1],
-  ['accessories', 'Любимые аксессуары', 'text', 1],
-  ['shopping', 'Где люблю покупать одежду', 'text', 2],
-  ['inspiration', 'Кто вдохновляет мой стиль', 'text', 2],
-];
+const STYLE_FIELDS = PURPLE_STYLE_FIELDS;
 
 const FIRST_LOVE_FIELDS = [
   ['name', 'Имя', 'text', 1],
@@ -139,14 +136,14 @@ const FIRST_LOVE_FIELDS = [
 ];
 
 const SCHOOL_LIFE_FIELDS = [
-  ['likesStudying', 'Тебе нравится учиться? Почему?', 'text', 1],
+  ['likesStudying', 'Тебе нравится учиться? Почему?', 'text', 2],
   ['favoriteSubject', 'Любимый предмет в школе', 'text', 1],
   ['favoriteTeacher', 'Любимый учитель', 'text', 1],
-  ['classSize', 'Сколько человек в твоём классе?', 'text', 1],
-  ['classmateFriends', 'С кем из одноклассников дружишь?', 'text', 1],
-  ['schoolEvents', 'Какие школьные мероприятия тебе нравятся?', 'text', 1],
+  ['classSize', 'Сколько человек в твоём классе?', 'text', 2],
+  ['classmateFriends', 'С кем из одноклассников дружишь?', 'text', 2],
+  ['schoolEvents', 'Какие школьные мероприятия тебе нравятся?', 'text', 2],
   ['recessActivity', 'Чем лучше всего ты занимаешься на перемене?', 'text', 1],
-  ['schoolMemory', 'Расскажи о самом интересном событии из твоей школьной жизни', 'text', 2],
+  ['schoolMemory', 'Расскажи о самом интересном событии из твоей школьной жизни', 'text', 3],
 ];
 
 const SUNDAY_SCHEDULE_FIELDS = [
@@ -167,20 +164,9 @@ const GRANDPARENT_FIELDS = [
   ['wish', 'Пожелание', 'text', 2],
 ];
 
-const DREAMS_FIELDS = [
-  ['dream1', 'Мечта №1', 'text', 2],
-  ['dream2', 'Мечта №2', 'text', 2],
-  ['dream3', 'Мечта №3', 'text', 2],
-  ['steps', 'Что для этого делаю', 'text', 3],
-];
+const DREAMS_FIELDS = BROWN_DREAMS_FIELDS;
 
-const TRAVEL_FIELDS = [
-  ['favoritePlace', 'Любимое место', 'text', 1],
-  ['visitedCountries', 'Страны, где была', 'text', 2],
-  ['dreamTrip', 'Куда мечтаю поехать', 'text', 1],
-  ['bestTrip', 'Лучшее путешествие', 'text', 3],
-  ['travelBuddy', 'С кем люблю путешествовать', 'text', 1],
-];
+const TRAVEL_FIELDS = BROWN_TRAVEL_FIELDS;
 
 const DIARY_RULES_FIELDS = [
   ['diary_start_date', 'Дата начала заполнения дневника', 'date', 1],
@@ -199,22 +185,48 @@ const BROWN_WEEKLY_SCHEDULE_PAGES = {
 };
 
 function buildWeeklyScheduleSpec(day1, day2, slots) {
-  const total = slots?.length ?? 12;
-  const perDay = Math.max(4, Math.floor(total / 2));
+  const list = Array.isArray(slots) ? slots : [];
+  const total = list.length || 12;
+  // Split by the large vertical gap between the two day boxes (not equal halves —
+  // Monday/Tuesday can be 6+7, Wednesday/Thursday 7+7, etc.).
+  const ys = list
+    .map((s) => (s && typeof s.y === 'number' ? s.y : null))
+    .filter((y) => y != null)
+    .sort((a, b) => a - b);
+  let splitAt = Math.floor(total / 2);
+  for (let i = 1; i < ys.length; i += 1) {
+    if (ys[i] - ys[i - 1] > 0.08) {
+      splitAt = i;
+      break;
+    }
+  }
+  const day1Count = Math.max(1, Math.min(splitAt, total - 1));
+  const day2Count = Math.max(1, total - day1Count);
   const spec = [];
-  for (let i = 0; i < perDay; i += 1) {
+  for (let i = 0; i < day1Count; i += 1) {
     spec.push([`d1_l${i + 1}`, `${day1}: урок ${i + 1}`, 'text', 1]);
   }
-  for (let i = 0; i < perDay; i += 1) {
+  for (let i = 0; i < day2Count; i += 1) {
     spec.push([`d2_l${i + 1}`, `${day2}: урок ${i + 1}`, 'text', 1]);
   }
-  return spec.slice(0, total);
+  return spec;
 }
 
 function buildBrownWeeklyScheduleWithNoteSpec(slots) {
-  const total = slots?.length ?? 17;
-  const scheduleSlots = Array.from({ length: Math.max(8, total - 1) });
-  const scheduleSpec = buildWeeklyScheduleSpec('Пятница', 'Суббота', scheduleSlots);
+  const list = Array.isArray(slots) ? slots : [];
+  const total = list.length || 17;
+  // Last slot(s) are the week note; schedule lines are everything before the note band.
+  const scheduleSlots = list.filter((s) => s && typeof s.y === 'number' && s.y < 0.55);
+  const scheduleCount = scheduleSlots.length > 0
+    ? scheduleSlots.length
+    : Math.max(8, total - 1);
+  const scheduleSpec = buildWeeklyScheduleSpec(
+    'Пятница',
+    'Суббота',
+    scheduleSlots.length > 0
+      ? scheduleSlots
+      : Array.from({ length: scheduleCount }, (_, i) => ({ y: i < scheduleCount / 2 ? 0.2 + i * 0.04 : 0.6 + i * 0.04 })),
+  );
   const noteLines = Math.max(1, total - scheduleSpec.length);
   return [...scheduleSpec, ['weekNote', 'Заметки на неделю', 'text', noteLines]];
 }
@@ -224,18 +236,29 @@ module.exports = {
   PARENT_MOM_FIELDS,
   PARENT_DAD_FIELDS,
   HOBBY_FIELDS,
+  BROWN_HOBBY_FIELDS,
   PETS_FIELDS,
+  BROWN_PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
   FRIEND_SOCIAL_FIELDS,
   PURPLE_FRIEND_FIELDS,
   MOOD_FIELDS,
+  BROWN_MOOD_FIELDS,
+  PURPLE_MOOD_FIELDS,
   STYLE_FIELDS,
+  BROWN_STYLE_FIELDS,
+  PURPLE_STYLE_FIELDS,
+  PURPLE_PETS_FIELDS,
+  BROWN_FOOD_FIELDS,
   FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   DREAMS_FIELDS,
+  BROWN_DREAMS_FIELDS,
   TRAVEL_FIELDS,
+  BROWN_TRAVEL_FIELDS,
+  MY_DAY_MOOD_OPTIONS,
   DIARY_RULES_FIELDS,
   WEEKLY_SCHEDULE_DAY_PAIRS,
   BROWN_WEEKLY_SCHEDULE_PAGES,

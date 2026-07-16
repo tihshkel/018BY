@@ -56,12 +56,14 @@ const FUTURE_DAD_FIELDS = [
   ['want_count', 'Сколько детей папа хотел бы иметь', 'text', 1],
 ];
 
+/** Slot 5 is a phantom OCR band (no underline) — skip it after wellbeing. */
 const PAGE4_FIELDS = [
   ['date', 'Дата', 'date', 1],
   ['term', 'Акушерский срок', 'text', 1],
   ['weight', 'Вес', 'number', 1],
-  ['wellbeing', 'Моё самочувствие', 'text', 3],
-  ['fio', 'ФИО врача / акушерки', 'text', 1],
+  ['wellbeing', 'Моё самочувствие', 'text', 2],
+  // absolute start 6: reserve phantom slot 5
+  ['fio', 'ФИО врача / акушерки', 'text', 1, 6],
   ['cabinet', 'Кабинет врача', 'text', 1],
   ['phone', 'Телефон врача или регистратуры', 'text', 2],
   ['mon', 'График врача: понедельник', 'text', 1],
@@ -70,7 +72,7 @@ const PAGE4_FIELDS = [
   ['fri', 'График врача: пятница', 'text', 1],
   ['wed', 'График врача: среда', 'text', 1],
   ['sat', 'График врача: суббота', 'text', 1],
-  ['recommendations', 'Рекомендации врача', 'text', 3],
+  ['recommendations', 'Рекомендации врача', 'text', 4],
 ];
 
 const PAGE6_FIELDS = [
@@ -128,7 +130,7 @@ const ALREADY_MOM_FIELDS = [
   ['hair_color', 'Цвет волос', 'text', 1],
   ['eye_color', 'Цвет глаз', 'text', 1],
   ['zodiac', 'Знак зодиака', 'text', 1],
-  ['zodiac_year', 'Год (по восточному календарю)', 'date', 1],
+  ['zodiac_year', 'Год (по восточному календарю)', 'text', 1],
   ['wishes', 'Пожелания от мамы и папы', 'text', 3],
 ];
 
@@ -172,9 +174,11 @@ function buildField(lineGuideId, pageNumber, id, label, type, start, count, slot
 function buildFieldsFromSpec(lineGuideId, pageNumber, slots, spec, startOffset = 0) {
   let cursor = startOffset;
   const fields = [];
-  for (const [id, label, type, count] of spec) {
-    fields.push(buildField(lineGuideId, pageNumber, id, label, type, cursor, count, slots));
-    cursor += count;
+  for (const entry of spec) {
+    const [id, label, type, count, absoluteStart] = entry;
+    const start = typeof absoluteStart === 'number' ? absoluteStart : cursor;
+    fields.push(buildField(lineGuideId, pageNumber, id, label, type, start, count, slots));
+    cursor = start + count;
   }
   return fields;
 }
@@ -210,16 +214,26 @@ function buildShoppingListFields(lineGuideId, pageNumber, slots) {
   const lineCount = slots?.length ?? 36;
   const fields = [];
   for (let index = 0; index < lineCount; index += 1) {
+    const itemNumber = index + 1;
     fields.push(
       buildField(
         lineGuideId,
         pageNumber,
-        `item_${index + 1}`,
-        SHOPPING_ITEM_LABEL,
+        `item_${itemNumber}`,
+        `Покупка ${itemNumber}`,
         'text',
         index,
         1,
         slots,
+      ),
+    );
+    fields.push(
+      buildRadioField(
+        lineGuideId,
+        pageNumber,
+        `purchased_${itemNumber}`,
+        'Куплено',
+        YES_NO_OPTIONS,
       ),
     );
   }
@@ -263,16 +277,19 @@ function buildAlreadyMomFields(lineGuideId, pageNumber, slots) {
     buildField(lineGuideId, pageNumber, 'hair_color', 'Цвет волос', 'text', 1, 1, slots),
     buildField(lineGuideId, pageNumber, 'eye_color', 'Цвет глаз', 'text', 2, 1, slots),
     buildField(lineGuideId, pageNumber, 'zodiac', 'Знак зодиака', 'text', 3, 1, slots),
-    buildField(
-      lineGuideId,
-      pageNumber,
-      'zodiac_year',
-      'Год (по восточному календарю)',
-      'date',
-      4,
-      1,
-      slots,
-    ),
+    {
+      ...buildField(
+        lineGuideId,
+        pageNumber,
+        'zodiac_year',
+        'Год (по восточному календарю)',
+        'text',
+        4,
+        1,
+        slots,
+      ),
+      placeholder: 'например: Дракон, Лошадь',
+    },
     buildField(
       lineGuideId,
       pageNumber,
@@ -298,7 +315,7 @@ function buildWeeklyPageFields(lineGuideId, pageNumber, slots) {
       'Планы на неделю',
       'text',
       3,
-      is60 ? 3 : 2,
+      3,
       slots,
     ),
     buildField(
@@ -541,7 +558,7 @@ function getPregnancy60WeekNumber(pageNumber) {
   return null;
 }
 
-const LETTER_TO_BABY_FIELDS = [['letter_text', 'Письмо малышу', 'text', 12]];
+const LETTER_TO_BABY_FIELDS = [['letter_text', 'Письмо малышу', 'text', 18]];
 
 function getPregnancyA5WeekNumber(pageNumber) {
   if (pageNumber >= 5 && pageNumber <= 13) return pageNumber + 1;

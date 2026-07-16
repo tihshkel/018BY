@@ -161,24 +161,59 @@ def my_day_slots(pnum=9):
     return slots
 
 def pets_slots():
-    rows = questionnaire_slots(10, y_gap=0.034, y_min=0.18)
-    singles = sorted(
-        [s for s in rows if s['y'] < 0.48 and s['width'] >= 0.35],
-        key=lambda s: s['y'],
-    )[:5]
-    stories = sorted(
-        [s for s in rows if s['y'] >= 0.48 and s['width'] > 0.6],
-        key=lambda s: s['y'],
-    )[:3]
-    return finalize_answer_slots(singles + stories)
+    rows = questionnaire_slots(10, y_gap=0.028, y_min=0.28)
+    filtered = [s for s in rows if s['y'] <= 0.90 and s['width'] >= 0.25]
+    return finalize_answer_slots(filtered[:12], prefer_line=True)
+
+def style_slots():
+    # 8 question tails + 4 fashion-dream lines (skip separator / decorative).
+    page = pdf[15]
+    W, H = page.rect.width, page.rect.height
+    strokes = []
+    for d in page.get_drawings():
+        r = d['rect']
+        w, h = r.width / W, (r.y1 - r.y0) / H
+        sy = r.y1 / H
+        if w < 0.2 or h > 0.04 or sy < 0.20 or sy > 0.94:
+            continue
+        strokes.append((sy, r.x0 / W, w, max(h, 0.028)))
+    strokes.sort()
+    rows = []
+    for sy, x, w, h in strokes:
+        if not rows or sy - rows[-1]['y'] > 0.02:
+            rows.append({
+                'x': round(x, 4),
+                'y': round(sy, 4),
+                'width': round(w, 4),
+                'height': round(h, 4),
+            })
+        elif w > rows[-1]['width']:
+            rows[-1].update({
+                'x': round(x, 4),
+                'y': round(sy, 4),
+                'width': round(w, 4),
+                'height': round(h, 4),
+            })
+    # Drop full-width separator around y~0.66 if present among question tails.
+    answer_rows = [s for s in rows if not (0.63 <= s['y'] <= 0.70 and s['width'] > 0.75)]
+    # Prefer question tails (y < 0.62) then dream lines (y > 0.70).
+    questions = [s for s in answer_rows if s['y'] < 0.62][:8]
+    dreams = [s for s in answer_rows if s['y'] > 0.70][:4]
+    return finalize_answer_slots(questions + dreams, prefer_line=True)
 
 def social_slots():
     slots = questionnaire_slots(12, y_gap=0.034, y_min=0.25)
     return finalize_answer_slots([s for s in slots if s['width'] >= 0.35][:6], prefer_line=True)
 
 def mood_slots():
-    slots = questionnaire_slots(14, y_gap=0.034, y_min=0.28)
-    return finalize_answer_slots([s for s in slots if s['y'] >= 0.28][:9])
+    # Include Q1 tails from ~0.23, skip list-title remnant, keep 6 Q + 4 list (=14).
+    slots = questionnaire_slots(14, y_gap=0.028, y_min=0.22)
+    filtered = []
+    for s in slots:
+        if 0.62 <= s['y'] <= 0.655 and s['width'] < 0.6:
+            continue
+        filtered.append(s)
+    return finalize_answer_slots(filtered[:14], prefer_line=True)
 
 def school_slots():
     slots = questionnaire_slots(22, y_gap=0.034, y_min=0.30)
@@ -268,7 +303,7 @@ purple = {
     '10': pets_slots(),
     '12': social_slots(),
     '14': mood_slots(),
-    '16': finalize_answer_slots(questionnaire_slots(16, y_gap=0.034, y_min=0.20)[:9]),
+    '16': style_slots(),
     '18': finalize_answer_slots(questionnaire_slots(18, y_gap=0.034, y_min=0.20)[:11]),
     '22': school_slots(),
     '26': weekly_page_26_slots(),

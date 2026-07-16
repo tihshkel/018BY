@@ -3,6 +3,7 @@
  * Mirrors utils/resolvePhotoPageLayouts.ts + utils/sparseTextPhotoSafeZone.ts
  */
 const lineSlotsJson = require('../constants/line-slots.json');
+const pdfPhotoSlotsJson = require('../constants/generated/pdf-photo-slots.json');
 const { filterFeasiblePhotoLayouts } = require('./photo-layout-feasibility');
 
 const EVENT_PHOTO_TEMPLATES = [
@@ -14,6 +15,22 @@ const EVENT_PHOTO_TEMPLATES = [
 ];
 
 const STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS = ['one_large', 'two_vertical', 'three_hero', 'four_grid'];
+const KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS = [
+  'one_large',
+  'two_horizontal',
+  'three_hero',
+  'four_grid',
+];
+const KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS = [
+  'one_large',
+  'two_vertical',
+  'three_hero',
+  'four_grid',
+];
+
+function isKidsSideBySideEventPage(page) {
+  return page === 19 || page === 20 || (page >= 22 && page <= 33);
+}
 
 const FULL_PHOTO_TEMPLATES = STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS;
 
@@ -23,12 +40,32 @@ const COLLAGE_TEMPLATE_SETS = {
   default: ['one_large', 'two_vertical', 'four_grid'],
 };
 
-const EVENT_PHOTO_SAFE = { x: 0.08, y: 0.2, width: 0.84, height: 0.6 };
-const PREGNANCY_PHOTO_SAFE = { x: 0.11, y: 0.26, width: 0.78, height: 0.5 };
+const EVENT_PHOTO_SAFE = { x: 0.05, y: 0.18, width: 0.9, height: 0.64 };
+const PREGNANCY_PHOTO_SAFE = { x: 0.08, y: 0.26, width: 0.84, height: 0.5 };
 const PREGNANCY_MEMORY_PHOTO_SAFE = { x: 0.08, y: 0.14, width: 0.84, height: 0.52 };
-const BLANK_PAGE_PHOTO_SAFE = { x: 0.1, y: 0.15, width: 0.8, height: 0.7 };
+const SPARSE_PHOTO_ZOOM_MARGIN_MM = 15;
+const PRINT_PHOTO_MARGIN_MM = 10;
 
-const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
+function getBlankPagePhotoSafe(widthMm, heightMm) {
+  const left = SPARSE_PHOTO_ZOOM_MARGIN_MM / widthMm;
+  const top = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  return {
+    x: left,
+    y: top,
+    width: 1 - 2 * left,
+    height: 1 - 2 * top,
+  };
+}
+
+const BLANK_PAGE_PHOTO_SAFE_18X24 = getBlankPagePhotoSafe(180, 240);
+const BLANK_PAGE_PHOTO_SAFE_21X21 = getBlankPagePhotoSafe(210, 210);
+/** @deprecated Prefer format-specific; kept as 18×24 alias for shared call sites. */
+const BLANK_PAGE_PHOTO_SAFE = BLANK_PAGE_PHOTO_SAFE_18X24;
+
+const KIDS_SIDE_BY_SIDE = new Set([
+  1, 3, 4, 8, 13, 19, 20, 21,
+  22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);
 const BIRTHDAY_EXCLUDE_PAGES = new Set([1, 40, 48]);
 
@@ -48,9 +85,11 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
   pregnancy_60: {
     eventSafe: PREGNANCY_PHOTO_SAFE,
     gapMm: 4,
-    pageSizeMm: 210,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 0.95,
     stackedTwoMinBandHeight: 0.54,
     minFullWidthBandHeight: 0.35,
     minPhotoSafeHeight: 0.12,
@@ -59,8 +98,10 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
     eventSafe: PREGNANCY_PHOTO_SAFE,
     gapMm: 4,
     pageSizeMm: 210,
+    pageWidthMm: 210,
+    pageHeightMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 0.95,
     stackedTwoMinBandHeight: 0.54,
     minFullWidthBandHeight: 0.35,
     minPhotoSafeHeight: 0.12,
@@ -97,31 +138,37 @@ const SPARSE_PHOTO_ALBUM_CONFIG = {
     minPhotoSafeHeight: 0.12,
   },
   family_blank: {
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
     gapMm: 4,
-    pageSizeMm: 210,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 1 - SPARSE_PHOTO_ZOOM_MARGIN_MM / 240,
     stackedTwoMinBandHeight: 0.54,
     minFullWidthBandHeight: 0.35,
     minPhotoSafeHeight: 0.12,
   },
   holidays_blank: {
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
     gapMm: 4,
-    pageSizeMm: 210,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 1 - SPARSE_PHOTO_ZOOM_MARGIN_MM / 240,
     stackedTwoMinBandHeight: 0.54,
     minFullWidthBandHeight: 0.35,
     minPhotoSafeHeight: 0.12,
   },
   family_blank_21x21: {
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_21X21,
     gapMm: 4,
     pageSizeMm: 210,
+    pageWidthMm: 210,
+    pageHeightMm: 210,
     sparseMaxLineSlots: 4,
-    photoBandMaxBottom: 0.86,
+    photoBandMaxBottom: 1 - SPARSE_PHOTO_ZOOM_MARGIN_MM / 210,
     stackedTwoMinBandHeight: 0.54,
     minFullWidthBandHeight: 0.35,
     minPhotoSafeHeight: 0.12,
@@ -179,6 +226,18 @@ function rowY(rowIndex, rowHeight) {
 const THREE_HERO_EVENT_SAFE = { x: 0, y: 0, width: 0.84, height: 0.6 };
 
 function buildThreeHeroSlots(safeZone) {
+  if (safeZone.height < 0.48) {
+    const topH = 0.54;
+    const bottomH = Math.max(0.28, 1 - MARGIN_Y * 2 - GAP - topH);
+    const topY = MARGIN_Y;
+    const bottomY = topY + topH + GAP;
+    return [
+      slot(MARGIN_X, topY, FULL_WIDTH, topH, [4, 3]),
+      slot(COL_X_LEFT, bottomY, COL_WIDTH, bottomH, [1, 1]),
+      slot(COL_X_RIGHT, bottomY, COL_WIDTH, bottomH, [1, 1]),
+    ];
+  }
+
   const idealSquareH = (COL_WIDTH * safeZone.width) / safeZone.height;
   const stackHeight = 1 - MARGIN_Y * 2;
   const topBandOffset = 0.025;
@@ -218,24 +277,25 @@ function slot(x, y, width, height, aspectRatio) {
 const PHOTO_LAYOUT_TEMPLATES = {
   one_large: {
     variantId: 'one_large',
-    slots: [slot(MARGIN_X, 0.08, FULL_WIDTH, 0.84, [4, 3])],
+    // Full safe-zone width — PDF pin / eventSafe already include margins.
+    slots: [slot(0, 0.03, 1, 0.94, [4, 3])],
   },
   one_horizontal: {
     variantId: 'one_horizontal',
-    slots: [slot(MARGIN_X, 0.03, FULL_WIDTH, 0.92, [4, 3])],
+    slots: [slot(0, 0.03, 1, 0.92, [4, 3])],
   },
   two_photos: {
     variantId: 'two_photos',
     slots: [
-      slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
-      slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+      slot(0, rowY(0, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
+      slot(0, rowY(1, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
     ],
   },
   two_horizontal: {
     variantId: 'two_horizontal',
     slots: [
-      slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
-      slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+      slot(0, rowY(0, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
+      slot(0, rowY(1, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
     ],
   },
   kids_two_stacked: {
@@ -258,12 +318,7 @@ const PHOTO_LAYOUT_TEMPLATES = {
   },
   four_grid: {
     variantId: 'four_grid',
-    slots: [
-      slot(COL_X_LEFT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-      slot(COL_X_RIGHT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-      slot(COL_X_LEFT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-      slot(COL_X_RIGHT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-    ],
+    slots: null, // runtime: buildFourGridSlots(safeZone)
   },
   four_vertical: {
     variantId: 'four_vertical',
@@ -276,9 +331,45 @@ const PHOTO_LAYOUT_TEMPLATES = {
   },
 };
 
+function buildFourGridSlots(safeZone) {
+  const marginX = 0.015;
+  const marginY = 0.02;
+  const gap = 0.022;
+  const availW = 1 - marginX * 2;
+  const availH = 1 - marginY * 2;
+
+  const colW = (availW - gap) / 2;
+  const cellWPage = colW * safeZone.width;
+  let cellHRel = (cellWPage * 0.75) / Math.max(safeZone.height, 0.01);
+
+  const neededH = cellHRel * 2 + gap;
+  if (neededH > availH) {
+    cellHRel = (availH - gap) / 2;
+  }
+
+  const gridH = cellHRel * 2 + gap;
+  const left = marginX;
+  const top = marginY + Math.max(0, (availH - gridH) / 2);
+  const right = left + colW + gap;
+  const aspectW = cellWPage;
+  const aspectH = cellHRel * safeZone.height;
+  const aspectRatio = aspectH > 0 && aspectW / aspectH >= 1.45 ? [3, 2] : [4, 3];
+
+  return [
+    slot(left, top, colW, cellHRel, aspectRatio),
+    slot(right, top, colW, cellHRel, aspectRatio),
+    slot(left, top + cellHRel + gap, colW, cellHRel, aspectRatio),
+    slot(right, top + cellHRel + gap, colW, cellHRel, aspectRatio),
+  ];
+}
+
 function buildVariantLayoutFromTemplate(template, safeZone) {
   const templateSlots =
-    template.variantId === 'three_hero' ? buildThreeHeroSlots(safeZone) : template.slots;
+    template.variantId === 'three_hero'
+      ? buildThreeHeroSlots(safeZone)
+      : template.variantId === 'four_grid'
+        ? buildFourGridSlots(safeZone)
+        : template.slots;
 
   const slots = templateSlots.map((s) => {
     const absX = safeZone.x + s.x * safeZone.width;
@@ -336,6 +427,8 @@ const MANUAL_PHOTO_SLOTS = {
     ['49', buildPageLayoutsFromTemplates(BLANK_PAGE_PHOTO_SAFE, FULL_PHOTO_TEMPLATES)],
   ]),
   pregnancy_a5: {
+    '46': buildPageLayoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES),
+    '47': buildPageLayoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES),
     '48': buildPageLayoutsFromTemplates(PREGNANCY_PHOTO_SAFE, FULL_PHOTO_TEMPLATES),
   },
   holidays_birthday_60: buildHolidaysManualSlots(),
@@ -418,6 +511,12 @@ function shouldSkipSparsePhotoExpansion(lineGuideId, page) {
 function classifyPhotoSafeZoneStrategy(lineGuideId, page) {
   if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) return 'weekly_middle';
   if (isPregnancyUpperBandPage(lineGuideId, page)) return 'upper_band';
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    return 'bottom_band';
+  }
 
   const slots = getLineSlots(lineGuideId, page);
   if (!slots.length) return 'photo_only';
@@ -435,8 +534,31 @@ function classifyPhotoSafeZoneStrategy(lineGuideId, page) {
   return 'mixed';
 }
 
+const KIDS_P1_PHOTO_LINE_BAND = 0.028;
+
+function normalizeKids48PhotoConstraintSlot(lineGuideId, page, slot) {
+  if (lineGuideId !== 'kids_48' || page !== 1) return slot;
+  if (slot.inputKind === 'block') return slot;
+  if (slot.height <= KIDS_P1_PHOTO_LINE_BAND + 0.001 && slot.lineStrokeAtBottom) {
+    return slot;
+  }
+  return {
+    ...slot,
+    y: slot.y - KIDS_P1_PHOTO_LINE_BAND,
+    height: KIDS_P1_PHOTO_LINE_BAND,
+    textAnchorTop: true,
+    lineStrokeAtBottom: true,
+  };
+}
+
 function getLineSlots(lineGuideId, page) {
-  return lineSlotsJson[lineGuideId]?.[String(page)] ?? [];
+  // kids_48 p21: имена крестных следуют за фото — не режут photo safe zone.
+  if (lineGuideId === 'kids_48' && page === 21) return [];
+  const raw = lineSlotsJson[lineGuideId]?.[String(page)] ?? [];
+  if (lineGuideId === 'kids_48' && page === 1) {
+    return raw.map((slot) => normalizeKids48PhotoConstraintSlot(lineGuideId, page, slot));
+  }
+  return raw;
 }
 
 function gapNorm(config) {
@@ -447,8 +569,25 @@ function isBottomAnchoredPhotoSlot(primarySlot) {
   return primarySlot.y >= 0.55;
 }
 
+/** Band-страницы: не pin к PDF — расширяем layouts в пустоту (в т.ч. mixed с нижней рамкой). */
+function shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot) {
+  if (isPregnancyUpperBandPage(lineGuideId, page)) return true;
+  const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
+  if (strategy === 'bottom_band' || strategy === 'upper_band') return true;
+  if (strategy === 'mixed' && primarySlot && isBottomAnchoredPhotoSlot(primarySlot)) {
+    return true;
+  }
+  return false;
+}
+
 function getMaxLineTextBottom(lineGuideId, page) {
-  const slots = getLineSlots(lineGuideId, page);
+  let slots = getLineSlots(lineGuideId, page);
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    slots = slots.filter((slot) => slot.y < 0.65);
+  }
   if (!slots.length) return 0;
   return Math.max(...slots.map((slot) => slot.y + slot.height / 2));
 }
@@ -462,29 +601,112 @@ function getMinLineTextTop(lineGuideId, page) {
 function buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config) {
   const photoTextGap = gapNorm(config);
   const minTop = getMaxLineTextBottom(lineGuideId, page) + photoTextGap;
-  const slotZone = slotToSafeZone(primarySlot);
-  const top = Math.max(minTop, slotZone.y);
-  const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
-  const bottom = Math.min(
-    bandMaxBottom,
-    Math.max(slotZone.y + slotZone.height, top + (config.minPhotoSafeHeight ?? 0.12)),
-  );
-  const height = bottom - top;
+  const fallbackZone = {
+    x: config.eventSafe.x,
+    y: config.eventSafe.y,
+    width: config.eventSafe.width,
+    height: config.eventSafe.height,
+  };
+  const slotZone = primarySlot ? slotToSafeZone(primarySlot) : fallbackZone;
+  const heightMm = config.pageHeightMm ?? config.pageSizeMm ?? 210;
+  const pageBottom = 1 - SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  const bandMaxBottom = config.photoBandMaxBottom ?? pageBottom;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
+  const top = minTop;
+  // До нижнего поля страницы — не режем по низу узкой PDF-рамки.
+  const bottom = Math.min(bandMaxBottom, pageBottom);
+  const height = bottom - top;
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, slotZone, config);
+    return clampSafeZoneToSparseMargins(
+      lineGuideId,
+      config,
+      constrainPhotoSafeZone(lineGuideId, page, slotZone, config),
+    );
   }
 
-  return constrainPhotoSafeZone(
+  return clampSafeZoneToSparseMargins(
     lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: top, width: config.eventSafe.width, height },
     config,
+    constrainPhotoSafeZone(
+      lineGuideId,
+      page,
+      { x: config.eventSafe.x, y: top, width: config.eventSafe.width, height },
+      config,
+    ),
   );
 }
 
-function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
-  const slots = getLineSlots(lineGuideId, page);
+function buildUpperBandPhotoSafeZone(lineGuideId, page, config) {
+  const photoTextGap = gapNorm(config);
+  const heightMm = config.pageHeightMm ?? config.pageSizeMm ?? 210;
+  const minTop = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  const maxBottom = getMinLineTextTop(lineGuideId, page) - photoTextGap;
+  const height = maxBottom - minTop;
+  const minHeight = config.minPhotoSafeHeight ?? 0.12;
+
+  if (height < minHeight) {
+    return clampSafeZoneToSparseMargins(
+      lineGuideId,
+      config,
+      constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config),
+    );
+  }
+
+  return clampSafeZoneToSparseMargins(
+    lineGuideId,
+    config,
+    constrainPhotoSafeZone(
+      lineGuideId,
+      page,
+      { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
+      config,
+    ),
+  );
+}
+
+function clampSafeZoneToSparseMargins(lineGuideId, config, zone) {
+  const widthMm = config.pageWidthMm ?? config.pageSizeMm ?? 210;
+  const heightMm = config.pageHeightMm ?? config.pageSizeMm ?? 210;
+  const leftInset = SPARSE_PHOTO_ZOOM_MARGIN_MM / widthMm;
+  const topInset = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  const left = Math.max(zone.x, leftInset);
+  const top = Math.max(zone.y, topInset);
+  const right = Math.min(zone.x + zone.width, 1 - leftInset);
+  const bottom = Math.min(zone.y + zone.height, 1 - topInset);
+  return {
+    x: left,
+    y: top,
+    width: Math.max(0.01, right - left),
+    height: Math.max(0.01, bottom - top),
+  };
+}
+
+const WEEKLY_PHOTO_LINE_HEIGHT_CAP = 0.045;
+
+function weeklyPhotoConstraintBottom(slot) {
+  const height = Math.min(slot.height || 0, WEEKLY_PHOTO_LINE_HEIGHT_CAP);
+  if (slot.textAnchorTop || slot.lineStrokeAtBottom) {
+    return slot.y + height;
+  }
+  return slot.y + height / 2;
+}
+
+function filterWeeklyPhotoConstraintSlots(lineGuideId, slots, mode = 'layout') {
+  return slots.filter((slot, index) => {
+    if ((slot.inputKind ?? 'line') === 'block') return false;
+    if (lineGuideId === 'pregnancy_60' && index === 5) return false;
+    // Zoom/pan: free tall OCR plan overflow so empty underlines above photo are reachable.
+    if (mode === 'zoom' && lineGuideId === 'pregnancy_60' && index === 4) return false;
+    return true;
+  });
+}
+
+function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config, mode = 'layout') {
+  const slots = filterWeeklyPhotoConstraintSlots(
+    lineGuideId,
+    getLineSlots(lineGuideId, page),
+    mode,
+  );
   const photoTextGap = gapNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
@@ -492,58 +714,123 @@ function buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config) {
   const lowerLines = slots.filter((slot) => slot.y > 0.65);
 
   if (!upperLines.length || !lowerLines.length) {
-    return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
+    return { ...config.eventSafe };
   }
 
-  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + photoTextGap;
-  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - photoTextGap;
+  const isPregnancyWeekly =
+    lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5';
+  const upperBottomFn = isPregnancyWeekly
+    ? weeklyPhotoConstraintBottom
+    : (slot) =>
+        slot.textAnchorTop ? slot.y + slot.height : slot.y + slot.height / 2;
+
+  const minTop = Math.max(...upperLines.map(upperBottomFn)) + photoTextGap;
+  const maxBottom =
+    Math.min(
+      ...lowerLines.map((slot) =>
+        slot.textAnchorTop ? slot.y : slot.y - slot.height / 2,
+      ),
+    ) - photoTextGap;
   const height = maxBottom - minTop;
 
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
+    return {
+      x: config.eventSafe.x,
+      y: config.eventSafe.y,
+      width: config.eventSafe.width,
+      height: Math.max(minHeight, config.eventSafe.height),
+    };
   }
 
-  return constrainPhotoSafeZone(
-    lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
-    config,
-  );
+  // kids_48 p1: высота — полоса имя↔анкета; ширина — PDF-пин; поля ≥1.5 см.
+  if (lineGuideId === 'kids_48' && page === 1) {
+    const pdfSlot = pdfPhotoSlotsJson?.[lineGuideId]?.[String(page)]?.variants?.[0]?.slots?.[0];
+    const band = pdfSlot
+      ? { x: pdfSlot.x, y: minTop, width: pdfSlot.width, height }
+      : { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height };
+    return clampSafeZoneToSparseMargins(lineGuideId, config, band);
+  }
+
+  const pdfSlot = pdfPhotoSlotsJson?.[lineGuideId]?.[String(page)]?.variants?.[0]?.slots?.[0];
+
+  // Недели pregnancy: полная полоса между текстом; PDF только для x/width.
+  if (isPregnancyWeekly) {
+    const tightGap = photoTextGap * 0.35;
+    const hardTop = Math.max(...upperLines.map(weeklyPhotoConstraintBottom)) + tightGap;
+    const hardBottom =
+      Math.min(
+        ...lowerLines.map((slot) =>
+          slot.textAnchorTop ? slot.y : slot.y - slot.height / 2,
+        ),
+      ) - tightGap;
+    const y = Math.min(hardTop, minTop);
+    const bottom = Math.max(hardBottom, maxBottom);
+    return {
+      x: pdfSlot?.x ?? config.eventSafe.x,
+      y,
+      width: pdfSlot?.width ?? config.eventSafe.width,
+      height: Math.max(minHeight, bottom - y),
+    };
+  }
+
+  if (pdfSlot) {
+    const pdfZone = slotToSafeZone(pdfSlot);
+    const top = Math.max(minTop, pdfZone.y);
+    const bottom = Math.min(maxBottom, pdfZone.y + pdfZone.height);
+    const pdfHeight = bottom - top;
+    if (pdfHeight >= minHeight) {
+      return {
+        x: pdfZone.x,
+        y: top,
+        width: pdfZone.width,
+        height: pdfHeight,
+      };
+    }
+  }
+
+  return {
+    x: config.eventSafe.x,
+    y: minTop,
+    width: config.eventSafe.width,
+    height,
+  };
 }
 
-function buildUpperBandPhotoSafeZone(lineGuideId, page, config) {
-  const photoTextGap = gapNorm(config);
-  const minTop = 0.12;
-  const maxBottom = getMinLineTextTop(lineGuideId, page) - photoTextGap;
-  const height = maxBottom - minTop;
-  const minHeight = config.minPhotoSafeHeight ?? 0.12;
+function getLineSlotTop(slot) {
+  return slot.textAnchorTop ? slot.y : slot.y - slot.height / 2;
+}
 
-  if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
+function getLineSlotBottom(slot) {
+  return slot.textAnchorTop ? slot.y + slot.height : slot.y + slot.height / 2;
+}
+
+function getPhotoConstraintSlots(lineGuideId, page) {
+  let slots = getLineSlots(lineGuideId, page);
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    slots = slots.filter((slot) => slot.y < 0.65);
   }
-
-  return constrainPhotoSafeZone(
-    lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
-    config,
-  );
+  return slots;
 }
 
 function constrainPhotoSafeZone(lineGuideId, page, safeZone, config) {
-  const slots = getLineSlots(lineGuideId, page);
+  const slots = getPhotoConstraintSlots(lineGuideId, page);
   if (!slots.length) return safeZone;
 
   const photoTextGap = gapNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
+  const isPregnancyIntro =
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') && page === 1;
 
   let minTop = safeZone.y;
   let maxBottom = safeZone.y + safeZone.height;
 
   for (const slot of slots) {
-    const top = slot.y - slot.height / 2;
-    const bottom = slot.y + slot.height / 2;
-    if (slot.y < 0.5) {
+    const top = getLineSlotTop(slot);
+    const bottom = getLineSlotBottom(slot);
+    if (isPregnancyIntro || (top + bottom) / 2 < 0.5) {
       minTop = Math.max(minTop, bottom + photoTextGap);
     } else {
       maxBottom = Math.min(maxBottom, top - photoTextGap);
@@ -675,8 +962,11 @@ function resolveStrategySafeZone(lineGuideId, page, primarySlot, config) {
     case 'bottom_band':
       return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
     case 'photo_only':
-      return constrainPhotoSafeZone(lineGuideId, page, BLANK_PAGE_PHOTO_SAFE, config);
+      return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
     case 'mixed':
+      if (isBottomAnchoredPhotoSlot(primarySlot)) {
+        return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
+      }
       return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
     default:
       return undefined;
@@ -688,7 +978,7 @@ function resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot) {
   if (!config) return slotToSafeZone(primarySlot);
 
   if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
-    return buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config);
+    return buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config, 'layout');
   }
 
   if (isPregnancyUpperBandPage(lineGuideId, page)) {
@@ -696,7 +986,10 @@ function resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot) {
   }
 
   const strategyZone = resolveStrategySafeZone(lineGuideId, page, primarySlot, config);
-  if (strategyZone && lineGuideId !== 'kids_48') {
+  if (
+    strategyZone &&
+    (lineGuideId !== 'kids_48' || (page === 1 && strategyZone.height >= 0.35))
+  ) {
     return strategyZone;
   }
 
@@ -733,6 +1026,30 @@ function resolveSparsePhotoSafeZone(lineGuideId, page, primarySlot) {
   };
 
   return constrainPhotoSafeZone(lineGuideId, page, expanded, config);
+}
+
+function resolveSparsePhotoZoomSafeZone(lineGuideId, page) {
+  const config = getSparsePhotoAlbumConfig(lineGuideId);
+  const bounds = getSparsePhotoZoomBounds(lineGuideId);
+  const baseZone = {
+    x: bounds.left,
+    y: bounds.top,
+    width: bounds.right - bounds.left,
+    height: bounds.bottom - bounds.top,
+  };
+
+  if (!config) return baseZone;
+
+  if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
+    return buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config, 'zoom');
+  }
+
+  if (isPregnancyUpperBandPage(lineGuideId, page)) {
+    const upper = buildUpperBandPhotoSafeZone(lineGuideId, page, config);
+    return constrainPhotoSafeZone(lineGuideId, page, upper, config);
+  }
+
+  return constrainPhotoSafeZone(lineGuideId, page, baseZone, config);
 }
 
 function getCollageTemplateSet(lineGuideId) {
@@ -786,12 +1103,17 @@ function applyTwoPhotoLayouts(lineGuideId, page, safeZone, layouts) {
 function expandDesignedAlbumCollageVariants(lineGuideId, page, layouts) {
   if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) return null;
 
-  const standard = buildStandardDesignedAlbumLayouts(layouts);
-  if (standard) {
-    return { ...standard, source: 'pdf_standard' };
+  const primarySlot = layouts.variants[0]?.slots[0];
+  const expandBand = shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot);
+
+  // Weekly и band: строим из resolveSparsePhotoSafeZone. Остальные — pin к PDF.
+  if (!isPregnancyWeeklyMiddlePage(lineGuideId, page) && !expandBand) {
+    const standard = buildStandardDesignedAlbumLayouts(layouts);
+    if (standard) {
+      return { ...standard, source: 'pdf_standard' };
+    }
   }
 
-  const primarySlot = layouts.variants[0]?.slots[0];
   if (!primarySlot || primarySlot.height < 0.12 || primarySlot.width < 0.25) {
     return null;
   }
@@ -824,7 +1146,11 @@ function expandManualSparseLayouts(lineGuideId, page, manual) {
   };
 }
 
-function buildDesignedAlbumEventPhotoLayouts(lineGuideId, page) {
+function buildDesignedAlbumEventPhotoLayouts(
+  lineGuideId,
+  page,
+  templateIds = STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS,
+) {
   const config = getSparsePhotoAlbumConfig(lineGuideId);
   const eventSafe = config?.eventSafe ?? EVENT_PHOTO_SAFE;
   const syntheticPrimary = {
@@ -836,9 +1162,24 @@ function buildDesignedAlbumEventPhotoLayouts(lineGuideId, page) {
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);
   return {
-    ...buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS]),
+    ...buildPageLayoutsFromTemplates(safeZone, [...templateIds]),
     source: 'designed_event',
   };
+}
+
+function isPortraitPhotoPin(slot) {
+  if (!slot) return false;
+  return slot.height >= slot.width * 1.05;
+}
+
+function buildKidsLandscapeEventPhotoLayouts(page) {
+  return buildDesignedAlbumEventPhotoLayouts(
+    'kids_48',
+    page,
+    isKidsSideBySideEventPage(page)
+      ? KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS
+      : KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS,
+  );
 }
 
 function eventPhotoLayouts() {
@@ -857,7 +1198,19 @@ function resolveKidsPhotoPageLayouts(page, pdfAlbum, circlePageRaw) {
   const pdf = pdfAlbum?.variants?.length ? pdfAlbum : null;
   const lineGuideId = 'kids_48';
 
-  if (pdf && !shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
+  if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
+    return null;
+  }
+
+  if (page === 1) {
+    return buildKidsLandscapeEventPhotoLayouts(page);
+  }
+
+  if (pdf) {
+    const primarySlot = pdf.variants[0]?.slots[0];
+    if (isPortraitPhotoPin(primarySlot)) {
+      return buildKidsLandscapeEventPhotoLayouts(page);
+    }
     const standard = buildStandardDesignedAlbumLayouts(pdf);
     if (standard) return { ...standard, source: 'pdf_standard' };
     const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
@@ -865,7 +1218,7 @@ function resolveKidsPhotoPageLayouts(page, pdfAlbum, circlePageRaw) {
   }
 
   if (page === 12 || (page >= 6 && page <= 47 && page !== 5 && page !== 10 && page !== 11)) {
-    return buildDesignedAlbumEventPhotoLayouts(lineGuideId, page);
+    return buildKidsLandscapeEventPhotoLayouts(page);
   }
 
   return null;
@@ -905,7 +1258,16 @@ function resolveDesignedAlbumLayouts(lineGuideId, page, pdf, manual) {
     return null;
   }
 
-  if (pdf?.variants?.length && prefersPdfPinnedPhotoLayout(lineGuideId, page)) {
+  if (
+    pdf?.variants?.length &&
+    prefersPdfPinnedPhotoLayout(lineGuideId, page) &&
+    !isPregnancyWeeklyMiddlePage(lineGuideId, page)
+  ) {
+    const primarySlot = pdf.variants[0]?.slots[0];
+    if (shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot)) {
+      const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
+      if (expanded) return expanded;
+    }
     const standard = buildStandardDesignedAlbumLayouts(pdf);
     if (standard) return { ...standard, source: 'pdf_standard' };
     return { ...expandCollageVariants(pdf, lineGuideId, page), source: 'pdf' };
@@ -916,21 +1278,72 @@ function resolveDesignedAlbumLayouts(lineGuideId, page, pdf, manual) {
   }
 
   if (manual?.variants?.length) {
-    return expandManualSparseLayouts(lineGuideId, page, manual);
+    const primarySlot = manual.variants[0]?.slots[0];
+    if (shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot)) {
+      const expanded = expandDesignedAlbumCollageVariants(lineGuideId, page, manual);
+      if (expanded) return expanded;
+    }
+    const expanded = expandManualSparseLayouts(lineGuideId, page, manual);
+    if (expanded) return expanded;
+    return { ...manual, source: 'manual' };
   }
 
   return null;
 }
 
-const PRINT_PHOTO_MARGIN_MM = 10;
+function isBlankPrintAlbum(lineGuideId) {
+  return (
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_blank'
+  );
+}
 
-function getDefaultPagePhotoBounds(pageSizeMm = 210) {
-  const inset = PRINT_PHOTO_MARGIN_MM / pageSizeMm;
+function usesSparsePhotoZoomMargins(lineGuideId) {
+  return (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'kids_48'
+  );
+}
+
+function usesFifteenMmPhotoMargins(lineGuideId) {
+  return usesSparsePhotoZoomMargins(lineGuideId) || isBlankPrintAlbum(lineGuideId);
+}
+
+function getAlbumPageSizeMm(lineGuideId) {
+  const config = SPARSE_PHOTO_ALBUM_CONFIG[lineGuideId];
+  if (lineGuideId === 'pregnancy_60') {
+    return { widthMm: 180, heightMm: 240 };
+  }
+  if (config?.pageWidthMm != null && config?.pageHeightMm != null) {
+    return { widthMm: config.pageWidthMm, heightMm: config.pageHeightMm };
+  }
+  const side = config?.pageSizeMm ?? 210;
+  return { widthMm: side, heightMm: side };
+}
+
+function getDefaultPagePhotoBounds(pageWidthMm = 210, pageHeightMm) {
+  const heightMm = pageHeightMm ?? pageWidthMm;
+  const insetW = PRINT_PHOTO_MARGIN_MM / pageWidthMm;
+  const insetH = PRINT_PHOTO_MARGIN_MM / heightMm;
   return {
-    left: inset,
-    top: inset,
-    right: 1 - inset,
-    bottom: 1 - inset,
+    left: insetW,
+    top: insetH,
+    right: 1 - insetW,
+    bottom: 1 - insetH,
+  };
+}
+
+function getSparsePhotoZoomBounds(lineGuideId) {
+  const { widthMm, heightMm } = getAlbumPageSizeMm(lineGuideId);
+  const left = SPARSE_PHOTO_ZOOM_MARGIN_MM / widthMm;
+  const top = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  return {
+    left,
+    top,
+    right: 1 - left,
+    bottom: 1 - top,
   };
 }
 
@@ -948,10 +1361,30 @@ function clampSlotToBounds(slot, bounds) {
     height = side;
   }
 
-  const centerX = Math.min(
-    Math.max(slot.x + slot.width / 2, bounds.left + width / 2),
-    bounds.right - width / 2,
-  );
+  const isCircle = slot.shape === 'circle';
+  if (isCircle) {
+    let centerX = slot.x;
+    let centerY = slot.y;
+    centerX = Math.min(
+      Math.max(centerX, bounds.left + width / 2),
+      bounds.right - width / 2,
+    );
+    centerY = Math.min(
+      Math.max(centerY, bounds.top + height / 2),
+      bounds.bottom - height / 2,
+    );
+    return { ...slot, x: centerX, y: centerY, width, height };
+  }
+
+  // Keep left edge when shrinking — avoid re-centering that shifts photos right.
+  let x = slot.x;
+  if (x < bounds.left) x = bounds.left;
+  if (x + width > bounds.right) x = bounds.right - width;
+  if (x < bounds.left) {
+    x = bounds.left;
+    width = maxWidth;
+  }
+
   const centerY = Math.min(
     Math.max(slot.y, bounds.top + height / 2),
     bounds.bottom - height / 2,
@@ -959,15 +1392,23 @@ function clampSlotToBounds(slot, bounds) {
 
   return {
     ...slot,
-    x: centerX - width / 2,
+    x,
     y: centerY,
     width,
     height,
   };
 }
 
-function clampPhotoPageLayoutsToPrintMargins(layouts, pageSizeMm = 210) {
-  const bounds = getDefaultPagePhotoBounds(pageSizeMm);
+function clampPhotoPageLayoutsToPrintMargins(layouts, lineGuideIdOrSizeMm = 210) {
+  const bounds =
+    typeof lineGuideIdOrSizeMm === 'string'
+      ? usesFifteenMmPhotoMargins(lineGuideIdOrSizeMm)
+        ? getSparsePhotoZoomBounds(lineGuideIdOrSizeMm)
+        : (() => {
+            const size = getAlbumPageSizeMm(lineGuideIdOrSizeMm);
+            return getDefaultPagePhotoBounds(size.widthMm, size.heightMm);
+          })()
+      : getDefaultPagePhotoBounds(lineGuideIdOrSizeMm);
   return {
     ...layouts,
     variants: layouts.variants.map((variant) => ({
@@ -1039,12 +1480,10 @@ function resolveAlbumPhotoLayoutsRaw(lineGuideId, page, pdfSlots, circleSlots) {
 function resolveAlbumPhotoLayouts(lineGuideId, page, pdfSlots, circleSlots) {
   const result = resolveAlbumPhotoLayoutsRaw(lineGuideId, page, pdfSlots, circleSlots);
   if (!result?.variants?.length) return result;
-  const config = SPARSE_PHOTO_ALBUM_CONFIG[lineGuideId];
-  const pageSizeMm = config?.pageSizeMm ?? 210;
   const feasible = filterFeasiblePhotoLayouts(result);
   if (!feasible.variants.length) return { ...result, variants: [] };
   return {
-    ...clampPhotoPageLayoutsToPrintMargins(feasible, pageSizeMm),
+    ...clampPhotoPageLayoutsToPrintMargins(feasible, lineGuideId),
     source: result.source,
   };
 }
@@ -1060,6 +1499,7 @@ module.exports = {
   resolveKids48PhotoLayouts,
   buildPageLayoutsFromTemplates,
   resolveSparsePhotoSafeZone,
+  resolveSparsePhotoZoomSafeZone,
   prefersManualPhotoLayout,
   hasSparsePhotoConfig,
   classifyPhotoSafeZoneStrategy,

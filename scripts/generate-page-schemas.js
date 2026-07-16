@@ -225,7 +225,9 @@ function inferFieldType(label) {
   const lower = label.toLowerCase();
   if (lower.includes('дата') || lower.includes('пдр')) return 'date';
   if (lower.includes('время')) return 'time';
-  if (lower.includes('вес') || lower.includes('рост')) return 'number';
+  // «вес» as a word (вес/веса…), not «веселый».
+  if (/(^|[^а-яёa-z])рост([^а-яёa-z]|$)/i.test(lower)) return 'number';
+  if (/(^|[^а-яёa-z])вес(а|у|ом|е)?([^а-яёa-z]|$)/i.test(lower)) return 'number';
   return 'text';
 }
 
@@ -276,7 +278,6 @@ function buildPhotoBlocks(slots, blockId = 'main_photo') {
   const photoSlots = findPhotoBlockSlots(slots);
   if (photoSlots.length === 0) return undefined;
 
-  const indices = photoSlots.map(({ index }) => index);
   const variants = [];
 
   if (photoSlots.length >= 1) {
@@ -284,7 +285,7 @@ function buildPhotoBlocks(slots, blockId = 'main_photo') {
       variantId: 'one_horizontal',
       label: 'Одно горизонтальное фото',
       slots: 1,
-      slotIndices: [indices[0]],
+      slotIndices: [0],
     });
   }
   if (photoSlots.length >= 2) {
@@ -292,7 +293,7 @@ function buildPhotoBlocks(slots, blockId = 'main_photo') {
       variantId: 'two_vertical',
       label: 'Два вертикальных фото',
       slots: 2,
-      slotIndices: indices.slice(0, 2),
+      slotIndices: [0, 1],
     });
   }
   if (photoSlots.length >= 4) {
@@ -300,7 +301,7 @@ function buildPhotoBlocks(slots, blockId = 'main_photo') {
       variantId: 'four_photos',
       label: '4 фото',
       slots: 4,
-      slotIndices: indices.slice(0, 4),
+      slotIndices: [0, 1, 2, 3],
     });
   }
 

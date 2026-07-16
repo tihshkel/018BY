@@ -11,6 +11,8 @@ import {
   getBirthday48AssetPageNumber,
   isBirthday48Album,
 } from '@/utils/birthday48AssetRemap';
+import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
+import { isDiaryInteriorAlbumId } from '@/utils/diaryPageImages';
 import { GITHUB_RAW_MAIN_BASE, githubRawFileUrl } from '@/utils/githubRawAssets';
 import { parseAlbumPageNumberFromUri } from '@/utils/resolveInstancePageImage';
 
@@ -195,6 +197,12 @@ async function warmRemoteAlbumCache(
  * Локальный кэш (file://) предпочтительнее GitHub; прогрев в фоне.
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId);
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    const { getDiaryInteriorImageUris } = await import('@/utils/diaryAlbumsLoader');
+    return (await getDiaryInteriorImageUris(interiorId)) ?? [];
+  }
+
   const spec = getRemoteAlbumSpec(albumId);
   if (!spec) {
     return getAlbumImageUris(albumId);
@@ -221,7 +229,14 @@ export async function repairProjectImageUris(
 ): Promise<string[]> {
   const interiorId = resolveInteriorAlbumId(albumId);
   const expectedCount = getAlbumPageCount(interiorId);
-  if (expectedCount <= 0 || !getRemoteAlbumSpec(interiorId)) {
+  if (expectedCount <= 0) {
+    return [...existing];
+  }
+
+  const remoteSpec = getRemoteAlbumSpec(interiorId);
+  // Дневники — локальный бандл (не GitHub). Раньше repair пропускал их из‑за !remoteSpec,
+  // и у проектов оставался урезанный список URI → серый фон после ~11 страницы.
+  if (!remoteSpec && !isDiaryInteriorAlbumId(interiorId)) {
     return [...existing];
   }
 
@@ -243,8 +258,23 @@ export async function repairProjectImageUris(
       continue;
     }
 
+    // Для дневника bundled URI часто без page_XXX в пути — берём fresh, если слот пустой.
+    if (isDiaryInteriorAlbumId(interiorId) && existingUri) {
+      merged[i] = existingUri;
+      continue;
+    }
+
     if (existingUri !== merged[i]) {
       changed = true;
+    }
+  }
+
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    for (let i = 0; i < expectedCount; i += 1) {
+      if (!merged[i] && fresh[i]) {
+        merged[i] = fresh[i];
+        changed = true;
+      }
     }
   }
 
@@ -398,6 +428,12 @@ export async function ensureAlbumPagesCachedForExport(
 }
 
 export async function getAlbumImageUris(albumId: string): Promise<string[]> {
+  const interiorId = resolveInteriorAlbumId(albumId);
+  if (isDiaryInteriorAlbumId(interiorId)) {
+    const { getDiaryInteriorImageUris } = await import('@/utils/diaryAlbumsLoader');
+    return (await getDiaryInteriorImageUris(interiorId)) ?? [];
+  }
+
   const spec = getRemoteAlbumSpec(albumId);
   if (spec) {
     const maxParallel = 6;
@@ -539,7 +575,12 @@ export function resolveInteriorAlbumId(
   if (albumId === 'family_blank') return 'family_blank';
 
   if (category === 'pregnancy') {
+    if (!albumId) return '';
     if (albumId === 'pregnancy_a5') return 'pregnancy_a5';
+    if (albumId === 'pregnancy_60') return 'pregnancy_60';
+    if (isPregnancySoftCoverId(albumId) || isPregnancyA5LineGuide(albumId)) {
+      return 'pregnancy_a5';
+    }
     return 'pregnancy_60';
   }
 
@@ -582,8 +623,36 @@ export const TEMPLATE_LINE_GUIDE_IDS = new Set([
   'diary_interior_purple',
 ]);
 
-function isPregnancyA5LineGuide(albumId: string): boolean {
+function isPregnancyA5LineGuide(albumId: string | null | undefined): boolean {
+  if (!albumId) return false;
   return albumId === 'pregnancy_a5' || albumId.includes('a5');
+}
+
+/** Мягкая обложка беременности (A5) — внутренний блок 48 стр. */
+export function isPregnancySoftCoverId(albumId: string | null | undefined): boolean {
+  if (!albumId) return false;
+  return albumId.includes('_soft');
+}
+
+export function requiresInteriorTypeSelection(category?: string | null): boolean {
+  return category === 'pregnancy' || category === 'diary';
+}
+
+/**
+ * ID внутреннего блока при создании проекта.
+ * Для беременности/дневников coverType — только обложка; interiorType обязателен.
+ */
+export function resolveProjectInteriorAlbumId(params: {
+  celebration?: string | null;
+  coverType?: string | null;
+  interiorType?: string | null;
+}): string {
+  const { celebration, coverType, interiorType } = params;
+  if (requiresInteriorTypeSelection(celebration)) {
+    if (!interiorType) return '';
+    return resolveInteriorAlbumId(interiorType, celebration);
+  }
+  return resolveInteriorAlbumId(interiorType ?? coverType, celebration);
 }
 
 /**
@@ -611,6 +680,9 @@ export function resolveLineGuideId(
     return 'holidays_birthday_60';
   }
   if (interior.startsWith('pregnancy_') || category === 'pregnancy') {
+    if (interior === 'pregnancy_a5') return 'pregnancy_a5';
+    if (interior === 'pregnancy_60') return 'pregnancy_60';
+    if (!interior) return '';
     return isPregnancyA5LineGuide(interior) ? 'pregnancy_a5' : 'pregnancy_60';
   }
   if (category === 'diary') {
@@ -649,6 +721,10 @@ export function getAlbumImages(albumId: string): any[] {
       return blankPageArray(FAMILY_BLANK_PAGE_COUNT);
     case 'family_blank_21x21':
       return blankPageArray(FAMILY_BLANK_21_PAGE_COUNT, true);
+    case 'diary_interior_brown':
+      return DIARY_BROWN_PAGES;
+    case 'diary_interior_purple':
+      return DIARY_PURPLE_PAGES;
     default:
       return [];
   }
@@ -675,6 +751,10 @@ export function getAlbumPageCount(albumId: string): number {
       return FAMILY_BLANK_PAGE_COUNT;
     case 'family_blank_21x21':
       return FAMILY_BLANK_21_PAGE_COUNT;
+    case 'diary_interior_brown':
+      return DIARY_BROWN_PAGES.length;
+    case 'diary_interior_purple':
+      return DIARY_PURPLE_PAGES.length;
     default:
       return 0;
   }

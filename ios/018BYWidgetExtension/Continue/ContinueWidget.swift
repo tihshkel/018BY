@@ -13,9 +13,15 @@ struct ContinueEntryView: View {
             } else {
                 WidgetEmptyState(
                     title: "Всё заполнено",
-                    subtitle: "Откройте «Мои истории» для нового альбома"
+                    subtitle: entry.snapshot.albumsCount == 0
+                        ? "Создайте альбом, чтобы продолжить здесь"
+                        : "Нет незаполненных страниц"
                 )
-                .widgetURL(WidgetDeepLinks.createAlbum)
+                .widgetURL(
+                    entry.snapshot.albumsCount == 0
+                        ? WidgetDeepLinks.createAlbum
+                        : WidgetDeepLinks.home
+                )
             }
         }
     }
@@ -38,20 +44,19 @@ struct ContinueEntryView: View {
 
     private func smallView(_ item: WidgetContinueItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetBrandMark(compact: true)
-            WidgetAccentPill(text: "Продолжить")
+            WidgetMetricLabel(text: "Продолжить")
+            Text("\(item.percent)%")
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .foregroundStyle(WidgetColors.primaryDeep)
             Text(item.pageTitle)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
             Spacer(minLength: 0)
-            HStack {
-                Text("\(item.percent)% готово")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(palette.textSecondary)
-                Spacer()
-                WidgetProgressRing(percent: item.percent, lineWidth: 4, size: 36)
-            }
+            Text(item.projectTitle)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.continueProject(item))
@@ -59,19 +64,17 @@ struct ContinueEntryView: View {
 
     private func mediumView(_ item: WidgetContinueItem) -> some View {
         HStack(spacing: 14) {
-            WidgetProgressRing(percent: item.percent, lineWidth: 6, size: 64)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(item.projectTitle)
+            WidgetProgressRing(percent: item.percent, lineWidth: 5, size: 60)
+            VStack(alignment: .leading, spacing: 4) {
+                WidgetMetricLabel(text: "Следующая страница")
+                Text(item.pageTitle)
                     .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundStyle(palette.textPrimary)
-                    .lineLimit(1)
-                Text(item.pageTitle)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
-                Text("Открыть страницу")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(WidgetColors.primaryDeep)
+                Text(item.projectTitle)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(1)
             }
             Spacer(minLength: 0)
         }
@@ -81,27 +84,24 @@ struct ContinueEntryView: View {
 
     private func largeView(_ item: WidgetContinueItem) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack {
+            WidgetMetricLabel(text: "Продолжить заполнение")
+            HStack(alignment: .center, spacing: 16) {
+                Text("\(item.percent)%")
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .foregroundStyle(WidgetColors.primaryDeep)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Продолжить заполнение")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(palette.textPrimary)
                     Text(item.projectTitle)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(palette.textPrimary)
+                    Text(item.pageTitle)
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(palette.textSecondary)
+                        .lineLimit(3)
                 }
-                Spacer()
-                WidgetProgressRing(percent: item.percent, lineWidth: 7, size: 72)
+                Spacer(minLength: 0)
             }
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Следующая страница")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(palette.textSecondary)
-                Text(item.pageTitle)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundStyle(palette.textPrimary)
-            }
-            .widgetSectionCard()
+            ProgressView(value: Double(min(max(item.percent, 0), 100)), total: 100)
+                .tint(WidgetColors.primary)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.continueProject(item))
@@ -109,7 +109,7 @@ struct ContinueEntryView: View {
 
     private func accessoryRectangular(_ item: WidgetContinueItem) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("018BY · \(item.percent)%")
+            Text("\(item.percent)% · продолжить")
                 .font(.system(size: 12, weight: .semibold))
             Text(item.pageTitle)
                 .font(.system(size: 11))
@@ -128,7 +128,7 @@ struct ContinueWidget: Widget {
                 .widgetHomeScreenContainer()
         }
         .configurationDisplayName("Продолжить")
-        .description("Быстро вернуться к незаполненной странице.")
+        .description("Прогресс и следующая незаполненная страница.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
         .containerBackgroundRemovable(true)
     }

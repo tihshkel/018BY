@@ -2,9 +2,16 @@ import type { AlbumPageSchema, PhotoBlockSchema } from '@/types/album-page-schem
 import { resolvePhotoPageLayoutsOrUndefined } from '@/utils/resolvePhotoPageLayouts';
 import {
   getPageFormatForLineGuide,
+  getTemplateLayout,
+  getTemplateMeta,
   isBlankTemplateLineGuide,
+  isTemplateCaptionEditable,
+  resolvePhotoPageTemplateId,
 } from '@/utils/photoPageTemplateManifest';
-import { buildPhotoBlocksFromTemplate } from '@/utils/resolveTemplatePageLayout';
+import {
+  buildFieldsFromTemplate,
+  buildPhotoBlocksFromTemplate,
+} from '@/utils/resolveTemplatePageLayout';
 import { normalizeDesignedAlbumVariantId } from '@/utils/variantPreview';
 
 const VARIANT_LABELS: Record<string, string> = {
@@ -104,8 +111,19 @@ export function enrichSchemaWithPhotoBlocks(schema: AlbumPageSchema): AlbumPageS
 
   if (isBlankTemplateLineGuide(schema.lineGuideId) && schema.templateLibraryId) {
     const format = getPageFormatForLineGuide(schema.lineGuideId);
-    const photoBlocks = buildPhotoBlocksFromTemplate(schema.templateLibraryId, format);
-    return photoBlocks ? { ...schema, photoBlocks } : schema;
+    const templateId = resolvePhotoPageTemplateId(schema.templateLibraryId);
+    const layout = getTemplateLayout(templateId, format);
+    const photoBlocks = buildPhotoBlocksFromTemplate(templateId, format);
+    const fields = buildFieldsFromTemplate(templateId, format, schema.pageId);
+    const meta = getTemplateMeta(templateId);
+    return {
+      ...schema,
+      pageType: layout?.pageType ?? schema.pageType,
+      title: meta?.title ?? schema.title,
+      captionEnabled: isTemplateCaptionEditable(templateId, layout),
+      fields: fields.length ? fields : schema.fields,
+      photoBlocks: photoBlocks ?? schema.photoBlocks,
+    };
   }
 
   const photoBlocks = buildPhotoBlocksFromPhotoSlots(

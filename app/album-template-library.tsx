@@ -70,7 +70,9 @@ export default function AlbumTemplateLibraryScreen() {
 
   const insertAfter = afterIndex ? Number(afterIndex) : project.instances.length - 1;
   const pageFormat = getPageFormatForLineGuide(project.lineGuideId);
-  const templates = listTemplatesForFormat(pageFormat);
+  const templates = listTemplatesForFormat(pageFormat, {
+    lineGuideId: project.lineGuideId,
+  });
 
   const albumFlowParams: AlbumFlowParams = {
     id,

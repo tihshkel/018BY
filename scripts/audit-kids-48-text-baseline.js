@@ -71,6 +71,9 @@ function mapPageSlots(page, norms) {
       topNormY = layoutNorm.y - layoutNorm.height;
     } else if (layoutNorm.teethDate) {
       topNormY = layoutNorm.y;
+    } else if (layoutNorm.strokeAtNormY) {
+      // JSON y уже штрих (нижняя/верхняя «ДАТА») — как isKidsStrokeDateLineInputSlot.
+      topNormY = layoutNorm.y - layoutNorm.height;
     } else if (anchorTop) {
       topNormY = layoutNorm.y;
     } else {

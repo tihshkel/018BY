@@ -166,6 +166,7 @@ struct WidgetInboxNotificationItem: Codable, Hashable {
 struct WidgetSnapshot: Codable {
     let updatedAt: String
     let userName: String?
+    let albumsCount: Int
     let projects: [WidgetProjectItem]
     let continueProject: WidgetContinueItem?
     let nextReminder: WidgetReminderItem?
@@ -176,13 +177,14 @@ struct WidgetSnapshot: Codable {
     let unreadTodayCount: Int
 
     enum CodingKeys: String, CodingKey {
-        case updatedAt, userName, projects, continueProject, nextReminder, reminders, pregnancy
+        case updatedAt, userName, albumsCount, projects, continueProject, nextReminder, reminders, pregnancy
         case todayNotifications, latestNotification, unreadTodayCount
     }
 
     init(
         updatedAt: String,
         userName: String?,
+        albumsCount: Int,
         projects: [WidgetProjectItem],
         continueProject: WidgetContinueItem?,
         nextReminder: WidgetReminderItem?,
@@ -194,6 +196,7 @@ struct WidgetSnapshot: Codable {
     ) {
         self.updatedAt = updatedAt
         self.userName = userName
+        self.albumsCount = albumsCount
         self.projects = projects
         self.continueProject = continueProject
         self.nextReminder = nextReminder
@@ -210,6 +213,7 @@ struct WidgetSnapshot: Codable {
             ?? ISO8601DateFormatter().string(from: Date())
         userName = try container.decodeIfPresent(String.self, forKey: .userName)
         projects = try container.decodeIfPresent([WidgetProjectItem].self, forKey: .projects) ?? []
+        albumsCount = try container.decodeIfPresent(Int.self, forKey: .albumsCount) ?? projects.count
         continueProject = try container.decodeIfPresent(WidgetContinueItem.self, forKey: .continueProject)
         nextReminder = try container.decodeIfPresent(WidgetReminderItem.self, forKey: .nextReminder)
         reminders = try container.decodeIfPresent([WidgetReminderItem].self, forKey: .reminders) ?? []
@@ -245,6 +249,7 @@ enum WidgetDataStore {
         WidgetSnapshot(
             updatedAt: ISO8601DateFormatter().string(from: Date()),
             userName: nil,
+            albumsCount: 0,
             projects: [],
             continueProject: nil,
             nextReminder: nil,
@@ -276,6 +281,8 @@ enum WidgetDeepLinks {
     static let createAlbum = URL(string: "app018by://my-stories")!
     static let reminders = URL(string: "app018by://reminders-list")!
     static let notifications = URL(string: "app018by://notifications")!
+    /// Opens paper-album helper where user can set ПДР.
+    static let setPdr = URL(string: "app018by://paper-album-notifications")!
     static let home = URL(string: "app018by://")!
 
     static func albumPages(project: WidgetProjectItem) -> URL {
@@ -332,6 +339,31 @@ enum WidgetFormatters {
         if days == 0 { return "Сегодня" }
         if days == 1 { return "Завтра" }
         return "Через \(days) дн."
+    }
+
+    static func daysUntilPdrLabel(_ days: Int) -> String {
+        let value = max(days, 0)
+        return "\(value) \(dayUnit(value))"
+    }
+
+    static func albumsCountLabel(_ count: Int) -> String {
+        "\(count) \(albumUnit(count))"
+    }
+
+    private static func dayUnit(_ value: Int) -> String {
+        let mod10 = value % 10
+        let mod100 = value % 100
+        if mod10 == 1 && mod100 != 11 { return "день" }
+        if mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20) { return "дня" }
+        return "дней"
+    }
+
+    private static func albumUnit(_ value: Int) -> String {
+        let mod10 = value % 10
+        let mod100 = value % 100
+        if mod10 == 1 && mod100 != 11 { return "альбом" }
+        if mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20) { return "альбома" }
+        return "альбомов"
     }
 
     static func pregnancyDayLabel(_ day: Int) -> String {

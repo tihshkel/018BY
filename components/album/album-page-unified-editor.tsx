@@ -18,6 +18,7 @@ import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FieldTextStyle, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { usesTemplateLineTextEditing } from '@/utils/albumImages';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
 
@@ -137,7 +138,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   );
 
   const fields = resolvedSchema.fields ?? [];
-  const showTextStyleToolbar = usesTemplateLineTextEditing(lineGuideId);
+  const showTextStyleToolbar =
+    usesTemplateLineTextEditing(lineGuideId) || isBlankTemplateLineGuide(lineGuideId);
   const formProps = {
     fields,
     values: pageValues.fields,
@@ -157,6 +159,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           pageValues={pageValues}
           lineGuideId={lineGuideId}
           onFieldChange={onFieldChange}
+          onFieldStyleChange={onFieldStyleChange}
           onPickPhoto={(slotIndex) => {
             if (!primaryBlock) return;
             onPickPhoto(primaryBlock.blockId, slotIndex);

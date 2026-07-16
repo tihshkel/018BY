@@ -3,7 +3,7 @@
     "name": "018BY",
     "slug": "018by",
     "scheme": "app018by",
-    "version": "1.1.5",
+    "version": "1.1.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
@@ -23,7 +23,7 @@
       "supportsTablet": true,
       "requireFullScreen": false,
       "bundleIdentifier": "com.tihshkel.x018BY",
-      "buildNumber": "43",
+      "buildNumber": "45",
       "runtimeVersion": {
         "policy": "appVersion"
       },
@@ -52,9 +52,9 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.tihshkel.app018by",
-      "versionCode": 43,
+      "versionCode": 45,
       "softwareKeyboardLayoutMode": "resize",
-      "runtimeVersion": "1.1.5",
+      "runtimeVersion": "1.1.7",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

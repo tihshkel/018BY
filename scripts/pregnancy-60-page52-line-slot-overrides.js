@@ -1,6 +1,6 @@
 /**
- * Page 52 «Анкета родов» (pregnancy_60) — manual slots from
- * in albums/беременность 180х240/…52….pdf (PDF vector extraction).
+ * Page 52 «Анкета родов» (pregnancy_60) — slots from PDF page 52 vector paths
+ * (horizontal underlines + white fill rects), verified against page_052.png.
  */
 
 /** PDF underline: stroke at bottom of band; stored y = top of band. */
@@ -27,6 +27,9 @@ const FILL = (x, top, width, height, continuationGroup, hasLabel = false) => ({
   continuationGroup,
 });
 
+/** Band height for stroke-baseline lines (~inter-stroke pitch on p52). */
+const BAND = 0.038;
+
 /**
  * Indices match buildBirthQuestionnaire60Fields:
  * 0–7 top lines, 8 peach grid (unused), 9–10 weight/height, 11–12 spare,
@@ -34,33 +37,38 @@ const FILL = (x, top, width, height, continuationGroup, hasLabel = false) => ({
  * 20 condition, 21 discharge, 22 days, 23–25 guests (field start 23 ×3).
  */
 const PAGE_52_SLOTS = [
-  LINE(0.4511, 0.2126, 0.4453, 0.0418, 1),
-  LINE(0.3827, 0.2554, 0.1033, 0.0428, 2),
-  LINE(0.7044, 0.2554, 0.1913, 0.0428, 3),
-  LINE(0.1522, 0.2999, 0.2365, 0.0434, 4),
-  LINE(0.5444, 0.3006, 0.3522, 0.0434, 5),
-  LINE(0.6783, 0.3405, 0.2175, 0.0412, 6),
-  LINE(0.2167, 0.3806, 0.6799, 0.041, 7),
-  LINE(0.6636, 0.4162, 0.2327, 0.035, 8),
-  FILL(0.1077, 0.4095, 0.4275, 0.1576, 9, false),
-  FILL(0.181, 0.4559, 0.1343, 0.025, 10),
-  FILL(0.3936, 0.457, 0.1215, 0.025, 11),
-  FILL(0.1824, 0.4204, 0.0333, 0.025, 12, false),
-  FILL(0.3725, 0.4204, 0.0333, 0.025, 13, false),
-  FILL(0.2932, 0.4951, 0.222, 0.025, 14),
-  FILL(0.2088, 0.5338, 0.3064, 0.025, 15),
-  FILL(0.6229, 0.5323, 0.2606, 0.025, 16, false),
+  // Top ruled lines — strokeY from PDF get_drawings horizontal paths
+  LINE(0.4445, 0.1762, 0.4433, BAND, 1),
+  LINE(0.3776, 0.2173, 0.1087, BAND, 2),
+  LINE(0.6923, 0.2173, 0.1948, BAND, 3),
+  LINE(0.1521, 0.2604, 0.239, BAND, 4),
+  LINE(0.5358, 0.2612, 0.3522, BAND, 5),
+  LINE(0.6667, 0.3026, 0.2205, BAND, 6),
+  LINE(0.2152, 0.3422, 0.6728, BAND, 7),
+  LINE(0.6523, 0.3832, 0.2353, BAND, 8),
+  // Peach panel (unused as text field)
+  FILL(0.1162, 0.411, 0.4182, 0.1551, 9, false),
+  // White input cells
+  FILL(0.1879, 0.4567, 0.1313, 0.0246, 10),
+  FILL(0.3959, 0.4577, 0.1189, 0.0246, 11),
+  // Checkbox placeholders (geometry for reference; fills come from optionFills)
+  FILL(0.1893, 0.4217, 0.0326, 0.0246, 12, false),
+  FILL(0.3753, 0.4217, 0.0326, 0.0246, 13, false),
+  FILL(0.2977, 0.4952, 0.2171, 0.0246, 14),
+  FILL(0.2151, 0.5332, 0.2997, 0.0246, 15),
+  FILL(0.6203, 0.5318, 0.255, 0.0246, 16, false),
+  // Spare mid guides (not bound to schema fields)
   LINE(0.2227, 0.5524, 0.2864, 0.0186, 17, false),
   LINE(0.6368, 0.551, 0.2407, 0.0186, 18, false),
   LINE(0.2227, 0.5755, 0.2864, 0.0167, 19, false),
   LINE(0.6368, 0.574, 0.2407, 0.0167, 20, false),
-  // Bottom form lines — strokeY = top + height from PDF (not band top y).
-  LINE(0.3336, 0.669, 0.5587, 0.0478, 22),
-  LINE(0.4703, 0.7042, 0.4219, 0.0415, 23),
-  LINE(0.5476, 0.7465, 0.3428, 0.0423, 24),
-  LINE(0.4145, 0.7901, 0.4805, 0.0428, 25),
-  LINE(0.1048, 0.832, 0.7902, 0.0423, 25, false),
-  LINE(0.1048, 0.8744, 0.7902, 0.0423, 25, false),
+  // Bottom form lines
+  LINE(0.3295, 0.6193, 0.5542, BAND, 22),
+  LINE(0.4633, 0.66, 0.4204, BAND, 23),
+  LINE(0.5389, 0.7008, 0.343, BAND, 24),
+  LINE(0.4087, 0.7433, 0.4777, BAND, 25),
+  LINE(0.1134, 0.785, 0.773, BAND, 25, false),
+  LINE(0.1134, 0.8266, 0.773, BAND, 25, false),
 ];
 
 function slotGuideY(slot) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 /**
- * Stroke/baseline alignment audit for pregnancy_60 key pages.
+ * Stroke/baseline alignment audit for pregnancy_60 and pregnancy_a5 key pages.
  *
  * ONLY_ALBUM=pregnancy_60 node scripts/audit-pregnancy-stroke-alignment.js
  * FAIL_ON_ERROR=1 node scripts/audit-pregnancy-stroke-alignment.js
@@ -12,9 +12,10 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const FAIL_ON_ERROR = process.env.FAIL_ON_ERROR === '1';
 const ALBUM_ID = process.env.ONLY_ALBUM || 'pregnancy_60';
-const KEY_PAGES = [9, 10, 52, 53, 54, 55, 60];
+const KEY_PAGES =
+  ALBUM_ID === 'pregnancy_a5' ? [5, 6, 15, 30, 43] : [9, 10, 52, 53, 54, 55, 60];
 const BASELINE_DRIFT_NORM = 0.006;
-const OUT_DIR = path.join(ROOT, 'assets/debug/pregnancy-60-audit');
+const OUT_DIR = path.join(ROOT, `assets/debug/${ALBUM_ID.replace('_', '-')}-audit`);
 
 function loadJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), 'utf8'));
@@ -31,6 +32,13 @@ function loadSchemas() {
 }
 
 function isWeeklyPage(page) {
+  if (ALBUM_ID === 'pregnancy_a5') {
+    return (
+      (page >= 5 && page <= 13) ||
+      (page >= 15 && page <= 28) ||
+      (page >= 30 && page <= 43)
+    );
+  }
   return (
     (page >= 9 && page <= 17) ||
     (page >= 19 && page <= 32) ||
@@ -41,10 +49,14 @@ function isWeeklyPage(page) {
 function expectedStrokeNormY(slot, guideY) {
   const slotTop = slot.y;
   const slotBottom = slot.y + slot.height;
-  if (Math.abs(guideY - slotTop) < Math.max(slot.height * 0.2, 0.004)) {
-    return slotBottom;
+  const tolerance = Math.max(slot.height * 0.2, 0.004);
+  if (
+    Math.abs(guideY - slotTop) < tolerance ||
+    Math.abs(guideY - slotBottom) < tolerance
+  ) {
+    return guideY;
   }
-  return guideY;
+  return slotBottom;
 }
 
 function auditPage(page, slots, guides, schema) {
@@ -53,6 +65,23 @@ function auditPage(page, slots, guides, schema) {
     if (schema?.fields?.length) {
       issues.push({ code: 'EMPTY_SLOTS', detail: 'page has fields but no line slots' });
     }
+    return issues;
+  }
+
+  if (isWeeklyPage(page)) {
+    slots.forEach((slot, slotIndex) => {
+      if ((slot.inputKind ?? 'line') === 'block') return;
+      const guideY = guides?.[slotIndex];
+      if (guideY == null) return;
+      const strokeY = expectedStrokeNormY(slot, guideY);
+      const drift = Math.abs(guideY - strokeY);
+      if (isWeeklyPage(page) && drift > BASELINE_DRIFT_NORM) {
+        issues.push({
+          code: 'WEEKLY_GUIDE_NOT_STROKE',
+          detail: `slot ${slotIndex} guide=${guideY.toFixed(5)} stroke=${strokeY.toFixed(5)} drift=${drift.toFixed(5)}`,
+        });
+      }
+    });
     return issues;
   }
 
@@ -90,6 +119,9 @@ function auditPage(page, slots, guides, schema) {
 }
 
 async function auditPdfDimensions(pdfPath) {
+  if (ALBUM_ID !== 'pregnancy_60') {
+    return { skipped: true, reason: 'PDF dimension audit is only configured for pregnancy_60' };
+  }
   if (!pdfPath || !fs.existsSync(pdfPath)) {
     return { skipped: true, reason: 'PDF not provided' };
   }
@@ -135,7 +167,9 @@ async function main() {
     const key = String(page);
     const slots = lineSlots[ALBUM_ID]?.[key] ?? [];
     const guides = lineGuides[ALBUM_ID]?.[key] ?? [];
-    const schema = albumSchemas[key];
+    const schema = Array.isArray(albumSchemas)
+      ? albumSchemas.find((item) => item.sourcePageNumber === page)
+      : albumSchemas[key];
     const issues = auditPage(page, slots, guides, schema);
     report.pages[page] = {
       slotCount: slots.length,

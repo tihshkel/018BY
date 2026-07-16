@@ -37,14 +37,108 @@ export const KIDS_MONTH_LINE_BAND_HEIGHT = 0.028;
 /** Небольшой отступ от левого края PDF-слота (после печатной подписи). */
 export const KIDS_MONTH_LINE_X_INSET = 0.008;
 
+/**
+ * Общий зазор пользовательского текста от печатного дизайна
+ * (подписи, декоративные края) на kids_48 / pregnancy_*.
+ * Preview = export через refineNormalizedSlotForTextLayout.
+ */
+export const DESIGNED_LABELED_LINE_TEXT_INSET_NORM = 0.014;
+
+/** Лёгкий отступ у широких строк без hasLabel, начинающихся у левого края макета. */
+export const DESIGNED_LINE_EDGE_INSET_NORM = 0.008;
+
+/**
+ * Имена семейного дерева: Y уже в buildPage5FamilyTreeSlots (baseline под кругом).
+ * Доп. nudge не нужен — раньше dx/dy уводили «ИВАН» вправо и с линии.
+ */
+export const KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM = 0;
+
+/**
+ * Точечная подгонка имён (индекс = templateLineStart). Пусто = слоты как в LINE_SLOTS.
+ * Попадает в cache-key getLineSlotsForPage.
+ */
+export const KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX: Readonly<
+  Record<number, { dx?: number; dy?: number; width?: number }>
+> = {};
+
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
 export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
+
+/**
+ * Зазор над штрихом для kids_48 (preview = export).
+ * Amatic при baseline == stroke визуально врезается в линию.
+ */
+export const KIDS_STROKE_CLEARANCE_RATIO = 0.1;
+
+/**
+ * Month pages («Мне N месяцев») — чуть больший зазор: при экспорте Amatic
+ * иначе садится на печатную линию (~2–3 px на эталоне 2480).
+ */
+export const KIDS_MONTH_STROKE_CLEARANCE_RATIO = 0.22;
+
+/**
+ * p1 «Этот альбом принадлежит» — дата/время/вес/рост: Amatic с rnAscent=1
+ * визуально «висит» над штрихом; clearance минимальный, sink опускает baseline в RN.
+ */
+export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.02;
+
+/** Доп. опускание Text top к штриху на p1 в превью (доля fontSize). */
+export const KIDS_P1_BASELINE_SINK_RATIO = 0.16;
+
+/**
+ * p1 экспорт: Amatic в pdf-lib при том же Text top садится ниже RN
+ * (линия режет цифры пополам). Подъём только PDF baseline — превью не трогаем.
+ */
+export const KIDS_P1_PDF_BASELINE_LIFT_RATIO = 0.3;
 
 /** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
 export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0;
 
 /** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
 export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0;
+
+/**
+ * p10 «Мои зубки» — дата плотно на штрихе («дата и сразу подчёркивание»).
+ * Чуть меньше общего kids clearance, без врезания Amatic в линию.
+ */
+export const KIDS_TEETH_STROKE_CLEARANCE_RATIO = 0.02;
+
+/** p10 даты у кругов — лёгкий sink Amatic к штриху (доля fontSize). */
+export const KIDS_TEETH_DATE_BASELINE_SINK_RATIO = 0.04;
+
+/**
+ * p10 «первая чистка» / «в годик» — текст врезался в линию (preview+export).
+ * Отрицательный sink = подъём к штриху.
+ */
+export const KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO = 0.22;
+
+/**
+ * p10 нижние строки: Amatic в pdf-lib при том же text top садится ниже RN
+ * (штрих режет цифры). Подъём только PDF baseline — превью не трогаем.
+ */
+export const KIDS_TEETH_BOTTOM_PDF_BASELINE_LIFT_RATIO = 0.3;
+
+/**
+ * p10 даты у кругов зубов — та же PDF-осадка Amatic, что у нижних строк.
+ */
+export const KIDS_TEETH_DATE_PDF_BASELINE_LIFT_RATIO = 0.3;
+
+/**
+ * p10 «Мои зубки» — короткий underline (~0.1) и плотный ряд линий.
+ * Кегль меньше общего kids (16), иначе даты налезают друг на друга.
+ */
+export const KIDS_TEETH_FIXED_LINE_FONT_SIZE = 11;
+
+/**
+ * p11 «Рост и вес» — плотная сетка у заголовков; меньше clearance + меньший кегль.
+ */
+export const KIDS_GROWTH_STROKE_CLEARANCE_RATIO = 0.08;
+export const KIDS_GROWTH_FIXED_LINE_FONT_SIZE = 13;
+
+/**
+ * p11: Amatic в pdf-lib чуть ниже RN — лёгкий PDF-only подъём.
+ */
+export const KIDS_GROWTH_PDF_BASELINE_LIFT_RATIO = 0.12;
 
 /** Эталон PNG 300 dpi для ручной разметки p8/p9 (kids_48). */
 export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
@@ -57,17 +151,37 @@ export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
 export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
   8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
 
-/** kids_48 p12 «Мои следы» — дата над штрихом «ДАТА». */
-export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0.28;
+/**
+ * kids_48 нижняя дата «ДАТА»: без доп. lift — только stroke clearance.
+ */
+export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0;
+
+/** Нижняя «ДАТА» — плотно к штриху (Amatic), без «парения» над линией. */
+export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.03;
 
 /** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
-export const DIARY_LINE_FONT_OFFSET = 0.86;
+export const DIARY_LINE_FONT_OFFSET = 0.78;
+
+/**
+ * Доп. опускание Amatic на line-слотах дневника (доля fontSize).
+ * Математический baseline ≈ штрих, но низ глифов визуально выше — sink выравнивает.
+ */
+export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
 export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;
 
 /** Доп. подъём над штрихом — RN/Связной рисуют глифы ниже расчётного cap height (доля lineHeight слота). */
 export const PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO = 0.82;
+
+/** «Уже мама» — доп. зазор в preview поверх EXTRA_LIFT. */
+export const PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO = 0.12;
+
+/**
+ * «Уже мама» — доп. подъём только PDF baseline (Amatic в pdf-lib чуть ниже RN при том же top).
+ * Не трогает preview Text top.
+ */
+export const PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO = 0.1;
 
 /** «История родов» / «Письмо малышу» — Amatic SC на линованной странице (baseline на штрихе). */
 export const PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO = 0.88;
@@ -85,8 +199,10 @@ export const PREGNANCY_WEEKLY_GUIDE_STROKE_CAP_HEIGHT_RATIO =
 export const PREGNANCY_WEEKLY_GUIDE_STROKE_LIFT_BAND_RATIO =
   PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO;
 
-/** Baseline на штрихе для полей «Планы» / «Ощущения» (как kids month stroke layout). */
-export const PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET = 0.86;
+/** Baseline на штрихе для полей «Планы» / «Ощущения».
+ * Должен совпадать с RN ascent (Amatic/Связной ≈ 1.0), иначе глифы садятся ниже штриха.
+ * Раньше 0.86 давал systematic overlap линии в preview/export. */
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET = 1;
 
 /**
  * Где заканчивается печатная подпись — доля body-anchor (не OCR-x).
@@ -316,8 +432,8 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     lineWidthSlackRatio: 0.97,
     lineCenterRatio: 0.34,
     lineFontOffsetRatio: 0.96,
-    blockCenterRatio: 0.56,
-    blockFontOffsetRatio: 0.66,
+    blockCenterRatio: 0.5,
+    blockFontOffsetRatio: 0.55,
     blockMaxFontSize: 20,
   },
   diary_interior_brown: {

@@ -9,9 +9,15 @@ const { applyPregnancyA5Page46LineSlotOverrides } = require('./pregnancy-a5-page
 const { applyPregnancy60Page52LineSlotOverrides } = require('./pregnancy-60-page52-line-slot-overrides');
 const { applyPregnancy60Page51LineSlotOverrides } = require('./pregnancy-60-page51-line-slot-overrides');
 const { applyPregnancy60Page54LineSlotOverrides } = require('./pregnancy-60-page54-line-slot-overrides');
+const { applyPregnancy60Page4LineSlotOverrides } = require('./pregnancy-60-page4-line-slot-overrides');
+const { applyPregnancy60Page60LetterLineSlotOverrides } = require('./pregnancy-60-page60-line-slot-overrides');
 const { PREGNANCY_60_PAGE52_OPTION_FILLS } = require('./pregnancy-60-page52-option-fills');
 const { PREGNANCY_60_PAGE51_OPTION_FILLS } = require('./pregnancy-60-page51-option-fills');
-const { applyPregnancy60WeeklyLineSlotOverrides } = require('./pregnancy-60-weekly-line-slot-overrides');
+const { PREGNANCY_60_PAGE50_OPTION_FILLS } = require('./pregnancy-60-page50-option-fills');
+const {
+  applyPregnancyA5WeeklyLineSlotOverrides,
+  applyPregnancy60WeeklyLineSlotOverrides,
+} = require('./pregnancy-60-weekly-line-slot-overrides');
 const { applyKids48LineSlotOverrides } = require('./kids-48-line-slot-overrides');
 const { PREGNANCY_A5_PAGE44_OPTION_FILLS } = require('./pregnancy-a5-page44-option-fills');
 const { buildDiaryMoodOptionFillsManifest } = require('./diary-mood-option-fills');
@@ -1284,6 +1290,11 @@ async function main() {
       albumGuides = weekly.guides;
       console.log(`[${spec.albumId}] applied weekly page line slot overrides`);
 
+      const page4 = applyPregnancy60Page4LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = page4.slots;
+      albumGuides = page4.guides;
+      console.log(`[${spec.albumId}] applied page 4 wellbeing line slot overrides`);
+
       const page52 = applyPregnancy60Page52LineSlotOverrides(albumSlots, albumGuides);
       albumSlots = page52.slots;
       albumGuides = page52.guides;
@@ -1298,6 +1309,11 @@ async function main() {
       albumSlots = page54.slots;
       albumGuides = page54.guides;
       console.log(`[${spec.albumId}] applied page 54 already-mom line slot overrides`);
+
+      const page60 = applyPregnancy60Page60LetterLineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = page60.slots;
+      albumGuides = page60.guides;
+      console.log(`[${spec.albumId}] applied page 60 letter line slot overrides`);
     }
 
     if (spec.albumId === 'pregnancy_a5') {
@@ -1305,6 +1321,11 @@ async function main() {
       albumSlots = trimmed.slots;
       albumGuides = trimmed.guides;
       console.log(`[${spec.albumId}] filtered line slots inside photo placeholder`);
+
+      const weekly = applyPregnancyA5WeeklyLineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = weekly.slots;
+      albumGuides = weekly.guides;
+      console.log(`[${spec.albumId}] applied weekly page line slot overrides`);
 
       const page44 = applyPregnancyA5Page44LineSlotOverrides(albumSlots, albumGuides);
       albumSlots = page44.slots;
@@ -1364,6 +1385,9 @@ async function main() {
       `  textAnchorTop?: boolean;\n` +
       `  lineStrokeAtBottom?: boolean;\n` +
       `  teethDate?: boolean;\n` +
+      `  /** kids_48 date lines: y is printed stroke, not band top. */\n` +
+      `  strokeAtNormY?: boolean;\n` +
+      `  inlineLabelTail?: boolean;\n` +
       `};\n\n` +
       `export const LINE_SLOTS = ${JSON.stringify(lineSlots, null, 2)} as const;\n`,
     'utf8'
@@ -1395,6 +1419,10 @@ async function main() {
       ...(circleSlots.pregnancy_60['52'] ?? {}),
       optionFills: PREGNANCY_60_PAGE52_OPTION_FILLS,
     };
+    circleSlots.pregnancy_60['50'] = {
+      ...(circleSlots.pregnancy_60['50'] ?? {}),
+      optionFills: PREGNANCY_60_PAGE50_OPTION_FILLS,
+    };
     circleSlots.pregnancy_60['51'] = {
       ...(circleSlots.pregnancy_60['51'] ?? {}),
       optionFills: PREGNANCY_60_PAGE51_OPTION_FILLS,
@@ -1410,7 +1438,7 @@ async function main() {
       }
     }
     fs.writeFileSync(circleSlotsFile, `${JSON.stringify(circleSlots, null, 2)}\n`, 'utf8');
-    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + pregnancy_60 p51/p52 + diary mood fills)');
+    console.log('✅ Wrote', path.relative(projectRoot, circleSlotsFile), '(pregnancy_a5 p44 + pregnancy_60 p50/p51/p52 + diary mood fills)');
   }
 
   console.log('✅ Wrote', path.relative(projectRoot, slotsFile));

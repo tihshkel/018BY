@@ -128,3 +128,35 @@ export function resolvePhotoBlockSlotRects(
     rect: resolvePhotoBlockSlotRect(blockRect, slot.relative),
   }));
 }
+
+/**
+ * Подгоняет рамку слота под пропорции фото (portrait в landscape-пине и наоборот).
+ * Ручки resize совпадают с фото, без пустой половины рамки.
+ */
+export function fitSlotRectToImageAspect(
+  slot: ViewportRect,
+  imageAspect: number,
+): ViewportRect {
+  if (imageAspect <= 0 || slot.width <= 0 || slot.height <= 0) return slot;
+
+  const slotAspect = slot.width / slot.height;
+  if (Math.abs(slotAspect - imageAspect) < 0.04) return slot;
+
+  if (imageAspect < slotAspect) {
+    const width = slot.height * imageAspect;
+    return {
+      x: slot.x + (slot.width - width) / 2,
+      y: slot.y,
+      width,
+      height: slot.height,
+    };
+  }
+
+  const height = slot.width / imageAspect;
+  return {
+    x: slot.x,
+    y: slot.y + (slot.height - height) / 2,
+    width: slot.width,
+    height,
+  };
+}

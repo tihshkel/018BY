@@ -1,3 +1,4 @@
+import { clearAlbumProjectSnapshot } from '@/utils/albumProjectStateSync';
 import { pushCoreOnlyToCloud } from '@/utils/account-sync';
 import { getAccountSyncId } from '@/utils/account-identity';
 import { markProjectAsDeleted, unmarkProjectAsDeleted } from '@/utils/deleted-project-ids';
@@ -21,7 +22,20 @@ const PROJECT_STORAGE_KEYS = (projectId: string) => [
   `@project_user_committed_${projectId}`,
   `@project_sections_${projectId}`,
   `@tutorial_shown_${projectId}`,
+  `@project_schema_version_${projectId}`,
+  `@project_form_migration_${projectId}`,
 ];
+
+async function collectProjectStorageKeys(projectId: string): Promise<string[]> {
+  const keys = new Set(PROJECT_STORAGE_KEYS(projectId));
+  const allKeys = await AsyncStorage.getAllKeys();
+  for (const key of allKeys) {
+    if (key.startsWith(`@project_pv_${projectId}_`)) {
+      keys.add(key);
+    }
+  }
+  return [...keys];
+}
 
 /** Удаляет проект локально и обновляет облако; pull не восстанавливает удалённые id. */
 export async function deleteUserProjectLocally(project: UserProject): Promise<void> {
@@ -37,7 +51,8 @@ export async function deleteUserProjectLocally(project: UserProject): Promise<vo
     console.warn('[deleteUserProject] reminders cleanup failed:', error);
   }
 
-  await AsyncStorage.multiRemove(PROJECT_STORAGE_KEYS(projectId));
+  await AsyncStorage.multiRemove(await collectProjectStorageKeys(projectId));
+  clearAlbumProjectSnapshot(projectId);
 
   const existingProjects = await AsyncStorage.getItem('@user_projects');
   let updatedJson = '[]';

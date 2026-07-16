@@ -10,12 +10,16 @@ struct MyProjectsEntryView: View {
         entry.snapshot.projects
     }
 
+    private var albumsCount: Int {
+        entry.snapshot.albumsCount
+    }
+
     var body: some View {
         Group {
-            if projects.isEmpty {
+            if albumsCount == 0 {
                 WidgetEmptyState(
-                    title: "Пока нет проектов",
-                    subtitle: "Откройте «Мои истории» и выберите категорию альбома"
+                    title: "Нет альбомов",
+                    subtitle: "Создайте первый альбом в «Мои истории»"
                 )
                 .widgetURL(WidgetDeepLinks.createAlbum)
             } else {
@@ -39,41 +43,38 @@ struct MyProjectsEntryView: View {
     }
 
     private var smallView: some View {
-        let project = projects[0]
-        return VStack(alignment: .leading, spacing: 10) {
-            WidgetBrandMark(compact: true)
-            Text(project.title)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
+        let avgPercent = projects.isEmpty
+            ? 0
+            : projects.map(\.percent).reduce(0, +) / projects.count
+        return VStack(alignment: .leading, spacing: 8) {
+            WidgetMetricLabel(text: "Альбомы")
+            WidgetHeroNumber(text: "\(albumsCount)", size: 40)
+            Text(WidgetFormatters.albumsCountLabel(albumsCount).replacingOccurrences(of: "\(albumsCount) ", with: ""))
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(palette.textPrimary)
-                .lineLimit(2)
             Spacer(minLength: 0)
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Заполнено \(project.percent)%")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(palette.textSecondary)
-                    if let remaining = project.unfinishedPages, remaining > 0 {
-                        Text("Осталось \(remaining) стр.")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundStyle(palette.textSecondary)
-                    }
-                }
+                Text("Заполнено в среднем")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
                 Spacer()
-                WidgetProgressRing(percent: project.percent, lineWidth: 5, size: 42)
+                Text("\(avgPercent)%")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(WidgetColors.primaryDeep)
             }
         }
         .widgetCardBackground()
-        .widgetURL(WidgetDeepLinks.albumPages(project: project))
+        .widgetURL(WidgetDeepLinks.home)
     }
 
     private var mediumView: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                WidgetBrandMark(compact: true)
+                WidgetMetricLabel(text: "Альбомы")
                 Spacer()
-                Text("\(projects.count) проект(ов)")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(palette.textSecondary)
+                Text(WidgetFormatters.albumsCountLabel(albumsCount))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(WidgetColors.primaryDeep)
             }
             ForEach(Array(projects.prefix(2)), id: \.id) { project in
                 WidgetProjectRow(project: project)
@@ -84,48 +85,28 @@ struct MyProjectsEntryView: View {
     }
 
     private var largeView: some View {
-        let columns = family == .systemExtraLarge
-            ? [GridItem(.flexible()), GridItem(.flexible())]
-            : [GridItem(.flexible())]
-
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Мои альбомы")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                    Text(WidgetFormatters.albumsCountLabel(albumsCount))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundStyle(palette.textPrimary)
                     if let name = entry.snapshot.userName {
-                        Text("Привет, \(name)")
-                            .font(.system(size: 12, weight: .medium))
+                        Text(name)
+                            .font(.system(size: 12, weight: .regular))
                             .foregroundStyle(palette.textSecondary)
                     }
                 }
                 Spacer()
-                WidgetBrandMark(compact: true)
             }
 
-            if family == .systemExtraLarge {
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(Array(projects.prefix(4)), id: \.id) { project in
-                        projectTile(project)
-                    }
-                }
-            } else {
-                ForEach(Array(projects.prefix(3)), id: \.id) { project in
-                    WidgetProjectRow(project: project)
-                }
+            ForEach(Array(projects.prefix(family == .systemExtraLarge ? 5 : 4)), id: \.id) { project in
+                WidgetProjectRow(project: project)
+                    .padding(.vertical, 2)
             }
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.home)
-    }
-
-    private func projectTile(_ project: WidgetProjectItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            WidgetProjectRow(project: project)
-        }
-        .widgetSectionCard(padding: 10)
-        .widgetURL(WidgetDeepLinks.albumPages(project: project))
     }
 }
 
@@ -137,8 +118,8 @@ struct MyProjectsWidget: Widget {
             MyProjectsEntryView(entry: entry)
                 .widgetHomeScreenContainer()
         }
-        .configurationDisplayName("Мои проекты")
-        .description("Обложки и прогресс ваших альбомов.")
+        .configurationDisplayName("Альбомы")
+        .description("Сколько альбомов создано и прогресс заполнения.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge])
         .containerBackgroundRemovable(true)
     }

@@ -6,7 +6,8 @@ const path = require('path');
 
 const SPACE_WIDTH_FACTOR = 0.35;
 const REFERENCE_VIEWPORT = { width: 2480, height: 2480 };
-const FIELD_LIMIT_PROBE_CYRILLIC = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789. '.repeat(20);
+const FIELD_LIMIT_PROBE_CYRILLIC =
+  'Много отдыхать и радоваться жизни хочу купить арбуз и устроить пикник на выходных. '.repeat(20);
 
 const FONT_WIDTH_MULTIPLIERS = {
   SvyaznoyRF: 1.02,
@@ -21,8 +22,18 @@ const ALBUM_TYPOGRAPHY = {
   pregnancy_a5: { fixedLineFontSize: 16, charWidthRatio: 0.54, lineWidthSlackRatio: 1.0 },
   kids_48: { fixedLineFontSize: 16, charWidthRatio: 0.5, lineWidthSlackRatio: 1.03 },
   holidays_birthday_60: { fixedLineFontSize: null, charWidthRatio: 0.56, lineWidthSlackRatio: 1.0 },
-  diary_interior_brown: { fixedLineFontSize: 16, charWidthRatio: 0.5, lineWidthSlackRatio: 1.0 },
-  diary_interior_purple: { fixedLineFontSize: 16, charWidthRatio: 0.5, lineWidthSlackRatio: 1.0 },
+  diary_interior_brown: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.0,
+    blockMaxFontSize: 16,
+  },
+  diary_interior_purple: {
+    fixedLineFontSize: 16,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 1.0,
+    blockMaxFontSize: 16,
+  },
 };
 
 const DEFAULT_TYPOGRAPHY = {
@@ -90,12 +101,6 @@ function measureTextWidth(text, fontSize, lineGuideId, fontId, fontTable) {
 }
 
 const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
-const PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO = 0.55;
-const PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO = 0.15;
-const PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO = 0.34;
-const PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO = 0.53;
-const PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO = 0.44;
-const PREGNANCY_WEEKLY_LONG_LABEL_TAIL_GAP_THRESHOLD = 0.25;
 const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
 
@@ -167,6 +172,15 @@ function resolvePregnancyWeeklyFieldRowLayout(slot, lineGuideId, allSlots) {
 }
 
 function getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots) {
+  if (slot.inlineLabelTail) {
+    return {
+      viewLeft: slot.x,
+      viewWidth: slot.width,
+      textLeft: 0,
+      textWidth: slot.width,
+    };
+  }
+
   const calib = getPregnancyWeeklyInlineTailFieldCalib(
     lineGuideId,
     slot.page,
@@ -182,17 +196,7 @@ function getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots) {
   const scale = anchorSlot.x / calib.lineLeftNormX;
   const lineLeftPx = calib.lineLeftNormX * scale;
   const lineRightPx = calib.lineRightNormX * scale;
-  const labelEndPx = calib.labelEndNormX * scale;
   const fullWidth = (lineRightPx - lineLeftPx) * slack;
-
-  if (slot.inlineLabelTail) {
-    return {
-      viewLeft: lineLeftPx,
-      viewWidth: fullWidth,
-      textLeft: (labelEndPx - lineLeftPx) * slack,
-      textWidth: (lineRightPx - labelEndPx) * slack,
-    };
-  }
 
   return {
     viewLeft: lineLeftPx,
@@ -216,42 +220,6 @@ function getViewportNormScale(slot) {
   return slot.width / normWidth;
 }
 
-function getInlineTailWidthRatio(viewportSlot) {
-  const normHeight = viewportSlot.normHeight ?? 0;
-  if (normHeight > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) {
-    return PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO;
-  }
-  return PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO;
-}
-
-function findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId) {
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
-  return allSlots.find(
-    (s) =>
-      s.continuationGroup === slot.continuationGroup &&
-      !s.hasLabel &&
-      (s.inputKind ?? 'line') === 'line' &&
-      s.index > slot.index &&
-      s.index !== 1 &&
-      s.index !== bellyIndex,
-  );
-}
-
-function isPregnancyWeeklyInlineTailAfterLabelSlot(slot, lineGuideId, allSlots) {
-  if (!slot.inlineLabelTail || !allSlots?.length) return false;
-  if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
-  const bodySlot = findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId);
-  if (!bodySlot) return false;
-  const gapNorm = (slot.x - bodySlot.x) / getViewportNormScale(bodySlot);
-  return gapNorm > PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP;
-}
-
-function resolvePregnancyWeeklyInlineLabelBodyEndRatio(continuationGroup) {
-  if (continuationGroup === 3) return PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO;
-  if (continuationGroup === 5) return PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO;
-  return PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO;
-}
-
 function getPregnancyWeeklyInlineTailTextInsets(slot, lineGuideId, allSlots) {
   if (
     !slot.inlineLabelTail ||
@@ -270,33 +238,7 @@ function getPregnancyWeeklyInlineTailTextInsets(slot, lineGuideId, allSlots) {
     };
   }
 
-  const profile = getTypography(lineGuideId);
-  const slack = profile.lineWidthSlackRatio;
-  const bodySlot = allSlots?.length
-    ? findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId)
-    : undefined;
-
-  if (bodySlot && isPregnancyWeeklyInlineTailAfterLabelSlot(slot, lineGuideId, allSlots)) {
-    const anchorWidth = bodySlot.width * slack;
-    const labelEndRatio = resolvePregnancyWeeklyInlineLabelBodyEndRatio(
-      slot.continuationGroup,
-    );
-    const textLeft = anchorWidth * labelEndRatio;
-    const lineRight = bodySlot.x + anchorWidth;
-    const tailStartX = bodySlot.x + textLeft;
-    const lineRemainder = Math.max(0, lineRight - tailStartX);
-    return {
-      left: textLeft,
-      width: lineRemainder,
-      anchorX: bodySlot.x,
-      anchorWidth,
-    };
-  }
-
-  const ratio = getInlineTailWidthRatio(slot);
-  const tailWidth = slot.width * ratio * slack;
-  const labelWidth = Math.max(0, slot.width * slack - tailWidth);
-  return { left: labelWidth, width: tailWidth };
+  return { left: 0, width: slot.width };
 }
 
 function getEffectiveLineWidthPx(slot, lineGuideId, allSlots) {
@@ -317,9 +259,9 @@ function getEffectiveLineWidthPx(slot, lineGuideId, allSlots) {
 function refineNormSlot(lineGuideId, page, norm) {
   if (lineGuideId === 'kids_48') {
     const isBlock = norm.inputKind === 'block';
-    const labelInset = page === 11 ? 0.012 : 0.01;
-    const xInset = isBlock ? 0.006 : norm.hasLabel ? labelInset : 0.002;
-    const widthTrim = isBlock ? 0.008 : norm.hasLabel ? 0.012 : 0.002;
+    const labelInset = page === 11 ? 0.016 : 0.014;
+    const xInset = isBlock ? 0.006 : norm.hasLabel ? labelInset : 0.008;
+    const widthTrim = isBlock ? 0.008 : norm.hasLabel ? 0.014 : 0.008;
     const x = Math.min(0.98, Math.max(0, norm.x + xInset));
     const width = Math.max(0.05, Math.min(norm.width - widthTrim, 0.98 - x));
     return { ...norm, x, width };
@@ -338,8 +280,8 @@ function refineNormSlot(lineGuideId, page, norm) {
     if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
       return norm;
     }
-    const xInset = norm.hasLabel ? 0.003 : 0.002;
-    const widthTrim = norm.hasLabel ? 0.004 : 0.002;
+    const xInset = norm.hasLabel ? 0.014 : 0.008;
+    const widthTrim = norm.hasLabel ? 0.014 : 0.008;
     const x = Math.min(0.98, Math.max(0, norm.x + xInset));
     const width = Math.max(0.05, Math.min(norm.width - widthTrim, 0.98 - x));
     return { ...norm, x, width };
@@ -831,6 +773,8 @@ function expectedMinLineWidth(lineGuideId, slot, field) {
   ) {
     return 0.1;
   }
+  // Семейное дерево — короткие имена во внешних полосах у кругов (узкие by design).
+  if (field?.fieldId?.startsWith('kids_48_p5_')) return slot.width;
   if (slot.inputKind === 'block') return 0.12;
   if (slot.hasLabel) return 0.18;
   if (lineGuideId === 'kids_48' && slot.width >= 0.45) return slot.width;

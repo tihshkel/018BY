@@ -1,6 +1,9 @@
 import { LINE_SLOTS, type NormalizedLineSlot } from '@/constants/line-slots';
 import type { SafeZone } from '@/constants/photo-layout-templates';
 
+/** Sync with SPARSE_PHOTO_ZOOM_MARGIN_MM in photo-print-margins.ts (avoid cycle). */
+const BLANK_PRINT_MARGIN_MM = 15;
+
 export type AlbumSparsePhotoConfig = {
   eventSafe: SafeZone;
   gapMm: number;
@@ -18,27 +21,46 @@ export type AlbumSparsePhotoConfig = {
 };
 
 export const EVENT_PHOTO_SAFE: SafeZone = {
-  x: 0.08,
-  y: 0.2,
-  width: 0.84,
-  height: 0.6,
+  x: 0.05,
+  y: 0.18,
+  width: 0.9,
+  height: 0.64,
 };
 
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.11,
+  // Шире — ближе к ширине текстовых строк анкеты (поля ~1.5 см).
+  x: 0.08,
   y: 0.26,
-  width: 0.78,
+  width: 0.84,
   height: 0.5,
 };
 
-export const BLANK_PAGE_PHOTO_SAFE: SafeZone = {
-  x: 0.1,
-  y: 0.15,
-  width: 0.8,
-  height: 0.7,
-};
+/** Printable zone for blank pages — 15 mm from trim (same as sparse zoom). */
+export function getBlankPagePhotoSafe(widthMm: number, heightMm: number): SafeZone {
+  const left = BLANK_PRINT_MARGIN_MM / widthMm;
+  const top = BLANK_PRINT_MARGIN_MM / heightMm;
+  return {
+    x: left,
+    y: top,
+    width: 1 - 2 * left,
+    height: 1 - 2 * top,
+  };
+}
 
-const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
+/** 180×240 mm blank (family / holidays portrait). */
+export const BLANK_PAGE_PHOTO_SAFE_18X24: SafeZone = getBlankPagePhotoSafe(180, 240);
+
+/** 210×210 mm blank (wedding / family square). */
+export const BLANK_PAGE_PHOTO_SAFE_21X21: SafeZone = getBlankPagePhotoSafe(210, 210);
+
+/** @deprecated Prefer format-specific safe zones; kept as 18×24 alias. */
+export const BLANK_PAGE_PHOTO_SAFE: SafeZone = BLANK_PAGE_PHOTO_SAFE_18X24;
+
+/** Side-by-side two-photo + полная ширина band (в т.ч. стою / крещение / месяцы). */
+const KIDS_SIDE_BY_SIDE = new Set([
+  1, 3, 4, 8, 13, 19, 20, 21,
+  22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);
 const BIRTHDAY_EXCLUDE_PAGES = new Set([1, 40, 48]);
 
@@ -76,16 +98,21 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
     eventSafe: EVENT_PHOTO_SAFE,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
     excludePages: KIDS_EXCLUDE,
+    // Рамки layout/export — умеренный band; max pinch — через getSparsePhotoZoomBounds (1.5 см).
+    photoBandMaxBottom: 0.86,
   }),
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 180,
     pageWidthMm: 180,
     pageHeightMm: 240,
+    // Низ зоны = поле 1.5 см (см. SPARSE_PHOTO_ZOOM_MARGIN_MM), не 0.86.
+    photoBandMaxBottom: 0.95,
   }),
   pregnancy_a5: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
+    photoBandMaxBottom: 0.95,
   }),
   holidays_birthday_60: config({
     eventSafe: EVENT_PHOTO_SAFE,
@@ -99,13 +126,25 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
     gapMm: 3,
   }),
   family_blank: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 240,
   }),
   holidays_blank: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 240,
   }),
   family_blank_21x21: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_21X21,
+    pageSizeMm: 210,
+    pageWidthMm: 210,
+    pageHeightMm: 210,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 210,
   }),
 };
 
@@ -197,6 +236,14 @@ export function classifyPhotoSafeZoneStrategy(
 ): PhotoSafeZoneStrategy {
   if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) return 'weekly_middle';
   if (isPregnancyUpperBandPage(lineGuideId, page)) return 'upper_band';
+  // p1 «У нас будет малыш» — фото под анкетой. Ложный OCR внизу A5
+  // иначе даёт weekly_middle и узкую полосу.
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    return 'bottom_band';
+  }
 
   const slots = getPageLineSlots(lineGuideId, page);
   if (!slots.length) return 'photo_only';

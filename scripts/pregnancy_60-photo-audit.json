@@ -3,9 +3,9 @@
     "albumId": "pregnancy_60",
     "pageCount": 60,
     "photoPages": 48,
-    "pagesOk": 48,
+    "pagesOk": 11,
     "pagesWarn": 0,
-    "pagesFail": 0
+    "pagesFail": 37
   },
   "pages": [
     {
@@ -130,7 +130,7 @@
       "page": 9,
       "title": "6-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -138,15 +138,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 10,
       "title": "7-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -154,15 +160,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 11,
       "title": "8-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -170,15 +182,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 12,
       "title": "9-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -186,15 +204,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 13,
       "title": "10-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -202,15 +226,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 14,
       "title": "11-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -218,15 +248,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 15,
       "title": "12-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -234,15 +270,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 16,
       "title": "13-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -250,15 +292,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 17,
       "title": "14-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -266,8 +314,14 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
@@ -288,7 +342,7 @@
       "page": 19,
       "title": "15-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -296,15 +350,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 20,
       "title": "16-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -312,15 +372,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 21,
       "title": "17-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -328,15 +394,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 22,
       "title": "18-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -344,15 +416,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 23,
       "title": "19-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -360,15 +438,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 24,
       "title": "20-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -376,15 +460,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 25,
       "title": "21-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -392,15 +482,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 26,
       "title": "22-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -408,15 +504,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 27,
       "title": "23-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -424,15 +526,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 28,
       "title": "24-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -440,15 +548,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 29,
       "title": "25-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -456,15 +570,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 30,
       "title": "26-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -472,15 +592,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 31,
       "title": "27-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -488,15 +614,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 32,
       "title": "28-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -504,8 +636,14 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
@@ -526,7 +664,7 @@
       "page": 34,
       "title": "29-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -534,15 +672,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 35,
       "title": "30-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -550,15 +694,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 36,
       "title": "31-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -566,15 +716,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 37,
       "title": "32-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -582,15 +738,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 38,
       "title": "33-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -598,15 +760,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 39,
       "title": "34-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -614,15 +782,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 40,
       "title": "35-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -630,15 +804,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 41,
       "title": "36-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -646,15 +826,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 42,
       "title": "37-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -662,15 +848,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 43,
       "title": "38-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -678,15 +870,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 44,
       "title": "39-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -694,15 +892,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 45,
       "title": "40-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -710,15 +914,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 46,
       "title": "41-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -726,15 +936,21 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
       "page": 47,
       "title": "42-я неделя",
       "pageType": "structured",
-      "lineSlotCount": 9,
+      "lineSlotCount": 10,
       "photo": {
         "hasPhoto": true,
         "variantCount": 2,
@@ -742,8 +958,14 @@
         "primaryVariant": "one_large"
       },
       "photoDescription": "≈145×66 мм, 75–141 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 4 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Недели беременности"
     },
     {
@@ -796,7 +1018,7 @@
       "page": 51,
       "title": "Список дел",
       "pageType": "structured",
-      "lineSlotCount": 18,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -810,7 +1032,7 @@
       "page": 52,
       "title": "Анкета родов",
       "pageType": "structured",
-      "lineSlotCount": 21,
+      "lineSlotCount": 26,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0

@@ -21,14 +21,15 @@ export function AuthErrorBanner({ message, style }: AuthErrorBannerProps) {
 
 const styles = StyleSheet.create({
   banner: {
-    backgroundColor: '#FFF5F5',
-    borderRadius: radii.md,
+    backgroundColor: '#FFF8F8',
+    borderRadius: radii.sm,
     borderWidth: 1,
-    borderColor: '#F5C2C2',
+    borderColor: '#F0D0D0',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   text: {
     color: colors.error,
+    lineHeight: 20,
   },
 });

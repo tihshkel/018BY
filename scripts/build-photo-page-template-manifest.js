@@ -18,12 +18,16 @@ function text(id, type, x, y, w, h, maxLength, required = false) {
   return { id, type, required, maxLength, ...frame(x, y, w, h) };
 }
 
-function event(id, photo, dateY, descY, h = 0.18) {
+function event(id, photoY, dateY, descY, h = 0.22) {
+  // Larger photo (~34% width) so family/wedding timeline rows read as photo-first.
+  const photoW = 0.34;
+  const textX = 0.44;
+  const textW = 0.49;
   return {
     id,
-    photo: slot(`${id}_photo`, 0.09, photo, 0.28, h, false),
-    date: text(`${id}_date`, 'date', 0.41, dateY, 0.54, 0.04, 30),
-    description: text(`${id}_description`, 'longText', 0.41, descY + 0.05, 0.54, h - 0.05, 200),
+    photo: slot(`${id}_photo`, 0.07, photoY, photoW, h, false),
+    date: text(`${id}_date`, 'date', textX, dateY, textW, 0.04, 30),
+    description: text(`${id}_description`, 'longText', textX, descY, textW, 0.17, 200),
   };
 }
 
@@ -104,18 +108,26 @@ const LAYOUTS_18X24 = {
   },
   TimelineTemplate: {
     events: [
-      event('event1', 0.12, 0.12, 0.12),
-      event('event2', 0.39, 0.39, 0.39),
-      event('event3', 0.66, 0.66, 0.66),
+      event('event1', 0.105, 0.105, 0.155),
+      event('event2', 0.385, 0.385, 0.435),
+      event('event3', 0.665, 0.665, 0.715),
+    ],
+    textBlocks: [
+      text('title', 'title', 0.07, 0.05, 0.86, 0.045, 80),
+      text('caption1', 'caption', 0.07, 0.33, 0.34, 0.04, 70),
+      text('caption2', 'caption', 0.07, 0.61, 0.34, 0.04, 70),
+      text('caption3', 'caption', 0.07, 0.89, 0.34, 0.04, 70),
     ],
     minFilledRule: { minTimelineEvents: 1 },
     pageType: 'timeline_page',
+    perPhotoCaptions: true,
   },
   TextPageTemplate: {
     photoSlots: [],
     textBlocks: [
-      text('title', 'title', 0.12, 0.14, 0.76, 0.1, 90),
-      text('body', 'longText', 0.12, 0.28, 0.76, 0.58, 1800),
+      // ~8% side inset — text spans almost full page, still clear of edges.
+      text('title', 'title', 0.08, 0.1, 0.84, 0.08, 90),
+      text('body', 'longText', 0.08, 0.2, 0.84, 0.7, 1800),
     ],
     minFilledRule: { minTextFields: 1 },
     pageType: 'text_page',
@@ -157,19 +169,22 @@ function from21(slots, texts, extra = {}) {
   };
 }
 
-function event21(id, photoYmm, dateYmm, descYmm, photoHmm = 38) {
-  const photoWmm = 58;
+function event21(id, photoYmm, dateYmm, descYmm, photoHmm = 44) {
+  // ~72×44 mm photos — larger than the old ~43×43 / 58×38 slots.
+  const photoWmm = 72;
+  const textX = MARGIN21_MM + photoWmm + 5;
+  const textW = INNER21_MM - photoWmm - 5;
   return {
     id,
     photo: slot21(`${id}_photo`, MARGIN21_MM, photoYmm, photoWmm, photoHmm, false),
-    date: text21(`${id}_date`, 'date', MARGIN21_MM + photoWmm + 4, dateYmm, INNER21_MM - photoWmm - 4, 8, 30),
+    date: text21(`${id}_date`, 'date', textX, dateYmm, textW, 8, 30),
     description: text21(
       `${id}_description`,
       'longText',
-      MARGIN21_MM + photoWmm + 4,
+      textX,
       descYmm,
-      INNER21_MM - photoWmm - 4,
-      photoHmm - 4,
+      textW,
+      photoHmm - 6,
       200,
     ),
   };
@@ -246,9 +261,20 @@ const LAYOUTS_21X21 = {
     { minFilledRule: { minPhotos: 1 }, pageType: 'caption_photo_page', perPhotoCaptions: true },
   ),
   TimelineTemplate: {
-    events: [event21('event1', 12, 14, 16), event21('event2', 72, 74, 76), event21('event3', 132, 134, 136)],
+    events: [
+      event21('event1', 26, 26, 36),
+      event21('event2', 86, 86, 96),
+      event21('event3', 146, 146, 156),
+    ],
+    textBlocks: [
+      text21('title', 'title', MARGIN21_MM, 12, INNER21_MM, 12, 80),
+      text21('caption1', 'caption', MARGIN21_MM, 72, 72, 10, 70),
+      text21('caption2', 'caption', MARGIN21_MM, 132, 72, 10, 70),
+      text21('caption3', 'caption', MARGIN21_MM, 192, 72, 8, 70),
+    ],
     minFilledRule: { minTimelineEvents: 1 },
     pageType: 'timeline_page',
+    perPhotoCaptions: true,
   },
   TextPageTemplate: from21(
     [],

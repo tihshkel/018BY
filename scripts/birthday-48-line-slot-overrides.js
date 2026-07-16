@@ -1,6 +1,10 @@
 /**
  * Line-slot overrides for holidays_birthday_60 (48-page 21×21 «Дни рождения»).
  * OCR from the legacy 60-page PDF does not match the new 48-page TZ map.
+ *
+ * BLOCK(x, y, …): y is the vertical CENTER of the white pill
+ * (runtime maps top = y − height/2). Geometry measured from PNG assets
+ * in «Блок ДНЕЙ РОЖДЕНИЯ 60 стр».
  */
 
 const BLOCK = (x, y, width, height, continuationGroup = 1) => ({
@@ -13,74 +17,116 @@ const BLOCK = (x, y, width, height, continuationGroup = 1) => ({
   continuationGroup,
 });
 
-/** Lined text row — baseline sits on the printed rule (not a filled block). */
-const LINE = (x, y, width, height, continuationGroup = 1) => ({
+/** Lined text row — `strokeY` is the printed rule; band sits above it. */
+const LINE = (x, strokeY, width, height, continuationGroup = 1) => ({
   x,
-  y,
+  y: Number((strokeY - height).toFixed(5)),
   width,
   height,
   hasLabel: false,
   inputKind: 'line',
   continuationGroup,
+  lineStrokeAtBottom: true,
 });
 
-/** Page 2 — «Привет, мир!»: 4 поля сверху + 2 строки места рождения. */
+const PILL_H = 0.0459;
+const OWNER_NAME_LINE_H = 0.045;
+
+/** Page 2 — «Привет, мир!»: 4 top pills + place-of-birth pill. */
 const HELLO_WORLD_PAGE_SLOTS = [
-  BLOCK(0.06295, 0.30949, 0.23503, 0.04381, 1),
-  BLOCK(0.3484, 0.30949, 0.1957, 0.04381, 2),
-  BLOCK(0.59975, 0.30949, 0.13979, 0.04381, 3),
-  BLOCK(0.79219, 0.30949, 0.13979, 0.04381, 4),
-  BLOCK(0.26414, 0.902, 0.66308, 0.04381, 5),
-  BLOCK(0.26414, 0.946, 0.66308, 0.04381, 5),
+  BLOCK(0.0593, 0.3125, 0.2547, PILL_H, 1),
+  BLOCK(0.3394, 0.3125, 0.2152, PILL_H, 2),
+  BLOCK(0.5847, 0.3125, 0.163, PILL_H, 3),
+  BLOCK(0.7745, 0.3125, 0.1614, PILL_H, 4),
+  BLOCK(0.2555, 0.9059, 0.6756, PILL_H, 5),
 ];
 
-/** Page 1 — owner name on the central line inside the decorative area. */
+/** Page 1 — owner name sits on the printed line in the peach blob. */
 const OWNER_PAGE_SLOTS = [
   BLOCK(0, 0.16676, 0.6869, 0.04014, 1),
-  BLOCK(0.23482, 0.59148, 0.53319, 0.065, 2),
+  LINE(0.23482, 0.589, 0.53319, OWNER_NAME_LINE_H, 2),
   BLOCK(0.18359, 0.76974, 0.59469, 0.065, 3),
 ];
 
-/** Age main pages — title block + weight + height (+ teeth on page 4). */
-const AGE_MAIN_PAGE_SLOTS = [
-  BLOCK(0.3148, 0.0965, 0.3739, 0.065, 1),
-  BLOCK(0.22646, 0.27896, 0.13979, 0.04381, 2),
-  BLOCK(0.43062, 0.27896, 0.13979, 0.04381, 3),
-  BLOCK(0.63479, 0.27896, 0.13979, 0.04381, 4),
+/** Printed title band placeholder (not a form field — fields start at slot 1). */
+const AGE_TITLE_SLOT = BLOCK(0.3148, 0.0965, 0.3739, 0.065, 1);
+
+/**
+ * Page 4 / asset 6 — «Мне 1 годик»: three pills (вес / рост / зубы).
+ */
+const AGE_ONE_YEAR_PAGE_SLOTS = [
+  AGE_TITLE_SLOT,
+  BLOCK(0.2191, 0.2828, 0.1614, PILL_H, 2),
+  BLOCK(0.4201, 0.2828, 0.1614, PILL_H, 3),
+  BLOCK(0.6195, 0.2828, 0.1614, PILL_H, 4),
 ];
 
-/** Intro free page (p3) — two short fields at the bottom. */
+/**
+ * Logical age page (6…38 even) → white-pill center Y from matching PNG asset
+ * (asset = logical + 2). X/width are shared for ages 2–18.
+ */
+const AGE_YEAR_PILL_CENTER_Y = {
+  6: 0.2725,
+  8: 0.2749,
+  10: 0.2725,
+  12: 0.2766,
+  14: 0.2701,
+  16: 0.2717,
+  18: 0.2638,
+  20: 0.2725,
+  22: 0.2688,
+  24: 0.2607,
+  26: 0.2579,
+  28: 0.2646,
+  30: 0.2607,
+  32: 0.2638,
+  34: 0.2638,
+  36: 0.2669,
+  38: 0.2646,
+};
+
+function buildAgeYearPageSlots(logicalPage) {
+  const cy = AGE_YEAR_PILL_CENTER_Y[logicalPage] ?? 0.268;
+  return [
+    AGE_TITLE_SLOT,
+    BLOCK(0.322, cy, 0.1614, PILL_H, 2),
+    BLOCK(0.5166, cy, 0.1614, PILL_H, 3),
+  ];
+}
+
+/** Intro free page (p3) — hair / eye color pills. */
 const INTRO_FREE_PAGE_SLOTS = [
-  BLOCK(0.21457, 0.90492, 0.25884, 0.04381, 1),
-  BLOCK(0.65722, 0.90492, 0.25884, 0.04381, 2),
+  BLOCK(0.2081, 0.8972, 0.2785, PILL_H, 1),
+  BLOCK(0.6416, 0.8972, 0.2785, PILL_H, 2),
 ];
 
-/** Year/travel free pages — wide bottom text bands. */
+/** Year free pages (odd 7…39) — three bottom caption pills. */
 const YEAR_FREE_PAGE_SLOTS = [
-  BLOCK(0.31124, 0.82789, 0.62859, 0.03724, 1),
-  BLOCK(0.0625, 0.88178, 0.87732, 0.03724, 2),
-  BLOCK(0.22484, 0.93567, 0.71499, 0.03724, 3),
+  BLOCK(0.303, 0.8212, 0.6408, 0.038, 1),
+  BLOCK(0.0578, 0.8742, 0.8861, 0.0364, 2),
+  BLOCK(0.2176, 0.9272, 0.7263, 0.038, 3),
 ];
 
-/** Page 5 — three custom fields at the bottom. */
+/** Page 5 — free page after «1 годик» (same caption band geometry). */
 const FREE_PAGE_5_SLOTS = [
-  BLOCK(0.0625, 0.802, 0.87732, 0.036, 1),
-  BLOCK(0.0625, 0.842, 0.87732, 0.036, 2),
-  BLOCK(0.0625, 0.882, 0.87732, 0.036, 3),
-  BLOCK(0.22484, 0.922, 0.71499, 0.036, 4),
+  BLOCK(0.303, 0.8212, 0.6408, 0.038, 1),
+  BLOCK(0.0578, 0.8742, 0.8861, 0.0364, 2),
+  BLOCK(0.2176, 0.9272, 0.7263, 0.038, 3),
 ];
 
-/** Page 40 — travel summary fields in the lower part of the page. */
+/**
+ * Page 40 — «Мои путешествия» (asset page_042).
+ * BLOCK y = vertical CENTER of the peach pill.
+ *   1) short pill between «ПОСЕТИЛ(А)» / «СТРАН»
+ *   2–3) memory pills under «МНЕ БОЛЬШЕ ВСЕГО ПОНРАВИЛОСЬ В»
+ */
 const TRAVEL_MAP_PAGE_SLOTS = [
-  BLOCK(0.62, 0.752, 0.12, 0.04, 1),
-  BLOCK(0.0625, 0.802, 0.87732, 0.036, 2),
-  BLOCK(0.0625, 0.842, 0.87732, 0.036, 3),
-  BLOCK(0.0625, 0.882, 0.87732, 0.036, 4),
-  BLOCK(0.0625, 0.912, 0.87732, 0.036, 5),
-  BLOCK(0.0625, 0.942, 0.87732, 0.036, 6),
+  BLOCK(0.4573, 0.8463, 0.1748, 0.0392, 1),
+  BLOCK(0.4241, 0.8940, 0.5233, 0.0396, 2),
+  BLOCK(0.0605, 0.9458, 0.8869, 0.0396, 2),
 ];
 
-/** Page 48 — letter lines (from legacy PDF page 60, first 12 rows). */
+/** Page 48 — letter lines (stroke Y from PDF page 60). */
 const LETTER_PAGE_SLOTS = [
   LINE(0.10433, 0.23893, 0.79238, 0.04263, 1),
   LINE(0.10433, 0.28156, 0.79238, 0.04268, 1),
@@ -127,7 +173,7 @@ function getBirthday48LineSlotOverrides(pageNumber) {
     case 3:
       return INTRO_FREE_PAGE_SLOTS;
     case 4:
-      return AGE_MAIN_PAGE_SLOTS;
+      return AGE_ONE_YEAR_PAGE_SLOTS;
     case 5:
       return FREE_PAGE_5_SLOTS;
     case 40:
@@ -139,7 +185,7 @@ function getBirthday48LineSlotOverrides(pageNumber) {
   }
 
   if (isBirthdayAgeMainPage(pageNumber)) {
-    return AGE_MAIN_PAGE_SLOTS;
+    return buildAgeYearPageSlots(pageNumber);
   }
   if (isBirthdayIntroFreePage(pageNumber)) {
     return INTRO_FREE_PAGE_SLOTS;

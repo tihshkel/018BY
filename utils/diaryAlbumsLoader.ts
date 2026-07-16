@@ -1,6 +1,7 @@
 import { Asset } from 'expo-asset';
 import type { ImageSourcePropType } from 'react-native';
 import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
+import { resolveAllDiaryInteriorPageUris } from '@/utils/diaryPageImages';
 
 /**
  * Интерфейс для обложки дневника
@@ -267,7 +268,8 @@ async function warmDiaryInteriorAssets(images: unknown[]): Promise<void> {
 
 /**
  * Загружает URI изображений внутренней части дневника.
- * Возвращает bundled URI сразу, а прогрев локального кеша запускает в фоне.
+ * Использует Image.resolveAssetSource + Asset.downloadAsync (см. diaryPageImages).
+ * Длина массива всегда = числу страниц макета (без filter, без сдвига индексов).
  */
 export async function getDiaryInteriorImageUris(interiorId: string): Promise<string[] | null> {
   const interior = getDiaryInteriorById(interiorId);
@@ -276,13 +278,19 @@ export async function getDiaryInteriorImageUris(interiorId: string): Promise<str
   }
 
   try {
-    const uris = interior.images.map((image) => {
-      const asset = Asset.fromModule(image as number);
-      return asset.localUri || asset.uri || null;
-    });
+    const uris = await resolveAllDiaryInteriorPageUris(interiorId);
     warmDiaryInteriorAssets(interior.images).catch(() => {});
-    const filtered = uris.filter((uri): uri is string => !!uri);
-    return filtered.length > 0 ? filtered : null;
+
+    const missing = uris.filter((uri) => !uri).length;
+    if (missing > 0) {
+      console.warn(
+        `[Diary Loader] ${interiorId}: нет URI у ${missing}/${uris.length} страниц`,
+      );
+    }
+    if (uris.every((uri) => !uri)) {
+      return null;
+    }
+    return uris;
   } catch (error) {
     console.error(`[Diary Loader] Ошибка при загрузке изображений внутренней части ${interiorId}:`, error);
     return null;

@@ -4,7 +4,10 @@
  * Проверка вместимости «Планы на неделю» (3 строки: inline-tail + 2 body).
  * node scripts/test-pregnancy-plans-capacity.js
  */
-const { applyPregnancy60WeeklyLineSlotOverrides } = require('./pregnancy-60-weekly-line-slot-overrides');
+const {
+  applyPregnancy60WeeklyLineSlotOverrides,
+  applyPregnancyA5WeeklyLineSlotOverrides,
+} = require('./pregnancy-60-weekly-line-slot-overrides');
 const core = require('./lib/text-capacity-core');
 
 const LINE_SLOTS = require('../constants/line-slots.json');
@@ -110,6 +113,51 @@ assert(
   clampedOverflow.length < overflowSample.length,
   'clamp shortens overflowing text',
 );
+
+const { slots: refinedA5Slots } = applyPregnancyA5WeeklyLineSlotOverrides(
+  LINE_SLOTS.pregnancy_a5,
+  LINE_GUIDES.pregnancy_a5,
+);
+const a5Slots = core.normSlotsToViewportSlots('pregnancy_a5', 5, refinedA5Slots['5']);
+const a5FieldSlots = core.resolveWeeklyFieldLineSlots(a5Slots, 3, 3, 'pregnancy_a5');
+const distributeA5 = (text) =>
+  core.distributeTextWithinFieldLines({
+    text,
+    startSlotIndex: 3,
+    lineCount: 3,
+    slots: a5Slots,
+    fontSize,
+    lineGuideId: 'pregnancy_a5',
+    fontId,
+    fontTable,
+  });
+const clampA5 = (text) =>
+  core.clampTextToFieldLines({
+    text,
+    startSlotIndex: 3,
+    lineCount: 3,
+    slots: a5Slots,
+    fontSize,
+    lineGuideId: 'pregnancy_a5',
+    fontId,
+    fontTable,
+  });
+const a5OverflowSample = (() => {
+  let text = USER_SAMPLE;
+  while (!distributeA5(text).truncated && text.length < 800) {
+    text += ' СЛОВО';
+  }
+  return text;
+})();
+const a5Clamped = clampA5(a5OverflowSample);
+
+assert(
+  a5FieldSlots.map((slot) => slot.index).join(',') === '2,3,4',
+  `A5 plans use all printed slots ${a5FieldSlots.map((slot) => slot.index).join(',')}`,
+);
+assert(distributeA5(a5OverflowSample).truncated, 'extended sample overflows A5 plan lines');
+assert(!distributeA5(a5Clamped).truncated, 'clamped A5 plans fit all printed lines');
+assert(a5Clamped.length < a5OverflowSample.length, 'A5 clamp shortens only overflowing text');
 
 const naiveSlice = overflowSample.slice(0, wrongLimit);
 const naiveFit = distribute(naiveSlice);

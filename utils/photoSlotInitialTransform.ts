@@ -31,34 +31,50 @@ export function computePhotoContainScale(
 }
 
 const LEGACY_CONTAIN_SCALE_TOLERANCE = 0.08;
+const OFFSET_EPSILON = 0.001;
+
+export type ResolvePhotoSlotTransformForDisplayOptions = {
+  /**
+   * Preview/export: any letterbox without pan → cover (fills landscape frame for portrait photos).
+   * Editor: false — keep pinch-out contain so the user can still see the full image.
+   */
+  fillLetterbox?: boolean;
+};
 
 /**
- * Upgrades auto-generated contain-fit transforms (scale ≈ minContain, no pan)
- * to cover-fit (scale 1). Old builds stored containScale as the initial zoom.
+ * Normalizes stored crop for display.
+ * - Legacy auto-contain (scale ≈ minContain, no pan) → cover.
+ * - fillLetterbox: any scale < 1 → cover (preview/export). Pan while letterboxed
+ *   is not a useful crop for designed landscape pins with portrait photos.
  */
 export function resolvePhotoSlotTransformForDisplay(
   transform: PhotoSlotTransform | undefined | null,
   slotWidth: number,
   slotHeight: number,
   imageAspect?: number,
+  options?: ResolvePhotoSlotTransformForDisplayOptions,
 ): PhotoSlotTransform {
   const base = transform ?? DEFAULT_PHOTO_SLOT_TRANSFORM;
+  const fillLetterbox = options?.fillLetterbox === true;
+  const scale = base.scale ?? 1;
+  const offsetX = base.offsetX ?? 0;
+  const offsetY = base.offsetY ?? 0;
+  const hasPan =
+    Math.abs(offsetX) >= OFFSET_EPSILON || Math.abs(offsetY) >= OFFSET_EPSILON;
+
+  if (fillLetterbox && scale < 1) {
+    return { ...DEFAULT_PHOTO_SLOT_TRANSFORM };
+  }
+
   if (!imageAspect || imageAspect <= 0 || slotWidth <= 0 || slotHeight <= 0) {
     return base;
   }
 
-  const minContain = computePhotoContainScale(slotWidth, slotHeight, imageAspect);
-  const scale = base.scale ?? 1;
-  const offsetX = base.offsetX ?? 0;
-  const offsetY = base.offsetY ?? 0;
-  const isLegacyContainOnly =
-    Math.abs(offsetX) < 0.001 &&
-    Math.abs(offsetY) < 0.001 &&
-    scale < 1 &&
-    Math.abs(scale - minContain) < LEGACY_CONTAIN_SCALE_TOLERANCE;
-
-  if (isLegacyContainOnly) {
-    return { ...DEFAULT_PHOTO_SLOT_TRANSFORM };
+  if (!hasPan && scale < 1) {
+    const minContain = computePhotoContainScale(slotWidth, slotHeight, imageAspect);
+    if (Math.abs(scale - minContain) < LEGACY_CONTAIN_SCALE_TOLERANCE) {
+      return { ...DEFAULT_PHOTO_SLOT_TRANSFORM };
+    }
   }
 
   return base;

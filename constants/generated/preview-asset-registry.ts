@@ -214,6 +214,7 @@ const PREVIEW_ASSET_MODULES: Record<string, number> = {
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_009_two_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_009_two_horizontal.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_009_two_vertical.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_009_two_vertical.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_012_one_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_012_one_horizontal.png"),
+  "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_012_two_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_012_two_horizontal.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_013_one_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_013_one_horizontal.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_013_two_horizontal.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_013_two_horizontal.png"),
   "assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_014_four_grid.png": require("../../assets/pdfs/Блок БОХО_ДЕТ.ФОТОАЛЬБОМ_ 48 стр/preview_variants/page_014_four_grid.png"),
@@ -402,4 +403,4 @@ export function resolveBundledPreviewUri(relativePath: string): string | null {
   return resolved?.uri ?? null;
 }
 
-export const PREVIEW_ASSET_COUNT = 388;
+export const PREVIEW_ASSET_COUNT = 389;

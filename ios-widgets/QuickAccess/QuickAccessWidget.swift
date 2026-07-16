@@ -1,10 +1,16 @@
 import SwiftUI
 import WidgetKit
 
+/// Overview widget: albums count + days to PDR + next date (info-first, not a CTA button).
 struct QuickAccessEntryView: View {
     @Environment(\.widgetFamily) private var family
     @Environment(\.widgetPalette) private var palette
     let entry: WidgetEntry
+
+    private var albumsCount: Int { entry.snapshot.albumsCount }
+    private var pregnancy: WidgetPregnancyItem? { entry.snapshot.pregnancy }
+    private var nextReminder: WidgetReminderItem? { entry.snapshot.nextReminder }
+    private var continueItem: WidgetContinueItem? { entry.snapshot.continueProject }
 
     var body: some View {
         Group {
@@ -14,55 +20,103 @@ struct QuickAccessEntryView: View {
             case .systemMedium:
                 mediumView
             case .accessoryInline:
-                Text("018BY · Мои истории")
+                Text(inlineText)
                     .font(.system(size: 12, weight: .semibold))
             default:
                 smallView
             }
         }
-        .widgetURL(WidgetDeepLinks.createAlbum)
+        .widgetURL(primaryURL)
+    }
+
+    private var primaryURL: URL {
+        if let pregnancy {
+            return WidgetDeepLinks.pregnancyProject(pregnancy)
+        }
+        if let continueItem {
+            return WidgetDeepLinks.continueProject(continueItem)
+        }
+        if albumsCount > 0 {
+            return WidgetDeepLinks.home
+        }
+        return WidgetDeepLinks.setPdr
+    }
+
+    private var inlineText: String {
+        if let pregnancy {
+            return "ПДР · \(WidgetFormatters.daysUntilPdrLabel(pregnancy.daysLeft))"
+        }
+        return "018BY · \(WidgetFormatters.albumsCountLabel(albumsCount))"
     }
 
     private var smallView: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                WidgetBrandMark(compact: true)
-                Spacer(minLength: 0)
-                WidgetActionOrb(size: 34, iconSize: 16)
+        VStack(alignment: .leading, spacing: 8) {
+            WidgetMetricLabel(text: "Сводка")
+            if let pregnancy {
+                WidgetHeroNumber(text: "\(max(pregnancy.daysLeft, 0))", size: 36)
+                Text("дней до ПДР")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(palette.textPrimary)
+                Text(WidgetFormatters.albumsCountLabel(albumsCount))
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
+            } else {
+                WidgetHeroNumber(text: "\(albumsCount)", size: 36)
+                Text(WidgetFormatters.albumsCountLabel(albumsCount).replacingOccurrences(of: "\(albumsCount) ", with: ""))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(palette.textPrimary)
+                Text(albumsCount == 0 ? "Укажите ПДР в приложении" : "Добавьте ПДР для отсчёта")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(2)
             }
             Spacer(minLength: 0)
-            WidgetAccentPill(text: "Мои истории")
-            Text("Открыть\nистории")
-                .font(.system(size: 19, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-                .lineSpacing(1)
-            Text("Выберите категорию и шаблон альбома")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(palette.textSecondary)
-                .lineLimit(2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetCardBackground()
     }
 
     private var mediumView: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 10) {
-                WidgetBrandMark()
-                WidgetAccentPill(text: "Мои истории")
-                Text("Новый альбом")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(palette.textPrimary)
-                Text("Категории с правильными обложками для каждой темы")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(palette.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-            WidgetActionOrb(size: 58, iconSize: 26)
+        HStack(spacing: 12) {
+            metricTile(
+                label: "Альбомы",
+                value: "\(albumsCount)",
+                detail: WidgetFormatters.albumsCountLabel(albumsCount)
+            )
+            metricTile(
+                label: "До ПДР",
+                value: pregnancy.map { "\(max($0.daysLeft, 0))" } ?? "—",
+                detail: pregnancy.map {
+                    WidgetFormatters.pregnancyWeekDayLabel(week: $0.week, dayInWeek: $0.dayInWeek)
+                } ?? "Укажите дату"
+            )
+            metricTile(
+                label: "Событие",
+                value: nextReminder.map { "\(max($0.daysLeft, 0))" } ?? (continueItem.map { "\($0.percent)%" } ?? "—"),
+                detail: nextReminder?.title
+                    ?? continueItem?.pageTitle
+                    ?? "Нет дат"
+            )
         }
         .widgetCardBackground()
+    }
+
+    private func metricTile(label: String, value: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            WidgetMetricLabel(text: label)
+            Text(value)
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(WidgetColors.primaryDeep)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+            Text(detail)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(2)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .widgetSectionCard(padding: 10)
     }
 }
 
@@ -74,8 +128,8 @@ struct QuickAccessWidget: Widget {
             QuickAccessEntryView(entry: entry)
                 .widgetHomeScreenContainer()
         }
-        .configurationDisplayName("Быстрый доступ")
-        .description("Откройте «Мои истории» и выберите шаблон альбома.")
+        .configurationDisplayName("Сводка")
+        .description("Альбомы, дни до ПДР и ближайшая дата — на одном экране.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline])
         .containerBackgroundRemovable(true)
     }

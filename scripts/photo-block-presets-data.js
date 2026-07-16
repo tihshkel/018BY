@@ -41,6 +41,17 @@ const EVENT_PHOTO_BLOCK = {
   ],
 };
 
+const KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK = {
+  blockId: 'main_photo',
+  label: 'Фото для страницы',
+  variants: [
+    { variantId: 'one_large', label: 'Одно фото', slots: 1, slotIndices: [0] },
+    { variantId: 'two_horizontal', label: 'Два фото', slots: 2, slotIndices: [0, 1] },
+    { variantId: 'three_hero', label: 'Три фото (коллаж)', slots: 3, slotIndices: [0, 1, 2] },
+    { variantId: 'four_grid', label: 'Четыре фото (коллаж)', slots: 4, slotIndices: [0, 1, 2, 3] },
+  ],
+};
+
 const PARENTS_PHOTO_BLOCK = {
   blockId: 'main_photo',
   label: 'Фото',
@@ -81,6 +92,7 @@ module.exports = {
   FULL_PHOTO_BLOCK,
   PREGNANCY_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,
+  KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK,
   PARENTS_PHOTO_BLOCK,
   SINGLE_HORIZONTAL_PHOTO_BLOCK,
   GODPARENTS_PHOTO_BLOCK,

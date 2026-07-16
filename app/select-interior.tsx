@@ -44,7 +44,7 @@ const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
   {
     id: 'pregnancy_a5',
     title: 'Блок БЕРЕМЕННОСТЬ A5 другой блок',
-    description: 'Альтернативный вариант в формате A5',
+    description: '48 страниц — альтернативный вариант в формате A5',
     pdfPath: githubRawFileUrl('assets/pdfs/Блок БЕРЕМЕННОСТЬ A5 другой блок.pdf'),
     previewImagePath: require('@/assets/app-bundled/pregnancy_a5_preview.png'),
   },

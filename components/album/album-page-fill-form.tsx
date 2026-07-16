@@ -11,13 +11,18 @@ import {
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
+import type {
+  AlbumPageSchema,
+  FieldTextStyle,
+  PageValues,
+} from '@/types/album-page-schema';
 
 type AlbumPageFillFormProps = {
   schema: AlbumPageSchema;
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -33,6 +38,7 @@ export function AlbumPageFillForm({
   pageValues,
   lineGuideId,
   onFieldChange,
+  onFieldStyleChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -52,6 +58,8 @@ export function AlbumPageFillForm({
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
+    fieldTextStyles: pageValues.fieldTextStyles,
+    onFieldStyleChange,
     lineGuideId,
     sourcePageNumber: schema.sourcePageNumber,
     fontId: pageValues.textFontFamily,

@@ -52,7 +52,7 @@ function clamp(text) {
 
 function buildOverflowSample(base) {
   let text = base;
-  while (!distribute(text, 8, 3).truncated && text.length < 1200) {
+  while (!distribute(text, 8, 3).truncated && text.length < 5000) {
     text += ' СЛОВО';
   }
   return text;

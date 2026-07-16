@@ -325,6 +325,7 @@ export const AlbumPageFormEditor = forwardRef<
       pageValues={editorPageValues}
       lineGuideId={lineGuideId}
       onFieldChange={handleFieldChange}
+      onFieldStyleChange={handleFieldStyleChange}
       onCaptionChange={handleCaptionChange}
       onPhotoCaptionChange={handlePhotoCaptionChange}
       onSelectVariant={photoEditor.handleSelectVariant}

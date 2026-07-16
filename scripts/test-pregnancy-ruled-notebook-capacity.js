@@ -28,7 +28,7 @@ const PAGES = [
     page: 60,
     fieldId: 'pregnancy_60_p60_letter_text',
     lineStart: 0,
-    lineCount: 12,
+    lineCount: 18,
     title: 'Письмо малышу',
   },
 ];

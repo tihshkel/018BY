@@ -5,9 +5,10 @@
 const {
   DESIGNED_ALBUM_PHOTO_BLOCK,
   EVENT_PHOTO_BLOCK,
+  KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK,
   PARENTS_PHOTO_BLOCK,
-  SINGLE_HORIZONTAL_PHOTO_BLOCK,
   GODPARENTS_PHOTO_BLOCK,
+  FOOTPRINTS_PHOTO_BLOCK,
 } = require('./photo-block-presets-data');
 
 /** См. constants/kids-48-teeth-slots.ts — дублируем для Node-скриптов. */
@@ -114,14 +115,17 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
 
 function buildGrowthFields(lineGuideId, pageNumber, slots) {
   const fields = [];
+  const maxSlot = Math.max(0, (slots?.length ?? 24) - 1);
+  // Страница сверху вниз: 1 год → 1 мес. (не 1→12).
   for (let month = 1; month <= 12; month += 1) {
-    const heightStart = (month - 1) * 2;
+    const rowFromTop = 12 - month;
+    const heightStart = rowFromTop * 2;
     fields.push({
       fieldId: `${lineGuideId}_p${pageNumber}_month_${String(month).padStart(2, '0')}_height`,
       label: `${month === 12 ? '1 год' : `${month} мес.`} — рост (см)`,
       type: 'number',
       required: false,
-      templateLineStart: Math.min(heightStart, Math.max(0, (slots?.length ?? 24) - 2)),
+      templateLineStart: Math.min(heightStart, Math.max(0, maxSlot - 1)),
       templateLineCount: 1,
     });
     fields.push({
@@ -129,7 +133,7 @@ function buildGrowthFields(lineGuideId, pageNumber, slots) {
       label: `${month === 12 ? '1 год' : `${month} мес.`} — вес (кг)`,
       type: 'number',
       required: false,
-      templateLineStart: Math.min(heightStart + 1, Math.max(0, (slots?.length ?? 24) - 1)),
+      templateLineStart: Math.min(heightStart + 1, maxSlot),
       templateLineCount: 1,
     });
   }
@@ -160,6 +164,7 @@ function buildMonthPageFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
+  // Порядок = индексы circle slots / line slots (0–14), включая нижние extra_*.
   const relatives = [
     ['child_name', 'Имя ребенка'],
     ['mother_great_grandmother', 'Прабабушка (линия мамы)'],
@@ -170,6 +175,12 @@ function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
     ['father_great_grandfather', 'Прадедушка (линия папы)'],
     ['father_grandmother', 'Бабушка (линия папы)'],
     ['father_grandfather', 'Дедушка (линия папы)'],
+    ['mother_name', 'Мама'],
+    ['mother_extra', 'Ещё родственник (линия мамы)'],
+    ['father_name', 'Папа'],
+    ['father_extra_a', 'Ещё родственник (линия папы)'],
+    ['father_extra_b', 'Ещё родственник (линия папы)'],
+    ['child_extra', 'Ещё родственник'],
   ];
   return relatives.map(([id, label], index) => ({
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
@@ -186,7 +197,7 @@ function buildPage1Fields(lineGuideId, pageNumber, slots) {
     ['child_name', 'Имя ребенка / ФИО', 'text', 0],
     ['birth_date', 'Дата рождения', 'date', 1],
     ['birth_time', 'Время рождения', 'time', 2],
-    ['weight', 'Вес', 'text', 3],
+    ['weight', 'Вес (гр)', 'text', 3],
     ['height', 'Рост', 'text', 4],
   ];
   return labels.map(([id, label, type, start]) => ({
@@ -282,17 +293,6 @@ function resolveDateSlotIndex(slots, tzEntry, pageContent) {
   return 0;
 }
 
-function buildCaptionField(lineGuideId, pageNumber) {
-  return [{
-    fieldId: `${lineGuideId}_p${pageNumber}_caption`,
-    label: 'Подпись под фото',
-    type: 'text',
-    required: false,
-    templateLineStart: 0,
-    templateLineCount: 1,
-  }];
-}
-
 function buildAchievementsFields(lineGuideId, pageNumber, slots) {
   const milestones = [
     ['achievement_date', '(ДАТА)', 'date', 0, 1],
@@ -350,11 +350,23 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId, pageCont
       break;
     case 12:
       fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
-      photoBlocks = [SINGLE_HORIZONTAL_PHOTO_BLOCK];
+      photoBlocks = [FOOTPRINTS_PHOTO_BLOCK];
       break;
     case 13:
       fields = buildAchievementsFields(lineGuideId, pageNumber, slots);
       photoBlocks = [PARENTS_PHOTO_BLOCK];
+      break;
+    case 19:
+      // «Я стою» — два фото в ряд (как крещение / месяцы), не стопка полос.
+      fields = tzEntry.hasDate
+        ? buildDateField(
+            lineGuideId,
+            pageNumber,
+            'Дата',
+            resolveDateSlotIndex(slots, tzEntry, pageContent),
+          )
+        : [];
+      photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 20:
       fields = buildDateField(lineGuideId, pageNumber, 'Дата крещения', 0);
@@ -377,11 +389,9 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId, pageCont
               resolveDateSlotIndex(slots, tzEntry, pageContent),
             )
           : [];
-        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
-      } else if (pageType === 'free_photo_caption') {
-        fields = buildCaptionField(lineGuideId, pageNumber);
-        photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
-      } else if (pageType === 'caption_photo_page') {
+        photoBlocks = [KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK];
+      } else if (pageType === 'photo') {
+        // Per-photo captions (p35/p41/p42–48) — same model as pregnancy «Памятные моменты».
         fields = [];
         photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       } else if (pageType === 'non_editable') {
@@ -396,6 +406,14 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId, pageCont
   if (tzEntry.photoBlockPreset === 'godparents' && !photoBlocks) {
     photoBlocks = [GODPARENTS_PHOTO_BLOCK];
   }
+  if (tzEntry.photoBlockPreset === 'footprints' && !photoBlocks) {
+    photoBlocks = [FOOTPRINTS_PHOTO_BLOCK];
+  }
+
+  const captionEnabled =
+    tzEntry.captionEnabled === true ||
+    pageType === 'free_photo_caption' ||
+    pageType === 'caption_photo_page';
 
   return {
     replaceFields: true,
@@ -405,7 +423,7 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId, pageCont
     fields: fields ?? [],
     photoBlocks,
     canDuplicate: tzEntry.canDuplicate ?? false,
-    captionEnabled: pageType === 'free_photo_caption' || pageType === 'caption_photo_page',
+    captionEnabled,
     requiredInExport: tzEntry.requiredInExport ?? false,
   };
 }

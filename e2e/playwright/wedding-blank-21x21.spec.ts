@@ -9,8 +9,8 @@ async function seedGuestSession(page: Page) {
   });
 }
 
-test.describe('wedding blank 21x21: free page editor', () => {
-  test('opens square blank album and free page form shell', async ({ page }) => {
+test.describe('wedding blank 21x21: page editor', () => {
+  test('opens square blank album and page form shell', async ({ page }) => {
     test.setTimeout(300_000);
 
     await seedGuestSession(page);
@@ -31,12 +31,8 @@ test.describe('wedding blank 21x21: free page editor', () => {
     await page.getByRole('button', { name: 'Заполнить страницу' }).click();
     await expect(page.getByTestId('form-save')).toBeVisible({ timeout: 30_000 });
 
-    const freeTemplate = page.getByText('Свободная страница');
-    if (await freeTemplate.isVisible({ timeout: 10_000 }).catch(() => false)) {
-      await freeTemplate.click();
-      await expect(page.getByText('Добавить фото')).toBeVisible({ timeout: 15_000 });
-      await expect(page.getByPlaceholder('Введите текст')).toBeVisible();
-    }
+    // «Свободная страница» скрыта для свадьбы / семьи.
+    await expect(page.getByText('Свободная страница')).toHaveCount(0);
 
     await page.getByTestId('form-save').click();
     await expect(page.getByText(/Страница 1 из/)).toBeVisible({ timeout: 30_000 });

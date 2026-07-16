@@ -3,16 +3,16 @@
     "albumId": "diary_interior_brown",
     "pageCount": 60,
     "photoPages": 13,
-    "pagesOk": 13,
+    "pagesOk": 12,
     "pagesWarn": 0,
-    "pagesFail": 0
+    "pagesFail": 1
   },
   "pages": [
     {
       "page": 1,
       "title": "Этот дневник принадлежит",
       "pageType": "structured",
-      "lineSlotCount": 2,
+      "lineSlotCount": 1,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -26,7 +26,7 @@
       "page": 2,
       "title": "Привет! Давай знакомиться!",
       "pageType": "non_editable",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -57,11 +57,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈100×103 мм, 50–153 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало"
@@ -70,14 +70,14 @@
       "page": 5,
       "title": "Свободная страница для фото и записей",
       "pageType": "caption_photo_page",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
+        "variantCount": 4,
         "layoutSource": "manual_expanded",
-        "primaryVariant": "one_horizontal"
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×97 мм, 28–125 мм (центр)",
+      "photoDescription": "≈155×123 мм, 43–167 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало"
@@ -86,7 +86,7 @@
       "page": 6,
       "title": "Твоя анкета",
       "pageType": "structured",
-      "lineSlotCount": 16,
+      "lineSlotCount": 12,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -100,7 +100,7 @@
       "page": 7,
       "title": "Твои родители. Анкета для мамы",
       "pageType": "structured",
-      "lineSlotCount": 17,
+      "lineSlotCount": 16,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -114,7 +114,7 @@
       "page": 8,
       "title": "Твои родители. Анкета для папы",
       "pageType": "structured",
-      "lineSlotCount": 17,
+      "lineSlotCount": 16,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -128,14 +128,14 @@
       "page": 9,
       "title": "Фотографии твоей семьи",
       "pageType": "photo",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×43 мм, 43–87 мм (верх)",
+      "photoDescription": "≈120×124 мм, 58–181 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало"
@@ -147,11 +147,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало"
@@ -160,7 +160,7 @@
       "page": 11,
       "title": "Твои бабушка и дедушка. Анкета для бабушки",
       "pageType": "structured",
-      "lineSlotCount": 17,
+      "lineSlotCount": 9,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -174,7 +174,7 @@
       "page": 12,
       "title": "Твои бабушка и дедушка. Анкета для дедушки",
       "pageType": "structured",
-      "lineSlotCount": 17,
+      "lineSlotCount": 9,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -188,7 +188,7 @@
       "page": 13,
       "title": "Хобби",
       "pageType": "structured",
-      "lineSlotCount": 18,
+      "lineSlotCount": 12,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -205,11 +205,11 @@
       "lineSlotCount": 1,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
+        "variantCount": 4,
         "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×127 мм, 29–156 мм (центр)",
+      "photoDescription": "≈162×124 мм, 27–151 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Начало"
@@ -218,7 +218,7 @@
       "page": 15,
       "title": "Мечты",
       "pageType": "structured",
-      "lineSlotCount": 24,
+      "lineSlotCount": 15,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -232,7 +232,7 @@
       "page": 16,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -246,7 +246,7 @@
       "page": 17,
       "title": "Твои питомцы",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 12,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -263,11 +263,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈121×124 мм, 64–188 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Основная часть"
@@ -276,14 +276,14 @@
       "page": 19,
       "title": "Свободная страница для фото и записей",
       "pageType": "caption_photo_page",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×89 мм, 28–118 мм (верх)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Основная часть"
@@ -292,7 +292,7 @@
       "page": 20,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -306,7 +306,7 @@
       "page": 21,
       "title": "Путешествия",
       "pageType": "structured",
-      "lineSlotCount": 19,
+      "lineSlotCount": 8,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -323,20 +323,26 @@
       "lineSlotCount": 4,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×77 мм, 63–140 мм (центр)",
-      "layoutIssues": [],
-      "status": "ok",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
+      "layoutIssues": [
+        {
+          "severity": "fail",
+          "code": "PHOTO_TEXT_OVERLAP",
+          "detail": "line slot 0 overlaps photo"
+        }
+      ],
+      "status": "fail",
       "section": "Основная часть"
     },
     {
       "page": 23,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -350,7 +356,7 @@
       "page": 24,
       "title": "Твое настроение",
       "pageType": "structured",
-      "lineSlotCount": 13,
+      "lineSlotCount": 9,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -364,7 +370,7 @@
       "page": 25,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -395,11 +401,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Основная часть"
@@ -408,7 +414,7 @@
       "page": 28,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -422,7 +428,7 @@
       "page": 29,
       "title": "Самое заветное желание",
       "pageType": "non_editable",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -450,7 +456,7 @@
       "page": 31,
       "title": "Школьная жизнь",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 9,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -464,14 +470,14 @@
       "page": 32,
       "title": "Свободная страница для фото и записей",
       "pageType": "caption_photo_page",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈162×41 мм, 43–84 мм (верх)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Основная часть"
@@ -480,7 +486,7 @@
       "page": 33,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -494,7 +500,7 @@
       "page": 34,
       "title": "Расписание недели по дням",
       "pageType": "structured",
-      "lineSlotCount": 12,
+      "lineSlotCount": 13,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -508,7 +514,7 @@
       "page": 35,
       "title": "Расписание недели по дням",
       "pageType": "structured",
-      "lineSlotCount": 13,
+      "lineSlotCount": 14,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -550,7 +556,7 @@
       "page": 38,
       "title": "Еда",
       "pageType": "structured",
-      "lineSlotCount": 11,
+      "lineSlotCount": 14,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -564,7 +570,7 @@
       "page": 39,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 18,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -578,7 +584,7 @@
       "page": 40,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 17,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -592,7 +598,7 @@
       "page": 41,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 19,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -606,7 +612,7 @@
       "page": 42,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 20,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -620,7 +626,7 @@
       "page": 43,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 19,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -634,7 +640,7 @@
       "page": 44,
       "title": "Анкета для друзей",
       "pageType": "structured",
-      "lineSlotCount": 20,
+      "lineSlotCount": 21,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -648,7 +654,7 @@
       "page": 45,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -662,7 +668,7 @@
       "page": 46,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -676,7 +682,7 @@
       "page": 47,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -690,7 +696,7 @@
       "page": 48,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -704,7 +710,7 @@
       "page": 49,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -718,7 +724,7 @@
       "page": 50,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -732,7 +738,7 @@
       "page": 51,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -746,7 +752,7 @@
       "page": 52,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -760,7 +766,7 @@
       "page": 53,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -774,7 +780,7 @@
       "page": 54,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -788,7 +794,7 @@
       "page": 55,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -802,7 +808,7 @@
       "page": 56,
       "title": "Твой день",
       "pageType": "structured",
-      "lineSlotCount": 14,
+      "lineSlotCount": 11,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0
@@ -819,11 +825,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Завершение"
@@ -835,11 +841,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Завершение"
@@ -851,11 +857,11 @@
       "lineSlotCount": 0,
       "photo": {
         "hasPhoto": true,
-        "variantCount": 5,
-        "layoutSource": "pdf_expanded",
-        "primaryVariant": "one_horizontal"
+        "variantCount": 4,
+        "layoutSource": "pdf_standard",
+        "primaryVariant": "one_large"
       },
-      "photoDescription": "≈155×135 мм, 36–171 мм (центр)",
+      "photoDescription": "≈129×132 мм, 39–171 мм (центр)",
       "layoutIssues": [],
       "status": "ok",
       "section": "Завершение"
@@ -864,7 +870,7 @@
       "page": 60,
       "title": "История продолжается",
       "pageType": "non_editable",
-      "lineSlotCount": 2,
+      "lineSlotCount": 0,
       "photo": {
         "hasPhoto": false,
         "variantCount": 0

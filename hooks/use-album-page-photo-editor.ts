@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
@@ -8,12 +8,14 @@ import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import {
   buildAlbumPhotoStorageKey,
   persistAlbumPhotoUri,
+  withPhotoCacheBust,
 } from '@/utils/persistAlbumPhoto';
 import { computePhotoSlotTargetPixels } from '@/utils/albumPhotoResample';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
 import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -52,7 +54,9 @@ export function useAlbumPagePhotoEditor({
   const showPerPhotoCaptions = useMemo(() => {
     if (!resolvedSchema) return false;
     if (resolvedSchema.pageType === 'birthday_free_page') return true;
-    if (resolvedSchema.pageType === 'caption_photo_page') return true;
+    if (usesDesignedAlbumPerPhotoCaptions(resolvedSchema, resolvedSchema.lineGuideId)) {
+      return true;
+    }
     if (!resolvedSchema.captionEnabled || !resolvedSchema.templateLibraryId) {
       return false;
     }
@@ -60,6 +64,45 @@ export function useAlbumPagePhotoEditor({
     const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
     return Boolean(layout?.perPhotoCaptions);
   }, [resolvedSchema]);
+
+  // Legacy page-level caption → per-photo captions[0] for designed photo pages.
+  useEffect(() => {
+    if (!showPerPhotoCaptions || !instanceId) return;
+    const legacy = pageValues.caption?.trim();
+    const legacyFieldCaption = Object.entries(pageValues.fields ?? {}).find(
+      ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
+    )?.[1]?.trim();
+    const source = legacy || legacyFieldCaption;
+    if (!source) return;
+    const hasPerPhoto = (pageValues.photoCaptions ?? []).some((c) => Boolean(c?.trim()));
+    if (hasPerPhoto) return;
+    commitPagePatch(instanceId, (prev) => {
+      if ((prev.photoCaptions ?? []).some((c) => Boolean(c?.trim()))) return prev;
+      const caption =
+        prev.caption?.trim() ||
+        Object.entries(prev.fields ?? {}).find(
+          ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
+        )?.[1]?.trim();
+      if (!caption) return prev;
+      const nextFields = { ...prev.fields };
+      for (const fieldId of Object.keys(nextFields)) {
+        if (fieldId.endsWith('_caption')) delete nextFields[fieldId];
+      }
+      return {
+        ...prev,
+        fields: nextFields,
+        photoCaptions: [caption],
+        caption: undefined,
+      };
+    });
+  }, [
+    showPerPhotoCaptions,
+    instanceId,
+    pageValues.caption,
+    pageValues.fields,
+    pageValues.photoCaptions,
+    commitPagePatch,
+  ]);
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {
@@ -134,6 +177,7 @@ export function useAlbumPagePhotoEditor({
             }),
             { targetPixels },
           );
+          persistentUri = withPhotoCacheBust(persistentUri);
         } catch (error) {
           console.error('[handlePickPhoto] persist failed', error);
           Alert.alert(

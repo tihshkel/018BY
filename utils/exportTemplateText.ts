@@ -17,6 +17,7 @@ import {
   shouldClipPregnancyWeeklyFieldRow,
   type TextWidthMeasure,
 } from '@/utils/templateLineText';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import { getLineSlotsForPage } from '@/utils/textLineSlots';
 
@@ -58,6 +59,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   if (ann.type !== 'text' || !ann.content) return false;
   if (typeof ann.templateLineStart !== 'number') return false;
+
+  const annContent = normalizeAlbumUserText(ann.content);
 
   const editorContentRect = getContentRect(
     pagesViewport.width,
@@ -163,15 +166,24 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     startSlotIndex !== ann.templateLineStart;
 
   if (isLegacySplitSegment) {
-    drawSegmentAtSlot(ann.templateLineStart, ann.content);
+    drawSegmentAtSlot(ann.templateLineStart, annContent);
     return true;
   }
 
+  // Кегль как при draw — иначе на узких слотах (зубные даты) distribute
+  // режет текст до shrinkFontSizeToFitSlotText.
+  const distributeFontSize = getEffectiveTemplateFontSize(
+    lineGuideId,
+    startSlot,
+    baseFontSize,
+    { textContent: annContent, fontId },
+  );
+
   const { segments } = distributeTextForTemplateAnnotation({
-    text: ann.content,
+    text: annContent,
     startSlotIndex: ann.templateLineStart,
     slots,
-    fontSize: baseFontSize,
+    fontSize: distributeFontSize,
     lineGuideId,
     fontId,
     lineCount: ann.templateLineCount ?? 1,

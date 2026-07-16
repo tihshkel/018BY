@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-02T09:40:31.187Z",
+  "generatedAt": "2026-07-14T15:42:28.029Z",
   "albumSummary": {
     "pregnancy_60": {
-      "fails": 0,
+      "fails": 37,
       "warns": 0
     },
     "pregnancy_a5": {
@@ -10,7 +10,7 @@
       "warns": 0
     },
     "kids_48": {
-      "fails": 0,
+      "fails": 20,
       "warns": 0
     },
     "holidays_birthday_60": {
@@ -39,6 +39,364 @@
     }
   },
   "pages": [
+    {
+      "albumId": "pregnancy_60",
+      "page": 50,
+      "source": "tz",
+      "expected": [
+        "Покупка 1",
+        "Куплено",
+        "Покупка 2",
+        "Куплено",
+        "Покупка 3",
+        "Куплено",
+        "Покупка 4",
+        "Куплено",
+        "Покупка 5",
+        "Куплено",
+        "Покупка 6",
+        "Куплено",
+        "Покупка 7",
+        "Куплено",
+        "Покупка 8",
+        "Куплено",
+        "Покупка 9",
+        "Куплено",
+        "Покупка 10",
+        "Куплено",
+        "Покупка 11",
+        "Куплено",
+        "Покупка 12",
+        "Куплено",
+        "Покупка 13",
+        "Куплено",
+        "Покупка 14",
+        "Куплено",
+        "Покупка 15",
+        "Куплено",
+        "Покупка 16",
+        "Куплено",
+        "Покупка 17",
+        "Куплено",
+        "Покупка 18",
+        "Куплено",
+        "Покупка 19",
+        "Куплено",
+        "Покупка 20",
+        "Куплено",
+        "Покупка 21",
+        "Куплено",
+        "Покупка 22",
+        "Куплено",
+        "Покупка 23",
+        "Куплено",
+        "Покупка 24",
+        "Куплено",
+        "Покупка 25",
+        "Куплено",
+        "Покупка 26",
+        "Куплено",
+        "Покупка 27",
+        "Куплено",
+        "Покупка 28",
+        "Куплено",
+        "Покупка 29",
+        "Куплено",
+        "Покупка 30",
+        "Куплено",
+        "Покупка 31",
+        "Куплено",
+        "Покупка 32",
+        "Куплено",
+        "Покупка 33",
+        "Куплено",
+        "Покупка 34",
+        "Куплено",
+        "Покупка 35",
+        "Куплено",
+        "Покупка 36",
+        "Куплено"
+      ],
+      "actual": [
+        "Покупка 1",
+        "Куплено",
+        "Покупка 2",
+        "Куплено",
+        "Покупка 3",
+        "Куплено",
+        "Покупка 4",
+        "Куплено",
+        "Покупка 5",
+        "Куплено",
+        "Покупка 6",
+        "Куплено",
+        "Покупка 7",
+        "Куплено",
+        "Покупка 8",
+        "Куплено",
+        "Покупка 9",
+        "Куплено",
+        "Покупка 10",
+        "Куплено",
+        "Покупка 11",
+        "Куплено",
+        "Покупка 12",
+        "Куплено",
+        "Покупка 13",
+        "Куплено",
+        "Покупка 14",
+        "Куплено",
+        "Покупка 15",
+        "Куплено",
+        "Покупка 16",
+        "Куплено",
+        "Покупка 17",
+        "Куплено",
+        "Покупка 18",
+        "Куплено",
+        "Покупка 19",
+        "Куплено",
+        "Покупка 20",
+        "Куплено",
+        "Покупка 21",
+        "Куплено",
+        "Покупка 22",
+        "Куплено",
+        "Покупка 23",
+        "Куплено",
+        "Покупка 24",
+        "Куплено",
+        "Покупка 25",
+        "Куплено",
+        "Покупка 26",
+        "Куплено",
+        "Покупка 27",
+        "Куплено",
+        "Покупка 28",
+        "Куплено",
+        "Покупка 29",
+        "Куплено",
+        "Покупка 30",
+        "Куплено",
+        "Покупка 31",
+        "Куплено",
+        "Покупка 32",
+        "Куплено",
+        "Покупка 33",
+        "Куплено",
+        "Покупка 34",
+        "Куплено",
+        "Покупка 35",
+        "Куплено",
+        "Покупка 36",
+        "Куплено"
+      ],
+      "issues": [
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 1 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 2 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 3 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 4 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 5 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 6 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 7 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 8 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 9 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 10 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 11 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 12 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 13 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 14 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 15 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 16 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 17 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 18 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 19 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 20 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 21 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 22 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 23 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 24 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 25 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 26 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 27 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 28 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 29 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 30 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 31 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 32 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 33 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 34 for \"Куплено\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 35 for \"Куплено\""
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "albumId": "pregnancy_60",
+      "page": 52,
+      "source": "tz",
+      "expected": [
+        "Возраст на момент родов",
+        "Вес до беременности",
+        "Прибавка веса",
+        "ПДР",
+        "Дата родов",
+        "Срок беременности на момент родов (нед.)",
+        "Роддом",
+        "Дата поступления в дородовое отделение",
+        "Пол",
+        "Вес",
+        "Рост",
+        "День недели",
+        "Время",
+        "Естественные роды / Кесарево",
+        "Стимуляция",
+        "Разрывы",
+        "Обвитие",
+        "Общее состояние",
+        "Дата выписки из роддома",
+        "Сколько дней провела в роддоме",
+        "Кто пришёл на выписку"
+      ],
+      "actual": [
+        "Возраст на момент родов",
+        "Вес до беременности",
+        "Прибавка веса",
+        "ПДР",
+        "Дата родов",
+        "Срок беременности на момент родов (нед.)",
+        "Роддом",
+        "Дата поступления в дородовое отделение",
+        "Пол",
+        "Вес",
+        "Рост",
+        "День недели",
+        "Время",
+        "Естественные роды / Кесарево",
+        "Стимуляция",
+        "Разрывы",
+        "Обвитие",
+        "Общее состояние",
+        "Дата выписки из роддома",
+        "Сколько дней провела в роддоме",
+        "Кто пришёл на выписку"
+      ],
+      "issues": [
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 7 for \"Пол\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 15 for \"Стимуляция\""
+        }
+      ],
+      "warnings": []
+    },
     {
       "albumId": "pregnancy_a5",
       "page": 44,
@@ -97,6 +455,202 @@
         {
           "type": "order",
           "message": "templateLineStart 0 is before previous 12 for \"Стимуляция\""
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "albumId": "kids_48",
+      "page": 10,
+      "source": "tz",
+      "expected": [
+        "Верхний левый крайний моляр",
+        "Верхний левый 1-й моляр",
+        "Верхний левый клык",
+        "Верхний левый 2-й резец",
+        "Верхний левый 1-й резец",
+        "Верхний правый 1-й резец",
+        "Верхний правый 2-й резец",
+        "Верхний правый клык",
+        "Верхний правый 1-й моляр",
+        "Верхний правый крайний моляр",
+        "Нижний левый крайний моляр",
+        "Нижний левый 1-й моляр",
+        "Нижний левый клык",
+        "Нижний левый 2-й резец",
+        "Нижний левый 1-й резец",
+        "Нижний правый 1-й резец",
+        "Нижний правый 2-й резец",
+        "Нижний правый клык",
+        "Нижний правый 1-й моляр",
+        "Нижний правый крайний моляр",
+        "Первая чистка зубов",
+        "В годик было зубов"
+      ],
+      "actual": [
+        "Верхний левый крайний моляр",
+        "Верхний левый 1-й моляр",
+        "Верхний левый клык",
+        "Верхний левый 2-й резец",
+        "Верхний левый 1-й резец",
+        "Верхний правый 1-й резец",
+        "Верхний правый 2-й резец",
+        "Верхний правый клык",
+        "Верхний правый 1-й моляр",
+        "Верхний правый крайний моляр",
+        "Нижний левый крайний моляр",
+        "Нижний левый 1-й моляр",
+        "Нижний левый клык",
+        "Нижний левый 2-й резец",
+        "Нижний левый 1-й резец",
+        "Нижний правый 1-й резец",
+        "Нижний правый 2-й резец",
+        "Нижний правый клык",
+        "Нижний правый 1-й моляр",
+        "Нижний правый крайний моляр",
+        "Первая чистка зубов",
+        "В годик было зубов"
+      ],
+      "issues": [
+        {
+          "type": "order",
+          "message": "templateLineStart 6 is before previous 8 for \"Верхний левый 1-й моляр\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 4 is before previous 6 for \"Верхний левый клык\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 2 is before previous 4 for \"Верхний левый 2-й резец\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 1 is before previous 2 for \"Верхний левый 1-й резец\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 9 for \"Верхний правый крайний моляр\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 16 is before previous 19 for \"Нижний левый 1-й моляр\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 14 is before previous 16 for \"Нижний левый клык\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 12 is before previous 14 for \"Нижний левый 2-й резец\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 10 is before previous 12 for \"Нижний левый 1-й резец\""
+        }
+      ],
+      "warnings": []
+    },
+    {
+      "albumId": "kids_48",
+      "page": 11,
+      "source": "tz",
+      "expected": [
+        "1 мес. — рост (см)",
+        "1 мес. — вес (кг)",
+        "2 мес. — рост (см)",
+        "2 мес. — вес (кг)",
+        "3 мес. — рост (см)",
+        "3 мес. — вес (кг)",
+        "4 мес. — рост (см)",
+        "4 мес. — вес (кг)",
+        "5 мес. — рост (см)",
+        "5 мес. — вес (кг)",
+        "6 мес. — рост (см)",
+        "6 мес. — вес (кг)",
+        "7 мес. — рост (см)",
+        "7 мес. — вес (кг)",
+        "8 мес. — рост (см)",
+        "8 мес. — вес (кг)",
+        "9 мес. — рост (см)",
+        "9 мес. — вес (кг)",
+        "10 мес. — рост (см)",
+        "10 мес. — вес (кг)",
+        "11 мес. — рост (см)",
+        "11 мес. — вес (кг)",
+        "1 год — рост (см)",
+        "1 год — вес (кг)"
+      ],
+      "actual": [
+        "1 мес. — рост (см)",
+        "1 мес. — вес (кг)",
+        "2 мес. — рост (см)",
+        "2 мес. — вес (кг)",
+        "3 мес. — рост (см)",
+        "3 мес. — вес (кг)",
+        "4 мес. — рост (см)",
+        "4 мес. — вес (кг)",
+        "5 мес. — рост (см)",
+        "5 мес. — вес (кг)",
+        "6 мес. — рост (см)",
+        "6 мес. — вес (кг)",
+        "7 мес. — рост (см)",
+        "7 мес. — вес (кг)",
+        "8 мес. — рост (см)",
+        "8 мес. — вес (кг)",
+        "9 мес. — рост (см)",
+        "9 мес. — вес (кг)",
+        "10 мес. — рост (см)",
+        "10 мес. — вес (кг)",
+        "11 мес. — рост (см)",
+        "11 мес. — вес (кг)",
+        "1 год — рост (см)",
+        "1 год — вес (кг)"
+      ],
+      "issues": [
+        {
+          "type": "order",
+          "message": "templateLineStart 20 is before previous 23 for \"2 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 18 is before previous 21 for \"3 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 16 is before previous 19 for \"4 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 14 is before previous 17 for \"5 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 12 is before previous 15 for \"6 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 10 is before previous 13 for \"7 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 8 is before previous 11 for \"8 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 6 is before previous 9 for \"9 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 4 is before previous 7 for \"10 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 2 is before previous 5 for \"11 мес. — рост (см)\""
+        },
+        {
+          "type": "order",
+          "message": "templateLineStart 0 is before previous 3 for \"1 год — рост (см)\""
         }
       ],
       "warnings": []

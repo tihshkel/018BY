@@ -1,12 +1,24 @@
 /**
  * Radio option rect fills for pregnancy_a5 page 44 — coords from in albums/беременность A5/44.pdf.
  * Ер/Кс is a text field (slot 10), not checkbox fills.
+ * Inset keeps peach fill inside the checkbox, away from option labels.
  */
 
 const PREGNANCY_FORM_FILL = '#E8C4A8';
+const CHECKBOX_INSET = 0.0015;
+
+function withInset(fill) {
+  return {
+    ...fill,
+    x: fill.x + CHECKBOX_INSET,
+    y: fill.y + CHECKBOX_INSET,
+    width: fill.width - CHECKBOX_INSET * 2,
+    height: fill.height - CHECKBOX_INSET * 2,
+  };
+}
 
 const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
-  {
+  withInset({
     id: 'gender_boy',
     fieldId: 'pregnancy_a5_p44_baby_gender',
     option: 'Мальчик',
@@ -16,8 +28,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4131,
     width: 0.0395,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'gender_girl',
     fieldId: 'pregnancy_a5_p44_baby_gender',
     option: 'Девочка',
@@ -27,8 +39,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4107,
     width: 0.0395,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'stimulation_yes',
     fieldId: 'pregnancy_a5_p44_stimulation',
     option: 'Да',
@@ -38,8 +50,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4122,
     width: 0.039,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'stimulation_no',
     fieldId: 'pregnancy_a5_p44_stimulation',
     option: 'Нет',
@@ -49,8 +61,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4101,
     width: 0.039,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'tears_yes',
     fieldId: 'pregnancy_a5_p44_tears',
     option: 'Да',
@@ -60,8 +72,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.452,
     width: 0.039,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'tears_no',
     fieldId: 'pregnancy_a5_p44_tears',
     option: 'Нет',
@@ -71,8 +83,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4513,
     width: 0.039,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'cord_yes',
     fieldId: 'pregnancy_a5_p44_cord',
     option: 'Да',
@@ -82,8 +94,8 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4961,
     width: 0.039,
     height: 0.028,
-  },
-  {
+  }),
+  withInset({
     id: 'cord_no',
     fieldId: 'pregnancy_a5_p44_cord',
     option: 'Нет',
@@ -93,7 +105,7 @@ const PREGNANCY_A5_PAGE44_OPTION_FILLS = [
     y: 0.4954,
     width: 0.039,
     height: 0.028,
-  },
+  }),
 ];
 
 module.exports = {

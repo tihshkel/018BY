@@ -14,10 +14,11 @@ export function getExportFormatOptions(
   category: string | null | undefined,
   lineGuideId?: string | null,
 ): ExportFormatOption[] {
+  const isBirthday = lineGuideId === 'holidays_birthday_60';
   const isSquare =
     category === 'kids' ||
     lineGuideId === 'family_blank_21x21' ||
-    lineGuideId === 'holidays_birthday_60';
+    isBirthday;
   const isPortraitBlank = lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
   const isDiaryPortrait =
     lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple';
@@ -27,7 +28,12 @@ export function getExportFormatOptions(
       ? '180 × 240 мм'
       : 'A5 (148 × 210 мм)';
   const orientation = isSquare ? 'Квадратная' : 'Вертикальная';
-  const electronicMargins = isDiaryPortrait ? 'без полей' : '10 мм';
+  const isBlankAlbum =
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_blank';
+  const electronicMargins =
+    isDiaryPortrait || isBirthday || isBlankAlbum ? 'без полей' : '10 мм';
 
   return [
     {

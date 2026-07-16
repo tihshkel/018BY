@@ -1,15 +1,16 @@
-import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
 import { getAllAlbumTemplates, type AlbumTemplate } from '@/albums';
-import { projectCategories } from '@/constants/projectTemplates';
+import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
+import { colors, sansFont } from '@/constants/design-tokens';
+import { buildProjectProducts, projectCategories } from '@/constants/projectTemplates';
 import { pushAccountDataToCloud, scheduleSyncToCloud } from '@/utils/account-sync';
-import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
-import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
-  getAlbumImageUrisForViewing,
-  getAlbumImages,
-  resolveInteriorAlbumId,
+    getAlbumImageUrisForViewing,
+    getAlbumImages,
+    resolveInteriorAlbumId,
 } from '@/utils/albumImages';
+import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
+import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
+import { syncWidgetSnapshot } from '@/utils/widgetSnapshot';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Asset } from 'expo-asset';
@@ -31,7 +32,6 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface LocalParams {
   category?: string | string[];
@@ -73,6 +73,9 @@ export default function SelectAlbumScreen() {
 
   const categoryLabel = getCategoryLabel(categoryId);
 
+  // Получаем продукты для фильтрации по страницам
+  const products = useMemo(() => buildProjectProducts(), []);
+
   const [selectedAlbum, setSelectedAlbum] = useState<string | null>(null);
   const opacity = useSharedValue(0);
   // Кеш для предзагруженных первых страниц альбомов
@@ -84,8 +87,19 @@ export default function SelectAlbumScreen() {
     if (!categoryId) {
       return albumTemplates;
     }
-    return albumTemplates.filter(album => matchAlbumWithCategory(album, categoryId));
-  }, [albumTemplates, categoryId]);
+    
+    let filtered = albumTemplates.filter(album => matchAlbumWithCategory(album, categoryId));
+    
+    // Если передан productId, фильтруем по количеству страниц
+    if (productId) {
+      const product = products[categoryId]?.find(p => p.id === productId);
+      if (product && product.pages) {
+        filtered = filtered.filter(album => album.pages === product.pages);
+      }
+    }
+    
+    return filtered;
+  }, [albumTemplates, categoryId, productId, products]);
 
   // МАКСИМАЛЬНАЯ предзагрузка: миниатюры + первые страницы всех альбомов
   useFocusEffect(

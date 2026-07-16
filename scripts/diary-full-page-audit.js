@@ -99,6 +99,45 @@ function validatePage(albumId, pageNumber, schema, slots) {
       }
       usedSlots.add(i);
     }
+
+    if (count > 1) {
+      const groups = new Set();
+      for (let i = start; i < start + count && i < pageSlots.length; i += 1) {
+        groups.add(pageSlots[i]?.continuationGroup ?? i + 1);
+      }
+      // Field-line distribution uses templateLineCount; mismatched groups are a soft signal.
+      if (groups.size > 1) {
+        issues.push({
+          severity: 'warn',
+          code: 'CONTINUATION_GROUP_MISMATCH',
+          fieldId: field.fieldId,
+          message: `Поле «${field.label}» занимает слоты с разными continuationGroup: ${[...groups].join(', ')}`,
+        });
+      }
+    }
+  }
+
+  if (
+    schema.pageType === 'structured' &&
+    fields.length > 0 &&
+    pageSlots.length > 0
+  ) {
+    const unused = [];
+    for (let i = 0; i < pageSlots.length; i += 1) {
+      if (!usedSlots.has(i) && !pageSlots[i]?.hasLabel) {
+        unused.push(i);
+      }
+    }
+    if (unused.length > 0) {
+      const critical =
+        /_(mood|pets|travel|hobby|style|food|dream)/i.test(schema.pageId ?? '') ||
+        /настроение|питомц|путешеств|хобби|одежда|еда|мечт/i.test(schema.title ?? '');
+      issues.push({
+        severity: critical ? 'error' : 'warn',
+        code: 'UNUSED_WRITABLE_SLOTS',
+        message: `Неиспользуемые writable-слоты: ${unused.join(', ')}`,
+      });
+    }
   }
 
   return issues;

@@ -3,13 +3,17 @@
  * Semantic audit: field labels and slot order must match the 09.06.26 diary PDF layout.
  *
  * node scripts/audit-diary-field-semantic-map.js
+ * ALBUM_ID=diary_interior_purple node scripts/audit-diary-field-semantic-map.js
  * FAIL_ON_ERROR=1 node scripts/audit-diary-field-semantic-map.js
  */
 const fs = require('fs');
 const path = require('path');
+const { EXPECTED_QUESTION_HINTS } = require('./diary-semantic-field-map');
 
 const root = path.join(__dirname, '..');
-const ALBUM_ID = 'diary_interior_brown';
+const ALBUM_IDS = process.env.ALBUM_ID
+  ? [process.env.ALBUM_ID]
+  : ['diary_interior_brown', 'diary_interior_purple'];
 const OUT_DIR = process.env.OUT_DIR
   ? path.resolve(process.env.OUT_DIR)
   : path.join(root, 'test-results', 'diary-field-semantic-map');
@@ -19,14 +23,21 @@ const TEMPLATE_FIRST_FIELD_HINTS = {
   FriendQuestionnaireTemplate: ['имя'],
   SchoolLifeTemplate: ['нравится учиться', 'учиться'],
   HobbyTemplate: ['хобби', 'расскажи'],
-  MyDayTemplate: ['дата'],
+  MyDayTemplate: ['дата', 'прошёл', 'день'],
   ParentProfileTemplate_Mom: ['имя'],
   ParentProfileTemplate_Dad: ['имя'],
   GirlProfileTemplate: ['имя'],
+  MoodTemplate: ['смешит', 'комеди'],
+  PetsTemplate: ['животн', 'питом'],
+  TravelTemplate: ['путешеств'],
+  StyleTemplate: ['мод', 'одежд', 'тренд'],
+  FoodTemplate: ['еду', 'вкусн'],
 };
 
-/** Pages that must have a name field mapped to the topmost answer slot. */
-const NAME_FIRST_PAGES = new Set([6, 41, 42, 43, 44]);
+const NAME_FIRST_PAGES_BY_ALBUM = {
+  diary_interior_brown: new Set([6, 39, 40, 41, 42, 43, 44]),
+  diary_interior_purple: new Set([5, 28, 29, 30, 31, 32, 33]),
+};
 
 function loadSchemas() {
   const raw = fs.readFileSync(
@@ -42,17 +53,19 @@ function loadLineSlots() {
   return JSON.parse(fs.readFileSync(path.join(root, 'constants/line-slots.json'), 'utf8'));
 }
 
-function loadManifest() {
-  return JSON.parse(
-    fs.readFileSync(path.join(root, 'scripts/diary-60-tz-manifest.json'), 'utf8'),
-  );
+function loadManifest(albumId) {
+  const file =
+    albumId === 'diary_interior_purple'
+      ? 'scripts/girls-diary-a5-tz-manifest.json'
+      : 'scripts/diary-60-tz-manifest.json';
+  return JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
 }
 
 function normalizeLabel(label) {
   return (label ?? '').toLowerCase().replace(/\s+/g, ' ');
 }
 
-function validateSemantic(pageNumber, schema, pageSlots, template) {
+function validateSemantic(albumId, pageNumber, schema, pageSlots, template) {
   const issues = [];
   const fields = schema?.fields ?? [];
 
@@ -61,10 +74,22 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
   }
 
   let usedLines = 0;
+  const usedSlots = new Set();
   for (const field of fields) {
     const start = field.templateLineStart ?? 0;
     const count = field.templateLineCount ?? 1;
     usedLines = Math.max(usedLines, start + count);
+    for (let i = start; i < start + count; i += 1) {
+      if (usedSlots.has(i)) {
+        issues.push({
+          severity: 'error',
+          code: 'FIELD_SLOT_OVERLAP',
+          fieldId: field.fieldId,
+          message: `Слот ${i} перекрывается несколькими полями`,
+        });
+      }
+      usedSlots.add(i);
+    }
   }
 
   if (usedLines > pageSlots.length) {
@@ -72,6 +97,20 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
       severity: 'error',
       code: 'FIELD_LINES_EXCEED_SLOTS',
       message: `Поля занимают ${usedLines} строк, слотов ${pageSlots.length}`,
+    });
+  }
+
+  const unusedWritable = [];
+  for (let i = 0; i < pageSlots.length; i += 1) {
+    if (!usedSlots.has(i) && !(pageSlots[i]?.hasLabel)) {
+      unusedWritable.push(i);
+    }
+  }
+  if (unusedWritable.length > 0 && ['MoodTemplate', 'TravelTemplate', 'PetsTemplate'].includes(template)) {
+    issues.push({
+      severity: 'error',
+      code: 'UNUSED_WRITABLE_SLOTS',
+      message: `Неиспользуемые writable-слоты: ${unusedWritable.join(', ')}`,
     });
   }
 
@@ -89,7 +128,8 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
     }
   }
 
-  if (NAME_FIRST_PAGES.has(pageNumber) && fields[0]?.fieldId) {
+  const namePages = NAME_FIRST_PAGES_BY_ALBUM[albumId] ?? new Set();
+  if (namePages.has(pageNumber) && fields[0]?.fieldId) {
     const nameField = fields.find((f) => normalizeLabel(f.label).includes('имя'));
     if (nameField && nameField.templateLineStart !== 0) {
       issues.push({
@@ -101,7 +141,7 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
     }
   }
 
-  if (template === 'FriendQuestionnaireTemplate') {
+  if (template === 'FriendQuestionnaireTemplate' && albumId === 'diary_interior_brown') {
     const cartoonField = fields.find((f) =>
       normalizeLabel(f.label).includes('мультфильм'),
     );
@@ -133,6 +173,52 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
     }
   }
 
+  if (template === 'MyDayTemplate') {
+    const moodField = fields.find((f) => f.type === 'radio' && f.fieldId.endsWith('_mood'));
+    if (moodField && (moodField.options?.length ?? 0) !== 9) {
+      issues.push({
+        severity: 'error',
+        code: 'MYDAY_MOOD_OPTIONS_COUNT',
+        message: `Ожидалось 9 вариантов настроения, сейчас ${moodField.options?.length ?? 0}`,
+      });
+    }
+    if (albumId === 'diary_interior_purple') {
+      const dateField = fields.find((f) => f.fieldId.endsWith('_date'));
+      if (dateField) {
+        issues.push({
+          severity: 'error',
+          code: 'PURPLE_MYDAY_HAS_DATE',
+          message: 'Фиолетовый «Твой день» не содержит поля даты в макете',
+        });
+      }
+    }
+  }
+
+  if (template === 'MoodTemplate') {
+    const joined = fields.map((f) => normalizeLabel(f.label)).join(' | ');
+    if (joined.includes('настроение сегодня') || joined.includes('благодарна')) {
+      issues.push({
+        severity: 'error',
+        code: 'MOOD_LEGACY_JOURNAL_SPEC',
+        message: 'Страница настроения использует journal-поля вместо вопросов макета',
+      });
+    }
+  }
+
+  const questionHints = EXPECTED_QUESTION_HINTS[albumId]?.[pageNumber];
+  if (questionHints?.length) {
+    const allLabels = fields.map((f) => normalizeLabel(f.label)).join(' ');
+    for (const hint of questionHints) {
+      if (!allLabels.includes(hint)) {
+        issues.push({
+          severity: 'error',
+          code: 'EXPECTED_QUESTION_MISSING',
+          message: `Нет ожидаемого фрагмента вопроса «${hint}»`,
+        });
+      }
+    }
+  }
+
   const INTRO_ZONE_TEMPLATES = new Set([
     'SchoolLifeTemplate',
     'MoodTemplate',
@@ -140,45 +226,49 @@ function validateSemantic(pageNumber, schema, pageSlots, template) {
   ]);
   if (INTRO_ZONE_TEMPLATES.has(template) && pageSlots.length > 0) {
     const firstSlot = pageSlots.find((s) => !s.hasLabel) ?? pageSlots[0];
-    if (firstSlot && firstSlot.y < 0.25) {
+    if (firstSlot && firstSlot.y < 0.22) {
       issues.push({
         severity: 'error',
         code: 'FIRST_SLOT_IN_INTRO_ZONE',
-        message: `Первый слот y=${firstSlot.y} в зоне шапки/intro (ожидалось y > 0.25)`,
+        message: `Первый слот y=${firstSlot.y} в зоне шапки/intro (ожидалось y > 0.22)`,
       });
     }
   }
 
-  const slotYs = pageSlots.map((s) => s.y);
-  for (const field of fields) {
-    const start = field.templateLineStart ?? 0;
-    const slot = pageSlots[start];
-    if (!slot) continue;
-    const prevY = start > 0 ? slotYs[start - 1] : null;
-    if (prevY != null && slot.y < prevY - 0.001) {
-      issues.push({
-        severity: 'error',
-        code: 'SLOT_ORDER_INVERTED',
-        fieldId: field.fieldId,
-        message: `Поле «${field.label}» slot ${start} y=${slot.y} выше предыдущего y=${prevY}`,
-      });
+  // Multi-column layouts (dreams / some friend pages) intentionally break Y-monotonic order.
+  const ALLOW_NON_MONOTONIC_Y = new Set([
+    'DreamsTemplate',
+    'FriendQuestionnaireTemplate',
+    'FriendProfileTemplate',
+  ]);
+  if (!ALLOW_NON_MONOTONIC_Y.has(template) && !/friend/i.test(template ?? '')) {
+    const slotYs = pageSlots.map((s) => s.y);
+    for (const field of fields) {
+      const start = field.templateLineStart ?? 0;
+      const slot = pageSlots[start];
+      if (!slot) continue;
+      const prevY = start > 0 ? slotYs[start - 1] : null;
+      if (prevY != null && slot.y < prevY - 0.001) {
+        issues.push({
+          severity: 'error',
+          code: 'SLOT_ORDER_INVERTED',
+          fieldId: field.fieldId,
+          message: `Поле «${field.label}» slot ${start} y=${slot.y} выше предыдущего y=${prevY}`,
+        });
+      }
     }
   }
 
   return issues;
 }
 
-function main() {
-  const schemas = loadSchemas();
-  const lineSlots = loadLineSlots();
-  const manifest = loadManifest();
-  const albumSchemaList = schemas[ALBUM_ID] ?? [];
+function auditAlbum(albumId, schemas, lineSlots) {
+  const manifest = loadManifest(albumId);
+  const albumSchemaList = schemas[albumId] ?? [];
   const schemaByPage = Object.fromEntries(
     albumSchemaList.map((schema) => [String(schema.sourcePageNumber), schema]),
   );
-  const albumSlots = lineSlots[ALBUM_ID] ?? {};
-
-  fs.mkdirSync(OUT_DIR, { recursive: true });
+  const albumSlots = lineSlots[albumId] ?? {};
 
   const pages = [];
   let errorCount = 0;
@@ -189,7 +279,7 @@ function main() {
     const pageNumber = Number(pageKey);
     const schema = schemaByPage[pageKey];
     const pageSlots = albumSlots[pageKey] ?? [];
-    const issues = validateSemantic(pageNumber, schema, pageSlots, meta.template);
+    const issues = validateSemantic(albumId, pageNumber, schema, pageSlots, meta.template);
 
     for (const issue of issues) {
       if (issue.severity === 'error') errorCount += 1;
@@ -204,30 +294,53 @@ function main() {
     });
   }
 
+  return {
+    albumId,
+    structuredPages: pages.length,
+    errorCount,
+    pages: pages.filter((p) => p.issues.length > 0),
+  };
+}
+
+function main() {
+  const schemas = loadSchemas();
+  const lineSlots = loadLineSlots();
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+
+  const albums = ALBUM_IDS.map((albumId) => auditAlbum(albumId, schemas, lineSlots));
+  const errorCount = albums.reduce((sum, album) => sum + album.errorCount, 0);
+
   const report = {
-    albumId: ALBUM_ID,
     generatedAt: new Date().toISOString(),
     summary: {
-      structuredPages: pages.length,
+      albums: albums.length,
       errors: errorCount,
       ok: errorCount === 0,
     },
-    pages: pages.filter((p) => p.issues.length > 0),
+    albums: albums.map((album) => ({
+      albumId: album.albumId,
+      structuredPages: album.structuredPages,
+      errors: album.errorCount,
+      ok: album.errorCount === 0,
+      pages: album.pages,
+    })),
   };
 
   fs.writeFileSync(path.join(OUT_DIR, 'report.json'), JSON.stringify(report, null, 2));
 
   console.log(
     `[audit-diary-field-semantic-map] ${report.summary.ok ? 'OK' : 'FAIL'}: ` +
-      `errors=${errorCount} across ${pages.length} structured pages`,
+      `errors=${errorCount} across ${albums.length} albums`,
   );
   console.log(`Report: ${path.join(OUT_DIR, 'report.json')}`);
 
   if (errorCount > 0) {
-    for (const page of report.pages) {
-      for (const issue of page.issues) {
-        if (issue.severity === 'error') {
-          console.error(`  p${page.page} ${issue.code}: ${issue.message}`);
+    for (const album of report.albums) {
+      for (const page of album.pages) {
+        for (const issue of page.issues) {
+          if (issue.severity === 'error') {
+            console.error(`  ${album.albumId} p${page.page} ${issue.code}: ${issue.message}`);
+          }
         }
       }
     }

@@ -57,24 +57,26 @@ export const COLLAGE_GRID = {
   colXRight: COL_X_RIGHT,
 };
 
-/** 1 hero photo centered in safe zone */
+/** 1 hero photo — full safe-zone width (PDF «Место для фото» already has margins). */
 export const TEMPLATE_ONE_LARGE: PhotoLayoutTemplate = {
   variantId: 'one_large',
-  slots: [slot(MARGIN_X, 0.08, FULL_WIDTH, 0.84, [4, 3])],
+  // Чуть плотнее по вертикали — на недельных pregnancy иначе остаётся пустота.
+  // Без MARGIN_X: иначе внутри PDF-пина фото уже уже рамки и визуально «обрезано».
+  slots: [slot(0, 0.03, 1, 0.94, [4, 3])],
 };
 
 /** Alias for event pages — tall 4:3 band (not ultra-narrow strip) */
 export const TEMPLATE_ONE_HORIZONTAL: PhotoLayoutTemplate = {
   variantId: 'one_horizontal',
-  slots: [slot(MARGIN_X, 0.03, FULL_WIDTH, 0.92, [4, 3])],
+  slots: [slot(0, 0.03, 1, 0.92, [4, 3])],
 };
 
 /** 2 horizontal strips stacked */
 export const TEMPLATE_TWO_STACKED: PhotoLayoutTemplate = {
   variantId: 'two_stacked',
   slots: [
-    slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
-    slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+    slot(0, rowY(0, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
+    slot(0, rowY(1, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
   ],
 };
 
@@ -94,8 +96,8 @@ export const TEMPLATE_TWO_HORIZONTAL: PhotoLayoutTemplate = {
 export const TEMPLATE_KIDS_TWO_STACKED: PhotoLayoutTemplate = {
   variantId: 'kids_two_stacked',
   slots: [
-    slot(MARGIN_X, rowY(0, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
-    slot(MARGIN_X, rowY(1, STACK_ROW_HEIGHT), FULL_WIDTH, STACK_ROW_HEIGHT, [4, 3]),
+    slot(0, rowY(0, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
+    slot(0, rowY(1, STACK_ROW_HEIGHT), 1, STACK_ROW_HEIGHT, [4, 3]),
   ],
 };
 
@@ -110,6 +112,19 @@ export const TEMPLATE_TWO_VERTICAL: PhotoLayoutTemplate = {
 
 /** Full-width top row + 2 square cells on bottom grid row (1:1), внутри safe zone */
 function buildThreeHeroSlots(safeZone: SafeZone): TemplatePhotoSlot[] {
+  // Короткая полоса (pregnancy p1 и т.п.) — не сужаем под квадраты, берём полную ширину.
+  if (safeZone.height < 0.48) {
+    const topH = 0.54;
+    const bottomH = Math.max(0.28, 1 - MARGIN_Y * 2 - GAP - topH);
+    const topY = MARGIN_Y;
+    const bottomY = topY + topH + GAP;
+    return [
+      slot(MARGIN_X, topY, FULL_WIDTH, topH, [4, 3]),
+      slot(COL_X_LEFT, bottomY, COL_WIDTH, bottomH, [1, 1]),
+      slot(COL_X_RIGHT, bottomY, COL_WIDTH, bottomH, [1, 1]),
+    ];
+  }
+
   const idealSquareH = (COL_WIDTH * safeZone.width) / safeZone.height;
   const stackHeight = 1 - MARGIN_Y * 2;
   const topBandOffset = 0.025;
@@ -158,15 +173,47 @@ export const TEMPLATE_THREE_EQUAL: PhotoLayoutTemplate = {
   ],
 };
 
-/** 2×2 grid — 4:3 cells */
+/**
+ * 2×2 — всегда на всю ширину safe zone (широкие landscape-ячейки).
+ * Целевой 4:3; если по высоте не влезает — ужимаем только высоту (ещё шире визуально).
+ */
+function buildFourGridSlots(safeZone: SafeZone): TemplatePhotoSlot[] {
+  const marginX = 0.015;
+  const marginY = 0.02;
+  const gap = 0.022;
+  const availW = 1 - marginX * 2;
+  const availH = 1 - marginY * 2;
+
+  const colW = (availW - gap) / 2;
+  const cellWPage = colW * safeZone.width;
+  let cellHRel = (cellWPage * 0.75) / Math.max(safeZone.height, 0.01);
+
+  const neededH = cellHRel * 2 + gap;
+  if (neededH > availH) {
+    cellHRel = (availH - gap) / 2;
+  }
+
+  const gridH = cellHRel * 2 + gap;
+  const left = marginX;
+  const top = marginY + Math.max(0, (availH - gridH) / 2);
+  const right = left + colW + gap;
+  const aspectW = cellWPage;
+  const aspectH = cellHRel * safeZone.height;
+  const aspectRatio: [number, number] =
+    aspectH > 0 && aspectW / aspectH >= 1.45 ? [3, 2] : [4, 3];
+
+  return [
+    slot(left, top, colW, cellHRel, aspectRatio),
+    slot(right, top, colW, cellHRel, aspectRatio),
+    slot(left, top + cellHRel + gap, colW, cellHRel, aspectRatio),
+    slot(right, top + cellHRel + gap, colW, cellHRel, aspectRatio),
+  ];
+}
+
+/** 2×2 grid — 4:3 cells (static fallback; runtime через buildFourGridSlots). */
 export const TEMPLATE_FOUR_GRID: PhotoLayoutTemplate = {
   variantId: 'four_grid',
-  slots: [
-    slot(COL_X_LEFT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-    slot(COL_X_RIGHT, rowY(0, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-    slot(COL_X_LEFT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-    slot(COL_X_RIGHT, rowY(1, GRID_ROW_HEIGHT), COL_WIDTH, GRID_ROW_HEIGHT, [4, 3]),
-  ],
+  slots: buildFourGridSlots({ x: 0, y: 0, width: 0.9, height: 0.62 }),
 };
 
 /** 2×2 — portrait-friendly cells on same grid */
@@ -228,7 +275,11 @@ export function buildVariantLayoutFromTemplate(
   aspectRatio?: [number, number];
 }> } {
   const templateSlots =
-    template.variantId === 'three_hero' ? buildThreeHeroSlots(safeZone) : template.slots;
+    template.variantId === 'three_hero'
+      ? buildThreeHeroSlots(safeZone)
+      : template.variantId === 'four_grid'
+        ? buildFourGridSlots(safeZone)
+        : template.slots;
 
   const slots = templateSlots.map((s) => {
     const absX = safeZone.x + s.x * safeZone.width;
@@ -271,3 +322,27 @@ export const STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS = [
   'three_hero',
   'four_grid',
 ] as const;
+
+/** kids event: широкая зона — 4:3 и два фото стопкой, без узких «башен». */
+export const KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS = [
+  'one_large',
+  'two_horizontal',
+  'three_hero',
+  'four_grid',
+] as const;
+
+/**
+ * «Я стою», крещение, «Мне N месяцев» — два фото в ряд (side-by-side),
+ * зона достаточно широкая для нормальных кадров, не стопка полос.
+ */
+export const KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS = [
+  'one_large',
+  'two_vertical',
+  'three_hero',
+  'four_grid',
+] as const;
+
+/** kids_48 p19 / p20 / p22–p33 */
+export function isKidsSideBySideEventPage(page: number): boolean {
+  return page === 19 || page === 20 || (page >= 22 && page <= 33);
+}

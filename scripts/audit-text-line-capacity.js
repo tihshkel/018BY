@@ -132,6 +132,11 @@ function auditField(params) {
       return issues;
     }
 
+    // Имена на семейном дереве — узкие внешние полосы; длинный probe не применим.
+    if (field.fieldId.startsWith('kids_48_p5_')) {
+      continue;
+    }
+
     const probe = 'БЫЛО БОЛЬНО И ДОЛГО 21.11.2026';
     if (!textFitsInSlot(probe, fieldSlots[i], fontSize, albumId, DEFAULT_FONT_ID, fontTable)) {
       const shortProbe = probe.slice(0, Math.max(exportLimit ?? 8, 8));

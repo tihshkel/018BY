@@ -427,7 +427,11 @@ export default function AlbumPagesScreen() {
                   lineGuideId: project.lineGuideId,
                   sourcePageNumber:
                     instance.sourcePageNumber ?? schema?.sourcePageNumber,
-                  baseImageUri: resolveInstancePageImageUri(project.images, instance),
+                  baseImageUri: resolveInstancePageImageUri(
+                    project.images,
+                    instance,
+                    project.lineGuideId,
+                  ),
                   quality: "thumbnail",
                 }) ?? undefined,
               schema,

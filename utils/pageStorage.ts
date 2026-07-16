@@ -92,13 +92,9 @@ export async function loadPageValuesMapMerged(
       try {
         const entry = JSON.parse(raw) as PageValues;
         const existing = merged[instanceId];
-        if (
-          !existing ||
-          !existing.updatedAt ||
-          (entry.updatedAt && entry.updatedAt >= existing.updatedAt)
-        ) {
-          merged[instanceId] = entry;
-        }
+        merged[instanceId] = existing
+          ? mergePageValueEntryContent(existing, entry)
+          : entry;
       } catch {
         // ignore corrupt entry
       }
@@ -111,7 +107,76 @@ function pageValuesUpdatedAt(values: PageValues | undefined): string {
   return values?.updatedAt ?? '';
 }
 
-/** Сливает несколько map по instanceId; побеждает запись с более поздним updatedAt. */
+function countFilledFields(values: PageValues | undefined): number {
+  if (!values) return 0;
+  let count = 0;
+  for (const text of Object.values(values.fields ?? {})) {
+    if (String(text ?? '').trim()) count += 1;
+  }
+  for (const block of Object.values(values.photoBlocks ?? {})) {
+    if ((block?.slots ?? []).some((uri) => String(uri ?? '').trim())) count += 1;
+  }
+  if (String(values.caption ?? '').trim()) count += 1;
+  return count;
+}
+
+function mergePageValueEntryContent(
+  local: PageValues,
+  cloud: PageValues,
+): PageValues {
+  const mergedFields = { ...(cloud.fields ?? {}) };
+  for (const [fieldId, localValue] of Object.entries(local.fields ?? {})) {
+    const localTrim = String(localValue ?? '').trim();
+    const cloudTrim = String(mergedFields[fieldId] ?? '').trim();
+    if (localTrim && !cloudTrim) {
+      mergedFields[fieldId] = localValue;
+      continue;
+    }
+    if (localTrim && cloudTrim) {
+      const preferLocal =
+        pageValuesUpdatedAt(local) >= pageValuesUpdatedAt(cloud) ||
+        localTrim.length >= cloudTrim.length;
+      if (preferLocal) mergedFields[fieldId] = localValue;
+    }
+  }
+
+  const mergedPhotoBlocks = { ...(cloud.photoBlocks ?? {}) };
+  for (const [blockId, localBlock] of Object.entries(local.photoBlocks ?? {})) {
+    const cloudBlock = mergedPhotoBlocks[blockId];
+    const localHasPhoto = (localBlock?.slots ?? []).some((uri) => String(uri ?? '').trim());
+    const cloudHasPhoto = (cloudBlock?.slots ?? []).some((uri) => String(uri ?? '').trim());
+    if (localHasPhoto && !cloudHasPhoto) {
+      mergedPhotoBlocks[blockId] = localBlock;
+      continue;
+    }
+    if (localHasPhoto && cloudHasPhoto) {
+      const preferLocal =
+        pageValuesUpdatedAt(local) >= pageValuesUpdatedAt(cloud) ||
+        countFilledFields(local) >= countFilledFields(cloud);
+      if (preferLocal) mergedPhotoBlocks[blockId] = localBlock;
+    }
+  }
+
+  const localAt = pageValuesUpdatedAt(local);
+  const cloudAt = pageValuesUpdatedAt(cloud);
+  const updatedAt =
+    localAt && cloudAt
+      ? localAt >= cloudAt
+        ? localAt
+        : cloudAt
+      : localAt || cloudAt || new Date().toISOString();
+
+  return {
+    ...cloud,
+    ...local,
+    fields: mergedFields,
+    photoBlocks: mergedPhotoBlocks,
+    caption: String(local.caption ?? '').trim() ? local.caption : cloud.caption,
+    updatedAt,
+  };
+}
+
+/** Сливает несколько map по instanceId; сохраняет непустые поля и фото. */
 export function mergePageValuesMaps(
   ...maps: Record<string, PageValues>[]
 ): Record<string, PageValues> {
@@ -124,11 +189,7 @@ export function mergePageValuesMaps(
         merged[instanceId] = values;
         continue;
       }
-      const existingAt = pageValuesUpdatedAt(existing);
-      const incomingAt = pageValuesUpdatedAt(values);
-      if (!existingAt || (incomingAt && incomingAt >= existingAt)) {
-        merged[instanceId] = values;
-      }
+      merged[instanceId] = mergePageValueEntryContent(existing, values);
     }
   }
 

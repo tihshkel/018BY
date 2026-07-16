@@ -99,6 +99,54 @@ const DIARY_FIELD_ID_ALIASES: Record<string, string> = {
 
 const PURPLE_FRIEND_PAGES = [28, 29, 30, 31, 32, 33] as const;
 
+/** Legacy field layouts (suffix + start + count) before semantic remaps. */
+const DIARY_LEGACY_POSITIONAL_LAYOUTS: Record<
+  string,
+  ReadonlyArray<{ id: string; start: number; count: number }>
+> = {
+  diary_interior_brown_p24: [
+    { id: 'moodNote', start: 0, count: 1 },
+    { id: 'whatMadeHappy', start: 1, count: 2 },
+    { id: 'whatMadeSad', start: 3, count: 2 },
+    { id: 'gratitude', start: 5, count: 2 },
+    { id: 'tomorrowWish', start: 7, count: 2 },
+  ],
+  diary_interior_purple_p14: [
+    { id: 'moodNote', start: 0, count: 1 },
+    { id: 'whatMadeHappy', start: 1, count: 2 },
+    { id: 'whatMadeSad', start: 3, count: 2 },
+    { id: 'gratitude', start: 5, count: 2 },
+    { id: 'tomorrowWish', start: 7, count: 2 },
+  ],
+  diary_interior_brown_p17: [
+    { id: 'petName', start: 0, count: 1 },
+    { id: 'petType', start: 1, count: 1 },
+    { id: 'petAge', start: 2, count: 1 },
+    { id: 'petCharacter', start: 3, count: 1 },
+    { id: 'petFood', start: 4, count: 1 },
+    { id: 'petStory', start: 5, count: 3 },
+  ],
+  diary_interior_brown_p21: [
+    { id: 'favoritePlace', start: 0, count: 1 },
+    { id: 'visitedCountries', start: 1, count: 2 },
+    { id: 'dreamTrip', start: 3, count: 1 },
+    { id: 'bestTrip', start: 4, count: 3 },
+    { id: 'travelBuddy', start: 7, count: 1 },
+  ],
+  diary_interior_brown_p26: [
+    { id: 'style', start: 0, count: 1 },
+    { id: 'favoriteColors', start: 1, count: 1 },
+    { id: 'favoriteBrands', start: 2, count: 1 },
+    { id: 'favoriteOutfit', start: 3, count: 1 },
+    { id: 'accessories', start: 4, count: 1 },
+    { id: 'shopping', start: 5, count: 2 },
+    { id: 'inspiration', start: 7, count: 2 },
+  ],
+};
+
+const LEGACY_MY_DAY_MOOD_OPTIONS = ['😢', '😕', '😐', '🙂', '😄', '🥰'] as const;
+const NEXT_MY_DAY_MOOD_OPTIONS = ['😊', '😢', '😐', '😃', '😄', '😅', '😠', '😟', '😁'] as const;
+
 function migratePurpleFriendQuestionnaireFields(values: PageValues, pageNumber: number): PageValues {
   if (!PURPLE_FRIEND_PAGES.includes(pageNumber as (typeof PURPLE_FRIEND_PAGES)[number])) {
     return values;
@@ -121,11 +169,135 @@ function migratePurpleFriendQuestionnaireFields(values: PageValues, pageNumber: 
   return { ...values, fields: nextFields };
 }
 
-export function migrateDiaryFieldValues(values: PageValues, pageNumber?: number): PageValues {
+function spreadFieldTextAcrossSlots(text: string, count: number): string[] {
+  const lines = text.split(/\n/).map((line) => line.trim());
+  const slots = Array.from({ length: count }, () => '');
+  if (lines.length >= count) {
+    for (let i = 0; i < count; i += 1) slots[i] = lines[i] ?? '';
+    return slots;
+  }
+  if (lines.length === 1) {
+    slots[0] = lines[0] ?? '';
+    return slots;
+  }
+  for (let i = 0; i < lines.length && i < count; i += 1) {
+    slots[i] = lines[i] ?? '';
+  }
+  return slots;
+}
+
+function migrateDiaryPositionalFields(schema: AlbumPageSchema, values: PageValues): PageValues {
+  const pageNumber = schema.sourcePageNumber;
+  const albumId = schema.lineGuideId ?? '';
+  if (!albumId.startsWith('diary_interior_')) return values;
+
+  const layoutKey = `${albumId}_p${pageNumber}`;
+  const legacyLayout = DIARY_LEGACY_POSITIONAL_LAYOUTS[layoutKey];
+  if (!legacyLayout?.length) return values;
+
+  const prefix = `${albumId}_p${pageNumber}_`;
+  const nextFields = { ...values.fields };
+  const schemaFields = (schema.fields ?? []).filter((field) => field.type !== 'radio');
+  if (!schemaFields.length) return values;
+
+  const hasLegacy = legacyLayout.some((entry) => nextFields[`${prefix}${entry.id}`]?.trim());
+  if (!hasLegacy) return values;
+
+  // Skip if any new semantic id already filled (except when only legacy ids exist).
+  const hasNewSemantic = schemaFields.some((field) => {
+    const suffix = field.fieldId.slice(prefix.length);
+    const isLegacy = legacyLayout.some((entry) => entry.id === suffix);
+    return !isLegacy && nextFields[field.fieldId]?.trim();
+  });
+  if (hasNewSemantic) return values;
+
+  const slotTexts: string[] = [];
+  for (const entry of legacyLayout) {
+    const legacyId = `${prefix}${entry.id}`;
+    const text = nextFields[legacyId]?.trim() ?? '';
+    const parts = text ? spreadFieldTextAcrossSlots(text, entry.count) : Array.from({ length: entry.count }, () => '');
+    for (let i = 0; i < entry.count; i += 1) {
+      slotTexts[entry.start + i] = parts[i] ?? '';
+    }
+    delete nextFields[legacyId];
+  }
+
+  for (const field of schemaFields) {
+    const start = field.templateLineStart ?? 0;
+    const count = field.templateLineCount ?? 1;
+    const chunks: string[] = [];
+    for (let i = 0; i < count; i += 1) {
+      const chunk = slotTexts[start + i]?.trim();
+      if (chunk) chunks.push(chunk);
+    }
+    if (!chunks.length) continue;
+    if (nextFields[field.fieldId]?.trim()) continue;
+    nextFields[field.fieldId] = chunks.join('\n');
+  }
+
+  return { ...values, fields: nextFields };
+}
+
+function migratePurpleMyDayDateIntoStory(schema: AlbumPageSchema, values: PageValues): PageValues {
+  if (schema.lineGuideId !== 'diary_interior_purple') return values;
+  const pageNumber = schema.sourcePageNumber;
+  const prefix = `diary_interior_purple_p${pageNumber}_`;
+  const dateId = `${prefix}date`;
+  const storyId = `${prefix}day_story`;
+  const dateText = values.fields[dateId]?.trim() ?? '';
+  if (!dateText) return values;
+
+  const nextFields = { ...values.fields };
+  const storyText = nextFields[storyId]?.trim() ?? '';
+  if (!storyText) {
+    nextFields[storyId] = dateText;
+  } else if (!storyText.startsWith(dateText)) {
+    nextFields[storyId] = `${dateText} ${storyText}`;
+  }
+  delete nextFields[dateId];
+  return { ...values, fields: nextFields };
+}
+
+function migrateMyDayMoodOptionValue(schema: AlbumPageSchema, values: PageValues): PageValues {
+  if (!schema.lineGuideId?.startsWith('diary_interior_')) return values;
+  const moodField = schema.fields?.find((field) => field.fieldId.endsWith('_mood') && field.type === 'radio');
+  if (!moodField) return values;
+
+  const current = values.fields[moodField.fieldId]?.trim();
+  if (!current) return values;
+  if ((moodField.options ?? []).includes(current)) return values;
+
+  const legacyIndex = LEGACY_MY_DAY_MOOD_OPTIONS.indexOf(
+    current as (typeof LEGACY_MY_DAY_MOOD_OPTIONS)[number],
+  );
+  if (legacyIndex < 0) return values;
+
+  // Old 6 options mapped onto the middle of the printed 9-face row.
+  const nextOption = NEXT_MY_DAY_MOOD_OPTIONS[Math.min(legacyIndex + 1, NEXT_MY_DAY_MOOD_OPTIONS.length - 1)];
+  return {
+    ...values,
+    fields: {
+      ...values.fields,
+      [moodField.fieldId]: nextOption,
+    },
+  };
+}
+
+export function migrateDiaryFieldValues(
+  values: PageValues,
+  pageNumber?: number,
+  schema?: AlbumPageSchema | null,
+): PageValues {
   let next = values;
 
   if (pageNumber != null) {
     next = migratePurpleFriendQuestionnaireFields(next, pageNumber);
+  }
+
+  if (schema) {
+    next = migrateDiaryPositionalFields(schema, next);
+    next = migratePurpleMyDayDateIntoStory(schema, next);
+    next = migrateMyDayMoodOptionValue(schema, next);
   }
 
   const nextFields = { ...next.fields };
@@ -159,7 +331,7 @@ export function migrateBirthdayPageValuesMap(
     if (!schema) continue;
     let migrated = migrateBirthdayPageValues(schema, values);
     migrated = migrateTravelPageValues(schema, migrated);
-    migrated = migrateDiaryFieldValues(migrated, schema.sourcePageNumber);
+    migrated = migrateDiaryFieldValues(migrated, schema.sourcePageNumber, schema);
     if (migrated === values) continue;
 
     nextMap[instance.instanceId] = migrated;

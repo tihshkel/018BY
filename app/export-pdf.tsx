@@ -24,6 +24,7 @@ import {
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
 import {
   flushAlbumProjectPersist,
@@ -60,6 +61,7 @@ import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { drawImageAnnotationsOnPdfPage } from '@/utils/exportPdfImageAnnotations';
 import {
   getCachedPageSourceSize,
+  prefetchPhotoUrisSourceSizes,
   resolvePageSourceSize,
 } from '@/utils/pageSourceDimensions';
 import { hasLineGuides } from '@/utils/textLineSlots';
@@ -71,8 +73,12 @@ import { downloadExportCoverPdfToCache } from '@/utils/exportCoverPdfDownloader'
 import {
   ELECTRONIC_CAPTURE_QUALITY,
   ELECTRONIC_CAPTURE_SCALE,
-  getElectronicJpegQuality,
-  getElectronicRasterMaxSide,
+  EXPORT_CAPTURE_QUALITY,
+  EXPORT_CAPTURE_QUALITY_LARGE,
+  EXPORT_CAPTURE_SCALE,
+  EXPORT_CAPTURE_SCALE_LARGE,
+  getExportJpegQuality,
+  getExportRasterMaxSide,
   getExportPageDimensions,
   shouldUseFullBleedDiaryExport,
 } from '@/utils/exportPageDimensions';
@@ -184,7 +190,7 @@ function drawTextAnnotationOnPdfPage(params: {
     sourceHeight
   );
 
-  const text = ann.content ?? '';
+  const text = normalizeAlbumUserText(ann.content ?? '');
   if (!text.trim()) return;
 
   const mapped = mapViewportAnnotationToPdf({
@@ -201,12 +207,15 @@ function drawTextAnnotationOnPdfPage(params: {
 
   const viewportBoxHeight = ann.height || 20;
   const scaledBoxHeight = mapped.height;
+  // Timeline descriptions wrap at a shared size — do not shrink long titles alone.
   const fitted = fitTextToTemplateBlock({
     text,
     boxWidth: ann.width || mapped.width,
     boxHeight: viewportBoxHeight,
     fontId: ann.fontFamily,
     preferredFontSize: ann.fontSize || 16,
+    preferSingleLine: false,
+    maxFontSize: 22,
   });
   const scaledFontSize = fitted.fontSize * (scaledBoxHeight / viewportBoxHeight);
   const textAlign = ann.textAlign ?? 'left';
@@ -880,6 +889,19 @@ export default function ExportPdfScreen() {
           if (resolvedInstances.length === 0) {
             annotations = await ensureProjectAnnotationsSynced(projectId);
           } else {
+            const photoUris: string[] = [];
+            for (const instance of resolvedInstances) {
+              if (!includedIds.includes(instance.instanceId)) continue;
+              const values = pageValuesMap[instance.instanceId];
+              if (!values?.photoBlocks) continue;
+              for (const block of Object.values(values.photoBlocks)) {
+                for (const uri of block?.slots ?? []) {
+                  if (uri) photoUris.push(uri);
+                }
+              }
+            }
+            await prefetchPhotoUrisSourceSizes(photoUris);
+
             const filtered = filterProjectDataForExport({
               instances: resolvedInstances,
               images,
@@ -1151,7 +1173,7 @@ export default function ExportPdfScreen() {
       };
 
       // Оптимизация изображений перед встраиванием в PDF.
-      // electronic: растр 300 DPI + JPEG; в приложении фото уже ~72 DPI по размеру слота.
+      // Все форматы: ~300 DPI + высокий JPEG; large-doc больше не даунскейлит дизайн до 1100px.
       const optimizeImageForExport = async (uri: string, kind: 'page' | 'cover', isLargeDoc?: boolean) => {
         if (!uri) return uri;
         if (Platform.OS === 'web') return uri;
@@ -1173,24 +1195,20 @@ export default function ExportPdfScreen() {
 
         if (!normalizedUri.startsWith('file://')) return uri;
 
-        const isElectronicExport = formatToUse.type === 'electronic';
-        const maxSide = isElectronicExport
-          ? getElectronicRasterMaxSide(kind, pageWidth, pageHeight, contentWidth, contentHeight)
-          : kind === 'cover'
-            ? 2400
-            : isLargeDoc
-              ? 1100
-              : 2000;
-        const quality = isElectronicExport
-          ? getElectronicJpegQuality(kind)
-          : kind === 'cover'
-            ? 0.9
-            : isLargeDoc
-              ? 0.72
-              : 0.9;
+        const maxSide = getExportRasterMaxSide(
+          kind,
+          pageWidth,
+          pageHeight,
+          contentWidth,
+          contentHeight,
+        );
+        const quality = getExportJpegQuality(kind, {
+          isLargeDoc,
+          isElectronic: formatToUse.type === 'electronic',
+        });
 
-        const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}`);
-        const outUri = `${FileSystem.cacheDirectory}pdf_fast_${kind}_${cacheKey}.jpg`;
+        const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}|v2`);
+        const outUri = `${FileSystem.cacheDirectory}pdf_hq_${kind}_${cacheKey}.jpg`;
         try {
           const existing = await FileSystem.getInfoAsync(outUri);
           if (existing.exists) return outUri;
@@ -1199,20 +1217,46 @@ export default function ExportPdfScreen() {
         }
 
         try {
-          const useLargeDocFallback = kind === 'page' && isLargeDoc && !isElectronicExport;
-          const sidesToTry = useLargeDocFallback ? [1100, 800, 560] : [maxSide];
+          const sourceSize =
+            getCachedPageSourceSize(normalizedUri) ??
+            getCachedPageSourceSize(uri) ??
+            (await resolvePageSourceSize(normalizedUri));
+          const sourceLongSide = sourceSize
+            ? Math.max(sourceSize.width, sourceSize.height)
+            : 0;
+
+          // Не даунскейлить ниже цели: только если исходник крупнее maxSide.
+          // Иначе оставляем нативный размер макета (kids ~2528, pregnancy ~2882).
+          const primarySide =
+            sourceLongSide > 0 ? Math.min(maxSide, sourceLongSide) : maxSide;
+          // Fallback при OOM: чуть меньше, но не «мыло» 560px.
+          const sidesToTry =
+            kind === 'page' && isLargeDoc
+              ? [
+                  primarySide,
+                  Math.max(1800, Math.round(primarySide * 0.85)),
+                  Math.max(1600, Math.round(primarySide * 0.7)),
+                ]
+              : [primarySide];
 
           for (const side of sidesToTry) {
             try {
+              const resizeAction =
+                sourceSize && sourceSize.height > sourceSize.width
+                  ? { resize: { height: side } }
+                  : { resize: { width: side } };
+              // Если исходник уже ≤ цели — только JPEG re-encode без resize.
+              const actions =
+                sourceLongSide > 0 && sourceLongSide <= side ? [] : [resizeAction];
+
               const result = await withTimeout({
                 label: `ImageManipulator(${kind},${side})`,
                 timeoutMs: isLargeDoc ? 45000 : 12000,
                 task: async () =>
-                  ImageManipulator.manipulateAsync(
-                    normalizedUri,
-                    [{ resize: { width: side } }],
-                    { compress: quality, format: ImageManipulator.SaveFormat.JPEG }
-                  ),
+                  ImageManipulator.manipulateAsync(normalizedUri, actions, {
+                    compress: quality,
+                    format: ImageManipulator.SaveFormat.JPEG,
+                  }),
               });
               if (result?.uri) {
                 return result.uri.startsWith('file://') ? result.uri : `file://${result.uri}`;
@@ -1670,13 +1714,21 @@ export default function ExportPdfScreen() {
       const isElectronicExport = formatToUse.type === 'electronic';
       const yieldDuringPrep = () => new Promise<void>((r) => setImmediate(r));
       captureSettingsRef.current = {
-        scale: isElectronicExport ? ELECTRONIC_CAPTURE_SCALE : isLargeDoc ? 1.2 : 1.35,
-        quality: isElectronicExport ? ELECTRONIC_CAPTURE_QUALITY : isLargeDoc ? 0.88 : 0.92,
+        scale: isElectronicExport
+          ? ELECTRONIC_CAPTURE_SCALE
+          : isLargeDoc
+            ? EXPORT_CAPTURE_SCALE_LARGE
+            : EXPORT_CAPTURE_SCALE,
+        quality: isElectronicExport
+          ? ELECTRONIC_CAPTURE_QUALITY
+          : isLargeDoc
+            ? EXPORT_CAPTURE_QUALITY_LARGE
+            : EXPORT_CAPTURE_QUALITY,
       };
 
       const LARGE_DOC_OPTIMIZE_BATCH = Platform.OS === 'android' ? 2 : 3;
 
-      // 1) Оптимизируем страницы (кэш pdf_fast_* — повторный экспорт быстрый)
+      // 1) Оптимизируем страницы (кэш pdf_hq_* — повторный экспорт быстрый)
       const optimizedPageUris: string[] = new Array(images.length);
       if (isLargeDoc) {
         for (let i = 0; i < images.length; i += LARGE_DOC_OPTIMIZE_BATCH) {
@@ -1749,7 +1801,7 @@ export default function ExportPdfScreen() {
           batch.map(async (uri) => {
             try {
               const normalizedUri = await normalizePhotoOrientation(uri, {
-                compress: isElectronicExport ? 0.9 : 0.98,
+                compress: 0.95,
               });
               if (isElectronicExport) {
                 const optimizedUri = await optimizeImageForExport(normalizedUri, 'page', isLargeDoc);
@@ -2054,7 +2106,7 @@ export default function ExportPdfScreen() {
                   const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
                   
                   // Рисуем текст на странице с выбранным шрифтом
-                  coverPage.drawText(ann.content, {
+                  coverPage.drawText(normalizeAlbumUserText(ann.content), {
                     x: scaledX,
                     y: scaledY,
                     size: fontSize,
@@ -2109,7 +2161,7 @@ export default function ExportPdfScreen() {
                   const colorHex = ann.color || '#000000';
                   const fontId = ann.fontFamily || 'default';
                   const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
-                  coverPage.drawText(ann.content, {
+                  coverPage.drawText(normalizeAlbumUserText(ann.content), {
                     x: scaledX, y: scaledY, size: fontSize,
                     color: hexToColor(colorHex, true), font,
                   });
@@ -2158,8 +2210,16 @@ export default function ExportPdfScreen() {
             resolvedLineGuideId || exportLineGuideId,
           );
 
-          const buildPageAnnotations = (sourceW: number, sourceH: number): Annotation[] => {
+          const buildPageAnnotations = async (
+            sourceW: number,
+            sourceH: number,
+          ): Promise<Annotation[]> => {
             if (exportPageBundle && resolvedLineGuideId) {
+              const slotUris =
+                Object.values(exportPageBundle.values.photoBlocks ?? {}).flatMap(
+                  (block) => block?.slots ?? [],
+                ) ?? [];
+              await prefetchPhotoUrisSourceSizes(slotUris);
               return buildExportPageAnnotations({
                 lineGuideId: resolvedLineGuideId,
                 schema: exportPageBundle.schema,
@@ -2174,7 +2234,7 @@ export default function ExportPdfScreen() {
             return annotations.filter((ann) => (ann.page || 1) === pageNumber);
           };
 
-          let pageAnnotations = buildPageAnnotations(
+          let pageAnnotations = await buildPageAnnotations(
             pageSourceSize.width,
             pageSourceSize.height,
           );
@@ -2357,8 +2417,6 @@ export default function ExportPdfScreen() {
 
           const page = pdfDoc.addPage([pageWidth, pageHeight]);
           const imageDims = embeddedImage.scale(1);
-          const imageAspectRatio = imageDims.width / imageDims.height;
-          const contentAspectRatio = contentWidth / contentHeight;
 
           // Canonical source size — same as preview (bundle → cache → resolve), not JPEG dims.
           let sourceWidth = pageSourceSize.width;
@@ -2375,7 +2433,15 @@ export default function ExportPdfScreen() {
             }
           }
 
-          pageAnnotations = buildPageAnnotations(sourceWidth, sourceHeight);
+          // Contain-fit by source PNG aspect (not embedded JPEG). JPEG can differ slightly
+          // after optimize/EXIF bake — using JPEG aspect shifted photo slots vs the design.
+          const imageAspectRatio =
+            sourceWidth > 0 && sourceHeight > 0
+              ? sourceWidth / sourceHeight
+              : imageDims.width / imageDims.height;
+          const contentAspectRatio = contentWidth / contentHeight;
+
+          pageAnnotations = await buildPageAnnotations(sourceWidth, sourceHeight);
           
           // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
           const isFirstOrLastPage =

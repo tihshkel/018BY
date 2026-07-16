@@ -12,12 +12,17 @@ import { parseAlbumDate } from '@/utils/albumDateFormat';
 import {
   clampFieldInput,
   countFieldCharacters,
-  FIELD_LIMIT_REFERENCE_VIEWPORT,
   getFieldCharacterLimit,
+  getFieldLimitReferenceViewport,
 } from '@/utils/albumFieldLimits';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
-import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
-import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
+import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
+import {
+  getFieldInputMode,
+  getFieldKeyboardTypeForField,
+} from '@/utils/albumFieldInput';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { getBlankFieldDefaultTextAlign } from '@/utils/templateTextAnnotations';
 
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
@@ -47,14 +52,17 @@ const ALIGN_OPTIONS: {
 export function TextFieldStyleToolbar({
   style,
   defaultAlign,
+  defaultFontSize = 14,
   onChange,
 }: {
   style?: FieldTextStyle;
   defaultAlign: 'left' | 'center' | 'right';
+  /** Базовый кегль альбома, когда пользователь ещё не выбирал размер. */
+  defaultFontSize?: number;
   onChange: (patch: Partial<FieldTextStyle>) => void;
 }) {
   const textAlign = style?.textAlign ?? defaultAlign;
-  const fontSize = style?.fontSize ?? 14;
+  const fontSize = style?.fontSize ?? defaultFontSize;
 
   return (
     <View style={styles.toolbar}>
@@ -211,7 +219,58 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
 }
 
 function isTodoCheckboxField(field: AlbumPageField): boolean {
-  return field.type === 'radio' && /_todo_\d+$/.test(field.fieldId);
+  return field.type === 'radio' && /_(todo|purchased)_\d+$/.test(field.fieldId);
+}
+
+function getShoppingItemNumber(fieldId: string): number | null {
+  const match = /_item_(\d+)$/.exec(fieldId);
+  return match ? Number(match[1]) : null;
+}
+
+function getShoppingPurchasedNumber(fieldId: string): number | null {
+  const match = /_purchased_(\d+)$/.exec(fieldId);
+  return match ? Number(match[1]) : null;
+}
+
+type FormFieldEntry =
+  | { kind: 'field'; field: AlbumPageField }
+  | {
+      kind: 'shopping';
+      itemField: AlbumPageField;
+      purchasedField: AlbumPageField;
+    };
+
+function buildFormFieldEntries(fields: AlbumPageField[]): FormFieldEntry[] {
+  const purchasedByNumber = new Map<number, AlbumPageField>();
+  for (const field of fields) {
+    const purchasedNumber = getShoppingPurchasedNumber(field.fieldId);
+    if (purchasedNumber != null) {
+      purchasedByNumber.set(purchasedNumber, field);
+    }
+  }
+
+  const entries: FormFieldEntry[] = [];
+  const usedPurchased = new Set<string>();
+
+  for (const field of fields) {
+    const itemNumber = getShoppingItemNumber(field.fieldId);
+    if (itemNumber != null) {
+      const purchasedField = purchasedByNumber.get(itemNumber);
+      if (purchasedField) {
+        usedPurchased.add(purchasedField.fieldId);
+        entries.push({ kind: 'shopping', itemField: field, purchasedField });
+        continue;
+      }
+    }
+
+    if (usedPurchased.has(field.fieldId) || getShoppingPurchasedNumber(field.fieldId) != null) {
+      continue;
+    }
+
+    entries.push({ kind: 'field', field });
+  }
+
+  return entries;
 }
 
 function TodoCheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
@@ -229,6 +288,30 @@ function TodoCheckboxFormField({ field, value, onChange }: TypedFormFieldProps) 
       <AppText variant="body" style={styles.todoCheckboxLabel}>
         {field.label}
       </AppText>
+    </Pressable>
+  );
+}
+
+function ShoppingPurchasedCheckbox({
+  field,
+  value,
+  onChange,
+}: {
+  field: AlbumPageField;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const checked = value === 'Да';
+
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={field.label}
+      onPress={() => onChange(checked ? 'Нет' : 'Да')}
+      style={styles.shoppingCheckboxHit}
+    >
+      <View style={[styles.todoCheckboxBox, checked && styles.todoCheckboxBoxChecked]} />
     </Pressable>
   );
 }
@@ -272,11 +355,7 @@ const TypedFormField = memo(function TypedFormField({
         maxLength={characterLimit}
         multiline={isMultiline}
         textAlignVertical={isMultiline ? 'top' : 'center'}
-        inputMode={
-          getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
-            ? 'numeric'
-            : 'text'
-        }
+        inputMode={getFieldInputMode(field)}
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
         autoCapitalize={resolveFormFieldAutoCapitalize(field)}
@@ -324,9 +403,14 @@ const AlbumFormField = memo(function AlbumFormField({
     [fieldId, onFieldChange]
   );
 
-  const defaultAlign =
-    field.fieldId.endsWith('_title') || field.label === 'Заголовок' ? 'center' : 'left';
+  const defaultAlign = isBlankTemplateLineGuide(lineGuideId)
+    ? getBlankFieldDefaultTextAlign(field)
+    : field.fieldId.endsWith('_title') || field.label === 'Заголовок'
+      ? 'center'
+      : 'left';
   const resolvedAlign = fieldStyle?.textAlign ?? defaultAlign;
+  const defaultFontSize =
+    getTemplateTypographyProfile(lineGuideId).fixedLineFontSize ?? 14;
   const showToolbar =
     showTextStyleToolbar &&
     onFieldStyleChange &&
@@ -348,6 +432,7 @@ const AlbumFormField = memo(function AlbumFormField({
         <TextFieldStyleToolbar
           style={fieldStyle}
           defaultAlign={defaultAlign}
+          defaultFontSize={defaultFontSize}
           onChange={(patch) => onFieldStyleChange(fieldId, patch)}
         />
       ) : null}
@@ -394,9 +479,11 @@ export const PageFormFields = memo(function PageFormFields({
   sourcePageNumber,
   fontId,
 }: PageFormFieldsProps) {
-  const showTextStyleToolbar = usesTemplateLineTextEditing(lineGuideId);
+  const showTextStyleToolbar =
+    usesTemplateLineTextEditing(lineGuideId) || isBlankTemplateLineGuide(lineGuideId);
   const resolvedFontId = normalizeAlbumFontId(fontId);
   const fieldLimits = useMemo(() => {
+    const referenceViewport = getFieldLimitReferenceViewport(lineGuideId);
     const limits: Record<string, number | undefined> = {};
     for (const field of fields) {
       limits[field.fieldId] = getFieldCharacterLimit({
@@ -405,14 +492,16 @@ export const PageFormFields = memo(function PageFormFields({
         sourcePageNumber,
         fontId: resolvedFontId,
         fontSize: fieldTextStyles?.[field.fieldId]?.fontSize,
-        viewportWidth: FIELD_LIMIT_REFERENCE_VIEWPORT.width,
-        viewportHeight: FIELD_LIMIT_REFERENCE_VIEWPORT.height,
+        viewportWidth: referenceViewport.width,
+        viewportHeight: referenceViewport.height,
       });
     }
     return limits;
   }, [fields, fieldTextStyles, lineGuideId, resolvedFontId, sourcePageNumber]);
 
   if (fields.length === 0) return null;
+
+  const entries = buildFormFieldEntries(fields);
 
   return (
     <View style={styles.section}>
@@ -421,7 +510,37 @@ export const PageFormFields = memo(function PageFormFields({
           {sectionTitle}
         </AppText>
       ) : null}
-      {fields.map((field) => {
+      {entries.map((entry) => {
+        if (entry.kind === 'shopping') {
+          const { itemField, purchasedField } = entry;
+          const characterLimit = fieldLimits[itemField.fieldId];
+          return (
+            <View key={itemField.fieldId} style={styles.shoppingRow}>
+              <View style={styles.shoppingItemField}>
+                <AlbumFormField
+                  field={itemField}
+                  fieldId={itemField.fieldId}
+                  value={values[itemField.fieldId] ?? ''}
+                  onFieldChange={onChange}
+                  characterLimit={characterLimit}
+                  fieldStyle={fieldTextStyles?.[itemField.fieldId]}
+                  onFieldStyleChange={onFieldStyleChange}
+                  showTextStyleToolbar={showTextStyleToolbar}
+                  lineGuideId={lineGuideId}
+                  sourcePageNumber={sourcePageNumber}
+                  fontId={resolvedFontId}
+                />
+              </View>
+              <ShoppingPurchasedCheckbox
+                field={purchasedField}
+                value={values[purchasedField.fieldId] ?? ''}
+                onChange={(next) => onChange(purchasedField.fieldId, next)}
+              />
+            </View>
+          );
+        }
+
+        const { field } = entry;
         const characterLimit = fieldLimits[field.fieldId];
         const value = values[field.fieldId] ?? '';
 
@@ -538,6 +657,19 @@ const styles = StyleSheet.create({
   },
   todoCheckboxLabel: {
     flex: 1,
+  },
+  shoppingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  shoppingItemField: {
+    flex: 1,
+  },
+  shoppingCheckboxHit: {
+    marginTop: 28,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
   },
   toolbar: {
     flexDirection: 'row',

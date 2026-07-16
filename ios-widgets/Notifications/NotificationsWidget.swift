@@ -20,8 +20,8 @@ struct NotificationsEntryView: View {
                 content(latest)
             } else {
                 WidgetEmptyState(
-                    title: "Уведомлений сегодня нет",
-                    subtitle: "Напоминания из приложения появятся здесь"
+                    title: "Тихий день",
+                    subtitle: "Сегодня уведомлений пока нет"
                 )
                 .widgetURL(WidgetDeepLinks.notifications)
             }
@@ -38,7 +38,7 @@ struct NotificationsEntryView: View {
         case .systemLarge:
             largeView
         case .accessoryInline:
-            Text("018BY · \(WidgetFormatters.trimText(latest.title, maxLength: 28))")
+            Text(WidgetFormatters.trimText(latest.title, maxLength: 32))
                 .font(.system(size: 12, weight: .semibold))
                 .widgetURL(WidgetDeepLinks.notifications)
         case .accessoryRectangular:
@@ -57,27 +57,35 @@ struct NotificationsEntryView: View {
 
     private func smallView(_ latest: WidgetInboxNotificationItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetBrandMark(compact: true)
-            WidgetAccentPill(text: todayNotifications.isEmpty ? "Недавнее" : "Сегодня")
+            HStack {
+                WidgetMetricLabel(text: "Уведомления")
+                Spacer()
+                if entry.snapshot.unreadTodayCount > 0 {
+                    Text("\(entry.snapshot.unreadTodayCount)")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(WidgetColors.primaryDeep)
+                }
+            }
             Text(latest.title)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
             if !latest.body.isEmpty {
-                Text(WidgetFormatters.trimText(latest.body, maxLength: 72))
-                    .font(.system(size: 11, weight: .medium))
+                Text(WidgetFormatters.trimText(latest.body, maxLength: 80))
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(palette.textSecondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
+            Spacer(minLength: 0)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.notifications)
     }
 
     private func mediumView(_ latest: WidgetInboxNotificationItem) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
-                WidgetAccentPill(text: "Уведомления")
+                WidgetMetricLabel(text: "Уведомления")
                 Spacer()
                 if entry.snapshot.unreadTodayCount > 0 {
                     Text("\(entry.snapshot.unreadTodayCount) сегодня")
@@ -86,15 +94,16 @@ struct NotificationsEntryView: View {
                 }
             }
             Text(latest.title)
-                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .font(.system(size: 17, weight: .bold, design: .rounded))
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
             if !latest.body.isEmpty {
                 Text(WidgetFormatters.trimText(latest.body, maxLength: 140))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(4)
             }
+            Spacer(minLength: 0)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.notifications)
@@ -102,36 +111,34 @@ struct NotificationsEntryView: View {
 
     private var largeView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Уведомления сегодня")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-
+            WidgetMetricLabel(text: "Сегодня")
             if todayNotifications.isEmpty, let latest {
                 notificationRow(latest)
             } else {
-                ForEach(Array(todayNotifications.prefix(3).enumerated()), id: \.offset) { _, item in
+                ForEach(Array(todayNotifications.prefix(4).enumerated()), id: \.offset) { _, item in
                     notificationRow(item)
                 }
             }
+            Spacer(minLength: 0)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.notifications)
     }
 
     private func notificationRow(_ item: WidgetInboxNotificationItem) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(item.title)
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(1)
             if !item.body.isEmpty {
                 Text(WidgetFormatters.trimText(item.body, maxLength: 100))
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
 }
 
@@ -144,7 +151,7 @@ struct NotificationsWidget: Widget {
                 .widgetHomeScreenContainer()
         }
         .configurationDisplayName("Уведомления")
-        .description("Текст напоминаний, полученных сегодня.")
+        .description("Текст напоминаний за сегодня.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

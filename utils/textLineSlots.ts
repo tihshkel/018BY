@@ -6,7 +6,12 @@ import {
     getTemplateTypographyProfile,
     isBlankLineGuideAlbum,
     isKidsMonthPage,
+    DESIGNED_LABELED_LINE_TEXT_INSET_NORM,
+    DESIGNED_LINE_EDGE_INSET_NORM,
+    KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX,
+    KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM,
     KIDS_MONTH_LINE_BAND_HEIGHT,
+    KIDS_MONTH_LINE_X_INSET,
     PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
     PREGNANCY_WEEKLY_LINE_PITCH,
 } from "@/constants/album-text-margins";
@@ -206,7 +211,7 @@ function isPurpleGirlProfileSpuriousSlot(
   return slot.y > 0.85;
 }
 
-/** Стр. 15: слот на заголовке «САМОЕ СОКРОВЕННОЕ». */
+/** Стр. 15: слот на заголовке «САМОЕ СОКРОВЕННОЕ» (не линии ввода в peach-блоке). */
 function isBrownPeachBottomTitleSpuriousSlot(
   lineGuideId: string,
   page: number,
@@ -215,7 +220,8 @@ function isBrownPeachBottomTitleSpuriousSlot(
   if (lineGuideId !== "diary_interior_brown" || page !== 15 || slot.hasLabel) {
     return false;
   }
-  return slot.y >= 0.82 && slot.y <= 0.86 && slot.x < 0.2 && slot.width >= 0.4;
+  // Title sits above the peach block (~0.83); answer lines start ~0.85+.
+  return slot.y >= 0.82 && slot.y < 0.85 && slot.x < 0.35 && slot.width >= 0.35;
 }
 
 /** Стр. 16: линия под заголовком розового блока — не поле ввода. */
@@ -348,17 +354,23 @@ function isBrownDaySpreadTitleSpuriousSlot(
 ): boolean {
   if (lineGuideId !== "diary_interior_brown" || slot.hasLabel) return false;
   if (page < 34 || page > 40) return false;
-  if (slot.y >= 0.14 && slot.y <= 0.22 && slot.x < 0.15 && slot.width >= 0.55) {
-    return true;
-  }
-  if (slot.y >= 0.52 && slot.y <= 0.68 && slot.x < 0.15 && slot.width >= 0.55) {
+  // Day titles are short centered fills (e.g. «Вторник» x≈0.38 w≈0.21) —
+  // never full-width writing lines (w≥0.55) under the title.
+  if (
+    slot.y >= 0.20 &&
+    slot.y <= 0.26 &&
+    slot.x >= 0.28 &&
+    slot.x <= 0.55 &&
+    slot.width <= 0.4
+  ) {
     return true;
   }
   if (
     slot.y >= 0.55 &&
-    slot.y <= 0.67 &&
-    slot.x >= 0.35 &&
-    slot.width <= 0.28
+    slot.y <= 0.64 &&
+    slot.x >= 0.28 &&
+    slot.x <= 0.55 &&
+    slot.width <= 0.4
   ) {
     return true;
   }
@@ -488,7 +500,7 @@ function refineBrownPage16PeachBlockNorm(
   return { ...norm, height: cellHeight };
 }
 
-/** Стр. 21: хвосты вопросов — не залезать на текст подписи. */
+/** Стр. 21 «Путешествия»: хвосты после подписей — не залезать на печатный вопрос. */
 function refineBrownPage21LabeledRowNorm(
   page: number,
   norm: NormalizedLineSlot,
@@ -496,18 +508,30 @@ function refineBrownPage21LabeledRowNorm(
   if (page !== 21 || norm.hasLabel) return norm;
 
   const rowMinX: Array<{ minY: number; maxY: number; minX: number }> = [
-    { minY: 0.318, maxY: 0.338, minX: 0.52 },
-    { minY: 0.398, maxY: 0.418, minX: 0.5 },
-    { minY: 0.458, maxY: 0.478, minX: 0.56 },
-    { minY: 0.628, maxY: 0.648, minX: 0.58 },
+    { minY: 0.165, maxY: 0.19, minX: 0.45 },
+    { minY: 0.31, maxY: 0.34, minX: 0.52 },
+    { minY: 0.385, maxY: 0.412, minX: 0.39 },
+    { minY: 0.42, maxY: 0.45, minX: 0.46 },
+    { minY: 0.46, maxY: 0.49, minX: 0.78 },
+    { minY: 0.54, maxY: 0.57, minX: 0.69 },
+    { minY: 0.615, maxY: 0.65, minX: 0.58 },
+    { minY: 0.655, maxY: 0.69, minX: 0.58 },
+    { minY: 0.74, maxY: 0.77, minX: 0.69 },
   ];
 
   for (const row of rowMinX) {
     if (norm.y < row.minY || norm.y > row.maxY) continue;
-    if (norm.x >= row.minX) return norm;
+    if (norm.x >= row.minX) {
+      return { ...norm, inlineLabelTail: true };
+    }
     const right = norm.x + norm.width;
     const x = row.minX;
-    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+    return {
+      ...norm,
+      x,
+      width: Math.max(0.05, Math.min(right - x, 0.98 - x)),
+      inlineLabelTail: true,
+    };
   }
 
   return norm;
@@ -521,29 +545,37 @@ function refineBrownPage24ListRowNorm(
   if (page !== 24 || norm.hasLabel) return norm;
 
   const rowMinX: Array<{ minY: number; maxY: number; minX: number }> = [
-    { minY: 0.288, maxY: 0.312, minX: 0.5 },
-    { minY: 0.332, maxY: 0.356, minX: 0.4 },
-    { minY: 0.378, maxY: 0.402, minX: 0.52 },
-    { minY: 0.422, maxY: 0.446, minX: 0.53 },
-    { minY: 0.466, maxY: 0.492, minX: 0.6 },
-    { minY: 0.508, maxY: 0.534, minX: 0.58 },
+    { minY: 0.285, maxY: 0.305, minX: 0.47 },
+    { minY: 0.325, maxY: 0.35, minX: 0.37 },
+    { minY: 0.37, maxY: 0.395, minX: 0.5 },
+    { minY: 0.415, maxY: 0.44, minX: 0.51 },
+    { minY: 0.46, maxY: 0.485, minX: 0.59 },
+    { minY: 0.5, maxY: 0.525, minX: 0.56 },
   ];
 
   for (const row of rowMinX) {
     if (norm.y < row.minY || norm.y > row.maxY) continue;
     if (norm.x >= row.minX) return norm;
     const right = norm.x + norm.width;
+    // Never shrink past a usable answer width — prefer the real stroke end.
     const x = row.minX;
-    return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+    const width = Math.max(0.2, Math.min(right - x, 0.98 - x));
+    if (width < 0.15) return norm;
+    return { ...norm, x, width, inlineLabelTail: true };
   }
 
+  // Numbered list: sit just after the pink circles (cx≈0.124, radius≈0.033).
   if (norm.y < 0.63) return norm;
 
-  const minX = 0.22;
-  if (norm.x >= minX) return norm;
+  const listMinX = 0.155;
+  if (Math.abs(norm.x - listMinX) < 0.005) return norm;
   const right = norm.x + norm.width;
-  const x = minX;
-  return { ...norm, x, width: Math.max(0.05, Math.min(right - x, 0.98 - x)) };
+  const x = listMinX;
+  return {
+    ...norm,
+    x,
+    width: Math.max(0.2, Math.min(right - x, 0.98 - x)),
+  };
 }
 
 /** Стр. 17: единая высота полос на линиях. */
@@ -651,11 +683,13 @@ function refineBrownPage31LabeledRowNorm(
   if (page !== 31 || norm.hasLabel) return norm;
 
   let refined = applyBrownLabeledRowMinX(norm, [
-    { minY: 0.412, maxY: 0.432, minX: 0.55 },
-    { minY: 0.478, maxY: 0.498, minX: 0.42 },
-    { minY: 0.544, maxY: 0.564, minX: 0.62 },
-    { minY: 0.618, maxY: 0.638, minX: 0.65 },
-    { minY: 0.868, maxY: 0.888, minX: 0.52 },
+    { minY: 0.31, maxY: 0.335, minX: 0.61 },
+    { minY: 0.405, maxY: 0.43, minX: 0.53 },
+    { minY: 0.47, maxY: 0.495, minX: 0.39 },
+    { minY: 0.535, maxY: 0.56, minX: 0.6 },
+    { minY: 0.61, maxY: 0.635, minX: 0.64 },
+    { minY: 0.685, maxY: 0.715, minX: 0.82 },
+    { minY: 0.86, maxY: 0.885, minX: 0.51 },
   ]);
 
   if (refined.inputKind !== "block" && refined.y >= 0.32 && refined.y <= 0.94) {
@@ -689,7 +723,7 @@ function isBrownWideBlockAnswerSlot(slot: NormalizedLineSlot): boolean {
   return !slot.hasLabel && slot.x < 0.15 && slot.width >= 0.72;
 }
 
-/** Стр. 13: хвост «Любимый мультфильм» (PNG ny≈0.4663, left≈0.435). */
+/** Стр. 13: хвост «Любимый мультфильм» (stroke ny≈0.429, left≈0.388). */
 function isBrownPage13CartoonTailNorm(
   lineGuideId: string,
   page: number,
@@ -699,11 +733,11 @@ function isBrownPage13CartoonTailNorm(
     return false;
   }
   return (
-    norm.y >= 0.468 &&
-    norm.y <= 0.482 &&
-    norm.x >= 0.42 &&
+    norm.y >= 0.420 &&
+    norm.y <= 0.440 &&
+    norm.x >= 0.36 &&
     norm.width >= 0.38 &&
-    norm.width <= 0.52
+    norm.width <= 0.55
   );
 }
 
@@ -717,7 +751,7 @@ function isBrownPage13FavoritesLabelTailSlot(
     return false;
   }
   return (
-    slot.y >= 0.455 &&
+    slot.y >= 0.420 &&
     slot.y <= 0.555 &&
     slot.x >= 0.28 &&
     slot.width >= 0.38 &&
@@ -815,6 +849,21 @@ const BROWN_WISH_HEAD_TEXT_INSET_NORM = 0.012;
 /** Стр. 6: короткая строка ответа справа от «?» (~75–80% ширины макета). */
 const BROWN_PAGE6_CAREER_HEAD_LEFT_NORM = 0.768;
 const BROWN_PAGE6_CAREER_HEAD_WIDTH_NORM = 0.127;
+/**
+ * Стр. 6 «Твоя анкета»: длинные вопросы — ответ только в хвосте справа от подписи
+ * (PNG: season labelEnd≈0.63, pets≈0.51).
+ */
+const BROWN_PAGE6_SEASON_ANSWER_LEFT_NORM = 0.645;
+const BROWN_PAGE6_SEASON_ANSWER_WIDTH_NORM = 0.265;
+const BROWN_PAGE6_PETS_ANSWER_LEFT_NORM = 0.52;
+const BROWN_PAGE6_PETS_ANSWER_WIDTH_NORM = 0.39;
+/**
+ * Анкета мамы/папы: первая строка «Пожелания…» — короткий хвост на линии подписи
+ * (PNG: labelEnd≈0.534, strokeY≈0.77), далее 3 wide-продолжения.
+ */
+const BROWN_WISH_LABEL_HEAD_Y_NORM = 0.77;
+const BROWN_WISH_LABEL_HEAD_LEFT_NORM = 0.545;
+const BROWN_WISH_LABEL_HEAD_WIDTH_NORM = 0.35;
 
 export function isBrownPage6CareerShortHeadNorm(
   lineGuideId: string,
@@ -862,10 +911,10 @@ export function isBrownWishShortHeadNorm(
     (lineGuideId === "diary_interior_brown" ||
       lineGuideId === "diary_interior_purple") &&
     !norm.hasLabel &&
-    norm.y >= 0.772 &&
+    norm.y >= 0.762 &&
     norm.y <= 0.79 &&
     norm.x >= 0.27 &&
-    norm.width >= 0.3 &&
+    norm.width >= 0.25 &&
     norm.width < 0.66
   );
 }
@@ -879,9 +928,135 @@ export function isBrownWishContinuationNorm(
       lineGuideId === "diary_interior_purple") &&
     norm.inputKind === "block" &&
     !norm.hasLabel &&
-    norm.y >= 0.815 &&
+    norm.y >= 0.798 &&
     norm.width >= 0.65
   );
+}
+
+function isDiaryParentQuestionnairePage(
+  lineGuideId: string,
+  page: number,
+): boolean {
+  return (
+    (lineGuideId === "diary_interior_brown" && (page === 7 || page === 8)) ||
+    (lineGuideId === "diary_interior_purple" && (page === 6 || page === 7))
+  );
+}
+
+/** Стр. 6: «время года» / «питомцы» — слоты OCR начинались под текстом вопроса. */
+function refineBrownGirlProfileLongQuestionTailNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (lineGuideId !== "diary_interior_brown" || page !== 6 || norm.hasLabel) {
+    return norm;
+  }
+
+  if (norm.y >= 0.47 && norm.y <= 0.51 && norm.x < 0.55) {
+    return {
+      ...norm,
+      x: BROWN_PAGE6_SEASON_ANSWER_LEFT_NORM,
+      width: BROWN_PAGE6_SEASON_ANSWER_WIDTH_NORM,
+    };
+  }
+
+  if (norm.y >= 0.525 && norm.y <= 0.56 && norm.x < 0.48) {
+    return {
+      ...norm,
+      x: BROWN_PAGE6_PETS_ANSWER_LEFT_NORM,
+      width: BROWN_PAGE6_PETS_ANSWER_WIDTH_NORM,
+    };
+  }
+
+  return norm;
+}
+
+/**
+ * «Пожелания хозяйке…»: первая строка — хвост на линии подписи, далее wide-линии.
+ * PDF/overrides часто отдавали только 4 blank-линии ниже подписи.
+ */
+function refineBrownParentWishFieldNorm(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+  allNorms: readonly NormalizedLineSlot[],
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (!isDiaryParentQuestionnairePage(lineGuideId, page) || norm.hasLabel) {
+    return norm;
+  }
+
+  const continuationWidth = Math.max(
+    0.5,
+    Math.min(0.91 - BROWN_WISH_CONTINUATION_LEFT_NORM, 0.98 - BROWN_WISH_CONTINUATION_LEFT_NORM),
+  );
+
+  const hasCalibratedHead = allNorms.some(
+    (slot) =>
+      !slot.hasLabel &&
+      slot.y >= 0.762 &&
+      slot.y <= 0.79 &&
+      slot.x >= 0.4 &&
+      slot.width > 0.2 &&
+      slot.width < 0.55,
+  );
+
+  if (hasCalibratedHead) {
+    if (
+      norm.y >= 0.798 &&
+      norm.y <= 0.94 &&
+      norm.width >= 0.6
+    ) {
+      return {
+        ...norm,
+        x: BROWN_WISH_CONTINUATION_LEFT_NORM,
+        width: continuationWidth,
+        inputKind: "block",
+      };
+    }
+    return norm;
+  }
+
+  const wishIndexes = allNorms
+    .map((slot, index) => ({ slot, index }))
+    .filter(
+      ({ slot }) =>
+        !slot.hasLabel &&
+        slot.y >= 0.76 &&
+        slot.y <= 0.94 &&
+        slot.width >= 0.6,
+    )
+    .sort((a, b) => a.slot.y - b.slot.y || a.index - b.index)
+    .map(({ index }) => index);
+
+  if (wishIndexes.length < 3) return norm;
+
+  const idxs =
+    wishIndexes.length > 4 ? wishIndexes.slice(0, 4) : wishIndexes;
+  const rank = idxs.indexOf(slotIndex);
+  if (rank < 0) return norm;
+
+  if (rank === 0) {
+    const { inputKind: _drop, ...rest } = norm;
+    return {
+      ...rest,
+      y: BROWN_WISH_LABEL_HEAD_Y_NORM,
+      x: BROWN_WISH_LABEL_HEAD_LEFT_NORM,
+      width: BROWN_WISH_LABEL_HEAD_WIDTH_NORM,
+      height: norm.height || 0.028,
+    };
+  }
+
+  // Сдвигаем продолжения на исходные Y предыдущих blank-линий (head занял линию подписи).
+  const source = allNorms[idxs[rank - 1]] ?? norm;
+  return {
+    ...norm,
+    y: source.y,
+    x: BROWN_WISH_CONTINUATION_LEFT_NORM,
+    width: continuationWidth,
+    inputKind: "block",
+  };
 }
 
 function refineBrownParentQuestionnaireRowNorm(
@@ -889,14 +1064,19 @@ function refineBrownParentQuestionnaireRowNorm(
   page: number,
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
-  const isParentPage =
-    (lineGuideId === "diary_interior_brown" && (page === 7 || page === 8)) ||
-    (lineGuideId === "diary_interior_purple" && (page === 6 || page === 7));
+  const isParentPage = isDiaryParentQuestionnairePage(lineGuideId, page);
   const isGirlProfilePage =
     lineGuideId === "diary_interior_brown" && page === 6;
   if (!isParentPage && !isGirlProfilePage) return norm;
   if (norm.inputKind === "block") return norm;
   if (norm.y < 0.22 || norm.y > 0.82) return norm;
+  // Длинные вопросы стр. 6 правятся отдельно (хвост после подписи).
+  if (
+    isGirlProfilePage &&
+    ((norm.y >= 0.47 && norm.y <= 0.51) || (norm.y >= 0.525 && norm.y <= 0.56))
+  ) {
+    return norm;
+  }
 
   const minAnswerLeft = 0.32;
   if (norm.x >= minAnswerLeft || norm.width <= 0.45) return norm;
@@ -930,8 +1110,8 @@ function refineKidsMonthLineSlotNorm(
 
   return {
     ...norm,
-    x: writable.x,
-    width: writable.width,
+    x: writable.x + KIDS_MONTH_LINE_X_INSET,
+    width: Math.max(0.05, writable.width - KIDS_MONTH_LINE_X_INSET),
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     continuationGroup: slotIndex,
@@ -941,12 +1121,15 @@ function refineKidsMonthLineSlotNorm(
   };
 }
 
-/** «Рост и вес до года» — PDF даёт высокую ячейку; штрих на y, полоса как у месячных страниц. */
+/**
+ * «Рост и вес до года» — PDF даёт высокую ячейку; печатная линия = norm.y
+ * (низ подписи возраста / низ заголовка ряда), полоса ввода над штрихом.
+ */
 function refineKids48GrowthWeightSlot(
   page: number,
   norm: NormalizedLineSlot,
 ): NormalizedLineSlot {
-  if (page !== 11 || norm.height <= KIDS_MONTH_LINE_BAND_HEIGHT) {
+  if (page !== 11) {
     return norm;
   }
   const strokeY = norm.y;
@@ -995,44 +1178,54 @@ function shouldRefineKids48StandardRuledLineSlot(
   if (isKidsTeethPage(page)) return false;
   if (isKidsEventDateLineSlot("kids_48", page, slotIndex)) return false;
   if (isKidsBottomDateLineSlot(page, slotIndex)) return false;
-  if (isKidsP16DreamsDateLineSlot(page, slotIndex)) return false;
-  if (isKidsP13DateLineSlot(page, slotIndex)) return false;
-  if (isKidsP13AchievementLineSlot(page, slotIndex)) return false;
+  if (isKidsP16DreamsTopDateLineSlot(page, slotIndex)) return false;
+  if (isKidsP20BaptismDateLineSlot(page, slotIndex)) return false;
+  // p13: stroke-baseline задаётся override (PAGE_13_SLOTS) + inset ниже.
   if (page === 5) return false;
   return norm.height > KIDS_MONTH_LINE_BAND_HEIGHT || !norm.lineStrokeAtBottom;
 }
 
 /** kids_48 p8 «Первый день дома» — дата справа от статической подписи «ДАТА». */
 
-/** kids_48 нижняя дата «ДАТА» — slot 0 на p12/14/15/17, slot 1 на p18/19. */
-const KIDS_BOTTOM_DATE_PAGES: readonly number[] = [12, 14, 15, 17];
-const KIDS_BOTTOM_DATE_SLOT1_PAGES: readonly number[] = [18, 19];
-const KIDS_BOTTOM_DATE_LINE_TEXT_INSET_NORM = 0.024;
-/** Доп. ширина справа — OCR-слот уже, чем линия под датой DD.MM.YYYY. */
-const KIDS_BOTTOM_DATE_LINE_EXTRA_RIGHT_NORM = 0.034;
+/**
+ * Нижняя дата «ДАТА» — slot 0.
+ * Sync с EVENT_DATE_PAGES / bottomDateLine в kids-48-line-slot-overrides.js.
+ */
+const KIDS_BOTTOM_DATE_PAGES: readonly number[] = [12, 14, 15, 17, 18, 19];
+/** Слот уже на underline сразу после «ДАТА» (x≈0.418, w≈0.232). */
+const KIDS_BOTTOM_DATE_LINE_X = 0.418;
+const KIDS_BOTTOM_DATE_LINE_WIDTH = 0.232;
+const KIDS_BOTTOM_DATE_STROKE_Y = 0.9135;
 
-/** kids_48 p16 «Мои сновидения» — дата после «(ДАТА)», OCR-слот узкий. */
+/** kids_48 p16 «Мои сновидения» — дата после «(ДАТА)» вверху (design page_016). */
 const KIDS_DREAMS_PAGE = 16;
-const KIDS_P16_DATE_LINE_TEXT_INSET_NORM = 0.012;
+/** Отступ от печатного «(ДАТА)» — sync с PAGE_16_* в kids-48-line-slot-overrides.js. */
+const KIDS_P16_DATE_LINE_X = 0.7152;
+const KIDS_P16_DATE_LINE_WIDTH = 0.1421;
+const KIDS_P16_DATE_STROKE_Y = 0.2116;
+
+/** kids_48 p20 «Таинство крещения» — дата после «ДАТА» под заголовком. */
+const KIDS_BAPTISM_PAGE = 20;
+const KIDS_P20_DATE_LINE_X = 0.418;
+const KIDS_P20_DATE_LINE_WIDTH = 0.232;
+const KIDS_P20_DATE_STROKE_Y = 0.2368;
 
 const KIDS_ACHIEVEMENTS_PAGE = 13;
 /** kids_48 p13 «Мои достижения» — отступ вводимого текста от статической подписи. */
-const KIDS_P13_DATE_LINE_TEXT_INSET_NORM = 0.02;
+/** Дата слева от «(ДАТА)» — sync с PAGE_13_SLOTS в kids-48-line-slot-overrides.js. */
+const KIDS_P13_DATE_LINE_X = 0.24;
+const KIDS_P13_DATE_LINE_WIDTH = 0.17;
+const KIDS_P13_DATE_STROKE_Y = 0.18585;
 const KIDS_P13_ACHIEVEMENT_LINE_TEXT_INSET_NORM = 0.018;
-/** Слот «Ползаю» — OCR начинается левее остальных строк. */
-const KIDS_P13_CRAWLS_LINE_TEXT_INSET_NORM = 0.034;
 
 const KIDS_TEETH_PAGE = 10;
-const KIDS_TEETH_TOOTH_LINE_WIDTH_NORM = 0.132;
-/** Нижняя челюсть справа — даты чуть правее, чтобы не наезжать на номера зубов. */
-const KIDS_TEETH_LOWER_RIGHT_DATE_X_INSET_NORM = 0.02;
-/** Нижняя челюсть слева — симметрично левее. */
-const KIDS_TEETH_LOWER_LEFT_DATE_X_INSET_NORM = 0.016;
-const KIDS_TEETH_LOWER_JAW_STROKE_Y_MIN = 0.53;
-const KIDS_TEETH_BRUSHING_WRITABLE_X = 0.562;
-const KIDS_TEETH_BRUSHING_WRITABLE_WIDTH = 0.36;
-const KIDS_TEETH_COUNT_WRITABLE_X = 0.524;
-const KIDS_TEETH_COUNT_WRITABLE_WIDTH = 0.065;
+/** Калибровка design_previews/page_010_design.png — не OCR-guide. */
+const KIDS_TEETH_BRUSHING_WRITABLE_X = 0.5584;
+const KIDS_TEETH_BRUSHING_WRITABLE_WIDTH = 0.1738;
+const KIDS_TEETH_BRUSHING_STROKE_Y = 0.838;
+const KIDS_TEETH_COUNT_WRITABLE_X = 0.5248;
+const KIDS_TEETH_COUNT_WRITABLE_WIDTH = 0.052;
+const KIDS_TEETH_COUNT_STROKE_Y = 0.8975;
 
 function isKidsTeethPage(page: number): boolean {
   return page === KIDS_TEETH_PAGE;
@@ -1066,20 +1259,10 @@ function refineKidsTeethPageSlotNorm(
 ): NormalizedLineSlot {
   if (lineGuideId !== "kids_48" || !isKidsTeethPage(page)) return norm;
 
+  // Слоты 0–19: x/width уже = начало/длина underline (kids-48-line-slot-overrides).
   if (slotIndex <= 19) {
-    const centerX = norm.x + norm.width / 2;
-    const width = KIDS_TEETH_TOOTH_LINE_WIDTH_NORM;
-    let x = clamp01(centerX - width / 2);
-    const isLowerJaw = norm.y >= KIDS_TEETH_LOWER_JAW_STROKE_Y_MIN;
-    if (isLowerJaw && centerX >= 0.48) {
-      x = clamp01(x + KIDS_TEETH_LOWER_RIGHT_DATE_X_INSET_NORM);
-    } else if (isLowerJaw && centerX < 0.45) {
-      x = clamp01(x - KIDS_TEETH_LOWER_LEFT_DATE_X_INSET_NORM);
-    }
     return {
       ...norm,
-      x,
-      width: Math.max(0.05, Math.min(width, 0.98 - x)),
       inputKind: "line",
       lineStrokeAtBottom: true,
       textAnchorTop: true,
@@ -1091,6 +1274,7 @@ function refineKidsTeethPageSlotNorm(
       ...norm,
       x: KIDS_TEETH_BRUSHING_WRITABLE_X,
       width: KIDS_TEETH_BRUSHING_WRITABLE_WIDTH,
+      y: KIDS_TEETH_BRUSHING_STROKE_Y - KIDS_MONTH_LINE_BAND_HEIGHT,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
       inputKind: "line",
       lineStrokeAtBottom: true,
@@ -1103,6 +1287,7 @@ function refineKidsTeethPageSlotNorm(
       ...norm,
       x: KIDS_TEETH_COUNT_WRITABLE_X,
       width: KIDS_TEETH_COUNT_WRITABLE_WIDTH,
+      y: KIDS_TEETH_COUNT_STROKE_Y - KIDS_MONTH_LINE_BAND_HEIGHT,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
       inputKind: "line",
       lineStrokeAtBottom: true,
@@ -1124,10 +1309,7 @@ function isKidsEventDateLineSlot(
 }
 
 function isKidsBottomDateLineSlot(page: number, slotIndex: number): boolean {
-  if (slotIndex === 0 && KIDS_BOTTOM_DATE_PAGES.includes(page)) return true;
-  if (slotIndex === 1 && KIDS_BOTTOM_DATE_SLOT1_PAGES.includes(page))
-    return true;
-  return false;
+  return slotIndex === 0 && KIDS_BOTTOM_DATE_PAGES.includes(page);
 }
 
 function isKidsP12DateLineSlot(page: number, slotIndex: number): boolean {
@@ -1148,8 +1330,20 @@ function isKidsP12StrokeLineInputSlot(
   return isKidsBottomDateStrokeLineInputSlot(page, slotIndex);
 }
 
-function isKidsP16DreamsDateLineSlot(page: number, slotIndex: number): boolean {
+/** p16 верхнее поле «(ДАТА)» у заголовка — не путать с нижней датой. */
+function isKidsP16DreamsTopDateLineSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
   return page === KIDS_DREAMS_PAGE && slotIndex === 0;
+}
+
+/** p20 «Таинство крещения» — дата на штрихе под заголовком. */
+function isKidsP20BaptismDateLineSlot(
+  page: number,
+  slotIndex: number,
+): boolean {
+  return page === KIDS_BAPTISM_PAGE && slotIndex === 0;
 }
 
 function isKidsStrokeDateLineInputSlot(
@@ -1159,7 +1353,8 @@ function isKidsStrokeDateLineInputSlot(
   if (isKidsEventDateLineSlot("kids_48", page, slotIndex)) return false;
   return (
     isKidsBottomDateStrokeLineInputSlot(page, slotIndex) ||
-    isKidsP16DreamsDateLineSlot(page, slotIndex)
+    isKidsP16DreamsTopDateLineSlot(page, slotIndex) ||
+    isKidsP20BaptismDateLineSlot(page, slotIndex)
   );
 }
 
@@ -1183,8 +1378,73 @@ function applyLabeledLineTextInset(
   return { ...norm, x, width };
 }
 
-function resolveKidsP13AchievementLineInset(slotIndex: number): number {
-  if (slotIndex === 3) return KIDS_P13_CRAWLS_LINE_TEXT_INSET_NORM;
+function isDesignedAlbumWithInteriorBreathingRoom(lineGuideId: string): boolean {
+  return (
+    lineGuideId === "kids_48" ||
+    lineGuideId === "pregnancy_60" ||
+    lineGuideId === "pregnancy_a5"
+  );
+}
+
+/**
+ * Отступ пользовательского текста от печатной внутрянки (подписи, края макета).
+ * Не трогает block-ячейки — у них свои insets.
+ */
+function applyDesignedAlbumBreathingRoom(
+  lineGuideId: string,
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (!isDesignedAlbumWithInteriorBreathingRoom(lineGuideId)) {
+    return norm;
+  }
+
+  let next = norm;
+
+  if (lineGuideId === "kids_48" && page === 5) {
+    const layoutNudge = KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX[slotIndex];
+    const xNudge = layoutNudge?.dx ?? 0;
+    const yNudge = layoutNudge?.dy ?? KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM;
+    const nextWidth = layoutNudge?.width ?? next.width;
+    next = {
+      ...next,
+      x: clamp01(next.x + xNudge),
+      y: clamp01(next.y + yNudge),
+      width: Math.min(nextWidth, Math.max(0.04, 1 - (next.x + xNudge))),
+    };
+  }
+
+  if ((next.inputKind ?? "line") === "block") {
+    return next;
+  }
+
+  if (next.hasLabel || next.inlineLabelTail) {
+    return applyLabeledLineTextInset(next, DESIGNED_LABELED_LINE_TEXT_INSET_NORM);
+  }
+
+  // Широкие строки у левого края — чуть отодвинуть от декоративных точек/рамки.
+  if (next.x < 0.18 && next.width >= 0.5) {
+    return applyLabeledLineTextInset(next, DESIGNED_LINE_EDGE_INSET_NORM);
+  }
+
+  // Короткие ответы после печатной подписи без флага hasLabel (даты kids и т.п.).
+  if (
+    lineGuideId === "kids_48" &&
+    next.x >= 0.25 &&
+    next.x <= 0.55 &&
+    next.width > 0.12 &&
+    next.width < 0.4
+  ) {
+    return applyLabeledLineTextInset(next, DESIGNED_LINE_EDGE_INSET_NORM);
+  }
+
+  void slotIndex;
+  return next;
+}
+
+function resolveKidsP13AchievementLineInset(_slotIndex: number): number {
+  // Writable X уже откалиброван в PAGE_13_SLOTS (после подписи).
   return KIDS_P13_ACHIEVEMENT_LINE_TEXT_INSET_NORM;
 }
 
@@ -1218,38 +1478,46 @@ function refineNormalizedSlotForTextLayout(
 
   if (
     lineGuideId === "kids_48" &&
-    isKidsP16DreamsDateLineSlot(page, slotIndex)
+    isKidsP16DreamsTopDateLineSlot(page, slotIndex)
   ) {
-    const inset = KIDS_P16_DATE_LINE_TEXT_INSET_NORM;
-    const x = clamp01(norm.x + inset);
-    const width = Math.max(0.12, 0.98 - x);
     return {
       ...norm,
-      x,
-      width,
-      y: norm.y,
+      x: KIDS_P16_DATE_LINE_X,
+      width: KIDS_P16_DATE_LINE_WIDTH,
+      y: KIDS_P16_DATE_STROKE_Y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
       inputKind: "line",
       lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  }
+
+  if (
+    lineGuideId === "kids_48" &&
+    isKidsP20BaptismDateLineSlot(page, slotIndex)
+  ) {
+    return {
+      ...norm,
+      x: KIDS_P20_DATE_LINE_X,
+      width: KIDS_P20_DATE_LINE_WIDTH,
+      y: KIDS_P20_DATE_STROKE_Y,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: "line",
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
   if (lineGuideId === "kids_48" && isKidsBottomDateLineSlot(page, slotIndex)) {
-    const inset = KIDS_BOTTOM_DATE_LINE_TEXT_INSET_NORM;
-    const x = clamp01(norm.x + inset);
-    const rightEdge = Math.min(
-      0.98,
-      norm.x + norm.width + inset + KIDS_BOTTOM_DATE_LINE_EXTRA_RIGHT_NORM,
-    );
-    const width = Math.max(0.1, rightEdge - x);
     return {
       ...norm,
-      x,
-      width,
-      y: norm.y,
+      x: KIDS_BOTTOM_DATE_LINE_X,
+      width: KIDS_BOTTOM_DATE_LINE_WIDTH,
+      y: KIDS_BOTTOM_DATE_STROKE_Y,
       height: KIDS_MONTH_LINE_BAND_HEIGHT,
       inputKind: "line",
       lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
@@ -1258,7 +1526,16 @@ function refineNormalizedSlotForTextLayout(
   }
 
   if (lineGuideId === "kids_48" && isKidsP13DateLineSlot(page, slotIndex)) {
-    return applyLabeledLineTextInset(norm, KIDS_P13_DATE_LINE_TEXT_INSET_NORM);
+    return {
+      ...norm,
+      x: KIDS_P13_DATE_LINE_X,
+      width: KIDS_P13_DATE_LINE_WIDTH,
+      y: KIDS_P13_DATE_STROKE_Y - KIDS_MONTH_LINE_BAND_HEIGHT,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: "line",
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
   }
 
   if (
@@ -1266,7 +1543,13 @@ function refineNormalizedSlotForTextLayout(
     isKidsP13AchievementLineSlot(page, slotIndex)
   ) {
     return applyLabeledLineTextInset(
-      norm,
+      {
+        ...norm,
+        height: KIDS_MONTH_LINE_BAND_HEIGHT,
+        inputKind: "line",
+        lineStrokeAtBottom: true,
+        textAnchorTop: true,
+      },
       resolveKidsP13AchievementLineInset(slotIndex),
     );
   }
@@ -1279,7 +1562,12 @@ function refineNormalizedSlotForTextLayout(
     lineGuideId === "kids_48" &&
     shouldRefineKids48StandardRuledLineSlot(page, slotIndex, norm)
   ) {
-    return refineKids48StandardRuledLineSlot(norm);
+    const refined = refineKids48StandardRuledLineSlot(norm);
+    // p1 «Дата рождения» — writable правее конца печатной подписи.
+    if (page === 1 && slotIndex === 1) {
+      return applyLabeledLineTextInset(refined, 0.03);
+    }
+    return refined;
   }
 
   if (isPregnancyRuledNotebookPage(lineGuideId, page)) {
@@ -1310,6 +1598,18 @@ function refineNormalizedSlotForTextLayout(
   }
 
   let refined = refineBrownParentQuestionnaireRowNorm(lineGuideId, page, norm);
+  refined = refineBrownGirlProfileLongQuestionTailNorm(
+    lineGuideId,
+    page,
+    refined,
+  );
+  refined = refineBrownParentWishFieldNorm(
+    lineGuideId,
+    page,
+    refined,
+    allNorms,
+    slotIndex,
+  );
   if (lineGuideId === "diary_interior_brown") {
     refined = refineBrownPage16PeachBlockNorm(page, refined, allNorms);
     refined = refineBrownPage15PeachLineNorm(page, refined);
@@ -1416,17 +1716,18 @@ const PREGNANCY_WEEKLY_CALIB: Readonly<
     pageWidth: 2126,
     pageHeight: 2835,
     boxRight: 2126,
-    lineHeightNorm: 0.032,
-    weight: { valueX: 1419, topY: 542 },
-    belly: { valueX: 1809, topY: 672 },
+    // Выше — покрывает ряд бежевого блока; текст центрируется внутри.
+    lineHeightNorm: 0.05,
+    weight: { valueX: 1419, topY: 528 },
+    belly: { valueX: 1809, topY: 655 },
   },
   pregnancy_a5: {
     pageWidth: 1796,
     pageHeight: 2528,
     boxRight: 1673,
-    lineHeightNorm: 0.038,
-    weight: { valueX: 1210, topY: 514 },
-    belly: { valueX: 1527, topY: 618 },
+    lineHeightNorm: 0.055,
+    weight: { valueX: 1210, topY: 500 },
+    belly: { valueX: 1527, topY: 600 },
   },
 };
 
@@ -1589,18 +1890,19 @@ export function isPregnancyRuledNotebookPage(
  */
 export function isPregnancyWeeklyTextLineSlot(
   lineGuideId: string | undefined,
-  slot: Pick<
-    TextLineSlot,
-    | "page"
-    | "index"
-    | "inputKind"
-    | "textAnchorTop"
-    | "hasLabel"
-    | "normHeight"
-    | "inlineLabelTail"
-    | "x"
-    | "continuationGroup"
-  >,
+  slot: Pick<TextLineSlot, "page" | "index"> &
+    Partial<
+      Pick<
+        TextLineSlot,
+        | "inputKind"
+        | "textAnchorTop"
+        | "hasLabel"
+        | "normHeight"
+        | "inlineLabelTail"
+        | "x"
+        | "continuationGroup"
+      >
+    >,
   allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (
@@ -1615,7 +1917,21 @@ export function isPregnancyWeeklyTextLineSlot(
   if (slot.inlineLabelTail) return true;
   if (
     allSlots &&
-    isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, slot, allSlots)
+    typeof slot.x === "number" &&
+    typeof slot.continuationGroup === "number" &&
+    isPregnancyWeeklyInlineTailLabelSlot(
+      lineGuideId,
+      {
+        page: slot.page,
+        index: slot.index,
+        x: slot.x,
+        hasLabel: slot.hasLabel ?? false,
+        continuationGroup: slot.continuationGroup,
+        normHeight: slot.normHeight,
+        inlineLabelTail: slot.inlineLabelTail,
+      },
+      allSlots,
+    )
   ) {
     return true;
   }
@@ -2143,15 +2459,50 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.width ?? "",
     rect?.height ?? "",
     "kids-event-date-line-v2",
-    "kids-bottom-date-line-v5",
-    "kids-p16-dreams-date-v2",
-    "kids-p13-line-inset-v1",
-    "kids-teeth-page-v20",
+    "kids-bottom-date-line-v10",
+    "kids-p48-caption-photo-v1",
+    "kids-p16-dreams-date-v6",
+    "kids-p20-baptism-date-v1",
+    "kids-p13-stroke-baseline-v3",
+    "kids-p13-date-left-of-label-v2",
+    "kids-teeth-page-v24",
+    "kids-growth-weight-v3",
     "kids-standard-ruled-line-v2",
+    "kids-stroke-clearance-v1",
+    "kids-p1-photo-middle-band-v1",
+    "kids-p1-answer-baseline-sink-v2",
+    // Авто-инвалидация при правке layout имён / слотов p5
+    `kids-family-tree-names-v2:${JSON.stringify(KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX)}:${KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM}`,
+    "kids-teeth-bottom-stroke-v6",
     "pregnancy-weekly-skip-dense-spacing-v1",
-    "pregnancy-weekly-guide-stroke-v11",
+    "pregnancy-weekly-guide-stroke-v15",
+    "pregnancy-stroke-at-norm-y-v1",
+    "pregnancy-p52-pdf-strokes-v2",
+    "pregnancy-p4-stroke-v2",
+    "pregnancy-p4-recommendations-4lines-v3",
+    "designed-interior-breathing-v1",
+    "pregnancy-weekly-photo-band-v1",
+    "pregnancy-weekly-value-center-v1",
     "pregnancy-ruled-notebook-v1",
+    "pregnancy-p60-letter-18lines-v1",
+    "pregnancy-already-mom-clearance-v3",
     "template-text-norm-width-v1",
+    "diary-questionnaire-season-pets-wish-v1",
+    "diary-full-semantic-slots-v1",
+    "diary-brown-p21-travel-tails-v2",
+    "diary-brown-p31-school-strokes-v1",
+    "diary-brown-weekly-inset-v1",
+    "diary-brown-p24-mood-strokes-v1",
+    "diary-brown-p13-hobby-strokes-v1",
+    "diary-brown-p15-dreams-groups-v2",
+    "diary-brown-p38-food-strokes-v1",
+    "diary-brown-myday-date-mood-v2",
+    "diary-brown-myday-date-mood-v3",
+    "diary-brown-friend-no-synthetic-name-v1",
+    "birthday-pill-center-v1",
+    "birthday-stroke-baseline-v1",
+    "birthday-travel-pills-v1",
+
   ].join("|");
 }
 
@@ -2203,11 +2554,16 @@ export function getLineSlotsForPage(
   const rect = resolveContentRectForPage(params);
 
   const slots = normalized.map((norm, index) => {
-    const layoutNorm = refineNormalizedSlotForTextLayout(
+    const layoutNorm = applyDesignedAlbumBreathingRoom(
       lineGuideId,
       page,
-      norm,
-      normalized,
+      refineNormalizedSlotForTextLayout(
+        lineGuideId,
+        page,
+        norm,
+        normalized,
+        index,
+      ),
       index,
     );
     const isWeeklyValueSlot =
@@ -2217,10 +2573,28 @@ export function getLineSlotsForPage(
       (lineGuideId === "pregnancy_a5" &&
         isPregnancyA5WeeklyPage(page) &&
         (index === 1 || index === 5));
+
+    const pageGuideStrokesEarly =
+      weeklyGuides ??
+      (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
+        lineGuideId
+      ]?.[String(page)];
+    const guideNormEarly = pageGuideStrokesEarly?.[index];
+    /** LINE_SLOTS.y совпадает с LINE_GUIDES — y это штрих, полоса над ним (анкеты, УЗИ…). */
+    const pregnancyStrokeAtNormY =
+      (lineGuideId === "pregnancy_60" || lineGuideId === "pregnancy_a5") &&
+      (layoutNorm.inputKind ?? "line") === "line" &&
+      !isWeeklyValueSlot &&
+      layoutNorm.lineStrokeAtBottom !== true &&
+      layoutNorm.textAnchorTop !== true &&
+      typeof guideNormEarly === "number" &&
+      Math.abs(guideNormEarly - layoutNorm.y) < 0.003;
+
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
       layoutNorm.lineStrokeAtBottom === true ||
+      pregnancyStrokeAtNormY ||
       (lineGuideId === "kids_48" && isKidsMonthPage(page) && index >= 1);
     const topNormY = isDiaryInteriorLineGuide(lineGuideId)
       ? getDiarySlotTopNormY(layoutNorm)
@@ -2232,9 +2606,11 @@ export function getLineSlotsForPage(
           : lineGuideId === "kids_48" &&
               isKidsTeethStrokeLineInputSlot(page, index, layoutNorm.inputKind)
             ? getKidsTeethLineSlotTopNormY(layoutNorm)
-            : anchorTop
-              ? layoutNorm.y
-              : layoutNorm.y - layoutNorm.height / 2;
+            : pregnancyStrokeAtNormY
+              ? layoutNorm.y - layoutNorm.height
+              : anchorTop
+                ? layoutNorm.y
+                : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -2245,6 +2621,7 @@ export function getLineSlotsForPage(
 
     const lineStrokeAtBottom =
       layoutNorm.lineStrokeAtBottom === true ||
+      pregnancyStrokeAtNormY ||
       (lineGuideId === "kids_48" && isKidsMonthPage(page) && index >= 1) ||
       (lineGuideId === "kids_48" &&
         isKidsStrokeDateLineInputSlot(page, index)) ||
@@ -2257,11 +2634,7 @@ export function getLineSlotsForPage(
     const isAlreadyMomGuidePage =
       (lineGuideId === "pregnancy_60" && page === 54) ||
       (lineGuideId === "pregnancy_a5" && page === 46);
-    const pageGuideStrokes =
-      weeklyGuides ??
-      (LINE_GUIDES as Record<string, Record<string, readonly number[]>>)[
-        lineGuideId
-      ]?.[String(page)];
+    const pageGuideStrokes = pageGuideStrokesEarly;
     const weeklyGuideNorm =
       (isPregnancyWeeklyStructuredPage(lineGuideId, page) ||
         isPregnancyRuledNotebookPage(lineGuideId, page) ||
@@ -2270,7 +2643,9 @@ export function getLineSlotsForPage(
     const strokeY =
       typeof weeklyGuideNorm === "number"
         ? rect.offsetY + weeklyGuideNorm * rect.height
-        : mapped.y + mapped.height;
+        : pregnancyStrokeAtNormY
+          ? rect.offsetY + layoutNorm.y * rect.height
+          : mapped.y + mapped.height;
 
     return {
       index,
@@ -2289,6 +2664,10 @@ export function getLineSlotsForPage(
       lineStrokeAtBottom,
       textAnchorTop: anchorTop,
       strokeY,
+      inlineLabelTail:
+        layoutNorm.inlineLabelTail === true || norm.inlineLabelTail === true
+          ? true
+          : undefined,
     };
   });
 
@@ -2431,7 +2810,7 @@ export function getSlotInteractionRect(
     !slot.hasLabel &&
     slot.inputKind === "block" &&
     slot.normY != null &&
-    slot.normY >= 0.815 &&
+    slot.normY >= 0.798 &&
     slot.width >= 0.65;
 
   const careerPage = getDiaryCareerQuestionPage(slotParams.lineGuideId ?? "");
@@ -2658,39 +3037,8 @@ export function layoutTextAnnotationFromSlot(
         Math.floor(effectiveFontSize * (slot.width / neededWidth)),
       );
     }
-  } else if (
-    lineGuideId === "kids_48" &&
-    slot.page === KIDS_TEETH_PAGE &&
-    textContent &&
-    slot.width > 0
-  ) {
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    const charWidth = effectiveFontSize * profile.charWidthRatio;
-    const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.96);
-    const neededWidth = textContent.length * charWidth;
-    if (neededWidth > slackWidth) {
-      effectiveFontSize = Math.max(
-        8,
-        Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
-      );
-    }
-  } else if (
-    textContent &&
-    slot.width > 0 &&
-    (lineGuideId === "diary_interior_purple" ||
-      lineGuideId === "diary_interior_brown")
-  ) {
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    const charWidth = effectiveFontSize * profile.charWidthRatio;
-    const slackWidth = slot.width * (profile.lineWidthSlackRatio ?? 0.98);
-    const neededWidth = textContent.length * charWidth;
-    if (neededWidth > slackWidth) {
-      effectiveFontSize = Math.max(
-        11,
-        Math.floor(effectiveFontSize * (slackWidth / neededWidth)),
-      );
-    }
   }
+  // Дневник: не ужимаем кегль под ширину слота — ломает baseline (текст уезжает с линии).
   const textTop = getTemplateLineTextTop(slot, effectiveFontSize, lineGuideId);
   const rowHeight = isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
     ? typography.lineHeight

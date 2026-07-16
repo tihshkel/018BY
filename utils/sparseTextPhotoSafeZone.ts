@@ -6,6 +6,9 @@ import {
 } from '@/constants/photo-slots';
 import {
   buildPageLayoutsFromTemplates,
+  isKidsSideBySideEventPage,
+  KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS,
+  KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS,
   STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS,
   type SafeZone,
 } from '@/constants/photo-layout-templates';
@@ -21,8 +24,9 @@ import {
   usesBlankPagePhotoFallback,
   type AlbumSparsePhotoConfig,
 } from '@/constants/sparse-photo-album-config';
-import { getSparsePhotoZoomBounds } from '@/constants/photo-print-margins';
+import { getSparsePhotoZoomBounds, SPARSE_PHOTO_ZOOM_MARGIN_MM, getAlbumPageSizeMm } from '@/constants/photo-print-margins';
 import { filterFeasiblePhotoLayouts } from '@/utils/photoLayoutFeasibility';
+import { getPdfPhotoPageLayouts } from '@/utils/pdfPhotoSlots';
 
 const FULL_PHOTO_TEMPLATES = [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS];
 
@@ -46,12 +50,77 @@ export function slotToSafeZone(slot: {
   };
 }
 
+/** kids_48 p1: OCR даёт высокий бокс имени (~0.12) — для photo gap y = штрих. */
+const KIDS_P1_PHOTO_LINE_BAND = 0.028;
+
+function normalizeKids48PhotoConstraintSlot(
+  lineGuideId: string,
+  page: number,
+  slot: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (lineGuideId !== 'kids_48' || page !== 1) return slot;
+  if (slot.inputKind === 'block') return slot;
+  if (slot.height <= KIDS_P1_PHOTO_LINE_BAND + 0.001 && slot.lineStrokeAtBottom) {
+    return slot;
+  }
+  // LINE_SLOTS/LINE_GUIDES.y — печатный штрих; полоса над ним.
+  return {
+    ...slot,
+    y: slot.y - KIDS_P1_PHOTO_LINE_BAND,
+    height: KIDS_P1_PHOTO_LINE_BAND,
+    textAnchorTop: true,
+    lineStrokeAtBottom: true,
+  };
+}
+
 function getLineSlots(lineGuideId: string, page: number): readonly NormalizedLineSlot[] {
-  return (
+  // kids_48 p21: имена крестных следуют за фото — не режут photo safe zone.
+  if (lineGuideId === 'kids_48' && page === 21) return [];
+  const raw =
     (LINE_SLOTS as Record<string, Record<string, readonly NormalizedLineSlot[]>>)[lineGuideId]?.[
       String(page)
-    ] ?? []
-  );
+    ] ?? [];
+  if (lineGuideId === 'kids_48' && page === 1) {
+    return raw.map((slot) => normalizeKids48PhotoConstraintSlot(lineGuideId, page, slot));
+  }
+  return raw;
+}
+
+function getLineSlotTop(slot: NormalizedLineSlot): number {
+  return slot.textAnchorTop ? slot.y : slot.y - slot.height / 2;
+}
+
+function getLineSlotBottom(slot: NormalizedLineSlot): number {
+  return slot.textAnchorTop ? slot.y + slot.height : slot.y + slot.height / 2;
+}
+
+/** OCR иногда даёт третьей строке планов h≈0.08 — без cap фото уезжает вниз. */
+const WEEKLY_PHOTO_LINE_HEIGHT_CAP = 0.045;
+
+function getWeeklyPhotoConstraintBottom(slot: NormalizedLineSlot): number {
+  const height = Math.min(slot.height, WEEKLY_PHOTO_LINE_HEIGHT_CAP);
+  if (slot.textAnchorTop || slot.lineStrokeAtBottom) {
+    return slot.y + height;
+  }
+  return slot.y + height / 2;
+}
+
+/**
+ * Weekly pages: ignore side measurement blocks and pregnancy_60 plan overflow.
+ * - layout: skip phantom index 5 (empty band above photo; not used by plans field)
+ * - zoom: also skip tall OCR index 4 so pinch/pan can enter the empty plan underlines
+ */
+function filterWeeklyPhotoConstraintSlots(
+  lineGuideId: string,
+  slots: readonly NormalizedLineSlot[],
+  mode: 'layout' | 'zoom' = 'layout',
+): NormalizedLineSlot[] {
+  return slots.filter((slot, index) => {
+    if ((slot.inputKind ?? 'line') === 'block') return false;
+    if (lineGuideId === 'pregnancy_60' && index === 5) return false;
+    if (mode === 'zoom' && lineGuideId === 'pregnancy_60' && index === 4) return false;
+    return true;
+  });
 }
 
 function gapNorm(config: AlbumSparsePhotoConfig): number {
@@ -64,16 +133,38 @@ function isBottomAnchoredPhotoSlot(primarySlot: { y: number }): boolean {
   return primarySlot.y >= 0.55;
 }
 
+/** Band-страницы: не pin к PDF — расширяем layouts в пустоту (в т.ч. mixed с нижней рамкой). */
+export function shouldExpandSparseBandLayouts(
+  lineGuideId: string,
+  page: number,
+  primarySlot?: { y: number } | null,
+): boolean {
+  if (isPregnancyUpperBandPage(lineGuideId, page)) return true;
+  const strategy = classifyPhotoSafeZoneStrategy(lineGuideId, page);
+  if (strategy === 'bottom_band' || strategy === 'upper_band') return true;
+  if (strategy === 'mixed' && primarySlot && isBottomAnchoredPhotoSlot(primarySlot)) {
+    return true;
+  }
+  return false;
+}
+
 function getMaxLineTextBottom(lineGuideId: string, page: number): number {
-  const slots = getLineSlots(lineGuideId, page);
+  let slots = getLineSlots(lineGuideId, page);
+  // pregnancy_a5 p1: OCR-шум внизу страницы (y≈0.87) — не должен толкать фото вниз.
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    slots = slots.filter((slot) => slot.y < 0.65);
+  }
   if (!slots.length) return 0;
-  return Math.max(...slots.map((slot) => slot.y + slot.height / 2));
+  return Math.max(...slots.map((slot) => getLineSlotBottom(slot)));
 }
 
 function getMinLineTextTop(lineGuideId: string, page: number): number {
   const slots = getLineSlots(lineGuideId, page);
   if (!slots.length) return 1;
-  return Math.min(...slots.map((slot) => slot.y - slot.height / 2));
+  return Math.min(...slots.map((slot) => getLineSlotTop(slot)));
 }
 
 /** Недельные страницы: фото между верхним блоком полей и нижними строками заметок. */
@@ -81,8 +172,13 @@ function buildWeeklyMiddlePhotoSafeZone(
   lineGuideId: string,
   page: number,
   config: AlbumSparsePhotoConfig,
+  mode: 'layout' | 'zoom' = 'layout',
 ): SafeZone {
-  const slots = getLineSlots(lineGuideId, page);
+  const slots = filterWeeklyPhotoConstraintSlots(
+    lineGuideId,
+    getLineSlots(lineGuideId, page),
+    mode,
+  );
   const photoTextGap = gapNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
@@ -90,94 +186,202 @@ function buildWeeklyMiddlePhotoSafeZone(
   const lowerLines = slots.filter((slot) => slot.y > 0.65);
 
   if (!upperLines.length || !lowerLines.length) {
-    return constrainPhotoSafeZone(
-      lineGuideId,
-      page,
-      { x: config.eventSafe.x, y: config.eventSafe.y, width: config.eventSafe.width, height: config.eventSafe.height },
-      config,
-    );
+    return {
+      x: config.eventSafe.x,
+      y: config.eventSafe.y,
+      width: config.eventSafe.width,
+      height: config.eventSafe.height,
+    };
   }
 
-  const minTop = Math.max(...upperLines.map((slot) => slot.y + slot.height / 2)) + photoTextGap;
-  const maxBottom = Math.min(...lowerLines.map((slot) => slot.y - slot.height / 2)) - photoTextGap;
+  const upperBottomFn =
+    lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5'
+      ? getWeeklyPhotoConstraintBottom
+      : getLineSlotBottom;
+  const minTop = Math.max(...upperLines.map(upperBottomFn)) + photoTextGap;
+  const maxBottom = Math.min(...lowerLines.map(getLineSlotTop)) - photoTextGap;
   const height = maxBottom - minTop;
 
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
+    return {
+      x: config.eventSafe.x,
+      y: config.eventSafe.y,
+      width: config.eventSafe.width,
+      height: Math.max(minHeight, config.eventSafe.height),
+    };
   }
 
-  return constrainPhotoSafeZone(
-    lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
-    config,
-  );
+  // kids_48 p1: вертикаль — вся полоса между именем и анкетой;
+  // горизонталь — PDF «Место для фото» (~54% ширины), не eventSafe 90%
+  // (иначе фото «гигант» почти без боковых полей). Поля ≥ 1.5 см.
+  if (lineGuideId === 'kids_48' && page === 1) {
+    const pdf = getPdfPhotoPageLayouts(lineGuideId, page)?.variants?.[0]?.slots?.[0];
+    const band: SafeZone = pdf
+      ? { x: pdf.x, y: minTop, width: pdf.width, height }
+      : { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height };
+    return clampSafeZoneToSparseMargins(lineGuideId, band);
+  }
+
+  const pdf = getPdfPhotoPageLayouts(lineGuideId, page)?.variants?.[0]?.slots?.[0];
+
+  // Недели pregnancy: вся полоса между «Планами» и «Ощущениями».
+  // PDF-пин по высоте оставлял мелкое фото с пустотой сверху/снизу.
+  if (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') {
+    const tightGap = photoTextGap * 0.35;
+    const hardTop = Math.max(...upperLines.map(getWeeklyPhotoConstraintBottom)) + tightGap;
+    const hardBottom = Math.min(...lowerLines.map(getLineSlotTop)) - tightGap;
+    const y = Math.min(hardTop, minTop);
+    const bottom = Math.max(hardBottom, maxBottom);
+    const bandHeight = Math.max(minHeight, bottom - y);
+    return {
+      x: pdf?.x ?? config.eventSafe.x,
+      y,
+      width: pdf?.width ?? config.eventSafe.width,
+      height: bandHeight,
+    };
+  }
+
+  if (pdf) {
+    const pdfZone = slotToSafeZone(pdf);
+    const top = Math.max(minTop, pdfZone.y);
+    const bottom = Math.min(maxBottom, pdfZone.y + pdfZone.height);
+    const pdfHeight = bottom - top;
+    if (pdfHeight >= minHeight) {
+      return {
+        x: pdfZone.x,
+        y: top,
+        width: pdfZone.width,
+        height: pdfHeight,
+      };
+    }
+  }
+
+  return {
+    x: config.eventSafe.x,
+    y: minTop,
+    width: config.eventSafe.width,
+    height,
+  };
 }
 
-/** Текст внизу страницы — фото в верхней полосе (p54, pregnancy_a5 p48). */
+/** Текст внизу страницы — фото в верхней полосе (p54, pregnancy_a5 p46). */
 function buildUpperBandPhotoSafeZone(
   lineGuideId: string,
   page: number,
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
   const photoTextGap = gapNorm(config);
-  const minTop = 0.12;
+  const { heightMm } = getAlbumPageSizeMm(lineGuideId);
+  const minTop = SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
   const maxBottom = getMinLineTextTop(lineGuideId, page) - photoTextGap;
   const height = maxBottom - minTop;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
   if (height < minHeight) {
-    return constrainPhotoSafeZone(
+    return clampSafeZoneToSparseMargins(
       lineGuideId,
-      page,
-      { x: config.eventSafe.x, y: config.eventSafe.y, width: config.eventSafe.width, height: config.eventSafe.height },
-      config,
+      constrainPhotoSafeZone(
+        lineGuideId,
+        page,
+        {
+          x: config.eventSafe.x,
+          y: config.eventSafe.y,
+          width: config.eventSafe.width,
+          height: config.eventSafe.height,
+        },
+        config,
+      ),
     );
   }
 
-  return constrainPhotoSafeZone(
+  return clampSafeZoneToSparseMargins(
     lineGuideId,
-    page,
-    { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
-    config,
+    constrainPhotoSafeZone(
+      lineGuideId,
+      page,
+      { x: config.eventSafe.x, y: minTop, width: config.eventSafe.width, height },
+      config,
+    ),
   );
 }
 
-/** Полоса фото под текстом анкеты — привязка к рамке «Место для фото» из PDF. */
+/**
+ * Полоса фото под текстом анкеты (p1/p3/p6).
+ * Вверх — до текста+gap; вниз — до поля 1.5 см (не режем по низу узкой PDF-рамки).
+ * Вширь — PREGNANCY_PHOTO_SAFE.
+ */
 function buildBottomAnchoredPhotoSafeZone(
   lineGuideId: string,
   page: number,
-  primarySlot: { x: number; y: number; width: number; height: number },
+  primarySlot: { x: number; y: number; width: number; height: number } | null | undefined,
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
   const photoTextGap = gapNorm(config);
   const minTop = getMaxLineTextBottom(lineGuideId, page) + photoTextGap;
-  const slotZone = slotToSafeZone(primarySlot);
-
-  // Текст не заходит в PDF-рамку — используем координаты рамки как есть.
-  if (minTop <= slotZone.y + 0.005) {
-    return slotZone;
-  }
-
-  const bandMaxBottom = config.photoBandMaxBottom ?? 0.9;
-  const bottom = Math.min(
-    bandMaxBottom,
-    slotZone.y + slotZone.height,
-  );
-  const top = Math.max(minTop, slotZone.y);
-  const height = bottom - top;
+  const fallbackZone: SafeZone = {
+    x: config.eventSafe.x,
+    y: config.eventSafe.y,
+    width: config.eventSafe.width,
+    height: config.eventSafe.height,
+  };
+  const slotZone = primarySlot ? slotToSafeZone(primarySlot) : fallbackZone;
+  const { heightMm } = getAlbumPageSizeMm(lineGuideId);
+  const pageBottom = 1 - SPARSE_PHOTO_ZOOM_MARGIN_MM / heightMm;
+  const bandMaxBottom = config.photoBandMaxBottom ?? pageBottom;
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
 
+  // Под текстом → до нижнего поля страницы (заполняем пустоту над и под PDF-рамкой).
+  const top = minTop;
+  const bottom = Math.min(bandMaxBottom, pageBottom);
+  const height = bottom - top;
+
   if (height < minHeight) {
-    return constrainPhotoSafeZone(lineGuideId, page, slotZone, config);
+    return clampSafeZoneToSparseMargins(
+      lineGuideId,
+      constrainPhotoSafeZone(lineGuideId, page, slotZone, config),
+    );
   }
 
-  return {
-    x: slotZone.x,
+  const expanded: SafeZone = {
+    x: config.eventSafe.x,
     y: top,
-    width: slotZone.width,
+    width: config.eventSafe.width,
     height,
   };
+
+  return clampSafeZoneToSparseMargins(
+    lineGuideId,
+    constrainPhotoSafeZone(lineGuideId, page, expanded, config),
+  );
+}
+
+function clampSafeZoneToSparseMargins(lineGuideId: string, zone: SafeZone): SafeZone {
+  const bounds = getSparsePhotoZoomBounds(lineGuideId);
+  const left = Math.max(zone.x, bounds.left);
+  const top = Math.max(zone.y, bounds.top);
+  const right = Math.min(zone.x + zone.width, bounds.right);
+  const bottom = Math.min(zone.y + zone.height, bounds.bottom);
+  return {
+    x: left,
+    y: top,
+    width: Math.max(0.01, right - left),
+    height: Math.max(0.01, bottom - top),
+  };
+}
+
+function getPhotoConstraintSlots(
+  lineGuideId: string,
+  page: number,
+): readonly NormalizedLineSlot[] {
+  let slots = getLineSlots(lineGuideId, page);
+  // p1: отбрасываем OCR-шум внизу и не даём полям анкеты (~y0.49) резать полосу как «нижний» текст.
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    slots = slots.filter((slot) => slot.y < 0.65);
+  }
+  return slots;
 }
 
 function constrainPhotoSafeZone(
@@ -186,19 +390,23 @@ function constrainPhotoSafeZone(
   safeZone: SafeZone,
   config: AlbumSparsePhotoConfig,
 ): SafeZone {
-  const slots = getLineSlots(lineGuideId, page);
+  const slots = getPhotoConstraintSlots(lineGuideId, page);
   if (!slots.length) return safeZone;
 
   const photoTextGap = gapNorm(config);
   const minHeight = config.minPhotoSafeHeight ?? 0.12;
+  const isPregnancyIntro =
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') && page === 1;
 
   let minTop = safeZone.y;
   let maxBottom = safeZone.y + safeZone.height;
 
   for (const slot of slots) {
-    const top = slot.y - slot.height / 2;
-    const bottom = slot.y + slot.height / 2;
-    if (slot.y < 0.5) {
+    // textAnchorTop / lineStrokeAtBottom: низ слота = штрих, не center±h/2.
+    const top = getLineSlotTop(slot);
+    const bottom = getLineSlotBottom(slot);
+    // На p1 вся анкета сверху — только поднимаем верх зоны, низ не режем слотами.
+    if (isPregnancyIntro || (top + bottom) / 2 < 0.5) {
       minTop = Math.max(minTop, bottom + photoTextGap);
     } else {
       maxBottom = Math.min(maxBottom, top - photoTextGap);
@@ -358,7 +566,6 @@ function resolveStrategySafeZone(
       return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
     case 'photo_only': {
       const blankSafe =
-        config.eventSafe === BLANK_PAGE_PHOTO_SAFE ||
         lineGuideId === 'family_blank' ||
         lineGuideId === 'holidays_blank' ||
         lineGuideId === 'family_blank_21x21'
@@ -367,6 +574,9 @@ function resolveStrategySafeZone(
       return constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
     }
     case 'mixed':
+      if (isBottomAnchoredPhotoSlot(primarySlot)) {
+        return buildBottomAnchoredPhotoSafeZone(lineGuideId, page, primarySlot, config);
+      }
       return constrainPhotoSafeZone(lineGuideId, page, config.eventSafe, config);
     default:
       return undefined;
@@ -391,8 +601,9 @@ export function resolveSparsePhotoZoomSafeZone(
   }
 
   if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) {
-    const weekly = buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config);
-    return constrainPhotoSafeZone(lineGuideId, page, weekly, config);
+    const weekly = buildWeeklyMiddlePhotoSafeZone(lineGuideId, page, config, 'zoom');
+    // Already text-cleared — do not re-shrink with center-based constrainPhotoSafeZone.
+    return weekly;
   }
 
   if (isPregnancyUpperBandPage(lineGuideId, page)) {
@@ -419,8 +630,13 @@ export function resolveSparsePhotoSafeZone(
     return buildUpperBandPhotoSafeZone(lineGuideId, page, config);
   }
 
+  // kids_48: strategy обычно не раздувает рамку layout (pinch — через zoom safe zone).
+  // p1 — исключение: между именем и анкетой нужна широкая middle-полоса, не PDF-пин.
   const strategyZone = resolveStrategySafeZone(lineGuideId, page, primarySlot, config);
-  if (strategyZone && lineGuideId !== 'kids_48') {
+  if (
+    strategyZone &&
+    (lineGuideId !== 'kids_48' || (page === 1 && strategyZone.height >= 0.35))
+  ) {
     return strategyZone;
   }
 
@@ -522,10 +738,15 @@ export function expandDesignedAlbumCollageVariants(
 ): PhotoPageLayouts | undefined {
   if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) return undefined;
 
-  const standard = buildStandardDesignedAlbumLayouts(layouts);
-  if (standard) return standard;
-
   const primarySlot = layouts.variants[0]?.slots[0];
+  const expandBand = shouldExpandSparseBandLayouts(lineGuideId, page, primarySlot);
+
+  // Weekly и band: строим из resolveSparsePhotoSafeZone. Остальные — pin к PDF.
+  if (!isPregnancyWeeklyMiddlePage(lineGuideId, page) && !expandBand) {
+    const standard = buildStandardDesignedAlbumLayouts(layouts);
+    if (standard) return standard;
+  }
+
   if (!primarySlot || primarySlot.height < 0.12 || primarySlot.width < 0.25) {
     return undefined;
   }
@@ -539,7 +760,11 @@ export function expandDesignedAlbumCollageVariants(
 }
 
 /** Event pages без PDF-слота: safe zone по текстовым линиям + стандартные шаблоны. */
-function buildDesignedAlbumEventPhotoLayouts(lineGuideId: string, page: number): PhotoPageLayouts {
+function buildDesignedAlbumEventPhotoLayouts(
+  lineGuideId: string,
+  page: number,
+  templateIds: readonly string[] = STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS,
+): PhotoPageLayouts {
   const eventSafe = getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe ?? EVENT_PHOTO_SAFE;
   const syntheticPrimary = {
     x: eventSafe.x + eventSafe.width / 2,
@@ -549,7 +774,23 @@ function buildDesignedAlbumEventPhotoLayouts(lineGuideId: string, page: number):
   };
 
   const safeZone = resolveSparsePhotoSafeZone(lineGuideId, page, syntheticPrimary);
-  return buildPageLayoutsFromTemplates(safeZone, [...STANDARD_DESIGNED_ALBUM_TEMPLATE_IDS]);
+  return buildPageLayoutsFromTemplates(safeZone, [...templateIds]);
+}
+
+function isPortraitPhotoPin(slot: { width: number; height: number } | undefined): boolean {
+  if (!slot) return false;
+  return slot.height >= slot.width * 1.05;
+}
+
+/** Широкая зона между заголовком и датой — стопка или два в ряд (p19/p20/месяцы). */
+function buildKidsLandscapeEventPhotoLayouts(page: number): PhotoPageLayouts {
+  return buildDesignedAlbumEventPhotoLayouts(
+    'kids_48',
+    page,
+    isKidsSideBySideEventPage(page)
+      ? KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS
+      : KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS,
+  );
 }
 
 export function expandManualSparseLayouts(
@@ -605,19 +846,40 @@ export function expandCollageVariantsWithSparse(
   return expanded;
 }
 
+/**
+ * kids_48 layouts: PDF «Место для фото» (standard), без strategy-expand на весь лист.
+ * Узкий портретный pin → широкая landscape-зона (иначе «башни»).
+ * p1 — middle-band по высоте (имя↔анкета), ширина как PDF-пин, поля ≥1.5 см.
+ * Максимум пространства для pinch/pan — в photoBlockSafeZone (zoom safe zone).
+ */
 export function resolveKidsPhotoPageLayouts(
   page: number,
   pdf: PhotoPageLayouts | undefined,
 ): PhotoPageLayouts | undefined {
   const lineGuideId = 'kids_48';
 
-  if (pdf?.variants?.length && !shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
-    const standard = buildStandardDesignedAlbumLayouts(pdf) ?? expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
+  if (shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
+    return undefined;
+  }
+
+  // «Этот альбом принадлежит» — фото между именем и датой/весом/ростом.
+  if (page === 1) {
+    return filterFeasiblePhotoLayouts(buildKidsLandscapeEventPhotoLayouts(page));
+  }
+
+  if (pdf?.variants?.length) {
+    const primarySlot = pdf.variants[0]?.slots[0];
+    if (isPortraitPhotoPin(primarySlot)) {
+      return filterFeasiblePhotoLayouts(buildKidsLandscapeEventPhotoLayouts(page));
+    }
+    const standard =
+      buildStandardDesignedAlbumLayouts(pdf) ??
+      expandDesignedAlbumCollageVariants(lineGuideId, page, pdf);
     if (standard) return filterFeasiblePhotoLayouts(standard);
   }
 
   if (page === 12 || (page >= 6 && page <= 47 && page !== 5 && page !== 10 && page !== 11)) {
-    return filterFeasiblePhotoLayouts(buildDesignedAlbumEventPhotoLayouts(lineGuideId, page));
+    return filterFeasiblePhotoLayouts(buildKidsLandscapeEventPhotoLayouts(page));
   }
 
   return undefined;

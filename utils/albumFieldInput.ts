@@ -1,7 +1,11 @@
 import type { KeyboardTypeOptions } from 'react-native';
 
 import type { AlbumPageField, FieldType } from '@/types/album-page-schema';
-import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
+import {
+  getMeasurementDigitLimit,
+  isKids48GrowthPageMeasurementField,
+} from '@/utils/albumMeasurementFields';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 
 export function sanitizeDateInput(text: string): string {
   const digits = text.replace(/\D/g, '').slice(0, 8);
@@ -38,15 +42,16 @@ export function sanitizeNumberInput(text: string): string {
 }
 
 export function sanitizeFieldInput(type: FieldType, text: string): string {
+  const normalized = normalizeAlbumUserText(text);
   switch (type) {
     case 'date':
-      return sanitizeDateInput(text);
+      return sanitizeDateInput(normalized);
     case 'time':
-      return sanitizeTimeInput(text);
+      return sanitizeTimeInput(normalized);
     case 'number':
-      return sanitizeNumberInput(text);
+      return sanitizeNumberInput(normalized);
     default:
-      return text;
+      return normalized;
   }
 }
 
@@ -74,8 +79,30 @@ export function getFieldKeyboardType(type: FieldType): KeyboardTypeOptions {
 }
 
 export function getFieldKeyboardTypeForField(field: AlbumPageField): KeyboardTypeOptions {
+  if (isKids48GrowthPageMeasurementField(field)) {
+    return 'decimal-pad';
+  }
   if (getMeasurementDigitLimit(field) != null) {
     return 'number-pad';
   }
   return getFieldKeyboardType(field.type);
+}
+
+/** HTML/RN inputMode: numeric режет запятую/точку — для кг/см нужен decimal. */
+export function getFieldInputMode(
+  field: AlbumPageField,
+): 'text' | 'numeric' | 'decimal' {
+  if (isKids48GrowthPageMeasurementField(field)) {
+    return 'decimal';
+  }
+  if (getMeasurementDigitLimit(field) != null) {
+    return 'numeric';
+  }
+  if (field.type === 'number') {
+    return 'decimal';
+  }
+  if (field.type === 'time' || field.type === 'date') {
+    return 'numeric';
+  }
+  return 'text';
 }

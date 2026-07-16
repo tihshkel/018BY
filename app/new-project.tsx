@@ -1,26 +1,26 @@
 import { ResponsiveScreenShell } from '@/components/responsive-screen-shell';
-import { colors, createShadow, radii, sansFont } from '@/constants/design-tokens';
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
-import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
 import { AppBottomSheet } from '@/components/ui/app-bottom-sheet';
 import { AppButton } from '@/components/ui/app-button';
 import { AppInlineDatePicker } from '@/components/ui/app-date-picker-sheet';
+import { colors, sansFont } from '@/constants/design-tokens';
 import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Category {
   id: string;
@@ -144,8 +144,15 @@ export default function NewProjectScreen() {
   };
 
   const handleCreateProject = (product: Product, date: Date | null) => {
-    // Переходим к выбору готового PDF-альбома
-    router.push('/select-album');
+    // Переходим к выбору готового PDF-альбома с параметрами
+    router.push({
+      pathname: '/select-album',
+      params: {
+        category: selectedCategory,
+        productId: product.id,
+        reminderDate: date?.toISOString() ?? undefined,
+      },
+    });
   };
 
   const handleSkipDate = () => {

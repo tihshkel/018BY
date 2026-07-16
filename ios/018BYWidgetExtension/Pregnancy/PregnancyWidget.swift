@@ -12,10 +12,10 @@ struct PregnancyEntryView: View {
                 content(item)
             } else {
                 WidgetEmptyState(
-                    title: "Беременность",
-                    subtitle: "Создайте альбом в «Мои истории», чтобы видеть день, неделю и PDR"
+                    title: "До ПДР",
+                    subtitle: "Укажите дату — здесь появится обратный отсчёт дней"
                 )
-                .widgetURL(WidgetDeepLinks.createAlbum)
+                .widgetURL(WidgetDeepLinks.setPdr)
             }
         }
     }
@@ -33,16 +33,16 @@ struct PregnancyEntryView: View {
             ZStack {
                 AccessoryWidgetBackground()
                 VStack(spacing: 0) {
-                    Text("\(item.day)")
+                    Text("\(max(item.daysLeft, 0))")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
-                    Text("день")
+                    Text("ПДР")
                         .font(.system(size: 8, weight: .medium))
                 }
             }
             .widgetURL(WidgetDeepLinks.pregnancyProject(item))
         case .accessoryRectangular:
             VStack(alignment: .leading, spacing: 2) {
-                Text(WidgetFormatters.pregnancyDayLabel(item.day))
+                Text(WidgetFormatters.daysUntilPdrLabel(item.daysLeft))
                     .font(.system(size: 12, weight: .semibold))
                 Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
                     .font(.system(size: 11))
@@ -54,16 +54,15 @@ struct PregnancyEntryView: View {
     }
 
     private func smallView(_ item: WidgetPregnancyItem) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            WidgetBrandMark(compact: true)
-            Text(WidgetFormatters.pregnancyDayLabel(item.day))
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundStyle(WidgetColors.primaryDeep)
-            Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                .font(.system(size: 12, weight: .semibold))
+        VStack(alignment: .leading, spacing: 6) {
+            WidgetMetricLabel(text: "До ПДР")
+            WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 40)
+            Text("дней")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(palette.textPrimary)
-            Text("До PDR: \(max(item.daysLeft, 0)) дн.")
-                .font(.system(size: 11, weight: .medium))
+            Spacer(minLength: 0)
+            Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
+                .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(palette.textSecondary)
         }
         .widgetCardBackground()
@@ -71,34 +70,29 @@ struct PregnancyEntryView: View {
     }
 
     private func mediumView(_ item: WidgetPregnancyItem) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                WidgetAccentPill(text: "\(item.trimester) триместр")
-                Spacer()
-                Text(WidgetFormatters.pregnancyDayLabel(item.day))
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(WidgetColors.primaryDeep)
-            }
-            Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(palette.textPrimary)
-            ProgressView(value: Double(min(max(item.week, 0), 42)), total: 42)
-                .tint(WidgetColors.primary)
-            if let insight = item.weeklyInsight, !insight.isEmpty {
-                Text(WidgetFormatters.trimText(insight, maxLength: 110))
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(palette.textSecondary)
-                    .lineLimit(3)
-            }
-            HStack {
-                Text(item.projectTitle)
-                    .font(.system(size: 12, weight: .semibold))
+        HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                WidgetMetricLabel(text: "До ПДР")
+                WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 40)
+                Text(WidgetFormatters.daysUntilPdrLabel(item.daysLeft).replacingOccurrences(of: "\(max(item.daysLeft, 0)) ", with: ""))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(palette.textPrimary)
-                    .lineLimit(1)
-                Spacer()
-                Text(WidgetFormatters.shortDate(item.pdrISO))
-                    .font(.system(size: 11, weight: .medium))
+            }
+            Spacer(minLength: 0)
+            VStack(alignment: .trailing, spacing: 8) {
+                Text("\(item.trimester)-й триместр")
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(palette.textSecondary)
+                Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(palette.textPrimary)
+                    .multilineTextAlignment(.trailing)
+                Text(WidgetFormatters.shortDate(item.pdrISO))
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
+                ProgressView(value: Double(min(max(item.week, 0), 42)), total: 42)
+                    .tint(WidgetColors.primary)
+                    .frame(width: 120)
             }
         }
         .widgetCardBackground()
@@ -107,37 +101,29 @@ struct PregnancyEntryView: View {
 
     private func largeView(_ item: WidgetPregnancyItem) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Дневник беременности")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-            HStack(alignment: .bottom, spacing: 16) {
-                Text("\(item.day)")
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundStyle(WidgetColors.primaryDeep)
+            WidgetMetricLabel(text: "До предварительной даты родов")
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                WidgetHeroNumber(text: "\(max(item.daysLeft, 0))", size: 52)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("день беременности")
-                        .font(.system(size: 14, weight: .semibold))
+                    Text("дней")
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(palette.textPrimary)
                     Text(WidgetFormatters.pregnancyWeekDayLabel(week: item.week, dayInWeek: item.dayInWeek))
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(palette.textSecondary)
-                    Text("\(item.trimester)-й триместр · до PDR \(max(item.daysLeft, 0)) дн.")
-                        .font(.system(size: 12, weight: .medium))
+                    Text("\(item.trimester)-й триместр · \(WidgetFormatters.shortDate(item.pdrISO))")
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundStyle(palette.textSecondary)
                 }
             }
-            if let insight = item.weeklyInsight, !insight.isEmpty {
-                Text(WidgetFormatters.trimText(insight, maxLength: 180))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(palette.textSecondary)
-                    .lineLimit(4)
-                    .widgetSectionCard()
-            }
-            Text(item.projectTitle)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(palette.textPrimary)
             ProgressView(value: Double(min(max(item.week, 0), 42)), total: 42)
                 .tint(WidgetColors.primary)
+            if let insight = item.weeklyInsight, !insight.isEmpty {
+                Text(WidgetFormatters.trimText(insight, maxLength: 160))
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(3)
+            }
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.pregnancyProject(item))
@@ -152,8 +138,8 @@ struct PregnancyWidget: Widget {
             PregnancyEntryView(entry: entry)
                 .widgetHomeScreenContainer()
         }
-        .configurationDisplayName("Беременность")
-        .description("Текущий день, неделя и дата PDR.")
+        .configurationDisplayName("До ПДР")
+        .description("Обратный отсчёт дней до предварительной даты родов.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

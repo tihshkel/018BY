@@ -11,15 +11,15 @@ import {
 } from '@/utils/auth-session';
 import { ensureDefaultAvatar } from '@/utils/user-avatar';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, type TextInput } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Platform, StyleSheet, View, type TextInput } from 'react-native';
 
 import { AuthErrorBanner } from '@/components/auth/auth-error-banner';
 import { AuthFooterLink, AuthScreenLayout } from '@/components/auth/auth-screen-layout';
 import { AuthPasswordField } from '@/components/auth/auth-password-field';
 import { AuthReferralPicker } from '@/components/auth/auth-referral-picker';
-import { AppButton, AppCard, AppInput, SocialAuthButtons } from '@/components/ui';
-import { spacing } from '@/constants/design-tokens';
+import { AppButton, AppInput, AppText, SocialAuthButtons } from '@/components/ui';
+import { colors, spacing } from '@/constants/design-tokens';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -36,11 +36,6 @@ export default function RegisterScreen() {
 
   const passwordsMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
   const passwordsMatch = password.length > 0 && password === passwordConfirm && passwordConfirm.length > 0;
-
-  useEffect(() => {
-    const timer = setTimeout(() => emailRef.current?.focus(), 240);
-    return () => clearTimeout(timer);
-  }, []);
 
   const emailTrimmed = normalizeEmail(email);
   const emailCheck: 'empty' | 'invalid' | 'ok' =
@@ -111,7 +106,7 @@ export default function RegisterScreen() {
           setErrorText('Пароль: минимум 6 символов.');
         } else if (err === 'AUTH_RATE_LIMIT') {
           setErrorText(
-            'Слишком много попыток регистрации за короткое время — сработал лимит Supabase (часто при тестах). Подождите 15–60 минут, в Dashboard отключите «Confirm email», либо попробуйте позже / с другой сети.'
+            'Слишком много попыток регистрации за короткое время — сработал лимит Supabase. Подождите 15–60 минут или попробуйте позже.'
           );
         } else if (err === 'EMAIL_TAKEN') {
           setErrorText('Этот email уже зарегистрирован. Войдите или укажите другой адрес.');
@@ -132,10 +127,12 @@ export default function RegisterScreen() {
     }
   };
 
+  const busy = isSubmitting || !!socialLoading;
+
   return (
     <AuthScreenLayout
       title="Регистрация"
-      subtitle="Создайте аккаунт, чтобы сохранять проекты и экспортировать альбомы."
+      subtitle="Создайте аккаунт для альбомов"
       showBack
       onBack={() => router.replace('/login' as never)}
       footer={
@@ -146,7 +143,7 @@ export default function RegisterScreen() {
         />
       }
     >
-      <AppCard style={styles.formCard}>
+      <View style={styles.form}>
         <AppInput
           ref={emailRef}
           testID="register-email"
@@ -166,15 +163,13 @@ export default function RegisterScreen() {
           onSubmitEditing={() => passwordRef.current?.focus()}
           success={emailCheck === 'ok'}
           error={emailCheck === 'invalid' ? 'Проверьте написание email' : undefined}
-          helperText={emailCheck === 'ok' ? 'Формат email подходит' : undefined}
-          helperTone={emailCheck === 'ok' ? 'success' : 'muted'}
         />
 
         <AuthPasswordField
           ref={passwordRef}
           label="Пароль"
           value={password}
-          onChangeText={(value) => {
+          onChangeText={(value: string) => {
             setPassword(value);
             setErrorText(null);
           }}
@@ -192,7 +187,7 @@ export default function RegisterScreen() {
           label="Повторите пароль"
           visibilityLabel="Подтверждение пароля"
           value={passwordConfirm}
-          onChangeText={(value) => {
+          onChangeText={(value: string) => {
             setPasswordConfirm(value);
             setErrorText(null);
           }}
@@ -205,10 +200,8 @@ export default function RegisterScreen() {
           onSubmitEditing={handleSubmit}
           success={passwordsMatch}
           error={passwordsMismatch ? 'Пароли не совпадают' : undefined}
-          helperText={passwordsMatch ? 'Пароли совпадают' : undefined}
-          helperTone={passwordsMatch ? 'success' : 'muted'}
         />
-      </AppCard>
+      </View>
 
       <AuthReferralPicker value={referralSource} onChange={setReferralSource} />
 
@@ -219,27 +212,44 @@ export default function RegisterScreen() {
         title="Зарегистрироваться"
         onPress={handleSubmit}
         loading={isSubmitting}
-        disabled={isSubmitting || !!socialLoading || emailCheck !== 'ok' || passwordsMismatch}
+        disabled={busy || emailCheck !== 'ok' || passwordsMismatch}
       />
+
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <AppText variant="caption" style={styles.dividerText}>
+          или
+        </AppText>
+        <View style={styles.dividerLine} />
+      </View>
 
       <SocialAuthButtons
         mode="register"
-        disabled={isSubmitting || !!socialLoading}
+        disabled={busy}
         loadingProvider={socialLoading}
         onGooglePress={() => handleSocialSignUp('google')}
         onApplePress={() => handleSocialSignUp('apple')}
-        style={styles.socialButtons}
+        showDivider={false}
       />
     </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  formCard: {
-    padding: spacing.md,
-    gap: spacing.md,
+  form: {
+    gap: spacing.sm,
   },
-  socialButtons: {
-    marginTop: 0,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textSecondary,
   },
 });

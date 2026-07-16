@@ -24,6 +24,27 @@ export type AlbumPageSizeMm = {
   heightMm: number;
 };
 
+function usesSparsePhotoZoomMargins(lineGuideId: string): boolean {
+  return (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'kids_48'
+  );
+}
+
+/** Blank Семья / Свадьба / Праздники — те же 1.5 см, что sparse zoom. */
+export function isBlankPrintAlbum(lineGuideId: string): boolean {
+  return (
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_blank'
+  );
+}
+
+function usesFifteenMmPhotoMargins(lineGuideId: string): boolean {
+  return usesSparsePhotoZoomMargins(lineGuideId) || isBlankPrintAlbum(lineGuideId);
+}
+
 /** Физический размер страницы альбома в мм (для нормализованных полей). */
 export function getAlbumPageSizeMm(lineGuideId: string): AlbumPageSizeMm {
   if (
@@ -59,8 +80,12 @@ export function getDefaultPagePhotoBounds(
   };
 }
 
-/** Поле перемещения фото на страницах без текстовых полей — 2 см от каждого края листа. */
+/** Поле перемещения фото на страницах без текстовых полей.
+ * Pregnancy / kids / blank: 1.5 см; остальные designed photo-only: 2 см. */
 export function getPhotoOnlyPageBounds(lineGuideId: string): PagePhotoBounds {
+  if (usesFifteenMmPhotoMargins(lineGuideId)) {
+    return getSparsePhotoZoomBounds(lineGuideId);
+  }
   const { widthMm, heightMm } = getAlbumPageSizeMm(lineGuideId);
   return {
     left: PHOTO_ONLY_PAGE_MARGIN_MM / widthMm,
@@ -108,20 +133,18 @@ function clampSlotToBounds(
   }
 
   const isCircle = slot.shape === 'circle';
-  // Rect slots: x = left edge, y = vertical center. Circle slots: x/y = center.
-  let centerX = isCircle ? slot.x : slot.x + width / 2;
-  let centerY = slot.y;
-
-  centerX = Math.min(
-    Math.max(centerX, bounds.left + width / 2),
-    bounds.right - width / 2,
-  );
-  centerY = Math.min(
-    Math.max(centerY, bounds.top + height / 2),
-    bounds.bottom - height / 2,
-  );
-
+  // Circle slots: x/y = center. Keep center, clamp inside bounds.
   if (isCircle) {
+    let centerX = slot.x;
+    let centerY = slot.y;
+    centerX = Math.min(
+      Math.max(centerX, bounds.left + width / 2),
+      bounds.right - width / 2,
+    );
+    centerY = Math.min(
+      Math.max(centerY, bounds.top + height / 2),
+      bounds.bottom - height / 2,
+    );
     return {
       ...slot,
       x: centerX,
@@ -131,9 +154,26 @@ function clampSlotToBounds(
     };
   }
 
+  // Rect slots: x = left edge, y = vertical center.
+  // Keep left edge when shrinking (don't re-center — that shifted photos right
+  // relative to the design frame when only the right edge overflowed).
+  let x = slot.x;
+  if (x < bounds.left) x = bounds.left;
+  if (x + width > bounds.right) x = bounds.right - width;
+  if (x < bounds.left) {
+    x = bounds.left;
+    width = maxWidth;
+  }
+
+  let centerY = slot.y;
+  centerY = Math.min(
+    Math.max(centerY, bounds.top + height / 2),
+    bounds.bottom - height / 2,
+  );
+
   return {
     ...slot,
-    x: centerX - width / 2,
+    x,
     y: centerY,
     width,
     height,
@@ -148,7 +188,9 @@ export function clampPhotoPageLayoutsToPrintMargins(
 ): PhotoPageLayouts {
   const bounds =
     typeof lineGuideIdOrWidthMm === 'string'
-      ? getDefaultPagePhotoBounds(...Object.values(getAlbumPageSizeMm(lineGuideIdOrWidthMm)))
+      ? usesFifteenMmPhotoMargins(lineGuideIdOrWidthMm)
+        ? getSparsePhotoZoomBounds(lineGuideIdOrWidthMm)
+        : getDefaultPagePhotoBounds(...Object.values(getAlbumPageSizeMm(lineGuideIdOrWidthMm)))
       : getDefaultPagePhotoBounds(lineGuideIdOrWidthMm, pageHeightMm);
 
   return {

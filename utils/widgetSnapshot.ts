@@ -27,6 +27,16 @@ import {
 export const WIDGET_DATA_KEY = 'WidgetSnapshot';
 export const WIDGET_APP_GROUP = 'group.com.tihshkel.x018BY.expowidgets';
 
+/** Calendar days from local midnight today until ISO date (can be negative). */
+export function daysUntil(isoDate: string, now: Date = new Date()): number {
+  const target = new Date(isoDate);
+  if (Number.isNaN(target.getTime())) return 0;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  return Math.ceil((target.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export type WidgetProjectSnapshot = {
   id: string;
   title: string;
@@ -78,6 +88,8 @@ export type WidgetInboxNotification = {
 export type WidgetSnapshot = {
   updatedAt: string;
   userName?: string;
+  /** Full album count (not capped by projects[] preview). */
+  albumsCount: number;
   projects: WidgetProjectSnapshot[];
   continueProject?: WidgetContinueSnapshot;
   nextReminder?: WidgetReminderSnapshot;
@@ -130,15 +142,6 @@ function writeWidgetData(payload: string): void {
       console.warn('[WidgetSnapshot] write failed:', error);
     }
   }
-}
-
-function daysUntil(isoDate: string): number {
-  const target = new Date(isoDate);
-  if (Number.isNaN(target.getTime())) return 0;
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  target.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function isSameLocalDay(isoDate: string, reference: Date = new Date()): boolean {
@@ -269,7 +272,8 @@ async function computeProjectProgress(
   };
 }
 
-async function buildContinueSnapshot(
+/** Used by home widgets and iOS snapshot. */
+export async function buildContinueSnapshotForHome(
   projects: UserProject[],
 ): Promise<WidgetContinueSnapshot | undefined> {
   for (const project of projects.slice(0, MAX_PROJECTS)) {
@@ -393,11 +397,12 @@ async function buildSnapshot(): Promise<WidgetSnapshot> {
     };
   }
 
-  const continueProject = await buildContinueSnapshot(projects);
+  const continueProject = await buildContinueSnapshotForHome(projects);
 
   return {
     updatedAt: new Date().toISOString(),
     userName: userName?.trim() || undefined,
+    albumsCount: projects.length,
     projects: projectsWithProgress,
     continueProject,
     nextReminder,
@@ -428,6 +433,7 @@ export async function clearWidgetSnapshot(): Promise<void> {
   if (Platform.OS !== 'ios') return;
   const empty: WidgetSnapshot = {
     updatedAt: new Date().toISOString(),
+    albumsCount: 0,
     projects: [],
     reminders: [],
     todayNotifications: [],

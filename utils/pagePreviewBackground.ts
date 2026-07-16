@@ -134,10 +134,8 @@ export function resolvePagePreviewBackgroundUri(
       hasPhotoBlocks: true,
     });
     if (outputUri) return outputUri;
-    if (!hasVariantPreviewManifest(lineGuideId, sourcePageNumber)) {
-      return baseImageUri ?? null;
-    }
-    return null;
+    // pregnancy_a5 and other albums without per-page clean PNGs — show PDF raster in preview.
+    return baseImageUri ?? null;
   }
 
   const designUri = resolveDesignPreviewUri({ lineGuideId, sourcePageNumber });

@@ -13,8 +13,10 @@ import {
   getAlbumPageCount,
   getBlankInteriorPageUri,
   isBlankInteriorAlbum,
+  requiresInteriorTypeSelection,
   resolveInteriorAlbumId,
   resolveLineGuideId,
+  resolveProjectInteriorAlbumId,
 } from '@/utils/albumImages';
 import {
   buildInitialPageInstances,
@@ -38,6 +40,7 @@ import {
   loadPageInstances,
   loadPageValuesMap,
   loadPageValuesMapMerged,
+  mergePageValuesMaps,
   savePageInstances,
   savePageValueEntry,
   savePageValuesMap,
@@ -111,8 +114,12 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   latestStateRef.current = { images, instances, pageValuesMap };
 
   const lineGuideId = useMemo(
-    () => resolveLineGuideId(meta?.interiorType ?? meta?.albumId, meta?.category ?? celebration),
-    [meta, celebration]
+    () =>
+      resolveLineGuideId(
+        meta?.interiorType ?? meta?.albumId ?? interiorType,
+        meta?.category ?? celebration,
+      ),
+    [meta, celebration, interiorType],
   );
 
   const loadImagesForAlbum = useCallback(async (albumId: string, category?: string): Promise<string[]> => {
@@ -288,9 +295,16 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
     const memorySnapshot = getAlbumProjectSnapshot(effectiveProjectId);
 
-    const [loadedInstances, loadedValues, savedImagesRaw] = await Promise.all([
-      loadPageInstances((k) => AsyncStorage.getItem(k), effectiveProjectId),
-      loadPageValuesMap((k) => AsyncStorage.getItem(k), effectiveProjectId),
+    const loadedInstances = await loadPageInstances(
+      (k) => AsyncStorage.getItem(k),
+      effectiveProjectId,
+    );
+    const [loadedValues, savedImagesRaw] = await Promise.all([
+      loadPageValuesMapMerged(
+        (k) => AsyncStorage.getItem(k),
+        effectiveProjectId,
+        loadedInstances.map((item) => item.instanceId),
+      ),
       AsyncStorage.getItem(`@project_images_${effectiveProjectId}`),
     ]);
 
@@ -300,7 +314,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         ? memorySnapshot.instances
         : loadedInstances;
     const mergedValues = memorySnapshot?.pageValuesMap
-      ? { ...loadedValues, ...memorySnapshot.pageValuesMap }
+      ? mergePageValuesMaps(loadedValues, memorySnapshot.pageValuesMap)
       : loadedValues;
     const mergedImages =
       memorySnapshot?.images?.length && memorySnapshot.images.length >= diskImages.length
@@ -780,9 +794,15 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             memorySnapshotAfterLoad.instances.length >= nextInstances.length
               ? memorySnapshotAfterLoad.instances
               : nextInstances;
-          const mergedImages =
-            memorySnapshotAfterLoad?.images?.length &&
-            memorySnapshotAfterLoad.images.length >= imageUris.length
+          // Дневник: всегда берём свежий полный список URI (память могла хранить урезанный).
+          const diaryFullReload =
+            lgId.startsWith('diary_interior_') &&
+            imageUris.length >= getAlbumPageCount(lgId) &&
+            imageUris.filter(Boolean).length > (memorySnapshotAfterLoad?.images?.filter(Boolean).length ?? 0);
+          const mergedImages = diaryFullReload
+            ? imageUris
+            : memorySnapshotAfterLoad?.images?.length &&
+                memorySnapshotAfterLoad.images.length >= imageUris.length
               ? memorySnapshotAfterLoad.images
               : imageUris;
 
@@ -864,10 +884,24 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           return;
         }
 
+        if (requiresInteriorTypeSelection(celebration) && !interiorType) {
+          return;
+        }
+
+        const albumIdForProject = resolveProjectInteriorAlbumId({
+          celebration,
+          coverType,
+          interiorType,
+        });
+        if (!albumIdForProject) {
+          setIsLoading(false);
+          return;
+        }
+
         const newProjectId = await runDedupedAlbumProjectCreation(
           { celebration, coverType, interiorType, eventDate },
           async () => {
-            const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
+            const albumId = albumIdForProject;
             const imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? [];
 
             const lgId = resolveLineGuideId(albumId, celebration);
@@ -939,7 +973,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
         if (cancelled) return;
 
-        const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
+        const albumId = albumIdForProject;
         const [projectRaw, imageUrisRaw, loadedInstancesRaw, loadedValuesRaw] = await Promise.all([
           AsyncStorage.getItem(`@project_${newProjectId}`),
           AsyncStorage.getItem(`@project_images_${newProjectId}`),

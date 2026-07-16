@@ -107,9 +107,34 @@ assert(pregnancy56.includes('"three_hero"'), 'schema pregnancy p56: three_hero')
 assert(pregnancy56.includes('"four_grid"'), 'schema pregnancy p56: four_grid');
 assert(pregnancy56.includes('"captionEnabled": true'), 'schema pregnancy p56: captionEnabled');
 
+const pregnancy55 = getSchemaSnippet(schemasSource, 'pregnancy_60_p55');
+assert(pregnancy55.includes('"captionEnabled": true'), 'schema pregnancy p55: captionEnabled');
+assert(pregnancy55.includes('"pageType": "photo"'), 'schema pregnancy p55: photo page');
+
+const pregnancyA5P47 = getSchemaSnippet(schemasSource, 'pregnancy_a5_p47');
+assert(pregnancyA5P47.includes('"captionEnabled": true'), 'schema pregnancy_a5 p47: captionEnabled');
+assert(pregnancyA5P47.includes('"pageType": "photo"'), 'schema pregnancy_a5 p47: photo page');
+
+const pregnancyA5P48 = getSchemaSnippet(schemasSource, 'pregnancy_a5_p48');
+assert(pregnancyA5P48.includes('"captionEnabled": true'), 'schema pregnancy_a5 p48: captionEnabled');
+
 const kidsP6 = getSchemaSnippet(schemasSource, 'kids_48_p6');
 assert(kidsP6.includes('"three_hero"'), 'schema kids p6: three_hero');
 assert(kidsP6.includes('"captionEnabled": false'), 'schema kids p6: no caption');
+
+const kidsP35 = getSchemaSnippet(schemasSource, 'kids_48_p35');
+assert(kidsP35.includes('"pageType": "photo"'), 'schema kids p35: photo page');
+assert(kidsP35.includes('"captionEnabled": true'), 'schema kids p35: captionEnabled');
+assert(!kidsP35.includes('kids_48_p35_caption'), 'schema kids p35: no dual line caption field');
+
+const kidsP42 = getSchemaSnippet(schemasSource, 'kids_48_p42');
+assert(kidsP42.includes('"pageType": "photo"'), 'schema kids p42: photo page');
+assert(kidsP42.includes('"captionEnabled": true'), 'schema kids p42: captionEnabled');
+const kidsP48 = getSchemaSnippet(schemasSource, 'kids_48_p48');
+assert(kidsP48.includes('"pageType": "photo"'), 'schema kids p48: photo page');
+assert(kidsP48.includes('"captionEnabled": true'), 'schema kids p48: captionEnabled');
+assert(kidsP48.includes('"photoBlocks"'), 'schema kids p48: photoBlocks');
+assert(!kidsP48.includes('"pageType": "non_editable"'), 'schema kids p48: not locked finale');
 
 const kidsP1 = getSchemaSnippet(schemasSource, 'kids_48_p1');
 assert(kidsP1.includes('"photoBlocks"'), 'schema kids p1: photoBlocks');
@@ -134,8 +159,43 @@ assert(
   'pageValuesAdapter: primary photo caption layout',
 );
 assert(
+  adapterSource.includes('Under-photo captions must NOT set templateLineStart'),
+  'pageValuesAdapter: under-photo captions follow photo, not line slots',
+);
+assert(
+  adapterSource.includes('resolveGodparentsNameViewportLayouts') &&
+    adapterSource.includes('isKidsGodparentsPage'),
+  'pageValuesAdapter: godparents names follow photo zones',
+);
+assert(
+  readFile('utils/photoCaptionLayout.ts').includes('resolveGodparentsNameViewportLayouts'),
+  'photoCaptionLayout: godparents name bands under photos',
+);
+assert(
+  readFile('utils/sparseTextPhotoSafeZone.ts').includes("page === 21") &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes('kids_48'),
+  'sparseTextPhotoSafeZone: godparents name slots do not constrain photo drag',
+);
+assert(
   readFile('utils/photoZoneLayout.ts').includes('resolvePhotoZoneViewportRects'),
   'photoZoneLayout: photo zone rects for captions',
+);
+assert(
+  readFile('utils/photoZoneLayout.ts').includes('resolvePhotoBlockSlotRects'),
+  'photoZoneLayout: per-slot rects for collage captions',
+);
+assert(
+  readFile('utils/photoCaptionLayout.ts').includes('resolvePhotoCaptionGroupScale'),
+  'photoCaptionLayout: caption scale follows group transform',
+);
+assert(
+  adapterSource.includes('usesDesignedAlbumPerPhotoCaptions') &&
+    adapterSource.includes('resolveEffectivePhotoCaptions'),
+  'pageValuesAdapter: designed per-photo captions path',
+);
+assert(
+  readFile('hooks/use-album-page-photo-editor.ts').includes('usesDesignedAlbumPerPhotoCaptions'),
+  'photo editor: showPerPhotoCaptions via usesDesignedAlbumPerPhotoCaptions',
 );
 assert(
   !adapterSource.includes('variant.slots > 1 ? values.photoGroupTransform'),
@@ -331,8 +391,34 @@ assert(
   'sparse-photo-album-config: cross-album sparse photo configs',
 );
 assert(
-  photoSlotsSource.includes('kids_48: {}') || photoSlotsSource.includes('kids_48: {\n  }'),
-  'kids_48 photo-slots: no blanket event spread',
+  readFile('utils/resolvePhotoPageLayouts.ts').includes('resolveKidsPhotoPageLayouts') &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes('buildStandardDesignedAlbumLayouts(pdf)'),
+  'kids_48 photo layouts: PDF-standard frames (not full-page expand)',
+);
+assert(
+  readFile('utils/sparseTextPhotoSafeZone.ts').includes('isPortraitPhotoPin') &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes('KIDS_LANDSCAPE_EVENT_TEMPLATE_IDS') &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes('buildKidsLandscapeEventPhotoLayouts'),
+  'kids_48 portrait PDF pin → landscape event layouts (no towers)',
+);
+assert(
+  readFile('constants/photo-block-presets.ts').includes('KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK') &&
+    readFile('scripts/kids-48-tz-builders.js').includes('KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK'),
+  'kids_48 event pages expose stacked two_horizontal photo block',
+);
+assert(
+  readFile('constants/photo-layout-templates.ts').includes('KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS') &&
+    readFile('constants/photo-layout-templates.ts').includes('isKidsSideBySideEventPage') &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes('KIDS_SIDE_BY_SIDE_EVENT_TEMPLATE_IDS'),
+  'kids_48 stand/baptism/month pages: two photos side-by-side',
+);
+assert(
+  readFile('utils/photoBlockSafeZone.ts').includes("params.lineGuideId === 'kids_48'") &&
+    readFile('utils/photoBlockSafeZone.ts').includes('isPregnancyWeeklyMiddlePage') &&
+    readFile('utils/photoBlockSafeZone.ts').includes('resolveSparsePhotoZoomSafeZone') &&
+    readFile('utils/sparseTextPhotoSafeZone.ts').includes("mode === 'zoom'") &&
+    readFile('constants/photo-print-margins.ts').includes("lineGuideId === 'kids_48'"),
+  'kids_48 / pregnancy weekly preview pinch: max zoom safe zone',
 );
 assert(
   readFile('utils/resolvePhotoPageLayouts.ts').includes('manualLayoutsArePlausible'),

@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { PhotoSlotCropPreview } from '@/components/album/photo-slot-crop-preview';
-import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
@@ -213,7 +213,6 @@ export function AlbumPreviewPhotoBlockEditor({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(selected)
         .onUpdate((event) => {
           const block = {
             x: baseX.value,
@@ -260,14 +259,12 @@ export function AlbumPreviewPhotoBlockEditor({
       savedOffsetY,
       savedScale,
       scale,
-      selected,
     ],
   );
 
   const pinchGesture = useMemo(
     () =>
       Gesture.Pinch()
-        .enabled(selected)
         .onUpdate((event) => {
           const block = {
             x: baseX.value,
@@ -314,7 +311,6 @@ export function AlbumPreviewPhotoBlockEditor({
       savedOffsetY,
       savedScale,
       scale,
-      selected,
     ],
   );
 
@@ -360,11 +356,11 @@ export function AlbumPreviewPhotoBlockEditor({
               : null;
             const delta =
               (event.translationX * sign.x + event.translationY * sign.y) /
-              Math.max(block.width, block.height, 1);
+              Math.max(Math.min(block.width, block.height), 1);
             const clamped = clampPhotoBlockTransform(
               block,
               {
-                scale: savedScale.value * (1 + delta * 0.85),
+                scale: savedScale.value * (1 + delta * 1.25),
                 offsetX: savedOffsetX.value,
                 offsetY: savedOffsetY.value,
               },

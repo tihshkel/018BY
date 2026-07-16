@@ -35,6 +35,79 @@ function pageValuesUpdatedAt(values) {
   return values?.updatedAt ?? '';
 }
 
+function countFilledFields(values) {
+  if (!values || typeof values !== 'object') return 0;
+  let count = 0;
+  for (const text of Object.values(values.fields ?? {})) {
+    if (String(text ?? '').trim()) count += 1;
+  }
+  for (const block of Object.values(values.photoBlocks ?? {})) {
+    if ((block?.slots ?? []).some((uri) => String(uri ?? '').trim())) count += 1;
+  }
+  if (String(values.caption ?? '').trim()) count += 1;
+  return count;
+}
+
+function mergePageValueEntryContent(local, cloud) {
+  if (!local || typeof local !== 'object') return cloud;
+  if (!cloud || typeof cloud !== 'object') return local;
+
+  const mergedFields = { ...(cloud.fields ?? {}) };
+  for (const [fieldId, localValue] of Object.entries(local.fields ?? {})) {
+    const localTrim = String(localValue ?? '').trim();
+    const cloudTrim = String(mergedFields[fieldId] ?? '').trim();
+    if (localTrim && !cloudTrim) {
+      mergedFields[fieldId] = localValue;
+      continue;
+    }
+    if (localTrim && cloudTrim) {
+      const preferLocal =
+        pageValuesUpdatedAt(local) >= pageValuesUpdatedAt(cloud) ||
+        localTrim.length >= cloudTrim.length;
+      if (preferLocal) mergedFields[fieldId] = localValue;
+    }
+  }
+
+  const mergedPhotoBlocks = { ...(cloud.photoBlocks ?? {}) };
+  for (const [blockId, localBlock] of Object.entries(local.photoBlocks ?? {})) {
+    const cloudBlock = mergedPhotoBlocks[blockId];
+    const localSlots = localBlock?.slots ?? [];
+    const cloudSlots = cloudBlock?.slots ?? [];
+    const localHasPhoto = localSlots.some((uri) => String(uri ?? '').trim());
+    const cloudHasPhoto = cloudSlots.some((uri) => String(uri ?? '').trim());
+    if (localHasPhoto && !cloudHasPhoto) {
+      mergedPhotoBlocks[blockId] = localBlock;
+      continue;
+    }
+    if (localHasPhoto && cloudHasPhoto) {
+      const preferLocal =
+        pageValuesUpdatedAt(local) >= pageValuesUpdatedAt(cloud) ||
+        countFilledFields(local) >= countFilledFields(cloud);
+      if (preferLocal) mergedPhotoBlocks[blockId] = localBlock;
+    }
+  }
+
+  const localAt = pageValuesUpdatedAt(local);
+  const cloudAt = pageValuesUpdatedAt(cloud);
+  const updatedAt =
+    localAt && cloudAt
+      ? localAt >= cloudAt
+        ? localAt
+        : cloudAt
+      : localAt || cloudAt || new Date().toISOString();
+
+  return {
+    ...cloud,
+    ...local,
+    fields: mergedFields,
+    photoBlocks: mergedPhotoBlocks,
+    caption: String(local.caption ?? '').trim()
+      ? local.caption
+      : cloud.caption,
+    updatedAt,
+  };
+}
+
 function mergePageValuesMaps(...maps) {
   const merged = {};
   for (const map of maps) {
@@ -45,11 +118,7 @@ function mergePageValuesMaps(...maps) {
         merged[instanceId] = values;
         continue;
       }
-      const existingAt = pageValuesUpdatedAt(existing);
-      const incomingAt = pageValuesUpdatedAt(values);
-      if (!existingAt || (incomingAt && incomingAt >= existingAt)) {
-        merged[instanceId] = values;
-      }
+      merged[instanceId] = mergePageValueEntryContent(existing, values);
     }
   }
   return merged;
@@ -138,12 +207,13 @@ function countNonEmptyPageValueEntry(value) {
 }
 
 function mergePageValueEntry(localRaw, cloudRaw) {
-  const local = safeParseObject(localRaw);
-  const cloud = safeParseObject(cloudRaw);
-  const localAt = local.updatedAt ?? '';
-  const cloudAt = cloud.updatedAt ?? '';
-  if (!localAt || (cloudAt && cloudAt >= localAt)) return cloudRaw;
-  return localRaw;
+  if (!localRaw) return cloudRaw;
+  if (!cloudRaw) return localRaw;
+  const merged = mergePageValueEntryContent(
+    safeParseObject(localRaw),
+    safeParseObject(cloudRaw),
+  );
+  return JSON.stringify(merged);
 }
 
 function countNonEmptyPageValues(map) {
@@ -163,11 +233,13 @@ function projectSnapshotRichness(data) {
   let score = 0;
   for (const [key, value] of Object.entries(data)) {
     if (typeof value !== 'string') continue;
-    if (key.includes('page_instances_')) score += safeParseArray(value).length * 10;
-    else if (key.includes('images_')) score += safeParseArray(value).length * 5;
-    else if (key.includes('page_values_')) score += countNonEmptyPageValues(safeParseObject(value)) * 20;
-    else if (isPageValueEntryKey(key)) score += countNonEmptyPageValueEntry(value) * 20;
-    else if (isProjectMetaKey(key)) {
+    if (key.includes('page_instances_')) score += safeParseArray(value).length * 2;
+    else if (key.includes('images_')) score += safeParseArray(value).length * 2;
+    else if (key.includes('page_values_')) {
+      score += countNonEmptyPageValues(safeParseObject(value)) * 100;
+    } else if (isPageValueEntryKey(key)) {
+      score += countNonEmptyPageValueEntry(value) * 100;
+    } else if (isProjectMetaKey(key)) {
       const meta = safeParseObject(value);
       for (const field of META_MERGE_FIELDS) {
         if (!isEmptyString(meta[field])) score += 1;

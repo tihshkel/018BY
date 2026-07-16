@@ -23,10 +23,26 @@ const components = fs.readFileSync(
 );
 
 assert(components.includes('struct WidgetPalette'), 'WidgetPalette adaptive palette exists');
-assert(components.includes('WidgetBackgroundStyle.canvas'), 'warm widget canvas background');
+assert(components.includes('WidgetBackgroundStyle.canvas'), 'widget canvas background');
 assert(components.includes('widgetPalette'), 'widgets use environment palette');
-assert(components.includes('WidgetActionOrb'), 'QuickAccess action orb component');
+assert(components.includes('WidgetActionOrb'), 'WidgetActionOrb still defined');
+assert(components.includes('WidgetHeroNumber'), 'info-first hero number component');
+assert(components.includes('WidgetMetricLabel'), 'metric label component');
+assert(
+  components.includes('Clean flat canvas') ||
+    !components.includes('offset(x: 78, y: -52)'),
+  'background avoids decorative glow circles',
+);
 assert(components.includes('containerBackground(for: .widget)'), 'iOS 17 container background');
+
+const overview = fs.readFileSync(
+  path.join(root, 'ios-widgets/QuickAccess/QuickAccessWidget.swift'),
+  'utf8',
+);
+assert(overview.includes('Сводка'), 'QuickAccess renamed to overview/сводка');
+assert(overview.includes('albumsCount'), 'overview shows albumsCount');
+assert(overview.includes('daysLeft'), 'overview shows PDR days');
+assert(!overview.includes('WidgetActionOrb'), 'overview is not CTA-orb focused');
 
 const widgetFiles = [
   'ios-widgets/QuickAccess/QuickAccessWidget.swift',

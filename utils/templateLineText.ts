@@ -1,25 +1,37 @@
 import {
+  DIARY_AMATIC_VISUAL_SINK_RATIO,
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
   isKidsMonthPage,
   KIDS_MONTH_LINE_FONT_OFFSET,
+  KIDS_MONTH_STROKE_CLEARANCE_RATIO,
+  KIDS_P1_STROKE_CLEARANCE_RATIO,
+  KIDS_P1_BASELINE_SINK_RATIO,
+  KIDS_P1_PDF_BASELINE_LIFT_RATIO,
+  KIDS_STROKE_CLEARANCE_RATIO,
+  KIDS_TEETH_STROKE_CLEARANCE_RATIO,
+  KIDS_TEETH_DATE_BASELINE_SINK_RATIO,
+  KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO,
+  KIDS_TEETH_BOTTOM_PDF_BASELINE_LIFT_RATIO,
+  KIDS_TEETH_DATE_PDF_BASELINE_LIFT_RATIO,
+  KIDS_TEETH_FIXED_LINE_FONT_SIZE,
+  KIDS_GROWTH_STROKE_CLEARANCE_RATIO,
+  KIDS_GROWTH_FIXED_LINE_FONT_SIZE,
+  KIDS_GROWTH_PDF_BASELINE_LIFT_RATIO,
+  KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO,
   KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO,
   KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO,
   KIDS_P12_DATE_LINE_GAP_BAND_RATIO,
   PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO,
   PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
   PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO,
+  PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO,
+  PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO,
   PREGNANCY_WEEKLY_GUIDE_STROKE_CAP_HEIGHT_RATIO,
   PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET,
   PREGNANCY_WEEKLY_GUIDE_STROKE_LIFT_BAND_RATIO,
   PREGNANCY_WEEKLY_INLINE_TAIL_EXTRA_LIFT_BAND_RATIO,
-  PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO,
-  PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO,
-  PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO,
-  PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO,
-  PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO,
   PREGNANCY_WEEKLY_LONG_LABEL_TAIL_GAP_THRESHOLD,
-  PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP,
   PREGNANCY_WEEKLY_LINE_PITCH,
   PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO,
   PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO,
@@ -36,6 +48,7 @@ import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import { getPregnancyWeeklyInlineTailFieldCalib } from '@/constants/pregnancy-weekly-inline-tail-calib';
 import { getRnAscentRatioAt16 } from '@/utils/fontCharWidths';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 import {
   isPregnancy60WeeklyValueSlot,
   isPregnancyRuledNotebookPage,
@@ -49,13 +62,15 @@ import {
 /** Пробел уже буквы — иначе перенос срабатывает раньше визуального края строки. */
 const SPACE_WIDTH_FACTOR = 0.35;
 
-/** Единая нормализация многострочных полей: iOS/Android → одинаковый перенос по слотам. */
+/** Единая нормализация полей: Unicode-пробелы голосового ввода + перенос по слотам. */
 export function normalizeTemplateMultilineText(text: string, lineCount?: number): string {
-  if (!text || lineCount == null || lineCount <= 1) return text;
-  return text.replace(/\r?\n/g, ' ');
+  if (!text) return text;
+  const normalized = normalizeAlbumUserText(text);
+  if (lineCount == null || lineCount <= 1) return normalized;
+  return normalized.replace(/\r?\n/g, ' ');
 }
 
-/** Штрих внизу полосы — месячные страницы, p8/p9 «ДАТА», сетка роста (стр. 11). */
+/** Штрих внизу полосы — месячные, нижняя «ДАТА», p8/p9, сетка роста (стр. 11). */
 function usesKids48BottomBandStroke(
   slot: Pick<TextLineSlot, 'page' | 'index' | 'textAnchorTop' | 'lineStrokeAtBottom'>,
 ): boolean {
@@ -63,6 +78,9 @@ function usesKids48BottomBandStroke(
   if (slot.page === 11) return true;
   if (slot.page === 8 && slot.index === 0) return true;
   if (slot.page === 9 && slot.index === 0) return true;
+  if (isKidsBottomDateLineSlot('kids_48', slot)) return true;
+  if (isKidsP16DreamsTopDateLineSlot('kids_48', slot)) return true;
+  if (isKidsP20BaptismDateLineSlot('kids_48', slot)) return true;
   return slot.page != null && isKidsMonthPage(slot.page) && slot.index >= 1;
 }
 
@@ -82,6 +100,48 @@ function resolveKids48LineStrokeY(
   return slot.y + slot.lineHeight * 0.5;
 }
 
+/** Preview top над штрихом kids_48 — RN/PDF ascent + единый clearance (без PDF-only lift). */
+function getKidsStrokeBaselineTextTop(
+  strokeY: number,
+  fittedSize: number,
+  fontId: string | null | undefined,
+  slot: Pick<TextLineSlot, 'page'> &
+    Partial<
+      Pick<TextLineSlot, 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>
+    >,
+  lineGuideId?: string,
+  extraGapPx = 0,
+): number {
+  const offset = resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId);
+  const clearanceRatio =
+    slot.page === 10
+      ? KIDS_TEETH_STROKE_CLEARANCE_RATIO
+      : slot.page === 11
+        ? KIDS_GROWTH_STROKE_CLEARANCE_RATIO
+        : isKidsBottomDateLineSlot('kids_48', slot) ||
+            isKidsP16DreamsTopDateLineSlot('kids_48', slot) ||
+            isKidsP20BaptismDateLineSlot('kids_48', slot)
+          ? KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO
+          : typeof slot.page === 'number' &&
+              isKidsMonthPage(slot.page) &&
+              (slot.index == null || slot.index >= 1)
+            ? KIDS_MONTH_STROKE_CLEARANCE_RATIO
+            : slot.page === 1
+              ? KIDS_P1_STROKE_CLEARANCE_RATIO
+              : KIDS_STROKE_CLEARANCE_RATIO;
+  // p1 / p10: rnAscent=1 — точечный sink/lift к штриху.
+  const amaticSink =
+    slot.page === 1 && (slot.index == null || slot.index >= 1)
+      ? fittedSize * KIDS_P1_BASELINE_SINK_RATIO
+      : slot.page === 10 && (slot.index === 20 || slot.index === 21)
+        ? -fittedSize * KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO
+        : slot.page === 10
+          ? fittedSize * KIDS_TEETH_DATE_BASELINE_SINK_RATIO
+          : 0;
+  const clearance = fittedSize * clearanceRatio;
+  return strokeY - fittedSize * offset - clearance - extraGapPx + amaticSink;
+}
+
 function isDiaryInteriorLineGuide(lineGuideId?: string): boolean {
   return lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple';
 }
@@ -89,39 +149,6 @@ function isDiaryInteriorLineGuide(lineGuideId?: string): boolean {
 function getEffectiveCharWidthRatio(lineGuideId?: string, fontId?: string): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
   return profile.charWidthRatio * getAlbumFontCharWidthMultiplier(fontId);
-}
-
-function getInlineTailWidthRatio(slot: TextLineSlot): number {
-  const normHeight = slot.normHeight ?? 0;
-  if (normHeight > PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT) {
-    return PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO;
-  }
-  return PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO;
-}
-
-function getViewportNormScale(
-  slot: Pick<TextLineSlot, 'width' | 'normWidth'>,
-): number {
-  const normWidth = slot.normWidth ?? 0;
-  if (normWidth <= 0 || slot.width <= 0) return 1;
-  return slot.width / normWidth;
-}
-
-function findWeeklyInlineTailBodySlot(
-  slot: Pick<TextLineSlot, 'index' | 'continuationGroup' | 'page'>,
-  allSlots: readonly TextLineSlot[],
-  lineGuideId?: string,
-): TextLineSlot | undefined {
-  const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
-  return allSlots.find(
-    (s) =>
-      s.continuationGroup === slot.continuationGroup &&
-      !s.hasLabel &&
-      (s.inputKind ?? 'line') === 'line' &&
-      s.index > slot.index &&
-      s.index !== 1 &&
-      s.index !== bellyIndex,
-  );
 }
 
 /** Первая body-строка поля (для масштаба PNG-калибровки norm X → viewport). */
@@ -155,6 +182,15 @@ export function getPregnancyWeeklyFieldLineGeometry(
   lineGuideId?: string,
   allSlots?: readonly TextLineSlot[],
 ): PregnancyWeeklyFieldLineGeometry | null {
+  if (slot.inlineLabelTail) {
+    return {
+      viewLeft: slot.x,
+      viewWidth: slot.width,
+      textLeft: 0,
+      textWidth: slot.width,
+    };
+  }
+
   const calib = getPregnancyWeeklyInlineTailFieldCalib(
     lineGuideId,
     slot.page,
@@ -176,17 +212,7 @@ export function getPregnancyWeeklyFieldLineGeometry(
   const scale = anchorSlot.x / calib.lineLeftNormX;
   const lineLeftPx = calib.lineLeftNormX * scale;
   const lineRightPx = calib.lineRightNormX * scale;
-  const labelEndPx = calib.labelEndNormX * scale;
   const fullWidth = (lineRightPx - lineLeftPx) * slack;
-
-  if (slot.inlineLabelTail) {
-    return {
-      viewLeft: lineLeftPx,
-      viewWidth: fullWidth,
-      textLeft: (labelEndPx - lineLeftPx) * slack,
-      textWidth: (lineRightPx - labelEndPx) * slack,
-    };
-  }
 
   return {
     viewLeft: lineLeftPx,
@@ -194,20 +220,6 @@ export function getPregnancyWeeklyFieldLineGeometry(
     textLeft: 0,
     textWidth: fullWidth,
   };
-}
-
-function isPregnancyWeeklyInlineTailAfterLabelSlot(
-  slot: TextLineSlot,
-  lineGuideId: string | undefined,
-  allSlots: readonly TextLineSlot[] | undefined,
-): boolean {
-  if (!slot.inlineLabelTail || !lineGuideId || !allSlots?.length) return false;
-  if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
-  const bodySlot = findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId);
-  if (!bodySlot) return false;
-  const scale = getViewportNormScale(bodySlot);
-  const gapNorm = (slot.x - bodySlot.x) / scale;
-  return gapNorm > PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP;
 }
 
 export type TemplateTextInsets = {
@@ -218,16 +230,18 @@ export type TemplateTextInsets = {
   anchorWidth?: number;
 };
 
-function resolvePregnancyWeeklyInlineLabelBodyEndRatio(
+function isPregnancyWeeklyFeelingsGroup(
+  lineGuideId: string | undefined,
   continuationGroup: number | undefined,
-): number {
-  if (continuationGroup === 3) {
-    return PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO;
-  }
-  if (continuationGroup === 5) {
-    return PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO;
-  }
-  return PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO;
+): boolean {
+  return continuationGroup === (lineGuideId === 'pregnancy_a5' ? 6 : 5);
+}
+
+function isPregnancyWeeklyMultilineGroup(
+  lineGuideId: string | undefined,
+  continuationGroup: number | undefined,
+): boolean {
+  return continuationGroup === 3 || isPregnancyWeeklyFeelingsGroup(lineGuideId, continuationGroup);
 }
 
 /** Горизонтальные inset/width для inline-tail (перенос + preview/export). */
@@ -246,41 +260,19 @@ export function getPregnancyWeeklyInlineTailTextInsets(
 
   const calibGeometry = getPregnancyWeeklyFieldLineGeometry(slot, lineGuideId, allSlots);
   if (calibGeometry) {
+    const pad = Math.max(4, slot.width * 0.03);
     return {
-      left: calibGeometry.textLeft,
-      width: calibGeometry.textWidth,
+      left: calibGeometry.textLeft + pad,
+      width: Math.max(0, calibGeometry.textWidth - pad),
       anchorX: calibGeometry.viewLeft,
       anchorWidth: calibGeometry.viewWidth,
     };
   }
 
-  const profile = getTemplateTypographyProfile(lineGuideId);
-  const slack = profile.lineWidthSlackRatio;
-  const bodySlot = allSlots?.length
-    ? findWeeklyInlineTailBodySlot(slot, allSlots, lineGuideId)
-    : undefined;
-
-  if (bodySlot && isPregnancyWeeklyInlineTailAfterLabelSlot(slot, lineGuideId, allSlots)) {
-    const anchorWidth = bodySlot.width * slack;
-    const labelEndRatio = resolvePregnancyWeeklyInlineLabelBodyEndRatio(
-      slot.continuationGroup,
-    );
-    const textLeft = anchorWidth * labelEndRatio;
-    const lineRight = bodySlot.x + anchorWidth;
-    const tailStartX = bodySlot.x + textLeft;
-    const lineRemainder = Math.max(0, lineRight - tailStartX);
-    return {
-      left: textLeft,
-      width: lineRemainder,
-      anchorX: bodySlot.x,
-      anchorWidth,
-    };
-  }
-
-  const ratio = getInlineTailWidthRatio(slot);
-  const tailWidth = slot.width * ratio * slack;
-  const labelWidth = Math.max(0, slot.width * slack - tailWidth);
-  return { left: labelWidth, width: tailWidth };
+  // OCR already returns the exact line tail: x starts after the printed label.
+  // Small extra pad so user text does not hug the printed design.
+  const pad = Math.max(4, slot.width * 0.035);
+  return { left: pad, width: Math.max(0, slot.width - pad) };
 }
 
 /** Абсолютная геометрия Text-контейнера из slot + insets (body-anchor для weekly inline-tail). */
@@ -334,27 +326,28 @@ function isPregnancyWeeklyFieldLineSlot(
   );
 }
 
-/** Многострочные поля «Планы» (group 3) и «Ощущения» (group 5) — не дата/вес. */
+/** Многострочные поля «Планы» и «Ощущения» — не дата/вес. */
 export function isPregnancyWeeklyMultilineTextFieldSlot(
   slot: Pick<TextLineSlot, 'page' | 'inputKind' | 'index' | 'continuationGroup'>,
   lineGuideId?: string,
 ): boolean {
   if (!isPregnancyWeeklyFieldLineSlot(slot, lineGuideId)) return false;
-  return slot.continuationGroup === 3 || slot.continuationGroup === 5;
+  return isPregnancyWeeklyMultilineGroup(lineGuideId, slot.continuationGroup);
 }
 
 export function shouldClipPregnancyWeeklyFieldRow(
-  slot: Pick<
-    TextLineSlot,
-    | 'page'
-    | 'inputKind'
-    | 'index'
-    | 'continuationGroup'
-    | 'inlineLabelTail'
-    | 'hasLabel'
-    | 'x'
-    | 'normHeight'
-  >,
+  slot: Pick<TextLineSlot, 'page' | 'index'> &
+    Partial<
+      Pick<
+        TextLineSlot,
+        | 'inputKind'
+        | 'continuationGroup'
+        | 'inlineLabelTail'
+        | 'hasLabel'
+        | 'x'
+        | 'normHeight'
+      >
+    >,
   lineGuideId?: string,
   allSlots?: readonly TextLineSlot[],
 ): boolean {
@@ -364,8 +357,24 @@ export function shouldClipPregnancyWeeklyFieldRow(
 
   if (slot.inlineLabelTail === true) return true;
 
-  if (allSlots?.length) {
-    return isPregnancyWeeklyInlineTailLabelSlot(lineGuideId, slot, allSlots);
+  if (
+    allSlots?.length &&
+    typeof slot.x === 'number' &&
+    typeof slot.continuationGroup === 'number'
+  ) {
+    return isPregnancyWeeklyInlineTailLabelSlot(
+      lineGuideId,
+      {
+        page: slot.page,
+        index: slot.index,
+        x: slot.x,
+        hasLabel: slot.hasLabel ?? false,
+        continuationGroup: slot.continuationGroup,
+        normHeight: slot.normHeight,
+        inlineLabelTail: slot.inlineLabelTail,
+      },
+      allSlots,
+    );
   }
 
   if (lineGuideId === 'pregnancy_60') {
@@ -470,7 +479,15 @@ export function textFitsInSlot(
   allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (!text) return true;
-  const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
+  // kids_48 p1/p10: меряем при том же кегле, которым рисуем (shrink),
+  // иначе distribute обрезает «ДД.ММ.ГГГГ» до «ДД.ММ.ГГ».
+  const fitted =
+    lineGuideId === 'kids_48' && (slot.page === 10 || slot.page === 1)
+      ? getEffectiveTemplateFontSize(lineGuideId, slot, fontSize, {
+          textContent: text,
+          fontId,
+        })
+      : fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
   return (
     measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth) <=
     getEffectiveLineWidth(slot, lineGuideId, allSlots)
@@ -578,27 +595,34 @@ export function fitFontSizeToSlot(
   fontSize: number,
   lineHeight: number,
   inputKind: 'line' | 'block' = 'line',
-  lineGuideId?: string
+  lineGuideId?: string,
+  maxFontSizeOverride?: number,
 ): number {
   const profile = getTemplateTypographyProfile(lineGuideId);
 
+  // Дневник калиброван под fixed 16 pt. A+/A− — только явный размер ≠ дефолту,
+  // без клампа к lineHeight (на телефоне слот ~11 px и иначе всё схлопывается).
   if (isDiaryInteriorLineGuide(lineGuideId) && profile.fixedLineFontSize != null) {
-    return profile.fixedLineFontSize;
+    const locked = profile.fixedLineFontSize;
+    if (Number.isFinite(fontSize) && fontSize !== locked) {
+      return Math.min(Math.max(fontSize, 10), 28);
+    }
+    return locked;
+  }
+
+  // Birthday: A+/A− must change preview size. Slot height on phone is often ~10–14 px,
+  // so lineHeight clamps make the toolbar look broken.
+  if (lineGuideId === 'holidays_birthday_60' && Number.isFinite(fontSize)) {
+    return Math.min(Math.max(fontSize, 10), 28);
   }
 
   if (inputKind === 'block') {
     return Math.min(fontSize, Math.max(13, lineHeight * 0.78), profile.blockMaxFontSize);
   }
 
-  if (profile.fixedLineFontSize != null) {
-    return Math.min(fontSize, profile.fixedLineFontSize);
-  }
-
-  if (
-    inputKind === 'line' &&
-    lineGuideId === 'holidays_birthday_60'
-  ) {
-    return Math.min(fontSize, Math.max(10, lineHeight * 0.82), 18);
+  const fixedMax = maxFontSizeOverride ?? profile.fixedLineFontSize;
+  if (fixedMax != null) {
+    return Math.min(fontSize, fixedMax);
   }
 
   const maxFromSlot = Math.max(8, lineHeight * 0.76);
@@ -659,7 +683,7 @@ function isBirthQuestionnaireAutoShrinkSlot(
 const PREGNANCY_60_P52_BLOCK_SLOT_INDICES = new Set([9, 10, 13, 14, 15]);
 
 export function isPregnancy60Page52WhiteBlockSlot(
-  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+  slot: Pick<TextLineSlot, 'page' | 'inputKind'> & Partial<Pick<TextLineSlot, 'index'>>,
   lineGuideId?: string,
 ): boolean {
   return (
@@ -671,10 +695,26 @@ export function isPregnancy60Page52WhiteBlockSlot(
   );
 }
 
+function isBirthdayFreeCaptionPage(page: number): boolean {
+  if (page === 3 || page === 5) return true;
+  if (page >= 7 && page <= 39 && page % 2 === 1) return true;
+  return false;
+}
+
 export function resolveBirthQuestionnaireBlockTextAlign(
-  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'>,
+  slot: Pick<TextLineSlot, 'page' | 'index' | 'inputKind'> &
+    Partial<Pick<TextLineSlot, 'normWidth' | 'width'>>,
   lineGuideId?: string,
 ): 'left' | 'center' {
+  if (lineGuideId === 'holidays_birthday_60') {
+    if ((slot.inputKind ?? 'line') !== 'block') return 'left';
+    // Free-page caption pills (incl. wrap line) start at the left of each white block.
+    if (isBirthdayFreeCaptionPage(slot.page)) return 'left';
+    // Wide travel / multi-line caption bands — same left edge rule.
+    const normW = slot.normWidth ?? 0;
+    if (normW >= 0.35) return 'left';
+    return 'center';
+  }
   if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
     return 'center';
   }
@@ -713,14 +753,29 @@ function isAlreadyMomPage(lineGuideId: string | undefined, page?: number): boole
 /** RN Text top offset for stroke-baseline rows (lineHeight === fontSize in preview). */
 function resolveStrokeBaselinePreviewFontOffset(
   fontId: string | null | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>,
+  slot: Pick<TextLineSlot, 'page'> &
+    Partial<
+      Pick<TextLineSlot, 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>
+    >,
   lineGuideId?: string,
 ): number {
-  return getRnAscentRatioAt16(fontId) ?? getStrokeBaselineFontOffset(slot, lineGuideId);
+  // Diary / birthday Amatic: rnAscent≈1 sits visually high above the stroke.
+  if (isDiaryInteriorLineGuide(lineGuideId) || lineGuideId === 'holidays_birthday_60') {
+    return getStrokeBaselineFontOffset(slot, lineGuideId);
+  }
+  const ascent = getRnAscentRatioAt16(fontId);
+  // pregnancy_60 «Постановка на учёт»: Amatic floats above printed underlines.
+  if (lineGuideId === 'pregnancy_60' && slot.page === 4 && ascent != null) {
+    return applyDiaryAmaticVisualSink(Math.min(ascent, 0.96));
+  }
+  return ascent ?? getStrokeBaselineFontOffset(slot, lineGuideId);
 }
 
 function getStrokeBaselineFontOffset(
-  slot: Pick<TextLineSlot, 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>,
+  slot: Pick<TextLineSlot, 'page'> &
+    Partial<
+      Pick<TextLineSlot, 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'>
+    >,
   lineGuideId?: string,
 ): number {
   if (isBirthQuestionnairePage(lineGuideId, slot.page)) {
@@ -743,45 +798,75 @@ function getStrokeBaselineFontOffset(
     if (isBrownCoverField || isPurpleCoverField) {
       return 0.92;
     }
-    if (isBrownWishSlot(slot, lineGuideId) || isBrownCareerAnswerSlot(slot, lineGuideId)) {
-      return 0.9;
+    const diarySlot = {
+      page: slot.page,
+      normY: slot.normY,
+      hasLabel: slot.hasLabel ?? false,
+    };
+    if (
+      isBrownWishSlot(diarySlot, lineGuideId) ||
+      isBrownCareerAnswerSlot(diarySlot, lineGuideId)
+    ) {
+      return applyDiaryAmaticVisualSink(0.9);
+    }
+    if (lineGuideId === 'diary_interior_brown') {
+      const tuned = resolveDiaryBrownLineFontOffset({
+        page: slot.page,
+        normY: slot.normY,
+        hasLabel: slot.hasLabel ?? false,
+        inputKind: slot.inputKind,
+      });
+      if (tuned != null) return tuned;
     }
     if (lineGuideId === 'diary_interior_purple') {
-      return 0.9;
+      return applyDiaryAmaticVisualSink(0.9);
     }
-    return DIARY_LINE_FONT_OFFSET;
+    return applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET);
+  }
+  if (lineGuideId === 'holidays_birthday_60') {
+    return applyDiaryAmaticVisualSink(0.98);
   }
   return KIDS_MONTH_LINE_FONT_OFFSET;
 }
 
 /** Baseline прямо на штрихе линии — kids_48, pregnancy A5 p44, дневники. */
 export function usesStrokeBaselineLayout(
-  slot: Pick<
-    TextLineSlot,
-    'lineStrokeAtBottom' | 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index' | 'textAnchorTop'
-  >,
+  slot: Pick<TextLineSlot, 'page' | 'index'> &
+    Partial<
+      Pick<
+        TextLineSlot,
+        'lineStrokeAtBottom' | 'normY' | 'hasLabel' | 'inputKind' | 'textAnchorTop'
+      >
+    >,
   lineGuideId?: string,
 ): boolean {
-  if (isPregnancyWeeklyTextLineSlot(lineGuideId, slot)) return true;
+  if (
+    typeof slot.page === 'number' &&
+    typeof slot.index === 'number' &&
+    isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
+  ) {
+    return true;
+  }
   if (!Boolean(slot.lineStrokeAtBottom)) return false;
   if (lineGuideId === 'kids_48') return true;
-  if (lineGuideId === 'pregnancy_a5' && slot.page === 44) return true;
-  if (isBirthQuestionnairePage(lineGuideId, slot.page)) return true;
-  if (
-    lineGuideId === 'pregnancy_60' &&
-    slot.page === 54
-  ) {
+  if (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') {
     return (slot.inputKind ?? 'line') === 'line';
   }
   if (isDiaryInteriorLineGuide(lineGuideId)) {
     return !isDiaryPeachCellField(slot);
+  }
+  if (lineGuideId === 'holidays_birthday_60') {
+    return (slot.inputKind ?? 'line') === 'line';
   }
   return false;
 }
 
 /** @deprecated Use usesStrokeBaselineLayout */
 export function usesKidsMonthStrokeBaselineLayout(
-  slot: Pick<TextLineSlot, 'lineStrokeAtBottom' | 'page' | 'normY' | 'hasLabel' | 'inputKind'>,
+  slot: Pick<
+    TextLineSlot,
+    'lineStrokeAtBottom' | 'page' | 'normY' | 'hasLabel' | 'inputKind' | 'index'
+  >,
   lineGuideId?: string
 ): boolean {
   return usesStrokeBaselineLayout(slot, lineGuideId);
@@ -836,16 +921,29 @@ export function getEffectiveTemplateFontSize(
   annotationFontSize = 16,
   options?: { textContent?: string; fontId?: string },
 ): number {
+  const preferredSize =
+    lineGuideId === 'kids_48' && slot?.page === 11
+      ? Math.min(annotationFontSize, KIDS_GROWTH_FIXED_LINE_FONT_SIZE)
+      : lineGuideId === 'kids_48' && slot?.page === 10
+        ? Math.min(annotationFontSize, KIDS_TEETH_FIXED_LINE_FONT_SIZE)
+        : annotationFontSize;
+  const teethMax =
+    lineGuideId === 'kids_48' && slot?.page === 10
+      ? KIDS_TEETH_FIXED_LINE_FONT_SIZE
+      : undefined;
   const base = fitFontSizeToSlot(
-    annotationFontSize,
+    preferredSize,
     slot?.lineHeight ?? 24,
     slot?.inputKind ?? 'line',
     lineGuideId,
+    teethMax,
   );
   if (!slot || !options?.textContent) return base;
   if (
     isKidsStrokeBaselineDateLineSlot(lineGuideId, slot) ||
-    isKidsEventDateLineSlot(lineGuideId, slot)
+    isKidsEventDateLineSlot(lineGuideId, slot) ||
+    (lineGuideId === 'kids_48' && slot.page === 10) ||
+    (lineGuideId === 'kids_48' && slot.page === 1 && (slot.index == null || slot.index >= 1))
   ) {
     return shrinkFontSizeToFitSlotText(
       base,
@@ -853,7 +951,7 @@ export function getEffectiveTemplateFontSize(
       options.textContent,
       lineGuideId,
       options.fontId,
-      9,
+      8,
     );
   }
   if (isBirthQuestionnaireAutoShrinkSlot(lineGuideId, slot)) {
@@ -911,8 +1009,9 @@ export function getTemplateLineTypography(
 
 type DiaryBrownSlotGeometry = Pick<
   TextLineSlot,
-  'inputKind' | 'normY' | 'normHeight' | 'page' | 'x' | 'width'
->;
+  'inputKind' | 'normY' | 'normHeight' | 'page'
+> &
+  Partial<Pick<TextLineSlot, 'x' | 'width'>>;
 
 function resolveDiaryBrownBlockRatios(
   slot: DiaryBrownSlotGeometry,
@@ -957,30 +1056,32 @@ function resolveDiaryBrownBlockRatios(
   return { centerRatio: 1, fontOffsetRatio: 0.96 };
 }
 
+function applyDiaryAmaticVisualSink(fontOffsetRatio: number): number {
+  return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
+}
+
 function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number | null {
   if (slot.page == null) return null;
   const template = getDiaryBrownPageTemplate(slot.page);
   if (!template) return null;
 
+  let offset = 0.92;
   if (DIARY_BROWN_QUESTIONNAIRE_TEMPLATES.has(template)) {
-    return 0.93;
+    offset = 0.93;
+  } else if (template === DIARY_BROWN_MY_DAY_TEMPLATE) {
+    // Date sits on printed «(ДАТА)» — lower Amatic so digits cover the placeholder.
+    const isDateSlot = slot.normY != null && slot.normY <= 0.22;
+    offset = isDateSlot ? 0.86 : 0.94;
+  } else if (template === 'MoodTemplate' || template === 'TravelTemplate') {
+    offset = 0.96;
+  } else if (template === DIARY_BROWN_SCHOOL_LIFE_TEMPLATE) {
+    offset = 0.96;
+  } else if (DIARY_BROWN_WEEKLY_SCHEDULE_TEMPLATES.has(template)) {
+    offset = 0.96;
+  } else if (slot.page != null && slot.page >= 45 && slot.page <= 56) {
+    offset = 0.92;
   }
-  if (template === DIARY_BROWN_MY_DAY_TEMPLATE) {
-    return 0.94;
-  }
-  if (template === 'MoodTemplate' || template === 'TravelTemplate') {
-    return 0.9;
-  }
-  if (template === DIARY_BROWN_SCHOOL_LIFE_TEMPLATE) {
-    return 0.94;
-  }
-  if (DIARY_BROWN_WEEKLY_SCHEDULE_TEMPLATES.has(template)) {
-    return 0.9;
-  }
-  if (slot.page != null && slot.page >= 45 && slot.page <= 56) {
-    return 0.92;
-  }
-  return 0.92;
+  return applyDiaryAmaticVisualSink(offset);
 }
 
 function resolveTemplateTextVerticalRatios(
@@ -1009,16 +1110,6 @@ function resolveTemplateTextVerticalRatios(
   }
 
   if (inputKind === 'line') {
-    if (
-      lineGuideId === 'holidays_birthday_60' &&
-      slot.page === 48 &&
-      slot.normY != null &&
-      slot.normY >= 0.22 &&
-      slot.normY <= 0.75
-    ) {
-      return { centerRatio: 1, fontOffsetRatio: 0.98 };
-    }
-
     if (lineGuideId === 'kids_48') {
       return { centerRatio: 0.5, fontOffsetRatio: 0.86 };
     }
@@ -1045,14 +1136,14 @@ function resolveTemplateTextVerticalRatios(
         }
       }
 
+      if (isBrownCoverField || isPurpleCoverField) {
+        return { centerRatio: 0.44, fontOffsetRatio: 0.92 };
+      }
       return {
-        centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 1,
-        fontOffsetRatio:
-          isBrownCoverField || isPurpleCoverField
-            ? 0.92
-            : lineGuideId === 'diary_interior_purple'
-              ? 0.92
-              : 0.9,
+        centerRatio: 1,
+        fontOffsetRatio: applyDiaryAmaticVisualSink(
+          lineGuideId === 'diary_interior_purple' ? 0.92 : DIARY_LINE_FONT_OFFSET,
+        ),
       };
     }
 
@@ -1064,23 +1155,12 @@ function resolveTemplateTextVerticalRatios(
 
   if (lineGuideId === 'holidays_birthday_60') {
     const normHeight = slot.normHeight ?? 0;
-    const normY = slot.normY ?? 0;
 
-    // Крупные белые блоки (обложка стр. 1, заголовки)
+    // Белые pill-блоки — визуальный центр по вертикали (preview = export).
     if (normHeight >= 0.055) {
-      if (normY >= 0.55 && normY <= 0.82) {
-        return { centerRatio: 0.5, fontOffsetRatio: 0.8 };
-      }
-      return { centerRatio: 0.52, fontOffsetRatio: 0.78 };
+      return { centerRatio: 0.5, fontOffsetRatio: 0.55 };
     }
-    // Верхний/средний ряд коротких полей (дата, вес, рост на стр. 2 и «Мне N лет»)
-    if (normHeight < 0.055 && normY >= 0.25 && normY <= 0.38) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
-    }
-    // Нижняя строка коротких полей (место рождения и аналоги на стр. 2+)
-    if (normY >= 0.85 && normHeight < 0.055) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
-    }
+    return { centerRatio: 0.5, fontOffsetRatio: 0.55 };
   }
 
   if (isBirthQuestionnairePage(lineGuideId, slot.page) && inputKind === 'block') {
@@ -1102,16 +1182,6 @@ function resolveTemplateTextVerticalRatios(
       return { centerRatio: 0.56, fontOffsetRatio: 0.66 };
     }
     return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
-  }
-
-  if (
-    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
-    inputKind === 'line'
-  ) {
-    return {
-      centerRatio: profile.lineCenterRatio,
-      fontOffsetRatio: profile.lineFontOffsetRatio,
-    };
   }
 
   return {
@@ -1143,7 +1213,7 @@ export function isBrownWishSlot(
     (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
     !slot.hasLabel &&
     slot.normY != null &&
-    slot.normY >= 0.772 &&
+    slot.normY >= 0.762 &&
     slot.normY <= 0.92
   );
 }
@@ -1212,8 +1282,15 @@ export function getTemplateBlockTextInsets(
     );
   }
   if (lineGuideId === 'holidays_birthday_60' && slot.inputKind === 'block') {
-    const pad = slot.width * 0.08;
+    const pad = slot.width * 0.06;
     return { left: pad, width: Math.max(0, slot.width - pad * 2) };
+  }
+  if (isBirthQuestionnairePage(lineGuideId, slot.page) &&
+    (slot.inputKind ?? 'line') === 'line'
+  ) {
+    // Единый отступ от начала печатной линии на всех строках анкеты.
+    const pad = Math.min(0.012, Math.max(0.008, slot.width * 0.035));
+    return { left: pad, width: Math.max(0, slot.width - pad) };
   }
   if (isPregnancy60Page52WhiteBlockSlot(slot, lineGuideId)) {
     const pad = slot.width * 0.06;
@@ -1275,29 +1352,40 @@ function resolveAlreadyMomLineStrokeY(
   return slot.y + slot.lineHeight;
 }
 
-/** Top Text для «Уже мама» — baseline на штрихе (как недельные строки). */
+/** Top Text для «Уже мама» — weekly EXTRA_LIFT + RN ascent + небольшой зазор над штрихом. */
 export function getAlreadyMomLineTextTop(
   slot: PregnancyWeeklyStrokeSlot,
   fittedSize: number,
-  _lineGuideId?: string,
-  _allSlots?: PregnancyWeeklyStrokeSlot[],
+  lineGuideId?: string,
+  _allSlots?: readonly PregnancyWeeklyStrokeSlot[],
+  fontId?: string | null,
 ): number {
   const strokeY = resolveAlreadyMomLineStrokeY(slot);
+  const offset = resolveStrokeBaselinePreviewFontOffset(
+    fontId,
+    slot,
+    lineGuideId,
+  );
   const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO;
-  return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO - lift;
+  const clearance = fittedSize * PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO;
+  return strokeY - fittedSize * offset - lift - clearance;
 }
 
-/** Top Text для «Анкета родов» — weekly-формула на штрихе линии. */
+/** Top Text для «Анкета родов» — baseline на штрихе, font-aware (без weekly EXTRA_LIFT). */
 export function getBirthQuestionnaireLineTextTop(
   slot: PregnancyWeeklyStrokeSlot,
   fittedSize: number,
-  referenceFittedSize?: number,
+  fontId?: string | null,
+  lineGuideId?: string,
 ): number {
-  const strokeY = slot.y + slot.lineHeight;
-  const ref = referenceFittedSize ?? fittedSize;
-  const liftScale = ref > 0 ? fittedSize / ref : 1;
-  const lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO * liftScale;
-  return strokeY - fittedSize * PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO - lift;
+  const strokeY =
+    typeof slot.strokeY === 'number' ? slot.strokeY : slot.y + slot.lineHeight;
+  const offset = resolveStrokeBaselinePreviewFontOffset(
+    fontId,
+    slot,
+    lineGuideId,
+  );
+  return strokeY - fittedSize * offset;
 }
 
 function usesPregnancyWeeklyGuideStrokeBaseline(
@@ -1306,7 +1394,7 @@ function usesPregnancyWeeklyGuideStrokeBaseline(
 ): boolean {
   if (typeof slot.strokeY !== 'number') return false;
   if (!isPregnancyWeeklyStructuredPage(lineGuideId, slot.page)) return false;
-  return slot.continuationGroup === 3 || slot.continuationGroup === 5;
+  return isPregnancyWeeklyMultilineGroup(lineGuideId, slot.continuationGroup);
 }
 
 function resolvePregnancyWeeklyStrokeTextMetrics(
@@ -1315,12 +1403,20 @@ function resolvePregnancyWeeklyStrokeTextMetrics(
     'strokeY' | 'lineHeight' | 'inlineLabelTail' | 'normHeight' | 'page' | 'continuationGroup'
   >,
   lineGuideId?: string,
+  fontId?: string | null,
 ): { capRatio: number; lift: number } {
+  const rnRatio = getRnAscentRatioAt16(fontId);
+
+  // Guide-stroke (планы/ощущения) и single-line (дата): RN ascent на штрихе.
   if (usesPregnancyWeeklyGuideStrokeBaseline(slot, lineGuideId)) {
     return {
-      capRatio: PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET,
+      capRatio: rnRatio ?? PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET,
       lift: 0,
     };
+  }
+
+  if (rnRatio != null) {
+    return { capRatio: rnRatio, lift: 0 };
   }
 
   let lift = slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO;
@@ -1334,13 +1430,14 @@ function resolvePregnancyWeeklyStrokeTextMetrics(
   return { capRatio: PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO, lift };
 }
 
-/** Top Text для недельной строки — baseline на штрихе с подъёмом под RN/Связной. */
+/** Top Text для недельной строки — baseline на штрихе (RN ascent ↔ PDF). */
 export function getPregnancyWeeklyLineTextTop(
   slot: PregnancyWeeklyStrokeSlot,
   fittedSize: number,
   lineGuideId?: string,
-  allSlots?: PregnancyWeeklyStrokeSlot[],
+  allSlots?: readonly PregnancyWeeklyStrokeSlot[],
   fieldStartIndex?: number,
+  fontId?: string | null,
 ): number {
   const strokeY = getPregnancyWeeklyLineStrokeY(
     slot,
@@ -1351,6 +1448,7 @@ export function getPregnancyWeeklyLineTextTop(
   const { capRatio, lift } = resolvePregnancyWeeklyStrokeTextMetrics(
     slot,
     lineGuideId,
+    fontId,
   );
   return strokeY - fittedSize * capRatio - lift;
 }
@@ -1360,7 +1458,7 @@ export function getPregnancyRuledNotebookLineTextTop(
   slot: PregnancyWeeklyStrokeSlot,
   fittedSize: number,
   lineGuideId?: string,
-  allSlots?: PregnancyWeeklyStrokeSlot[],
+  allSlots?: readonly PregnancyWeeklyStrokeSlot[],
   fieldStartIndex?: number,
 ): number {
   const strokeY = getPregnancyWeeklyLineStrokeY(
@@ -1403,7 +1501,7 @@ function mapPregnancyWeeklyStrokeNormYToViewport(
 
 export function getPregnancyWeeklyLineStrokeY(
   slot: PregnancyWeeklyStrokeSlot,
-  _allSlots?: PregnancyWeeklyStrokeSlot[],
+  _allSlots?: readonly PregnancyWeeklyStrokeSlot[],
   lineGuideId?: string,
   _fieldStartIndex?: number,
 ): number {
@@ -1450,11 +1548,20 @@ export function getPregnancyWeeklyLineStrokeRatio(normHeight: number): number {
   return 1;
 }
 
-function isKidsP16DreamsDateLineSlot(
+/** p16 верхнее «(ДАТА)» у заголовка. */
+function isKidsP16DreamsTopDateLineSlot(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'index'>,
+  slot: { page?: number; index?: number },
 ): boolean {
   return lineGuideId === 'kids_48' && slot.page === 16 && slot.index === 0;
+}
+
+/** p20 «Таинство крещения» — дата на штрихе под заголовком. */
+function isKidsP20BaptismDateLineSlot(
+  lineGuideId: string | undefined,
+  slot: { page?: number; index?: number },
+): boolean {
+  return lineGuideId === 'kids_48' && slot.page === 20 && slot.index === 0;
 }
 
 function isKids48P8DateLineSlot(
@@ -1484,22 +1591,21 @@ function isKidsStrokeBaselineDateLineSlot(
 ): boolean {
   return (
     isKidsBottomDateLineSlot(lineGuideId, slot) ||
-    isKidsP16DreamsDateLineSlot(lineGuideId, slot)
+    isKidsP16DreamsTopDateLineSlot(lineGuideId, slot) ||
+    isKidsP20BaptismDateLineSlot(lineGuideId, slot)
   );
 }
 
+/** Нижняя «ДАТА» — sync с KIDS_BOTTOM_DATE_* в textLineSlots.ts. */
 function isKidsBottomDateLineSlot(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'page' | 'index'>,
+  slot: { page?: number; index?: number },
 ): boolean {
-  if (lineGuideId !== 'kids_48') return false;
-  if (slot.index === 0 && (slot.page === 12 || slot.page === 14 || slot.page === 15 || slot.page === 17)) {
-    return true;
+  if (lineGuideId !== 'kids_48' || slot.page == null || slot.index == null) {
+    return false;
   }
-  if (slot.index === 1 && (slot.page === 18 || slot.page === 19)) {
-    return true;
-  }
-  return false;
+  const bottomSlot0 = new Set([12, 14, 15, 17, 18, 19]);
+  return slot.index === 0 && bottomSlot0.has(slot.page);
 }
 
 function isKidsP12DateLineSlot(
@@ -1510,18 +1616,24 @@ function isKidsP12DateLineSlot(
 }
 
 export function getKidsP12DateLineTextTop(
-  slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'page' | 'index'>,
+  slot: Pick<
+    TextLineSlot,
+    'y' | 'lineHeight' | 'page' | 'index' | 'lineStrokeAtBottom' | 'textAnchorTop'
+  >,
   fontSize: number,
   lineGuideId?: string,
   fontId?: string | null,
 ): number {
   const lineFitted = fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId);
-  const strokeY = slot.y + slot.lineHeight;
+  const strokeY = resolveKids48LineStrokeY(slot);
   const gapAboveStroke = slot.lineHeight * KIDS_P12_DATE_LINE_GAP_BAND_RATIO;
-  return (
-    strokeY -
-    lineFitted * resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId) -
-    gapAboveStroke
+  return getKidsStrokeBaselineTextTop(
+    strokeY,
+    lineFitted,
+    fontId,
+    slot,
+    lineGuideId,
+    gapAboveStroke,
   );
 }
 
@@ -1538,10 +1650,13 @@ export function getKids48P8DateLineTextTop(
     slot.lineHeight *
     (KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO +
       KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO);
-  return (
-    strokeY -
-    lineFitted * resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId) -
-    gapAboveLine
+  return getKidsStrokeBaselineTextTop(
+    strokeY,
+    lineFitted,
+    fontId,
+    slot,
+    lineGuideId,
+    gapAboveLine,
   );
 }
 
@@ -1555,10 +1670,13 @@ export function getKids48P9DateLineTextTop(
   const lineFitted = fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId);
   const strokeY = resolveKids48LineStrokeY(slot);
   const gapAboveLine = slot.lineHeight * KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO;
-  return (
-    strokeY -
-    lineFitted * resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId) -
-    gapAboveLine
+  return getKidsStrokeBaselineTextTop(
+    strokeY,
+    lineFitted,
+    fontId,
+    slot,
+    lineGuideId,
+    gapAboveLine,
   );
 }
 
@@ -1579,23 +1697,20 @@ export function getTemplateLineTextTop(
   >,
   fontSize: number,
   lineGuideId?: string,
-  allSlots?: PregnancyWeeklyStrokeSlot[],
+  allSlots?: readonly PregnancyWeeklyStrokeSlot[],
   fieldStartIndex?: number,
   fontId?: string | null,
 ): number {
   if (isPregnancy60WeeklyValueSlot(lineGuideId, slot)) {
-    const bellyIndex = lineGuideId === 'pregnancy_60' ? 6 : 5;
-    if (slot.index === bellyIndex) {
-      const inputKind = slot.inputKind ?? 'block';
-      const fittedSize = fitFontSizeToSlot(
-        fontSize,
-        slot.lineHeight,
-        inputKind,
-        lineGuideId,
-      );
-      return slot.y + slot.lineHeight * 0.38 - fittedSize * 0.7;
-    }
-    return slot.y;
+    const inputKind = slot.inputKind ?? 'block';
+    const fittedSize = fitFontSizeToSlot(
+      fontSize,
+      slot.lineHeight,
+      inputKind,
+      lineGuideId,
+    );
+    // Центр в бежевой ячейке (раньше вес = top, обхват = 0.38 — текст «уезжал» вверх).
+    return slot.y + slot.lineHeight * 0.56 - fittedSize * 0.72;
   }
 
   const inputKind = slot.inputKind ?? 'line';
@@ -1651,7 +1766,7 @@ export function getTemplateLineTextTop(
       allSlots,
       fieldStartIndex,
     );
-  } else if (
+  } else   if (
     isPregnancyWeeklyStructuredPage(lineGuideId, slot.page) &&
     inputKind === 'line' &&
     !isPregnancy60WeeklyValueSlot(lineGuideId, slot)
@@ -1668,54 +1783,62 @@ export function getTemplateLineTextTop(
       lineGuideId,
       allSlots,
       fieldStartIndex,
+      fontId,
     );
   } else if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
-    return getAlreadyMomLineTextTop(slot, fittedSize, lineGuideId, allSlots);
+    return getAlreadyMomLineTextTop(slot, fittedSize, lineGuideId, allSlots, fontId);
   } else if (
     isBirthQuestionnairePage(lineGuideId, slot.page) &&
     inputKind === 'line' &&
     slot.lineStrokeAtBottom
   ) {
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    const referenceFitted = fitFontSizeToSlot(
-      profile.fixedLineFontSize ?? 16,
-      slot.lineHeight,
-      inputKind,
-      lineGuideId,
-    );
-    return getBirthQuestionnaireLineTextTop(slot, fittedSize, referenceFitted);
+    return getBirthQuestionnaireLineTextTop(slot, fittedSize, fontId, lineGuideId);
   } else if (usesStrokeBaselineLayout(slot, lineGuideId)) {
     const lineY =
       lineGuideId === 'kids_48'
         ? resolveKids48LineStrokeY(slot)
         : slot.y + slot.lineHeight;
+    const preferredSize =
+      lineGuideId === 'kids_48' && slot.page === 11
+        ? Math.min(fontSize, KIDS_GROWTH_FIXED_LINE_FONT_SIZE)
+        : lineGuideId === 'kids_48' && slot.page === 10
+          ? Math.min(fontSize, KIDS_TEETH_FIXED_LINE_FONT_SIZE)
+          : fontSize;
+    const teethMax =
+      lineGuideId === 'kids_48' && slot.page === 10
+        ? KIDS_TEETH_FIXED_LINE_FONT_SIZE
+        : undefined;
     const lineFitted = fitFontSizeToSlot(
-      fontSize,
+      preferredSize,
       slot.lineHeight,
       inputKind,
       lineGuideId,
+      teethMax,
     );
+    if (lineGuideId === 'kids_48') {
+      return getKidsStrokeBaselineTextTop(lineY, lineFitted, fontId, slot, lineGuideId);
+    }
     top =
       lineY -
       lineFitted * resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId);
     return top;
-  } else if (
-    lineGuideId === 'holidays_birthday_60' &&
-    slot.page === 48 &&
-    inputKind === 'line'
-  ) {
-    const lineY = slot.y + slot.lineHeight;
-    top = lineY - fittedSize * 0.98;
   } else if (lineGuideId === 'kids_48' && inputKind === 'line') {
     const lineY = resolveKids48LineStrokeY(slot);
+    const preferredSize =
+      slot.page === 11
+        ? Math.min(fontSize, KIDS_GROWTH_FIXED_LINE_FONT_SIZE)
+        : slot.page === 10
+          ? Math.min(fontSize, KIDS_TEETH_FIXED_LINE_FONT_SIZE)
+          : fontSize;
+    const teethMax = slot.page === 10 ? KIDS_TEETH_FIXED_LINE_FONT_SIZE : undefined;
     const lineFitted = fitFontSizeToSlot(
-      fontSize,
+      preferredSize,
       slot.lineHeight,
       'line',
       lineGuideId,
+      teethMax,
     );
-    const profile = getTemplateTypographyProfile(lineGuideId);
-    top = lineY - lineFitted * profile.lineFontOffsetRatio;
+    return getKidsStrokeBaselineTextTop(lineY, lineFitted, fontId, slot, lineGuideId);
   } else {
     const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
 
@@ -1741,22 +1864,10 @@ export function getTemplateLineTextTop(
 
 /** Y штриха подчёркивания в viewport px. */
 export function getTemplateLineStrokeY(
-  slot: Pick<
-    TextLineSlot,
-    | 'y'
-    | 'lineHeight'
-    | 'inputKind'
-    | 'normY'
-    | 'normHeight'
-    | 'page'
-    | 'lineStrokeAtBottom'
-    | 'index'
-    | 'continuationGroup'
-    | 'hasLabel'
-  >,
+  slot: PregnancyWeeklyStrokeSlot & Partial<Pick<TextLineSlot, 'lineStrokeAtBottom'>>,
   _fontSize: number,
   lineGuideId?: string,
-  allSlots?: PregnancyWeeklyStrokeSlot[],
+  allSlots?: readonly PregnancyWeeklyStrokeSlot[],
   fieldStartIndex?: number,
 ): number {
   const inputKind = slot.inputKind ?? 'line';
@@ -1775,14 +1886,6 @@ export function getTemplateLineStrokeY(
     if (!isPeachCellField) {
       return slot.y + slot.lineHeight;
     }
-  }
-
-  if (
-    lineGuideId === 'holidays_birthday_60' &&
-    slot.page === 48 &&
-    inputKind === 'line'
-  ) {
-    return slot.y + slot.lineHeight;
   }
 
   if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
@@ -1831,7 +1934,18 @@ export function getTemplateLineStrokeY(
 export function getTemplateLineBaselineY(
   slot: Pick<
     TextLineSlot,
-    'y' | 'lineHeight' | 'inputKind' | 'normY' | 'normHeight' | 'page' | 'lineStrokeAtBottom'
+    | 'y'
+    | 'lineHeight'
+    | 'inputKind'
+    | 'normY'
+    | 'normHeight'
+    | 'page'
+    | 'lineStrokeAtBottom'
+    | 'index'
+    | 'continuationGroup'
+    | 'hasLabel'
+    | 'strokeY'
+    | 'inlineLabelTail'
   >,
   fontSize: number,
   lineGuideId?: string,
@@ -1888,17 +2002,18 @@ export function getTemplateLinePreviewAbsoluteTextTop(
 }
 
 function usesPregnancyAlbumRnLineHeightAscent(
-  slot: Pick<
-    TextLineSlot,
-    | 'page'
-    | 'inputKind'
-    | 'index'
-    | 'continuationGroup'
-    | 'inlineLabelTail'
-    | 'hasLabel'
-    | 'x'
-    | 'normHeight'
-  >,
+  slot: Pick<TextLineSlot, 'page' | 'index'> &
+    Partial<
+      Pick<
+        TextLineSlot,
+        | 'inputKind'
+        | 'continuationGroup'
+        | 'inlineLabelTail'
+        | 'hasLabel'
+        | 'x'
+        | 'normHeight'
+      >
+    >,
   lineGuideId?: string,
   allSlots?: readonly TextLineSlot[],
 ): boolean {
@@ -1906,6 +2021,9 @@ function usesPregnancyAlbumRnLineHeightAscent(
   if ((slot.inputKind ?? 'line') !== 'line') return false;
   if (isPregnancyRuledNotebookPage(lineGuideId, slot.page)) return false;
   if (shouldClipPregnancyWeeklyFieldRow(slot, lineGuideId, allSlots)) return false;
+  // «Постановка на учёт»: preview топит Amatic (diary sink). PDF ascent must match
+  // resolveStrokeBaselinePreviewFontOffset — иначе baseline уезжает под штрих.
+  if (lineGuideId === 'pregnancy_60' && slot.page === 4) return false;
   return true;
 }
 
@@ -1946,6 +2064,7 @@ function resolveTemplateLinePdfAscentRatio(
     const { capRatio, lift } = resolvePregnancyWeeklyStrokeTextMetrics(
       slot as PregnancyWeeklyStrokeSlot,
       lineGuideId,
+      fontId,
     );
     return capRatio + (fittedSize > 0 ? lift / fittedSize : 0);
   }
@@ -1966,12 +2085,8 @@ function resolveTemplateLinePdfAscentRatio(
   }
 
   if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
-    return (
-      PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO +
-      (fittedSize > 0
-        ? (slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO) / fittedSize
-        : 0)
-    );
+    // EXTRA_LIFT + clearance в getAlreadyMomLineTextTop; ascent = preview font offset.
+    return resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId);
   }
 
   if (
@@ -1979,12 +2094,7 @@ function resolveTemplateLinePdfAscentRatio(
     inputKind === 'line' &&
     slot.lineStrokeAtBottom
   ) {
-    return (
-      PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO +
-      (fittedSize > 0
-        ? (slot.lineHeight * PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO) / fittedSize
-        : 0)
-    );
+    return resolveStrokeBaselinePreviewFontOffset(fontId, slot, lineGuideId);
   }
 
   if (usesStrokeBaselineLayout(slot, lineGuideId)) {
@@ -2087,12 +2197,16 @@ export function getTemplateLinePdfBaselineY(
   fontId?: string | null,
 ): number {
   const inputKind = slot.inputKind ?? 'line';
-  const fittedSize = fitFontSizeToSlot(
-    fontSize,
-    slot.lineHeight,
+  // Same fitted size as getTemplateLineTextTop (kids p10/p11 caps). Using raw
+  // fitFontSizeToSlot here pushed PDF baseline below the stroke while preview
+  // stayed correct — text looked glued to the underline on export.
+  const fittedSize = getEffectiveTemplateFontSize(lineGuideId, {
+    lineHeight: slot.lineHeight,
     inputKind,
-    lineGuideId,
-  );
+    width: 1,
+    page: slot.page,
+    index: slot.index,
+  }, fontSize, { fontId: fontId ?? undefined });
 
   const previewTextTop = getTemplateLinePreviewAbsoluteTextTop(
     slot,
@@ -2110,7 +2224,40 @@ export function getTemplateLinePdfBaselineY(
     allSlots,
   );
 
-  return previewTextTop + fittedSize * ascentRatio;
+  let baseline = previewTextTop + fittedSize * ascentRatio;
+  if (isAlreadyMomPage(lineGuideId, slot.page) && inputKind === 'line') {
+    baseline -= fittedSize * PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO;
+  }
+  if (
+    lineGuideId === 'kids_48' &&
+    slot.page === 1 &&
+    inputKind === 'line' &&
+    (slot.index == null || slot.index >= 1)
+  ) {
+    baseline -= fittedSize * KIDS_P1_PDF_BASELINE_LIFT_RATIO;
+  }
+  if (
+    lineGuideId === 'kids_48' &&
+    slot.page === 10 &&
+    inputKind === 'line' &&
+    (slot.index === 20 || slot.index === 21)
+  ) {
+    baseline -= fittedSize * KIDS_TEETH_BOTTOM_PDF_BASELINE_LIFT_RATIO;
+  }
+  if (
+    lineGuideId === 'kids_48' &&
+    slot.page === 10 &&
+    inputKind === 'line' &&
+    typeof slot.index === 'number' &&
+    slot.index >= 0 &&
+    slot.index <= 19
+  ) {
+    baseline -= fittedSize * KIDS_TEETH_DATE_PDF_BASELINE_LIFT_RATIO;
+  }
+  if (lineGuideId === 'kids_48' && slot.page === 11 && inputKind === 'line') {
+    baseline -= fittedSize * KIDS_GROWTH_PDF_BASELINE_LIFT_RATIO;
+  }
+  return baseline;
 }
 
 /** Baseline в viewport px — единый путь preview ↔ PDF export. */
@@ -2504,7 +2651,7 @@ export function distributeTextForTemplateAnnotation(params: {
       lineGuideId &&
       startSlot &&
       isPregnancyWeeklyStructuredPage(lineGuideId, startSlot.page) &&
-      (startSlot.continuationGroup === 3 || startSlot.continuationGroup === 5)
+      isPregnancyWeeklyMultilineGroup(lineGuideId, startSlot.continuationGroup)
     ) {
       text = clampTextToFieldLines({
         text,

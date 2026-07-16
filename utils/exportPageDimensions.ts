@@ -38,12 +38,19 @@ export function isPregnancy60LineGuide(lineGuideId?: string | null): boolean {
   return lineGuideId === 'pregnancy_60';
 }
 
-/** Электронный экспорт дневников — full-bleed 180×240 без полей. */
+/** Электронный экспорт — full-bleed без белых полей (как в превью). */
 export function shouldUseFullBleedDiaryExport(
   formatType: ExportFormatType,
   lineGuideId?: string | null,
 ): boolean {
-  return formatType === 'electronic' && isDiaryPortraitLineGuide(lineGuideId);
+  if (formatType !== 'electronic') return false;
+  return (
+    isDiaryPortraitLineGuide(lineGuideId) ||
+    lineGuideId === 'holidays_birthday_60' ||
+    lineGuideId === 'family_blank' ||
+    lineGuideId === 'family_blank_21x21' ||
+    lineGuideId === 'holidays_blank'
+  );
 }
 
 export function getExportPageDimensions(
@@ -57,9 +64,10 @@ export function getExportPageDimensions(
   contentWidth: number;
   contentHeight: number;
 } {
-  const isKids = category === 'kids';
+  const isKids = category === 'kids' || lineGuideId === 'kids_48';
+  const isBirthday = lineGuideId === 'holidays_birthday_60';
   const isSquareBlank =
-    lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60';
+    lineGuideId === 'family_blank_21x21' || isBirthday;
   const isPortraitBlank =
     lineGuideId === 'family_blank' || lineGuideId === 'holidays_blank';
   const isDiaryPortrait = isDiaryPortraitLineGuide(lineGuideId);
@@ -82,17 +90,28 @@ export function getExportPageDimensions(
   }
 
   if (isKids || isSquareBlank) {
+    // Birthday / family 21×21 electronic: edge-to-edge (10mm gutters look like white frames).
+    const margin =
+      formatType === 'electronic' &&
+      (isBirthday || lineGuideId === 'family_blank_21x21')
+        ? 0
+        : A5_MARGIN_PT;
     return {
       pageWidth: SQUARE_PAGE_PT,
       pageHeight: SQUARE_PAGE_PT,
-      margin: A5_MARGIN_PT,
-      contentWidth: SQUARE_PAGE_PT - A5_MARGIN_PT * 2,
-      contentHeight: SQUARE_PAGE_PT - A5_MARGIN_PT * 2,
+      margin,
+      contentWidth: SQUARE_PAGE_PT - margin * 2,
+      contentHeight: SQUARE_PAGE_PT - margin * 2,
     };
   }
 
   if (isPortraitBlank) {
-    const margin = formatType === 'hard' ? HARD_COVER_MARGIN_PT : A5_MARGIN_PT;
+    const margin =
+      formatType === 'electronic'
+        ? 0
+        : formatType === 'hard'
+          ? HARD_COVER_MARGIN_PT
+          : A5_MARGIN_PT;
     return {
       pageWidth: HARD_COVER_WIDTH_PT,
       pageHeight: HARD_COVER_HEIGHT_PT,
@@ -126,14 +145,29 @@ export function getExportPageDimensions(
 export const ALBUM_DESIGN_DPI = 72;
 
 /**
- * Электронная версия: растр 300 DPI (достаточно для экрана и лёгкой печати).
- * В приложении фото хранятся в ~72 DPI эквиваленте по размеру слота; upsample — при electronic-экспорте.
+ * Экспорт PDF: растр ~300 DPI (экран + печать soft/hard).
+ * Раньше large-doc (48–60 стр.) резался до 1100px / JPEG 0.72 — дизайн выглядел мыльным.
  */
-export const ELECTRONIC_EXPORT_DPI = 300;
-export const ELECTRONIC_JPEG_QUALITY_PAGE = 0.85;
-export const ELECTRONIC_JPEG_QUALITY_COVER = 0.82;
-export const ELECTRONIC_CAPTURE_SCALE = 1.35;
-export const ELECTRONIC_CAPTURE_QUALITY = 0.88;
+export const EXPORT_RASTER_DPI = 300;
+/** @deprecated use EXPORT_RASTER_DPI */
+export const ELECTRONIC_EXPORT_DPI = EXPORT_RASTER_DPI;
+
+export const EXPORT_JPEG_QUALITY_PAGE = 0.93;
+export const EXPORT_JPEG_QUALITY_COVER = 0.92;
+/** Large albums: чуть мягче сжатие, без просадки разрешения. */
+export const EXPORT_JPEG_QUALITY_PAGE_LARGE = 0.9;
+
+/** @deprecated use EXPORT_JPEG_QUALITY_* */
+export const ELECTRONIC_JPEG_QUALITY_PAGE = EXPORT_JPEG_QUALITY_PAGE;
+/** @deprecated use EXPORT_JPEG_QUALITY_* */
+export const ELECTRONIC_JPEG_QUALITY_COVER = EXPORT_JPEG_QUALITY_COVER;
+
+export const ELECTRONIC_CAPTURE_SCALE = 1.5;
+export const ELECTRONIC_CAPTURE_QUALITY = 0.92;
+export const EXPORT_CAPTURE_SCALE = 1.5;
+export const EXPORT_CAPTURE_QUALITY = 0.92;
+export const EXPORT_CAPTURE_SCALE_LARGE = 1.35;
+export const EXPORT_CAPTURE_QUALITY_LARGE = 0.9;
 
 /** Длинная сторона области страницы в пикселях при заданном DPI */
 export function exportLongSidePx(
@@ -153,6 +187,21 @@ export function exportContentLongSidePx(
   return Math.ceil((Math.max(contentWidthPt, contentHeightPt) * dpi) / 72);
 }
 
+/** Целевой max(side) растра страницы/обложки для любого формата экспорта. */
+export function getExportRasterMaxSide(
+  kind: 'page' | 'cover',
+  pageWidthPt: number,
+  pageHeightPt: number,
+  contentWidthPt: number,
+  contentHeightPt: number,
+  dpi: number = EXPORT_RASTER_DPI,
+): number {
+  return kind === 'cover'
+    ? exportLongSidePx(pageWidthPt, pageHeightPt, dpi)
+    : exportContentLongSidePx(contentWidthPt, contentHeightPt, dpi);
+}
+
+/** @deprecated use getExportRasterMaxSide */
 export function getElectronicRasterMaxSide(
   kind: 'page' | 'cover',
   pageWidthPt: number,
@@ -160,11 +209,25 @@ export function getElectronicRasterMaxSide(
   contentWidthPt: number,
   contentHeightPt: number
 ): number {
-  return kind === 'cover'
-    ? exportLongSidePx(pageWidthPt, pageHeightPt, ELECTRONIC_EXPORT_DPI)
-    : exportContentLongSidePx(contentWidthPt, contentHeightPt, ELECTRONIC_EXPORT_DPI);
+  return getExportRasterMaxSide(
+    kind,
+    pageWidthPt,
+    pageHeightPt,
+    contentWidthPt,
+    contentHeightPt,
+  );
 }
 
+export function getExportJpegQuality(
+  kind: 'page' | 'cover',
+  options?: { isLargeDoc?: boolean; isElectronic?: boolean },
+): number {
+  if (kind === 'cover') return EXPORT_JPEG_QUALITY_COVER;
+  if (options?.isLargeDoc) return EXPORT_JPEG_QUALITY_PAGE_LARGE;
+  return EXPORT_JPEG_QUALITY_PAGE;
+}
+
+/** @deprecated use getExportJpegQuality */
 export function getElectronicJpegQuality(kind: 'page' | 'cover'): number {
-  return kind === 'cover' ? ELECTRONIC_JPEG_QUALITY_COVER : ELECTRONIC_JPEG_QUALITY_PAGE;
+  return getExportJpegQuality(kind, { isElectronic: true });
 }

@@ -1,4 +1,8 @@
 import type { PageInstance } from '@/types/album-page-schema';
+import {
+  isDiaryInteriorAlbumId,
+  resolveDiaryInteriorPageUriSync,
+} from '@/utils/diaryPageImages';
 
 /** Номер PDF-страницы из URI вида …/page_009.png */
 export function parseAlbumPageNumberFromUri(uri: string): number | null {
@@ -12,11 +16,23 @@ export function parseAlbumPageNumberFromUri(uri: string): number | null {
 /**
  * Фон страницы привязан к шаблону (sourcePageNumber), а не к позиции в альбоме.
  * После «+ Добавить страницу» imageIndex смещается, но PDF-шаблон остаётся прежним.
+ *
+ * Для личных дневников макет всегда из бандла (require PNG) — не из @project_images,
+ * иначе после урезания массива URI страницы 12+ остаются серыми.
  */
 export function resolveInstancePageImageUri(
   images: string[],
   instance: PageInstance,
+  lineGuideId?: string | null,
 ): string | undefined {
+  if (!instance.addedByUser && isDiaryInteriorAlbumId(lineGuideId)) {
+    const bundled = resolveDiaryInteriorPageUriSync(
+      lineGuideId,
+      instance.sourcePageNumber,
+    );
+    if (bundled) return bundled;
+  }
+
   if (instance.addedByUser) {
     return images[instance.imageIndex] ?? undefined;
   }
@@ -41,7 +57,16 @@ export function resolveExportPageImageUri(
   projectImages: readonly string[],
   instance: PageInstance,
   templatePageUris?: readonly string[],
+  lineGuideId?: string | null,
 ): string | undefined {
+  if (!instance.addedByUser && isDiaryInteriorAlbumId(lineGuideId)) {
+    const bundled = resolveDiaryInteriorPageUriSync(
+      lineGuideId,
+      instance.sourcePageNumber,
+    );
+    if (bundled) return bundled;
+  }
+
   if (instance.addedByUser) {
     return projectImages[instance.imageIndex] ?? undefined;
   }
@@ -56,5 +81,5 @@ export function resolveExportPageImageUri(
     if (bySource) return bySource;
   }
 
-  return resolveInstancePageImageUri([...projectImages], instance);
+  return resolveInstancePageImageUri([...projectImages], instance, lineGuideId);
 }

@@ -18,14 +18,26 @@ const {
 } = require('./lib/diary-brown-baseline-metrics');
 
 const ROOT = path.join(__dirname, '..');
-const ALBUM_ID = 'diary_interior_brown';
-const PNG_FOLDER = path.join(
-  ROOT,
-  'albums/diary/cover/in album/Блок коричневый _180х240_print',
-);
+const ALBUM_ID = process.env.ALBUM_ID || 'diary_interior_brown';
+const PNG_FOLDER_BY_ALBUM = {
+  diary_interior_brown: path.join(
+    ROOT,
+    'albums/diary/cover/in album/Блок коричневый _180х240_print',
+  ),
+  diary_interior_purple: path.join(
+    ROOT,
+    'albums/diary/cover/in album/Блок фиолетовый_180х240_print',
+  ),
+};
+const PNG_FOLDER = PNG_FOLDER_BY_ALBUM[ALBUM_ID] || PNG_FOLDER_BY_ALBUM.diary_interior_brown;
 const OUT_DIR = process.env.OUT_DIR
   ? path.resolve(process.env.OUT_DIR)
-  : path.join(ROOT, 'assets/debug/diary-brown-text-baseline');
+  : path.join(
+      ROOT,
+      ALBUM_ID === 'diary_interior_purple'
+        ? 'assets/debug/diary-purple-text-baseline'
+        : 'assets/debug/diary-brown-text-baseline',
+    );
 
 const DRIFT_THRESHOLD = Number(process.env.DRIFT_THRESHOLD ?? '0.08');
 /** Pages from user acceptance PDF export — always listed in report summary. */
@@ -44,9 +56,11 @@ function loadSchemas() {
 }
 
 function loadManifest() {
-  return JSON.parse(
-    fs.readFileSync(path.join(ROOT, 'scripts/diary-60-tz-manifest.json'), 'utf8'),
-  );
+  const manifestFile =
+    ALBUM_ID === 'diary_interior_purple'
+      ? 'scripts/girls-diary-a5-tz-manifest.json'
+      : 'scripts/diary-60-tz-manifest.json';
+  return JSON.parse(fs.readFileSync(path.join(ROOT, manifestFile), 'utf8'));
 }
 
 function loadLineSlots() {
@@ -230,7 +244,7 @@ async function main() {
   fs.writeFileSync(path.join(OUT_DIR, 'report.json'), JSON.stringify(report, null, 2));
 
   console.log(
-    `[audit:diary-brown-text-baseline] ${report.summary.ok ? 'OK' : 'FAIL'}: ` +
+    `[audit:diary-text-baseline:${ALBUM_ID}] ${report.summary.ok ? 'OK' : 'FAIL'}: ` +
       `${pages.length} pages, drift-fix=${needsFixPages.length}, wrap-issues=${wrapFailures.length}`,
   );
   console.log(`Report: ${path.join(OUT_DIR, 'report.json')}`);

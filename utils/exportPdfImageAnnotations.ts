@@ -11,10 +11,11 @@ import {
   rgb,
 } from 'pdf-lib';
 
-import { BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
+import { BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { getContentRect, mapViewportAnnotationToPdf } from '@/utils/imageContentRect';
 import { computeObjectFitCover } from '@/utils/imageCoverDraw';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { applyPhotoSlotTransform } from '@/utils/photoSlotTransform';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 
@@ -241,6 +242,7 @@ export async function drawImageAnnotationsOnPdfPage(
           slotViewport.width,
           slotViewport.height,
           imageAspect,
+          { fillLetterbox: true },
         );
         const inner = applyPhotoSlotTransform(
           { x: 0, y: 0, width: slotViewport.width, height: slotViewport.height },
@@ -278,18 +280,20 @@ export async function drawImageAnnotationsOnPdfPage(
         pdfImageHeight: params.pdfImageHeight,
       });
 
-      const needsRectClip = ann.clipShape !== 'circle' && ann.imageContentFit === 'cover';
+      const isBlankAlbum = isBlankTemplateLineGuide(params.lineGuideId ?? '');
+      // Match preview: always round rectangular photos (not only object-fit: cover).
+      const needsRectClip = ann.clipShape !== 'circle';
+      const viewportRadius = isBlankAlbum ? BLANK_ALBUM_PHOTO_RADIUS : radii.sm;
 
       if (ann.clipShape === 'circle') {
         pushCircleClip(params.page, clipMapped);
       } else if (needsRectClip) {
         const pdfRadius =
-          BLANK_ALBUM_PHOTO_RADIUS *
-          (clipMapped.height / Math.max(slotViewport.height, 1));
+          viewportRadius * (clipMapped.height / Math.max(slotViewport.height, 1));
         pushRoundedRectClip(params.page, clipMapped, pdfRadius);
       }
 
-      if (ann.imageContentFit === 'cover') {
+      if (ann.imageContentFit === 'cover' && !ann.imageSlotTransform) {
         const cover = computeObjectFitCover(
           embedded.width,
           embedded.height,
@@ -305,6 +309,7 @@ export async function drawImageAnnotationsOnPdfPage(
           height: cover.drawHeight,
         });
       } else {
+        // Transform path already applied aspect-aware cover sizing — draw as fill.
         params.page.drawImage(embedded, {
           x: mapped.x,
           y: mapped.y,

@@ -16,8 +16,8 @@ struct ReminderEntryView: View {
                 content(next)
             } else {
                 WidgetEmptyState(
-                    title: "Напоминаний нет",
-                    subtitle: "Добавьте важные даты в приложении"
+                    title: "Нет дат",
+                    subtitle: "Добавьте важное напоминание в приложении"
                 )
                 .widgetURL(WidgetDeepLinks.reminders)
             }
@@ -34,7 +34,7 @@ struct ReminderEntryView: View {
         case .systemLarge:
             largeView
         case .accessoryInline:
-            Text("018BY · \(WidgetFormatters.daysLabel(next.daysLeft))")
+            Text("\(WidgetFormatters.daysLabel(next.daysLeft)) · \(WidgetFormatters.trimText(next.title, maxLength: 18))")
                 .font(.system(size: 12, weight: .semibold))
                 .widgetURL(WidgetDeepLinks.reminders)
         case .accessoryCircular:
@@ -55,39 +55,42 @@ struct ReminderEntryView: View {
 
     private func smallView(_ next: WidgetReminderItem) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            WidgetBrandMark(compact: true)
-            Text(WidgetFormatters.daysLabel(next.daysLeft))
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(WidgetColors.primaryDeep)
-            Text(next.title)
+            WidgetMetricLabel(text: "Ближайшая дата")
+            WidgetHeroNumber(text: "\(max(next.daysLeft, 0))", size: 36)
+            Text(WidgetFormatters.daysUntilPdrLabel(next.daysLeft).replacingOccurrences(of: "\(max(next.daysLeft, 0)) ", with: ""))
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(palette.textPrimary)
-                .lineLimit(2)
-            Text(WidgetFormatters.shortDate(next.dateISO))
-                .font(.system(size: 11, weight: .medium))
+            Text(next.title)
+                .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(palette.textSecondary)
+                .lineLimit(2)
+            Spacer(minLength: 0)
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.reminders)
     }
 
     private func mediumView(_ next: WidgetReminderItem) -> some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                WidgetAccentPill(text: "Ближайшее событие")
+        HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                WidgetMetricLabel(text: "Ближайшая дата")
                 Text(next.title)
                     .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(2)
                 Text(WidgetFormatters.shortDate(next.dateISO))
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(palette.textSecondary)
             }
             Spacer(minLength: 0)
-            Text(WidgetFormatters.daysLabel(next.daysLeft))
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(WidgetColors.primaryDeep)
-                .multilineTextAlignment(.trailing)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(max(next.daysLeft, 0))")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundStyle(WidgetColors.primaryDeep)
+                Text(WidgetFormatters.daysUntilPdrLabel(next.daysLeft).replacingOccurrences(of: "\(max(next.daysLeft, 0)) ", with: ""))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(palette.textSecondary)
+            }
         }
         .widgetCardBackground()
         .widgetURL(WidgetDeepLinks.reminders)
@@ -95,10 +98,8 @@ struct ReminderEntryView: View {
 
     private var largeView: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Напоминания")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(palette.textPrimary)
-            ForEach(Array(reminders.prefix(3).enumerated()), id: \.offset) { _, reminder in
+            WidgetMetricLabel(text: "Важные даты")
+            ForEach(Array(reminders.prefix(4).enumerated()), id: \.offset) { _, reminder in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(reminder.title)
@@ -106,15 +107,15 @@ struct ReminderEntryView: View {
                             .foregroundStyle(palette.textPrimary)
                             .lineLimit(1)
                         Text(WidgetFormatters.shortDate(reminder.dateISO))
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 11, weight: .regular))
                             .foregroundStyle(palette.textSecondary)
                     }
                     Spacer()
-                    Text(WidgetFormatters.daysLabel(reminder.daysLeft))
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                    Text("\(max(reminder.daysLeft, 0))")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(WidgetColors.primaryDeep)
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             }
         }
         .widgetCardBackground()
@@ -131,7 +132,7 @@ struct ReminderWidget: Widget {
                 .widgetHomeScreenContainer()
         }
         .configurationDisplayName("Важные даты")
-        .description("Ближайшие пользовательские напоминания.")
+        .description("Сколько дней до ближайшего напоминания.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,

@@ -6,7 +6,6 @@ import {
   getPageFormatForLineGuide,
   getTemplateLayout,
   isBlankTemplateLineGuide,
-  isTemplateCaptionEditable,
 } from '@/utils/photoPageTemplateManifest';
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
@@ -28,6 +27,16 @@ type AppendParams = {
 
 function hasText(value: string | undefined | null): boolean {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+/** Default align for blank Семья/Свадьба/Праздники form fields. */
+export function getBlankFieldDefaultTextAlign(field: {
+  fieldId: string;
+  label?: string;
+}): 'left' | 'center' | 'right' {
+  if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') return 'center';
+  // Body / «Текст» — left, so lines use the full template block width.
+  return 'left';
 }
 
 export function appendBlankTemplateTextAnnotations(params: AppendParams): {
@@ -55,6 +64,42 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   const layout = getTemplateLayout(schema.templateLibraryId, format);
   if (!layout) return { annotations, zIndex };
 
+  // Timeline event titles share one font size so short/long rows look consistent.
+  let timelineDescriptionFontSize: number | undefined;
+  if (layout.pageType === 'timeline_page') {
+    const descSizes: number[] = [];
+    for (const field of schema.fields ?? []) {
+      if (!field.fieldId.endsWith('_description')) continue;
+      const text = values.fields[field.fieldId];
+      if (!hasText(text)) continue;
+      const block = getTextBlockRect(schema.templateLibraryId!, format, field.fieldId);
+      if (!block) continue;
+      const rect = mapTemplateFrameToViewport(block, editorContentRect);
+      const fieldStyle = values.fieldTextStyles?.[field.fieldId];
+      if (typeof fieldStyle?.fontSize === 'number') {
+        descSizes.push(fieldStyle.fontSize);
+        continue;
+      }
+      const preferredFontSize = Math.max(
+        18,
+        estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      );
+      const fitted = fitTextToTemplateBlock({
+        text: text!.trim(),
+        boxWidth: rect.width,
+        boxHeight: rect.height,
+        fontId: textFontFamily,
+        preferredFontSize,
+        preferSingleLine: false,
+        maxFontSize: 22,
+      });
+      if (fitted.lines.length > 0) descSizes.push(fitted.fontSize);
+    }
+    if (descSizes.length > 0) {
+      timelineDescriptionFontSize = Math.min(...descSizes);
+    }
+  }
+
   const pushText = (
     text: string,
     fieldIdSuffix: string,
@@ -69,24 +114,37 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
       fieldIdSuffix.includes('caption') && !styleKey ? values.captionTextStyle : undefined;
     const textAlign =
       fieldStyle?.textAlign ?? captionStyle?.textAlign ?? defaultAlign;
+    const isTimelineDescription = fieldIdSuffix.endsWith('_description');
     const preferredFontSize =
       fieldStyle?.fontSize ??
       captionStyle?.fontSize ??
-      (estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
+      (isTimelineDescription && timelineDescriptionFontSize != null
+        ? timelineDescriptionFontSize
+        : isTimelineDescription
+          ? Math.max(18, estimateTemplateFontSize(block.h, viewportHeight) || fontSize)
+          : estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
     const fitted = fitTextToTemplateBlock({
       text,
       boxWidth: rect.width,
       boxHeight: rect.height,
       fontId: textFontFamily,
       preferredFontSize,
+      preferSingleLine: false,
+      maxFontSize: 22,
     });
     if (fitted.lines.length === 0) return;
     annotations.push({
       id: stableAnnotationId('blank-field', lineGuideId, schema.sourcePageNumber, fieldIdSuffix),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: fitted.lines.join('\n'),
-      fontSize: fieldStyle?.fontSize ?? captionStyle?.fontSize ?? fitted.fontSize,
+      // Исходный текст — перенос по ширине блока в превью/экспорте, без «коротких» \n.
+      content: text.trim(),
+      fontSize:
+        fieldStyle?.fontSize ??
+        captionStyle?.fontSize ??
+        (isTimelineDescription && timelineDescriptionFontSize != null
+          ? timelineDescriptionFontSize
+          : fitted.fontSize),
       fontFamily: textFontFamily,
       color: '#3D3D3D',
       textAlign,
@@ -100,34 +158,20 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   };
 
   for (const field of schema.fields ?? []) {
+    // Caption fields / photoCaptions — через photoCaptionLayout (следуют за фото).
+    if (field.fieldId.includes('caption')) continue;
     const text = values.fields[field.fieldId];
     if (!hasText(text)) continue;
-    const defaultAlign = field.fieldId.endsWith('_title') || field.label === 'Заголовок'
-      ? 'center'
-      : 'left';
-    pushText(text!, field.fieldId, field.fieldId, defaultAlign);
+    pushText(
+      text!,
+      field.fieldId,
+      field.fieldId,
+      getBlankFieldDefaultTextAlign(field),
+    );
   }
 
-  const captionBlocks =
-    layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
-  const captionsEditable = isTemplateCaptionEditable(schema.templateLibraryId, layout);
-  const useSingleCaption =
-    captionsEditable &&
-    captionBlocks.length === 1 &&
-    !layout.perPhotoCaptions &&
-    hasText(values.caption);
-
-  if (useSingleCaption && values.caption) {
-    pushText(values.caption, `_${captionBlocks[0]!.id}`, undefined, 'center');
-  }
-
-  if (layout.perPhotoCaptions && captionsEditable && values.photoCaptions?.length) {
-    for (let i = 0; i < values.photoCaptions.length; i += 1) {
-      const text = values.photoCaptions[i];
-      if (!hasText(text)) continue;
-      pushText(text!, `_caption${i + 1}`, `caption${i + 1}`, 'center');
-    }
-  }
+  // Fixed-frame captions отключены: blank captions рисует pageValuesAdapter
+  // через resolvePhotoCaptionViewportLayouts (паритет с designed).
 
   for (const element of values.freeElements ?? []) {
     if (element.type === 'text' && hasText(element.content)) {

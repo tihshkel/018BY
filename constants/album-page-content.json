@@ -296,7 +296,7 @@
           "label": "Моё самочувствие",
           "type": "text",
           "templateLineStart": 3,
-          "templateLineCount": 3
+          "templateLineCount": 2
         },
         {
           "fieldId": "pregnancy_60_p4_g5",

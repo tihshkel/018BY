@@ -27,18 +27,17 @@ function loadManifest() {
 }
 
 /** Mirrors utils/templateLineText.ts fitFontSizeToSlot for diary albums. */
-function fitFontSizeToSlot(fontSize, lineHeight, inputKind, lineGuideId) {
+function fitFontSizeToSlot(fontSize, _lineHeight, _inputKind, lineGuideId) {
   if (
-    (lineGuideId === 'diary_interior_brown' || lineGuideId === 'diary_interior_purple') &&
-    fontSize === EXPECTED_FONT_SIZE
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
   ) {
-    return EXPECTED_FONT_SIZE;
+    const locked = EXPECTED_FONT_SIZE;
+    if (Number.isFinite(fontSize) && fontSize !== locked) {
+      return Math.min(Math.max(fontSize, 10), 28);
+    }
+    return locked;
   }
-
-  if (inputKind === 'block') {
-    return Math.min(fontSize, Math.max(13, lineHeight * 0.78), 17);
-  }
-
   return fontSize;
 }
 

@@ -46,6 +46,7 @@ import {
 } from "@/utils/photoSlotTransform";
 import { getDefaultPageAspectRatio, persistProjectViewport } from "@/utils/exportViewport";
 import {
+  getAlbumImageUrisForViewing,
   getBlankInteriorPageUri,
 } from "@/utils/albumImages";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
@@ -106,7 +107,11 @@ export default function AlbumPagePreviewScreen() {
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
   const baseImageUri = instance
-    ? resolveInstancePageImageUri(project.images, instance)
+    ? resolveInstancePageImageUri(
+        project.images,
+        instance,
+        resolvedLineGuideId ?? project.lineGuideId,
+      )
     : undefined;
   const primaryPhotoBlock = schema?.photoBlocks?.[0];
   const selectedVariantId = useMemo(() => {
@@ -182,6 +187,30 @@ export default function AlbumPagePreviewScreen() {
   useEffect(() => {
     setDisplayImageUri(resolvedImageUri ?? undefined);
   }, [resolvedImageUri]);
+
+  useEffect(() => {
+    if (resolvedImageUri || !instance || !resolvedLineGuideId) {
+      return;
+    }
+
+    let cancelled = false;
+    const pageNumber = instance.sourcePageNumber ?? schema?.sourcePageNumber ?? 0;
+    if (pageNumber < 1) return;
+
+    void getAlbumImageUrisForViewing(resolvedLineGuideId)
+      .then((uris) => {
+        if (cancelled) return;
+        const fallbackUri = uris[pageNumber - 1];
+        if (fallbackUri) {
+          setDisplayImageUri(fallbackUri);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedImageUri, instance, resolvedLineGuideId, schema?.sourcePageNumber]);
 
   useEffect(() => {
     let cancelled = false;

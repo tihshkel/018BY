@@ -23,6 +23,7 @@ import {
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
 import { createId } from '@/utils/id';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 import {
   applyPhotoSlotTransform,
 } from '@/utils/photoSlotTransform';
@@ -1201,6 +1202,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
   };
 
   const handleTextChange = (text: string) => {
+    text = normalizeAlbumUserText(text);
     // Если пользователь начинает стирать стандартный текст "Новый текст", удаляем его целиком
     if (editingText === 'Новый текст' && text.length < editingText.length) {
       setEditingText('');
@@ -2431,11 +2433,16 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         return (
           <>
             {linesToRender.map((row) => {
+              const isKidsTeethOverlayLine =
+                lineGuideId === 'kids_48' &&
+                row.lineSlot.page === 10 &&
+                row.lineSlot.index !== 21;
               const rowLayout = resolveTemplateLineRowLayout({
                 lineSlot: row.lineSlot,
                 fontSize: effectiveFontSize,
                 lineGuideId,
                 lineSlots: templateSlots,
+                isKidsTeethOverlayLine,
                 fontId: normalizedFontId,
               });
               const textInsets = getTemplateBlockTextInsets(
@@ -2463,6 +2470,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 lineGuideId,
                 templateSlots,
               );
+              const rowAlign = getTextAlign(annotation, row.lineSlot);
+              const needsAlignBoxWidth =
+                rowAlign === 'center' || rowAlign === 'right';
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2485,13 +2495,15 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         position: 'absolute',
                         top: rowLayout.rowTextTop,
                         left: renderBox.textLeft,
-                        width: renderBox.textWidth,
+                        ...(!rowLayout.overflowVisible || needsAlignBoxWidth
+                          ? { width: renderBox.textWidth }
+                          : {}),
                         color: currentColor,
                         fontSize: effectiveFontSize,
                         fontFamily: currentFontFamily,
                         lineHeight: rowLayout.lineHeight,
                         includeFontPadding: false,
-                        textAlign: getTextAlign(annotation, row.lineSlot),
+                        textAlign: rowAlign,
                       },
                     ]}
                     numberOfLines={1}
@@ -2704,12 +2716,15 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     (() => {
                       const boxWidth = annotation.width || 360;
                       const boxHeight = annotation.height || 24;
+                      // Timeline descriptions wrap at a shared size — do not shrink long titles alone.
                       const fitted = fitTextToTemplateBlock({
                         text: annotation.content || '',
                         boxWidth,
                         boxHeight,
                         fontId: normalizedFontId,
                         preferredFontSize: alignedFontSize,
+                        preferSingleLine: false,
+                        maxFontSize: 22,
                       });
                       const blockLineHeight = fitted.fontSize * 1.15;
                       return fitted.lines.map((line, lineIndex) => (
