@@ -33,6 +33,7 @@
     "analyze:page-fields": "node ./scripts/deep-analyze-page-fields.js",
     "generate:kids-covers": "node ./scripts/generate-kids-cover-designs.js",
     "sync:app-logo": "node ./scripts/sync-app-logo.js",
+    "sync:splash-logo": "node ./scripts/sync-splash-logo.js",
     "convert:diary-interior-pdfs": ".venv/bin/python3 ./scripts/convert-diary-interior-pdfs.py",
     "generate:diary-interior-assets": "node ./scripts/generate-diary-interior-assets.js",
     "seed:albums": "npx tsx scripts/seed-filled-albums.ts"

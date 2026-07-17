@@ -91,6 +91,11 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
 
     const currentId = blockValues?.variantId;
     if (currentId) {
+      // Не сбрасываем на variants[0], если id есть в блоке — даже когда
+      // resolvePhotoBlockVariant временно не находит match из‑за нестабильного lineGuideId.
+      if (primaryBlock.variants.some((item) => item.variantId === currentId)) {
+        return;
+      }
       const resolved = resolvePhotoBlockVariant(
         primaryBlock.variants,
         currentId,

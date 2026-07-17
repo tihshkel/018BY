@@ -1,6 +1,9 @@
 /**
  * Generates app icon assets from the master logo (PNG preferred, SVG fallback).
  * Updates Expo assets, iOS AppIcon, and Android mipmap launchers + notification icons.
+ *
+ * Важно: splash НЕ берётся из розового icon — только scripts/sync-splash-logo.js
+ * (синий logo-source.svg). Иначе на части Android при запуске другой логотип.
  */
 const fs = require('fs');
 const path = require('path');
@@ -117,7 +120,7 @@ async function syncExpoAssets() {
     path.join(assetsDir, 'android-icon-monochrome.png')
   );
   await writePng(await logoPipeline(1024), path.join(assetsDir, 'logo.png'));
-  await writePng(await logoPipeline(1024), path.join(assetsDir, 'splash-icon.png'));
+  // splash-icon.png — только через sync-splash-logo.js (синий SVG), не розовый icon.
   await writePng(await iconPipeline(48), path.join(assetsDir, 'favicon.png'));
   await writePng(
     await whiteSilhouette(96),
@@ -195,8 +198,13 @@ async function main() {
   await syncAndroidDrawables();
   await syncAndroidMipmaps();
 
+  // Splash отдельно — синий логотип, единый на всех Android (светлая/тёмная тема).
+  require('child_process').execFileSync(process.execPath, [path.join(__dirname, 'sync-splash-logo.js')], {
+    stdio: 'inherit',
+  });
+
   console.log(
-    'App logo synced: Expo assets, iOS AppIcon/Splash, Android launcher/splash/notifications.'
+    'App logo synced: Expo assets, iOS AppIcon, Android launcher/notifications + splash.'
   );
 }
 

@@ -33,7 +33,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, isPregnancyBirthQuestionnaireCenteredBlockSlot, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -2425,6 +2425,12 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 textContent: row.content,
               });
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
+              const lineTextAlign = isPregnancyBirthQuestionnaireCenteredBlockSlot(
+                lineGuideId,
+                row.lineSlot,
+              )
+                ? 'center'
+                : getTextAlign(annotation);
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2453,7 +2459,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         fontFamily: currentFontFamily,
                         lineHeight: readOnlyLayout.textLineHeight,
                         includeFontPadding: false,
-                        textAlign: getTextAlign(annotation),
+                        textAlignVertical: 'top',
+                        textAlign: lineTextAlign,
                         minHeight: 0,
                       },
                     ]}

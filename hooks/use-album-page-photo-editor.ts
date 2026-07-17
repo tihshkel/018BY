@@ -7,6 +7,7 @@ import { flushAlbumProjectPersist } from '@/utils/albumProjectPersist';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import {
   buildAlbumPhotoStorageKey,
+  deleteManagedAlbumPhotoUri,
   persistAlbumPhotoUri,
 } from '@/utils/persistAlbumPhoto';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
@@ -135,31 +136,70 @@ export function useAlbumPagePhotoEditor({
 
       await prefetchAlbumPhotoUriAsync(persistentUri);
 
-      updateBlock(blockId, (prev) => {
-        const slots = [...prev.slots];
+      updatePageValues((prev) => {
+        const prevBlock = prev.photoBlocks[blockId] ?? {
+          variantId:
+            blocks.find((b) => b.blockId === blockId)?.variants[0]?.variantId ?? 'default',
+          slots: [],
+        };
+        const slots = [...prevBlock.slots];
+        const previousUri = slots[slotIndex];
         slots[slotIndex] = persistentUri;
-        return { ...prev, slots };
+        if (previousUri && previousUri !== persistentUri) {
+          void deleteManagedAlbumPhotoUri(previousUri);
+        }
+        return {
+          ...prev,
+          photoBlocks: {
+            ...prev.photoBlocks,
+            [blockId]: { ...prevBlock, slots },
+          },
+        };
       });
     },
-    [blocks, ensureMediaLibraryPermission, instanceId, photoBlocks, projectId, updateBlock],
+    [
+      blocks,
+      ensureMediaLibraryPermission,
+      instanceId,
+      photoBlocks,
+      projectId,
+      resolvedSchema,
+      updatePageValues,
+    ],
   );
 
   const handleRemovePhoto = useCallback(
     (blockId: string, slotIndex: number) => {
-      updateBlock(blockId, (prev) => {
-        const slots = [...prev.slots];
+      // Один патч: два подряд updatePageValues ломали persist/snapshot (второй без eager updater).
+      updatePageValues((prev) => {
+        const prevBlock = prev.photoBlocks[blockId];
+        if (!prevBlock) return prev;
+
+        const slots = [...prevBlock.slots];
+        const removedUri = slots[slotIndex];
         slots[slotIndex] = null;
-        return { ...prev, slots };
+        if (removedUri) {
+          void deleteManagedAlbumPhotoUri(removedUri);
+        }
+
+        const next: PageValues = {
+          ...prev,
+          photoBlocks: {
+            ...prev.photoBlocks,
+            [blockId]: { ...prevBlock, slots },
+          },
+        };
+
+        if (showPerPhotoCaptions) {
+          const captions = [...(prev.photoCaptions ?? [])];
+          captions[slotIndex] = null;
+          next.photoCaptions = captions;
+        }
+
+        return next;
       });
-      if (showPerPhotoCaptions) {
-        updatePageValues((prev) => {
-          const next = [...(prev.photoCaptions ?? [])];
-          next[slotIndex] = null;
-          return { ...prev, photoCaptions: next };
-        });
-      }
     },
-    [showPerPhotoCaptions, updateBlock, updatePageValues],
+    [showPerPhotoCaptions, updatePageValues],
   );
 
   const handleSelectVariant = useCallback(
@@ -185,15 +225,17 @@ export function useAlbumPagePhotoEditor({
         prevSlotTransforms: pageValues.photoSlotTransforms,
       });
 
-      updateBlock(blockId, () => ({
-        variantId: variant.variantId,
-        slots: migrated.slots,
-      }));
-
+      // Один патч: variant + captions + transforms — иначе snapshot мог публиковать старый layout.
       updatePageValues((prev) => ({
         ...prev,
+        photoBlocks: {
+          ...prev.photoBlocks,
+          [blockId]: {
+            variantId: variant.variantId,
+            slots: migrated.slots,
+          },
+        },
         photoCaptions: showPerPhotoCaptions ? migrated.photoCaptions : prev.photoCaptions,
-        // Переносим единую подпись в per-photo, чтобы не дублировать в UI.
         caption: showPerPhotoCaptions ? undefined : prev.caption,
         photoSlotTransforms: migrated.photoSlotTransforms,
         photoGroupTransform: { scale: 1, offsetX: 0, offsetY: 0 },
@@ -207,7 +249,6 @@ export function useAlbumPagePhotoEditor({
       photoBlocks,
       resolvedSchema?.lineGuideId,
       showPerPhotoCaptions,
-      updateBlock,
       updatePageValues,
     ],
   );

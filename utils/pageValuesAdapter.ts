@@ -7,11 +7,11 @@ import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-sch
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import { getContentRect } from '@/utils/imageContentRect';
-import { formatAlbumDateDayMonth } from '@/utils/albumDateFormat';
 import { isKids48TeethToothDateField } from '@/utils/kids48TeethDates';
 import {
   formatPregnancyBirthQuestionnaireAdmissionDate,
   isPregnancyBirthQuestionnaireAdmissionDateField,
+  isPregnancyBirthQuestionnairePinkBlockField,
 } from '@/utils/pregnancyBirthQuestionnaireDates';
 import {
   getLineSlotsForPage,
@@ -218,11 +218,15 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       lineGuideId,
       schema.sourcePageNumber,
     );
-    const displayText = isTeethToothDate
-      ? formatAlbumDateDayMonth(text)
-      : isAdmissionDate
-        ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
-        : text;
+    const isPinkBirthBlock = isPregnancyBirthQuestionnairePinkBlockField(
+      field,
+      lineGuideId,
+      schema.sourcePageNumber,
+    );
+    // Зубные даты — полные ДД.ММ.ГГГГ; admission A5 — только ДД.ММ по макету.
+    const displayText = isAdmissionDate
+      ? formatPregnancyBirthQuestionnaireAdmissionDate(text)
+      : text;
     if (!displayText) continue;
 
     let startIndex = field.templateLineStart;
@@ -266,7 +270,9 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       sourcePageNumber: schema.sourcePageNumber,
       ...layout,
       fontSize: layout.fontSize ?? fieldFontSize,
-      textAlign: resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
+      textAlign: isPinkBirthBlock
+        ? 'center'
+        : resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
       templateLineStart: startIndex,
       templateLineCount: lineCount,
     });

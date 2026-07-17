@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { AppText } from '@/components/ui/app-text';
+import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 
 export type AppInputHelperTone = 'muted' | 'success' | 'error';
@@ -52,13 +53,14 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
   ref,
 ) {
   const [focused, setFocused] = useState(false);
+  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
   const helperMessage = error ?? helperText;
   const isMultiline = multiline === true;
   const resolvedReturnKeyType = returnKeyType ?? (isMultiline ? 'default' : 'done');
   const resolvedBlurOnSubmit = blurOnSubmit ?? !isMultiline;
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View ref={fieldRef} collapsable={false} style={[styles.container, containerStyle]}>
       {label ? (
         <AppText variant="caption" style={styles.label}>
           {label}
@@ -102,6 +104,7 @@ export const AppInput = forwardRef<TextInput, AppInputProps>(function AppInput(
           placeholderTextColor={colors.placeholder}
           onFocus={(e) => {
             setFocused(true);
+            onInputFocus();
             onFocus?.(e);
           }}
           onBlur={(e) => {

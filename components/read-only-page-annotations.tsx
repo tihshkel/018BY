@@ -13,6 +13,7 @@ import {
   distributeTextForTemplateAnnotation,
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
+  isPregnancyBirthQuestionnaireCenteredBlockSlot,
 } from '@/utils/templateLineText';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
@@ -205,6 +206,12 @@ function ReadOnlyPageAnnotationsInner({
                     textContent: row.content,
                   });
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
+                  const lineTextAlign = isPregnancyBirthQuestionnaireCenteredBlockSlot(
+                    lineGuideId,
+                    row.lineSlot,
+                  )
+                    ? 'center'
+                    : (annotation.textAlign ?? 'left');
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
@@ -233,8 +240,9 @@ function ReadOnlyPageAnnotationsInner({
                             fontSize: readOnlyLayout.fontSize,
                             fontFamily,
                             lineHeight: readOnlyLayout.textLineHeight,
-                            textAlign: annotation.textAlign ?? 'left',
+                            textAlign: lineTextAlign,
                             includeFontPadding: false,
+                            textAlignVertical: 'top',
                             minHeight: 0,
                           },
                         ]}

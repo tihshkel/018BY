@@ -4,6 +4,7 @@ import {
   getActiveEditSlotIndex,
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
+  isPregnancyBirthQuestionnaireCenteredBlockSlot,
   mergeActiveLineEdit,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -82,6 +83,8 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   );
 
   const inputValue = segmentBySlotIndex.get(activeInputSlotIndex) ?? '';
+  const effectiveTextAlign: TextAlign =
+    isPregnancyBirthQuestionnaireCenteredBlockSlot(lineGuideId, slot) ? 'center' : textAlign;
 
   const handleInputChange = useCallback(
     (newText: string) => {
@@ -160,7 +163,9 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     top: readOnlyLayout.textTop,
                     left: textInsets.left,
                     width: textInsets.width,
-                    textAlign,
+                    textAlign: effectiveTextAlign,
+                    includeFontPadding: false,
+                    textAlignVertical: 'top',
                   },
                 ]}
                 value={inputValue}
@@ -179,7 +184,6 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 selectTextOnFocus={false}
                 caretHidden={false}
                 {...(Platform.OS === 'ios' ? { paddingTop: 0, paddingBottom: 0 } : {})}
-                {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
               />
             ) : (
               <Text
@@ -193,7 +197,7 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                     top: readOnlyLayout.textTop,
                     left: textInsets.left,
                     width: textInsets.width,
-                    textAlign,
+                    textAlign: effectiveTextAlign,
                   },
                 ]}
                 numberOfLines={1}
@@ -233,5 +237,6 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     textAlign: 'left',
     textAlignVertical: 'top',
+    includeFontPadding: false,
   },
 });

@@ -62,7 +62,11 @@ export async function photoUriExists(uri: string): Promise<boolean> {
   }
 }
 
-/** Копирует фото из галереи/кэша в documentDirectory — URI переживает перезапуск приложения. */
+/**
+ * Копирует фото из галереи/кэша в documentDirectory — URI переживает перезапуск.
+ * Имя файла всегда уникально (`_timestamp`), иначе replace пишет в тот же путь,
+ * expo-image с cachePolicy:'disk' продолжает показывать старые байты.
+ */
 export async function persistAlbumPhotoUri(
   sourceUri: string,
   relativeKey: string,
@@ -74,10 +78,10 @@ export async function persistAlbumPhotoUri(
   await FileSystem.makeDirectoryAsync(ALBUM_PHOTOS_DIR, { intermediates: true });
 
   const ext = inferPhotoExtension(sourceUri);
-  const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}.${ext}`;
+  const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}_${Date.now()}.${ext}`;
   const destUri = normalizeFileUri(destPath);
 
-  if (stripFileScheme(sourceUri) === destPath) {
+  if (stripFileScheme(sourceUri) === stripFileScheme(destPath)) {
     return destUri;
   }
 
@@ -100,6 +104,16 @@ export async function persistAlbumPhotoUri(
     return sourceUri.startsWith('file://') || sourceUri.startsWith('/')
       ? normalizeFileUri(sourceUri)
       : sourceUri;
+  }
+}
+
+/** Удаляет локальный файл альбома (после replace/remove), без ошибок если файла нет. */
+export async function deleteManagedAlbumPhotoUri(uri: string | null | undefined): Promise<void> {
+  if (!uri?.trim() || !isManagedAlbumPhotoUri(uri)) return;
+  try {
+    await FileSystem.deleteAsync(uri, { idempotent: true });
+  } catch {
+    // ignore
   }
 }
 

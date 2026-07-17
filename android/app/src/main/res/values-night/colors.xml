@@ -1,3 +1,4 @@
 <resources>
-  <color name="splashscreen_background">#1A1A1A</color>
+  <!-- Тот же splash, что и днём — иначе на телефонах с тёмной темой другой экран запуска. -->
+  <color name="splashscreen_background">#FAF8F5</color>
 </resources>

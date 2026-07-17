@@ -174,11 +174,11 @@ export const KIDS48_P16_DREAMS_DATE_LINE = {
   strokeY: 0.21164,
 } as const;
 
-/** «Мои зубки» (p10): узкие линии у зубов — компактный шрифт для «ДД.ММ». */
-export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 12;
+/** «Мои зубки» (p10): узкие линии у зубов — компактный шрифт для полной даты «ДД.ММ.ГГГГ». */
+export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 10;
 
-/** Ширина линии даты у зуба — ровно «ДД.ММ» (5 символов). */
-export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.118;
+/** Ширина линии даты у зуба — под «ДД.ММ.ГГГГ» (10 символов) при компактном шрифте. */
+export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.168;
 
 /** «Мои зубки» (p10): линия «Первая чистка зубов» — полная дата «ДД.ММ.ГГГГ». */
 export const KIDS48_P10_FIRST_BRUSHING_LINE = {
@@ -228,15 +228,16 @@ export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).
- * Вместе с cap шрифта даёт видимый зазор «линия → отступ → текст».
+ * Вместе с cap шрифта даёт единый видимый зазор «линия → отступ → текст»
+ * на всех шаблонных альбомах и устройствах (без Platform/PixelRatio).
  */
 export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.12;
 
 /**
- * Доп. подъём текста над штрихом только для kids_48 («Первые годы малыша»).
- * Остальные альбомы уже ок; здесь буквы визуально сидят на линии — поднимаем выше.
+ * @deprecated Больше не поднимаем kids отдельно — один offset для pregnancy/kids/diary,
+ * иначе на разных Android текст «плавал» относительно линии.
  */
-export const KIDS48_EXTRA_STROKE_CLEARANCE_RATIO = 0.14;
+export const KIDS48_EXTRA_STROKE_CLEARANCE_RATIO = 0;
 
 export type KidsMonthAnswerLineLayout = {
   loveX: number;
@@ -365,7 +366,7 @@ const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
 
 const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_60: {
-    fixedLineFontSize: 15,
+    fixedLineFontSize: 16,
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,

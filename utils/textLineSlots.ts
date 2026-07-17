@@ -1722,19 +1722,13 @@ function refineKids48Page10ToothDateSlotNorm(
 ): NormalizedLineSlot {
   if (!isKids48TeethToothDateSlot(lineGuideId, page, slotIndex)) return norm;
   const targetWidth = KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH;
-  if (norm.width >= targetWidth) return norm;
-
-  const widthDelta = targetWidth - norm.width;
-  const slotCenterX = norm.x + norm.width / 2;
-  let x = norm.x;
-  if (slotCenterX < 0.5) {
-    x = Math.max(0.06, norm.x - widthDelta);
-  }
-
+  // Левый край = начало печатной линии; расширяем только вправо (раньше уезжало за линию влево).
+  const x = clamp01(norm.x);
+  const width = Math.max(norm.width, Math.min(targetWidth, 0.98 - x));
   return {
     ...norm,
     x,
-    width: targetWidth,
+    width,
   };
 }
 
@@ -1816,6 +1810,15 @@ function refineNormalizedSlotForTextLayout(
   if (lineGuideId === 'kids_48' && page === 10) {
     const refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
     return refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
+  }
+
+  // Единый левый inset от статического текста для pregnancy / kids (спец-страницы уже return выше).
+  if (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'kids_48'
+  ) {
+    return applyUniformLineXInset(norm, DIARY_UNIFORM_LINE_X_INSET);
   }
 
   if (!lineGuideId?.startsWith('diary_interior_')) {

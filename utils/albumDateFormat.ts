@@ -7,7 +7,7 @@ export function formatAlbumDate(date: Date): string {
   return `${day}.${month}.${date.getFullYear()}`;
 }
 
-/** Для «Мои зубки»: на макете только день и месяц, без года. */
+/** Для компактных дат (день+месяц), когда год на макете не рисуется. */
 export function formatAlbumDateDayMonth(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return '';

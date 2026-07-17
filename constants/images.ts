@@ -3,7 +3,7 @@
  * Используется для предзагрузки и единообразного доступа к изображениям
  */
 
-// Логотипы: app-icon-source.jpg (розовая иконка) + logo-source.svg (синий splash/logov2)
+// Логотипы: icon.png (розовая иконка) + splash-icon.png (синий splash из logo-source.svg)
 export const LogoImages = {
   app: require('../assets/images/logo.png'),
   purchase: require('../assets/images/logo.png'),

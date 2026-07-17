@@ -107,8 +107,12 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   latestStateRef.current = { images, instances, pageValuesMap };
 
   const lineGuideId = useMemo(
-    () => resolveLineGuideId(meta?.interiorType ?? meta?.albumId, meta?.category ?? celebration),
-    [meta, celebration]
+    () =>
+      resolveLineGuideId(
+        meta?.interiorType ?? meta?.albumId ?? interiorType,
+        meta?.category ?? celebration,
+      ),
+    [meta, celebration, interiorType],
   );
 
   const loadImagesForAlbum = useCallback(async (albumId: string, category?: string): Promise<string[]> => {
@@ -236,40 +240,57 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
   const skipSnapshotEchoRef = useRef(false);
   const snapshotPublishTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const persistAfterUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingPersistInstanceIdRef = useRef<string | null>(null);
+
   const publishSnapshot = useCallback(
     (
       nextValues: Record<string, PageValues>,
-      nextInstances: PageInstance[] = instances,
-      nextImages: string[] = images
+      nextInstances?: PageInstance[],
+      nextImages?: string[],
     ) => {
       if (!effectiveProjectId) return;
+      const latest = latestStateRef.current;
       skipSnapshotEchoRef.current = true;
       patchAlbumProjectSnapshot(effectiveProjectId, {
         pageValuesMap: nextValues,
-        instances: nextInstances,
-        images: nextImages,
+        instances: nextInstances ?? latest.instances,
+        images: nextImages ?? latest.images,
       });
       skipSnapshotEchoRef.current = false;
     },
-    [effectiveProjectId, instances, images]
+    [effectiveProjectId],
   );
 
-  const scheduleSnapshotPublish = useCallback(
-    (
-      nextValues: Record<string, PageValues>,
-      nextInstances: PageInstance[] = instances,
-      nextImages: string[] = images
-    ) => {
-      if (!effectiveProjectId) return;
-      if (snapshotPublishTimerRef.current) {
-        clearTimeout(snapshotPublishTimerRef.current);
+  const scheduleSnapshotPublish = useCallback(() => {
+    if (!effectiveProjectId) return;
+    if (snapshotPublishTimerRef.current) {
+      clearTimeout(snapshotPublishTimerRef.current);
+    }
+    snapshotPublishTimerRef.current = setTimeout(() => {
+      snapshotPublishTimerRef.current = null;
+      const latest = latestStateRef.current;
+      publishSnapshot(latest.pageValuesMap, latest.instances, latest.images);
+    }, 250);
+  }, [effectiveProjectId, publishSnapshot]);
+
+  const schedulePersistAfterUpdate = useCallback(
+    (instanceId: string) => {
+      pendingPersistInstanceIdRef.current = instanceId;
+      if (persistAfterUpdateTimerRef.current) {
+        clearTimeout(persistAfterUpdateTimerRef.current);
       }
-      snapshotPublishTimerRef.current = setTimeout(() => {
-        snapshotPublishTimerRef.current = null;
-        publishSnapshot(nextValues, nextInstances, nextImages);
-      }, 250);
+      // После батча React-апдейтеров latestStateRef уже финальный — не теряем 2-й патч.
+      persistAfterUpdateTimerRef.current = setTimeout(() => {
+        persistAfterUpdateTimerRef.current = null;
+        const changedId = pendingPersistInstanceIdRef.current;
+        pendingPersistInstanceIdRef.current = null;
+        const latest = latestStateRef.current;
+        scheduleSave(latest.images, latest.instances, latest.pageValuesMap, changedId ?? undefined);
+        scheduleSnapshotPublish();
+      }, 0);
     },
-    [effectiveProjectId, instances, images, publishSnapshot]
+    [scheduleSave, scheduleSnapshotPublish],
   );
 
   const reloadProjectData = useCallback(async () => {
@@ -279,11 +300,19 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
     const memorySnapshot = getAlbumProjectSnapshot(effectiveProjectId);
 
-    const [loadedInstances, loadedValues, savedImagesRaw] = await Promise.all([
+    const [loadedInstances, savedImagesRaw] = await Promise.all([
       loadPageInstances((k) => AsyncStorage.getItem(k), effectiveProjectId),
-      loadPageValuesMap((k) => AsyncStorage.getItem(k), effectiveProjectId),
       AsyncStorage.getItem(`@project_images_${effectiveProjectId}`),
     ]);
+    const instanceIdsForMerge =
+      (memorySnapshot?.instances?.length ? memorySnapshot.instances : loadedInstances).map(
+        (item) => item.instanceId,
+      );
+    const loadedValues = await loadPageValuesMapMerged(
+      (k) => AsyncStorage.getItem(k),
+      effectiveProjectId,
+      instanceIdsForMerge,
+    );
 
     const diskImages = savedImagesRaw ? (JSON.parse(savedImagesRaw) as string[]) : [];
     const mergedInstances =
@@ -322,6 +351,11 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
     return subscribeAlbumProjectSnapshot(effectiveProjectId, (snapshot) => {
       if (skipSnapshotEchoRef.current) return;
+      latestStateRef.current = {
+        pageValuesMap: snapshot.pageValuesMap,
+        instances: snapshot.instances,
+        images: snapshot.images,
+      };
       setPageValuesMap(snapshot.pageValuesMap);
       setInstances(snapshot.instances);
       setImages(snapshot.images);
@@ -332,6 +366,9 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     return () => {
       if (snapshotPublishTimerRef.current) {
         clearTimeout(snapshotPublishTimerRef.current);
+      }
+      if (persistAfterUpdateTimerRef.current) {
+        clearTimeout(persistAfterUpdateTimerRef.current);
       }
     };
   }, []);
@@ -348,46 +385,63 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
   const updatePageValues = useCallback(
     (instanceId: string, updater: (prev: PageValues) => PageValues) => {
-      let mergedForEffects: Record<string, PageValues> | null = null;
-
       setPageValuesMap((prev) => {
-        const current = prev[instanceId] ?? { fields: {}, photoBlocks: {}, status: 'empty', updatedAt: new Date().toISOString() };
+        const current =
+          prev[instanceId] ??
+          ({
+            fields: {},
+            photoBlocks: {},
+            status: 'empty',
+            updatedAt: new Date().toISOString(),
+          } satisfies PageValues);
         const next = {
           ...updater(current),
           updatedAt: new Date().toISOString(),
         };
         const merged = { ...prev, [instanceId]: next };
-        mergedForEffects = merged;
+        latestStateRef.current = {
+          ...latestStateRef.current,
+          pageValuesMap: merged,
+        };
         return merged;
       });
 
-      if (mergedForEffects) {
-        scheduleSave(images, instances, mergedForEffects, instanceId);
-        scheduleSnapshotPublish(mergedForEffects, instances, images);
-      }
+      schedulePersistAfterUpdate(instanceId);
     },
-    [instances, images, scheduleSave, scheduleSnapshotPublish]
+    [schedulePersistAfterUpdate],
   );
 
   const savePageValuesNow = useCallback(
     async (instanceId: string, values: PageValues) => {
-      const instance = instances.find((i) => i.instanceId === instanceId);
+      const latestBefore = latestStateRef.current;
+      const instance =
+        latestBefore.instances.find((i) => i.instanceId === instanceId) ??
+        instances.find((i) => i.instanceId === instanceId);
       const schema = instance ? getSchemaForInstance(instance, lineGuideId) : undefined;
       const refreshed = schema ? refreshPageValuesStatus(schema, values) : values;
-      const merged = { ...pageValuesMap, [instanceId]: refreshed };
+
+      const merged = {
+        ...latestBefore.pageValuesMap,
+        [instanceId]: refreshed,
+      };
+      latestStateRef.current = {
+        ...latestStateRef.current,
+        pageValuesMap: merged,
+      };
       setPageValuesMap(merged);
-      publishSnapshot(merged, instances, images);
+      publishSnapshot(merged, latestStateRef.current.instances, latestStateRef.current.images);
+
       if (effectiveProjectId) {
         // Инкрементально: только эта страница — full map stringify блокировал JS на 60 стр. с фото
         await flushAlbumProjectPersist(effectiveProjectId);
-        await persistAll(effectiveProjectId, images, instances, merged, metaRef.current, {
+        await persistAll(effectiveProjectId, latestStateRef.current.images, latestStateRef.current.instances, merged, metaRef.current, {
           changedInstanceId: instanceId,
           flushFullMap: false,
         });
       }
       return refreshed;
     },
-    [instances, images, lineGuideId, pageValuesMap, effectiveProjectId, persistAll, publishSnapshot]
+    [instances, lineGuideId, effectiveProjectId, persistAll, publishSnapshot],
   );
 
   const addPage = useCallback(
@@ -655,16 +709,43 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             setInstances(memorySnapshot.instances);
             setPageValuesMap(memorySnapshot.pageValuesMap);
             setImages(memorySnapshot.images);
-            setIsLoading(false);
-            // Meta подтянем лёгким запросом; тяжёлый parse/sanitize map пропускаем — snapshot уже актуален
-            void AsyncStorage.getItem(`@project_${projectId}`).then((projectRaw) => {
-              if (cancelled || !projectRaw) return;
+            latestStateRef.current = {
+              images: memorySnapshot.images,
+              instances: memorySnapshot.instances,
+              pageValuesMap: memorySnapshot.pageValuesMap,
+            };
+
+            // Meta нужна сразу для lineGuideId → аннотаций превью. Без неё повторный вход
+            // показывал форму с данными, а preview — пустые слоты.
+            const projectRaw = await AsyncStorage.getItem(`@project_${projectId}`);
+            if (cancelled) return;
+            if (projectRaw) {
               try {
                 setMeta(JSON.parse(projectRaw) as AlbumProjectMeta);
               } catch {
-                // ignore corrupt meta
+                if (interiorType || celebration) {
+                  setMeta({
+                    id: projectId,
+                    title: '',
+                    interiorType,
+                    albumId: interiorType,
+                    category: celebration,
+                    coverType,
+                  });
+                }
               }
-            });
+            } else if (interiorType || celebration) {
+              setMeta({
+                id: projectId,
+                title: '',
+                interiorType,
+                albumId: interiorType,
+                category: celebration,
+                coverType,
+              });
+            }
+
+            setIsLoading(false);
             return;
           }
 
