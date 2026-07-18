@@ -68,7 +68,9 @@ export default function AlbumPagePreviewScreen() {
   const [ready, setReady] = useState(false);
   const [isSavingPage, setIsSavingPage] = useState(false);
   const [imageAspectRatio, setImageAspectRatio] = useState(() =>
-    getDefaultPageAspectRatio({ lineGuideId: interiorType === "kids_48" ? "kids_48" : undefined }),
+    getDefaultPageAspectRatio({
+      lineGuideId: interiorType || undefined,
+    }),
   );
   const [sourceImageSize, setSourceImageSize] = useState<{
     width: number;
@@ -82,6 +84,7 @@ export default function AlbumPagePreviewScreen() {
     celebration,
     coverType,
     interiorType,
+    activeInstanceId: instanceId,
   });
 
   const albumFlowParams: AlbumFlowParams = {
@@ -100,6 +103,12 @@ export default function AlbumPagePreviewScreen() {
 
   const schema = instance ? project.getSchemaForInstance(instance) : undefined;
   const resolvedLineGuideId = schema?.lineGuideId ?? project.lineGuideId ?? interiorType;
+
+  useEffect(() => {
+    if (!resolvedLineGuideId) return;
+    setImageAspectRatio(getDefaultPageAspectRatio({ lineGuideId: resolvedLineGuideId }));
+  }, [resolvedLineGuideId]);
+
   const values = instanceId ? project.pageValuesMap[instanceId] : undefined;
   const status = schema ? computePageStatus(schema, values) : "empty";
   const baseImageUri = instance
@@ -355,7 +364,13 @@ export default function AlbumPagePreviewScreen() {
     }).catch(() => {});
   }, [id, previewLayout.coordinateWidth, previewLayout.coordinateHeight]);
 
-  if (project.isLoading || !instance || !schema) {
+  // Ждём стабильный lineGuideId — иначе pageValues→annotations даёт пустой preview.
+  if (
+    project.isLoading ||
+    !instance ||
+    !schema ||
+    !resolvedLineGuideId
+  ) {
     return (
       <AppScreen style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />

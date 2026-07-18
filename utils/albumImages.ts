@@ -1,9 +1,11 @@
 import { Asset } from 'expo-asset';
 import {
   cacheDirectory,
+  deleteAsync,
   downloadAsync,
   getInfoAsync,
   makeDirectoryAsync,
+  readDirectoryAsync,
 } from 'expo-file-system/legacy';
 import { usesSquareBlankInterior } from '@/constants/square-blank-interior';
 import {
@@ -167,31 +169,64 @@ async function downloadRemotePageToCacheWithRetry(
   return null;
 }
 
+/** Не греем все 48–60 страниц сразу — иначе Android I/O лаг после многих альбомов. */
+const WARM_AHEAD_PAGES = 8;
+const MAX_REMOTE_CACHE_FILES = 180;
+let warmGeneration = 0;
+
+async function pruneRemoteAlbumCacheIfNeeded(): Promise<void> {
+  try {
+    const names = await readDirectoryAsync(REMOTE_ALBUM_CACHE_DIR);
+    if (names.length <= MAX_REMOTE_CACHE_FILES) return;
+
+    const withMeta = await Promise.all(
+      names.map(async (name) => {
+        const uri = `${REMOTE_ALBUM_CACHE_DIR}${name}`;
+        const info = await getInfoAsync(uri);
+        return {
+          uri,
+          mtime: info.exists && 'modificationTime' in info ? (info.modificationTime ?? 0) : 0,
+        };
+      }),
+    );
+    withMeta.sort((a, b) => a.mtime - b.mtime);
+    const toRemove = withMeta.slice(0, Math.max(0, withMeta.length - MAX_REMOTE_CACHE_FILES));
+    await Promise.all(toRemove.map((item) => deleteAsync(item.uri, { idempotent: true }).catch(() => {})));
+  } catch {
+    // prune best-effort
+  }
+}
+
 async function warmRemoteAlbumCache(
   albumId: string,
   folderPath: string,
   pageCount: number
 ): Promise<void> {
-  const maxParallel = 4;
+  const gen = ++warmGeneration;
+  const warmCount = Math.min(pageCount, WARM_AHEAD_PAGES);
+  const maxParallel = 2;
   let idx = 1;
 
   const worker = async () => {
-    while (true) {
+    while (gen === warmGeneration) {
       const current = idx;
       idx += 1;
-      if (current > pageCount) return;
+      if (current > warmCount) return;
       const fileName = resolveRemotePageFileName(albumId, current);
       await downloadRemotePageToCache(folderPath, fileName);
     }
   };
 
   await Promise.all(Array.from({ length: maxParallel }, () => worker()));
+  if (gen === warmGeneration) {
+    void pruneRemoteAlbumCacheIfNeeded();
+  }
 }
 
 /**
  * Быстрый список страниц для просмотра: сразу отдаём URL с GitHub,
  * без ожидания проверки кеша каждой из 48–60 страниц.
- * Локальный кеш прогревается в фоне.
+ * Локальный кеш прогревается в фоне (только первые страницы).
  */
 export async function getAlbumImageUrisForViewing(albumId: string): Promise<string[]> {
   const spec = getRemoteAlbumSpec(albumId);

@@ -11,9 +11,11 @@ import { getLineSlotsForPage, getPregnancyWeeklyFieldStartIndex } from '@/utils/
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
   distributeTextForTemplateAnnotation,
+  getCanonicalAlbumLineFontSize,
+  getEffectiveTemplateFontSize,
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
-  isPregnancyBirthQuestionnaireCenteredBlockSlot,
+  resolveTemplateSlotTextAlign,
 } from '@/utils/templateLineText';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { maxLinesForBoxHeight, wrapTextToLines } from '@/utils/textWrap';
@@ -71,6 +73,8 @@ function WrappedTemplateText({
           ]}
           numberOfLines={1}
           ellipsizeMode="clip"
+          allowFontScaling={false}
+          maxFontSizeMultiplier={1}
         >
           {line}
         </Text>
@@ -157,6 +161,12 @@ function ReadOnlyPageAnnotationsInner({
           const slotCount = annotation.templateLineCount ?? 1;
 
           if (usesTemplateLineSlots && lineSlots != null && lineSlots[startIndex]) {
+            const canonicalFontSize = getCanonicalAlbumLineFontSize(lineGuideId, fontSize);
+            const templateFontSize = getEffectiveTemplateFontSize(
+              lineGuideId,
+              lineSlots[startIndex],
+              canonicalFontSize,
+            );
             const { segments } = distributeTextForTemplateAnnotation({
               text: formatTemplateLineSlotDisplayText(
                 annotation.content,
@@ -166,7 +176,7 @@ function ReadOnlyPageAnnotationsInner({
               ),
               startSlotIndex: startIndex,
               slots: lineSlots,
-              fontSize,
+              fontSize: templateFontSize,
               lineGuideId,
               fontId: annotation.fontFamily,
               lineCount: slotCount,
@@ -198,7 +208,7 @@ function ReadOnlyPageAnnotationsInner({
                 {linesToRender.map((row) => {
                   const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
                     slot: row.lineSlot,
-                    fontSize,
+                    fontSize: canonicalFontSize,
                     lineGuideId,
                     fontId: annotation.fontFamily,
                     allSlots: lineSlots,
@@ -206,12 +216,11 @@ function ReadOnlyPageAnnotationsInner({
                     textContent: row.content,
                   });
                   const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-                  const lineTextAlign = isPregnancyBirthQuestionnaireCenteredBlockSlot(
+                  const lineTextAlign = resolveTemplateSlotTextAlign(
                     lineGuideId,
                     row.lineSlot,
-                  )
-                    ? 'center'
-                    : (annotation.textAlign ?? 'left');
+                    annotation.textAlign ?? 'left',
+                  );
                   return (
                     <View
                       key={`${annotation.id}-line-${row.slotIndex}`}
@@ -248,6 +257,8 @@ function ReadOnlyPageAnnotationsInner({
                         ]}
                         numberOfLines={1}
                         ellipsizeMode="clip"
+                        allowFontScaling={false}
+                        maxFontSizeMultiplier={1}
                       >
                         {row.content}
                       </Text>

@@ -228,10 +228,11 @@ export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 
 /**
  * Доп. зазор между низом текста и штрихом линии (доля fontSize).
- * Вместе с cap шрифта даёт единый видимый зазор «линия → отступ → текст»
- * на всех шаблонных альбомах и устройствах (без Platform/PixelRatio).
+ * Как на iOS (e24a739 kids month ~0.22): заметный просвет «текст → отступ → линия».
+ * Доля fontSize + нормализованные слоты + page font scale → одинаково на разных
+ * диагоналях Android без Platform/PixelRatio/fontScale.
  */
-export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.12;
+export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.2;
 
 /**
  * @deprecated Больше не поднимаем kids отдельно — один offset для pregnancy/kids/diary,
@@ -401,8 +402,9 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     lineWidthSlackRatio: 0.97,
     lineCenterRatio: 0.34,
     lineFontOffsetRatio: 0.96,
-    blockCenterRatio: 0.56,
-    blockFontOffsetRatio: 0.66,
+    /** Как на iOS (e24a739): вертикальный центр текста в белых pill. */
+    blockCenterRatio: 0.5,
+    blockFontOffsetRatio: 0.55,
     blockMaxFontSize: 20,
   },
   diary_interior_brown: {

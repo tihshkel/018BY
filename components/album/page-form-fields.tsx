@@ -215,6 +215,8 @@ const TypedFormField = memo(function TypedFormField({
         textAlign={textAlign}
         textAlignVertical={isMultiline ? 'top' : 'center'}
         textBreakStrategy={isMultiline ? 'simple' : undefined}
+        allowFontScaling={false}
+        maxFontSizeMultiplier={1}
         inputMode={
           getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
             ? 'numeric'

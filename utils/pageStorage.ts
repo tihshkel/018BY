@@ -76,6 +76,21 @@ export async function savePageValueEntry(
   await setItem(getPageValueEntryKey(projectId, instanceId), JSON.stringify(values));
 }
 
+export async function loadPageValueEntry(
+  getItem: (key: string) => Promise<string | null>,
+  projectId: string,
+  instanceId: string,
+): Promise<PageValues | null> {
+  const raw = await getItem(getPageValueEntryKey(projectId, instanceId));
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as PageValues;
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Merges per-page entries over the monolithic map (newer updatedAt wins). */
 export async function loadPageValuesMapMerged(
   getItem: (key: string) => Promise<string | null>,

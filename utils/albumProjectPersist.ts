@@ -28,24 +28,25 @@ type PersistRunner = (payload: PersistPayload) => Promise<void>;
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const payloads = new Map<string, PersistPayload>();
 const runners = new Map<string, PersistRunner>();
+const inFlight = new Map<string, Promise<void>>();
 let widgetSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleWidgetSync(): void {
   if (widgetSyncTimer) clearTimeout(widgetSyncTimer);
+  // Реже на Android: полный пересчёт виджета тяжёлый и лаг после многих сохранений.
   widgetSyncTimer = setTimeout(() => {
     widgetSyncTimer = null;
     void syncWidgetSnapshot();
-  }, 2500);
+  }, 8000);
 }
 
+/** Только таймер — pending payload не трогаем (иначе теряем правки во время записи). */
 export function cancelAlbumProjectPersist(projectId: string): void {
   const timer = timers.get(projectId);
   if (timer) {
     clearTimeout(timer);
     timers.delete(projectId);
   }
-  payloads.delete(projectId);
-  runners.delete(projectId);
 }
 
 export function scheduleAlbumProjectPersist(
@@ -70,6 +71,15 @@ export function scheduleAlbumProjectPersist(
 }
 
 export async function flushAlbumProjectPersist(projectId: string): Promise<boolean> {
+  const active = inFlight.get(projectId);
+  if (active) {
+    await active;
+    if (payloads.has(projectId) || timers.has(projectId)) {
+      return flushAlbumProjectPersist(projectId);
+    }
+    return false;
+  }
+
   const timer = timers.get(projectId);
   if (timer) {
     clearTimeout(timer);
@@ -82,7 +92,22 @@ export async function flushAlbumProjectPersist(projectId: string): Promise<boole
 
   payloads.delete(projectId);
   runners.delete(projectId);
-  await run(payload);
+
+  const write = (async () => {
+    await run(payload);
+  })();
+  inFlight.set(projectId, write);
+  try {
+    await write;
+  } finally {
+    inFlight.delete(projectId);
+  }
+
+  // Правки, пришедшие во время записи, не должны пропасть.
+  if (payloads.has(projectId) || timers.has(projectId)) {
+    return flushAlbumProjectPersist(projectId);
+  }
+
   scheduleWidgetSync();
   return true;
 }

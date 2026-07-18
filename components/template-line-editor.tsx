@@ -4,8 +4,8 @@ import {
   getActiveEditSlotIndex,
   getTemplateBlockTextInsets,
   getTemplateLineReadOnlyTextLayout,
-  isPregnancyBirthQuestionnaireCenteredBlockSlot,
   mergeActiveLineEdit,
+  resolveTemplateSlotTextAlign,
 } from '@/utils/templateLineText';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -83,8 +83,11 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   );
 
   const inputValue = segmentBySlotIndex.get(activeInputSlotIndex) ?? '';
-  const effectiveTextAlign: TextAlign =
-    isPregnancyBirthQuestionnaireCenteredBlockSlot(lineGuideId, slot) ? 'center' : textAlign;
+  const effectiveTextAlign: TextAlign = resolveTemplateSlotTextAlign(
+    lineGuideId,
+    slot,
+    textAlign,
+  );
 
   const handleInputChange = useCallback(
     (newText: string) => {
@@ -178,6 +181,8 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 scrollEnabled={false}
                 autoFocus={autoFocus}
                 autoCorrect={false}
+                allowFontScaling={false}
+                maxFontSizeMultiplier={1}
                 placeholder=""
                 selectionColor={color}
                 underlineColorAndroid="transparent"
@@ -202,6 +207,8 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 ]}
                 numberOfLines={1}
                 ellipsizeMode="clip"
+                allowFontScaling={false}
+                maxFontSizeMultiplier={1}
               >
                 {lineText}
               </Text>

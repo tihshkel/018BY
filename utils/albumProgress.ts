@@ -1,7 +1,7 @@
 import type { PageInstance, PageValues } from '@/types/album-page-schema';
 import type { AlbumPageSchema } from '@/types/album-page-schema';
 import { getAlbumSections } from '@/constants/album-sections';
-import { computePageStatus } from '@/utils/pageStatus';
+import { resolveDisplayPageStatus } from '@/utils/pageStatus';
 
 export type AlbumProgress = {
   filledCount: number;
@@ -25,7 +25,7 @@ export function computeAlbumProgress(
   for (const instance of instances) {
     const schema = getSchema(instance);
     if (!schema) continue;
-    const status = computePageStatus(schema, pageValuesMap[instance.instanceId]);
+    const status = resolveDisplayPageStatus(schema, pageValuesMap[instance.instanceId]);
     if (status === 'filled') filledCount += 1;
   }
 
@@ -52,7 +52,7 @@ export function computeSectionProgressList(
     for (const instance of sectionInstances) {
       const schema = getSchema(instance);
       if (!schema) continue;
-      const status = computePageStatus(schema, pageValuesMap[instance.instanceId]);
+      const status = resolveDisplayPageStatus(schema, pageValuesMap[instance.instanceId]);
       if (status === 'filled') filledCount += 1;
     }
 
@@ -80,7 +80,7 @@ export function findNextPageToContinue(
     const found = instances.find((instance) => {
       const schema = getSchema(instance);
       if (!schema || schema.pageType === 'non_editable') return false;
-      const status = computePageStatus(schema, pageValuesMap[instance.instanceId]);
+      const status = resolveDisplayPageStatus(schema, pageValuesMap[instance.instanceId]);
       return status === target;
     });
     if (found) return found;

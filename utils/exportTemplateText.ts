@@ -7,6 +7,7 @@ import {
 } from '@/utils/imageContentRect';
 import {
   distributeTextForTemplateAnnotation,
+  getCanonicalAlbumLineFontSize,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
   getTemplateLineFitSlot,
@@ -84,7 +85,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   const effectiveFontSize = getEffectiveTemplateFontSize(
     lineGuideId,
     startSlot,
-    ann.fontSize || 16
+    getCanonicalAlbumLineFontSize(lineGuideId, ann.fontSize || 16),
   );
 
   const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);

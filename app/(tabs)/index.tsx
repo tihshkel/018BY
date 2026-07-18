@@ -182,10 +182,17 @@ export default function HomeScreen() {
 
   const navigateToPdfAlbum = async (project: UserProject) => {
     const entry = await resolveAlbumEntryPath(project.id);
+    // category/interior нужны сразу для lineGuideId — иначе Android preview пустой.
+    const flowParams = {
+      id: project.id,
+      celebration: project.category,
+      interiorType: project.albumId ?? undefined,
+      coverType: project.coverType ?? undefined,
+    };
     const href =
       entry === 'album-intro'
-        ? buildAlbumIntroHref({ id: project.id })
-        : buildAlbumPagesHref({ id: project.id });
+        ? buildAlbumIntroHref(flowParams)
+        : buildAlbumPagesHref(flowParams);
     router.push(href);
   };
 

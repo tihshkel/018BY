@@ -8,6 +8,7 @@ import {
   getTemplateLayout,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
+import { isPageValuesListStub } from '@/utils/pageValuesMemory';
 
 function hasText(value: string | undefined | null): boolean {
   return typeof value === 'string' && value.trim().length > 0;
@@ -239,6 +240,21 @@ export function refreshPageValuesStatus(
     status: computePageStatus(schema, values),
     updatedAt: new Date().toISOString(),
   };
+}
+
+/** Для list-stubs с сохранённым status — не пересчитывать по пустым fields/photos. */
+export function resolveDisplayPageStatus(
+  schema: AlbumPageSchema | undefined,
+  values?: PageValues | null,
+): PageStatus {
+  if (!schema) return 'empty';
+  if (values?.excludedFromExport) return 'excluded';
+  if (schema.pageType === 'non_editable' || !schema.editable) return 'locked';
+  if (!values) return 'empty';
+  if (values.status && isPageValuesListStub(values)) {
+    return values.status;
+  }
+  return computePageStatus(schema, values);
 }
 
 export function getPageStatusLabel(status: PageStatus): string {

@@ -2186,6 +2186,14 @@ function refineDenseContinuationGroupSpacing(
 }
 
 const lineSlotsResultCache = new Map<string, TextLineSlot[]>();
+const LINE_SLOTS_CACHE_MAX = 80;
+
+function rememberLineSlots(cacheKey: string, slots: TextLineSlot[]): void {
+  if (lineSlotsResultCache.size >= LINE_SLOTS_CACHE_MAX) {
+    lineSlotsResultCache.clear();
+  }
+  lineSlotsResultCache.set(cacheKey, slots);
+}
 
 function lineSlotsCacheKey(params: GetLineSlotsParams): string {
   const rect = params.contentRect;
@@ -2211,7 +2219,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
 
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
   if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
-    lineSlotsResultCache.set(cacheKey, []);
+    rememberLineSlots(cacheKey, []);
     return [];
   }
 
@@ -2225,7 +2233,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     ),
   );
   if (!normalized.length) {
-    lineSlotsResultCache.set(cacheKey, []);
+    rememberLineSlots(cacheKey, []);
     return [];
   }
 
@@ -2300,7 +2308,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     patchedJewelry,
     rect,
   );
-  lineSlotsResultCache.set(cacheKey, patched);
+  rememberLineSlots(cacheKey, patched);
   return patched;
 }
 
@@ -2699,6 +2707,7 @@ export function layoutTextAnnotationFromSlot(
     slot.lineHeight,
     inputKind,
     lineGuideId,
+    slot,
   );
   const usesStroke =
     usesStrokeBaselineLayout(slot, lineGuideId) ||

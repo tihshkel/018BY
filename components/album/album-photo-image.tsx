@@ -23,7 +23,8 @@ export function normalizeAlbumPhotoUri(uri: string): string {
 export function prefetchAlbumPhotoUri(uri: string | null | undefined): void {
   if (!uri?.trim()) return;
   const normalized = normalizeAlbumPhotoUri(uri);
-  void Image.prefetch(normalized, { cachePolicy: 'memory-disk' }).catch(() => {});
+  // Только disk: memory-disk держит decoded bitmap в RAM и давит Android после многих альбомов.
+  void Image.prefetch(normalized, { cachePolicy: 'disk' }).catch(() => {});
 }
 
 /** Ждём кэш перед показом — фото появляется сразу чётким, без «размытого» первого кадра. */
@@ -32,7 +33,7 @@ export async function prefetchAlbumPhotoUriAsync(
 ): Promise<void> {
   if (!uri?.trim()) return;
   const normalized = normalizeAlbumPhotoUri(uri);
-  await Image.prefetch(normalized, { cachePolicy: 'memory-disk' }).catch(() => {});
+  await Image.prefetch(normalized, { cachePolicy: 'disk' }).catch(() => {});
 }
 
 export const ALBUM_PHOTO_IMAGE_PROPS = {
@@ -41,7 +42,8 @@ export const ALBUM_PHOTO_IMAGE_PROPS = {
   cachePolicy: 'disk' as const,
   transition: 0,
   fadeDuration: 0,
-  allowDownscaling: false,
+  // Android: без downscale декодируется полный 2048px кадр под маленький слот → OOM/лаги.
+  allowDownscaling: true,
   priority: 'high' as const,
 };
 

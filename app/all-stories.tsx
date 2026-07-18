@@ -72,10 +72,16 @@ export default function AllStoriesScreen() {
 
   const openProject = async (project: UserProject) => {
     const entry = await resolveAlbumEntryPath(project.id);
+    const flowParams = {
+      id: project.id,
+      celebration: project.category,
+      interiorType: project.albumId ?? undefined,
+      coverType: project.coverType ?? undefined,
+    };
     router.push(
       entry === 'album-intro'
-        ? buildAlbumIntroHref({ id: project.id })
-        : buildAlbumPagesHref({ id: project.id })
+        ? buildAlbumIntroHref(flowParams)
+        : buildAlbumPagesHref(flowParams)
     );
   };
 

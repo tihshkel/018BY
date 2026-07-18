@@ -50,7 +50,7 @@ import { hasPendingAlbumProjectPersist } from "@/utils/albumProjectPersist";
 import { getAlbumProjectSnapshot } from "@/utils/albumProjectStateSync";
 import { isBlankTemplateLineGuide } from "@/utils/photoPageTemplateManifest";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
-import { computePageStatus } from "@/utils/pageStatus";
+import { resolveDisplayPageStatus } from "@/utils/pageStatus";
 import { getProjectCoverImageSource } from "@/utils/projectCoverImage";
 import { normalizeRouteParam } from "@/utils/routeParams";
 
@@ -252,7 +252,7 @@ export default function AlbumPagesScreen() {
         instance: PageInstance;
         title: string;
         subtitle?: string;
-        status: ReturnType<typeof computePageStatus> | "empty";
+        status: ReturnType<typeof resolveDisplayPageStatus> | "empty";
         thumbnailUri?: string;
         schema?: AlbumPageSchema;
         pageValues?: PageValues;
@@ -270,7 +270,7 @@ export default function AlbumPagesScreen() {
       const rows = sectionInstances.map((instance) => {
         const schema = project.getSchemaForInstance(instance);
         const values = project.pageValuesMap[instance.instanceId];
-        const status = schema ? computePageStatus(schema, values) : "empty";
+        const status = resolveDisplayPageStatus(schema, values);
         return {
           instance,
           title: project.getInstanceTitle(instance),

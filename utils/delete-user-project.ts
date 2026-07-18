@@ -3,6 +3,7 @@ import { getAccountSyncId } from '@/utils/account-identity';
 import { markProjectAsDeleted } from '@/utils/deleted-project-ids';
 import { removeRemindersAndScheduledNotificationsForProject } from '@/utils/project-reminders-cleanup';
 import { deleteProjectInSupabase, isSupabaseConfigured } from '@/utils/supabase-account';
+import { clearAlbumProjectSnapshot } from '@/utils/albumProjectStateSync';
 import type { UserProject } from '@/utils/userProjects';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,6 +27,7 @@ const PROJECT_STORAGE_KEYS = (projectId: string) => [
 /** Удаляет проект локально и обновляет облако; pull не восстанавливает удалённые id. */
 export async function deleteUserProjectLocally(project: UserProject): Promise<void> {
   const projectId = String(project.id);
+  clearAlbumProjectSnapshot(projectId);
   await markProjectAsDeleted(projectId);
 
   try {

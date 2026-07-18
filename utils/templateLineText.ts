@@ -13,7 +13,7 @@ import {
   DIARY_BROWN_WEEKLY_SCHEDULE_TEMPLATES,
   getDiaryBrownPageTemplate,
 } from '@/constants/diary-brown-page-templates';
-import { getAlbumFontCharWidthMultiplier, getAlbumFontPreviewCapHeightRatio } from '@/constants/album-fonts';
+import { getAlbumFontCharWidthMultiplier, getAlbumFontPreviewCapHeightRatio, PDF_TEXT_CAP_HEIGHT_RATIO } from '@/constants/album-fonts';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import type { TextLineSlot } from '@/utils/textLineSlots';
 import { isKids48TeethToothDateSlot } from '@/utils/kids48TeethDates';
@@ -23,6 +23,51 @@ import {
   isPregnancyWeeklyStructuredPage,
   isPregnancyWeeklyTextLineSlot,
 } from '@/utils/textLineSlots';
+import { EDITOR_PAGE_VIEWPORT_WIDTH } from '@/utils/responsive';
+
+/**
+ * Масштаб кегля относительно эталона редактора (390dp).
+ * Слоты в px растут с шириной страницы; без scale 16px на узком/широком
+ * экране выглядит разным относительно линий. Clamp — старые 320dp…новые ~430dp.
+ */
+export function getTemplatePageFontScale(
+  slot?: Pick<TextLineSlot, 'width' | 'normWidth'> | null,
+): number {
+  const normW = slot?.normWidth;
+  if (!slot || normW == null || normW <= 0.001 || !(slot.width > 0)) return 1;
+  const contentWidth = slot.width / normW;
+  if (!(contentWidth > 0) || !Number.isFinite(contentWidth)) return 1;
+  const scale = contentWidth / EDITOR_PAGE_VIEWPORT_WIDTH;
+  return Math.min(1.18, Math.max(0.85, scale));
+}
+
+function scaleTemplateFontSize(
+  fontSize: number,
+  slot?: Pick<TextLineSlot, 'width' | 'normWidth'> | null,
+): number {
+  return Math.max(8, Math.round(fontSize * getTemplatePageFontScale(slot)));
+}
+
+/**
+ * Канонический кегль для хранения в annotation (без page-scale).
+ * Scale применяется только при рендере/экспорте — иначе на другом телефоне
+ * migrate/viewport умножает уже масштабированный размер.
+ */
+export function getCanonicalAlbumLineFontSize(
+  lineGuideId?: string,
+  annotationFontSize?: number | null,
+): number {
+  const fontGuideId =
+    lineGuideId === 'pregnancy_60' ? 'pregnancy_a5' : lineGuideId;
+  const profile = getTemplateTypographyProfile(fontGuideId);
+  if (profile.fixedLineFontSize != null) {
+    return profile.fixedLineFontSize;
+  }
+  if (annotationFontSize != null && Number.isFinite(annotationFontSize) && annotationFontSize > 0) {
+    return annotationFontSize;
+  }
+  return 16;
+}
 
 /** Пробел уже буквы — иначе перенос срабатывает раньше визуального края строки. */
 const SPACE_WIDTH_FACTOR = 0.35;
@@ -178,7 +223,13 @@ export function textFitsInSlot(
   allSlots?: readonly TextLineSlot[],
 ): boolean {
   if (!text) return true;
-  const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
+  const fitted = fitFontSizeToSlot(
+    fontSize,
+    slot.lineHeight,
+    slot.inputKind,
+    lineGuideId,
+    slot,
+  );
   return (
     measureTextLineWidth(text, fitted, lineGuideId, fontId, measureTextWidth, slot) <=
     getWrapWidthForSlot(slot, lineGuideId, allSlots)
@@ -194,7 +245,13 @@ function splitWordToFit(
   measureTextWidth?: TextWidthMeasure,
   allSlots?: readonly TextLineSlot[],
 ): { line: string; rest: string } {
-  const fitted = fitFontSizeToSlot(fontSize, slot.lineHeight, slot.inputKind, lineGuideId);
+  const fitted = fitFontSizeToSlot(
+    fontSize,
+    slot.lineHeight,
+    slot.inputKind,
+    lineGuideId,
+    slot,
+  );
   const charWidthRatio = getEffectiveCharWidthRatio(lineGuideId, fontId, slot);
 
   let line = '';
@@ -298,21 +355,27 @@ export function fitFontSizeToSlot(
   fontSize: number,
   lineHeight: number,
   inputKind: 'line' | 'block' = 'line',
-  lineGuideId?: string
+  lineGuideId?: string,
+  slotForScale?: Pick<TextLineSlot, 'width' | 'normWidth'> | null,
 ): number {
   const fontGuideId = getPregnancyValueFontGuideId(lineGuideId);
   const profile = getTemplateTypographyProfile(fontGuideId);
 
   if (isDiaryInteriorLineGuide(lineGuideId) && profile.fixedLineFontSize != null) {
-    return profile.fixedLineFontSize;
+    return scaleTemplateFontSize(profile.fixedLineFontSize, slotForScale);
   }
 
   // Альбом 60 стр.: LINE — тот же fixed 16px, что и a5; BLOCK (ячейки анкеты) — по высоте.
   if (lineGuideId === 'pregnancy_60' && inputKind === 'line') {
     const p60Profile = getTemplateTypographyProfile('pregnancy_60');
     if (p60Profile.fixedLineFontSize != null) {
-      return p60Profile.fixedLineFontSize;
+      return scaleTemplateFontSize(p60Profile.fixedLineFontSize, slotForScale);
     }
+  }
+
+  // Birthday (iOS e24a739): A+/A− меняют размер; не зажимать по lineHeight слота.
+  if (lineGuideId === 'holidays_birthday_60' && Number.isFinite(fontSize)) {
+    return Math.min(Math.max(fontSize, 10), 28);
   }
 
   if (inputKind === 'block') {
@@ -329,17 +392,10 @@ export function fitFontSizeToSlot(
     );
   }
 
-  // Не поднимаем размер выше переданного — иначе нельзя сжать узкие слоты (зубки DD.MM)
-  // и подгонка при смене шрифта ломается.
+  // Fixed-альбомы (kids / pregnancy_a5): эталон × scale страницы.
+  // Не Math.min(fontSize, scaled) — иначе на широких телефонах кегль не растёт.
   if (profile.fixedLineFontSize != null) {
-    return Math.min(fontSize, profile.fixedLineFontSize);
-  }
-
-  if (
-    inputKind === 'line' &&
-    lineGuideId === 'holidays_birthday_60'
-  ) {
-    return Math.min(fontSize, Math.max(10, lineHeight * 0.82), 18);
+    return scaleTemplateFontSize(profile.fixedLineFontSize, slotForScale);
   }
 
   const maxFromSlot = Math.max(8, lineHeight * 0.76);
@@ -366,13 +422,12 @@ export function isDiaryPeachCellField(
 }
 
 function resolveUniformStrokeFontOffset(
-  fontId?: string,
+  _fontId?: string,
   _lineGuideId?: string,
 ): number {
-  const cap = getAlbumFontPreviewCapHeightRatio(fontId);
-  // Единый offset для pregnancy / kids / diary: max(пол PDF, cap шрифта) + CLEARANCE.
-  // Без album-specific extras — иначе на разных Android текст «прыгает» относительно линии.
-  return Math.max(DIARY_LINE_FONT_OFFSET, cap) + TEMPLATE_LINE_STROKE_CLEARANCE_RATIO;
+  // Фиксированный offset (без cap шрифта): при смене Amatic→Nefelibata зазор
+  // text→линия не «съезжает». Cap учитывается только в PDF baseline / Dreams.
+  return DIARY_LINE_FONT_OFFSET + TEMPLATE_LINE_STROKE_CLEARANCE_RATIO;
 }
 
 /** «Мечты»: baseline на белом штрихе = previewCap шрифта (без CLEARANCE). */
@@ -412,7 +467,7 @@ export function usesPregnancyGuideRuledTextLayout(
   );
 }
 
-/** Baseline прямо на штрихе линии — kids_48, pregnancy A5 p44, дневники. */
+/** Baseline прямо на штрихе линии — kids_48, pregnancy A5 p44, дневники, birthday letter. */
 export function usesStrokeBaselineLayout(
   slot: Pick<
     TextLineSlot,
@@ -421,6 +476,10 @@ export function usesStrokeBaselineLayout(
   lineGuideId?: string,
 ): boolean {
   if (isPregnancyWeeklyTextLineSlot(lineGuideId, slot)) return true;
+  // Праздники: все LINE-слоты (письмо p48 и пр.) — как на iOS e24a739.
+  if (lineGuideId === 'holidays_birthday_60') {
+    return (slot.inputKind ?? 'line') === 'line';
+  }
   if (!Boolean(slot.lineStrokeAtBottom)) return false;
   if (lineGuideId === 'kids_48') return true;
   if (lineGuideId === 'pregnancy_a5' && slot.page === 44) return true;
@@ -466,14 +525,15 @@ export function getTemplateLineRowInsets(
 
 export function getEffectiveTemplateFontSize(
   lineGuideId: string | undefined,
-  slot: Pick<TextLineSlot, 'lineHeight' | 'inputKind'> | undefined,
+  slot: Pick<TextLineSlot, 'lineHeight' | 'inputKind' | 'width' | 'normWidth'> | undefined,
   annotationFontSize = 16
 ): number {
   return fitFontSizeToSlot(
     annotationFontSize,
     slot?.lineHeight ?? 24,
     slot?.inputKind ?? 'line',
-    lineGuideId
+    lineGuideId,
+    slot,
   );
 }
 
@@ -481,9 +541,10 @@ export function getTemplateLineTypography(
   fontSize: number,
   lineHeight: number,
   inputKind: 'line' | 'block' = 'line',
-  lineGuideId?: string
+  lineGuideId?: string,
+  slotForScale?: Pick<TextLineSlot, 'width' | 'normWidth'> | null,
 ) {
-  const fittedSize = fitFontSizeToSlot(fontSize, lineHeight, inputKind, lineGuideId);
+  const fittedSize = fitFontSizeToSlot(fontSize, lineHeight, inputKind, lineGuideId, slotForScale);
   const isBirthdayLetterLine =
     lineGuideId === 'holidays_birthday_60' && inputKind === 'line';
 
@@ -640,24 +701,8 @@ function resolveTemplateTextVerticalRatios(
   }
 
   if (lineGuideId === 'holidays_birthday_60') {
-    const normHeight = slot.normHeight ?? 0;
-    const normY = slot.normY ?? 0;
-
-    // Крупные белые блоки (обложка стр. 1, заголовки)
-    if (normHeight >= 0.055) {
-      if (normY >= 0.55 && normY <= 0.82) {
-        return { centerRatio: 0.5, fontOffsetRatio: 0.8 };
-      }
-      return { centerRatio: 0.52, fontOffsetRatio: 0.78 };
-    }
-    // Верхний/средний ряд коротких полей (дата, вес, рост на стр. 2 и «Мне N лет»)
-    if (normHeight < 0.055 && normY >= 0.25 && normY <= 0.38) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
-    }
-    // Нижняя строка коротких полей (место рождения и аналоги на стр. 2+)
-    if (normY >= 0.85 && normHeight < 0.055) {
-      return { centerRatio: 0.5, fontOffsetRatio: 0.72 };
-    }
+    // Как на iOS (e24a739): единый вертикальный центр во всех белых pill.
+    return { centerRatio: 0.5, fontOffsetRatio: 0.55 };
   }
 
   if (
@@ -766,6 +811,37 @@ export function isPregnancyBirthQuestionnaireCenteredBlockSlot(
   return isPregnancyBirthQuestionnairePinkBlockSlot(lineGuideId, slot);
 }
 
+/** Free-страницы birthday с подписями под фото (нечётные 3…39). */
+function isBirthdayFreeCaptionPage(page: number): boolean {
+  if (page === 3 || page === 5) return true;
+  if (page >= 7 && page <= 39 && page % 2 === 1) return true;
+  return false;
+}
+
+/**
+ * Выравнивание текста в слоте макета.
+ * Birthday (iOS e24a739): узкие pill (дата/вес/рост) — center; широкие и free-captions — left.
+ */
+export function resolveTemplateSlotTextAlign(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'inputKind' | 'page' | 'normWidth' | 'normHeight' | 'index'>,
+  fallback: 'left' | 'center' | 'right' = 'left',
+): 'left' | 'center' | 'right' {
+  if (isPregnancyBirthQuestionnaireCenteredBlockSlot(lineGuideId, slot)) {
+    return 'center';
+  }
+  if (lineGuideId === 'holidays_birthday_60') {
+    if ((slot.inputKind ?? 'line') !== 'block') return 'left';
+    if (typeof slot.page === 'number' && isBirthdayFreeCaptionPage(slot.page)) {
+      return 'left';
+    }
+    const normW = slot.normWidth ?? 0;
+    if (normW >= 0.35) return 'left';
+    return 'center';
+  }
+  return fallback;
+}
+
 /** Розовые ячейки анкеты родов — без nudge; центрирование через symmetric insets + textAlign. */
 function getPregnancyBirthQuestionnaireBlockTextNudge(
   _lineGuideId: string | undefined,
@@ -817,7 +893,8 @@ export function getTemplateBlockTextInsets(
   lineGuideId?: string,
 ): { left: number; width: number } {
   if (lineGuideId === 'holidays_birthday_60' && slot.inputKind === 'block') {
-    const pad = slot.width * 0.08;
+    // Как на iOS (e24a739): pad 6% — текст не липнет к краю pill и не уезжает.
+    const pad = slot.width * 0.06;
     return { left: pad, width: Math.max(0, slot.width - pad * 2) };
   }
   if (
@@ -888,8 +965,10 @@ export function shrinkFontSizeToFitSlot(
 }
 
 /**
- * Итоговый размер значения в слоте: профиль альбома → спец. слоты → высота → ширина (с учётом шрифта).
- * При смене шрифта значение остаётся целиком за счёт сжатия, а не обрезки.
+ * Итоговый размер значения в слоте: профиль альбома → спец. слоты → высота.
+ * Для pregnancy/kids/diary line — фиксированный кегль (как iOS); сжатие только
+ * у узких спец-полей. При смене шрифта размер не уменьшается — текст переносится
+ * на следующие слоты группы.
  */
 export function resolveTemplateLineFontSizeForText(params: {
   fontSize: number;
@@ -917,13 +996,14 @@ export function resolveTemplateLineFontSizeForText(params: {
     slot.lineHeight,
     inputKind,
     lineGuideId,
+    slot,
   ).fontSize;
 
   if (
     lineGuideId &&
     isKids48TeethToothDateSlot(lineGuideId, slot.page, slot.index)
   ) {
-    size = Math.min(size, KIDS48_TEETH_TOOTH_DATE_FONT_SIZE);
+    size = Math.min(size, scaleTemplateFontSize(KIDS48_TEETH_TOOTH_DATE_FONT_SIZE, slot));
   }
 
   const isWeeklyWeightBelly = isPregnancy60WeeklyValueSlot(lineGuideId, slot);
@@ -934,10 +1014,12 @@ export function resolveTemplateLineFontSizeForText(params: {
     lineGuideId === 'pregnancy_60' ? 'pregnancy_a5' : lineGuideId,
   );
   const keepFixedAlbumLineSize =
-    profile.fixedLineFontSize != null &&
-    inputKind === 'line' &&
-    !isTeethToothDate &&
-    !isWeeklyWeightBelly;
+    (profile.fixedLineFontSize != null &&
+      inputKind === 'line' &&
+      !isTeethToothDate &&
+      !isWeeklyWeightBelly) ||
+    // Birthday (iOS): не сжимать pill/caption по высоте слота — иначе текст «выпрыгивает».
+    lineGuideId === 'holidays_birthday_60';
 
   // Не режем единый размер альбома по высоте слота — иначе на разных страницах
   // (и телефонах с разным viewport) буквы получаются разной величины.
@@ -951,27 +1033,11 @@ export function resolveTemplateLineFontSizeForText(params: {
     const insets = getTemplateBlockTextInsets(slot, lineGuideId);
     const fitWidth = insets.width > 0 ? insets.width : slot.width;
     const slotForFit = { ...slot, width: fitWidth } as TextLineSlot;
-    const isDiary =
-      lineGuideId === 'diary_interior_purple' || lineGuideId === 'diary_interior_brown';
 
-    if (isDiary) {
-      // Не сжимать длинное поле по ширине первой (часто хвост) линии — ломает перенос.
-      const diaryProfile = getTemplateTypographyProfile(lineGuideId);
-      const charWidth =
-        size * diaryProfile.charWidthRatio * getAlbumFontCharWidthMultiplier(fontId);
-      const slackWidth = fitWidth * (diaryProfile.lineWidthSlackRatio ?? 0.98);
-      const approxSingleLine = textContent.length * charWidth <= slackWidth * 1.35;
-      if (approxSingleLine) {
-        size = shrinkFontSizeToFitSlot(
-          size,
-          slotForFit,
-          textContent,
-          lineGuideId,
-          fontId,
-          11,
-        );
-      }
-    } else if (isTeethToothDate || isPinkBirthBlock) {
+    // Как на iOS (e24a739): обычные line-слоты pregnancy/kids/diary — фиксированный
+    // кегль без сжатия по ширине (иначе соседние строки визуально разного размера).
+    // Длинный текст уходит на следующие слоты группы; сжимаем только узкие спец-поля.
+    if (isTeethToothDate || isPinkBirthBlock) {
       size = shrinkFontSizeToFitSlot(
         size,
         slotForFit,
@@ -980,18 +1046,7 @@ export function resolveTemplateLineFontSizeForText(params: {
         fontId,
         isTeethToothDate ? 8 : 9,
       );
-    } else if (keepFixedAlbumLineSize) {
-      // Длинный текст: слегка сжимаем, но не ниже album−2, чтобы размер оставался почти единым.
-      const minSize = Math.max(9, (profile.fixedLineFontSize ?? size) - 2);
-      size = shrinkFontSizeToFitSlot(
-        size,
-        slotForFit,
-        textContent,
-        lineGuideId,
-        fontId,
-        minSize,
-      );
-    } else {
+    } else if (!keepFixedAlbumLineSize) {
       size = shrinkFontSizeToFitSlot(
         size,
         slotForFit,
@@ -1082,12 +1137,7 @@ export function getTemplateLineReadOnlyTextLayout(params: {
 }): TemplateLineReadOnlyLayout {
   const { slot, fontSize, lineGuideId, fontId, allSlots, fieldStartIndex, textContent } = params;
   const wishInputKind = getWishSlotInputKind(slot, lineGuideId);
-  const typography = getTemplateLineTypography(
-    getEffectiveTemplateFontSize(lineGuideId, slot, fontSize),
-    slot.lineHeight,
-    wishInputKind,
-    lineGuideId,
-  );
+  // fontSize здесь — канонический (без page-scale); scale внутри resolve/fit.
   const resolvedFontSize = resolveTemplateLineFontSizeForText({
     fontSize,
     slot,
@@ -1095,6 +1145,13 @@ export function getTemplateLineReadOnlyTextLayout(params: {
     fontId,
     textContent,
   });
+  const typography = getTemplateLineTypography(
+    resolvedFontSize,
+    slot.lineHeight,
+    wishInputKind,
+    lineGuideId,
+    slot,
+  );
   const usesStrokeBaseline =
     usesStrokeBaselineLayout(slot, lineGuideId) ||
     usesPregnancyGuideRuledTextLayout(lineGuideId, slot);
@@ -1200,11 +1257,11 @@ export function getTemplateLinePdfDrawLayout(params: {
     textContent,
   });
   const insets = getTemplateBlockTextInsets(slot, lineGuideId);
-  const capRatio = getAlbumFontPreviewCapHeightRatio(fontId);
+  // PDF drawText всегда с cap 0.85 — как fixed RN offset (UNIFORM + CLEARANCE).
   return {
     x: slot.x + insets.left,
     width: insets.width,
-    baselineY: layout.containerTop + layout.textTop + layout.fontSize * capRatio,
+    baselineY: layout.containerTop + layout.textTop + layout.fontSize * PDF_TEXT_CAP_HEIGHT_RATIO,
     fontSize: layout.fontSize,
   };
 }
@@ -1330,7 +1387,7 @@ export function getTemplateLineTextTop(
     const inputKind = slot.inputKind ?? 'block';
     const fittedSize = Math.min(
       fontSize,
-      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId),
+      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
     );
     // Вертикальный центр в розовой ячейке (с запасом под Amatic), без клипа верха цифр.
     const textLineHeight = Math.ceil(fittedSize * 1.22);
@@ -1344,7 +1401,8 @@ export function getTemplateLineTextTop(
     fontSize,
     slot.lineHeight,
     inputKind,
-    lineGuideId
+    lineGuideId,
+    slot,
   ).fontSize;
   const fittedSize = Math.min(fontSize, fittedFromProfile);
   const strokeFontOffset = resolveUniformStrokeFontOffset(fontId, lineGuideId);
@@ -1359,7 +1417,7 @@ export function getTemplateLineTextTop(
     const lineY = slot.y;
     const lineFitted = Math.min(
       fontSize,
-      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId),
+      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
     );
     top = lineY - lineFitted * resolveDiaryOnStrokeFontOffset(fontId);
     return top;
@@ -1391,7 +1449,7 @@ export function getTemplateLineTextTop(
       : slot.y + slot.lineHeight;
     const lineFitted = Math.min(
       fontSize,
-      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId),
+      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
     );
     top = lineY - lineFitted * getStrokeBaselineFontOffset(fontId, lineGuideId);
     return top;
@@ -1406,7 +1464,7 @@ export function getTemplateLineTextTop(
     const lineY = slot.y + slot.lineHeight;
     const lineFitted = Math.min(
       fontSize,
-      fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId),
+      fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId, slot),
     );
     top = lineY - lineFitted * strokeFontOffset;
   } else {

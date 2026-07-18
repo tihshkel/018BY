@@ -34,8 +34,8 @@ import {
   type GetLineSlotsParams,
 } from '@/utils/textLineSlots';
 import {
+  getCanonicalAlbumLineFontSize,
   getContinuationGroupSlots,
-  getEffectiveTemplateFontSize,
 } from '@/utils/templateLineText';
 import { getEditorPageDisplayScale, getEditorPageViewportWidth, isTabletDevice, isTabletLayout } from '@/utils/responsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -519,11 +519,7 @@ export default function ImageViewer({
       annotations.length > 0 ? Math.max(...annotations.map((ann) => ann.zIndex), 0) : 0;
     const style = await loadTextStyleForNewAnnotation(pageForAnnotation);
     const layout = layoutAnnotationFromSlot(startSlot);
-    const effectiveFontSize = getEffectiveTemplateFontSize(
-      lineGuideId,
-      startSlot,
-      style.fontSize
-    );
+    const storedFontSize = getCanonicalAlbumLineFontSize(lineGuideId, style.fontSize);
 
     const newAnnotation: Annotation = {
       id: createId('ann'),
@@ -531,7 +527,7 @@ export default function ImageViewer({
       ...layout,
       content: '',
       color: style.color,
-      fontSize: effectiveFontSize,
+      fontSize: storedFontSize,
       fontFamily: style.fontFamily,
       zIndex: maxZIndex + 1,
       page: pageForAnnotation,

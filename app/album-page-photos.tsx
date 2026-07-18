@@ -26,6 +26,7 @@ export default function AlbumPagePhotosScreen() {
     celebration,
     coverType,
     interiorType,
+    activeInstanceId: instanceId,
   });
   const { shellStyle } = useAlbumFormLayout();
   const [isNavigating, setIsNavigating] = useState(false);

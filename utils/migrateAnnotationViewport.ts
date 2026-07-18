@@ -13,6 +13,7 @@ import {
   hasLineGuides,
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
+import { getCanonicalAlbumLineFontSize } from '@/utils/templateLineText';
 
 export const LEGACY_VIEWPORT_WIDTH_THRESHOLD = 500;
 
@@ -78,7 +79,12 @@ function migrateInteriorAnnotation(
     });
     const slot = slots[ann.templateLineStart];
     if (slot) {
-      return { ...ann, ...layoutAnnotationFromSlot(slot) };
+      return {
+        ...ann,
+        ...layoutAnnotationFromSlot(slot),
+        // Кегль всегда канонический; page-scale только при рендере.
+        fontSize: getCanonicalAlbumLineFontSize(lineGuideId, ann.fontSize),
+      };
     }
   }
 

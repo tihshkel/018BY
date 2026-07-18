@@ -17,6 +17,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { buildAlbumPagesHref } from '@/utils/albumNavigation';
 import {
   getGridColumnCount,
   getGridItemWidth,
@@ -205,7 +206,13 @@ export default function SelectCelebrationScreen() {
           await pushAccountDataToCloud({ forceIncludeProjectIds: [projectId] });
 
           // Переходим сразу к редактированию PDF
-          router.push(`/album-pages?id=${projectId}` as Href);
+          router.push(
+            buildAlbumPagesHref({
+              id: projectId,
+              celebration: albumWithPdf.category,
+              interiorType: albumWithPdf.id,
+            }),
+          );
         } else {
           // Если нет PDF, переходим к выбору обложки
           router.push({

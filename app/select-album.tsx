@@ -30,6 +30,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { buildAlbumPagesHref } from '@/utils/albumNavigation';
 import { PICKER_CONTENT_MAX_WIDTH } from '@/utils/responsive';
 
 interface LocalParams {
@@ -253,7 +254,13 @@ export default function SelectAlbumScreen() {
 
       // Переходим к редактированию сразу: страницы уже доступны как кешированные URI или remote URL.
       console.log(`[SelectAlbum] Переходим к редактированию проекта ${projectId}`);
-      router.push(`/album-pages?id=${projectId}` as Href);
+      router.push(
+        buildAlbumPagesHref({
+          id: projectId,
+          celebration: album.category,
+          interiorType: interiorAlbumId,
+        }),
+      );
     } catch (error) {
       console.error('Error loading album template:', error);
       Alert.alert(

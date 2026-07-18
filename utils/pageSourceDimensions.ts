@@ -23,6 +23,9 @@ export const KIDS_48_PAGE_SIZE: PageSourceSize = {
   height: 2528,
 };
 
+/** «Праздники и события» / дни рождения — те же квадратные PNG 2528×2528. */
+export const BIRTHDAY_48_PAGE_SIZE: PageSourceSize = KIDS_48_PAGE_SIZE;
+
 /** Блок беременности A5 @ 300 dpi (фактический размер PNG page_*.png). */
 export const PREGNANCY_A5_PAGE_SIZE: PageSourceSize = {
   width: 1796,
@@ -30,6 +33,7 @@ export const PREGNANCY_A5_PAGE_SIZE: PageSourceSize = {
 };
 
 const cache = new Map<string, PageSourceSize>();
+const SOURCE_SIZE_CACHE_MAX = 120;
 
 function isNetworkUri(uri: string): boolean {
   return /^https?:\/\//i.test(uri);
@@ -61,9 +65,15 @@ export function inferPageSourceSizeFromUri(uri: string): PageSourceSize | null {
     return PREGNANCY_A5_PAGE_SIZE;
   }
   if (
+    decoded.includes('дней рождения') ||
+    decoded.includes('holidays_birthday') ||
+    decoded.includes('birthday_60')
+  ) {
+    return BIRTHDAY_48_PAGE_SIZE;
+  }
+  if (
     decoded.includes('беременность') ||
     decoded.includes('pregnancy_60') ||
-    decoded.includes('дней рождения') ||
     decoded.includes('kids_')
   ) {
     return PREGNANCY_BLOCK_PAGE_SIZE;
@@ -91,8 +101,9 @@ export function resolvePageSourceSizeByLineGuide(
 
   switch (lineGuideId) {
     case 'pregnancy_60':
-    case 'holidays_birthday_60':
       return PREGNANCY_BLOCK_PAGE_SIZE;
+    case 'holidays_birthday_60':
+      return BIRTHDAY_48_PAGE_SIZE;
     case 'kids_48':
       return KIDS_48_PAGE_SIZE;
     case 'pregnancy_a5':
@@ -240,6 +251,9 @@ export async function buildSourceSizesByUri(
 
 export function setPageSourceSize(uri: string, size: PageSourceSize): void {
   if (size.width > 0 && size.height > 0) {
+    if (cache.size >= SOURCE_SIZE_CACHE_MAX) {
+      cache.clear();
+    }
     cache.set(uri, size);
   }
 }

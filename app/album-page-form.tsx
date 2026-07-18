@@ -36,6 +36,7 @@ export default function AlbumPageFormScreen() {
     celebration,
     coverType,
     interiorType,
+    activeInstanceId: instanceId,
   });
   const editorRef = useRef<AlbumPageFormEditorHandle>(null);
 

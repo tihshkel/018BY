@@ -108,6 +108,16 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     setSourceSize({ width: sourceWidthProp, height: sourceHeightProp });
   }, [sourceWidthProp, sourceHeightProp]);
 
+  // Android + disk cache: фон может отрисоваться без onLoad → аннотации не монтируются.
+  // Fallback: через короткое время всё равно показываем оверлей текста/фото.
+  useEffect(() => {
+    if (!imageUri || isImageLoaded) return;
+    const timer = setTimeout(() => {
+      setIsImageLoaded(true);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [imageUri, isImageLoaded]);
+
   useEffect(() => {
     setLoadedAnnotationImageUris(new Set());
   }, [imageUri, pendingAnnotationImageUris.join('|')]);

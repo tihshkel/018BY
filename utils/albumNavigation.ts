@@ -1,4 +1,7 @@
+import { Image } from 'expo-image';
 import { router, type Href } from 'expo-router';
+
+import { clearAllAlbumProjectSnapshots } from '@/utils/albumProjectStateSync';
 
 export type AlbumFlowParams = {
   id?: string;
@@ -70,6 +73,9 @@ export function navigateToAlbumPages(params: AlbumFlowParams): void {
 }
 
 export function navigateToHomeFromAlbum(): void {
+  // Сбрасываем RAM-снимки проектов + native image memory cache (п.1/п.2 давление памяти).
+  clearAllAlbumProjectSnapshots();
+  void Image.clearMemoryCache();
   router.replace('/(tabs)' as Href);
 }
 

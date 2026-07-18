@@ -2,7 +2,7 @@ import type { AlbumPageSchema, PageInstance, PageValues } from '@/types/album-pa
 import type { Href } from 'expo-router';
 import { router } from 'expo-router';
 
-import { computePageStatus, shouldOpenFormDirectly } from '@/utils/pageStatus';
+import { resolveDisplayPageStatus, shouldOpenFormDirectly } from '@/utils/pageStatus';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 
 export function hasPhotoBlocks(schema: AlbumPageSchema | undefined): boolean {
@@ -89,7 +89,7 @@ export function openAlbumPage(params: {
   interiorType?: string;
 }): void {
   const { instanceId, projectId, schema, values, celebration, coverType, interiorType } = params;
-  const status = schema ? computePageStatus(schema, values) : 'empty';
+  const status = resolveDisplayPageStatus(schema, values);
 
   const baseParams = {
     id: projectId,

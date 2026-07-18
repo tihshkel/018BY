@@ -33,7 +33,7 @@ import {
 
 export { AVAILABLE_FONTS, type FontOption } from '@/constants/album-fonts';
 
-import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, isPregnancyBirthQuestionnaireCenteredBlockSlot, joinContinuationSegmentTexts, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
+import { distributeTextForTemplateAnnotation, distributeTextWithinContinuationGroup, fitFontSizeToSlot, getCanonicalAlbumLineFontSize, getContinuationGroupSlots, getEffectiveTemplateFontSize, getTemplateBlockTextInsets, getTemplateLineReadOnlyTextLayout, getTemplateLineRowInsets, getTemplateLineTextTop, getTemplateLineTypography, getWishSlotInputKind, joinContinuationSegmentTexts, resolveTemplateSlotTextAlign, usesStrokeBaselineLayout, usesPregnancyGuideRuledTextLayout } from '@/utils/templateLineText';
 import { formatTemplateLineSlotDisplayText } from '@/utils/pregnancyBirthQuestionnaireDates';
 import { fitTextToTemplateBlock } from '@/utils/templateTextLayout';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
@@ -364,6 +364,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       startSlot,
       annotation.fontSize || 16
     );
+    const storedFontSize = getCanonicalAlbumLineFontSize(lineGuideId, annotation.fontSize);
     const normalizedFontId = normalizeAlbumFontId(annotation.fontFamily);
     const { segments, truncated } = distributeTextForTemplateAnnotation({
       text: editingText,
@@ -391,7 +392,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           ...layout,
           templateLineCount: 1,
           color: annotation.color,
-          fontSize: effectiveFontSize,
+          fontSize: storedFontSize,
           fontFamily: annotation.fontFamily,
           textAlign: annotation.textAlign,
         });
@@ -402,6 +403,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
           ...layout,
           content: segment.content,
           templateLineCount: 1,
+          fontSize: storedFontSize,
           zIndex: (annotation.zIndex || 0) + segment.slotIndex,
         });
       }
@@ -1575,10 +1577,9 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
         ? Math.max(...annotationsListRef.current.map((ann) => ann.zIndex), 0)
         : 0;
     const layout = layoutAnnotationFromSlot(groupStartSlot);
-    const effectiveFontSize = getEffectiveTemplateFontSize(
+    const storedFontSize = getCanonicalAlbumLineFontSize(
       lineGuideId,
-      groupStartSlot,
-      styleSource?.fontSize || 16
+      styleSource?.fontSize || 16,
     );
     const newId = createId('ann');
     const newAnnotation: Annotation = {
@@ -1587,7 +1588,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
       ...layout,
       content: '',
       color: styleSource?.color ?? '#000000',
-      fontSize: effectiveFontSize,
+      fontSize: storedFontSize,
       fontFamily: styleSource?.fontFamily,
       zIndex: maxZIndex + 1,
       page: pageNumber,
@@ -2352,10 +2353,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             lineSlot.index >= slotIndex && lineSlot.index < slotIndex + fieldSlotCount,
         );
 
+        const canonicalFontSize = getCanonicalAlbumLineFontSize(lineGuideId, currentFontSize);
         const effectiveFontSize = getEffectiveTemplateFontSize(
           lineGuideId,
           slot,
-          currentFontSize
+          canonicalFontSize
         );
         if (isEditingText) {
           return (
@@ -2366,7 +2368,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               allSlots={templateSlots}
               value={editingText}
               color={currentColor}
-              fontSize={effectiveFontSize}
+              fontSize={canonicalFontSize}
               fontFamily={currentFontFamily}
               fontId={normalizedFontId}
               lineGuideId={lineGuideId}
@@ -2417,7 +2419,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
             {linesToRender.map((row) => {
               const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
                 slot: row.lineSlot,
-                fontSize: effectiveFontSize,
+                fontSize: canonicalFontSize,
                 lineGuideId,
                 fontId: normalizedFontId,
                 allSlots: templateSlots,
@@ -2425,12 +2427,11 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                 textContent: row.content,
               });
               const textInsets = getTemplateBlockTextInsets(row.lineSlot, lineGuideId);
-              const lineTextAlign = isPregnancyBirthQuestionnaireCenteredBlockSlot(
+              const lineTextAlign = resolveTemplateSlotTextAlign(
                 lineGuideId,
                 row.lineSlot,
-              )
-                ? 'center'
-                : getTextAlign(annotation);
+                getTextAlign(annotation),
+              );
               return (
                 <View
                   key={`${annotation.id}-line-${row.slotIndex}`}
@@ -2466,6 +2467,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     ]}
                     numberOfLines={1}
                     ellipsizeMode="clip"
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1}
                   >
                     {row.content}
                   </Text>
@@ -2608,6 +2611,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                         onBlur={handleTextSubmit}
                         autoFocus={!isDraggingWhileEditing}
                         multiline
+                        allowFontScaling={false}
+                        maxFontSizeMultiplier={1}
                         placeholder="Введите текст..."
                         placeholderTextColor="#A89888"
                         editable={!isDraggingWhileEditing}
@@ -2661,6 +2666,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                               textAlign: getTextAlign(annotation),
                             },
                           ]}
+                          allowFontScaling={false}
+                          maxFontSizeMultiplier={1}
                         >
                           {line}
                         </Text>
@@ -2696,6 +2703,8 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                               textAlign: getTextAlign(annotation),
                             },
                           ]}
+                          allowFontScaling={false}
+                          maxFontSizeMultiplier={1}
                         >
                           {line}
                         </Text>
