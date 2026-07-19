@@ -10,14 +10,36 @@ export function schemaHasMultiPhotoVariants(schema: AlbumPageSchema | undefined)
  * Per-photo подписи: caption_photo_page / blank-шаблоны / free_photo_caption,
  * либо designed-страницы с captionEnabled и коллаж-вариантами (pregnancy «Для фото» и т.п.).
  */
+/** Страницы «только фото» — подписи нужны; на value/text+фото — нет. */
+function isPhotoCollageCaptionPage(schema: AlbumPageSchema): boolean {
+  return (
+    schema.pageType === 'photo' ||
+    schema.pageType === 'caption_photo_page' ||
+    schema.pageType === 'free_photo_caption'
+  );
+}
+
+function schemaHasUserValueFields(schema: AlbumPageSchema): boolean {
+  return (
+    (schema.fields?.length ?? 0) > 0 ||
+    (schema.customFieldDefs?.length ?? 0) > 0
+  );
+}
+
 export function shouldShowPerPhotoCaptions(
   schema: AlbumPageSchema | undefined,
   templateHasPerPhotoCaptions = false,
 ): boolean {
   if (!schema) return false;
+  // kids date+photo / holidays value+photo / pregnancy weekly — без подписей.
+  if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
+    return false;
+  }
+  if (schema.pageType === 'birthday_free_page') {
+    return false;
+  }
   if (
     schema.pageType === 'caption_photo_page' ||
-    schema.pageType === 'birthday_free_page' ||
     schema.pageType === 'free_photo_caption'
   ) {
     return true;
@@ -32,11 +54,17 @@ export function shouldShowPerPhotoCaptions(
 /** Рендер подписей под слотами фото (без line-slots / template textBlocks). */
 export function shouldRenderPhotoSlotCaptions(schema: AlbumPageSchema | undefined): boolean {
   if (!schema) return false;
+  if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
+    return false;
+  }
+  if (schema.pageType === 'birthday_free_page') {
+    return false;
+  }
   return (
     schema.pageType === 'caption_photo_page' ||
-    schema.pageType === 'birthday_free_page' ||
     schema.pageType === 'free_photo_caption' ||
-    schema.captionEnabled === true
+    (schema.pageType === 'photo' && schema.captionEnabled === true) ||
+    (schema.captionEnabled === true && isPhotoCollageCaptionPage(schema))
   );
 }
 

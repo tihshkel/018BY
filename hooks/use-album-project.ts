@@ -140,7 +140,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   );
 
   const loadImagesForAlbum = useCallback(async (albumId: string, category?: string): Promise<string[]> => {
-    if (category === 'diary' && albumId.startsWith('diary_interior_')) {
+    // Brown/purple interiors — всегда по явному id (не путать с cover / category only).
+    if (albumId.startsWith('diary_interior_')) {
       const diaryUris = await getDiaryInteriorImageUris(albumId);
       return diaryUris ?? [];
     }
@@ -443,7 +444,12 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
   );
 
   const savePageValuesNow = useCallback(
-    async (instanceId: string, values: PageValues) => {
+    async (
+      instanceId: string,
+      values: PageValues,
+      options?: { awaitPersist?: boolean },
+    ) => {
+      const awaitPersist = options?.awaitPersist !== false;
       const latestBefore = latestStateRef.current;
       const instance =
         latestBefore.instances.find((i) => i.instanceId === instanceId) ??
@@ -460,11 +466,26 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
 
       if (effectiveProjectId) {
         // Инкрементально: только эта страница — full map stringify блокировал JS на 60 стр. с фото
-        await flushAlbumProjectPersist(effectiveProjectId);
-        await persistAll(effectiveProjectId, latestStateRef.current.images, latestStateRef.current.instances, merged, metaRef.current, {
-          changedInstanceId: instanceId,
-          flushFullMap: false,
-        });
+        const persistWork = async () => {
+          await flushAlbumProjectPersist(effectiveProjectId);
+          await persistAll(
+            effectiveProjectId,
+            latestStateRef.current.images,
+            latestStateRef.current.instances,
+            latestStateRef.current.pageValuesMap,
+            metaRef.current,
+            {
+              changedInstanceId: instanceId,
+              flushFullMap: false,
+            },
+          );
+        };
+        // Для «Просмотр страницы»: память уже готова — диск не блокирует навигацию.
+        if (!awaitPersist) {
+          void persistWork();
+          return refreshed;
+        }
+        await persistWork();
       }
       return refreshed;
     },

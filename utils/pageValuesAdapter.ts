@@ -25,6 +25,7 @@ import {
 } from '@/utils/diaryJewelryTextPack';
 import { resolveCustomFields } from '@/utils/birthdayCustomFields';
 import { resolveFieldTextAlign } from '@/utils/albumFieldTextAlign';
+import { resolveTemplateSlotTextAlign } from '@/utils/templateLineText';
 import { computePageStatus } from '@/utils/pageStatus';
 import { computePhotoBlockLayout, resolvePhotoBlockSlotRects } from '@/utils/photoBlockLayout';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
@@ -272,7 +273,11 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       fontSize: layout.fontSize ?? fieldFontSize,
       textAlign: isPinkBirthBlock
         ? 'center'
-        : resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
+        : resolveTemplateSlotTextAlign(
+            lineGuideId,
+            slots[startIndex],
+            resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
+          ),
       templateLineStart: startIndex,
       templateLineCount: lineCount,
     });
@@ -302,6 +307,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
           fontSize,
           fontFamily: textFontFamily,
           color: '#3D3D3D',
+          textAlign: resolveTemplateSlotTextAlign(lineGuideId, startSlot, 'center'),
           zIndex: zIndex++,
           sourcePageNumber: schema.sourcePageNumber,
           ...layout,

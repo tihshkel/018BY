@@ -7,7 +7,11 @@ export type AlbumProjectActions = {
   commitCaption: (instanceId: string, caption: string) => void;
   commitPhotoCaptions: (instanceId: string, photoCaptions: (string | null)[]) => void;
   commitPagePatch: (instanceId: string, updater: (prev: PageValues) => PageValues) => void;
-  saveNow: (instanceId: string, values: PageValues) => Promise<PageValues>;
+  saveNow: (
+    instanceId: string,
+    values: PageValues,
+    options?: { awaitPersist?: boolean },
+  ) => Promise<PageValues>;
 };
 
 const AlbumProjectActionsContext = createContext<AlbumProjectActions | null>(null);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
 
 import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { FamilyTreePhotoPicker } from '@/components/album/family-tree-photo-picker';
@@ -15,11 +15,46 @@ import {
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
+import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
 import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
+
+function CaptionKeyboardInput({
+  value,
+  onChangeText,
+  placeholder,
+  maxLength,
+  style,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  maxLength?: number;
+  style?: object;
+}) {
+  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
+  return (
+    <View ref={fieldRef} collapsable={false}>
+      <TextInput
+        style={style}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.placeholder}
+        maxLength={maxLength}
+        returnKeyType="done"
+        returnKeyLabel="OK"
+        enterKeyHint="done"
+        blurOnSubmit
+        onSubmitEditing={() => Keyboard.dismiss()}
+        onFocus={onInputFocus}
+      />
+    </View>
+  );
+}
 
 type AlbumPageUnifiedEditorProps = {
   schema: AlbumPageSchema;
@@ -313,7 +348,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                 <AppText variant="caption" style={styles.captionLabel}>
                   Подпись к фото {slotIndex + 1}
                 </AppText>
-                <TextInput
+                <CaptionKeyboardInput
                   style={styles.captionInput}
                   value={
                     pageValues.photoCaptions?.[slotIndex] ??
@@ -321,7 +356,6 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                   }
                   onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                   placeholder="Необязательно"
-                  placeholderTextColor={colors.placeholder}
                 />
               </AppCard>
             ));
@@ -334,7 +368,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
             Подпись (необязательно)
             {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
-          <TextInput
+          <CaptionKeyboardInput
             style={styles.captionInput}
             value={pageValues.caption ?? ''}
             onChangeText={(text) =>
@@ -343,7 +377,6 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
               )
             }
             placeholder="Короткая подпись"
-            placeholderTextColor={colors.placeholder}
             maxLength={captionMaxLength}
           />
         </AppCard>

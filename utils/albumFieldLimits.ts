@@ -2,6 +2,7 @@ import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import type { AlbumPageField } from '@/types/album-page-schema';
 import {
   getMeasurementDigitLimit,
+  isWeightMeasurementField,
   sanitizeMeasurementInput,
 } from '@/utils/albumMeasurementFields';
 import {
@@ -146,6 +147,10 @@ function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
   const measurementLimit = getMeasurementDigitLimit(params.field);
   if (measurementLimit != null) {
+    // Вес: 4 цифры + одна запятая → до 5 символов ввода.
+    if (isWeightMeasurementField(params.field)) {
+      return measurementLimit + 1;
+    }
     return measurementLimit;
   }
 
@@ -200,8 +205,8 @@ export function clampFieldInput(
 ): string {
   const measurementLimit = getMeasurementDigitLimit(field);
   if (measurementLimit != null) {
-    const effectiveLimit = limit ?? measurementLimit;
-    return sanitizeMeasurementInput(text, Math.min(measurementLimit, effectiveLimit));
+    const allowDecimal = isWeightMeasurementField(field);
+    return sanitizeMeasurementInput(text, measurementLimit, allowDecimal);
   }
 
   const sanitized = sanitizeFieldInput(field.type, text);

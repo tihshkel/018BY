@@ -210,12 +210,14 @@ type PhotoSlotCaptionParams = AppendParams & {
 const PHOTO_CAPTION_LINE_HEIGHT = 1.15;
 const PHOTO_CAPTION_PADDING = 4;
 
-function layoutCaptionBelowPhoto(params: {
+function layoutCaptionNearPhoto(params: {
   text: string;
   photoRect: { x: number; y: number; width: number; height: number };
   contentRect: ContentRect;
   fontSize: number;
   textFontFamily: string;
+  /** Подпись над фото (верхний ряд в 3/4-коллаже). */
+  placeAbove: boolean;
 }): {
   x: number;
   y: number;
@@ -224,19 +226,34 @@ function layoutCaptionBelowPhoto(params: {
   lines: string[];
   fontSize: number;
 } | null {
-  const { text, photoRect, contentRect, fontSize, textFontFamily } = params;
+  const { text, photoRect, contentRect, fontSize, textFontFamily, placeAbove } = params;
   const trimmed = text.trim();
   if (!trimmed || photoRect.width <= 0) return null;
 
-  const gap = contentRect.height * 0.016;
-  const captionY = photoRect.y + photoRect.height + gap;
-  // Оставляем нижний край страницы под подписью; не залезаем на декор.
+  const gap = contentRect.height * 0.012;
+  const pageTop = contentRect.offsetY + contentRect.height * 0.04;
   const pageBottom = contentRect.offsetY + contentRect.height * 0.94;
-  const maxHeight = Math.max(32, pageBottom - captionY);
+  const maxHeight = placeAbove
+    ? Math.max(28, photoRect.y - gap - pageTop)
+    : Math.max(32, pageBottom - (photoRect.y + photoRect.height + gap));
   const charWidthRatio =
     0.62 * getAlbumFontCharWidthMultiplier(textFontFamily) * 1.04;
-  const preferredFontSize = Math.max(fontSize, 18);
-  const minFontSize = 14;
+  const preferredFontSize = Math.max(fontSize, 16);
+  const minFontSize = 12;
+
+  const buildLayout = (captionFontSize: number, lines: string[], height: number) => {
+    const captionY = placeAbove
+      ? Math.max(pageTop, photoRect.y - gap - height)
+      : photoRect.y + photoRect.height + gap;
+    return {
+      x: photoRect.x,
+      y: captionY,
+      width: photoRect.width,
+      height,
+      lines,
+      fontSize: captionFontSize,
+    };
+  };
 
   for (let captionFontSize = preferredFontSize; captionFontSize >= minFontSize; captionFontSize -= 1) {
     const lines = wrapTextToLines(trimmed, photoRect.width, captionFontSize, {
@@ -246,14 +263,7 @@ function layoutCaptionBelowPhoto(params: {
     const neededHeight =
       lines.length * captionFontSize * PHOTO_CAPTION_LINE_HEIGHT + PHOTO_CAPTION_PADDING;
     if (neededHeight <= maxHeight) {
-      return {
-        x: photoRect.x,
-        y: captionY,
-        width: photoRect.width,
-        height: neededHeight,
-        lines,
-        fontSize: captionFontSize,
-      };
+      return buildLayout(captionFontSize, lines, neededHeight);
     }
   }
 
@@ -264,14 +274,15 @@ function layoutCaptionBelowPhoto(params: {
   });
   const lineBlockHeight = captionFontSize * PHOTO_CAPTION_LINE_HEIGHT;
   const maxLines = Math.max(1, Math.floor((maxHeight - PHOTO_CAPTION_PADDING) / lineBlockHeight));
-  return {
-    x: photoRect.x,
-    y: captionY,
-    width: photoRect.width,
-    height: Math.min(maxHeight, maxLines * lineBlockHeight + PHOTO_CAPTION_PADDING),
-    lines: lines.slice(0, maxLines),
-    fontSize: captionFontSize,
-  };
+  const height = Math.min(maxHeight, maxLines * lineBlockHeight + PHOTO_CAPTION_PADDING);
+  return buildLayout(captionFontSize, lines.slice(0, maxLines), height);
+}
+
+/** 3 фото: верхний слот — подпись сверху; 4 фото: верхний ряд — сверху. */
+function shouldPlaceCaptionAbovePhoto(slotCount: number, slotIndex: number): boolean {
+  if (slotCount === 3) return slotIndex === 0;
+  if (slotCount === 4) return slotIndex <= 1;
+  return false;
 }
 
 /** Подписи под фото по позиции слота — для designed-альбомов без templateLibraryId и line-slots. */
@@ -335,12 +346,13 @@ export function appendPhotoSlotCaptionAnnotations(params: PhotoSlotCaptionParams
         slotRects.find((slot) => slot.slotIndex === slotIndex)?.rect ?? null;
       if (!photoRect) continue;
 
-      const layout = layoutCaptionBelowPhoto({
+      const layout = layoutCaptionNearPhoto({
         text: text!,
         photoRect,
         contentRect: editorContentRect,
         fontSize,
         textFontFamily,
+        placeAbove: shouldPlaceCaptionAbovePhoto(variant.slots, slotIndex),
       });
       if (!layout || layout.lines.length === 0) continue;
 

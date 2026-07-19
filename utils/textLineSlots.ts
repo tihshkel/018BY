@@ -13,6 +13,8 @@ import {
   KIDS48_P13_CRAWLS_LINE,
   KIDS48_P16_DREAMS_DATE_LINE,
   KIDS48_P10_FIRST_BRUSHING_LINE,
+  KIDS48_P10_TEETH_COUNT_LINE,
+  KIDS48_FAMILY_TREE_NAME_SLOT_WIDTH,
   KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH,
   KIDS_MONTH_LINE_BAND_HEIGHT,
   DIARY_UNIFORM_LINE_X_INSET,
@@ -1711,6 +1713,27 @@ function refineKids48Page10FirstBrushingSlotNorm(
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     hasLabel: false,
     inputKind: 'line',
+    lineStrokeAtBottom: true,
+  };
+}
+
+/** Семейное дерево p5 — расширяем слоты имён, чтобы 7 символов всегда влезали. */
+function refineKids48FamilyTreeNameSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (page !== 5) return norm;
+  const targetWidth = KIDS48_FAMILY_TREE_NAME_SLOT_WIDTH;
+  const centerX = norm.x + norm.width / 2;
+  const width = Math.max(norm.width, targetWidth);
+  const x = clamp01(centerX - width / 2);
+  return {
+    ...norm,
+    x,
+    width: Math.min(width, 0.98 - x),
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
   };
 }
 
@@ -1791,6 +1814,10 @@ function refineNormalizedSlotForTextLayout(
     return refineKids48Page1ValueSlotNorm(page, norm, slotIndex);
   }
 
+  if (lineGuideId === 'kids_48' && page === 5) {
+    return refineKids48FamilyTreeNameSlotNorm(page, norm);
+  }
+
   if (lineGuideId === 'kids_48' && isKidsMonthPage(page)) {
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
   }
@@ -1808,8 +1835,21 @@ function refineNormalizedSlotForTextLayout(
   }
 
   if (lineGuideId === 'kids_48' && page === 10) {
-    const refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
-    return refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
+    let refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
+    refined = refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
+    if (slotIndex === 22) {
+      return {
+        ...refined,
+        x: KIDS48_P10_TEETH_COUNT_LINE.writableX,
+        width: KIDS48_P10_TEETH_COUNT_LINE.writableWidth,
+        y: KIDS48_P10_TEETH_COUNT_LINE.strokeY,
+        height: KIDS_MONTH_LINE_BAND_HEIGHT,
+        hasLabel: false,
+        inputKind: 'line',
+        lineStrokeAtBottom: true,
+      };
+    }
+    return refined;
   }
 
   // Единый левый inset от статического текста для pregnancy / kids (спец-страницы уже return выше).
@@ -1923,22 +1963,22 @@ type PregnancyWeeklyCalib = {
 const PREGNANCY_WEEKLY_CALIB: Readonly<
   Record<'pregnancy_60' | 'pregnancy_a5', PregnancyWeeklyCalib>
 > = {
+  // topY как на iOS e24a739 — значения на одной линии со статическими «Вес:» / «Обхват».
   pregnancy_60: {
     pageWidth: 2126,
     pageHeight: 2835,
     boxRight: 2126,
-    // Чуть выше полоса: Amatic Bold не клипает верх/низ цифр веса и обхвата.
     lineHeightNorm: 0.038,
-    weight: { valueX: 1419, topY: 542 },
-    belly: { valueX: 1809, topY: 672 },
+    weight: { valueX: 1419, topY: 528 },
+    belly: { valueX: 1809, topY: 655 },
   },
   pregnancy_a5: {
     pageWidth: 1796,
     pageHeight: 2528,
     boxRight: 1673,
     lineHeightNorm: 0.042,
-    weight: { valueX: 1210, topY: 514 },
-    belly: { valueX: 1527, topY: 618 },
+    weight: { valueX: 1210, topY: 500 },
+    belly: { valueX: 1527, topY: 600 },
   },
 };
 

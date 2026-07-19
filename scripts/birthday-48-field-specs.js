@@ -10,7 +10,8 @@ const HELLO_WORLD_FIELDS = [
   ['birthTime', 'Время рождения', 'time', 1],
   ['birthWeight', 'Мой вес', 'text', 1],
   ['birthHeight', 'Мой рост', 'text', 1],
-  ['birthPlace', 'Место рождения', 'text', 2],
+  // One bottom pill (iOS e24a739 HELLO_WORLD_PAGE_SLOTS).
+  ['birthPlace', 'Место рождения', 'text', 1],
 ];
 
 const AGE_ONE_YEAR_FIELDS = [
@@ -26,7 +27,8 @@ const YEAR_MAIN_FIELDS = [
 
 const TRAVEL_MAP_FIELDS = [
   ['countries_count', 'Количество стран', 'number', 1],
-  ['favorite_travel_memory', 'Мне больше всего понравилось в', 'text', 5],
+  // 2 peach pills under the label (iOS e24a739 TRAVEL_MAP_PAGE_SLOTS).
+  ['favorite_travel_memory', 'Мне больше всего понравилось в', 'text', 2],
 ];
 
 const LETTER_FIELDS = [['letter_text', 'Письмо во взрослую жизнь', 'text', 12]];

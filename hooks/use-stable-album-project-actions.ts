@@ -42,8 +42,11 @@ export function useStableAlbumProjectActions(project: AlbumProject) {
   );
 
   const saveNow = useCallback(
-    (instanceId: string, values: PageValues) =>
-      savePageValuesNowRef.current(instanceId, values),
+    (
+      instanceId: string,
+      values: PageValues,
+      options?: { awaitPersist?: boolean },
+    ) => savePageValuesNowRef.current(instanceId, values, options),
     [],
   );
 

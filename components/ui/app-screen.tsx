@@ -75,9 +75,9 @@ export interface AppScreenProps {
 
 const DEFAULT_KEYBOARD_FOOTER_OFFSET = 72;
 
-/** Короткий «дожим» после появления клавиатуры — без серии рывков. */
+/** Короткий «дожим» после появления клавиатуры — без серии рывков (Android: один pass). */
 const KEYBOARD_SCROLL_DELAYS_MS =
-  Platform.OS === 'ios' ? [80, 280] : [100, 280];
+  Platform.OS === 'ios' ? [80, 280] : [160];
 
 export function AppScreen({
   children,

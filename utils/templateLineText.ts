@@ -107,8 +107,8 @@ function getEffectiveCharWidthRatio(
     !isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
     (slot.inputKind ?? 'line') === 'line'
   ) {
-    // Рукописные шрифты в RN уже уже, чем charWidthRatio — иначе перенос раньше края линии.
-    ratio *= 0.88;
+    // Рукописные шрифты в RN уже уже; weekly «Планы» — плотнее (ранний wrap на labeled head).
+    ratio *= isPregnancyWeeklyTextLineSlot(lineGuideId, slot) ? 0.78 : 0.88;
   } else if (
     lineGuideId === 'kids_48' &&
     slot &&
@@ -170,7 +170,9 @@ function getWrapWidthForSlot(
         width = Math.max(width, ...groupLineWidths);
       }
     }
-    return width * Math.min(1.06, profile.lineWidthSlackRatio + 0.06);
+    // Weekly plans: чуть шире usable wrap, чтобы слово не переносилось «раньше края».
+    const slackBoost = isPregnancyWeeklyTextLineSlot(lineGuideId, slot) ? 0.1 : 0.06;
+    return width * Math.min(1.1, profile.lineWidthSlackRatio + slackBoost);
   }
 
   return width * profile.lineWidthSlackRatio;
@@ -287,6 +289,10 @@ export function truncateTextToSlotWidth(
     text &&
     isKids48TeethToothDateSlot(lineGuideId ?? '', slot.page, slot.index)
   ) {
+    return text;
+  }
+  // Семейное дерево: лимит 7 символов — не режем display по узкой оценке ширины.
+  if (text && lineGuideId === 'kids_48' && slot.page === 5) {
     return text;
   }
 
@@ -480,12 +486,16 @@ export function usesStrokeBaselineLayout(
   if (lineGuideId === 'holidays_birthday_60') {
     return (slot.inputKind ?? 'line') === 'line';
   }
-  if (!Boolean(slot.lineStrokeAtBottom)) return false;
-  if (lineGuideId === 'kids_48') return true;
-  if (lineGuideId === 'pregnancy_a5' && slot.page === 44) return true;
-  if (lineGuideId === 'pregnancy_60' && slot.page === 52 && slot.lineStrokeAtBottom) {
+  // Анкета родов: LINE всегда к штриху (иначе высокий OCR-бокс → текст «висит» над линией).
+  if (
+    (slot.inputKind ?? 'line') === 'line' &&
+    ((lineGuideId === 'pregnancy_a5' && slot.page === 44) ||
+      (lineGuideId === 'pregnancy_60' && slot.page === 52))
+  ) {
     return true;
   }
+  if (!Boolean(slot.lineStrokeAtBottom)) return false;
+  if (lineGuideId === 'kids_48') return true;
   if (isDiaryInteriorLineGuide(lineGuideId)) {
     return !isDiaryPeachCellField(slot);
   }

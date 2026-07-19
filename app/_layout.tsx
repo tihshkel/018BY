@@ -166,7 +166,13 @@ export default function RootLayout() {
               <Stack.Screen name="edit-project" />
               <Stack.Screen name="edit-album" />
               <Stack.Screen name="album-pages" />
-              <Stack.Screen name="album-page-preview" />
+              <Stack.Screen
+                name="album-page-preview"
+                options={{
+                  animation: 'fade_from_bottom',
+                  animationDuration: 380,
+                }}
+              />
               <Stack.Screen name="album-page-form" />
               <Stack.Screen name="album-page-photos" />
               <Stack.Screen name="album-add-page" />

@@ -519,6 +519,16 @@ export function resolveInteriorAlbumId(
   if (albumId === 'family_blank_21x21') return 'family_blank_21x21';
   if (albumId === 'family_blank') return 'family_blank';
 
+  // Дневники: всегда явный interior (brown 60 / purple 40), не cover id.
+  if (albumId?.startsWith('diary_interior_')) {
+    return albumId;
+  }
+  if (category === 'diary') {
+    if (albumId?.includes('purple')) return 'diary_interior_purple';
+    if (albumId?.includes('brown')) return 'diary_interior_brown';
+    return 'diary_interior_brown';
+  }
+
   if (category === 'pregnancy') {
     if (albumId === 'pregnancy_a5') return 'pregnancy_a5';
     return 'pregnancy_60';

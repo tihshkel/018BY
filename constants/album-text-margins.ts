@@ -67,13 +67,16 @@ export const KIDS48_P1_BIRTH_DATE_LINE = {
   strokeY: 0.76114,
 } as const;
 
-/** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА». */
+/** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА» (левый край writable, не уезжает вправо). */
 export const KIDS48_P8_DATE_LINE = {
-  writableX: 0.438,
+  writableX: 0.4,
   /** Достаточно для «ДД.ММ.ГГГГ» без обрезки на превью и в PDF. */
-  writableWidth: 0.36,
+  writableWidth: 0.38,
   strokeY: 0.8956,
 } as const;
+
+/** Семейное дерево (p5): ширина имени под кругом — 7 символов при любом шрифте. */
+export const KIDS48_FAMILY_TREE_NAME_SLOT_WIDTH = 0.2;
 
 /** Зазор между низом даты и штрихом линии — тот же единый offset. */
 export const KIDS48_P8_DATE_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
@@ -175,16 +178,23 @@ export const KIDS48_P16_DREAMS_DATE_LINE = {
 } as const;
 
 /** «Мои зубки» (p10): узкие линии у зубов — компактный шрифт для полной даты «ДД.ММ.ГГГГ». */
-export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 10;
+export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 9;
 
 /** Ширина линии даты у зуба — под «ДД.ММ.ГГГГ» (10 символов) при компактном шрифте. */
-export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.168;
+export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.22;
 
 /** «Мои зубки» (p10): линия «Первая чистка зубов» — полная дата «ДД.ММ.ГГГГ». */
 export const KIDS48_P10_FIRST_BRUSHING_LINE = {
   writableX: 0.555,
   writableWidth: 0.28,
   strokeY: 0.8349,
+} as const;
+
+/** «Мои зубки» (p10): «В годик было ___ зубов» — число в пропуске. */
+export const KIDS48_P10_TEETH_COUNT_LINE = {
+  writableX: 0.48,
+  writableWidth: 0.12,
+  strokeY: 0.895,
 } as const;
 
 /** Коричневый/фиолетовый дневник — baseline на штрихе линии. */

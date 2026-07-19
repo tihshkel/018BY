@@ -34,14 +34,51 @@ export function isWeightOrHeightField(field: AlbumPageField): boolean {
   return matchesWeightHeightLabel(field.label);
 }
 
+/** Поле веса (не рост) — допускаем 4 цифры и одну запятую (36,4 / 4444). */
+export function isWeightMeasurementField(field: AlbumPageField): boolean {
+  if (isBellyCircumferenceField(field)) return false;
+  if (isPostBirthWeightField(field)) return true;
+  const id = field.fieldId.toLowerCase();
+  if (id.includes('height') || id.includes('рост')) return false;
+  if (id.includes('weight') || id.includes('вес') || id.endsWith('_weight')) return true;
+  return field.label.trim().toLowerCase().includes('вес');
+}
+
 /** Фиксированный лимит цифр для полей роста/веса; undefined — обычные правила. */
 export function getMeasurementDigitLimit(field: AlbumPageField): number | undefined {
   if (isBellyCircumferenceField(field)) return 4;
   if (!isWeightOrHeightField(field)) return undefined;
   if (isPostBirthWeightField(field)) return 4;
+  if (isWeightMeasurementField(field)) return 4;
   return 3;
 }
 
-export function sanitizeMeasurementInput(text: string, digitLimit: number): string {
-  return text.replace(/\D/g, '').slice(0, digitLimit);
+/**
+ * Вес: до 4 цифр и одна `,`/`.` (36,4 или 4444).
+ * Рост/обхват: только цифры.
+ */
+export function sanitizeMeasurementInput(
+  text: string,
+  digitLimit: number,
+  allowDecimal = false,
+): string {
+  if (!allowDecimal) {
+    return text.replace(/\D/g, '').slice(0, digitLimit);
+  }
+  let digits = 0;
+  let sawSep = false;
+  let out = '';
+  for (const ch of text.replace(/\./g, ',')) {
+    if (ch >= '0' && ch <= '9') {
+      if (digits >= digitLimit) continue;
+      out += ch;
+      digits += 1;
+      continue;
+    }
+    if (ch === ',' && !sawSep && digits > 0) {
+      out += ',';
+      sawSep = true;
+    }
+  }
+  return out;
 }

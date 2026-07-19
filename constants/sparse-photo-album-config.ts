@@ -36,12 +36,15 @@ export const EVENT_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
 /** Blank / свободные страницы — тот же 80% стандарт. */
 export const BLANK_PAGE_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
 
-/** Pregnancy weekly / mixed — зона между текстом, не 80% листа. */
+/**
+ * Pregnancy weekly / mixed — широкая зона между текстом (как iOS e24a739 + чуть выше),
+ * чтобы фото на страницах с полями занимали больше места.
+ */
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.05,
-  y: 0.14,
-  width: 0.9,
-  height: 0.76,
+  x: 0.06,
+  y: 0.22,
+  width: 0.88,
+  height: 0.58,
 };
 
 /** Крупная зона (≥ ~72%) — заполняем слоты без сжатия 4:3/3:4. */
@@ -95,14 +98,18 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
-    gapMm: 5,
-    staticLabelClearanceMm: 9,
+    gapMm: 3,
+    staticLabelClearanceMm: 4,
+    photoBandMaxBottom: 0.95,
+    minPhotoSafeHeight: 0.2,
   }),
   pregnancy_a5: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
-    gapMm: 5,
-    staticLabelClearanceMm: 9,
+    gapMm: 3,
+    staticLabelClearanceMm: 4,
+    photoBandMaxBottom: 0.95,
+    minPhotoSafeHeight: 0.2,
   }),
   holidays_birthday_60: config({
     eventSafe: EVENT_PHOTO_SAFE,

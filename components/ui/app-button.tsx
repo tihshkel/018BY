@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
+  View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -18,6 +19,8 @@ export interface AppButtonProps {
   variant?: AppButtonVariant;
   disabled?: boolean;
   loading?: boolean;
+  /** Подпись рядом со спиннером (например «Открываем…»). */
+  loadingTitle?: string;
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
   testID?: string;
@@ -29,11 +32,13 @@ export function AppButton({
   variant = 'primary',
   disabled = false,
   loading = false,
+  loadingTitle,
   style,
   fullWidth = true,
   testID,
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
+  const spinnerColor = variant === 'primary' ? colors.white : colors.primary;
 
   return (
     <Pressable
@@ -52,7 +57,20 @@ export function AppButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.white : colors.primary} />
+        <View style={styles.loadingRow}>
+          <ActivityIndicator color={spinnerColor} />
+          {loadingTitle ? (
+            <AppText
+              variant="button"
+              style={[
+                variant === 'outline' && styles.outlineText,
+                variant === 'ghost' && styles.ghostText,
+              ]}
+            >
+              {loadingTitle}
+            </AppText>
+          ) : null}
+        </View>
       ) : (
         <AppText
           variant="button"
@@ -103,5 +121,10 @@ const styles = StyleSheet.create({
   },
   ghostText: {
     color: colors.primary,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
 });

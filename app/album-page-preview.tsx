@@ -306,7 +306,8 @@ export default function AlbumPagePreviewScreen() {
     viewportHeight: previewLayout.coordinateHeight,
     sourceWidth: annotationSourceSize.width,
     sourceHeight: annotationSourceSize.height,
-    debounceMs: 0,
+    // Короткий debounce: первый кадр экрана (оверлей загрузки) успевает отрисоваться.
+    debounceMs: isFinalPreview ? 48 : 0,
   });
 
   const displayAnnotations = useMemo(() => {
