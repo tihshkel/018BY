@@ -1659,11 +1659,13 @@ function refineKids48BottomDateLineSlotNorm(
     ...norm,
     x: KIDS48_P8_DATE_LINE.writableX,
     width: KIDS48_P8_DATE_LINE.writableWidth,
+    // y = штрих (без textAnchorTop) → topNormY = y − height.
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     hasLabel: false,
     inputKind: 'line',
     lineStrokeAtBottom: true,
+    textAnchorTop: false,
   };
 }
 
@@ -1745,13 +1747,15 @@ function refineKids48Page10ToothDateSlotNorm(
 ): NormalizedLineSlot {
   if (!isKids48TeethToothDateSlot(lineGuideId, page, slotIndex)) return norm;
   const targetWidth = KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH;
-  // Левый край = начало печатной линии; расширяем только вправо (раньше уезжало за линию влево).
+  // Левый край = начало печатной линии; расширяем только вправо.
   const x = clamp01(norm.x);
   const width = Math.max(norm.width, Math.min(targetWidth, 0.98 - x));
   return {
     ...norm,
     x,
     width,
+    textAnchorTop: norm.textAnchorTop ?? true,
+    lineStrokeAtBottom: true,
   };
 }
 
@@ -2226,11 +2230,15 @@ function refineDenseContinuationGroupSpacing(
 }
 
 const lineSlotsResultCache = new Map<string, TextLineSlot[]>();
-const LINE_SLOTS_CACHE_MAX = 80;
+const LINE_SLOTS_CACHE_MAX = 120;
 
 function rememberLineSlots(cacheKey: string, slots: TextLineSlot[]): void {
-  if (lineSlotsResultCache.size >= LINE_SLOTS_CACHE_MAX) {
-    lineSlotsResultCache.clear();
+  if (lineSlotsResultCache.has(cacheKey)) {
+    lineSlotsResultCache.delete(cacheKey);
+  } else if (lineSlotsResultCache.size >= LINE_SLOTS_CACHE_MAX) {
+    // LRU: вытесняем самый старый ключ, не очищаем весь кэш.
+    const oldest = lineSlotsResultCache.keys().next().value;
+    if (oldest != null) lineSlotsResultCache.delete(oldest);
   }
   lineSlotsResultCache.set(cacheKey, slots);
 }
@@ -2255,7 +2263,12 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
 export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] {
   const cacheKey = lineSlotsCacheKey(params);
   const cached = lineSlotsResultCache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    // touch LRU
+    lineSlotsResultCache.delete(cacheKey);
+    lineSlotsResultCache.set(cacheKey, cached);
+    return cached;
+  }
 
   const { lineGuideId, page, viewportWidth, viewportHeight } = params;
   if (!hasLineGuides(lineGuideId) || viewportWidth <= 0 || viewportHeight <= 0) {
@@ -2295,8 +2308,10 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
         isPregnancyA5WeeklyPage(page) &&
         (index === 1 || index === 5));
     const inputKind = layoutNorm.inputKind ?? norm.inputKind ?? 'line';
-    /** kids_48: PDF y — штрих; полоса и текст всегда над линией (как «Михаил» / month). */
+    /** kids_48: LINE с textAnchorTop (iOS bake) — y уже верх полосы; иначе y = штрих. */
     const isKids48RuledLine = lineGuideId === 'kids_48' && inputKind !== 'block';
+    const kids48BandTopIsY =
+      isKids48RuledLine && layoutNorm.textAnchorTop === true;
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
@@ -2305,11 +2320,13 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const topNormY =
       isDiaryInteriorLineGuide(lineGuideId)
         ? getDiarySlotTopNormY(layoutNorm)
-        : isKids48RuledLine
-          ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-          : anchorTop
-            ? layoutNorm.y
-            : layoutNorm.y - layoutNorm.height / 2;
+        : kids48BandTopIsY
+          ? layoutNorm.y
+          : isKids48RuledLine
+            ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+            : anchorTop
+              ? layoutNorm.y
+              : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,

@@ -1,7 +1,16 @@
 import {
+  BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET_FALLBACK,
   DIARY_LINE_FONT_OFFSET,
   DIARY_DREAMS_LINE_FONT_OFFSET,
+  getKids48BottomDateLineStrokeY,
   getTemplateTypographyProfile,
+  isKidsMonthPage,
+  KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO,
+  KIDS_GROWTH_STROKE_CLEARANCE_RATIO,
+  KIDS_MONTH_STROKE_CLEARANCE_RATIO,
+  KIDS_P1_STROKE_CLEARANCE_RATIO,
+  KIDS_STROKE_CLEARANCE_RATIO,
+  KIDS_TEETH_STROKE_CLEARANCE_RATIO,
   KIDS48_TEETH_TOOTH_DATE_FONT_SIZE,
   PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT,
   TEMPLATE_LINE_STROKE_CLEARANCE_RATIO,
@@ -129,6 +138,28 @@ function getEffectiveCharWidthRatio(
   return ratio;
 }
 
+/** Max width по continuationGroup — один проход на массив слотов. */
+const groupMaxWidthCache = new WeakMap<object, Map<number, number>>();
+
+function getGroupMaxLineWidth(
+  allSlots: readonly TextLineSlot[],
+  groupId: number,
+): number {
+  let byGroup = groupMaxWidthCache.get(allSlots as object);
+  if (!byGroup) {
+    byGroup = new Map<number, number>();
+    for (const candidate of allSlots) {
+      if (candidate.hasLabel) continue;
+      if ((candidate.inputKind ?? 'line') !== 'line') continue;
+      const gid = candidate.continuationGroup;
+      const prev = byGroup.get(gid) ?? 0;
+      if (candidate.width > prev) byGroup.set(gid, candidate.width);
+    }
+    groupMaxWidthCache.set(allSlots as object, byGroup);
+  }
+  return byGroup.get(groupId) ?? 0;
+}
+
 /** Ширина для переноса: на ruled-строках pregnancy берём максимум группы (OCR-слоты уже линии). */
 function getWrapWidthForSlot(
   slot: WrapWidthSlot,
@@ -156,19 +187,9 @@ function getWrapWidthForSlot(
     !isPregnancy60WeeklyValueSlot(lineGuideId, slot) &&
     (slot.inputKind ?? 'line') === 'line'
   ) {
-    if (allSlots && allSlots.length > 0) {
-      const groupId = slot.continuationGroup;
-      const groupLineWidths = allSlots
-        .filter(
-          (candidate) =>
-            candidate.continuationGroup === groupId &&
-            !candidate.hasLabel &&
-            (candidate.inputKind ?? 'line') === 'line',
-        )
-        .map((candidate) => candidate.width);
-      if (groupLineWidths.length > 0) {
-        width = Math.max(width, ...groupLineWidths);
-      }
+    if (allSlots && allSlots.length > 0 && slot.continuationGroup != null) {
+      const groupMax = getGroupMaxLineWidth(allSlots, slot.continuationGroup);
+      if (groupMax > 0) width = Math.max(width, groupMax);
     }
     // Weekly plans: чуть шире usable wrap, чтобы слово не переносилось «раньше края».
     const slackBoost = isPregnancyWeeklyTextLineSlot(lineGuideId, slot) ? 0.1 : 0.06;
@@ -455,11 +476,80 @@ export function isPregnancyBirthQuestionnairePage(
   );
 }
 
+/** Только pregnancy_a5 p44 «Анкета родов» (48 стр.). pregnancy_60 не трогаем. */
+function isPregnancyA5BirthQuestionnaireLineSlot(
+  lineGuideId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'inputKind'>,
+): boolean {
+  return (
+    lineGuideId === 'pregnancy_a5' &&
+    slot.page === 44 &&
+    (slot.inputKind ?? 'line') === 'line'
+  );
+}
+
+/**
+ * iOS e24a739 getBirthQuestionnaireLineTextTop — только A5 p44.
+ * offset = rnAscent/previewCap ?? 1.08 — без TEMPLATE_LINE_STROKE_CLEARANCE.
+ * Розовые FILL и pregnancy_60 не сюда.
+ */
+function resolveBirthQuestionnaireLineStrokeFontOffset(fontId?: string): number {
+  const ascent = getAlbumFontPreviewCapHeightRatio(fontId);
+  if (Number.isFinite(ascent) && ascent > 0) {
+    return ascent;
+  }
+  return BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET_FALLBACK;
+}
+
+export function getBirthQuestionnaireLineTextTop(
+  slot: Pick<TextLineSlot, 'y' | 'lineHeight'> & { strokeY?: number },
+  fittedSize: number,
+  fontId?: string,
+): number {
+  const strokeY =
+    typeof slot.strokeY === 'number' ? slot.strokeY : slot.y + slot.lineHeight;
+  return strokeY - fittedSize * resolveBirthQuestionnaireLineStrokeFontOffset(fontId);
+}
+
 function getStrokeBaselineFontOffset(
   fontId?: string,
   lineGuideId?: string,
 ): number {
   return resolveUniformStrokeFontOffset(fontId, lineGuideId);
+}
+
+/** iOS e24a739: kids clearance по типу страницы (не pregnancy uniform 0.85+0.2). */
+function resolveKids48StrokeClearanceRatio(
+  slot: Pick<TextLineSlot, 'page' | 'index'>,
+): number {
+  const page = slot.page;
+  if (page === 10) return KIDS_TEETH_STROKE_CLEARANCE_RATIO;
+  if (page === 11) return KIDS_GROWTH_STROKE_CLEARANCE_RATIO;
+  if (typeof page === 'number' && getKids48BottomDateLineStrokeY(page) != null) {
+    return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
+  }
+  if (typeof page === 'number' && isKidsMonthPage(page) && (slot.index == null || slot.index >= 1)) {
+    return KIDS_MONTH_STROKE_CLEARANCE_RATIO;
+  }
+  if (page === 1) return KIDS_P1_STROKE_CLEARANCE_RATIO;
+  return KIDS_STROKE_CLEARANCE_RATIO;
+}
+
+function getKids48StrokeBaselineTextTop(
+  strokeY: number,
+  fittedSize: number,
+  fontId: string | undefined,
+  slot: Pick<TextLineSlot, 'page' | 'index'>,
+): number {
+  const ascent = getAlbumFontPreviewCapHeightRatio(fontId);
+  const clearance = resolveKids48StrokeClearanceRatio(slot);
+  return strokeY - fittedSize * (ascent + clearance);
+}
+
+function isFullDateLikeValue(text: string): boolean {
+  const t = text.trim();
+  // ДД.ММ.ГГГГ / ДД.ММ.ГГ — не резать по ширине слота.
+  return /^\d{1,2}\.\d{1,2}\.\d{2,4}$/.test(t);
 }
 
 /** Недельные и статические pregnancy_60 — позиция по LINE_GUIDES, без android bottom-align. */
@@ -1422,6 +1512,15 @@ export function getTemplateLineTextTop(
     return getPregnancyBirthQuestionnaireBlockTextTop(slot, fittedSize, lineGuideId);
   }
 
+  // LINE только на A5 «Анкета родов» (48 стр.): как iOS, без CLEARANCE 0.2.
+  if (isPregnancyA5BirthQuestionnaireLineSlot(lineGuideId, slot)) {
+    const lineFitted = Math.min(
+      fontSize,
+      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
+    );
+    return getBirthQuestionnaireLineTextTop(slot, lineFitted, fontId);
+  }
+
   if (lineGuideId === 'diary_interior_brown' && slot.page === 15) {
     // «Мечты»: slot.y = белый штрих; без CLEARANCE, иначе текст «летит» над линией и вылезает из блока.
     const lineY = slot.y;
@@ -1450,10 +1549,21 @@ export function getTemplateLineTextTop(
     );
     return strokeY - fittedSize * strokeFontOffset;
   } else if (
+    lineGuideId === 'kids_48' &&
+    inputKind === 'line' &&
+    usesStrokeBaselineLayout(slot, lineGuideId)
+  ) {
+    const lineY = slot.y + slot.lineHeight;
+    const lineFitted = Math.min(
+      fontSize,
+      fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
+    );
+    return getKids48StrokeBaselineTextTop(lineY, lineFitted, fontId, slot);
+  } else if (
     usesStrokeBaselineLayout(slot, lineGuideId) &&
     !isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
   ) {
-    // diary: slot.y уже штрих; kids/pregnancy — верх полосы, штрих снизу.
+    // diary: slot.y уже штрих; pregnancy — верх полосы, штрих снизу.
     const lineY = isDiaryInteriorLineGuide(lineGuideId)
       ? slot.y
       : slot.y + slot.lineHeight;
@@ -1476,7 +1586,7 @@ export function getTemplateLineTextTop(
       fontSize,
       fitFontSizeToSlot(fontSize, slot.lineHeight, 'line', lineGuideId, slot),
     );
-    top = lineY - lineFitted * strokeFontOffset;
+    return getKids48StrokeBaselineTextTop(lineY, lineFitted, fontId, slot);
   } else {
     const { centerRatio, fontOffsetRatio } = resolveTemplateTextVerticalRatios(slot, lineGuideId);
 
@@ -1666,6 +1776,14 @@ function consumeOneLineForSlot(
     return { line: trailingSpaces, rest: '' };
   }
 
+  // Даты и зубки: никогда не резать «12.11.2007» → «12.11.2» (сжимать шрифт, не слово).
+  const keepWhole =
+    isFullDateLikeValue(core) ||
+    isKids48TeethToothDateSlot(lineGuideId ?? '', slot.page ?? 0, slot.index ?? -1);
+  if (keepWhole) {
+    return { line: core + trailingSpaces, rest: '' };
+  }
+
   const words = core.split(/\s+/).filter(Boolean);
   let built = '';
   let wordCount = 0;
@@ -1739,6 +1857,13 @@ export function getFirstLineInputValue(params: {
 
   const startSlot = slots[startSlotIndex];
   if (!startSlot) return trimmed;
+
+  if (
+    isFullDateLikeValue(trimmed) ||
+    isKids48TeethToothDateSlot(lineGuideId ?? '', startSlot.page ?? 0, startSlot.index ?? startSlotIndex)
+  ) {
+    return trimmed;
+  }
 
   const { rest } = consumeOneLineForSlot(trimmed, startSlot, fontSize, lineGuideId, fontId, undefined, slots);
   if (!rest) return trimmed;
@@ -1967,6 +2092,15 @@ export function clampTextToContinuationGroup(params: {
   return text.slice(0, best);
 }
 
+type DistributeTextResult = {
+  segments: { slotIndex: number; content: string }[];
+  truncated: boolean;
+};
+
+/** Кэш раскладки по стабильному массиву слотов (getLineSlotsForPage LRU). */
+const distributeTextCache = new WeakMap<object, Map<string, DistributeTextResult>>();
+const DISTRIBUTE_TEXT_CACHE_MAX = 48;
+
 /** Распределяет текст по слотам аннотации (многострочные поля — подряд по индексу). */
 export function distributeTextForTemplateAnnotation(params: {
   text: string;
@@ -1977,10 +2111,7 @@ export function distributeTextForTemplateAnnotation(params: {
   fontId?: string;
   lineCount?: number;
   measureTextWidth?: TextWidthMeasure;
-}): {
-  segments: { slotIndex: number; content: string }[];
-  truncated: boolean;
-} {
+}): DistributeTextResult {
   const {
     text: rawText,
     startSlotIndex,
@@ -1991,6 +2122,55 @@ export function distributeTextForTemplateAnnotation(params: {
     lineCount = 1,
     measureTextWidth,
   } = params;
+
+  // Кастомный measure — без кэша (результаты зависят от замыкания).
+  if (!measureTextWidth && slots.length > 0) {
+    const text = normalizeTemplateMultilineText(rawText, lineCount);
+    const cacheKey = [
+      lineGuideId ?? '',
+      fontId ?? '',
+      startSlotIndex,
+      lineCount,
+      fontSize,
+      text,
+    ].join('\u0001');
+    let bucket = distributeTextCache.get(slots);
+    if (!bucket) {
+      bucket = new Map();
+      distributeTextCache.set(slots, bucket);
+    }
+    const hit = bucket.get(cacheKey);
+    if (hit) return hit;
+
+    const result =
+      lineCount > 1
+        ? distributeTextWithinFieldLines({
+            text,
+            startSlotIndex,
+            lineCount,
+            slots,
+            fontSize,
+            lineGuideId,
+            fontId,
+          })
+        : distributeTextWithinContinuationGroup({
+            text,
+            startSlotIndex,
+            slots,
+            fontSize,
+            lineGuideId,
+            fontId,
+            slotCount: 1,
+          });
+
+    if (bucket.size >= DISTRIBUTE_TEXT_CACHE_MAX) {
+      const oldest = bucket.keys().next().value;
+      if (oldest != null) bucket.delete(oldest);
+    }
+    bucket.set(cacheKey, result);
+    return result;
+  }
+
   const text = normalizeTemplateMultilineText(rawText, lineCount);
 
   if (lineCount > 1) {

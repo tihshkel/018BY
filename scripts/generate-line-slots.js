@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { applyBirthday48LineSlots } = require('./birthday-48-line-slot-overrides');
+const { applyKids48LineSlotOverrides } = require('./kids-48-line-slot-overrides');
 const { applyDiaryLineSlotOverrides } = require('./diary-line-slot-overrides');
 const { filterPregnancyA5LineSlots } = require('./pregnancy-a5-line-slot-filters');
 const { applyPregnancyA5Page44LineSlotOverrides } = require('./pregnancy-a5-page44-line-slot-overrides');
@@ -1257,6 +1258,13 @@ async function main() {
       albumSlots = trimmed.slots;
       albumGuides = trimmed.guides;
       console.log(`[${spec.albumId}] applied 48-page TZ slot overrides`);
+    }
+
+    if (spec.albumId === 'kids_48') {
+      const trimmed = applyKids48LineSlotOverrides(albumSlots, albumGuides);
+      albumSlots = trimmed.slots;
+      albumGuides = trimmed.guides;
+      console.log(`[${spec.albumId}] applied kids_48 line-slot overrides (iOS e24a739)`);
     }
 
     if (

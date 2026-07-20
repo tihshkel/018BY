@@ -84,6 +84,10 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         .map((ann) => ann.imageUri as string),
     [annotations]
   );
+  const pendingAnnotationImageKey = React.useMemo(
+    () => pendingAnnotationImageUris.join('|'),
+    [pendingAnnotationImageUris],
+  );
 
   const sourceWidth = sourceSize?.width ?? sourceWidthProp;
   const sourceHeight = sourceSize?.height ?? sourceHeightProp;
@@ -120,7 +124,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
 
   useEffect(() => {
     setLoadedAnnotationImageUris(new Set());
-  }, [imageUri, pendingAnnotationImageUris.join('|')]);
+  }, [imageUri, pendingAnnotationImageKey]);
 
   useEffect(() => {
     if (!isImageLoaded || waitForAnnotationImages) return;
@@ -155,6 +159,7 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
     imageUri,
     isImageLoaded,
     loadedAnnotationImageUris,
+    pendingAnnotationImageKey,
     pendingAnnotationImageUris,
     readySettleMs,
     waitForAnnotationImages,
@@ -246,7 +251,10 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
           fadeDuration={0}
           cachePolicy="disk"
           priority="high"
-          allowDownscaling={false}
+          // Экранный preview (readOnly + без ожидания фото): downscale под viewport —
+          // на Android полный PNG без downscale часто даёт jank первого кадра.
+          // Export/capture ждёт annotation images → полный raster как раньше.
+          allowDownscaling={readOnly && !waitForAnnotationImages}
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;

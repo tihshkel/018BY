@@ -45,7 +45,8 @@ export function getAlbumProjectSnapshot(projectId: string): AlbumProjectSnapshot
 
 export function publishAlbumProjectSnapshot(
   projectId: string,
-  snapshot: AlbumProjectSnapshot
+  snapshot: AlbumProjectSnapshot,
+  options?: { notify?: boolean },
 ): void {
   const prev = snapshots.get(projectId);
   // meta не затираем при publish только values/instances (частые save).
@@ -55,12 +56,16 @@ export function publishAlbumProjectSnapshot(
   };
   snapshots.set(projectId, next);
   touchSnapshotOrder(projectId);
+  // notify:false — RAM уже актуальна для preview/fast-path, без перерисовки
+  // всех подписчиков (список страниц / соседние экраны) на JS-потоке.
+  if (options?.notify === false) return;
   listeners.get(projectId)?.forEach((listener) => listener(next));
 }
 
 export function patchAlbumProjectSnapshot(
   projectId: string,
-  patch: Partial<AlbumProjectSnapshot>
+  patch: Partial<AlbumProjectSnapshot>,
+  options?: { notify?: boolean },
 ): void {
   const current = snapshots.get(projectId) ?? {
     pageValuesMap: {},
@@ -69,12 +74,16 @@ export function patchAlbumProjectSnapshot(
     meta: null,
   };
 
-  publishAlbumProjectSnapshot(projectId, {
-    pageValuesMap: patch.pageValuesMap ?? current.pageValuesMap,
-    instances: patch.instances ?? current.instances,
-    images: patch.images ?? current.images,
-    meta: patch.meta !== undefined ? patch.meta : current.meta,
-  });
+  publishAlbumProjectSnapshot(
+    projectId,
+    {
+      pageValuesMap: patch.pageValuesMap ?? current.pageValuesMap,
+      instances: patch.instances ?? current.instances,
+      images: patch.images ?? current.images,
+      meta: patch.meta !== undefined ? patch.meta : current.meta,
+    },
+    options,
+  );
 }
 
 export function subscribeAlbumProjectSnapshot(

@@ -8073,9 +8073,9 @@
         "continuationGroup": 7
       },
       {
-        "x": 0.79,
+        "x": 0.776,
         "y": 0.3168,
-        "width": 0.185,
+        "width": 0.171,
         "height": 0.05,
         "hasLabel": true,
         "inputKind": "line",
@@ -8466,20 +8466,26 @@
     ],
     "3": [
       {
-        "x": 0.42357,
-        "y": 0.65438,
-        "width": 0.23603,
-        "height": 0.05499,
+        "x": 0.435,
+        "y": 0.6234999999999999,
+        "width": 0.438,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.51314,
-        "y": 0.70937,
-        "width": 0.23603,
-        "height": 0.05499,
+        "x": 0.525,
+        "y": 0.6773,
+        "width": 0.345,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "4": [
@@ -8502,675 +8508,901 @@
     ],
     "5": [
       {
-        "x": 0.37974,
-        "y": 0.2753,
-        "width": 0.12971,
+        "x": 0.45,
+        "y": 0.295,
+        "width": 0.124,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.1372,
-        "y": 0.3989,
+        "x": 0.22299999999999998,
+        "y": 0.445,
         "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.3037,
-        "y": 0.5189,
+        "x": 0.389,
+        "y": 0.565,
         "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.11522,
-        "y": 0.5976,
-        "width": 0.13277,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 4
-      },
-      {
-        "x": 0.32159,
-        "y": 0.7338,
-        "width": 0.12563,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 5
-      },
-      {
-        "x": 0.60331,
-        "y": 0.3104,
-        "width": 0.13277,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 6
-      },
-      {
-        "x": 0.7731,
-        "y": 0.4315,
+        "x": 0.19,
+        "y": 0.637,
         "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 7
+        "continuationGroup": 4,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.58791,
-        "y": 0.5089,
-        "width": 0.13277,
+        "x": 0.391,
+        "y": 0.769,
+        "width": 0.136,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 5,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.75995,
-        "y": 0.64805,
-        "width": 0.1337,
+        "x": 0.6779999999999999,
+        "y": 0.35,
+        "width": 0.14,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 9
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.84,
+        "y": 0.478,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.663,
+        "y": 0.5489999999999999,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 8,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.8360000000000001,
+        "y": 0.688,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 9,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.22549999999999998,
+        "y": 0.84,
+        "width": 0.125,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 10,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.3565,
+        "y": 0.961,
+        "width": 0.115,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 11,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.625,
+        "y": 0.743,
+        "width": 0.13,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 12,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.7669999999999999,
+        "y": 0.844,
+        "width": 0.14,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 13,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.6839999999999999,
+        "y": 0.964,
+        "width": 0.136,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 14,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      },
+      {
+        "x": 0.5185,
+        "y": 0.899,
+        "width": 0.131,
+        "height": 0.028,
+        "hasLabel": false,
+        "continuationGroup": 15,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "6": [],
     "7": [],
     "8": [
       {
-        "x": 0.27411,
-        "y": 0.20286,
-        "width": 0.37088,
-        "height": 0.12,
+        "x": 0.41555824264409513,
+        "y": 0.8597,
+        "width": 0.23458282950423218,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.41488,
-        "y": 0.8956,
-        "width": 0.23603,
-        "height": 0.12,
-        "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "9": [
       {
-        "x": 0.41488,
-        "y": 0.18584,
-        "width": 0.23603,
+        "x": 0.38,
+        "y": 0.1639,
+        "width": 0.5,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "10": [
       {
-        "x": 0.52,
-        "y": 0.2465,
-        "width": 0.1,
+        "x": 0.5189,
+        "y": 0.218,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.38118,
-        "y": 0.24652,
-        "width": 0.09953,
+        "x": 0.39640000000000003,
+        "y": 0.218,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.31423,
-        "y": 0.28317,
-        "width": 0.09953,
+        "x": 0.33,
+        "y": 0.25499999999999995,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.58773,
-        "y": 0.28317,
-        "width": 0.09953,
+        "x": 0.5869,
+        "y": 0.25499999999999995,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.27597,
-        "y": 0.32063,
-        "width": 0.09953,
+        "x": 0.2914,
+        "y": 0.29269999999999996,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 5
+        "continuationGroup": 5,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.62599,
-        "y": 0.32063,
-        "width": 0.09953,
+        "x": 0.6255,
+        "y": 0.29269999999999996,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.25266,
-        "y": 0.35918,
-        "width": 0.09953,
+        "x": 0.2679,
+        "y": 0.3314,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 7
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.6493,
-        "y": 0.35918,
-        "width": 0.09953,
+        "x": 0.6482,
+        "y": 0.3314,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 8,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.23944,
-        "y": 0.40189,
-        "width": 0.09953,
+        "x": 0.2545,
+        "y": 0.3742,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 9
+        "continuationGroup": 9,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.66253,
-        "y": 0.40189,
-        "width": 0.09953,
+        "x": 0.6616,
+        "y": 0.3742,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 10
+        "continuationGroup": 10,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.23904,
-        "y": 0.54192,
-        "width": 0.09953,
+        "x": 0.2545,
+        "y": 0.5136,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 11
+        "continuationGroup": 11,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.66292,
-        "y": 0.54383,
-        "width": 0.09953,
+        "x": 0.6625,
+        "y": 0.5161,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 12
+        "continuationGroup": 12,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.25396,
-        "y": 0.58272,
-        "width": 0.09953,
+        "x": 0.2696,
+        "y": 0.5547,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 13
+        "continuationGroup": 13,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.648,
-        "y": 0.58462,
-        "width": 0.09953,
+        "x": 0.6474,
+        "y": 0.5564,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 14
+        "continuationGroup": 14,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.27775,
-        "y": 0.62079,
-        "width": 0.09953,
+        "x": 0.2931,
+        "y": 0.5925,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 15
+        "continuationGroup": 15,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.62421,
-        "y": 0.6227,
-        "width": 0.09953,
+        "x": 0.6238,
+        "y": 0.5942,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 16
+        "continuationGroup": 16,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.31145,
-        "y": 0.66017,
-        "width": 0.09953,
+        "x": 0.3267,
+        "y": 0.6319,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 17
+        "continuationGroup": 17,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.58861,
-        "y": 0.66208,
-        "width": 0.09953,
+        "x": 0.5877,
+        "y": 0.6335999999999999,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 18
+        "continuationGroup": 18,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.52,
-        "y": 0.7006,
-        "width": 0.1,
+        "x": 0.5197,
+        "y": 0.6723,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 19
+        "continuationGroup": 19,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.38144,
-        "y": 0.70062,
-        "width": 0.09953,
+        "x": 0.3972,
+        "y": 0.6723,
+        "width": 0.12,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 20
+        "continuationGroup": 20,
+        "inputKind": "line",
+        "teethDate": true,
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.559,
-        "y": 0.8349,
-        "width": 0.174,
-        "height": 0.028,
-        "hasLabel": false,
-        "continuationGroup": 21
-      },
-      {
-        "x": 0.08,
-        "y": 0.868,
-        "width": 0.84,
+        "x": 0.5584,
+        "y": 0.8099999999999999,
+        "width": 0.1738,
         "height": 0.028,
         "hasLabel": false,
         "continuationGroup": 21,
-        "inputKind": "block"
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.525,
-        "y": 0.895,
-        "width": 0.053,
+        "x": 0.5248,
+        "y": 0.8694999999999999,
+        "width": 0.052,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 22
+        "continuationGroup": 22,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "11": [
       {
-        "x": 0.28812,
-        "y": 0.25925,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.26344,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.25925,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.26344,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.31978,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.32417,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.31978,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.32417,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.38069,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.38488,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 5
+        "continuationGroup": 5,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.38069,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.38488,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.44161,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.4458,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 7
+        "continuationGroup": 7,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.44161,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.4458,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 8,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.50232,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.50672,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 9
+        "continuationGroup": 9,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.50232,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.50672,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 10
+        "continuationGroup": 10,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.56285,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.56744,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 11
+        "continuationGroup": 11,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.56285,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.56744,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 12
+        "continuationGroup": 12,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.62416,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.62816,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 13
+        "continuationGroup": 13,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.62416,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.62816,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 14
+        "continuationGroup": 14,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.68449,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.68908,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 15
+        "continuationGroup": 15,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.68449,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.68908,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 16
+        "continuationGroup": 16,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.7458,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.74999,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 17
+        "continuationGroup": 17,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.7458,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.74999,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 18
+        "continuationGroup": 18,
+        "inputKind": "line"
       },
       {
-        "x": 0.28728,
-        "y": 0.80593,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.81072,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 19
+        "continuationGroup": 19,
+        "inputKind": "line"
       },
       {
-        "x": 0.57052,
-        "y": 0.80593,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.81072,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 20
+        "continuationGroup": 20,
+        "inputKind": "line"
       },
       {
-        "x": 0.28812,
-        "y": 0.86724,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.87143,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 21
+        "continuationGroup": 21,
+        "inputKind": "line"
       },
       {
-        "x": 0.57136,
-        "y": 0.86724,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.87143,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 22
+        "continuationGroup": 22,
+        "inputKind": "line"
       },
       {
-        "x": 0.28728,
-        "y": 0.92776,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.288,
+        "y": 0.93235,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 23
+        "continuationGroup": 23,
+        "inputKind": "line"
       },
       {
-        "x": 0.57052,
-        "y": 0.92776,
-        "width": 0.14286,
-        "height": 0.055,
+        "x": 0.571,
+        "y": 0.93235,
+        "width": 0.143,
+        "height": 0.062,
         "hasLabel": false,
-        "continuationGroup": 24
+        "continuationGroup": 24,
+        "inputKind": "line"
       }
     ],
     "12": [
       {
-        "x": 0.41474,
-        "y": 0.91383,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "13": [
       {
-        "x": 0.15194,
-        "y": 0.18585,
-        "width": 0.69762,
-        "height": 0.0434,
+        "x": 0.24,
+        "y": 0.15785,
+        "width": 0.17,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
         "x": 0.3258,
-        "y": 0.22925,
-        "width": 0.53767,
-        "height": 0.04172,
+        "y": 0.20122,
+        "width": 0.5357,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.53941,
-        "y": 0.2693,
-        "width": 0.32405,
-        "height": 0.04019,
+        "x": 0.539,
+        "y": 0.24067999999999998,
+        "width": 0.3225,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 3
+        "continuationGroup": 3,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.2451,
-        "y": 0.30963,
-        "width": 0.61837,
-        "height": 0.04235,
+        "x": 0.3258,
+        "y": 0.28097999999999995,
+        "width": 0.5357,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 4
+        "continuationGroup": 4,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.43232,
-        "y": 0.354,
-        "width": 0.43064,
-        "height": 0.04299,
+        "x": 0.4316,
+        "y": 0.32548,
+        "width": 0.4299,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 5
+        "continuationGroup": 5,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.32749,
-        "y": 0.39561,
-        "width": 0.53572,
-        "height": 0.04224,
+        "x": 0.3266,
+        "y": 0.36746999999999996,
+        "width": 0.5349,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 6,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.32019,
-        "y": 0.43848,
-        "width": 0.54328,
-        "height": 0.04403,
+        "x": 0.3199,
+        "y": 0.41029,
+        "width": 0.5416,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 6
+        "continuationGroup": 7,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       },
       {
-        "x": 0.43911,
-        "y": 0.48367,
-        "width": 0.42461,
-        "height": 0.03201,
+        "x": 0.4383,
+        "y": 0.45563,
+        "width": 0.4232,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 7
-      },
-      {
-        "x": 0.15194,
-        "y": 0.5025,
-        "width": 0.69762,
-        "height": 0.01883,
-        "hasLabel": false,
-        "continuationGroup": 8
+        "continuationGroup": 8,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
     "14": [
       {
-        "x": 0.41488,
-        "y": 0.91383,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "15": [
       {
-        "x": 0.41488,
-        "y": 0.91383,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "16": [
       {
-        "x": 0.696,
-        "y": 0.21164,
-        "width": 0.16189,
+        "x": 0.7152000000000001,
+        "y": 0.2116,
+        "width": 0.1421,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "17": [
       {
-        "x": 0.41488,
-        "y": 0.91383,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "18": [
       {
-        "x": 0.39967,
-        "y": 0.19337,
-        "width": 0.06655,
-        "height": 0.12,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.41488,
-        "y": 0.91383,
-        "width": 0.23603,
-        "height": 0.12,
-        "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "19": [
       {
-        "x": 0.47705,
-        "y": 0.19337,
-        "width": 0.06655,
-        "height": 0.12,
+        "x": 0.418,
+        "y": 0.9135,
+        "width": 0.232,
+        "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
-      },
-      {
-        "x": 0.41488,
-        "y": 0.91383,
-        "width": 0.23603,
-        "height": 0.12,
-        "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "20": [
       {
-        "x": 0.41488,
-        "y": 0.23648,
-        "width": 0.23603,
+        "x": 0.418,
+        "y": 0.2368,
+        "width": 0.232,
         "height": 0.028,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
+        "strokeAtNormY": true
       }
     ],
     "21": [
       {
-        "x": 0.22,
-        "y": 0.18,
-        "width": 0.56,
+        "x": 0.1,
+        "y": 0.5,
+        "width": 0.38,
         "height": 0.04,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "block"
       },
       {
-        "x": 0.22,
-        "y": 0.24,
-        "width": 0.56,
+        "x": 0.52,
+        "y": 0.5,
+        "width": 0.38,
         "height": 0.04,
         "hasLabel": false,
-        "continuationGroup": 2
+        "continuationGroup": 2,
+        "inputKind": "block"
       }
     ],
     "22": [
@@ -9510,7 +9742,19 @@
       }
     ],
     "34": [],
-    "35": [],
+    "35": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
     "36": [],
     "37": [],
     "38": [],
@@ -9518,21 +9762,108 @@
     "40": [],
     "41": [
       {
-        "x": 0.47024,
-        "y": 0.92557,
-        "width": 0.05496,
-        "height": 0.028,
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
         "hasLabel": false,
-        "continuationGroup": 1
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
       }
     ],
-    "42": [],
-    "43": [],
-    "44": [],
-    "45": [],
-    "46": [],
-    "47": [],
-    "48": []
+    "42": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "43": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "44": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "45": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "46": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "47": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ],
+    "48": [
+      {
+        "x": 0.12,
+        "y": 0.9,
+        "width": 0.76,
+        "height": 0.032,
+        "hasLabel": false,
+        "continuationGroup": 1,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true
+      }
+    ]
   },
   "holidays_birthday_60": {
     "1": [

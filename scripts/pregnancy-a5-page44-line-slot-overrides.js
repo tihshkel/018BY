@@ -34,6 +34,10 @@ const FILL = (x, top, width, height, continuationGroup, hasLabel = false) => ({
  * 6 hospital, 7 admission, 8 weight, 9 height, 10 weekday, 11 time, 12 Ер/Кс,
  * 13 condition, 14 discharge, 15 days, 16–18 guests.
  */
+/**
+ * LINE 0–7, 13–18 — как iOS e24a739 (подчёркивания сверху/снизу).
+ * FILL 8–12 — текущие Android white-box (розовые ячейки вес/рост/… уже ок, не трогаем).
+ */
 const PAGE_44_SLOTS = [
   LINE(0.531, 0.1308, 0.336, 0.04, 1),
   LINE(0.437, 0.1777, 0.105, 0.028, 2),
@@ -42,7 +46,7 @@ const PAGE_44_SLOTS = [
   LINE(0.663, 0.2277, 0.284, 0.042, 5),
   LINE(0.782, 0.2749, 0.166, 0.046, 6),
   LINE(0.238, 0.3201, 0.709, 0.046, 7),
-  LINE(0.79, 0.3668, 0.185, 0.05, 8),
+  LINE(0.776, 0.3668, 0.171, 0.05, 8),
   FILL(0.1782, 0.4549, 0.1236, 0.027, 11),
   FILL(0.4293, 0.4537, 0.1063, 0.027, 12),
   FILL(0.314, 0.4968, 0.2216, 0.0269, 13),

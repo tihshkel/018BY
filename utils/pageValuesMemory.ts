@@ -68,18 +68,49 @@ export function toListPageValuesMap(
  * Что отдаём в React state:
  * - list (без activeInstanceId) → stubs всех страниц
  * - form/preview (с activeInstanceId) → полная активная + stubs остальных
+ * previous — переиспользуем stubs, если страница не менялась (меньше GC/jank).
  */
 export function projectUiPageValuesMap(
   full: Record<string, PageValues>,
   activeInstanceId?: string | null,
+  previous?: Record<string, PageValues> | null,
 ): Record<string, PageValues> {
   if (!activeInstanceId) {
-    return toListPageValuesMap(full);
+    if (!previous) return toListPageValuesMap(full);
+    const out: Record<string, PageValues> = {};
+    for (const [id, values] of Object.entries(full)) {
+      const prev = previous[id];
+      if (
+        prev &&
+        isPageValuesListStub(prev) &&
+        prev.updatedAt === values.updatedAt &&
+        prev.status === values.status
+      ) {
+        out[id] = prev;
+      } else {
+        out[id] = toListPageValuesStub(values);
+      }
+    }
+    return out;
   }
 
   const out: Record<string, PageValues> = {};
   for (const [id, values] of Object.entries(full)) {
-    out[id] = id === activeInstanceId ? values : toListPageValuesStub(values);
+    if (id === activeInstanceId) {
+      out[id] = values;
+      continue;
+    }
+    const prev = previous?.[id];
+    if (
+      prev &&
+      isPageValuesListStub(prev) &&
+      prev.updatedAt === values.updatedAt &&
+      prev.status === values.status
+    ) {
+      out[id] = prev;
+    } else {
+      out[id] = toListPageValuesStub(values);
+    }
   }
   if (!out[activeInstanceId] && full[activeInstanceId]) {
     out[activeInstanceId] = full[activeInstanceId];

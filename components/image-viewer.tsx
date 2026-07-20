@@ -57,6 +57,7 @@ import {
     View,
 } from 'react-native';
 import PdfAnnotations, { Annotation, PdfAnnotationsRef } from './pdf-annotations';
+import { ReadOnlyPageAnnotations } from './read-only-page-annotations';
 
 const TEXT_ANNOTATION_DEFAULT_WIDTH = 200;
 const FLOATING_TEXT_DEFAULT_WIDTH = 272;
@@ -319,16 +320,34 @@ export default function ImageViewer({
     return { width, height };
   }, [isBlankInteriorAlbum, containerHeight, editorViewportWidth]);
 
+  const annotationsByPagePrevRef = React.useRef<Map<number, Annotation[]>>(new Map());
   const annotationsByPage = useMemo(() => {
-    const map = new Map<number, Annotation[]>();
+    const buckets = new Map<number, Annotation[]>();
     for (const ann of annotations) {
       const page = typeof ann.page === 'number' ? ann.page : Number(ann.page || 1);
       if (!Number.isFinite(page) || page < 1) continue;
-      const bucket = map.get(page) || [];
+      const bucket = buckets.get(page) || [];
       bucket.push(ann);
-      if (!map.has(page)) map.set(page, bucket);
+      if (!buckets.has(page)) buckets.set(page, bucket);
     }
-    return map;
+    // Сохраняем ссылки массивов по страницам — иначе memo ReadOnly/соседние
+    // страницы перерисовываются при правке текста на текущей.
+    const prev = annotationsByPagePrevRef.current;
+    const next = new Map<number, Annotation[]>();
+    for (const [page, list] of buckets) {
+      const old = prev.get(page);
+      if (
+        old &&
+        old.length === list.length &&
+        old.every((item, index) => item === list[index])
+      ) {
+        next.set(page, old);
+      } else {
+        next.set(page, list);
+      }
+    }
+    annotationsByPagePrevRef.current = next;
+    return next;
   }, [annotations]);
 
   useEffect(() => {
@@ -818,7 +837,9 @@ export default function ImageViewer({
         initialNumToRender={1}
         maxToRenderPerBatch={2}
         windowSize={3}
-        removeClippedSubviews={true}
+        // Android + сложные page items (image/fonts/annotations): clipping даёт
+        // remount/мерцание. На iOS removeClippedSubviews обычно безопаснее.
+        removeClippedSubviews={Platform.OS === 'ios'}
         updateCellsBatchingPeriod={16}
         getItemLayout={(_, index) => ({
           length: containerHeight,
@@ -939,37 +960,41 @@ export default function ImageViewer({
                                 }
                               />
                             ) : null}
-                            <PdfAnnotations
-                              ref={pageNumber === currentPage ? annotationsRef : null}
-                              annotations={pageAnnotations}
-                              onAnnotationAdd={onAnnotationAdd || (() => {})}
-                              onAnnotationUpdate={onAnnotationUpdate || (() => {})}
-                              onAnnotationDelete={onAnnotationDelete || (() => {})}
-                              isEditing={isEditing}
-                              currentTool={currentTool}
-                              onToolDeactivate={onToolDeactivate}
-                              onEditingStateChange={handleEditingStateChange}
-                              onInteractionChange={setIsInteractingWithAnnotation}
-                              onSelectionChange={
-                                pageNumber === currentPage ? setSelectedAnnotationId : undefined
-                              }
-                              zoomLevel={visualScale}
-                              viewportWidth={editorViewportWidth}
-                              viewportHeight={containerHeight}
-                              sourceWidth={resolvePageSourceSizeForPage(pageNumber).width}
-                              sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
-                              lineGuideId={lineGuideId}
-                              onTextSelectionChange={onTextSelectionChange}
-                              totalPages={
-                                pageNumber === currentPage ? images.length : undefined
-                              }
-                              onNavigateToPage={
-                                pageNumber === currentPage ? navigateToPage : undefined
-                              }
-                              resolveSlotParams={
-                                pageNumber === currentPage ? buildSlotParams : undefined
-                              }
-                            />
+                            {pageNumber === currentPage ? (
+                              <PdfAnnotations
+                                ref={annotationsRef}
+                                annotations={pageAnnotations}
+                                onAnnotationAdd={onAnnotationAdd || (() => {})}
+                                onAnnotationUpdate={onAnnotationUpdate || (() => {})}
+                                onAnnotationDelete={onAnnotationDelete || (() => {})}
+                                isEditing={isEditing}
+                                currentTool={currentTool}
+                                onToolDeactivate={onToolDeactivate}
+                                onEditingStateChange={handleEditingStateChange}
+                                onInteractionChange={setIsInteractingWithAnnotation}
+                                onSelectionChange={setSelectedAnnotationId}
+                                zoomLevel={visualScale}
+                                viewportWidth={editorViewportWidth}
+                                viewportHeight={containerHeight}
+                                sourceWidth={resolvePageSourceSizeForPage(pageNumber).width}
+                                sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
+                                lineGuideId={lineGuideId}
+                                onTextSelectionChange={onTextSelectionChange}
+                                totalPages={images.length}
+                                onNavigateToPage={navigateToPage}
+                                resolveSlotParams={buildSlotParams}
+                              />
+                            ) : (
+                              <ReadOnlyPageAnnotations
+                                annotations={pageAnnotations}
+                                lineGuideId={lineGuideId}
+                                sourcePageNumber={pageNumber}
+                                viewportWidth={editorViewportWidth}
+                                viewportHeight={containerHeight}
+                                sourceWidth={resolvePageSourceSizeForPage(pageNumber).width}
+                                sourceHeight={resolvePageSourceSizeForPage(pageNumber).height}
+                              />
+                            )}
                             {slotParams && isLineSlotDebugEnabled() ? (
                               <LineGuideDevOverlay {...slotParams} />
                             ) : null}

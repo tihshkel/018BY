@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, type Href } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ImageSourcePropType } from 'react-native';
+import { Platform, type ImageSourcePropType } from 'react-native';
 
 import { getAlbumTemplateById } from '@/albums';
 import type { Annotation } from '@/components/pdf-annotations';
@@ -116,18 +116,40 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
     pageValuesMap: latestStateRef.current.pageValuesMap,
   };
 
+  const uiPageValuesMapRef = useRef<Record<string, PageValues>>({});
+
   const commitFullPageValuesMap = useCallback((full: Record<string, PageValues>) => {
     latestStateRef.current = {
       ...latestStateRef.current,
       pageValuesMap: full,
     };
-    setPageValuesMapState(projectUiPageValuesMap(full, activeInstanceIdRef.current));
+    const nextUi = projectUiPageValuesMap(
+      full,
+      activeInstanceIdRef.current,
+      uiPageValuesMapRef.current,
+    );
+    uiPageValuesMapRef.current = nextUi;
+    setPageValuesMapState(nextUi);
+  }, []);
+
+  /** Только RAM — без setState (для плавного «Просмотр страницы»). */
+  const applyFullPageValuesMapMemory = useCallback((full: Record<string, PageValues>) => {
+    latestStateRef.current = {
+      ...latestStateRef.current,
+      pageValuesMap: full,
+    };
   }, []);
 
   useEffect(() => {
     const full = latestStateRef.current.pageValuesMap;
     if (Object.keys(full).length === 0) return;
-    setPageValuesMapState(projectUiPageValuesMap(full, activeInstanceId));
+    const nextUi = projectUiPageValuesMap(
+      full,
+      activeInstanceId,
+      uiPageValuesMapRef.current,
+    );
+    uiPageValuesMapRef.current = nextUi;
+    setPageValuesMapState(nextUi);
   }, [activeInstanceId]);
 
   const lineGuideId = useMemo(
@@ -273,16 +295,26 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
       nextValues: Record<string, PageValues>,
       nextInstances?: PageInstance[],
       nextImages?: string[],
+      options?: { notify?: boolean },
     ) => {
       if (!effectiveProjectId) return;
       const latest = latestStateRef.current;
-      skipSnapshotEchoRef.current = true;
-      patchAlbumProjectSnapshot(effectiveProjectId, {
-        pageValuesMap: nextValues,
-        instances: nextInstances ?? latest.instances,
-        images: nextImages ?? latest.images,
-      });
-      skipSnapshotEchoRef.current = false;
+      const notify = options?.notify !== false;
+      if (notify) {
+        skipSnapshotEchoRef.current = true;
+      }
+      patchAlbumProjectSnapshot(
+        effectiveProjectId,
+        {
+          pageValuesMap: nextValues,
+          instances: nextInstances ?? latest.instances,
+          images: nextImages ?? latest.images,
+        },
+        { notify },
+      );
+      if (notify) {
+        skipSnapshotEchoRef.current = false;
+      }
     },
     [effectiveProjectId],
   );
@@ -381,9 +413,13 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         instances: snapshot.instances,
         images: snapshot.images,
       };
-      setPageValuesMapState(
-        projectUiPageValuesMap(snapshot.pageValuesMap, activeInstanceIdRef.current),
+      const nextUi = projectUiPageValuesMap(
+        snapshot.pageValuesMap,
+        activeInstanceIdRef.current,
+        uiPageValuesMapRef.current,
       );
+      uiPageValuesMapRef.current = nextUi;
+      setPageValuesMapState(nextUi);
       setInstances(snapshot.instances);
       setImages(snapshot.images);
     });
@@ -461,8 +497,6 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         ...latestBefore.pageValuesMap,
         [instanceId]: refreshed,
       };
-      commitFullPageValuesMap(merged);
-      publishSnapshot(merged, latestStateRef.current.instances, latestStateRef.current.images);
 
       if (effectiveProjectId) {
         // Инкрементально: только эта страница — full map stringify блокировал JS на 60 стр. с фото
@@ -480,16 +514,46 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             },
           );
         };
-        // Для «Просмотр страницы»: память уже готова — диск не блокирует навигацию.
+        // «Просмотр страницы»: RAM + quiet snapshot сразу; UI setState и notify — после кадра,
+        // чтобы не подвешивать JS перерисовкой списка/формы перед router.push.
         if (!awaitPersist) {
-          void persistWork();
+          applyFullPageValuesMapMemory(merged);
+          publishSnapshot(
+            merged,
+            latestStateRef.current.instances,
+            latestStateRef.current.images,
+            { notify: false },
+          );
+          requestAnimationFrame(() => {
+            commitFullPageValuesMap(latestStateRef.current.pageValuesMap);
+          });
+          // Android: диск позже — иначе AsyncStorage/JSON конкурирует с decode preview.
+          // iOS справляется с более ранним persist без заметного jank.
+          const persistDelayMs = Platform.OS === 'android' ? 420 : 64;
+          setTimeout(() => {
+            void persistWork();
+          }, persistDelayMs);
           return refreshed;
         }
+
+        commitFullPageValuesMap(merged);
+        publishSnapshot(merged, latestStateRef.current.instances, latestStateRef.current.images);
         await persistWork();
+        return refreshed;
       }
+
+      commitFullPageValuesMap(merged);
       return refreshed;
     },
-    [instances, lineGuideId, effectiveProjectId, persistAll, publishSnapshot, commitFullPageValuesMap],
+    [
+      instances,
+      lineGuideId,
+      effectiveProjectId,
+      persistAll,
+      publishSnapshot,
+      commitFullPageValuesMap,
+      applyFullPageValuesMapMemory,
+    ],
   );
 
   const addPage = useCallback(
@@ -765,12 +829,14 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               instances: memorySnapshot.instances,
               pageValuesMap: memorySnapshot.pageValuesMap,
             };
-            setPageValuesMapState(
-              projectUiPageValuesMap(
+            {
+              const nextUi = projectUiPageValuesMap(
                 memorySnapshot.pageValuesMap,
                 activeInstanceIdRef.current,
-              ),
-            );
+              );
+              uiPageValuesMapRef.current = nextUi;
+              setPageValuesMapState(nextUi);
+            }
 
             // Meta нужна сразу для lineGuideId → аннотаций превью. Без неё повторный вход
             // показывал форму с данными, а preview — пустые слоты (Android race).
@@ -929,9 +995,14 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             instances: mergedInstances,
             pageValuesMap: finalValues,
           };
-          setPageValuesMapState(
-            projectUiPageValuesMap(finalValues, activeInstanceIdRef.current),
-          );
+          {
+            const nextUi = projectUiPageValuesMap(
+              finalValues,
+              activeInstanceIdRef.current,
+            );
+            uiPageValuesMapRef.current = nextUi;
+            setPageValuesMapState(nextUi);
+          }
           publishAlbumProjectSnapshot(projectId, {
             pageValuesMap: finalValues,
             instances: mergedInstances,
@@ -1062,9 +1133,14 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           instances: loadedInstances,
           pageValuesMap: loadedValues,
         };
-        setPageValuesMapState(
-          projectUiPageValuesMap(loadedValues, activeInstanceIdRef.current),
-        );
+        {
+          const nextUi = projectUiPageValuesMap(
+            loadedValues,
+            activeInstanceIdRef.current,
+          );
+          uiPageValuesMapRef.current = nextUi;
+          setPageValuesMapState(nextUi);
+        }
         setMeta(projectData);
         setEffectiveProjectId(newProjectId);
         publishAlbumProjectSnapshot(newProjectId, {
