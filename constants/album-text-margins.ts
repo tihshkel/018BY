@@ -67,12 +67,18 @@ export const KIDS48_P1_BIRTH_DATE_LINE = {
   strokeY: 0.76114,
 } as const;
 
-/** kids_48 p8 «Первый день дома» — нижняя строка «ДАТА» (левый край writable, не уезжает вправо). */
+/** kids_48 p8 «Первый день дома» — как iOS e24a739 (PAGE_8_EVENT_DATE_SLOT). */
 export const KIDS48_P8_DATE_LINE = {
-  writableX: 0.4,
-  /** Достаточно для «ДД.ММ.ГГГГ» без обрезки на превью и в PDF. */
-  writableWidth: 0.38,
+  writableX: 1031 / 2481,
+  writableWidth: 582 / 2481,
   strokeY: 0.8877,
+} as const;
+
+/** Нижняя «ДАТА» на event-страницах (p12/14/15/17/18/19) — iOS e24a739. */
+export const KIDS48_BOTTOM_DATE_LINE = {
+  writableX: 0.418,
+  writableWidth: 0.232,
+  strokeY: 0.9135,
 } as const;
 
 /** Семейное дерево (p5): ширина имени под кругом — 7 символов при любом шрифте. */
@@ -121,14 +127,15 @@ export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
 }
 
 /** Y штриха нижней линии «ДАТА» по номеру страницы kids_48. */
-/** Stroke Y нижней «ДАТА» — как iOS e24a739 (band top + 0.028). */
+/** Stroke Y нижней «ДАТА» — как iOS e24a739. */
 const KIDS48_BOTTOM_DATE_STROKE_Y: Record<number, number> = {
-  8: 0.8877,
-  14: 0.91383,
-  15: 0.91383,
-  17: 0.91383,
-  18: 0.91383,
-  19: 0.91383,
+  8: KIDS48_P8_DATE_LINE.strokeY,
+  14: KIDS48_BOTTOM_DATE_LINE.strokeY,
+  15: KIDS48_BOTTOM_DATE_LINE.strokeY,
+  17: KIDS48_BOTTOM_DATE_LINE.strokeY,
+  18: KIDS48_BOTTOM_DATE_LINE.strokeY,
+  19: KIDS48_BOTTOM_DATE_LINE.strokeY,
+  12: KIDS48_BOTTOM_DATE_LINE.strokeY,
 };
 
 export function getKids48BottomDateLineStrokeY(page: number): number | null {
@@ -142,6 +149,7 @@ export function getKids48BottomDateLineStrokeY(page: number): number | null {
 export function getKids48BottomDateLineSlotIndex(page: number): number | null {
   if (
     page === 8 ||
+    page === 12 ||
     page === 14 ||
     page === 15 ||
     page === 17 ||
@@ -192,32 +200,51 @@ export const KIDS48_P16_DREAMS_DATE_LINE = {
 /** «Мои зубки» (p10): как iOS e24a739 — кегль 11 на ширине ~0.12. */
 export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 11;
 
-/** Ширина линии даты у зуба (iOS bake 0.12; чуть шире на Android под полную дату). */
-export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.14;
+/**
+ * Ширина даты у зуба. iOS bake 0.12 — на Android без downscale глифы шире,
+ * 0.12 клипает «12.11.2007» → «12.11.200». Чуть шире + shrink шрифта.
+ */
+export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.165;
 
 /**
- * Kids stroke clearances (iOS e24a739) — только kids_48, не pregnancy/holidays.
- * textTop ≈ strokeY − fontSize × (previewCap + clearance).
+ * Kids stroke clearances / Amatic sink (iOS e24a739) — только kids_48.
+ * iOS: rnAscentRatioAt16 === 1 для Amatic; textTop = stroke − size×(ascent+clearance) + sink.
  */
 export const KIDS_STROKE_CLEARANCE_RATIO = 0.1;
 export const KIDS_MONTH_STROKE_CLEARANCE_RATIO = 0.22;
 export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.02;
+/** p1: Amatic с ascent=1 «висит» — опускаем baseline к штриху. */
+export const KIDS_P1_BASELINE_SINK_RATIO = 0.16;
 export const KIDS_TEETH_STROKE_CLEARANCE_RATIO = 0.02;
+/** p10 даты у зубов — лёгкий sink к штриху. */
+export const KIDS_TEETH_DATE_BASELINE_SINK_RATIO = 0.04;
+/** p10 «первая чистка» / «в годик» — текст врезался в линию, подъём вверх. */
+export const KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO = 0.22;
+export const KIDS_TEETH_FIXED_LINE_FONT_SIZE = 11;
 export const KIDS_GROWTH_STROKE_CLEARANCE_RATIO = 0.08;
+export const KIDS_GROWTH_FIXED_LINE_FONT_SIZE = 13;
 export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.03;
 
-/** «Мои зубки» (p10): линия «Первая чистка зубов» — полная дата «ДД.ММ.ГГГГ». */
+/** p8/p9 event «ДАТА» — доп. зазор над штрихом (~5–8 px на эталоне 2481). */
+export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
+export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
+  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
+  8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0;
+
+/** «Мои зубки» (p10): «Первая чистка» — iOS e24a739 TEETH_FIRST_BRUSHING_SLOT. */
 export const KIDS48_P10_FIRST_BRUSHING_LINE = {
-  writableX: 0.555,
-  writableWidth: 0.28,
-  strokeY: 0.8349,
+  writableX: 0.5584,
+  writableWidth: 0.1738,
+  strokeY: 0.838,
 } as const;
 
-/** «Мои зубки» (p10): «В годик было ___ зубов» — число в пропуске. */
+/** «Мои зубки» (p10): число между «БЫЛО» и «ЗУБОВ» — iOS TEETH_COUNT_SLOT. */
 export const KIDS48_P10_TEETH_COUNT_LINE = {
-  writableX: 0.48,
-  writableWidth: 0.12,
-  strokeY: 0.895,
+  writableX: 0.5248,
+  writableWidth: 0.052,
+  strokeY: 0.8975,
 } as const;
 
 /** Коричневый/фиолетовый дневник — baseline на штрихе линии. */
@@ -251,12 +278,15 @@ export const DIARY_BROWN_P15_DREAM_LINE_YS = [
 export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = DIARY_UNIFORM_LINE_FONT_OFFSET;
 
 /**
- * Fallback offset для LINE на «Анкета родов» только pregnancy_a5 p44 (48 стр.),
- * если нет previewCap шрифта. Как на iOS e24a739 (PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08),
- * без TEMPLATE_LINE_STROKE_CLEARANCE — иначе значения «висят» над линией.
- * pregnancy_60 не использует этот offset.
+ * iOS e24a739: PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08 для «Анкета родов».
+ * Фиксированный offset (не previewCap шрифта) — иначе на Android текст «висит» над линией.
+ * Без TEMPLATE_LINE_STROKE_CLEARANCE.
  */
-export const BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET_FALLBACK = 1.08;
+export const BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET = 1.08;
+
+/** @deprecated use BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET */
+export const BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET_FALLBACK =
+  BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET;
 
 /** Компактные поля (дата): штрих через центр слота. */
 export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;

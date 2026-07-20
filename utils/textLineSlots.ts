@@ -8,6 +8,7 @@ import {
   isKids48BottomDateLineSlot,
   isKidsMonthPage,
   KIDS48_P8_DATE_LINE,
+  KIDS48_BOTTOM_DATE_LINE,
   KIDS48_P1_BIRTH_DATE_LINE,
   KIDS48_P1_VALUE_LINE_X_INSET,
   KIDS48_P13_CRAWLS_LINE,
@@ -17,6 +18,7 @@ import {
   KIDS48_FAMILY_TREE_NAME_SLOT_WIDTH,
   KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH,
   KIDS_MONTH_LINE_BAND_HEIGHT,
+  KIDS_MONTH_LINE_X_INSET,
   DIARY_UNIFORM_LINE_X_INSET,
   DIARY_BROWN_P15_DREAM_LINE_YS,
   BROWN_MY_DAY_DATE_UNDER_TITLE,
@@ -66,6 +68,8 @@ export type TextLineSlot = {
   lineStrokeAtBottom?: boolean;
   /** Y слота = верх полосы (калибровка «Вес» / «Обхват» на неделях pregnancy_60). */
   textAnchorTop?: boolean;
+  /** kids_48: исходный norm.y был штрихом (strokeAtNormY bake). */
+  strokeAtNormY?: boolean;
 };
 
 export type GetLineSlotsParams = {
@@ -1623,30 +1627,57 @@ function getKidsMonthAnswerSlotTopNormY(norm: NormalizedLineSlot): number {
   return norm.y - norm.height;
 }
 
-/** p1 значения (дата/время/вес/рост) — зазор слева от подписи; дата целиком. */
+/** p1 значения (дата/время/вес/рост) + имя — как iOS refineKids48StandardRuledLineSlot. */
 function refineKids48Page1ValueSlotNorm(
   page: number,
   norm: NormalizedLineSlot,
   slotIndex: number,
 ): NormalizedLineSlot {
-  if (page !== 1 || slotIndex < 1 || slotIndex > 4) return norm;
+  if (page !== 1) return norm;
+
+  const band = KIDS_MONTH_LINE_BAND_HEIGHT;
+  // Имя на верхней линии (слот 0): bake y = штрих, высокая OCR-полоса → тонкая LINE.
+  if (slotIndex === 0) {
+    const strokeY =
+      norm.textAnchorTop === true ? norm.y + norm.height : norm.y;
+    return {
+      ...norm,
+      y: strokeY - band,
+      height: band,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  }
+
+  if (slotIndex < 1 || slotIndex > 4) return norm;
 
   if (slotIndex === 1) {
     return {
       ...norm,
       x: KIDS48_P1_BIRTH_DATE_LINE.writableX,
       width: KIDS48_P1_BIRTH_DATE_LINE.writableWidth,
-      y: KIDS48_P1_BIRTH_DATE_LINE.strokeY,
-      height: Math.min(norm.height, 0.04),
+      y: KIDS48_P1_BIRTH_DATE_LINE.strokeY - band,
+      height: band,
       hasLabel: false,
       inputKind: 'line',
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
     };
   }
 
-  return applyUniformLineXInset(norm, KIDS48_P1_VALUE_LINE_X_INSET);
+  const strokeY = norm.y;
+  return {
+    ...applyUniformLineXInset(norm, KIDS48_P1_VALUE_LINE_X_INSET),
+    y: strokeY - band,
+    height: band,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+  };
 }
 
-/** Нижняя линия «ДАТА» на event-страницах kids_48 (p8, p14…). */
+/** Нижняя линия «ДАТА» на event-страницах kids_48 (p8, p12, p14…) — iOS e24a739. */
 function refineKids48BottomDateLineSlotNorm(
   page: number,
   norm: NormalizedLineSlot,
@@ -1655,17 +1686,35 @@ function refineKids48BottomDateLineSlotNorm(
   if (!isKids48BottomDateLineSlot('kids_48', page, slotIndex)) return norm;
   const strokeY = getKids48BottomDateLineStrokeY(page);
   if (strokeY == null) return norm;
+  const geometry = page === 8 ? KIDS48_P8_DATE_LINE : KIDS48_BOTTOM_DATE_LINE;
+  // iOS: y = штрих + strokeAtNormY; mapping делает y − height → верх полосы.
+  // p8 bake уже band-top без strokeAtNormY — не трогаем семантику p8.
+  if (page === 8) {
+    const band = KIDS_MONTH_LINE_BAND_HEIGHT;
+    return {
+      ...norm,
+      x: geometry.writableX,
+      width: geometry.writableWidth,
+      y: strokeY - band,
+      height: band,
+      hasLabel: false,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+      strokeAtNormY: false,
+    };
+  }
   return {
     ...norm,
-    x: KIDS48_P8_DATE_LINE.writableX,
-    width: KIDS48_P8_DATE_LINE.writableWidth,
-    // y = штрих (без textAnchorTop) → topNormY = y − height.
+    x: geometry.writableX,
+    width: geometry.writableWidth,
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     hasLabel: false,
     inputKind: 'line',
     lineStrokeAtBottom: true,
-    textAnchorTop: false,
+    textAnchorTop: true,
+    strokeAtNormY: true,
   };
 }
 
@@ -1675,6 +1724,7 @@ function refineKids48Page16DreamsDateLineSlotNorm(
   slotIndex: number,
 ): NormalizedLineSlot {
   if (page !== 16 || slotIndex !== 0) return norm;
+  // iOS: y = штрих + strokeAtNormY.
   return {
     ...norm,
     x: KIDS48_P16_DREAMS_DATE_LINE.writableX,
@@ -1684,6 +1734,8 @@ function refineKids48Page16DreamsDateLineSlotNorm(
     hasLabel: false,
     inputKind: 'line',
     lineStrokeAtBottom: true,
+    textAnchorTop: true,
+    strokeAtNormY: true,
   };
 }
 
@@ -1707,15 +1759,17 @@ function refineKids48Page10FirstBrushingSlotNorm(
   slotIndex: number,
 ): NormalizedLineSlot {
   if (page !== 10 || slotIndex !== 20) return norm;
+  const band = KIDS_MONTH_LINE_BAND_HEIGHT;
   return {
     ...norm,
     x: KIDS48_P10_FIRST_BRUSHING_LINE.writableX,
     width: KIDS48_P10_FIRST_BRUSHING_LINE.writableWidth,
-    y: KIDS48_P10_FIRST_BRUSHING_LINE.strokeY,
-    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    y: KIDS48_P10_FIRST_BRUSHING_LINE.strokeY - band,
+    height: band,
     hasLabel: false,
     inputKind: 'line',
     lineStrokeAtBottom: true,
+    textAnchorTop: true,
   };
 }
 
@@ -1776,14 +1830,142 @@ function refineKidsMonthLineSlotNorm(
       width: layout.canWidth,
     };
 
+  // iOS e24a739: inset + y=штрих + textAnchorTop; mapping month → y−height.
   return {
     ...norm,
-    x: writable.x,
-    width: writable.width,
+    x: writable.x + KIDS_MONTH_LINE_X_INSET,
+    width: Math.max(0.05, writable.width - KIDS_MONTH_LINE_X_INSET),
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     continuationGroup: slotIndex,
     inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+  };
+}
+
+/** p11 «Рост и вес» — iOS refineKids48GrowthWeightSlot: bake y = штрих. */
+function refineKids48GrowthWeightSlot(
+  page: number,
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (page !== 11) return norm;
+  const strokeY = norm.y;
+  return {
+    ...norm,
+    y: strokeY - KIDS_MONTH_LINE_BAND_HEIGHT,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+    strokeAtNormY: false,
+  };
+}
+
+/** OCR высокие полосы → тонкая LINE (iOS refineKids48StandardRuledLineSlot). */
+function refineKids48StandardRuledLineSlot(
+  norm: NormalizedLineSlot,
+): NormalizedLineSlot {
+  if (norm.inputKind === 'block') return norm;
+  if (
+    norm.height <= KIDS_MONTH_LINE_BAND_HEIGHT &&
+    norm.lineStrokeAtBottom === true
+  ) {
+    return norm;
+  }
+  const strokeY = norm.strokeAtNormY
+    ? norm.y
+    : norm.textAnchorTop
+      ? norm.y + norm.height
+      : norm.y;
+  return {
+    ...norm,
+    y: strokeY - KIDS_MONTH_LINE_BAND_HEIGHT,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+    strokeAtNormY: false,
+  };
+}
+
+function shouldRefineKids48StandardRuledLineSlot(
+  page: number,
+  slotIndex: number,
+  norm: NormalizedLineSlot,
+): boolean {
+  if (norm.inputKind === 'block') return false;
+  if (isKidsMonthPage(page)) return false;
+  if (page === 1 || page === 5 || page === 10 || page === 11 || page === 13) {
+    return false;
+  }
+  if (page === 8 || page === 9) return false;
+  if (getKids48BottomDateLineStrokeY(page) != null) return false;
+  if (page === 16 || page === 20) return false;
+  return norm.height > KIDS_MONTH_LINE_BAND_HEIGHT || !norm.lineStrokeAtBottom;
+}
+
+function refineKids48Page20BaptismDateSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (page !== 20 || slotIndex !== 0) return norm;
+  return {
+    ...norm,
+    x: KIDS48_BOTTOM_DATE_LINE.writableX,
+    width: KIDS48_BOTTOM_DATE_LINE.writableWidth,
+    y: 0.2368,
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+    strokeAtNormY: true,
+  };
+}
+
+function refineKids48Page13AchievementSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (page !== 13) return norm;
+  if (slotIndex === 0) {
+    // Дата слева от «(ДАТА)» — bake уже band-top.
+    return {
+      ...norm,
+      x: 0.24,
+      width: 0.17,
+      y: 0.18585 - KIDS_MONTH_LINE_BAND_HEIGHT,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  }
+  if (slotIndex < 1 || slotIndex > 7) return norm;
+  if (slotIndex === 3) {
+    return {
+      ...norm,
+      x: KIDS48_P13_CRAWLS_LINE.writableX,
+      width: KIDS48_P13_CRAWLS_LINE.writableWidth,
+      height: KIDS_MONTH_LINE_BAND_HEIGHT,
+      inputKind: 'line',
+      lineStrokeAtBottom: true,
+      textAnchorTop: true,
+    };
+  }
+  // iOS: inset после подписи на achievement lines.
+  const inset = 0.018;
+  const x = clamp01(norm.x + inset);
+  return {
+    ...norm,
+    x,
+    width: Math.max(0.05, Math.min(norm.width - inset, 0.98 - x)),
+    height: KIDS_MONTH_LINE_BAND_HEIGHT,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
   };
 }
 
@@ -1826,6 +2008,14 @@ function refineNormalizedSlotForTextLayout(
     return refineKidsMonthLineSlotNorm(page, norm, slotIndex);
   }
 
+  if (lineGuideId === 'kids_48' && page === 11) {
+    return refineKids48GrowthWeightSlot(page, norm);
+  }
+
+  if (lineGuideId === 'kids_48' && page === 20) {
+    return refineKids48Page20BaptismDateSlotNorm(page, norm, slotIndex);
+  }
+
   if (lineGuideId === 'kids_48' && getKids48BottomDateLineStrokeY(page) != null) {
     return refineKids48BottomDateLineSlotNorm(page, norm, slotIndex);
   }
@@ -1835,25 +2025,34 @@ function refineNormalizedSlotForTextLayout(
   }
 
   if (lineGuideId === 'kids_48' && page === 13) {
-    return refineKids48Page13CrawlsSlotNorm(page, norm, slotIndex);
+    return refineKids48Page13AchievementSlotNorm(page, norm, slotIndex);
   }
 
   if (lineGuideId === 'kids_48' && page === 10) {
     let refined = refineKids48Page10ToothDateSlotNorm(lineGuideId, page, norm, slotIndex);
     refined = refineKids48Page10FirstBrushingSlotNorm(page, refined, slotIndex);
-    if (slotIndex === 22) {
+    if (slotIndex === 21) {
+      const band = KIDS_MONTH_LINE_BAND_HEIGHT;
       return {
         ...refined,
         x: KIDS48_P10_TEETH_COUNT_LINE.writableX,
         width: KIDS48_P10_TEETH_COUNT_LINE.writableWidth,
-        y: KIDS48_P10_TEETH_COUNT_LINE.strokeY,
-        height: KIDS_MONTH_LINE_BAND_HEIGHT,
+        y: KIDS48_P10_TEETH_COUNT_LINE.strokeY - band,
+        height: band,
         hasLabel: false,
         inputKind: 'line',
         lineStrokeAtBottom: true,
+        textAnchorTop: true,
       };
     }
     return refined;
+  }
+
+  if (
+    lineGuideId === 'kids_48' &&
+    shouldRefineKids48StandardRuledLineSlot(page, slotIndex, norm)
+  ) {
+    return refineKids48StandardRuledLineSlot(norm);
   }
 
   // Единый левый inset от статического текста для pregnancy / kids (спец-страницы уже return выше).
@@ -2256,7 +2455,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     rect?.offsetY ?? '',
     rect?.width ?? '',
     rect?.height ?? '',
-    'weekly-stroke-v69-weight-belly-noclip',
+    'weekly-stroke-v74-kids48-full-ios-refine',
   ].join('|');
 }
 
@@ -2310,8 +2509,17 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const inputKind = layoutNorm.inputKind ?? norm.inputKind ?? 'line';
     /** kids_48: LINE с textAnchorTop (iOS bake) — y уже верх полосы; иначе y = штрих. */
     const isKids48RuledLine = lineGuideId === 'kids_48' && inputKind !== 'block';
+    /** iOS: month answers — y = штрих даже при textAnchorTop. */
+    const isKidsMonthAnswerLine =
+      isKids48RuledLine && isKidsMonthPage(page) && index >= 1;
+    /** iOS isKidsStrokeDateLineInputSlot: y в bake = штрих, полоса над ним. */
+    const kids48StrokeAtNormY =
+      isKids48RuledLine && layoutNorm.strokeAtNormY === true;
     const kids48BandTopIsY =
-      isKids48RuledLine && layoutNorm.textAnchorTop === true;
+      isKids48RuledLine &&
+      layoutNorm.textAnchorTop === true &&
+      !kids48StrokeAtNormY &&
+      !isKidsMonthAnswerLine;
     const anchorTop =
       isWeeklyValueSlot ||
       layoutNorm.textAnchorTop === true ||
@@ -2320,13 +2528,17 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
     const topNormY =
       isDiaryInteriorLineGuide(lineGuideId)
         ? getDiarySlotTopNormY(layoutNorm)
-        : kids48BandTopIsY
-          ? layoutNorm.y
-          : isKids48RuledLine
-            ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
-            : anchorTop
+        : isKidsMonthAnswerLine
+          ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+          : kids48StrokeAtNormY
+            ? layoutNorm.y - layoutNorm.height
+            : kids48BandTopIsY
               ? layoutNorm.y
-              : layoutNorm.y - layoutNorm.height / 2;
+              : isKids48RuledLine
+                ? getKidsMonthAnswerSlotTopNormY(layoutNorm)
+                : anchorTop
+                  ? layoutNorm.y
+                  : layoutNorm.y - layoutNorm.height / 2;
     const mapped = mapSourceNormToViewport(
       layoutNorm.x,
       topNormY,
@@ -2355,6 +2567,7 @@ export function getLineSlotsForPage(params: GetLineSlotsParams): TextLineSlot[] 
       normWidth: layoutNorm.width,
       lineStrokeAtBottom,
       textAnchorTop: anchorTop,
+      strokeAtNormY: layoutNorm.strokeAtNormY === true,
     };
   });
 

@@ -11,6 +11,8 @@ export type NormalizedLineSlot = {
   inputKind?: 'line' | 'block';
   textAnchorTop?: boolean;
   lineStrokeAtBottom?: boolean;
+  /** kids_48: y в JSON = штрих (не верх полосы), как iOS isKidsStrokeDateLineInputSlot. */
+  strokeAtNormY?: boolean;
   /** kids_48 p10 — дата у зуба (bake iOS). */
   teethDate?: boolean;
 };
@@ -8101,46 +8103,48 @@ export const LINE_SLOTS = {
         "continuationGroup": 8
       },
       {
-        "x": 0.1782,
-        "y": 0.46840000000000004,
-        "width": 0.1236,
-        "height": 0.027,
+        "x": 0.3133,
+        "y": 0.5103,
+        "width": 0.11,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 11
       },
       {
-        "x": 0.4293,
-        "y": 0.4672,
-        "width": 0.1063,
-        "height": 0.027,
+        "x": 0.43,
+        "y": 0.5103,
+        "width": 0.106,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 12
       },
       {
-        "x": 0.314,
-        "y": 0.51025,
-        "width": 0.2216,
-        "height": 0.0269,
+        "x": 0.2211,
+        "y": 0.5542,
+        "width": 0.3154,
+        "height": 0.028,
         "hasLabel": false,
         "inputKind": "block",
         "continuationGroup": 13
       },
       {
-        "x": 0.2222,
-        "y": 0.55555,
-        "width": 0.3285,
-        "height": 0.0297,
-        "hasLabel": false,
-        "inputKind": "block",
+        "x": 0.22,
+        "y": 0.536,
+        "width": 0.32,
+        "height": 0.026,
+        "hasLabel": true,
+        "inputKind": "line",
+        "lineStrokeAtBottom": true,
+        "textAnchorTop": true,
         "continuationGroup": 14
       },
       {
-        "x": 0.6682,
-        "y": 0.5518500000000001,
-        "width": 0.1002,
-        "height": 0.0475,
+        "x": 0.566,
+        "y": 0.5537,
+        "width": 0.29,
+        "height": 0.028,
         "hasLabel": true,
         "inputKind": "block",
         "continuationGroup": 15

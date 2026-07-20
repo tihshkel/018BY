@@ -27,7 +27,7 @@ const LINE = (x, y, width, height, continuationGroup = 1, extra = {}) => ({
  * Left: старт у внешнего края черты + сдвиг вправо к кругу; right: от начала черты вправо.
  * Порядок слотов 0–19 как в PDF/OCR (пары L/R по рядам).
  */
-const TEETH_DATE_TARGET_WIDTH = 0.12;
+const TEETH_DATE_TARGET_WIDTH = 0.165;
 /** Сдвиг левых дат вправо (ближе к кругу), без урезания года. */
 const TEETH_LEFT_DATE_SHIFT = 0.016;
 const teethLeft = (x, y) => ({
