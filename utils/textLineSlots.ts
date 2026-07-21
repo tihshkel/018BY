@@ -7,7 +7,6 @@ import {
   isBlankLineGuideAlbum,
   isKids48BottomDateLineSlot,
   isKidsMonthPage,
-  KIDS48_P8_DATE_LINE,
   KIDS48_BOTTOM_DATE_LINE,
   KIDS48_P1_BIRTH_DATE_LINE,
   KIDS48_P1_VALUE_LINE_X_INSET,
@@ -26,6 +25,10 @@ import {
   isPurpleMyDayPage,
   isBrownMyDayPage,
 } from '@/constants/album-text-margins';
+import {
+  getKids48EventDateLineNorm,
+  isKids48EventDateLineSlot,
+} from '@/constants/kids-48-event-date-slots';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { LINE_GUIDES } from '@/constants/line-guides';
 import {
@@ -1677,7 +1680,7 @@ function refineKids48Page1ValueSlotNorm(
   };
 }
 
-/** Нижняя линия «ДАТА» на event-страницах kids_48 (p8, p12, p14…) — iOS e24a739. */
+/** Нижняя линия «ДАТА» на event-страницах kids_48 (p12, p14…) — iOS e24a739. */
 function refineKids48BottomDateLineSlotNorm(
   page: number,
   norm: NormalizedLineSlot,
@@ -1686,28 +1689,10 @@ function refineKids48BottomDateLineSlotNorm(
   if (!isKids48BottomDateLineSlot('kids_48', page, slotIndex)) return norm;
   const strokeY = getKids48BottomDateLineStrokeY(page);
   if (strokeY == null) return norm;
-  const geometry = page === 8 ? KIDS48_P8_DATE_LINE : KIDS48_BOTTOM_DATE_LINE;
-  // iOS: y = штрих + strokeAtNormY; mapping делает y − height → верх полосы.
-  // p8 bake уже band-top без strokeAtNormY — не трогаем семантику p8.
-  if (page === 8) {
-    const band = KIDS_MONTH_LINE_BAND_HEIGHT;
-    return {
-      ...norm,
-      x: geometry.writableX,
-      width: geometry.writableWidth,
-      y: strokeY - band,
-      height: band,
-      hasLabel: false,
-      inputKind: 'line',
-      lineStrokeAtBottom: true,
-      textAnchorTop: true,
-      strokeAtNormY: false,
-    };
-  }
   return {
     ...norm,
-    x: geometry.writableX,
-    width: geometry.writableWidth,
+    x: KIDS48_BOTTOM_DATE_LINE.writableX,
+    width: KIDS48_BOTTOM_DATE_LINE.writableWidth,
     y: strokeY,
     height: KIDS_MONTH_LINE_BAND_HEIGHT,
     hasLabel: false,
@@ -1715,6 +1700,29 @@ function refineKids48BottomDateLineSlotNorm(
     lineStrokeAtBottom: true,
     textAnchorTop: true,
     strokeAtNormY: true,
+  };
+}
+
+/** p8/p9 «ДАТА» — калибровка iOS e24a739 (kids-48-event-date-slots). */
+function refineKids48EventDateLineSlotNorm(
+  page: number,
+  norm: NormalizedLineSlot,
+  slotIndex: number,
+): NormalizedLineSlot {
+  if (!isKids48EventDateLineSlot('kids_48', page, slotIndex)) return norm;
+  const custom = getKids48EventDateLineNorm(page, slotIndex);
+  if (!custom) return norm;
+  return {
+    ...norm,
+    x: custom.x,
+    y: custom.y,
+    width: custom.width,
+    height: custom.height,
+    hasLabel: false,
+    inputKind: 'line',
+    lineStrokeAtBottom: true,
+    textAnchorTop: true,
+    strokeAtNormY: false,
   };
 }
 
@@ -2014,6 +2022,10 @@ function refineNormalizedSlotForTextLayout(
 
   if (lineGuideId === 'kids_48' && page === 20) {
     return refineKids48Page20BaptismDateSlotNorm(page, norm, slotIndex);
+  }
+
+  if (lineGuideId === 'kids_48' && isKids48EventDateLineSlot(lineGuideId, page, slotIndex)) {
+    return refineKids48EventDateLineSlotNorm(page, norm, slotIndex);
   }
 
   if (lineGuideId === 'kids_48' && getKids48BottomDateLineStrokeY(page) != null) {

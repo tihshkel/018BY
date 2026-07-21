@@ -6972,6 +6972,60 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "maxLength": 7,
           "templateLineStart": 8,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_name",
+          "label": "Мама",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_mother_extra",
+          "label": "Ещё родственник (линия мамы)",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_name",
+          "label": "Папа",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_extra_a",
+          "label": "Ещё родственник (линия папы)",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_father_extra_b",
+          "label": "Ещё родственник (линия папы)",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 13,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "kids_48_p5_child_extra",
+          "label": "Ещё родственник",
+          "type": "text",
+          "required": false,
+          "maxLength": 7,
+          "templateLineStart": 14,
+          "templateLineCount": 1
         }
       ],
       "photoBlocks": [
@@ -7144,7 +7198,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
@@ -7282,7 +7336,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний левый крайний моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 0,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -7290,7 +7344,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний левый 1-й моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -7298,7 +7352,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний левый клык",
           "type": "date",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -7306,7 +7360,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний левый 2-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -7314,7 +7368,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний левый 1-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 4,
+          "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
@@ -7322,7 +7376,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний правый 1-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -7330,7 +7384,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний правый 2-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -7346,7 +7400,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний правый 1-й моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -7354,7 +7408,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Верхний правый крайний моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
@@ -7362,7 +7416,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний левый крайний моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 10,
+          "templateLineStart": 19,
           "templateLineCount": 1
         },
         {
@@ -7370,7 +7424,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний левый 1-й моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 16,
           "templateLineCount": 1
         },
         {
@@ -7378,7 +7432,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний левый клык",
           "type": "date",
           "required": false,
-          "templateLineStart": 12,
+          "templateLineStart": 14,
           "templateLineCount": 1
         },
         {
@@ -7386,7 +7440,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний левый 2-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 12,
           "templateLineCount": 1
         },
         {
@@ -7394,7 +7448,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний левый 1-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 14,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -7402,7 +7456,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний правый 1-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 15,
+          "templateLineStart": 11,
           "templateLineCount": 1
         },
         {
@@ -7410,7 +7464,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний правый 2-й резец",
           "type": "date",
           "required": false,
-          "templateLineStart": 16,
+          "templateLineStart": 13,
           "templateLineCount": 1
         },
         {
@@ -7418,7 +7472,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний правый клык",
           "type": "date",
           "required": false,
-          "templateLineStart": 17,
+          "templateLineStart": 15,
           "templateLineCount": 1
         },
         {
@@ -7426,7 +7480,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний правый 1-й моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 18,
+          "templateLineStart": 17,
           "templateLineCount": 1
         },
         {
@@ -7434,7 +7488,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Нижний правый крайний моляр",
           "type": "date",
           "required": false,
-          "templateLineStart": 19,
+          "templateLineStart": 18,
           "templateLineCount": 1
         },
         {
@@ -7450,7 +7504,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "В годик было зубов",
           "type": "number",
           "required": false,
-          "templateLineStart": 22,
+          "templateLineStart": 21,
           "templateLineCount": 1
         }
       ],
@@ -8100,7 +8154,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],
@@ -8169,7 +8223,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Дата",
           "type": "date",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 0,
           "templateLineCount": 1
         }
       ],

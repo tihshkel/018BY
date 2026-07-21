@@ -95,34 +95,123 @@ const TEETH_COUNT_SLOT = LINE(
 
 /**
  * Подписи под всеми 15 кругами дерева.
- * Геометрия от центров фото (pdf-circle-slots / kids_48_p5.json):
- * baseline (штрих) ≈ bottom круга + 0.008, полоса выше штриха.
- * inputKind line + lineStrokeAtBottom — имя сидит на линии под фото.
+ * Геометрия из pdf-circle-slots + viewport-offset/diameter как familyTreeSlots.ts.
  */
 function buildPage5FamilyTreeSlots() {
   const BAND = 0.028;
-  const GAP_BELOW_CIRCLE = 0.008;
-  /** [cx, circleBottom, width] — центр и низ круга, ширина имени */
-  const SPECS = [
-    [0.512, 0.315, 0.124], // child
-    [0.293, 0.465, 0.14], // mother_great_grandmother
-    [0.459, 0.585, 0.14], // mother_great_grandfather
-    [0.26, 0.657, 0.14], // mother_grandmother
-    [0.459, 0.789, 0.136], // mother_grandfather
-    [0.748, 0.37, 0.14], // father_great_grandmother
-    [0.929, 0.498, 0.14], // father_great_grandfather
-    [0.733, 0.569, 0.14], // father_grandmother
-    [0.906, 0.708, 0.14], // father_grandfather
-    [0.288, 0.86, 0.125], // extra_01 / мама
-    [0.414, 0.981, 0.115], // extra_02
-    [0.69, 0.763, 0.13], // extra_03 / папа
-    [0.837, 0.864, 0.14], // extra_04
-    [0.752, 0.992, 0.136], // extra_05
-    [0.584, 0.919, 0.131], // extra_06
-  ];
-  return SPECS.map(([cx, circleBottom, width], index) => {
+  /** Штрих чуть внутри низа круга — текст над штрихом, не «уезжает» вниз. */
+  const GAP_BELOW_CIRCLE = -0.004;
+  const NAME_WIDTH = 0.14;
+
+  const X_OFF = {
+    child: 0,
+    extra_06: 0.006,
+    mother_great_grandmother: 0,
+    mother_great_grandfather: 0,
+    mother_grandmother: 0,
+    mother_grandfather: 0,
+    extra_01: 0,
+    extra_02: 0,
+    father_great_grandmother: -0.003,
+    extra_05: -0.002,
+    father_grandmother: 0.014,
+    extra_03: 0.016,
+    extra_04: 0.012,
+    father_grandfather: 0.028,
+    father_great_grandfather: 0.04,
+  };
+  const Y_OFF = {
+    child: 0,
+    extra_06: 0.003,
+    mother_great_grandmother: 0,
+    mother_great_grandfather: 0,
+    mother_grandmother: 0,
+    mother_grandfather: 0,
+    extra_01: 0,
+    extra_02: 0,
+    father_great_grandmother: 0.002,
+    father_great_grandfather: 0.003,
+    father_grandmother: 0.005,
+    father_grandfather: 0.006,
+    extra_03: 0.006,
+    extra_04: 0.004,
+    extra_05: 0.003,
+  };
+  const FATHER_DIAMETER = {
+    father_great_grandmother: 1.06,
+    father_great_grandfather: 1.04,
+    father_grandmother: 1.07,
+    father_grandfather: 1.04,
+    extra_03: 1.07,
+    extra_04: 1.04,
+    extra_05: 1.06,
+  };
+
+  let circles = [];
+  try {
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const pdfCircles = require('../constants/generated/pdf-circle-slots.json');
+    circles = pdfCircles?.kids_48?.['5']?.slots ?? [];
+  } catch {
+    circles = [];
+  }
+
+  if (!circles.length) {
+    const SPECS = [
+      [0.512, 0.330, 0.124, 0, 0],
+      [0.293, 0.482, 0.14, 0, 0],
+      [0.459, 0.602, 0.14, 0, 0],
+      [0.26, 0.673, 0.14, 0, 0],
+      [0.459, 0.804, 0.136, 0, 0],
+      [0.748, 0.381, 0.14, -0.003, 0.002],
+      [0.929, 0.508, 0.14, 0.04, 0.003],
+      [0.733, 0.584, 0.14, 0.014, 0.005],
+      [0.906, 0.72, 0.14, 0.028, 0.006],
+      [0.288, 0.874, 0.125, 0, 0],
+      [0.414, 0.981, 0.115, 0, 0],
+      [0.69, 0.78, 0.13, 0.016, 0.006],
+      [0.837, 0.874, 0.14, 0.012, 0.004],
+      [0.752, 0.992, 0.136, -0.002, 0.003],
+      [0.584, 0.919, 0.131, 0.006, 0.003],
+    ];
+    return SPECS.map(([cx, circleBottom, width, xOff, yOff], index) => {
+      const adjCx = cx + xOff;
+      const adjBottom = circleBottom + yOff;
+      const strokeY = Math.min(0.992, adjBottom + GAP_BELOW_CIRCLE);
+      const height = Math.min(BAND, Math.max(0.02, strokeY - 0.01));
+      const y = strokeY - height;
+      const x = Math.max(0.02, Math.min(0.98 - width, adjCx - width / 2));
+      return {
+        x,
+        y,
+        width,
+        height,
+        hasLabel: false,
+        continuationGroup: index + 1,
+        inputKind: 'line',
+        lineStrokeAtBottom: true,
+        textAnchorTop: true,
+      };
+    });
+  }
+
+  return circles.map((slot, index) => {
+    const id = slot.slotId;
+    let diameter = Math.max(slot.width, slot.height);
+    if (slot.branch === 'father') {
+      diameter *= FATHER_DIAMETER[id] ?? 1.05;
+    } else if (slot.branch === 'child') {
+      diameter *= 0.98;
+    } else {
+      diameter *= 1.1;
+    }
+    const vx = slot.x + (X_OFF[id] ?? 0);
+    const vy = slot.y + (Y_OFF[id] ?? 0);
+    const cx = vx + diameter / 2;
+    const circleBottom = vy + diameter;
     const strokeY = Math.min(0.992, circleBottom + GAP_BELOW_CIRCLE);
-    const height = Math.min(BAND, strokeY - 0.01);
+    const height = Math.min(BAND, Math.max(0.02, strokeY - 0.01));
+    const width = id === 'child' ? 0.124 : NAME_WIDTH;
     const y = strokeY - height;
     const x = Math.max(0.02, Math.min(0.98 - width, cx - width / 2));
     return {
@@ -138,6 +227,7 @@ function buildPage5FamilyTreeSlots() {
     };
   });
 }
+
 
 function buildToothDateSlot(spec, continuationGroup) {
   return {
@@ -181,9 +271,9 @@ function bottomDateLine(continuationGroup = 1) {
   );
 }
 
-/** Дата под заголовком: y = верх полосы (штрих = y + height), как p9. */
-function topEventDateLine(y, continuationGroup = 1) {
-  return LINE(0.38, y, 0.5, TEETH_LINE_BAND, continuationGroup);
+/** Дата под заголовком: y = верх полосы (штрих = y + height). */
+function topEventDateLine(x, y, width, continuationGroup = 1) {
+  return LINE(x, y, width, TEETH_LINE_BAND, continuationGroup);
 }
 
 /**
@@ -278,8 +368,8 @@ const PAGE_3_SLOTS = [
   LINE(0.525, PAGE_3_KICKS_STROKE_Y - TEETH_LINE_BAND, 0.345, TEETH_LINE_BAND, 2),
 ];
 
-/** kids_48 p8 — штрих «ДАТА» (калибровка page_008.png ≈ 0.8877). */
-const PAGE_8_EVENT_DATE_STROKE_Y = 0.8877;
+/** kids_48 p8 — iOS e24a739 kids-48-event-date-slots (2223/2481). */
+const PAGE_8_EVENT_DATE_STROKE_Y = 2223 / 2481;
 const PAGE_8_EVENT_DATE_SLOT = LINE(
   1031 / 2481,
   PAGE_8_EVENT_DATE_STROKE_Y - TEETH_LINE_BAND,
@@ -332,8 +422,8 @@ function buildPage11GrowthWeightSlots() {
 }
 
 const TOP_EVENT_DATE_PAGES = {
-  // p9 «Первое купание» — штрих ≈ 0.1919 на page_009.png
-  '9': topEventDateLine(0.1919 - TEETH_LINE_BAND),
+  // p9 «Первое купание» — iOS e24a739 (463/2481).
+  '9': topEventDateLine(1031 / 2481, 463 / 2481 - TEETH_LINE_BAND, 582 / 2481),
 };
 
 /** Свободные фото-страницы с per-photo captions (как pregnancy «Памятные моменты»). */

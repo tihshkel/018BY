@@ -8,6 +8,7 @@ import {
   KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO,
   KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO,
   KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO,
+  KIDS_FAMILY_TREE_STROKE_CLEARANCE_RATIO,
   KIDS_GROWTH_FIXED_LINE_FONT_SIZE,
   KIDS_GROWTH_STROKE_CLEARANCE_RATIO,
   KIDS_MONTH_STROKE_CLEARANCE_RATIO,
@@ -534,10 +535,16 @@ function resolveKids48StrokeClearanceRatio(
   const page = slot.page;
   if (page === 10) return KIDS_TEETH_STROKE_CLEARANCE_RATIO;
   if (page === 11) return KIDS_GROWTH_STROKE_CLEARANCE_RATIO;
+  if (page === 5) return KIDS_FAMILY_TREE_STROKE_CLEARANCE_RATIO;
   if (typeof page === 'number' && getKids48BottomDateLineStrokeY(page) != null) {
     return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
   }
-  if (page === 9 && slot.index === 0) return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
+  // p8/p9 event «ДАТА» — тот же визуальный просвет, что у нижних дат.
+  if ((page === 8 || page === 9) && slot.index === 0) {
+    return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
+  }
+  if (page === 16 && slot.index === 0) return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
+  if (page === 20 && slot.index === 0) return KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO;
   if (typeof page === 'number' && isKidsMonthPage(page) && (slot.index == null || slot.index >= 1)) {
     return KIDS_MONTH_STROKE_CLEARANCE_RATIO;
   }
@@ -560,7 +567,7 @@ function getKids48StrokeBaselineTextTop(
   const clearance = resolveKids48StrokeClearanceRatio(slot);
   const page = slot.page;
   const amaticSink =
-    page === 1
+    page === 1 && (slot.index == null || slot.index >= 1)
       ? fittedSize * KIDS_P1_BASELINE_SINK_RATIO
       : page === 10 && (slot.index === 20 || slot.index === 21)
         ? -fittedSize * KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO
@@ -602,7 +609,16 @@ function kids48EventDateExtraGapPx(
     getKids48BottomDateLineStrokeY(slot.page) != null &&
     slot.index === 0
   ) {
-    return slot.lineHeight * KIDS_P12_DATE_LINE_GAP_BAND_RATIO;
+    return (
+      slot.lineHeight *
+      (KIDS_P12_DATE_LINE_GAP_BAND_RATIO + KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO)
+    );
+  }
+  if (
+    (slot.page === 16 || slot.page === 20) &&
+    slot.index === 0
+  ) {
+    return slot.lineHeight * KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO;
   }
   return 0;
 }
@@ -991,24 +1007,15 @@ export function resolveTemplateSlotTextAlign(
   if (isPregnancyBirthQuestionnaireCenteredBlockSlot(lineGuideId, slot)) {
     return 'center';
   }
-  // kids_48: нижняя/event «ДАТА» и даты у зубов — по центру слота (как на iOS визуально).
+  // kids_48: имена под кругами (p5/p21) — center; даты на линии — left (iOS e24a739).
   if (
     lineGuideId === 'kids_48' &&
     typeof slot.page === 'number' &&
     typeof slot.index === 'number'
   ) {
-    if (getKids48BottomDateLineStrokeY(slot.page) != null && slot.index === 0) {
-      return 'center';
-    }
-    if (slot.page === 9 && slot.index === 0) return 'center';
-    if (slot.page === 13 && slot.index === 0) return 'center';
     if (slot.page === 5 || slot.page === 21) return 'center';
-    if (slot.page === 10 && (slot.index === 20 || slot.index === 21)) {
-      return 'center';
-    }
-    if (isKids48TeethToothDateSlot(lineGuideId, slot.page, slot.index)) {
-      return 'center';
-    }
+    // Зубные даты и нижние «ДАТА» — left, как на iOS (без центрирования).
+    return 'left';
   }
   if (lineGuideId === 'holidays_birthday_60') {
     if ((slot.inputKind ?? 'line') !== 'block') return 'left';
@@ -1033,9 +1040,16 @@ function getPregnancyBirthQuestionnaireBlockTextNudge(
 function getPregnancyBirthQuestionnaireBlockTextTop(
   slot: Pick<TextLineSlot, 'y' | 'lineHeight' | 'page' | 'index' | 'inputKind' | 'normY' | 'normHeight'>,
   fontSize: number,
-  _lineGuideId?: string,
+  lineGuideId?: string,
   _capRatio = TEMPLATE_LINE_CAP_HEIGHT_RATIO,
 ): number {
+  // pregnancy_a5 (48 стр.): геометрический центр ячейки.
+  // lineHeight === fontSize (без leading 1.15) — иначе Amatic визуально «липнет» к верху.
+  // pregnancy_60 не трогаем (остаётся iOS e24a739).
+  if (lineGuideId === 'pregnancy_a5') {
+    const textLineHeight = Math.ceil(fontSize);
+    return slot.y + Math.max(0, (slot.lineHeight - textLineHeight) / 2);
+  }
   // iOS e24a739 resolveTemplateTextVerticalRatios для розовых ячеек анкеты:
   // centerRatio 0.34/0.36, fontOffsetRatio 0.78 (Amatic).
   const normH = slot.normHeight ?? 0;
@@ -1375,8 +1389,21 @@ export function getTemplateLineReadOnlyTextLayout(params: {
   const capRatio = getAlbumFontPreviewCapHeightRatio(fontId);
 
   if (isPregnancyBirthQuestionnairePinkBlockSlot(lineGuideId, slot)) {
-    // Оба альбома: шрифт не выше ~88% высоты ячейки — иначе Amatic обрезается снизу.
+    // Шрифт не выше ~88% высоты ячейки — иначе Amatic обрезается снизу.
     const cappedFont = Math.min(resolvedFontSize, slot.lineHeight * 0.88);
+    // pregnancy_a5 (48 стр.): контейнер = ячейка; lineHeight === fontSize; равные pad сверху/снизу.
+    if (lineGuideId === 'pregnancy_a5') {
+      const textLineHeight = Math.ceil(cappedFont);
+      const textTop = Math.max(0, (slot.lineHeight - textLineHeight) / 2);
+      return {
+        containerTop: slot.y,
+        containerHeight: slot.lineHeight,
+        textTop,
+        textLineHeight,
+        fontSize: cappedFont,
+        overflow: 'visible',
+      };
+    }
     const absoluteTop = getPregnancyBirthQuestionnaireBlockTextTop(
       slot,
       cappedFont,
@@ -1384,7 +1411,7 @@ export function getTemplateLineReadOnlyTextLayout(params: {
       capRatio,
     );
     const textLineHeight = Math.ceil(cappedFont * 1.15);
-    // iOS offset может увести top выше слота — visible, чтобы Amatic не клипался.
+    // pregnancy_60: iOS offset может увести top выше слота — visible, чтобы Amatic не клипался.
     const containerTop = Math.min(slot.y, absoluteTop);
     const containerBottom = Math.max(slot.y + slot.lineHeight, absoluteTop + textLineHeight);
     return {

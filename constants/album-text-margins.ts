@@ -67,11 +67,11 @@ export const KIDS48_P1_BIRTH_DATE_LINE = {
   strokeY: 0.76114,
 } as const;
 
-/** kids_48 p8 «Первый день дома» — как iOS e24a739 (PAGE_8_EVENT_DATE_SLOT). */
+/** kids_48 p8 «Первый день дома» — iOS e24a739 (2223/2481 на эталоне 300dpi). */
 export const KIDS48_P8_DATE_LINE = {
   writableX: 1031 / 2481,
   writableWidth: 582 / 2481,
-  strokeY: 0.8877,
+  strokeY: 2223 / 2481,
 } as const;
 
 /** Нижняя «ДАТА» на event-страницах (p12/14/15/17/18/19) — iOS e24a739. */
@@ -127,9 +127,11 @@ export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
 }
 
 /** Y штриха нижней линии «ДАТА» по номеру страницы kids_48. */
-/** Stroke Y нижней «ДАТА» — как iOS e24a739. */
+/**
+ * Stroke Y нижней «ДАТА» — как iOS e24a739.
+ * p8/p9 — отдельный event-date path (kids-48-event-date-slots), не сюда.
+ */
 const KIDS48_BOTTOM_DATE_STROKE_Y: Record<number, number> = {
-  8: KIDS48_P8_DATE_LINE.strokeY,
   14: KIDS48_BOTTOM_DATE_LINE.strokeY,
   15: KIDS48_BOTTOM_DATE_LINE.strokeY,
   17: KIDS48_BOTTOM_DATE_LINE.strokeY,
@@ -148,7 +150,6 @@ export function getKids48BottomDateLineStrokeY(page: number): number | null {
  */
 export function getKids48BottomDateLineSlotIndex(page: number): number | null {
   if (
-    page === 8 ||
     page === 12 ||
     page === 14 ||
     page === 15 ||
@@ -212,18 +213,25 @@ export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.165;
  */
 export const KIDS_STROKE_CLEARANCE_RATIO = 0.1;
 export const KIDS_MONTH_STROKE_CLEARANCE_RATIO = 0.22;
-export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.02;
-/** p1: Amatic с ascent=1 «висит» — опускаем baseline к штриху. */
-export const KIDS_P1_BASELINE_SINK_RATIO = 0.16;
+/**
+ * p1: на Android Amatic с includeFontPadding:false визуально «липнет» к штриху
+ * при iOS-константах (0.02/0.16). Держим заметный просвет снизу, как на скринах iOS.
+ */
+export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.22;
+/** p1: sink только для даты/времени/веса/роста (index≥1), не для имени. */
+export const KIDS_P1_BASELINE_SINK_RATIO = 0.04;
 export const KIDS_TEETH_STROKE_CLEARANCE_RATIO = 0.02;
 /** p10 даты у зубов — лёгкий sink к штриху. */
 export const KIDS_TEETH_DATE_BASELINE_SINK_RATIO = 0.04;
-/** p10 «первая чистка» / «в годик» — текст врезался в линию, подъём вверх. */
+/** p10 «первая чистка» / «в годик» — подъём вверх (iOS e24a739 = 0.22). */
 export const KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO = 0.22;
 export const KIDS_TEETH_FIXED_LINE_FONT_SIZE = 11;
 export const KIDS_GROWTH_STROKE_CLEARANCE_RATIO = 0.08;
 export const KIDS_GROWTH_FIXED_LINE_FONT_SIZE = 13;
-export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.03;
+/** Нижняя «ДАТА» / event dates — просвет над штрихом как на iOS-скринах. */
+export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.16;
+/** p5 «Семейное дерево» — имена чуть выше штриха под кругом. */
+export const KIDS_FAMILY_TREE_STROKE_CLEARANCE_RATIO = 0.14;
 
 /** p8/p9 event «ДАТА» — доп. зазор над штрихом (~5–8 px на эталоне 2481). */
 export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
@@ -231,7 +239,8 @@ export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
   5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
 export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
   8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
-export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0;
+export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO =
+  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
 
 /** «Мои зубки» (p10): «Первая чистка» — iOS e24a739 TEETH_FIRST_BRUSHING_SLOT. */
 export const KIDS48_P10_FIRST_BRUSHING_LINE = {

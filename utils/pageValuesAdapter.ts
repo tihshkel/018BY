@@ -2,6 +2,7 @@ import { clampFieldInput, getFieldCharacterLimit } from '@/utils/albumFieldLimit
 import type { Annotation } from '@/components/pdf-annotations';
 import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import { getTemplateTypographyProfile, KIDS48_TEETH_TOOTH_DATE_FONT_SIZE } from '@/constants/album-text-margins';
+import { resolveKids48TeethTemplateLineStart } from '@/constants/kids-48-teeth-slots';
 import type { AlbumPageField, AlbumPageSchema, PageInstance, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { getAlbumPageSchemaByPageId } from '@/constants/generated/album-page-schemas';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
@@ -230,7 +231,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       : text;
     if (!displayText) continue;
 
-    let startIndex = field.templateLineStart;
+    let startIndex = resolveKids48TeethTemplateLineStart(field, schema, lineGuideId);
     let lineCount = field.templateLineCount ?? 1;
     if (
       lineGuideId === 'diary_interior_brown' &&
@@ -273,11 +274,16 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       fontSize: layout.fontSize ?? fieldFontSize,
       textAlign: isPinkBirthBlock
         ? 'center'
-        : resolveTemplateSlotTextAlign(
-            lineGuideId,
-            slots[startIndex],
-            resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
-          ),
+        : lineGuideId === 'kids_48' &&
+            field.type === 'date' &&
+            schema.sourcePageNumber !== 5 &&
+            schema.sourcePageNumber !== 21
+          ? 'left'
+          : resolveTemplateSlotTextAlign(
+              lineGuideId,
+              slots[startIndex],
+              resolveFieldTextAlign(field.fieldId, values.fieldTextAlign),
+            ),
       templateLineStart: startIndex,
       templateLineCount: lineCount,
     });

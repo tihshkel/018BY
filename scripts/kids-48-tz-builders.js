@@ -71,12 +71,20 @@ const TEETH_LABELS_RU = [
 ];
 
 function buildTeethFields(lineGuideId, pageNumber, slots) {
+  /** iOS e24a739: форма left→right, bake-слоты — другой порядок L/R. */
+  const KIDS_48_TEETH_FIELD_SLOT_INDEX = [
+    8, 6, 4, 2, 1,
+    3, 5, 7, 9, 0,
+    19, 16, 14, 12, 10,
+    11, 13, 15, 17, 18,
+  ];
+  const slotCount = slots?.length ?? 22;
   const fields = TEETH_SLOT_IDS.map((id, index) => ({
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
     label: TEETH_LABELS_RU[index] ?? id.replace(/_/g, ' '),
     type: 'date',
     required: false,
-    templateLineStart: Math.min(index, (slots?.length ?? 1) - 1),
+    templateLineStart: KIDS_48_TEETH_FIELD_SLOT_INDEX[index] ?? Math.min(index, slotCount - 1),
     templateLineCount: 1,
   }));
   fields.push({
@@ -84,7 +92,8 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
     label: 'Первая чистка зубов',
     type: 'date',
     required: false,
-    templateLineStart: 20,
+    // p10: 20 дат (0–19) + первая чистка (20) + число зубов (21).
+    templateLineStart: Math.max(0, slotCount - 2),
     templateLineCount: 1,
   });
   fields.push({
@@ -92,7 +101,7 @@ function buildTeethFields(lineGuideId, pageNumber, slots) {
     label: 'В годик было зубов',
     type: 'number',
     required: false,
-    templateLineStart: 22,
+    templateLineStart: Math.max(0, slotCount - 1),
     templateLineCount: 1,
   });
   return fields;
@@ -147,6 +156,8 @@ function buildMonthPageFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
+  // Порядок = индексы circle slots / line slots (0–14), включая нижние extra_*.
+  // iOS e24a739 — 15 полей под 15 кругами.
   const relatives = [
     ['child_name', 'Имя ребенка'],
     ['mother_great_grandmother', 'Прабабушка (линия мамы)'],
@@ -157,6 +168,12 @@ function buildFamilyTreeFields(lineGuideId, pageNumber, slots) {
     ['father_great_grandfather', 'Прадедушка (линия папы)'],
     ['father_grandmother', 'Бабушка (линия папы)'],
     ['father_grandfather', 'Дедушка (линия папы)'],
+    ['mother_name', 'Мама'],
+    ['mother_extra', 'Ещё родственник (линия мамы)'],
+    ['father_name', 'Папа'],
+    ['father_extra_a', 'Ещё родственник (линия папы)'],
+    ['father_extra_b', 'Ещё родственник (линия папы)'],
+    ['child_extra', 'Ещё родственник'],
   ];
   return relatives.map(([id, label], index) => ({
     fieldId: `${lineGuideId}_p${pageNumber}_${id}`,
@@ -311,7 +328,7 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       photoBlocks = [FAMILY_TREE_PHOTO_BLOCK];
       break;
     case 8:
-      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
       photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 14:
@@ -331,11 +348,11 @@ function applyKids48TzManifest(pageNumber, slots, tzEntry, lineGuideId) {
       photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 18:
-      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
       photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 19:
-      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 1);
+      fields = buildDateField(lineGuideId, pageNumber, 'Дата', 0);
       photoBlocks = [DESIGNED_ALBUM_PHOTO_BLOCK];
       break;
     case 10:
