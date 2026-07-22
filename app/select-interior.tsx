@@ -50,7 +50,7 @@ const PREGNANCY_INTERIOR_OPTIONS: InteriorOption[] = [
   },
 ];
 
-/** Отдельные ASCII-превью: Unicode-пути страниц на Android часто дают один и тот же кеш/ассет. */
+/** ASCII-превью + ASCII-страницы interiors/{brown,purple}: Unicode-пути на Android схлопывают ассеты. */
 const DIARY_INTERIOR_PREVIEWS: Record<string, number> = {
   diary_interior_brown: require('@/assets/app-bundled/diary_brown_preview.png'),
   diary_interior_purple: require('@/assets/app-bundled/diary_purple_preview.png'),

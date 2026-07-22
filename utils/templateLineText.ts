@@ -1,7 +1,9 @@
 import {
   BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET,
   DIARY_LINE_FONT_OFFSET,
+  DIARY_AMATIC_VISUAL_SINK_RATIO,
   DIARY_DREAMS_LINE_FONT_OFFSET,
+  DIARY_UNIFORM_LINE_FONT_OFFSET,
   getKids48BottomDateLineStrokeY,
   getTemplateTypographyProfile,
   isKidsMonthPage,
@@ -465,11 +467,20 @@ export function isDiaryPeachCellField(
 
 function resolveUniformStrokeFontOffset(
   _fontId?: string,
-  _lineGuideId?: string,
+  lineGuideId?: string,
 ): number {
+  // Дневники: iOS e24a739 — Amatic sink без pregnancy CLEARANCE.
+  if (isDiaryInteriorLineGuide(lineGuideId)) {
+    return applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET);
+  }
   // Фиксированный offset (без cap шрифта): при смене Amatic→Nefelibata зазор
   // text→линия не «съезжает». Cap учитывается только в PDF baseline / Dreams.
-  return DIARY_LINE_FONT_OFFSET + TEMPLATE_LINE_STROKE_CLEARANCE_RATIO;
+  return DIARY_UNIFORM_LINE_FONT_OFFSET + TEMPLATE_LINE_STROKE_CLEARANCE_RATIO;
+}
+
+/** Amatic: математический baseline ≈ штрих, глифы визуально выше — sink как на iOS. */
+function applyDiaryAmaticVisualSink(fontOffsetRatio: number): number {
+  return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
 }
 
 /** «Мечты»: baseline на белом штрихе = previewCap шрифта (без CLEARANCE). */
@@ -847,7 +858,7 @@ function resolveTemplateTextVerticalRatios(
     }
 
     if (lineGuideId === 'kids_48') {
-      return { centerRatio: 0.5, fontOffsetRatio: DIARY_LINE_FONT_OFFSET };
+      return { centerRatio: 0.5, fontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET };
     }
 
     if (
@@ -867,7 +878,9 @@ function resolveTemplateTextVerticalRatios(
 
       return {
         centerRatio: isBrownCoverField || isPurpleCoverField ? 0.44 : 1,
-        fontOffsetRatio: DIARY_LINE_FONT_OFFSET,
+        fontOffsetRatio: applyDiaryAmaticVisualSink(
+          lineGuideId === 'diary_interior_purple' ? 0.92 : DIARY_LINE_FONT_OFFSET,
+        ),
       };
     }
 
@@ -1719,10 +1732,8 @@ export function getTemplateLineTextTop(
     usesStrokeBaselineLayout(slot, lineGuideId) &&
     !isPregnancyWeeklyTextLineSlot(lineGuideId, slot)
   ) {
-    // diary: slot.y уже штрих; pregnancy — верх полосы, штрих снизу.
-    const lineY = isDiaryInteriorLineGuide(lineGuideId)
-      ? slot.y
-      : slot.y + slot.lineHeight;
+    // iOS e24a739: slot.y = верх полосы; штрих = y + lineHeight (и для дневников).
+    const lineY = slot.y + slot.lineHeight;
     const lineFitted = Math.min(
       fontSize,
       fitFontSizeToSlot(fontSize, slot.lineHeight, inputKind, lineGuideId, slot),
@@ -1824,7 +1835,7 @@ export function getTemplateLineStrokeY(
     const isBrownPeachDreamsPage =
       lineGuideId === 'diary_interior_brown' && slot.page === 15;
     if (isBrownPeachDreamsPage && inputKind === 'line') {
-      return slot.y;
+      return slot.y + slot.lineHeight;
     }
     const isPeachCellField =
       inputKind === 'block' &&
@@ -1832,8 +1843,8 @@ export function getTemplateLineStrokeY(
       slot.normY >= 0.74 &&
       slot.normY <= 0.93;
     if (!isPeachCellField) {
-      // diary: slot.y = штрих PDF (см. getDiarySlotTopNormY).
-      return slot.y;
+      // iOS e24a739: slot.y = верх полосы (getDiarySlotTopNormY), штрих снизу.
+      return slot.y + slot.lineHeight;
     }
   }
 

@@ -256,8 +256,17 @@ export const KIDS48_P10_TEETH_COUNT_LINE = {
   strokeY: 0.8975,
 } as const;
 
-/** Коричневый/фиолетовый дневник — baseline на штрихе линии. */
-export const DIARY_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+/**
+ * Коричневый/фиолетовый дневник — baseline на штрихе (iOS e24a739).
+ * Не смешивать с DIARY_UNIFORM_LINE_FONT_OFFSET (kids/pregnancy Android).
+ */
+export const DIARY_LINE_FONT_OFFSET = 0.78;
+
+/**
+ * Доп. опускание Amatic на line-слотах дневника (доля fontSize) — паритет iOS e24a739.
+ * Математический baseline ≈ штрих, низ глифов визуально выше — sink выравнивает.
+ */
+export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
 /**
  * «Мечты» (brown p15): baseline на белом штрихе.
@@ -490,20 +499,20 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   },
   diary_interior_brown: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.62,
-    lineWidthSlackRatio: 0.96,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.86,
     blockMaxFontSize: 16,
   },
   diary_interior_purple: {
     fixedLineFontSize: 16,
-    charWidthRatio: 0.62,
-    lineWidthSlackRatio: 0.96,
+    charWidthRatio: 0.5,
+    lineWidthSlackRatio: 0.98,
     lineCenterRatio: 1,
-    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
+    lineFontOffsetRatio: 0.86,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.86,
     blockMaxFontSize: 16,

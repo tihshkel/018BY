@@ -207,7 +207,7 @@ export function getDiaryCoverById(id: string): DiaryCover | null {
   return Object.values(DIARY_COVERS_MAPPING).find(cover => cover.id === id) || null;
 }
 
-/** Страницы блоков: albums/diary/cover/in album/Блок коричневый|фиолетовый _180х240_print */
+/** Страницы блоков: albums/diary/interiors/{brown,purple} (ASCII — иначе Android схлопывает ассеты). */
 const brownBlockImages = DIARY_BROWN_PAGES;
 const purpleBlockImages = DIARY_PURPLE_PAGES;
 
@@ -247,8 +247,9 @@ export function getDiaryInteriorById(id: string): DiaryInterior | null {
 }
 
 async function warmDiaryInteriorAssets(images: unknown[]): Promise<void> {
-  // Прогреваем только ближайшие страницы — полный прогон 60/40 PNG лагает Android UI
-  const toWarm = images.slice(0, 4);
+  // Прогреваем первые страницы; полный 60/40 на Android тяжело для UI.
+  // Важно: URI всех страниц уже из Asset.fromModule (ASCII require), не только warm.
+  const toWarm = images.slice(0, 6);
   const maxParallel = 2;
   let index = 0;
 

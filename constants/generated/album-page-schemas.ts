@@ -14018,7 +14018,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 11,
-          "templateLineCount": 2
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -14524,18 +14524,18 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_brown_p13_hobbiesStory",
-          "label": "Расскажи о своих хобби",
+          "label": "Расскажи о своих хобби!",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p13_favoriteSports",
           "label": "Какими видами спорта тебе нравится заниматься?",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -14543,7 +14543,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Что ты больше всего любишь делать, когда остаёшься одна?",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -14551,7 +14551,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый мультфильм",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -14559,7 +14559,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Самый интересный сериал",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -14567,7 +14567,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая игрушка",
           "type": "text",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -14575,7 +14575,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимая настольная игра",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -14583,7 +14583,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Ты любишь петь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -14591,7 +14591,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Самая интересная книга",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -14599,7 +14599,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый писатель (если есть)",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -14607,16 +14607,24 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Какая музыка тебе больше всего нравится",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
+          "templateLineStart": 11,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p13_favoriteCompany",
           "label": "С кем тебе нравится проводить время?",
           "type": "text",
           "required": false,
-          "templateLineStart": 11,
-          "templateLineCount": 1
+          "templateLineStart": 13,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p13_recessActivity",
+          "label": "Чем ты любишь заниматься на переменах?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 15,
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -14690,35 +14698,43 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "fields": [
         {
           "fieldId": "diary_interior_brown_p15_dream1",
-          "label": "Мечта №1",
+          "label": "Мечта 1",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 2
+          "templateLineCount": 3
         },
         {
           "fieldId": "diary_interior_brown_p15_dream2",
-          "label": "Мечта №2",
+          "label": "Мечта 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 2
+          "templateLineStart": 3,
+          "templateLineCount": 3
         },
         {
           "fieldId": "diary_interior_brown_p15_dream3",
-          "label": "Мечта №3",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 2
-        },
-        {
-          "fieldId": "diary_interior_brown_p15_steps",
-          "label": "Что для этого делаю",
+          "label": "Мечта 3",
           "type": "text",
           "required": false,
           "templateLineStart": 6,
           "templateLineCount": 3
+        },
+        {
+          "fieldId": "diary_interior_brown_p15_dreamNotes",
+          "label": "Расскажи подробнее о мечтах",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 12
+        },
+        {
+          "fieldId": "diary_interior_brown_p15_secretDream",
+          "label": "Самое сокровенное",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 21,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -14750,6 +14766,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p16_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p16_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -14771,52 +14806,68 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 17,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p17_petName",
-          "label": "Кличка питомца",
+          "fieldId": "diary_interior_brown_p17_lovesAnimals",
+          "label": "Ты любишь животных?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p17_petType",
-          "label": "Вид / порода",
+          "fieldId": "diary_interior_brown_p17_favoriteAnimals",
+          "label": "Какие животные тебе нравятся больше всего?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_brown_p17_petAge",
-          "label": "Возраст",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p17_petCharacter",
-          "label": "Характер",
+          "fieldId": "diary_interior_brown_p17_hasPets",
+          "label": "У тебя есть питомцы?",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p17_petFood",
-          "label": "Любимая еда",
+          "fieldId": "diary_interior_brown_p17_petNames",
+          "label": "Напиши их клички:",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p17_petStory",
-          "label": "История знакомства",
+          "fieldId": "diary_interior_brown_p17_petBreed",
+          "label": "Какая порода у твоих питомцев?",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 3
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p17_howAppeared",
+          "label": "Расскажи историю, как они у вас появились:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p17_howCare",
+          "label": "Как ты ухаживаешь за своими питомцами?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p17_wantPet",
+          "label": "Если питомца у тебя нет, поделись, кого бы тебе хотелось завести:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -14963,6 +15014,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p20_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p20_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -14984,8 +15054,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 21,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p21_favoritePlace",
-          "label": "Любимое место",
+          "fieldId": "diary_interior_brown_p21_likesTravel",
+          "label": "Ты любишь путешествовать?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
@@ -14993,35 +15063,75 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
         },
         {
           "fieldId": "diary_interior_brown_p21_visitedCountries",
-          "label": "Страны, где была",
+          "label": "Перечисли страны, в которых ты успела побывать?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_brown_p21_dreamTrip",
-          "label": "Куда мечтаю поехать",
+          "fieldId": "diary_interior_brown_p21_likedMost",
+          "label": "Где тебе понравилось больше всего?",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p21_flewPlane",
+          "label": "Ты летала на самолете?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p21_bestTrip",
-          "label": "Лучшее путешествие",
+          "fieldId": "diary_interior_brown_p21_traveledTrain",
+          "label": "Ты путешествовала на поезде?",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 3
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p21_travelBuddy",
-          "label": "С кем люблю путешествовать",
+          "fieldId": "diary_interior_brown_p21_favoriteTransport",
+          "label": "Какой вид транспорта тебе понравился больше и почему?",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p21_beenToSea",
+          "label": "Ты была на море? Поделись своими впечатлениями",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p21_travelWith",
+          "label": "С кем ты чаще всего ездишь отдыхать?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
           "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p21_futureTrip",
+          "label": "Куда бы ты хотела поехать в будущем?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p21_impressions",
+          "label": "Поделись своими впечатлениями о путешествиях!",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
+          "templateLineCount": 4
         }
       ],
       "canDuplicate": false,
@@ -15110,6 +15220,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p23_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p23_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -15131,44 +15260,92 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 24,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p24_moodNote",
-          "label": "Моё настроение сегодня",
+          "fieldId": "diary_interior_brown_p24_whatMakesLaugh",
+          "label": "Что или кто тебя смешит?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p24_whatMadeHappy",
-          "label": "Что меня порадовало",
+          "fieldId": "diary_interior_brown_p24_likesComedies",
+          "label": "Ты любишь комедии?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p24_whatMadeSad",
-          "label": "Что расстроило",
+          "fieldId": "diary_interior_brown_p24_favoriteComedy",
+          "label": "Какая твоя любимая комедия?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_watchesYoutube",
+          "label": "Ты смотришь видео на Youtube?",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p24_gratitude",
-          "label": "За что я благодарна",
+          "fieldId": "diary_interior_brown_p24_funnyVideos",
+          "label": "Какие смешные видео тебе нравятся?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_funniestInFamily",
+          "label": "Кто самый веселый в вашей семье?",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p24_tomorrowWish",
-          "label": "Чего жду завтра",
+          "fieldId": "diary_interior_brown_p24_moodLift1",
+          "label": "Что поднимает настроение — 1",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_moodLift2",
+          "label": "Что поднимает настроение — 2",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_moodLift3",
+          "label": "Что поднимает настроение — 3",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_moodLift4",
+          "label": "Что поднимает настроение — 4",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 9,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p24_moodLift5",
+          "label": "Что поднимает настроение — 5",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -15200,6 +15377,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p25_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p25_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -15221,59 +15417,67 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 26,
       "fields": [
         {
-          "fieldId": "diary_interior_brown_p26_style",
-          "label": "Мой стиль",
+          "fieldId": "diary_interior_brown_p26_followsTrends",
+          "label": "Ты следишь за модными трендами?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_favoriteColors",
-          "label": "Любимые цвета в одежде",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 1,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_favoriteBrands",
-          "label": "Любимые бренды",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 2,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_favoriteOutfit",
-          "label": "Любимый наряд",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_accessories",
-          "label": "Любимые аксессуары",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p26_shopping",
-          "label": "Где люблю покупать одежду",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 5,
           "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_brown_p26_inspiration",
-          "label": "Кто вдохновляет мой стиль",
+          "fieldId": "diary_interior_brown_p26_comfortableClothes",
+          "label": "Какая одежда для тебя самая удобная?",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 2,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_colorCombos",
+          "label": "Какие сочетания цветов в одежде тебе нравятся?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_homeClothes",
+          "label": "Твоя любимая одежда для дома:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_partyClothes",
+          "label": "Любимая одежда для праздника:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_friendsClothes",
+          "label": "Любимая одежда для прогулки с друзьями:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_schoolClothes",
+          "label": "Любимая одежда для школы:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_brown_p26_jewelry",
+          "label": "Ты носишь украшения? Если да, то какие?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 14,
           "templateLineCount": 2
         }
       ],
@@ -15363,6 +15567,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p28_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p28_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -15415,14 +15638,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p31_favoriteSubject",
           "label": "Любимый предмет в школе",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -15430,7 +15653,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый учитель",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -15438,31 +15661,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Сколько человек в твоём классе?",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
+          "templateLineStart": 4,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p31_classmateFriends",
           "label": "С кем из одноклассников дружишь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
+          "templateLineStart": 6,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p31_schoolEvents",
           "label": "Какие школьные мероприятия тебе нравятся?",
           "type": "text",
           "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 1
+          "templateLineStart": 8,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p31_recessActivity",
           "label": "Чем лучше всего ты занимаешься на перемене?",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
@@ -15470,8 +15693,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Расскажи о самом интересном событии из твоей школьной жизни",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineStart": 11,
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -15558,6 +15781,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p33_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p33_things_that_made_smile",
@@ -15674,6 +15916,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_brown_p34_d2_l7",
+          "label": "Вторник: урок 7",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
           "templateLineCount": 1
         }
       ],
@@ -15948,43 +16198,11 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_brown_p37_d1_l4",
-          "label": "Пятница: урок 4",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d1_l5",
-          "label": "Пятница: урок 5",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d1_l6",
-          "label": "Пятница: урок 6",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d1_l7",
-          "label": "Пятница: урок 7",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 6,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_brown_p37_d2_l1",
           "label": "Суббота: урок 1",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -15992,7 +16210,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -16000,39 +16218,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 3",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d2_l4",
-          "label": "Суббота: урок 4",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d2_l5",
-          "label": "Суббота: урок 5",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 11,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d2_l6",
-          "label": "Суббота: урок 6",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 12,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_brown_p37_d2_l7",
-          "label": "Суббота: урок 7",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 13,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -16040,8 +16226,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Заметки на неделю",
           "type": "text",
           "required": false,
-          "templateLineStart": 14,
-          "templateLineCount": 2
+          "templateLineStart": 6,
+          "templateLineCount": 10
         }
       ],
       "canDuplicate": false,
@@ -16062,22 +16248,22 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p38_favoriteSweet",
           "label": "Что ты любишь из сладенького?",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
-          "templateLineCount": 1
+          "templateLineStart": 2,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_brown_p38_sweetTooth",
           "label": "Ты считаешь себя сладкоежкой",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
@@ -16085,7 +16271,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Ты уже пробовала готовить? Если да, то поделись рецептом",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
+          "templateLineStart": 5,
           "templateLineCount": 2
         },
         {
@@ -16093,16 +16279,16 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Ты любишь кушать в кафе? Если да, то что ты чаще всего заказываешь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineStart": 7,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p38_futureCookingPlans",
           "label": "Что ты чаще всего будешь готовить, когда вырастешь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineStart": 8,
+          "templateLineCount": 5
         }
       ],
       "canDuplicate": false,
@@ -16980,6 +17166,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p45_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p45_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17015,6 +17220,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p46_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p46_things_that_made_smile",
@@ -17054,6 +17278,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p47_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p47_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17089,6 +17332,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p48_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p48_things_that_made_smile",
@@ -17128,6 +17390,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p49_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p49_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17163,6 +17444,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p50_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p50_things_that_made_smile",
@@ -17202,6 +17502,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p51_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p51_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17237,6 +17556,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p52_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p52_things_that_made_smile",
@@ -17276,6 +17614,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p53_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p53_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17311,6 +17668,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p54_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p54_things_that_made_smile",
@@ -17350,6 +17726,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 5
         },
         {
+          "fieldId": "diary_interior_brown_p55_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_brown_p55_things_that_made_smile",
           "label": "Вещи, которые заставили сегодня улыбаться",
           "type": "text",
@@ -17385,6 +17780,25 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_brown_p56_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 6,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_brown_p56_things_that_made_smile",
@@ -17808,7 +18222,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 11,
-          "templateLineCount": 2
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -18169,20 +18583,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 9,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p9_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p9_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p9_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p9_things_that_made_smile",
@@ -18206,52 +18631,68 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 10,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p10_petName",
-          "label": "Кличка питомца",
+          "fieldId": "diary_interior_purple_p10_lovesAnimals",
+          "label": "Ты любишь животных?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p10_petType",
-          "label": "Вид / порода",
+          "fieldId": "diary_interior_purple_p10_favoriteAnimals",
+          "label": "Какие животные тебе нравятся больше всего?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p10_petAge",
-          "label": "Возраст",
+          "fieldId": "diary_interior_purple_p10_hasPets",
+          "label": "У тебя есть питомцы?",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p10_petCharacter",
-          "label": "Характер",
+          "fieldId": "diary_interior_purple_p10_petNames",
+          "label": "Напиши их клички:",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p10_petFood",
-          "label": "Любимая еда",
+          "fieldId": "diary_interior_purple_p10_petBreed",
+          "label": "Какая порода у твоих питомцев?",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p10_petStory",
-          "label": "История знакомства",
+          "fieldId": "diary_interior_purple_p10_howAppeared",
+          "label": "Расскажи историю, как они у вас появились:",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 3
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_purple_p10_howCare",
+          "label": "Как ты ухаживаешь за своими питомцами?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 7,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p10_wantPet",
+          "label": "Если питомца у тебя нет, поделись, кого бы тебе хотелось завести:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 2
         }
       ],
       "canDuplicate": false,
@@ -18267,20 +18708,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 11,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p11_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p11_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p11_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p11_things_that_made_smile",
@@ -18365,20 +18817,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 13,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p13_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p13_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p13_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p13_things_that_made_smile",
@@ -18402,44 +18865,84 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 14,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p14_moodNote",
-          "label": "Моё настроение сегодня",
+          "fieldId": "diary_interior_purple_p14_whatMakesLaugh",
+          "label": "Что или кто тебя смешит?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
+          "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_likesComedies",
+          "label": "Ты любишь комедии?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p14_whatMadeHappy",
-          "label": "Что меня порадовало",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 1,
-          "templateLineCount": 2
-        },
-        {
-          "fieldId": "diary_interior_purple_p14_whatMadeSad",
-          "label": "Что расстроило",
+          "fieldId": "diary_interior_purple_p14_favoriteComedy",
+          "label": "Твоя любимая комедия",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_watchesYoutube",
+          "label": "Ты смотришь смешные видео на youtube?",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 4,
           "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_purple_p14_gratitude",
-          "label": "За что я благодарна",
+          "fieldId": "diary_interior_purple_p14_funnyVideos",
+          "label": "Какие смешные видео тебе нравятся?",
           "type": "text",
           "required": false,
-          "templateLineStart": 5,
+          "templateLineStart": 6,
           "templateLineCount": 2
         },
         {
-          "fieldId": "diary_interior_purple_p14_tomorrowWish",
-          "label": "Чего жду завтра",
+          "fieldId": "diary_interior_purple_p14_funniestInFamily",
+          "label": "Кто самый веселый в вашей семье?",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 2
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_moodLift1",
+          "label": "Что поднимает настроение — 1",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 10,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_moodLift2",
+          "label": "Что поднимает настроение — 2",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 11,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_moodLift3",
+          "label": "Что поднимает настроение — 3",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 12,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p14_moodLift4",
+          "label": "Что поднимает настроение — 4",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 13,
+          "templateLineCount": 1
         }
       ],
       "canDuplicate": false,
@@ -18455,20 +18958,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 15,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p15_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p15_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p15_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p15_things_that_made_smile",
@@ -18492,60 +19006,76 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 16,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p16_style",
-          "label": "Мой стиль",
+          "fieldId": "diary_interior_purple_p16_followsTrends",
+          "label": "Ты следишь за модными трендами?",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_favoriteColors",
-          "label": "Любимые цвета в одежде",
+          "fieldId": "diary_interior_purple_p16_comfortableClothes",
+          "label": "Какая одежда для тебя самая удобная?",
           "type": "text",
           "required": false,
           "templateLineStart": 1,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_favoriteBrands",
-          "label": "Любимые бренды",
+          "fieldId": "diary_interior_purple_p16_colorCombos",
+          "label": "Какие сочетания цветов в одежде тебе нравятся?",
           "type": "text",
           "required": false,
           "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_favoriteOutfit",
-          "label": "Любимый наряд",
+          "fieldId": "diary_interior_purple_p16_homeClothes",
+          "label": "Твоя любимая одежда для дома:",
           "type": "text",
           "required": false,
           "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_accessories",
-          "label": "Любимые аксессуары",
+          "fieldId": "diary_interior_purple_p16_partyClothes",
+          "label": "Любимая одежда для праздника:",
           "type": "text",
           "required": false,
           "templateLineStart": 4,
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_shopping",
-          "label": "Где люблю покупать одежду",
+          "fieldId": "diary_interior_purple_p16_friendsClothes",
+          "label": "Любимая одежда для прогулки с друзьями:",
           "type": "text",
           "required": false,
           "templateLineStart": 5,
-          "templateLineCount": 2
+          "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p16_inspiration",
-          "label": "Кто вдохновляет мой стиль",
+          "fieldId": "diary_interior_purple_p16_schoolClothes",
+          "label": "Любимая одежда для школы:",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p16_jewelry",
+          "label": "Ты носишь украшения? Если да, то какие?",
           "type": "text",
           "required": false,
           "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineCount": 1
+        },
+        {
+          "fieldId": "diary_interior_purple_p16_fashionDreams",
+          "label": "Твои модные мечты",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 8,
+          "templateLineCount": 4
         }
       ],
       "canDuplicate": false,
@@ -18561,20 +19091,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 17,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p17_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p17_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p17_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p17_things_that_made_smile",
@@ -18659,20 +19200,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 19,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p19_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p19_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p19_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p19_things_that_made_smile",
@@ -18727,14 +19279,14 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "type": "text",
           "required": false,
           "templateLineStart": 0,
-          "templateLineCount": 1
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p22_favoriteSubject",
           "label": "Любимый предмет в школе",
           "type": "text",
           "required": false,
-          "templateLineStart": 1,
+          "templateLineStart": 2,
           "templateLineCount": 1
         },
         {
@@ -18742,7 +19294,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Любимый учитель",
           "type": "text",
           "required": false,
-          "templateLineStart": 2,
+          "templateLineStart": 3,
           "templateLineCount": 1
         },
         {
@@ -18750,31 +19302,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Сколько человек в твоём классе?",
           "type": "text",
           "required": false,
-          "templateLineStart": 3,
-          "templateLineCount": 1
+          "templateLineStart": 4,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p22_classmateFriends",
           "label": "С кем из одноклассников дружишь?",
           "type": "text",
           "required": false,
-          "templateLineStart": 4,
-          "templateLineCount": 1
+          "templateLineStart": 6,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p22_schoolEvents",
           "label": "Какие школьные мероприятия тебе нравятся?",
           "type": "text",
           "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 1
+          "templateLineStart": 8,
+          "templateLineCount": 2
         },
         {
           "fieldId": "diary_interior_purple_p22_recessActivity",
           "label": "Чем лучше всего ты занимаешься на перемене?",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -18782,8 +19334,8 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Расскажи о самом интересном событии из твоей школьной жизни",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
-          "templateLineCount": 2
+          "templateLineStart": 8,
+          "templateLineCount": 3
         }
       ],
       "canDuplicate": false,
@@ -18799,20 +19351,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 23,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p23_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p23_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p23_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p23_things_that_made_smile",
@@ -18993,11 +19556,19 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
+          "fieldId": "diary_interior_purple_p25_d1_l7",
+          "label": "Среда: урок 7",
+          "type": "text",
+          "required": false,
+          "templateLineStart": 6,
+          "templateLineCount": 1
+        },
+        {
           "fieldId": "diary_interior_purple_p25_d2_l1",
           "label": "Четверг: урок 1",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -19005,7 +19576,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -19013,7 +19584,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 3",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 9,
           "templateLineCount": 1
         },
         {
@@ -19021,20 +19592,12 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Четверг: урок 4",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 10,
           "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p25_d2_l5",
           "label": "Четверг: урок 5",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p25_d2_l6",
-          "label": "Четверг: урок 6",
           "type": "text",
           "required": false,
           "templateLineStart": 11,
@@ -19094,19 +19657,11 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "templateLineCount": 1
         },
         {
-          "fieldId": "diary_interior_purple_p26_d1_l6",
-          "label": "Пятница: урок 6",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 5,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p26_d2_l1",
           "label": "Суббота: урок 1",
           "type": "text",
           "required": false,
-          "templateLineStart": 6,
+          "templateLineStart": 5,
           "templateLineCount": 1
         },
         {
@@ -19114,7 +19669,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 2",
           "type": "text",
           "required": false,
-          "templateLineStart": 7,
+          "templateLineStart": 6,
           "templateLineCount": 1
         },
         {
@@ -19122,7 +19677,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 3",
           "type": "text",
           "required": false,
-          "templateLineStart": 8,
+          "templateLineStart": 7,
           "templateLineCount": 1
         },
         {
@@ -19130,7 +19685,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 4",
           "type": "text",
           "required": false,
-          "templateLineStart": 9,
+          "templateLineStart": 8,
           "templateLineCount": 1
         },
         {
@@ -19138,15 +19693,7 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
           "label": "Суббота: урок 5",
           "type": "text",
           "required": false,
-          "templateLineStart": 10,
-          "templateLineCount": 1
-        },
-        {
-          "fieldId": "diary_interior_purple_p26_d2_l6",
-          "label": "Суббота: урок 6",
-          "type": "text",
-          "required": false,
-          "templateLineStart": 11,
+          "templateLineStart": 9,
           "templateLineCount": 1
         }
       ],
@@ -20254,20 +20801,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 34,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p34_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p34_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p34_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p34_things_that_made_smile",
@@ -20291,20 +20849,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 35,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p35_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p35_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p35_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p35_things_that_made_smile",
@@ -20328,20 +20897,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 36,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p36_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p36_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p36_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p36_things_that_made_smile",
@@ -20365,20 +20945,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 37,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p37_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p37_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p37_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p37_things_that_made_smile",
@@ -20402,20 +20993,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 38,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p38_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p38_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p38_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p38_things_that_made_smile",
@@ -20439,20 +21041,31 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
       "sourcePageNumber": 39,
       "fields": [
         {
-          "fieldId": "diary_interior_purple_p39_date",
-          "label": "Дата",
-          "type": "date",
-          "required": false,
-          "templateLineStart": 0,
-          "templateLineCount": 1
-        },
-        {
           "fieldId": "diary_interior_purple_p39_day_story",
           "label": "Как прошёл сегодняшний день",
           "type": "text",
           "required": false,
           "templateLineStart": 0,
           "templateLineCount": 5
+        },
+        {
+          "fieldId": "diary_interior_purple_p39_mood",
+          "label": "Настроение",
+          "type": "radio",
+          "required": false,
+          "options": [
+            "😊",
+            "😢",
+            "😐",
+            "😃",
+            "😄",
+            "😅",
+            "😠",
+            "😟",
+            "😁"
+          ],
+          "templateLineStart": 5,
+          "templateLineCount": 1
         },
         {
           "fieldId": "diary_interior_purple_p39_things_that_made_smile",

@@ -116,58 +116,8 @@ function getNormalizedSlotsForPage(
           isBrownSpuriousQuestionRowSlot(page, slot, fromSlots)
         )
     );
-    if (lineGuideId === 'diary_interior_purple' && page === 5) {
-      return refinePurplePage5CareerSlots(page, filtered);
-    }
-    if (lineGuideId === 'diary_interior_brown' && page === 6) {
-      return refineBrownPage6CareerSlots(page, filtered);
-    }
-    if (lineGuideId === 'diary_interior_purple' && (page === 6 || page === 7)) {
-      return refinePurpleParentWishSlots(page, filtered);
-    }
-    if (lineGuideId === 'diary_interior_brown' && (page === 7 || page === 8 || page === 11 || page === 12)) {
-      return refineBrownParentWishSlots(page, filtered);
-    }
-    if (
-      (lineGuideId === 'diary_interior_purple' && page === 8) ||
-      (lineGuideId === 'diary_interior_brown' && page === 13)
-    ) {
-      return refineDiaryHobbySlots(lineGuideId, page, filtered);
-    }
-    if (lineGuideId === 'diary_interior_brown' && page === 15) {
-      return refineDiaryDreamsSlots(lineGuideId, page, filtered);
-    }
-    if (lineGuideId === 'diary_interior_brown' && page === 26) {
-      return refineBrownPage26JewelryContinuation(filtered);
-    }
-    if (lineGuideId === 'diary_interior_brown' && page === 38) {
-      return refineBrownPage38FoodContinuation(filtered);
-    }
-    if (
-      lineGuideId === 'diary_interior_brown' &&
-      page >= 39 &&
-      page <= 44
-    ) {
-      return refineBrownFriendQuestionnaireNameSlot(filtered);
-    }
-    if (isPurpleMyDayPage(lineGuideId, page)) {
-      return refinePurpleMyDaySlots(filtered);
-    }
-    if (isBrownMyDayPage(lineGuideId, page)) {
-      return refineBrownMyDaySlots(filtered);
-    }
-    if (
-      lineGuideId === 'diary_interior_purple' &&
-      (page === 24 || page === 25 || page === 26)
-    ) {
-      return refinePurpleWeeklyTwoDaySlots(filtered);
-    }
-    if (
-      lineGuideId === 'diary_interior_purple' &&
-      PURPLE_FRIEND_QUESTIONNAIRE_PAGES.has(page)
-    ) {
-      return refinePurpleFriendWishSlots(page, filtered);
-    }
+    // Паритет iOS e24a739: слоты = LINE_SLOTS/overrides JSON (+ фильтр мусорных штрихов выше).
+    // HEAD-only refineMyDay/Hobby/Dreams/… переписывали x/y и ломали совпадение с iOS.
     return filtered;
   }
 
@@ -226,9 +176,9 @@ function isDiaryInteriorLineGuide(lineGuideId: string): boolean {
   );
 }
 
-/** В PDF norm.y — координата штриха; слот якорится на штрихе (baseline = y). */
+/** В PDF norm.y — координата штриха (низ полосы); слот лежит над линией — как на iOS e24a739. */
 function getDiarySlotTopNormY(norm: NormalizedLineSlot): number {
-  return norm.y;
+  return norm.y - norm.height;
 }
 
 /** Стр. 6 «Твоя анкета»: лишние линии над первым вопросом и peach-блоки внизу. */

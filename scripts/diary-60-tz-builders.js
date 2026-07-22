@@ -9,18 +9,28 @@ const {
   PARENT_MOM_FIELDS,
   PARENT_DAD_FIELDS,
   HOBBY_FIELDS,
+  BROWN_HOBBY_FIELDS,
   PETS_FIELDS,
+  BROWN_PETS_FIELDS,
   SOCIAL_NETWORKS_FIELDS,
   FRIEND_SOCIAL_FIELDS,
   PURPLE_FRIEND_FIELDS,
-  MOOD_FIELDS,
+  BROWN_MOOD_FIELDS,
+  PURPLE_MOOD_FIELDS,
   STYLE_FIELDS,
+  BROWN_STYLE_FIELDS,
+  PURPLE_STYLE_FIELDS,
+  PURPLE_PETS_FIELDS,
+  BROWN_FOOD_FIELDS,
   FIRST_LOVE_FIELDS,
   SCHOOL_LIFE_FIELDS,
   SUNDAY_SCHEDULE_FIELDS,
   GRANDPARENT_FIELDS,
   DREAMS_FIELDS,
+  BROWN_DREAMS_FIELDS,
   TRAVEL_FIELDS,
+  BROWN_TRAVEL_FIELDS,
+  MY_DAY_MOOD_OPTIONS,
   DIARY_RULES_FIELDS,
   WEEKLY_SCHEDULE_DAY_PAIRS,
   BROWN_WEEKLY_SCHEDULE_PAGES,
@@ -58,6 +68,8 @@ const FREE_PHOTO_NOTES_BLOCK = {
     },
   ],
 };
+
+const MOOD_OPTIONS = MY_DAY_MOOD_OPTIONS;
 
 const FRIEND_FIELDS = [
   ['name', 'Имя', 'text', 1],
@@ -105,14 +117,7 @@ function friendFieldsSpecForPage(lineGuideId, pageNumber, slots) {
   return PURPLE_FRIEND_FIELDS;
 }
 
-const FOOD_FIELDS = [
-  ['favoriteFood', 'Перечисли самую вкусную для тебя еду', 'text', 1],
-  ['favoriteSweet', 'Что ты любишь из сладенького?', 'text', 1],
-  ['sweetTooth', 'Ты считаешь себя сладкоежкой', 'text', 1],
-  ['recipeStory', 'Ты уже пробовала готовить? Если да, то поделись рецептом', 'text', 2],
-  ['favoriteCafeOrder', 'Ты любишь кушать в кафе? Если да, то что ты чаще всего заказываешь?', 'text', 2],
-  ['futureCookingPlans', 'Что ты чаще всего будешь готовить, когда вырастешь?', 'text', 2],
-];
+const FOOD_FIELDS = BROWN_FOOD_FIELDS;
 
 function buildField(lineGuideId, pageNumber, id, label, type, start, count, slots) {
   const maxStart = Math.max(0, (slots?.length ?? 1) - 1);
@@ -169,9 +174,12 @@ function buildDiaryOwnerFields(lineGuideId, pageNumber, slots) {
 function buildMyDayFields(lineGuideId, pageNumber, slots) {
   const maxLines = slots?.length ?? 12;
 
+  // Purple MyDay layout has no printed date — story starts at slot 0.
   if (lineGuideId === 'diary_interior_purple') {
+    const storyCount = Math.min(5, Math.max(1, maxLines - 5));
+    const moodStart = Math.min(storyCount, maxLines - 1);
+    const smileStart = Math.min(moodStart + 1, maxLines - 1);
     return [
-      buildField(lineGuideId, pageNumber, 'date', 'Дата', 'date', 0, 1, slots),
       buildField(
         lineGuideId,
         pageNumber,
@@ -179,17 +187,26 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
         'Как прошёл сегодняшний день',
         'text',
         0,
-        Math.min(5, Math.max(1, maxLines)),
+        storyCount,
         slots,
       ),
+      {
+        fieldId: `${lineGuideId}_p${pageNumber}_mood`,
+        label: 'Настроение',
+        type: 'radio',
+        required: false,
+        options: MOOD_OPTIONS,
+        templateLineStart: moodStart,
+        templateLineCount: 1,
+      },
       buildField(
         lineGuideId,
         pageNumber,
         'things_that_made_smile',
         'Вещи, которые заставили сегодня улыбаться',
         'text',
-        Math.min(6, maxLines - 1),
-        Math.min(4, Math.max(1, maxLines - 6)),
+        smileStart,
+        Math.min(4, Math.max(1, maxLines - smileStart)),
         slots,
       ),
     ];
@@ -207,6 +224,15 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
       Math.min(5, Math.max(1, maxLines - 4)),
       slots
     ),
+    {
+      fieldId: `${lineGuideId}_p${pageNumber}_mood`,
+      label: 'Настроение',
+      type: 'radio',
+      required: false,
+      options: MOOD_OPTIONS,
+      templateLineStart: Math.min(6, maxLines - 1),
+      templateLineCount: 1,
+    },
     buildField(
       lineGuideId,
       pageNumber,
@@ -419,11 +445,15 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'HobbyTemplate' || template === 'HobbyQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, HOBBY_FIELDS);
+    const hobbySpec =
+      lineGuideId === 'diary_interior_brown' ? BROWN_HOBBY_FIELDS : HOBBY_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, hobbySpec);
   }
 
   if (template === 'PetsTemplate' || template === 'PetsQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, PETS_FIELDS);
+    const petsSpec =
+      lineGuideId === 'diary_interior_brown' ? BROWN_PETS_FIELDS : PURPLE_PETS_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, petsSpec);
   }
 
   if (template === 'SocialNetworksTemplate') {
@@ -431,11 +461,15 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'MoodTemplate' || template === 'MoodQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, MOOD_FIELDS);
+    const moodSpec =
+      lineGuideId === 'diary_interior_purple' ? PURPLE_MOOD_FIELDS : BROWN_MOOD_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, moodSpec);
   }
 
   if (template === 'StyleTemplate' || template === 'StyleQuestionnaireTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, STYLE_FIELDS);
+    const styleSpec =
+      lineGuideId === 'diary_interior_brown' ? BROWN_STYLE_FIELDS : PURPLE_STYLE_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, styleSpec);
   }
 
   if (template === 'FirstLoveTemplate') {
@@ -447,11 +481,15 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
   }
 
   if (template === 'DreamsTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, DREAMS_FIELDS);
+    const dreamsSpec =
+      lineGuideId === 'diary_interior_brown' ? BROWN_DREAMS_FIELDS : DREAMS_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, dreamsSpec);
   }
 
   if (template === 'TravelTemplate') {
-    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, TRAVEL_FIELDS);
+    const travelSpec =
+      lineGuideId === 'diary_interior_brown' ? BROWN_TRAVEL_FIELDS : TRAVEL_FIELDS;
+    return buildStructuredFromSpec(pageNumber, slots, lineGuideId, tzEntry, travelSpec);
   }
 
   if (template === 'UserQuestionnaireTemplate') {

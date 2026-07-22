@@ -911,14 +911,20 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           setMeta(project);
           setEffectiveProjectId(projectId);
 
+          const albumKey = project.interiorType ?? project.albumId ?? '';
+          const lineGuideForImages = resolveLineGuideId(albumKey, project.category);
           let imageUris: string[] = [];
-          if (savedImages) {
+          // Дневники: всегда из бандла (ASCII require). Старые @project_images_ с Unicode-путями
+          // на Android схлопываются в один ассет → «фиолетовый вместо коричневого» / пустые стр.
+          if (lineGuideForImages.startsWith('diary_interior_')) {
+            imageUris = await loadImagesForAlbum(lineGuideForImages, project.category);
+            void AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
+          } else if (savedImages) {
             imageUris = await normalizeBlankImageUris(
-              project.interiorType ?? project.albumId ?? '',
+              albumKey,
               project.category,
               JSON.parse(savedImages),
             );
-            const albumKey = project.interiorType ?? project.albumId ?? '';
             const canonicalPages = await canonicalizeProjectPageImages({
               albumId: albumKey,
               category: project.category,
@@ -929,10 +935,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             }
             void AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
           } else {
-            imageUris = await loadImagesForAlbum(
-              project.interiorType ?? project.albumId ?? '',
-              project.category
-            );
+            imageUris = await loadImagesForAlbum(albumKey, project.category);
           }
           setImages(imageUris);
 
@@ -958,7 +961,8 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               : nextInstances;
           let mergedImages =
             memorySnapshotAfterLoad?.images?.length &&
-            memorySnapshotAfterLoad.images.length >= imageUris.length
+            memorySnapshotAfterLoad.images.length >= imageUris.length &&
+            !lgId.startsWith('diary_interior_')
               ? memorySnapshotAfterLoad.images
               : imageUris;
 
@@ -1147,19 +1151,21 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           loadPageValuesMap((k) => AsyncStorage.getItem(k), newProjectId),
         ]);
 
-        const imageUris = imageUrisRaw
-          ? await normalizeBlankImageUris(
-              interiorType ?? albumId,
-              celebration,
-              JSON.parse(imageUrisRaw) as string[],
-            )
-          : (await loadImagesForAlbum(albumId, celebration)) ?? [];
+        const lgIdForNew = resolveLineGuideId(albumId, celebration);
+        const imageUris =
+          lgIdForNew.startsWith('diary_interior_')
+            ? (await loadImagesForAlbum(lgIdForNew, celebration)) ?? []
+            : imageUrisRaw
+              ? await normalizeBlankImageUris(
+                  interiorType ?? albumId,
+                  celebration,
+                  JSON.parse(imageUrisRaw) as string[],
+                )
+              : (await loadImagesForAlbum(albumId, celebration)) ?? [];
 
-        if (imageUrisRaw) {
-          await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
-        }
+        await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
 
-        const lgId = resolveLineGuideId(albumId, celebration);
+        const lgId = lgIdForNew;
         const loadedInstances =
           loadedInstancesRaw.length > 0
             ? loadedInstancesRaw
