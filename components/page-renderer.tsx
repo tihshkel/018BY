@@ -69,6 +69,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   const viewRef = useRef<View>(null);
   const onReadyRef = useRef(onReady);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [bgRetryKey, setBgRetryKey] = useState(0);
+  const bgRetryCountRef = useRef(0);
   const [loadedAnnotationImageUris, setLoadedAnnotationImageUris] = useState<Set<string>>(new Set());
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(
     sourceWidthProp && sourceHeightProp
@@ -94,6 +96,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   useEffect(() => {
     setIsImageLoaded(false);
     setLoadedAnnotationImageUris(new Set());
+    bgRetryCountRef.current = 0;
+    setBgRetryKey(0);
     setSourceSize(
       sourceWidthProp && sourceHeightProp
         ? { width: sourceWidthProp, height: sourceHeightProp }
@@ -230,11 +234,14 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         ]}
       >
         <Image
+          key={`${imageUri}::${bgRetryKey}`}
           source={{ uri: imageUri }}
           style={styles.image}
           contentFit="contain"
           contentPosition="center"
           {...ALBUM_TEMPLATE_DISPLAY_PROPS}
+          cachePolicy="memory-disk"
+          recyclingKey={`${imageUri}::${bgRetryKey}`}
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;
@@ -247,6 +254,15 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
             setIsImageLoaded(true);
           }}
           onError={() => {
+            // Retry 2 раза: на Android после логина первый fetch HTTPS часто падает до прогрева сети/кэша.
+            if (bgRetryCountRef.current < 2) {
+              bgRetryCountRef.current += 1;
+              const attempt = bgRetryCountRef.current;
+              setTimeout(() => {
+                setBgRetryKey((k) => k + 1);
+              }, 250 * attempt);
+              return;
+            }
             setIsImageLoaded(true);
             onImageError?.();
           }}

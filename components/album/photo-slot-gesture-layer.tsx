@@ -23,7 +23,7 @@ import {
 } from '@/utils/photoSlotTransform';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
-import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
+import { isManagedAlbumPhotoUri, isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
 
@@ -256,7 +256,9 @@ function PhotoSlotFilled({
           contentFit="cover"
           recyclingKey={uri}
           onError={() => {
-            if (!isRemotePhotoUri(uri)) {
+            // Не трогаем remote HTTPS и чужие file:// (с другого устройства):
+            // иначе слот стирается при первом open и уезжает пустым в облако.
+            if (isManagedAlbumPhotoUri(uri) && !isRemotePhotoUri(uri)) {
               onRemovePhoto?.();
             }
           }}

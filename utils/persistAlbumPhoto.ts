@@ -142,14 +142,17 @@ async function resolveStoredPhotoUri(
   uri: string,
   relativeKey: string,
 ): Promise<string | null> {
+  // HTTPS из облака — всегда оставляем (не обнуляем при offline/sanitize).
   if (isRemotePhotoUri(uri)) {
-    return (await photoUriExists(uri)) ? uri : null;
+    return uri;
   }
 
   if (isManagedAlbumPhotoUri(uri)) {
     if (await photoUriExists(uri)) return uri;
     const fallback = await findManagedPhotoByKey(relativeKey);
-    return fallback;
+    if (fallback) return fallback;
+    // Чужой/пропавший локальный путь — не затираем слот (иначе push убьёт облако).
+    return uri;
   }
 
   if (await photoUriExists(uri)) {
@@ -159,6 +162,7 @@ async function resolveStoredPhotoUri(
   const fallback = await findManagedPhotoByKey(relativeKey);
   if (fallback) return fallback;
 
+  // Локальный URI с другого устройства / уже удалённый кэш: НЕ обнуляем.
   return uri;
 }
 

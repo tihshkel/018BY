@@ -47,6 +47,10 @@ import {
 } from '@/utils/pageStorage';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
 import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
+import {
+  canonicalizeProjectPageImages,
+  prefetchRemotePhotoUris,
+} from '@/utils/crossDeviceMedia';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
@@ -733,14 +737,20 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               parsedImages,
             );
             const repaired = await repairProjectImageUris(albumIdForImages, normalized);
-            imageUris = repaired;
+            const canonicalPages = await canonicalizeProjectPageImages({
+              albumId: albumIdForImages,
+              category: enrichedProject.category,
+              imageUris: repaired,
+            });
+            imageUris = canonicalPages.uris;
             if (
+              canonicalPages.changed ||
               repaired.length !== parsedImages.length ||
               repaired.some((uri, index) => uri !== normalized[index])
             ) {
               void AsyncStorage.setItem(
                 `@project_images_${projectId}`,
-                JSON.stringify(repaired),
+                JSON.stringify(imageUris),
               );
             }
           } else {
@@ -799,12 +809,27 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             lgId.startsWith('diary_interior_') &&
             imageUris.length >= getAlbumPageCount(lgId) &&
             imageUris.filter(Boolean).length > (memorySnapshotAfterLoad?.images?.filter(Boolean).length ?? 0);
-          const mergedImages = diaryFullReload
+          let mergedImages = diaryFullReload
             ? imageUris
             : memorySnapshotAfterLoad?.images?.length &&
                 memorySnapshotAfterLoad.images.length >= imageUris.length
               ? memorySnapshotAfterLoad.images
               : imageUris;
+
+          {
+            const canonicalMerged = await canonicalizeProjectPageImages({
+              albumId: albumIdForImages,
+              category: enrichedProject.category,
+              imageUris: mergedImages,
+            });
+            if (canonicalMerged.changed) {
+              mergedImages = canonicalMerged.uris;
+              void AsyncStorage.setItem(
+                `@project_images_${projectId}`,
+                JSON.stringify(mergedImages),
+              );
+            }
+          }
 
           let finalValues = mergedValues;
           const birthdayMigrated = migrateBirthdayPageValuesMap(
@@ -865,6 +890,24 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               projectId,
               finalValues,
             );
+          }
+
+          // После логина на другом устройстве HTTPS-фото уже в page_values — прогреем кэш.
+          {
+            const remotePhotoUris: string[] = [];
+            for (const values of Object.values(finalValues)) {
+              for (const block of Object.values(values.photoBlocks ?? {})) {
+                for (const slot of block?.slots ?? []) {
+                  if (typeof slot === 'string') remotePhotoUris.push(slot);
+                }
+              }
+              for (const el of values.freeElements ?? []) {
+                if (el.type === 'image' && typeof el.content === 'string') {
+                  remotePhotoUris.push(el.content);
+                }
+              }
+            }
+            void prefetchRemotePhotoUris([...mergedImages, ...remotePhotoUris]);
           }
 
           setInstances(mergedInstances);

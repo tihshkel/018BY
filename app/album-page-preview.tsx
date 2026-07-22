@@ -49,6 +49,7 @@ import {
   getAlbumImageUrisForViewing,
   getBlankInteriorPageUri,
 } from "@/utils/albumImages";
+import { isDeviceLocalMediaUri } from "@/utils/crossDeviceMedia";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { createEmptyPageValues } from "@/utils/pageStorage";
 import { computePageStatus } from "@/utils/pageStatus";
@@ -543,6 +544,34 @@ export default function AlbumPagePreviewScreen() {
                 onReady={handlePreviewReady}
                 onSourceSize={handleSourceSize}
                 onImageError={() => {
+                  if (baseImageUri && displayImageUri !== baseImageUri) {
+                    setDisplayImageUri(baseImageUri);
+                    return;
+                  }
+                  // Мёртвый file:// с другого устройства → HTTPS шаблона.
+                  const albumKey =
+                    project.meta?.interiorType ||
+                    project.meta?.albumId ||
+                    interiorType ||
+                    "";
+                  if (
+                    albumKey &&
+                    imageUri &&
+                    isDeviceLocalMediaUri(imageUri) &&
+                    instance
+                  ) {
+                    void getAlbumImageUrisForViewing(albumKey).then((uris) => {
+                      const idx =
+                        typeof instance.imageIndex === "number"
+                          ? instance.imageIndex
+                          : Math.max(0, (instance.sourcePageNumber ?? 1) - 1);
+                      const next = uris[idx];
+                      if (next && next !== imageUri) {
+                        setDisplayImageUri(next);
+                      }
+                    });
+                    return;
+                  }
                   if (
                     isBlankTemplatePage &&
                     blankPageFallbackUri &&
