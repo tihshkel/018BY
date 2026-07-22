@@ -1,6 +1,12 @@
 import { getSupabase } from '@/lib/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 
+import { persistAlbumPhotoUri } from '@/utils/persistAlbumPhoto';
+import {
+  canonicalizeProjectPageImages,
+  isDeviceLocalMediaUri,
+} from '@/utils/crossDeviceMedia';
+
 const BUCKET = 'account-images';
 
 const MAX_UPLOAD_RETRIES = 3;
@@ -36,12 +42,38 @@ export async function uploadImageToStorage(
   const supabase = getSupabase();
   if (!supabase) return null;
 
-  if (localUri.startsWith('https://')) return localUri;
-  if (!localUri.startsWith('file://') && !localUri.startsWith('/') && !localUri.startsWith('content://')) {
+  if (localUri.startsWith('https://') || localUri.startsWith('http://')) {
+    return localUri;
+  }
+
+  // iOS photo library / content → сначала в documentDirectory.
+  let uploadUri = localUri;
+  if (
+    localUri.startsWith('ph://') ||
+    localUri.startsWith('assets-library://') ||
+    localUri.startsWith('ph-upload://') ||
+    localUri.startsWith('content://')
+  ) {
+    try {
+      uploadUri = await persistAlbumPhotoUri(
+        localUri,
+        `sync/${accessCode}/${projectId}/${index}`,
+      );
+    } catch (error) {
+      console.warn('[SupabaseStorage] Failed to materialize media URI', error);
+      return null;
+    }
+  }
+
+  if (
+    !uploadUri.startsWith('file://') &&
+    !uploadUri.startsWith('/') &&
+    !uploadUri.startsWith('content://')
+  ) {
     return null;
   }
 
-  const uri = localUri.startsWith('/') ? `file://${localUri}` : localUri;
+  const uri = uploadUri.startsWith('/') ? `file://${uploadUri}` : uploadUri;
 
   try {
     // Кэш Expo (ExponentAsset-*) может быть уже очищен к моменту синхронизации — не читать несуществующий файл
@@ -207,9 +239,7 @@ const BYTE_COPY_CHUNK = 65536; // 64KB — копируем порциями, м
 const ALBUM_USER_PHOTO_INDEX_BASE = 10000;
 
 function isLocalMediaUri(uri: string): boolean {
-  return (
-    uri.startsWith('file://') || uri.startsWith('/') || uri.startsWith('content://')
-  );
+  return isDeviceLocalMediaUri(uri);
 }
 
 type UriResolver = {
@@ -223,7 +253,9 @@ function createUriResolver(accessCode: string, projectId: string): UriResolver {
   return {
     async resolve(uri: string): Promise<{ uri: string; changed: boolean }> {
       if (!uri || typeof uri !== 'string') return { uri, changed: false };
-      if (uri.startsWith('https://')) return { uri, changed: false };
+      if (uri.startsWith('https://') || uri.startsWith('http://')) {
+        return { uri, changed: false };
+      }
       if (!isLocalMediaUri(uri)) return { uri, changed: false };
 
       const cached = uriCache.get(uri);
@@ -291,35 +323,63 @@ async function processPageValuesJson(
     if (!pv || typeof pv !== 'object' || Array.isArray(pv)) continue;
     const pageValues = pv as {
       photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+      freeElements?: Array<{ type?: string; content?: string; id?: string }>;
     };
-    if (!pageValues.photoBlocks) continue;
 
-    const blocks = { ...pageValues.photoBlocks };
     let instanceChanged = false;
+    let nextPageValues = { ...pageValues };
 
-    for (const blockId of Object.keys(blocks)) {
-      const block = blocks[blockId];
-      if (!block?.slots || !Array.isArray(block.slots)) continue;
+    if (pageValues.photoBlocks) {
+      const blocks = { ...pageValues.photoBlocks };
 
-      const newSlots: (string | null)[] = [...block.slots];
-      let blockChanged = false;
-      for (let i = 0; i < newSlots.length; i++) {
-        const slot = newSlots[i];
-        if (typeof slot !== 'string') continue;
-        const { uri, changed: slotChanged } = await resolver.resolve(slot);
-        if (slotChanged) {
-          newSlots[i] = uri;
-          blockChanged = true;
+      for (const blockId of Object.keys(blocks)) {
+        const block = blocks[blockId];
+        if (!block?.slots || !Array.isArray(block.slots)) continue;
+
+        const newSlots: (string | null)[] = [...block.slots];
+        let blockChanged = false;
+        for (let i = 0; i < newSlots.length; i++) {
+          const slot = newSlots[i];
+          if (typeof slot !== 'string') continue;
+          const { uri, changed: slotChanged } = await resolver.resolve(slot);
+          if (slotChanged) {
+            newSlots[i] = uri;
+            blockChanged = true;
+          }
+        }
+        if (blockChanged) {
+          blocks[blockId] = { ...block, slots: newSlots };
+          instanceChanged = true;
         }
       }
-      if (blockChanged) {
-        blocks[blockId] = { ...block, slots: newSlots };
+
+      if (instanceChanged) {
+        nextPageValues = { ...nextPageValues, photoBlocks: blocks };
+      }
+    }
+
+    if (Array.isArray(pageValues.freeElements) && pageValues.freeElements.length > 0) {
+      const nextElements = [];
+      let freeChanged = false;
+      for (const element of pageValues.freeElements) {
+        if (element?.type === 'image' && typeof element.content === 'string') {
+          const { uri, changed: slotChanged } = await resolver.resolve(element.content);
+          if (slotChanged) {
+            freeChanged = true;
+            nextElements.push({ ...element, content: uri });
+            continue;
+          }
+        }
+        nextElements.push(element);
+      }
+      if (freeChanged) {
+        nextPageValues = { ...nextPageValues, freeElements: nextElements };
         instanceChanged = true;
       }
     }
 
     if (instanceChanged) {
-      nextMap[instanceId] = { ...pageValues, photoBlocks: blocks };
+      nextMap[instanceId] = nextPageValues;
       changed = true;
     }
   }
@@ -355,20 +415,48 @@ export async function uploadProjectImagesBeforeSync(
       if (!Array.isArray(uris)) continue;
 
       const projectId = key.replace('@project_images_', '');
+      let workingUris = uris;
+
+      // Шаблонные file:// → стабильные HTTPS (GitHub), иначе на другом устройстве фон мёртв.
+      try {
+        const metaRaw = result[`@project_${projectId}`];
+        if (metaRaw) {
+          const meta = JSON.parse(metaRaw) as {
+            albumId?: string;
+            interiorType?: string;
+            category?: string;
+          };
+          const albumId = meta.interiorType || meta.albumId || '';
+          if (albumId) {
+            const canonical = await canonicalizeProjectPageImages({
+              albumId,
+              category: meta.category,
+              imageUris: workingUris,
+            });
+            if (canonical.changed) {
+              workingUris = canonical.uris;
+              result[key] = JSON.stringify(workingUris);
+            }
+          }
+        }
+      } catch {
+        // ignore meta parse
+      }
+
       let changed = false;
       const newUris: string[] = [];
 
-      for (let i = 0; i < uris.length; i++) {
-        const uri = uris[i];
+      for (let i = 0; i < workingUris.length; i++) {
+        const uri = workingUris[i];
         if (typeof uri !== 'string') {
           newUris.push(uri);
           continue;
         }
-        if (uri.startsWith('https://')) {
+        if (uri.startsWith('https://') || uri.startsWith('http://')) {
           newUris.push(uri);
           continue;
         }
-        if (!uri.startsWith('file://') && !uri.startsWith('/') && !uri.startsWith('content://')) {
+        if (!isDeviceLocalMediaUri(uri)) {
           newUris.push(uri);
           continue;
         }

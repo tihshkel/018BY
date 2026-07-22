@@ -43,6 +43,10 @@ import {
 import { projectUiPageValuesMap } from '@/utils/pageValuesMemory';
 import { refreshPageValuesStatus } from '@/utils/pageStatus';
 import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
+import {
+  canonicalizeProjectPageImages,
+  prefetchRemotePhotoUris,
+} from '@/utils/crossDeviceMedia';
 import { getCoverThumbnailForProject } from '@/utils/projectCoverImage';
 import { linkNewProjectToEventReminders } from '@/utils/project-reminders-cleanup';
 import {
@@ -914,6 +918,15 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               project.category,
               JSON.parse(savedImages),
             );
+            const albumKey = project.interiorType ?? project.albumId ?? '';
+            const canonicalPages = await canonicalizeProjectPageImages({
+              albumId: albumKey,
+              category: project.category,
+              imageUris,
+            });
+            if (canonicalPages.changed) {
+              imageUris = canonicalPages.uris;
+            }
             void AsyncStorage.setItem(`@project_images_${projectId}`, JSON.stringify(imageUris));
           } else {
             imageUris = await loadImagesForAlbum(
@@ -943,11 +956,27 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             memorySnapshotAfterLoad.instances.length >= nextInstances.length
               ? memorySnapshotAfterLoad.instances
               : nextInstances;
-          const mergedImages =
+          let mergedImages =
             memorySnapshotAfterLoad?.images?.length &&
             memorySnapshotAfterLoad.images.length >= imageUris.length
               ? memorySnapshotAfterLoad.images
               : imageUris;
+
+          {
+            const albumKey = project.interiorType ?? project.albumId ?? '';
+            const canonicalMerged = await canonicalizeProjectPageImages({
+              albumId: albumKey,
+              category: project.category,
+              imageUris: mergedImages,
+            });
+            if (canonicalMerged.changed) {
+              mergedImages = canonicalMerged.uris;
+              void AsyncStorage.setItem(
+                `@project_images_${projectId}`,
+                JSON.stringify(mergedImages),
+              );
+            }
+          }
 
           let finalValues = mergedValues;
           const birthdayMigrated = migrateBirthdayPageValuesMap(
@@ -986,6 +1015,24 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               projectId,
               finalValues,
             );
+          }
+
+          // После логина на другом устройстве HTTPS-фото уже в page_values — прогреем кэш.
+          {
+            const remotePhotoUris: string[] = [];
+            for (const values of Object.values(finalValues)) {
+              for (const block of Object.values(values.photoBlocks ?? {})) {
+                for (const slot of block?.slots ?? []) {
+                  if (typeof slot === 'string') remotePhotoUris.push(slot);
+                }
+              }
+              for (const el of values.freeElements ?? []) {
+                if (el.type === 'image' && typeof el.content === 'string') {
+                  remotePhotoUris.push(el.content);
+                }
+              }
+            }
+            void prefetchRemotePhotoUris([...mergedImages, ...remotePhotoUris]);
           }
 
           setInstances(mergedInstances);

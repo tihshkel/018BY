@@ -121,15 +121,22 @@ async function resolveStoredPhotoUri(
   uri: string,
   relativeKey: string,
 ): Promise<string | null> {
-  if (isManagedAlbumPhotoUri(uri) || isRemotePhotoUri(uri)) {
-    return (await photoUriExists(uri)) ? uri : null;
+  // HTTPS из облака — всегда оставляем.
+  if (isRemotePhotoUri(uri)) {
+    return uri;
   }
 
-  if (!(await photoUriExists(uri))) {
-    return null;
+  // Локальный файл есть на этом устройстве — при необходимости копируем в album-photos/.
+  if (await photoUriExists(uri)) {
+    if (isManagedAlbumPhotoUri(uri)) {
+      return uri;
+    }
+    return persistAlbumPhotoUri(uri, relativeKey);
   }
 
-  return persistAlbumPhotoUri(uri, relativeKey);
+  // Локальный URI с другого устройства / уже удалённый кэш: НЕ обнуляем.
+  // Иначе Android после pull затрёт слоты и следующим push убьёт облако.
+  return uri;
 }
 
 export type SanitizePageValuesPhotosParams = {

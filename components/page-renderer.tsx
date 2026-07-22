@@ -70,6 +70,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   const renderHeight = height ?? windowHeight;
   const viewRef = useRef<View>(null);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [bgRetryKey, setBgRetryKey] = useState(0);
+  const bgRetryCountRef = useRef(0);
   const [loadedAnnotationImageUris, setLoadedAnnotationImageUris] = useState<Set<string>>(new Set());
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(
     sourceWidthProp && sourceHeightProp
@@ -100,6 +102,8 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
   useEffect(() => {
     setIsImageLoaded(false);
     setLoadedAnnotationImageUris(new Set());
+    bgRetryCountRef.current = 0;
+    setBgRetryKey(0);
     setSourceSize(
       sourceWidthProp && sourceHeightProp
         ? { width: sourceWidthProp, height: sourceHeightProp }
@@ -243,18 +247,19 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
         ]}
       >
         <Image
+          key={`${imageUri}::${bgRetryKey}`}
           source={{ uri: imageUri }}
           style={styles.image}
           contentFit="contain"
           contentPosition="center"
           transition={0}
           fadeDuration={0}
-          cachePolicy="disk"
+          cachePolicy="memory-disk"
           priority="high"
-          // Экранный preview (readOnly + без ожидания фото): downscale под viewport —
-          // на Android полный PNG без downscale часто даёт jank первого кадра.
-          // Export/capture ждёт annotation images → полный raster как раньше.
-          allowDownscaling={readOnly && !waitForAnnotationImages}
+          recyclingKey={`${imageUri}::${bgRetryKey}`}
+          // Экранный preview: downscale под viewport — меньше OOM на слабых Android.
+          // Export/capture (waitForAnnotationImages) — полный raster.
+          allowDownscaling={readOnly || !waitForAnnotationImages}
           onLoad={(event) => {
             const w = event.source?.width;
             const h = event.source?.height;
@@ -267,6 +272,15 @@ const PageRenderer = React.forwardRef<PageRendererRef, PageRendererProps>(
             setIsImageLoaded(true);
           }}
           onError={() => {
+            // Retry 2 раза: на Android после логина первый fetch HTTPS часто падает до прогрева сети/кэша.
+            if (bgRetryCountRef.current < 2) {
+              bgRetryCountRef.current += 1;
+              const attempt = bgRetryCountRef.current;
+              setTimeout(() => {
+                setBgRetryKey((k) => k + 1);
+              }, 250 * attempt);
+              return;
+            }
             setIsImageLoaded(true);
             onImageError?.();
           }}
