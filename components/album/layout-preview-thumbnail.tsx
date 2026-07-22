@@ -12,8 +12,7 @@ const LAYOUT_PREVIEW_ASPECT: Record<string, number> = {
   four_grid: 1004 / 1024,
 };
 
-const PREVIEW_MAX_WIDTH = 84;
-const PREVIEW_MAX_HEIGHT = 46;
+const PREVIEW_MAX_HEIGHT = 44;
 
 type LayoutPreviewThumbnailProps = {
   variantId: string;
@@ -21,26 +20,16 @@ type LayoutPreviewThumbnailProps = {
 };
 
 export function LayoutPreviewThumbnail({ variantId, uri }: LayoutPreviewThumbnailProps) {
-  const layoutSize = useMemo(() => {
+  const aspect = useMemo(() => {
     const key = normalizeDesignedAlbumVariantId(variantId);
-    const aspect = LAYOUT_PREVIEW_ASPECT[key] ?? 1024 / 705;
-
-    let width = PREVIEW_MAX_WIDTH;
-    let height = width / aspect;
-
-    if (height > PREVIEW_MAX_HEIGHT) {
-      height = PREVIEW_MAX_HEIGHT;
-      width = height * aspect;
-    }
-
-    return { width, height };
+    return LAYOUT_PREVIEW_ASPECT[key] ?? 1024 / 705;
   }, [variantId]);
 
   return (
-    <View style={[styles.wrap, layoutSize]}>
+    <View style={styles.wrap}>
       <Image
         source={{ uri }}
-        style={StyleSheet.absoluteFill}
+        style={[styles.image, { aspectRatio: aspect, maxHeight: PREVIEW_MAX_HEIGHT }]}
         contentFit="contain"
         accessibilityIgnoresInvertColors
       />
@@ -50,7 +39,14 @@ export function LayoutPreviewThumbnail({ variantId, uri }: LayoutPreviewThumbnai
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'relative',
-    overflow: 'visible',
+    width: '100%',
+    maxWidth: 72,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
   },
 });

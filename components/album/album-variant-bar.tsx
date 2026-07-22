@@ -84,7 +84,9 @@ export function AlbumVariantBar({
 }: AlbumVariantBarProps) {
   if (thumbnails.length <= 1) return null;
 
-  const useScroll = thumbnails.length > 4;
+  // 4 широких превью (особенно 2 фото) не влезают в ряд на узком экране —
+  // скролл с фиксированной шириной чипа, иначе иконки вылезают из трека.
+  const useScroll = thumbnails.length >= 4;
 
   const options = (
     <>
@@ -97,7 +99,7 @@ export function AlbumVariantBar({
             onPress={() => onSelectVariant(item.variantId)}
             style={({ pressed }) => [
               styles.segment,
-              useScroll && styles.segmentScroll,
+              useScroll ? styles.segmentScroll : styles.segmentFlex,
               isSelected && styles.segmentSelected,
               pressed && !isSelected && styles.segmentPressed,
             ]}
@@ -157,36 +159,41 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     padding: 4,
     gap: 4,
+    overflow: 'hidden',
   },
   scrollTrack: {
     flexDirection: 'row',
+    alignItems: 'stretch',
     backgroundColor: surfaces.muted,
     borderRadius: radii.lg,
     padding: 4,
     gap: 4,
   },
   segment: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     borderRadius: radii.md,
     gap: 6,
     minWidth: 0,
-    overflow: 'visible',
+    overflow: 'hidden',
+  },
+  segmentFlex: {
+    flex: 1,
   },
   segmentScroll: {
-    flex: 0,
-    minWidth: 88,
+    flexGrow: 0,
+    flexShrink: 0,
+    width: 86,
   },
   segmentSelected: {
     backgroundColor: colors.white,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1,
   },
   segmentPressed: {
     opacity: 0.88,
@@ -203,10 +210,11 @@ const styles = StyleSheet.create({
   },
   previewBox: {
     width: '100%',
-    maxWidth: 84,
+    maxWidth: 72,
     position: 'relative',
     borderRadius: radii.sm,
     overflow: 'hidden',
+    alignSelf: 'center',
   },
   previewSlot: {
     position: 'absolute',

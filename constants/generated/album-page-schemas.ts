@@ -16182,15 +16182,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -16642,15 +16633,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -16954,15 +16936,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -17255,15 +17228,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -17458,15 +17422,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             },
             {
@@ -17808,15 +17763,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -18021,15 +17967,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             },
             {
@@ -20136,15 +20073,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -20193,15 +20121,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               ]
             },
             {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
-              ]
-            },
-            {
               "variantId": "four_vertical",
               "label": "4 вертикальных фото",
               "slots": 4,
@@ -20247,15 +20166,6 @@ export const ALBUM_PAGE_SCHEMAS: Record<string, AlbumPageSchema[]> = {
               "slots": 1,
               "slotIndices": [
                 0
-              ]
-            },
-            {
-              "variantId": "two_vertical",
-              "label": "2 вертикальных фото",
-              "slots": 2,
-              "slotIndices": [
-                0,
-                1
               ]
             },
             {

@@ -38,28 +38,49 @@ const {
   buildBrownWeeklyScheduleWithNoteSpec,
 } = require('./girls-diary-a5-field-specs');
 
+/** Одиночные раскладки — для коричневого дневника (без 2/3/4 коллажей). */
+const FREE_PHOTO_NOTES_SINGLE_VARIANTS = [
+  {
+    variantId: 'single_horizontal',
+    label: '1 горизонтальное фото',
+    slots: 1,
+    slotIndices: [0],
+  },
+  {
+    variantId: 'single_vertical',
+    label: '1 вертикальное фото',
+    slots: 1,
+    slotIndices: [0],
+  },
+];
+
+/** Фиолетовый дневник: одиночные + 2/4 вертикальных. */
 const FREE_PHOTO_NOTES_BLOCK = {
   blockId: 'free_photo_notes',
   label: 'Фото для страницы',
   variants: [
-    {
-      variantId: 'single_horizontal',
-      label: '1 горизонтальное фото',
-      slots: 1,
-      slotIndices: [0],
-    },
-    {
-      variantId: 'single_vertical',
-      label: '1 вертикальное фото',
-      slots: 1,
-      slotIndices: [0],
-    },
+    ...FREE_PHOTO_NOTES_SINGLE_VARIANTS,
     {
       variantId: 'two_vertical',
       label: '2 вертикальных фото',
       slots: 2,
       slotIndices: [0, 1],
     },
+    {
+      variantId: 'four_vertical',
+      label: '4 вертикальных фото',
+      slots: 4,
+      slotIndices: [0, 1, 2, 3],
+    },
+  ],
+};
+
+/** Без коллажа из 2 фото — для коричневого дневника. */
+const FREE_PHOTO_NOTES_BLOCK_BROWN = {
+  blockId: 'free_photo_notes',
+  label: 'Фото для страницы',
+  variants: [
+    ...FREE_PHOTO_NOTES_SINGLE_VARIANTS,
     {
       variantId: 'four_vertical',
       label: '4 вертикальных фото',
@@ -247,13 +268,17 @@ function buildMyDayFields(lineGuideId, pageNumber, slots) {
 }
 
 function buildFreePhotoNotes(pageNumber, slots, lineGuideId, tzEntry) {
+  const photoBlock =
+    lineGuideId === 'diary_interior_brown'
+      ? FREE_PHOTO_NOTES_BLOCK_BROWN
+      : FREE_PHOTO_NOTES_BLOCK;
   return {
     replaceFields: true,
     title: tzEntry.title,
     pageType: 'caption_photo_page',
     editable: true,
     fields: [],
-    photoBlocks: [FREE_PHOTO_NOTES_BLOCK],
+    photoBlocks: [photoBlock],
     canDuplicate: true,
     captionEnabled: true,
   };
@@ -556,6 +581,7 @@ function buildDiary60TzOverride(pageNumber, slots, tzEntry, lineGuideId) {
 module.exports = {
   applyDiary60TzManifest,
   FREE_PHOTO_NOTES_BLOCK,
+  FREE_PHOTO_NOTES_BLOCK_BROWN,
   FRIEND_FIELDS,
   FOOD_FIELDS,
 };
