@@ -159,7 +159,8 @@ async function resolveStoredPhotoUri(
   const fallback = await findManagedPhotoByKey(relativeKey);
   if (fallback) return fallback;
 
-  return uri;
+  // Мёртвый file:// / ph:// / content:// с другого устройства — не оставляем в слоте.
+  return null;
 }
 
 export type SanitizePageValuesPhotosParams = {
@@ -192,6 +193,8 @@ export async function sanitizePageValuesPhotos({
       );
 
       if (!resolved) {
+        slots[slotIndex] = null;
+        blockChanged = true;
         continue;
       }
 
@@ -227,7 +230,8 @@ export async function sanitizePageValuesPhotos({
       );
 
       if (!resolved) {
-        nextElements.push(element);
+        changed = true;
+        nextElements.push({ ...element, content: '' });
         continue;
       }
 

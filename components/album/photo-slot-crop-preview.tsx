@@ -10,6 +10,9 @@ import { applyPhotoSlotTransform, DEFAULT_PHOTO_SLOT_TRANSFORM } from '@/utils/p
 type PhotoSlotCropPreviewProps = {
   uri: string;
   transform?: PhotoSlotTransform;
+  /** Known viewport px — mount Image immediately at real size (no 1×1 decode). */
+  knownWidth?: number;
+  knownHeight?: number;
 };
 
 /**
@@ -20,9 +23,19 @@ type PhotoSlotCropPreviewProps = {
 export function PhotoSlotCropPreview({
   uri,
   transform = DEFAULT_PHOTO_SLOT_TRANSFORM,
+  knownWidth,
+  knownHeight,
 }: PhotoSlotCropPreviewProps) {
-  const [slotSize, setSlotSize] = useState({ width: 0, height: 0 });
+  const initialW = knownWidth && knownWidth > 8 ? knownWidth : 0;
+  const initialH = knownHeight && knownHeight > 8 ? knownHeight : 0;
+  const [slotSize, setSlotSize] = useState({ width: initialW, height: initialH });
   const [imageAspect, setImageAspect] = useState(0);
+
+  useEffect(() => {
+    if (knownWidth && knownWidth > 8 && knownHeight && knownHeight > 8) {
+      setSlotSize({ width: knownWidth, height: knownHeight });
+    }
+  }, [knownHeight, knownWidth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,32 +85,45 @@ export function PhotoSlotCropPreview({
     };
   }, [displayTransform, imageAspect, isZoomedIn, slotSize.height, slotSize.width]);
 
+  const hasRealSlotSize = slotSize.width > 8 && slotSize.height > 8;
+
   return (
     <View
       style={styles.wrap}
       pointerEvents="none"
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout;
-        if (width > 0 && height > 0) {
-          setSlotSize({ width, height });
+        if (width > 8 && height > 8) {
+          setSlotSize((prev) =>
+            Math.abs(prev.width - width) < 0.5 && Math.abs(prev.height - height) < 0.5
+              ? prev
+              : { width, height },
+          );
         }
       }}
     >
-      <View style={frameStyle}>
-        <AlbumPhotoImageRaw
-          uri={uri}
-          style={styles.image}
-          recyclingKey={uri}
-          onLoad={() => {
-            void resolvePageSourceSize(uri).then((size) => {
-              if (size?.width && size?.height) {
-                setPageSourceSize(uri, size);
-                setImageAspect(size.width / size.height);
-              }
-            });
-          }}
-        />
-      </View>
+      {hasRealSlotSize ? (
+        <View style={frameStyle}>
+          <AlbumPhotoImageRaw
+            uri={uri}
+            style={styles.image}
+            // Preview: full decode — Context7/expo-image: allowDownscaling=false → highest quality
+            // and sharp resize; avoids Glide soft bitmap from a tiny first layout.
+            allowDownscaling={false}
+            decodeWidth={slotSize.width}
+            decodeHeight={slotSize.height}
+            recyclingKey={`${uri}:${Math.round(slotSize.width)}x${Math.round(slotSize.height)}`}
+            onLoad={() => {
+              void resolvePageSourceSize(uri).then((size) => {
+                if (size?.width && size?.height) {
+                  setPageSourceSize(uri, size);
+                  setImageAspect(size.width / size.height);
+                }
+              });
+            }}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

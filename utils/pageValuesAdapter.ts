@@ -955,16 +955,27 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   }
 
   if (allowPhotoCaptions && !isBlankTemplate && effectivePhotoCaptions?.length) {
-    const templateCaptions = appendTemplatePhotoCaptionAnnotations({
-      schema,
-      values: { ...values, photoCaptions: effectivePhotoCaptions },
-      lineGuideId,
-      editorContentRect,
-      viewportHeight,
-      fontSize,
-      textFontFamily,
-      zIndex,
-    });
+    // Designed collage pages (holidays «Свободная фотостраница», pregnancy/kids memory):
+    // always place captions under photo zones. Template CaptionGallery textBlocks stay at
+    // fixed 4-grid holes and overlap after sparse expands the photo frames.
+    const useUnderPhotoCaptions =
+      designedPerPhotoCaptions ||
+      schema.pageType === 'caption_photo_page' ||
+      schema.pageType === 'free_photo_caption' ||
+      lineGuideId === 'holidays_birthday_60';
+
+    const templateCaptions = useUnderPhotoCaptions
+      ? { annotations: [] as Annotation[], zIndex }
+      : appendTemplatePhotoCaptionAnnotations({
+          schema,
+          values: { ...values, photoCaptions: effectivePhotoCaptions },
+          lineGuideId,
+          editorContentRect,
+          viewportHeight,
+          fontSize,
+          textFontFamily,
+          zIndex,
+        });
     annotations.push(...templateCaptions.annotations);
     zIndex = templateCaptions.zIndex;
 
@@ -973,6 +984,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
       effectivePhotoCaptions.length &&
       (schema.pageType === 'caption_photo_page' ||
         schema.pageType === 'photo' ||
+        schema.pageType === 'free_photo_caption' ||
         schema.captionEnabled)
     ) {
       const labelSlots = slots.filter((s) => s.hasLabel);

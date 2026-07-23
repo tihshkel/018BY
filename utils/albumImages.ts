@@ -662,6 +662,10 @@ export function getAlbumPageCount(albumId: string): number {
       return HOLIDAY_BLANK_PAGE_COUNT;
     case 'holidays_birthday_60':
       return 48;
+    case 'diary_interior_brown':
+      return 60;
+    case 'diary_interior_purple':
+      return 40;
     case 'family_blank':
       return FAMILY_BLANK_PAGE_COUNT;
     case 'family_blank_21x21':

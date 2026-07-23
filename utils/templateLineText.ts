@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 import {
   DIARY_AMATIC_VISUAL_SINK_RATIO,
-  DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO,
+  DIARY_ANDROID_AMATIC_LIFT_RATIO,
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
   isKidsMonthPage,
@@ -10,6 +10,7 @@ import {
   KIDS_MONTH_STROKE_CLEARANCE_RATIO,
   KIDS_P1_STROKE_CLEARANCE_RATIO,
   KIDS_P1_BASELINE_SINK_RATIO,
+  KIDS_P1_ANDROID_BASELINE_LIFT_RATIO,
   KIDS_P1_PDF_BASELINE_LIFT_RATIO,
   KIDS_STROKE_CLEARANCE_RATIO,
   KIDS_TEETH_STROKE_CLEARANCE_RATIO,
@@ -133,9 +134,12 @@ function getKidsStrokeBaselineTextTop(
               ? KIDS_P1_STROKE_CLEARANCE_RATIO
               : KIDS_STROKE_CLEARANCE_RATIO;
   // p1 / p10: rnAscent=1 — точечный sink/lift к штриху.
+  // Android p1: тот же sink, что iOS, опускает глифы под линию — компенсируем.
   const amaticSink =
     slot.page === 1 && (slot.index == null || slot.index >= 1)
-      ? fittedSize * KIDS_P1_BASELINE_SINK_RATIO
+      ? fittedSize *
+        (KIDS_P1_BASELINE_SINK_RATIO -
+          (Platform.OS === 'android' ? KIDS_P1_ANDROID_BASELINE_LIFT_RATIO : 0))
       : slot.page === 10 && (slot.index === 20 || slot.index === 21)
         ? -fittedSize * KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO
         : slot.page === 10
@@ -810,7 +814,7 @@ function getStrokeBaselineFontOffset(
       isBrownWishSlot(diarySlot, lineGuideId) ||
       isBrownCareerAnswerSlot(diarySlot, lineGuideId)
     ) {
-      return applyDiaryAmaticVisualSink(0.9);
+      return applyDiaryAmaticVisualSink(0.9, { androidDiaryLift: true });
     }
     if (lineGuideId === 'diary_interior_brown') {
       const tuned = resolveDiaryBrownLineFontOffset({
@@ -822,9 +826,11 @@ function getStrokeBaselineFontOffset(
       if (tuned != null) return tuned;
     }
     if (lineGuideId === 'diary_interior_purple') {
-      return applyDiaryAmaticVisualSink(0.9);
+      return applyDiaryAmaticVisualSink(0.9, { androidDiaryLift: true });
     }
-    return applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET);
+    return applyDiaryAmaticVisualSink(DIARY_LINE_FONT_OFFSET, {
+      androidDiaryLift: true,
+    });
   }
   if (lineGuideId === 'holidays_birthday_60') {
     return applyDiaryAmaticVisualSink(0.98);
@@ -1059,12 +1065,21 @@ function resolveDiaryBrownBlockRatios(
   return { centerRatio: 1, fontOffsetRatio: 0.96 };
 }
 
-function applyDiaryAmaticVisualSink(fontOffsetRatio: number): number {
-  const androidExtra =
-    Platform.OS === 'android' ? DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO : 0;
+/**
+ * Visual sink Amatic → штрих. На Android для дневников — доп. lift
+ * (иначе значения чуть садятся на линию при той же формуле, что iOS).
+ */
+function applyDiaryAmaticVisualSink(
+  fontOffsetRatio: number,
+  options?: { androidDiaryLift?: boolean },
+): number {
+  const androidLift =
+    Platform.OS === 'android' && options?.androidDiaryLift
+      ? DIARY_ANDROID_AMATIC_LIFT_RATIO
+      : 0;
   return Math.max(
     0.68,
-    fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO - androidExtra,
+    fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO + androidLift,
   );
 }
 
@@ -1089,7 +1104,7 @@ function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number |
   } else if (slot.page != null && slot.page >= 45 && slot.page <= 56) {
     offset = 0.92;
   }
-  return applyDiaryAmaticVisualSink(offset);
+  return applyDiaryAmaticVisualSink(offset, { androidDiaryLift: true });
 }
 
 function resolveTemplateTextVerticalRatios(
@@ -1151,6 +1166,7 @@ function resolveTemplateTextVerticalRatios(
         centerRatio: 1,
         fontOffsetRatio: applyDiaryAmaticVisualSink(
           lineGuideId === 'diary_interior_purple' ? 0.92 : DIARY_LINE_FONT_OFFSET,
+          { androidDiaryLift: true },
         ),
       };
     }

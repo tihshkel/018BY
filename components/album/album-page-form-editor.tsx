@@ -22,7 +22,11 @@ import { useAlbumPagePhotoEditor } from '@/hooks/use-album-page-photo-editor';
 import type { useStableAlbumProjectActions } from '@/hooks/use-stable-album-project-actions';
 import type { FieldTextStyle, PageInstance, PageValues } from '@/types/album-page-schema';
 import type { AlbumPageSchema } from '@/types/album-page-schema';
-import { usesUnifiedPhotoEditor, hasTypographyEditableContent } from '@/utils/albumPageNavigation';
+import {
+  hasPhotoBlocks,
+  usesUnifiedPhotoEditor,
+  hasTypographyEditableContent,
+} from '@/utils/albumPageNavigation';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { clampFieldInput, clampPageFieldValuesForLayoutFont } from '@/utils/albumFieldLimits';
 import { usesTemplateLineTextEditing } from '@/utils/albumImages';
@@ -338,6 +342,10 @@ export const AlbumPageFormEditor = forwardRef<
   );
 
   const fields = schema.fields ?? [];
+  const pageHasPhotos = hasPhotoBlocks(schema);
+  const defaultFormHint = pageHasPhotos
+    ? 'Заполните нужные поля и добавьте фото. Можно оставить часть пустой — результат увидите на следующем шаге.'
+    : 'Заполните нужные поля. Можно оставить часть пустой — результат увидите на следующем шаге.';
 
   return (
     <>
@@ -346,8 +354,7 @@ export const AlbumPageFormEditor = forwardRef<
       </AppText>
 
       <AppText variant="bodySm" style={styles.editHint}>
-        {schema.formHint ??
-          'Заполните нужные поля и добавьте фото. Можно оставить часть пустой — результат увидите на следующем шаге.'}
+        {schema.formHint ?? defaultFormHint}
       </AppText>
 
       {showFontPicker ? (

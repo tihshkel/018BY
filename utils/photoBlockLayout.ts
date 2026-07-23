@@ -13,6 +13,8 @@ export type ViewportRect = {
 export type PhotoBlockSlotLayout = {
   slotIndex: number;
   uri: string;
+  /** Absolute viewport px — for sharp first decode (avoid 1×1 Glide downscale). */
+  rect: ViewportRect;
   relative: ViewportRect;
 };
 
@@ -88,6 +90,7 @@ export function computePhotoBlockLayout(
     slots: slotRects.map(({ slotIndex, uri, rect }) => ({
       slotIndex,
       uri,
+      rect,
       relative: {
         x: (rect.x - baseBlock.x) / baseBlock.width,
         y: (rect.y - baseBlock.y) / baseBlock.height,

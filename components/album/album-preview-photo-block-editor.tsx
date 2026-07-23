@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -151,22 +151,24 @@ export function AlbumPreviewPhotoBlockEditor({
   const offsetX = useSharedValue(groupTransform.offsetX ?? 0);
   const offsetY = useSharedValue(groupTransform.offsetY ?? 0);
 
-  const baseX = useSharedValue(0);
-  const baseY = useSharedValue(0);
-  const baseW = useSharedValue(1);
-  const baseH = useSharedValue(1);
+  const baseX = useSharedValue(baseBlock?.x ?? 0);
+  const baseY = useSharedValue(baseBlock?.y ?? 0);
+  // Не стартовать с 1×1: Android Glide (allowDownscaling) декодирует под крошечный
+  // контейнер → одиночное фото размыто, пока не сделают pinch/resize.
+  const baseW = useSharedValue(Math.max(baseBlock?.width ?? 0, 1));
+  const baseH = useSharedValue(Math.max(baseBlock?.height ?? 0, 1));
   const safeX = useSharedValue(0);
   const safeY = useSharedValue(0);
   const safeW = useSharedValue(0);
   const safeH = useSharedValue(0);
   const hasSafeBounds = useSharedValue(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!baseBlock) return;
     baseX.value = baseBlock.x;
     baseY.value = baseBlock.y;
-    baseW.value = baseBlock.width;
-    baseH.value = baseBlock.height;
+    baseW.value = Math.max(baseBlock.width, 1);
+    baseH.value = Math.max(baseBlock.height, 1);
   }, [baseBlock, baseH, baseW, baseX, baseY]);
 
   useEffect(() => {
@@ -425,7 +427,7 @@ export function AlbumPreviewPhotoBlockEditor({
     };
   });
 
-  if (!layout || !baseBlock) return null;
+  if (!layout || !baseBlock || baseBlock.width < 8 || baseBlock.height < 8) return null;
 
   return (
     <View style={styles.wrap} pointerEvents="box-none">
@@ -505,6 +507,8 @@ function BlockPhotos({
         >
           <PhotoSlotCropPreview
             uri={slot.uri}
+            knownWidth={slot.rect.width}
+            knownHeight={slot.rect.height}
             transform={
               isMultiSlotCollage
                 ? DEFAULT_PHOTO_SLOT_TRANSFORM

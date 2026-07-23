@@ -506,6 +506,9 @@ export default function AlbumPagesScreen() {
           const progress = sectionProgressList.find((p) => p.sectionId === section.sectionId);
           if (!progress) return null;
           const rows = sectionRowsById.get(section.sectionId) ?? [];
+          const isDiary = project.lineGuideId.startsWith('diary_interior_');
+          // Дневники: первые две секции открыты — иначе после короткого intro кажется, что альбом «обрублен».
+          const defaultExpanded = index === 0 || (isDiary && index === 1);
 
           return (
             <AlbumSectionAccordion
@@ -514,7 +517,7 @@ export default function AlbumPagesScreen() {
               pages={rows}
               pageColumnCount={pageGridColumnCount}
               pageItemWidth={pageItemWidth}
-              defaultExpanded={index === 0}
+              defaultExpanded={defaultExpanded}
               onOpenPage={handleOpenPage}
               onDuplicate={(instanceId) => void project.duplicatePage(instanceId)}
               onDeleteCopy={handleDeleteCopy}

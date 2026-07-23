@@ -1,5 +1,5 @@
 import { Asset } from 'expo-asset';
-import type { ImageSourcePropType } from 'react-native';
+import { Image, type ImageSourcePropType } from 'react-native';
 
 import { DIARY_BROWN_PAGES, DIARY_PURPLE_PAGES } from '@/utils/diaryInteriorAssets.generated';
 
@@ -58,7 +58,8 @@ async function warmDiaryInteriorAssets(images: unknown[]): Promise<void> {
 }
 
 /**
- * URI внутренних страниц. Прогрев первых страниц — в фоне (не 60/40 сразу).
+ * URI внутренних страниц. Всегда полный массив 60/40 — без отбрасывания null,
+ * иначе список страниц на Android обрывается. Прогрев первых страниц — в фоне.
  */
 export async function getDiaryInteriorImageUris(
   interiorId: string,
@@ -70,12 +71,42 @@ export async function getDiaryInteriorImageUris(
 
   try {
     const uris = interior.images.map((image) => {
-      const asset = Asset.fromModule(image as number);
+      const moduleId = image as number;
+      // Sync resolve — надёжнее Asset.uri до downloadAsync (на Android часть uri бывает пустой).
+      const resolved = Image.resolveAssetSource(moduleId);
+      if (resolved?.uri) return resolved.uri;
+      const asset = Asset.fromModule(moduleId);
       return asset.localUri || asset.uri || null;
     });
     warmDiaryInteriorAssets(interior.images).catch(() => {});
     const filtered = uris.filter((uri): uri is string => !!uri);
-    return filtered.length > 0 ? filtered : null;
+    if (filtered.length !== interior.images.length) {
+      console.warn(
+        `[Diary Loader] ${interiorId}: got ${filtered.length}/${interior.images.length} page URIs`,
+      );
+    }
+    // Не отдаём урезанный список — иначе buildInitialPageInstances создаст неполный альбом.
+    if (filtered.length === interior.images.length) {
+      return filtered;
+    }
+    if (filtered.length === 0) return null;
+    // Добираем недостающие через Asset (редко), не блокируя UI на всех 60 сразу в happy-path.
+    const repaired: string[] = [];
+    for (let i = 0; i < interior.images.length; i += 1) {
+      if (uris[i]) {
+        repaired.push(uris[i] as string);
+        continue;
+      }
+      try {
+        const asset = Asset.fromModule(interior.images[i] as number);
+        await asset.downloadAsync();
+        const uri = asset.localUri || asset.uri;
+        if (uri) repaired.push(uri);
+      } catch {
+        // skip
+      }
+    }
+    return repaired.length > 0 ? repaired : null;
   } catch (error) {
     console.error(
       `[Diary Loader] Ошибка при загрузке изображений внутренней части ${interiorId}:`,

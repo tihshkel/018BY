@@ -15,7 +15,9 @@ import {
   pushCoreDataToSupabase,
   pushProjectDataToSupabase,
 } from './supabase-account';
+import { isDeviceLocalMediaUri } from './crossDeviceMedia';
 import { uploadProjectImagesBeforeSync } from './supabase-storage';
+import { prepareSupabaseAuthForSync } from '@/lib/supabase';
 
 const PROJECT_PREFIX = '@project_';
 const DEFAULT_USER_NAME = 'Пользователь';
@@ -108,9 +110,15 @@ const PROJECT_KEY_SUBPREFIXES = [
 /**
  * Извлекает полный project_id из ключа.
  * Например: @project_images_pregnancy_60 → pregnancy_60, @project_1769735093936 → 1769735093936.
+ * Для `@project_pv_<projectId>_<instanceId>` — projectId (instance отрезается по последнему `_`).
  */
 function getProjectIdFromKey(key: string): string {
   let rest = key.slice(PROJECT_PREFIX.length);
+  if (rest.startsWith('pv_')) {
+    const afterPv = rest.slice('pv_'.length);
+    const lastSep = afterPv.lastIndexOf('_');
+    return lastSep > 0 ? afterPv.slice(0, lastSep) : afterPv;
+  }
   for (const sub of PROJECT_KEY_SUBPREFIXES) {
     if (rest.startsWith(sub)) {
       rest = rest.slice(sub.length);
@@ -118,6 +126,71 @@ function getProjectIdFromKey(key: string): string {
     }
   }
   return rest;
+}
+
+function isIncrementalPageValueKey(key: string): boolean {
+  return key.startsWith('@project_pv_');
+}
+
+/** Собирает instanceId из page_instances + любых локальных `@project_pv_*`. */
+async function collectPageValueInstanceIds(projectId: string): Promise<string[]> {
+  const {
+    loadPageInstances,
+    getPageValueEntryKey,
+  } = await import('./pageStorage');
+  const instances = await loadPageInstances(
+    (k) => AsyncStorage.getItem(k),
+    projectId,
+  );
+  const ids = new Set(instances.map((i) => String(i.instanceId)));
+  const prefix = getPageValueEntryKey(projectId, '');
+  // getPageValueEntryKey(pid, '') → `@project_pv_${pid}_`
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    for (const key of allKeys) {
+      if (key.startsWith(prefix)) {
+        ids.add(key.slice(prefix.length));
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return [...ids];
+}
+
+/**
+ * Перед upload/push: смержить инкрементальные `@project_pv_*` в монолит
+ * `@project_page_values_*` (иначе в облако уезжают устаревшие page values без фото).
+ */
+async function mergeIncrementalPageValuesIntoSyncData(
+  data: Record<string, string>,
+  projectIds: Set<string>,
+): Promise<void> {
+  const {
+    loadPageValuesMapMerged,
+    savePageValuesMap,
+    getPageValuesKey,
+  } = await import('./pageStorage');
+
+  for (const projectId of projectIds) {
+    const instanceIds = await collectPageValueInstanceIds(projectId);
+    const merged = await loadPageValuesMapMerged(
+      (k) => AsyncStorage.getItem(k),
+      projectId,
+      instanceIds,
+    );
+    const json = JSON.stringify(merged);
+    data[getPageValuesKey(projectId)] = json;
+    try {
+      await savePageValuesMap(
+        (k, v) => AsyncStorage.setItem(k, v),
+        projectId,
+        merged,
+      );
+    } catch {
+      // диск не критичен — в payload merge уже есть
+    }
+  }
 }
 
 /**
@@ -425,6 +498,90 @@ async function persistUploadedProjectUrls(
   }
 }
 
+/** Ключи page_values / annotations, где после upload ещё остались device-local URI. */
+function findLingeringLocalPhotoKeys(data: Record<string, string>): string[] {
+  const bad: string[] = [];
+
+  for (const [key, value] of Object.entries(data)) {
+    if (!key.startsWith('@project_page_values_') &&
+        !key.startsWith('@project_annotations_') &&
+        !key.startsWith('@project_cover_annotations_')) {
+      continue;
+    }
+    if (typeof value !== 'string' || !value) continue;
+
+    if (key.startsWith('@project_page_values_')) {
+      try {
+        const map = JSON.parse(value) as Record<
+          string,
+          {
+            photoBlocks?: Record<string, { slots?: (string | null)[] }>;
+            freeElements?: Array<{ type?: string; content?: string }>;
+          }
+        >;
+        for (const page of Object.values(map || {})) {
+          for (const block of Object.values(page?.photoBlocks || {})) {
+            for (const slot of block?.slots || []) {
+              if (typeof slot === 'string' && isDeviceLocalMediaUri(slot)) {
+                bad.push(key);
+                break;
+              }
+            }
+          }
+          for (const el of page?.freeElements || []) {
+            if (
+              el?.type === 'image' &&
+              typeof el.content === 'string' &&
+              isDeviceLocalMediaUri(el.content)
+            ) {
+              bad.push(key);
+              break;
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+      continue;
+    }
+
+    // annotations: ищем uri/imageUri/src с локальными путями
+    if (isDeviceLocalMediaUri(value)) {
+      bad.push(key);
+      continue;
+    }
+    if (
+      value.includes('file://') ||
+      value.includes('content://') ||
+      value.includes('ph://')
+    ) {
+      // Грубый, но достаточный сигнал: upload должен был заменить на https
+      try {
+        const parsed = JSON.parse(value);
+        const stack: unknown[] = [parsed];
+        while (stack.length) {
+          const cur = stack.pop();
+          if (typeof cur === 'string' && isDeviceLocalMediaUri(cur)) {
+            bad.push(key);
+            break;
+          }
+          if (Array.isArray(cur)) {
+            for (const item of cur) stack.push(item);
+          } else if (cur && typeof cur === 'object') {
+            for (const v of Object.values(cur as Record<string, unknown>)) {
+              stack.push(v);
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return [...new Set(bad)];
+}
+
 /**
  * Одна попытка отправки данных в облако (без повторов).
  *
@@ -489,17 +646,23 @@ async function pushAccountDataToCloudOnce(
         if (k && typeof v === 'string') data[k] = v;
       }
     }
+    // Свежие фото пишутся в @project_pv_* — без merge в page_values облако пустое.
+    await mergeIncrementalPageValuesIntoSyncData(data, projectIds);
   }
 
   // --- Убираем ВСЕ ключи проектов, которые НЕ входят в projectIds ---
+  // Инкрементальные @project_pv_* в облако не пушим (источник истины — page_values).
   for (const k of Object.keys(data)) {
-    if (k.startsWith(PROJECT_PREFIX)) {
-      if (!syncingProjects) {
-        delete data[k]; // не пушим никакие проекты
-      } else {
-        const pid = getProjectIdFromKey(k);
-        if (!projectIds.has(pid)) delete data[k];
-      }
+    if (!k.startsWith(PROJECT_PREFIX)) continue;
+    if (isIncrementalPageValueKey(k)) {
+      delete data[k];
+      continue;
+    }
+    if (!syncingProjects) {
+      delete data[k]; // не пушим никакие проекты
+    } else {
+      const pid = getProjectIdFromKey(k);
+      if (!projectIds.has(pid)) delete data[k];
     }
   }
 
@@ -530,11 +693,36 @@ async function pushAccountDataToCloudOnce(
 
   let dataWithPhotos: Record<string, string> = { ...data };
   if (syncingProjects && Object.keys(data).some((k) => k.startsWith(PROJECT_PREFIX))) {
+    await prepareSupabaseAuthForSync();
     try {
       dataWithPhotos = await uploadProjectImagesBeforeSync(accessCode, data);
       await persistUploadedProjectUrls(data, dataWithPhotos);
     } catch (e) {
-      console.warn('[AccountSync] Загрузка фото в Storage не удалась, сохраняем без неё:', e);
+      console.warn('[AccountSync] Загрузка фото в Storage не удалась:', e);
+      return {
+        ok: false,
+        error:
+          e instanceof Error
+            ? e.message
+            : 'Не удалось загрузить фото в облако. Проверьте сеть и повторите сохранение.',
+      };
+    }
+
+    // Не пушим file:///content:///ph:// — на другом устройстве слоты будут пустыми.
+    const lingeringLocal = findLingeringLocalPhotoKeys(dataWithPhotos);
+    const lingeringPageValues = lingeringLocal.filter((k) =>
+      k.startsWith('@project_page_values_'),
+    );
+    if (lingeringPageValues.length > 0) {
+      console.warn(
+        '[AccountSync] После upload page_values всё ещё с локальными URI:',
+        lingeringPageValues.slice(0, 8),
+      );
+      return {
+        ok: false,
+        error:
+          'Фото не удалось загрузить в облако. Выполните supabase/storage-setup.sql и сохраните альбом ещё раз.',
+      };
     }
   }
   await yieldToUI();

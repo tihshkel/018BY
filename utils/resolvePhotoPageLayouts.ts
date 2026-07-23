@@ -11,7 +11,6 @@ import {
   prefersPdfPinnedPhotoLayout,
   shouldSkipSparsePhotoExpansion,
   usesBlankPagePhotoFallback,
-  getSparsePhotoAlbumConfig,
 } from '@/constants/sparse-photo-album-config';
 import {
   buildStandardDesignedAlbumLayouts,
@@ -120,30 +119,6 @@ function resolveDesignedAlbumLayouts(
     }
     const expanded = expandManualSparseLayouts(lineGuideId, page, manual);
     if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
-  }
-
-  // Birthday / diary: нет PDF-пина — primary из eventSafe, зона режется по line-slots.
-  if (!shouldSkipSparsePhotoExpansion(lineGuideId, page)) {
-    const eventSafe = getSparsePhotoAlbumConfig(lineGuideId)?.eventSafe;
-    if (eventSafe) {
-      const syntheticPrimary: PhotoPageLayouts = {
-        variants: [
-          {
-            variantId: 'one_large',
-            slots: [
-              {
-                x: eventSafe.x,
-                y: eventSafe.y + eventSafe.height / 2,
-                width: eventSafe.width,
-                height: Math.max(0.2, eventSafe.height * 0.85),
-              },
-            ],
-          },
-        ],
-      };
-      const expanded = expandManualSparseLayouts(lineGuideId, page, syntheticPrimary);
-      if (expanded) return finalizeLayouts(expanded, lineGuideId, page);
-    }
   }
 
   return undefined;

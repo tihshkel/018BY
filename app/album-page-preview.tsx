@@ -8,6 +8,7 @@ import {
 import { Image as ExpoImage } from "expo-image";
 
 import { AlbumPreviewPhotoBlockEditor } from "@/components/album/album-preview-photo-block-editor";
+import { prefetchAlbumPhotoUri } from "@/components/album/album-photo-image";
 import { NonEditableBanner } from "@/components/album/non-editable-banner";
 import { PageFontPicker } from "@/components/album/page-font-picker";
 import { TemplateWireframePreview } from "@/components/album/template-wireframe-preview";
@@ -33,6 +34,7 @@ import {
 } from "@/utils/variantPreview";
 import {
   hasFormTextInput,
+  hasPhotoBlocks,
   isPhotoOnlySchema,
   resolveFormPathname,
   usesUnifiedPhotoEditor,
@@ -242,6 +244,13 @@ export default function AlbumPagePreviewScreen() {
     "default";
   const primarySlotUris = primaryBlockValues?.slots ?? [];
   const hasFilledPhotos = primarySlotUris.some(Boolean);
+
+  useEffect(() => {
+    for (const uri of primarySlotUris) {
+      if (uri) prefetchAlbumPhotoUri(uri);
+    }
+  }, [primarySlotUris]);
+
   const isCircleTreeBlock = primaryPhotoBlock?.layoutKind === "circle_tree";
   const primaryVariant =
     primaryPhotoBlock?.variants.find((item) => item.variantId === primaryVariantId) ??
@@ -453,7 +462,9 @@ export default function AlbumPagePreviewScreen() {
         {isFinalPreview
           ? showPhotoBlockEditor
             ? "Нажмите на фото — появится рамка. Перетаскивайте, ущипните для масштаба; фото остаётся в рамке PDF"
-            : "Так страница будет выглядеть в альбоме — проверьте текст и фото"
+            : hasPhotoBlocks(schema)
+              ? "Так страница будет выглядеть в альбоме — проверьте текст и фото"
+              : "Так страница будет выглядеть в альбоме — проверьте текст"
           : showTemplateWireframe
             ? "Схема страницы: серые блоки — места для фото, линии — поля для текста"
             : preferDesignLayout
@@ -549,8 +560,12 @@ export default function AlbumPagePreviewScreen() {
                   }
                 }}
                 middleLayer={
-                  showPhotoBlockEditor && instance ? (
+                  showPhotoBlockEditor &&
+                  instance &&
+                  previewLayout.coordinateWidth > 32 &&
+                  previewLayout.coordinateHeight > 32 ? (
                     <AlbumPreviewPhotoBlockEditor
+                      key={`pb-${Math.round(previewLayout.coordinateWidth)}x${Math.round(previewLayout.coordinateHeight)}`}
                       blockId={primaryPhotoBlock!.blockId}
                       lineGuideId={resolvedLineGuideId}
                       sourcePageNumber={

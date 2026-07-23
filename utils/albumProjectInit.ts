@@ -41,6 +41,59 @@ export function buildInitialPageInstances(
   return instances;
 }
 
+/**
+ * Достраивает недостающие страницы, если images/бандл длиннее сохранённых instances
+ * (типичный Android-баг дневников: урезанный список URI → «альбом обрывается»).
+ * Существующие instanceId и данные пользователя сохраняются.
+ */
+export function healMissingPageInstances(
+  lineGuideId: string,
+  instances: PageInstance[],
+  imageCount: number,
+): PageInstance[] {
+  if (imageCount <= 0) return instances;
+  const schemas = getAlbumPageSchemas(lineGuideId);
+  const targetCount =
+    schemas.length > 0 ? Math.min(imageCount, schemas.length) : imageCount;
+  if (instances.length >= targetCount) return instances;
+
+  const byPage = new Map<number, PageInstance>();
+  for (const instance of instances) {
+    if (!byPage.has(instance.sourcePageNumber)) {
+      byPage.set(instance.sourcePageNumber, instance);
+    }
+  }
+
+  const healed: PageInstance[] = [];
+  for (let imageIndex = 0; imageIndex < targetCount; imageIndex += 1) {
+    const sourcePageNumber = imageIndex + 1;
+    const existing = byPage.get(sourcePageNumber);
+    if (existing) {
+      healed.push({
+        ...existing,
+        order: imageIndex + 1,
+        imageIndex,
+      });
+      continue;
+    }
+    const schema =
+      schemas.find((s) => s.sourcePageNumber === sourcePageNumber) ??
+      schemas[imageIndex] ??
+      buildFallbackSchema(lineGuideId, sourcePageNumber);
+    healed.push({
+      instanceId: createId('page'),
+      schemaPageId: schema.pageId,
+      sourcePageNumber: schema.sourcePageNumber,
+      order: imageIndex + 1,
+      addedByUser: false,
+      imageIndex,
+      templateLibraryId: schema.templateLibraryId,
+    });
+  }
+
+  return healed;
+}
+
 function buildFallbackSchema(lineGuideId: string, pageNumber: number): AlbumPageSchema {
   return {
     pageId: `${lineGuideId}_p${pageNumber}`,

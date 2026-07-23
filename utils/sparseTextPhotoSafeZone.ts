@@ -18,6 +18,7 @@ import {
   EVENT_PHOTO_SAFE,
   getSparsePhotoAlbumConfig,
   hasSparsePhotoConfig,
+  isBirthdayCaptionPhotoPage,
   isPregnancyUpperBandPage,
   isPregnancyWeeklyMiddlePage,
   shouldSkipSparsePhotoExpansion,
@@ -576,7 +577,17 @@ function resolveStrategySafeZone(
         lineGuideId === 'family_blank_21x21'
           ? config.eventSafe
           : BLANK_PAGE_PHOTO_SAFE;
-      return constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
+      let zone = constrainPhotoSafeZone(lineGuideId, page, blankSafe, config);
+      // Free photo+caption pages: leave a band under frames so captions sit below photos.
+      if (lineGuideId === 'holidays_birthday_60' && isBirthdayCaptionPhotoPage(page)) {
+        const captionReserve = 0.065;
+        const minHeight = config.minPhotoSafeHeight ?? 0.12;
+        zone = {
+          ...zone,
+          height: Math.max(minHeight, zone.height - captionReserve),
+        };
+      }
+      return zone;
     }
     case 'mixed':
       if (isBottomAnchoredPhotoSlot(primarySlot)) {

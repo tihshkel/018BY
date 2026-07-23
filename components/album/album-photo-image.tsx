@@ -62,6 +62,11 @@ type AlbumPhotoImageBaseProps = {
   uri: string;
   recyclingKey?: string;
   contentFit?: ImageContentFit;
+  /** Override default ALBUM_PHOTO_IMAGE_PROPS.allowDownscaling (preview needs sharp first frame). */
+  allowDownscaling?: boolean;
+  /** Hint decode size (dp) — helps Android Glide pick a sharp bitmap. */
+  decodeWidth?: number;
+  decodeHeight?: number;
   onLoad?: () => void;
   onError?: () => void;
   prefetch?: boolean;
@@ -72,6 +77,9 @@ export function AlbumPhotoImageRaw({
   uri,
   recyclingKey,
   contentFit = 'cover',
+  allowDownscaling = ALBUM_PHOTO_IMAGE_PROPS.allowDownscaling,
+  decodeWidth,
+  decodeHeight,
   onLoad,
   onError,
   prefetch = true,
@@ -87,12 +95,25 @@ export function AlbumPhotoImageRaw({
   // recyclingKey может нести `?v=` для сброса кэша после replace; source — чистый путь.
   const imageRecyclingKey = recyclingKey ?? uri;
 
+  const source = useMemo(() => {
+    if (
+      typeof decodeWidth === 'number' &&
+      decodeWidth > 0 &&
+      typeof decodeHeight === 'number' &&
+      decodeHeight > 0
+    ) {
+      return { uri: normalizedUri, width: decodeWidth, height: decodeHeight };
+    }
+    return { uri: normalizedUri };
+  }, [decodeHeight, decodeWidth, normalizedUri]);
+
   return (
     <Image
-      source={{ uri: normalizedUri }}
+      source={source}
       style={[styles.image, style]}
       {...ALBUM_PHOTO_IMAGE_PROPS}
       contentFit={contentFit}
+      allowDownscaling={allowDownscaling}
       recyclingKey={imageRecyclingKey}
       onLoad={onLoad}
       onError={onError}

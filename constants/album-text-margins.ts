@@ -86,6 +86,12 @@ export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.02;
 export const KIDS_P1_BASELINE_SINK_RATIO = 0.16;
 
 /**
+ * Android-only: Amatic SC на p1 визуально ниже iOS при том же sink —
+ * линия режет дату/время/вес/рост. Компенсируем подъёмом (только preview p1).
+ */
+export const KIDS_P1_ANDROID_BASELINE_LIFT_RATIO = 0.14;
+
+/**
  * p1 экспорт: Amatic в pdf-lib при том же Text top садится ниже RN
  * (линия режет цифры пополам). Подъём только PDF baseline — превью не трогаем.
  */
@@ -169,10 +175,10 @@ export const DIARY_LINE_FONT_OFFSET = 0.78;
 export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
 /**
- * Android: Amatic SC метрики выше iOS при том же fontOffset — доп. sink к штриху
- * (доля fontSize). iOS не трогаем.
+ * Android-only (diary brown/purple): при том же fontOffset, что iOS, Amatic
+ * визуально садится на штрих. Подъём Text top (доля fontSize). iOS не трогаем.
  */
-export const DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO = 0.03;
+export const DIARY_ANDROID_AMATIC_LIFT_RATIO = 0.07;
 
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
 export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;

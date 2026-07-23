@@ -538,13 +538,14 @@ export async function uploadProjectImagesBeforeSync(
     await yieldToUI();
   }
 
-  if (result['@user_avatar']?.startsWith('file://')) {
+  const avatarUri = result['@user_avatar'];
+  if (typeof avatarUri === 'string' && isDeviceLocalMediaUri(avatarUri)) {
     await yieldToUI();
     try {
       const url = await uploadImageToStorage(
         accessCode,
         'avatar',
-        result['@user_avatar'],
+        avatarUri,
         0
       );
       if (url) result['@user_avatar'] = url;

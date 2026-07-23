@@ -2525,7 +2525,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "kids-standard-ruled-line-v2",
     "kids-stroke-clearance-v1",
     "kids-p1-photo-middle-band-v1",
-    "kids-p1-answer-baseline-sink-v2",
+    "kids-p1-answer-baseline-sink-v3-android-lift",
     // Авто-инвалидация при правке layout имён / слотов p5
     `kids-family-tree-names-v4-under-circle:${JSON.stringify(KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX)}:${KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM}`,
     "kids-teeth-bottom-stroke-v6",
@@ -2543,6 +2543,7 @@ function lineSlotsCacheKey(params: GetLineSlotsParams): string {
     "pregnancy-already-mom-clearance-v3",
     "template-text-norm-width-v1",
     "diary-questionnaire-season-pets-wish-v1",
+    "diary-android-amatic-lift-v1",
     "diary-full-semantic-slots-v1",
     "diary-brown-p21-travel-tails-v2",
     "diary-brown-p31-school-strokes-v1",

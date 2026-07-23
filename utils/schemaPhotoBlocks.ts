@@ -1,4 +1,5 @@
 import type { AlbumPageSchema, PhotoBlockSchema } from '@/types/album-page-schema';
+import photoPagesByAlbum from '@/constants/photo-pages-by-album.json';
 import { resolvePhotoPageLayoutsOrUndefined } from '@/utils/resolvePhotoPageLayouts';
 import {
   getPageFormatForLineGuide,
@@ -13,6 +14,17 @@ import {
   buildPhotoBlocksFromTemplate,
 } from '@/utils/resolveTemplatePageLayout';
 import { normalizeDesignedAlbumVariantId } from '@/utils/variantPreview';
+
+const PHOTO_PAGES_BY_ALBUM = photoPagesByAlbum as Record<string, number[]>;
+
+/** Designed albums: only canon photo pages may get enrich when photoBlocks is absent. */
+function isCanonPhotoPage(lineGuideId: string, pageNumber: number): boolean {
+  const pages = PHOTO_PAGES_BY_ALBUM[lineGuideId];
+  if (!pages) return true;
+  // Blank albums use [] in the manifest — templates decide photo UI separately.
+  if (pages.length === 0 && isBlankTemplateLineGuide(lineGuideId)) return true;
+  return pages.includes(pageNumber);
+}
 
 const VARIANT_LABELS: Record<string, string> = {
   one_large: 'Одно большое фото',
@@ -176,6 +188,9 @@ function shouldEnrichWithPhotoBlocks(schema: AlbumPageSchema): boolean {
   if (photoPageTypes.has(schema.pageType)) return true;
 
   if (schema.pageType === 'structured' || schema.pageType === 'text_page') {
+    if (!isCanonPhotoPage(schema.lineGuideId, schema.sourcePageNumber)) {
+      return false;
+    }
     if (isPregnancyWeeklyPhotoPage(schema.lineGuideId, schema.sourcePageNumber)) {
       return true;
     }
@@ -189,5 +204,6 @@ export function hasPhotoSlotLayouts(
   lineGuideId: string,
   pageNumber: number,
 ): boolean {
+  if (!isCanonPhotoPage(lineGuideId, pageNumber)) return false;
   return Boolean(resolvePhotoPageLayouts(lineGuideId, pageNumber)?.variants?.length);
 }

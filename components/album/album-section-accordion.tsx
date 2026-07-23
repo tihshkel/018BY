@@ -10,7 +10,7 @@ import type { AlbumPageSchema, PageInstance, PageStatus, PageValues } from '@/ty
 import type { SectionProgress } from '@/utils/albumProgress';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 
-const VISIBLE_PAGE_LIMIT = 6;
+const VISIBLE_PAGE_LIMIT = 12;
 
 type SectionPageRow = {
   instance: PageInstance;
@@ -231,7 +231,11 @@ export function AlbumSectionAccordion({
           {!showAll && pages.length > VISIBLE_PAGE_LIMIT ? (
             <Pressable
               onPress={() => setShowAll(true)}
-              style={({ pressed }) => [styles.showAll, pressed && styles.showAllPressed]}
+              style={({ pressed }) => [
+                styles.showAll,
+                usePageGrid && styles.showAllFullWidth,
+                pressed && styles.showAllPressed,
+              ]}
             >
               <AppText variant="caption" style={styles.showAllText}>
                 Показать все {pages.length} страниц
@@ -368,6 +372,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     paddingVertical: spacing.sm,
+  },
+  showAllFullWidth: {
+    width: '100%',
+    flexBasis: '100%',
   },
   showAllPressed: {
     opacity: 0.85,

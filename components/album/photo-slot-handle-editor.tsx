@@ -346,6 +346,9 @@ function PhotoSlotHandleFilled({
           source={{ uri }}
           style={styles.image}
           contentFit="cover"
+          cachePolicy="disk"
+          transition={0}
+          allowDownscaling={false}
           recyclingKey={uri}
           onError={() => {
             if (!isRemotePhotoUri(uri)) {

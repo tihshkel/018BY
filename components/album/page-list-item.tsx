@@ -106,7 +106,7 @@ function PageCard({
             source={{ uri: thumbnailUri }}
             style={styles.thumbnail}
             contentFit="cover"
-            cachePolicy="memory-disk"
+            cachePolicy="disk"
             recyclingKey={thumbnailUri}
             transition={0}
           />

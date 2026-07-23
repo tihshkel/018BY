@@ -20,6 +20,7 @@ import {
   buildInitialPageValuesMap,
   getInstanceTitle,
   getSchemaForInstance,
+  healMissingPageInstances,
 } from '@/utils/albumProjectInit';
 import { migrateBirthdayPageValuesMap } from '@/utils/migrateBirthdayPageValues';
 import { migrateProjectToPageValues } from '@/utils/migrateToPageValues';
@@ -948,6 +949,22 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
             nextValues = buildInitialPageValuesMap(nextInstances);
             await savePageInstances((k, v) => AsyncStorage.setItem(k, v), projectId, nextInstances);
             await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, nextValues);
+          } else if (
+            lgId.startsWith('diary_interior_') &&
+            imageUris.length > nextInstances.length
+          ) {
+            const healed = healMissingPageInstances(lgId, nextInstances, imageUris.length);
+            if (healed.length > nextInstances.length) {
+              const addedValues = buildInitialPageValuesMap(
+                healed.filter(
+                  (inst) => !nextInstances.some((prev) => prev.instanceId === inst.instanceId),
+                ),
+              );
+              nextInstances = healed;
+              nextValues = { ...nextValues, ...addedValues };
+              await savePageInstances((k, v) => AsyncStorage.setItem(k, v), projectId, nextInstances);
+              await savePageValuesMap((k, v) => AsyncStorage.setItem(k, v), projectId, nextValues);
+            }
           }
 
           const memorySnapshotAfterLoad = getAlbumProjectSnapshot(projectId);
@@ -1073,10 +1090,19 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
           { celebration, coverType, interiorType, eventDate },
           async () => {
             const albumId = resolveInteriorAlbumId(interiorType ?? coverType, celebration);
-            const imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? [];
+            let imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? [];
 
             const lgId = resolveLineGuideId(albumId, celebration);
-            const newInstances = buildInitialPageInstances(lgId, imageUris.length);
+            const expectedPages = getAlbumPageCount(lgId);
+            if (
+              lgId.startsWith('diary_interior_') &&
+              expectedPages > 0 &&
+              imageUris.length < expectedPages
+            ) {
+              imageUris = (await loadImagesForAlbum(albumId, celebration)) ?? imageUris;
+            }
+            const pageCount = Math.max(imageUris.length, expectedPages);
+            const newInstances = buildInitialPageInstances(lgId, pageCount);
             const newValues = buildInitialPageValuesMap(newInstances);
 
             const createdProjectId = Date.now().toString();
@@ -1095,7 +1121,7 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
               createdAt: new Date().toISOString(),
               isReadyMadeAlbum: true,
               hasPdfTemplate: true,
-              pagesCount: imageUris.length,
+              pagesCount: pageCount,
             };
 
             const thumb = getCoverThumbnailForProject(coverType, celebration);
@@ -1166,13 +1192,22 @@ export function useAlbumProject(params: UseAlbumProjectParams) {
         await AsyncStorage.setItem(`@project_images_${newProjectId}`, JSON.stringify(imageUris));
 
         const lgId = lgIdForNew;
-        const loadedInstances =
+        let loadedInstances =
           loadedInstancesRaw.length > 0
             ? loadedInstancesRaw
             : buildInitialPageInstances(lgId, imageUris.length);
+        if (
+          lgId.startsWith('diary_interior_') &&
+          imageUris.length > loadedInstances.length
+        ) {
+          loadedInstances = healMissingPageInstances(lgId, loadedInstances, imageUris.length);
+        }
         const loadedValues =
           Object.keys(loadedValuesRaw).length > 0
-            ? loadedValuesRaw
+            ? {
+                ...buildInitialPageValuesMap(loadedInstances),
+                ...loadedValuesRaw,
+              }
             : buildInitialPageValuesMap(loadedInstances);
 
         const projectData = projectRaw

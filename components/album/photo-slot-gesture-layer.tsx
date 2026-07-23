@@ -258,6 +258,8 @@ function PhotoSlotFilled({
         <AlbumPhotoImageRaw
           uri={uri}
           style={styles.image}
+          // Крупный слот (1 фото): без downscale — сразу резкий кадр на Android.
+          allowDownscaling={false}
           recyclingKey={uri}
           onError={() => {
             // Не стираем слот при временном сбое decode/`?v=` —
