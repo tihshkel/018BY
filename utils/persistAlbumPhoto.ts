@@ -1,7 +1,10 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
 import type { FreePageElement, PageValues } from '@/types/album-page-schema';
-import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
+import {
+  type PhotoTargetPixels,
+  resamplePhotoForAlbumStorage,
+} from '@/utils/albumPhotoResample';
 
 const ALBUM_PHOTOS_DIR = `${FileSystem.documentDirectory}album-photos/`;
 
@@ -12,6 +15,15 @@ function normalizeFileUri(path: string): string {
 
 function stripFileScheme(uri: string): string {
   return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
+}
+
+/** Drop cache-bust query from managed file URIs before FS checks. */
+export function stripPhotoCacheBust(uri: string): string {
+  if (!uri) return uri;
+  const queryIndex = uri.indexOf('?');
+  if (queryIndex < 0) return uri;
+  if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
+  return uri.slice(0, queryIndex);
 }
 
 function inferPhotoExtension(sourceUri: string): 'jpg' | 'png' | 'heic' {
@@ -29,9 +41,16 @@ export function isRemotePhotoUri(uri: string): boolean {
   return uri.startsWith('https://') || uri.startsWith('http://');
 }
 
+/** Force expo-image to reload when the on-disk path is reused after replace. */
+export function withPhotoCacheBust(uri: string, revision: number = Date.now()): string {
+  const base = stripPhotoCacheBust(uri);
+  if (!base || isRemotePhotoUri(base)) return uri;
+  return `${base}?v=${revision}`;
+}
+
 export function isManagedAlbumPhotoUri(uri: string): boolean {
   const normalizedDir = stripFileScheme(ALBUM_PHOTOS_DIR);
-  const normalizedUri = stripFileScheme(uri);
+  const normalizedUri = stripFileScheme(stripPhotoCacheBust(uri));
   return normalizedUri.startsWith(normalizedDir);
 }
 
@@ -55,87 +74,91 @@ export async function photoUriExists(uri: string): Promise<boolean> {
   if (!uri.trim()) return false;
   if (isRemotePhotoUri(uri)) return true;
   try {
-    const info = await FileSystem.getInfoAsync(uri);
+    const info = await FileSystem.getInfoAsync(stripPhotoCacheBust(uri));
     return info.exists && !info.isDirectory;
   } catch {
     return false;
   }
 }
 
-/**
- * Копирует фото из галереи/кэша в documentDirectory — URI переживает перезапуск.
- * Имя файла всегда уникально (`_timestamp`), иначе replace пишет в тот же путь,
- * expo-image с cachePolicy:'disk' продолжает показывать старые байты.
- */
+export type PersistAlbumPhotoOptions = {
+  /** Целевые пиксели при design DPI (72); крупнее — уменьшаются при сохранении. */
+  targetPixels?: PhotoTargetPixels | null;
+};
+
+/** Копирует фото из галереи/кэша в documentDirectory — URI переживает перезапуск приложения. */
 export async function persistAlbumPhotoUri(
   sourceUri: string,
   relativeKey: string,
+  options?: PersistAlbumPhotoOptions,
 ): Promise<string> {
   if (!sourceUri.trim()) return sourceUri;
   if (isRemotePhotoUri(sourceUri)) return sourceUri;
-  if (isManagedAlbumPhotoUri(sourceUri)) return normalizeFileUri(sourceUri);
+  if (isManagedAlbumPhotoUri(sourceUri)) return normalizeFileUri(stripPhotoCacheBust(sourceUri));
 
   await FileSystem.makeDirectoryAsync(ALBUM_PHOTOS_DIR, { intermediates: true });
 
-  const ext = inferPhotoExtension(sourceUri);
-  const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}_${Date.now()}.${ext}`;
+  const ext = options?.targetPixels ? 'jpg' : inferPhotoExtension(sourceUri);
+  const destPath = `${ALBUM_PHOTOS_DIR}${sanitizeStorageKey(relativeKey)}.${ext}`;
   const destUri = normalizeFileUri(destPath);
 
-  if (stripFileScheme(sourceUri) === stripFileScheme(destPath)) {
+  if (stripFileScheme(stripPhotoCacheBust(sourceUri)) === destPath) {
     return destUri;
   }
 
   try {
-    await FileSystem.copyAsync({ from: sourceUri, to: destPath });
-    const normalizedUri = await normalizePhotoOrientation(destUri);
-    if (normalizedUri !== destUri) {
-      try {
-        await FileSystem.copyAsync({
-          from: normalizedUri,
-          to: destPath,
-        });
-      } catch {
-        return normalizedUri;
-      }
+    // Overwrite stale bitmap so a later cache-bust query loads the new file.
+    const existing = await FileSystem.getInfoAsync(destPath);
+    if (existing.exists) {
+      await FileSystem.deleteAsync(destPath, { idempotent: true });
     }
+    const processedUri = await resamplePhotoForAlbumStorage(sourceUri, options?.targetPixels);
+    await FileSystem.copyAsync({ from: processedUri, to: destPath });
     return destUri;
   } catch (error) {
-    console.warn('[persistAlbumPhotoUri] copy failed, keeping source URI', error);
-    return sourceUri.startsWith('file://') || sourceUri.startsWith('/')
-      ? normalizeFileUri(sourceUri)
-      : sourceUri;
+    console.warn('[persistAlbumPhotoUri] resample/copy failed, retrying direct copy', error);
+    try {
+      await FileSystem.copyAsync({ from: sourceUri, to: destPath });
+      return destUri;
+    } catch (retryError) {
+      console.error('[persistAlbumPhotoUri] direct copy failed', retryError);
+      throw new Error(
+        `Не удалось сохранить фото в альбом (${relativeKey}). Попробуйте выбрать снимок снова.`,
+      );
+    }
   }
 }
 
-/** Удаляет локальный файл альбома (после replace/remove), без ошибок если файла нет. */
-export async function deleteManagedAlbumPhotoUri(uri: string | null | undefined): Promise<void> {
-  if (!uri?.trim() || !isManagedAlbumPhotoUri(uri)) return;
-  try {
-    await FileSystem.deleteAsync(uri, { idempotent: true });
-  } catch {
-    // ignore
+async function findManagedPhotoByKey(relativeKey: string): Promise<string | null> {
+  const base = sanitizeStorageKey(relativeKey);
+  for (const ext of ['jpg', 'png', 'heic'] as const) {
+    const candidate = normalizeFileUri(`${ALBUM_PHOTOS_DIR}${base}.${ext}`);
+    if (await photoUriExists(candidate)) return candidate;
   }
+  return null;
 }
 
 async function resolveStoredPhotoUri(
   uri: string,
   relativeKey: string,
 ): Promise<string | null> {
-  // HTTPS из облака — всегда оставляем.
   if (isRemotePhotoUri(uri)) {
-    return uri;
+    return (await photoUriExists(uri)) ? uri : null;
   }
 
-  // Локальный файл есть на этом устройстве — при необходимости копируем в album-photos/.
+  if (isManagedAlbumPhotoUri(uri)) {
+    if (await photoUriExists(uri)) return uri;
+    const fallback = await findManagedPhotoByKey(relativeKey);
+    return fallback;
+  }
+
   if (await photoUriExists(uri)) {
-    if (isManagedAlbumPhotoUri(uri)) {
-      return uri;
-    }
     return persistAlbumPhotoUri(uri, relativeKey);
   }
 
-  // Локальный URI с другого устройства / уже удалённый кэш: НЕ обнуляем.
-  // Иначе Android после pull затрёт слоты и следующим push убьёт облако.
+  const fallback = await findManagedPhotoByKey(relativeKey);
+  if (fallback) return fallback;
+
   return uri;
 }
 
@@ -167,6 +190,10 @@ export async function sanitizePageValuesPhotos({
         uri,
         buildAlbumPhotoStorageKey({ projectId, instanceId, blockId, slotIndex }),
       );
+
+      if (!resolved) {
+        continue;
+      }
 
       if (resolved !== uri) {
         slots[slotIndex] = resolved;
@@ -200,7 +227,7 @@ export async function sanitizePageValuesPhotos({
       );
 
       if (!resolved) {
-        changed = true;
+        nextElements.push(element);
         continue;
       }
 

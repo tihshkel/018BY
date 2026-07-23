@@ -20,7 +20,7 @@ export type PageType =
   | 'birthday_free_page'
   | 'travel_map_page';
 
-export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio' | 'checkbox';
+export type FieldType = 'text' | 'date' | 'time' | 'number' | 'radio';
 
 export type TemplateTextBlockType = 'caption' | 'title' | 'longText' | 'date';
 
@@ -85,7 +85,7 @@ export interface AlbumPageSchema {
   canAddAfter: boolean;
   templateLibraryId?: string;
   captionEnabled?: boolean;
-  /** Лимит символов для поля «Подпись» (caption в PageValues). */
+  /** Max characters for designed/blank photo captions when layout defines a bound. */
   captionMaxLength?: number;
   /** Always included in electronic export even when empty (e.g. kids p2). */
   requiredInExport?: boolean;
@@ -152,8 +152,12 @@ export interface PageValues {
   photoGroupTransform?: PhotoSlotTransform;
   /** ID шрифта из AVAILABLE_FONTS для всего текста страницы */
   textFontFamily?: string;
-  /** Выравнивание коротких значений полей (дата, вес, рост и т.п.) на макете */
+  /** Per-field alignment and font size (blank templates). */
+  fieldTextStyles?: Record<string, FieldTextStyle>;
+  /** Per-field text align (Android editors still use this key). */
   fieldTextAlign?: Record<string, 'left' | 'center' | 'right'>;
+  /** Caption / single-caption alignment and size. */
+  captionTextStyle?: FieldTextStyle;
   status: PageStatus;
   updatedAt: string;
   excludedFromExport?: boolean;
@@ -198,6 +202,11 @@ export type PhotoSlotTransform = {
   scale: number;
   offsetX: number;
   offsetY: number;
+};
+
+export type FieldTextStyle = {
+  textAlign?: 'left' | 'center' | 'right';
+  fontSize?: number;
 };
 
 export const PAGE_SCHEMA_VERSION = '2.0.0';

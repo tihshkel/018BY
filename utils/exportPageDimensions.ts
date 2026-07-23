@@ -2,6 +2,9 @@
 export const A5_WIDTH_PT = 420;
 export const A5_HEIGHT_PT = 595;
 
+/** DPI макета в Corel — эталон для ресэмплинга пользовательских фото при вставке. */
+export const ALBUM_DESIGN_DPI = 72;
+
 /** Поля 10 мм ≈ 28.3 pt (мягкая обложка и электронная версия) */
 export const A5_MARGIN_PT = 28.3;
 

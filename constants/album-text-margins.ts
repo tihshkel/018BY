@@ -37,276 +37,222 @@ export const KIDS_MONTH_LINE_BAND_HEIGHT = 0.028;
 /** Небольшой отступ от левого края PDF-слота (после печатной подписи). */
 export const KIDS_MONTH_LINE_X_INSET = 0.008;
 
-/** Единый отступ line-полей (pregnancy / kids / diary). */
-export const DIARY_UNIFORM_LINE_X_INSET = 0.008;
+/**
+ * Общий зазор пользовательского текста от печатного дизайна
+ * (подписи, декоративные края) на kids_48 / pregnancy_*.
+ * Preview = export через refineNormalizedSlotForTextLayout.
+ */
+export const DESIGNED_LABELED_LINE_TEXT_INSET_NORM = 0.014;
+
+/** Лёгкий отступ у широких строк без hasLabel, начинающихся у левого края макета. */
+export const DESIGNED_LINE_EDGE_INSET_NORM = 0.008;
 
 /**
- * Единый просвет текста до штриха для ruled-строк всех шаблонных альбомов
- * (pregnancy_60/a5, kids_48, diary brown/purple).
- * Минимум = CAP_HEIGHT PDF (0.85). Runtime берёт max(это, previewCap шрифта) + CLEARANCE,
- * иначе рукописные шрифты (cap 0.92+) тонут в линии.
+ * Имена семейного дерева: Y уже в buildPage5FamilyTreeSlots (baseline под кругом).
+ * Доп. nudge не нужен — раньше dx/dy уводили «ИВАН» вправо и с линии.
  */
-export const DIARY_UNIFORM_LINE_FONT_OFFSET = 0.85;
+export const KIDS_FAMILY_TREE_NAME_Y_NUDGE_NORM = 0;
+
+/**
+ * Точечная подгонка имён (индекс = templateLineStart). Пусто = слоты как в LINE_SLOTS.
+ * Попадает в cache-key getLineSlotsForPage.
+ */
+export const KIDS_FAMILY_TREE_NAME_LAYOUT_BY_INDEX: Readonly<
+  Record<number, { dx?: number; dy?: number; width?: number }>
+> = {};
 
 /** Baseline на штрихе подчёркивания (≈ доля fontSize от top до baseline). */
-export const KIDS_MONTH_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
-
-/** kids_48 p13 «Мои достижения» — строка «Ползаю» (PDF-слот слишком влево). */
-export const KIDS48_P13_CRAWLS_LINE = {
-  writableX: 0.3258,
-  writableWidth: 0.53767,
-} as const;
-
-/** kids_48 p1: значения после подписей — единый левый зазор + дата целиком. */
-export const KIDS48_P1_VALUE_LINE_X_INSET = 0.028;
-
-/** kids_48 p1 «Дата рождения» — после «ДАТА РОЖДЕНИЯ», ширина под «ДД.ММ.ГГГГ». */
-export const KIDS48_P1_BIRTH_DATE_LINE = {
-  writableX: 0.518,
-  writableWidth: 0.26,
-  strokeY: 0.76114,
-} as const;
-
-/** kids_48 p8 «Первый день дома» — iOS e24a739 (2223/2481 на эталоне 300dpi). */
-export const KIDS48_P8_DATE_LINE = {
-  writableX: 1031 / 2481,
-  writableWidth: 582 / 2481,
-  strokeY: 2223 / 2481,
-} as const;
-
-/** Нижняя «ДАТА» на event-страницах (p12/14/15/17/18/19) — iOS e24a739. */
-export const KIDS48_BOTTOM_DATE_LINE = {
-  writableX: 0.418,
-  writableWidth: 0.232,
-  strokeY: 0.9135,
-} as const;
-
-/** Семейное дерево (p5): ширина имени под кругом — 7 символов при любом шрифте. */
-export const KIDS48_FAMILY_TREE_NAME_SLOT_WIDTH = 0.2;
-
-/** Зазор между низом даты и штрихом линии — тот же единый offset. */
-export const KIDS48_P8_DATE_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
+export const KIDS_MONTH_LINE_FONT_OFFSET = 0.86;
 
 /**
- * Фиолетовый «Твой день»: дата сразу после «ЗА СЕГОДНЯ:».
- */
-export const PURPLE_MY_DAY_DATE_AFTER_TODAY = {
-  writableX: 0.422,
-  writableWidth: 0.28,
-  strokeY: 0.238,
-} as const;
-
-/**
- * Коричневый «Твой день»: дата на линии под заголовком (вместо «(ДАТА)»).
- */
-export const BROWN_MY_DAY_DATE_UNDER_TITLE = {
-  writableX: 0.3376,
-  writableWidth: 0.3252,
-  strokeY: 0.1416,
-} as const;
-
-export const PURPLE_MY_DAY_DATE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
-
-export const PURPLE_MY_DAY_PAGES = [
-  9, 11, 13, 15, 17, 19, 23, 34, 35, 36, 37, 38, 39,
-] as const;
-
-export const BROWN_MY_DAY_PAGES = [
-  16, 20, 23, 25, 28, 33, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
-] as const;
-
-const PURPLE_MY_DAY_PAGE_SET = new Set<number>(PURPLE_MY_DAY_PAGES);
-const BROWN_MY_DAY_PAGE_SET = new Set<number>(BROWN_MY_DAY_PAGES);
-
-export function isPurpleMyDayPage(lineGuideId: string, page: number): boolean {
-  return lineGuideId === 'diary_interior_purple' && PURPLE_MY_DAY_PAGE_SET.has(Number(page));
-}
-
-export function isBrownMyDayPage(lineGuideId: string, page: number): boolean {
-  return lineGuideId === 'diary_interior_brown' && BROWN_MY_DAY_PAGE_SET.has(Number(page));
-}
-
-/** Y штриха нижней линии «ДАТА» по номеру страницы kids_48. */
-/**
- * Stroke Y нижней «ДАТА» — как iOS e24a739.
- * p8/p9 — отдельный event-date path (kids-48-event-date-slots), не сюда.
- */
-const KIDS48_BOTTOM_DATE_STROKE_Y: Record<number, number> = {
-  14: KIDS48_BOTTOM_DATE_LINE.strokeY,
-  15: KIDS48_BOTTOM_DATE_LINE.strokeY,
-  17: KIDS48_BOTTOM_DATE_LINE.strokeY,
-  18: KIDS48_BOTTOM_DATE_LINE.strokeY,
-  19: KIDS48_BOTTOM_DATE_LINE.strokeY,
-  12: KIDS48_BOTTOM_DATE_LINE.strokeY,
-};
-
-export function getKids48BottomDateLineStrokeY(page: number): number | null {
-  return KIDS48_BOTTOM_DATE_STROKE_Y[page] ?? null;
-}
-
-/**
- * Индекс слота нижней линии «ДАТА».
- * После bake iOS e24a739 на p8/p18/p19 — один слот (index 0), не два.
- */
-export function getKids48BottomDateLineSlotIndex(page: number): number | null {
-  if (
-    page === 12 ||
-    page === 14 ||
-    page === 15 ||
-    page === 17 ||
-    page === 18 ||
-    page === 19
-  ) {
-    return 0;
-  }
-  return null;
-}
-
-export function isKids48BottomDateLineSlot(
-  lineGuideId: string,
-  page: number,
-  slotIndex: number,
-): boolean {
-  const dateSlotIndex = getKids48BottomDateLineSlotIndex(page);
-  return lineGuideId === 'kids_48' && dateSlotIndex !== null && slotIndex === dateSlotIndex;
-}
-
-/** p16 «Мои сновидения» — дата на верхней линии (не внизу страницы). */
-export function isKids48DreamsDateLineSlot(
-  lineGuideId: string,
-  page: number,
-  slotIndex: number,
-): boolean {
-  return lineGuideId === 'kids_48' && page === 16 && slotIndex === 0;
-}
-
-export function isKids48CalibratedDateLineSlot(
-  lineGuideId: string,
-  page: number,
-  slotIndex: number,
-): boolean {
-  return (
-    isKids48BottomDateLineSlot(lineGuideId, page, slotIndex) ||
-    isKids48DreamsDateLineSlot(lineGuideId, page, slotIndex)
-  );
-}
-
-/** «Мои сновидения» (p16): дата у заголовка «Первая ночь…» — линия вверху справа. */
-export const KIDS48_P16_DREAMS_DATE_LINE = {
-  writableX: 0.715,
-  writableWidth: 0.27,
-  strokeY: 0.21164,
-} as const;
-
-/** «Мои зубки» (p10): как iOS e24a739 — кегль 11 на ширине ~0.12. */
-export const KIDS48_TEETH_TOOTH_DATE_FONT_SIZE = 11;
-
-/**
- * Ширина даты у зуба. iOS bake 0.12 — на Android без downscale глифы шире,
- * 0.12 клипает «12.11.2007» → «12.11.200». Чуть шире + shrink шрифта.
- */
-export const KIDS48_TEETH_TOOTH_DATE_SLOT_WIDTH = 0.165;
-
-/**
- * Kids stroke clearances / Amatic sink (iOS e24a739) — только kids_48.
- * iOS: rnAscentRatioAt16 === 1 для Amatic; textTop = stroke − size×(ascent+clearance) + sink.
+ * Зазор над штрихом для kids_48 (preview = export).
+ * Amatic при baseline == stroke визуально врезается в линию.
  */
 export const KIDS_STROKE_CLEARANCE_RATIO = 0.1;
-export const KIDS_MONTH_STROKE_CLEARANCE_RATIO = 0.22;
+
 /**
- * p1: на Android Amatic с includeFontPadding:false визуально «липнет» к штриху
- * при iOS-константах (0.02/0.16). Держим заметный просвет снизу, как на скринах iOS.
+ * Month pages («Мне N месяцев») — чуть больший зазор: при экспорте Amatic
+ * иначе садится на печатную линию (~2–3 px на эталоне 2480).
  */
-export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.22;
-/** p1: sink только для даты/времени/веса/роста (index≥1), не для имени. */
-export const KIDS_P1_BASELINE_SINK_RATIO = 0.04;
+export const KIDS_MONTH_STROKE_CLEARANCE_RATIO = 0.22;
+
+/**
+ * p1 «Этот альбом принадлежит» — дата/время/вес/рост: Amatic с rnAscent=1
+ * визуально «висит» над штрихом; clearance минимальный, sink опускает baseline в RN.
+ */
+export const KIDS_P1_STROKE_CLEARANCE_RATIO = 0.02;
+
+/** Доп. опускание Text top к штриху на p1 в превью (доля fontSize). */
+export const KIDS_P1_BASELINE_SINK_RATIO = 0.16;
+
+/**
+ * p1 экспорт: Amatic в pdf-lib при том же Text top садится ниже RN
+ * (линия режет цифры пополам). Подъём только PDF baseline — превью не трогаем.
+ */
+export const KIDS_P1_PDF_BASELINE_LIFT_RATIO = 0.3;
+
+/** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
+export const KIDS_TEETH_BOTTOM_LINE_GAP_BAND_RATIO = 0;
+
+/** @deprecated Зазор убран — baseline через getStrokeBaselineFontOffset. */
+export const KIDS_TEETH_DATE_LINE_GAP_BAND_RATIO = 0;
+
+/**
+ * p10 «Мои зубки» — дата плотно на штрихе («дата и сразу подчёркивание»).
+ * Чуть меньше общего kids clearance, без врезания Amatic в линию.
+ */
 export const KIDS_TEETH_STROKE_CLEARANCE_RATIO = 0.02;
-/** p10 даты у зубов — лёгкий sink к штриху. */
+
+/** p10 даты у кругов — лёгкий sink Amatic к штриху (доля fontSize). */
 export const KIDS_TEETH_DATE_BASELINE_SINK_RATIO = 0.04;
-/** p10 «первая чистка» / «в годик» — подъём вверх (iOS e24a739 = 0.22). */
+
+/**
+ * p10 «первая чистка» / «в годик» — текст врезался в линию (preview+export).
+ * Отрицательный sink = подъём к штриху.
+ */
 export const KIDS_TEETH_BOTTOM_BASELINE_LIFT_RATIO = 0.22;
+
+/**
+ * p10 нижние строки: Amatic в pdf-lib при том же text top садится ниже RN
+ * (штрих режет цифры). Подъём только PDF baseline — превью не трогаем.
+ */
+export const KIDS_TEETH_BOTTOM_PDF_BASELINE_LIFT_RATIO = 0.3;
+
+/**
+ * p10 даты у кругов зубов — та же PDF-осадка Amatic, что у нижних строк.
+ */
+export const KIDS_TEETH_DATE_PDF_BASELINE_LIFT_RATIO = 0.3;
+
+/**
+ * p10 «Мои зубки» — короткий underline (~0.1) и плотный ряд линий.
+ * Кегль меньше общего kids (16), иначе даты налезают друг на друга.
+ */
 export const KIDS_TEETH_FIXED_LINE_FONT_SIZE = 11;
+
+/**
+ * p11 «Рост и вес» — плотная сетка у заголовков; меньше clearance + меньший кегль.
+ */
 export const KIDS_GROWTH_STROKE_CLEARANCE_RATIO = 0.08;
 export const KIDS_GROWTH_FIXED_LINE_FONT_SIZE = 13;
-/** Нижняя «ДАТА» / event dates — просвет над штрихом как на iOS-скринах. */
-export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.16;
-/** p5 «Семейное дерево» — имена чуть выше штриха под кругом. */
-export const KIDS_FAMILY_TREE_STROKE_CLEARANCE_RATIO = 0.14;
-
-/** p8/p9 event «ДАТА» — доп. зазор над штрихом (~5–8 px на эталоне 2481). */
-export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
-export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
-  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
-export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
-  8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
-export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO =
-  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
-
-/** «Мои зубки» (p10): «Первая чистка» — iOS e24a739 TEETH_FIRST_BRUSHING_SLOT. */
-export const KIDS48_P10_FIRST_BRUSHING_LINE = {
-  writableX: 0.5584,
-  writableWidth: 0.1738,
-  strokeY: 0.838,
-} as const;
-
-/** «Мои зубки» (p10): число между «БЫЛО» и «ЗУБОВ» — iOS TEETH_COUNT_SLOT. */
-export const KIDS48_P10_TEETH_COUNT_LINE = {
-  writableX: 0.5248,
-  writableWidth: 0.052,
-  strokeY: 0.8975,
-} as const;
 
 /**
- * Коричневый/фиолетовый дневник — baseline на штрихе (iOS e24a739).
- * Не смешивать с DIARY_UNIFORM_LINE_FONT_OFFSET (kids/pregnancy Android).
+ * p11: Amatic в pdf-lib чуть ниже RN — лёгкий PDF-only подъём.
  */
+export const KIDS_GROWTH_PDF_BASELINE_LIFT_RATIO = 0.12;
+
+/** Эталон PNG 300 dpi для ручной разметки p8/p9 (kids_48). */
+export const KIDS_48_EVENT_DATE_LINE_REF_PX = 2481;
+
+/** Дата чуть выше штриха — ~5 px на эталоне 2481×2481. */
+export const KIDS_48_EVENT_DATE_TEXT_ABOVE_LINE_BAND_RATIO =
+  5 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+
+/** p8 «Первый день дома» — доп. подъём даты (~8 px на эталоне). */
+export const KIDS_48_P8_EVENT_DATE_TEXT_LIFT_BAND_RATIO =
+  8 / (KIDS_48_EVENT_DATE_LINE_REF_PX * KIDS_MONTH_LINE_BAND_HEIGHT);
+
+/**
+ * kids_48 нижняя дата «ДАТА»: без доп. lift — только stroke clearance.
+ */
+export const KIDS_P12_DATE_LINE_GAP_BAND_RATIO = 0;
+
+/** Нижняя «ДАТА» — плотно к штриху (Amatic), без «парения» над линией. */
+export const KIDS_BOTTOM_DATE_STROKE_CLEARANCE_RATIO = 0.03;
+
+/** Коричневый/фиолетовый дневник — тот же принцип, что kids_48 month pages. */
 export const DIARY_LINE_FONT_OFFSET = 0.78;
 
 /**
- * Доп. опускание Amatic на line-слотах дневника (доля fontSize) — паритет iOS e24a739.
- * Математический baseline ≈ штрих, низ глифов визуально выше — sink выравнивает.
+ * Доп. опускание Amatic на line-слотах дневника (доля fontSize).
+ * Математический baseline ≈ штрих, но низ глифов визуально выше — sink выравнивает.
  */
 export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
-/**
- * «Мечты» (brown p15): baseline на белом штрихе.
- * Координаты линий сняты с page_015.png — offset = previewCap шрифта (без CLEARANCE).
- */
-export const DIARY_DREAMS_LINE_FONT_OFFSET = DIARY_UNIFORM_LINE_FONT_OFFSET;
-
-/**
- * Точные Y белых линий «Мечты» (norm 0–1), детект с PNG 2174×2882.
- * Порядок: dream1×3, dream2×3, dream3×3, dream4×12, secret×1.
- */
-export const DIARY_BROWN_P15_DREAM_LINE_YS = [
-  // dream1 (лево верх)
-  0.22346, 0.26787, 0.31228,
-  // dream2 (лево середина)
-  0.43754, 0.4823, 0.52672,
-  // dream3 (лево низ) — в макете 3 линии, не 4
-  0.65146, 0.69604, 0.74046,
-  // dream4 (право, 12 линий)
-  0.22346, 0.26787, 0.31228, 0.35496, 0.39938, 0.44414,
-  0.49167, 0.53609, 0.5805, 0.62908, 0.67349, 0.7179,
-  // самое сокровенное
-  0.89452,
-] as const;
-
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
-export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = DIARY_UNIFORM_LINE_FONT_OFFSET;
+export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;
+
+/** Доп. подъём над штрихом — RN/Связной рисуют глифы ниже расчётного cap height (доля lineHeight слота). */
+export const PREGNANCY_WEEKLY_EXTRA_LIFT_BAND_RATIO = 0.82;
+
+/** «Уже мама» — доп. зазор в preview поверх EXTRA_LIFT. */
+export const PREGNANCY_ALREADY_MOM_STROKE_CLEARANCE_RATIO = 0.12;
 
 /**
- * iOS e24a739: PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08 для «Анкета родов».
- * Фиксированный offset (не previewCap шрифта) — иначе на Android текст «висит» над линией.
- * Без TEMPLATE_LINE_STROKE_CLEARANCE.
+ * «Уже мама» — доп. подъём только PDF baseline (Amatic в pdf-lib чуть ниже RN при том же top).
+ * Не трогает preview Text top.
  */
-export const BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET = 1.08;
+export const PREGNANCY_ALREADY_MOM_PDF_BASELINE_LIFT_RATIO = 0.1;
 
-/** @deprecated use BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET */
-export const BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET_FALLBACK =
-  BIRTH_QUESTIONNAIRE_LINE_STROKE_FONT_OFFSET;
+/** «История родов» / «Письмо малышу» — Amatic SC на линованной странице (baseline на штрихе). */
+export const PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO = 0.88;
 
-/** Компактные поля (дата): штрих через центр слота. */
+/** Минимальный подъём для RN на линованных страницах (не weekly Связной). */
+export const PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO = 0.06;
+
+/**
+ * Когда strokeY уже из LINE_GUIDES (slot.strokeY), старый lift 0.82 поднимает текст
+ * на ~0.8×lineHeight выше штриха — используем линованный минимальный подъём.
+ */
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_CAP_HEIGHT_RATIO =
+  PREGNANCY_RULED_NOTEBOOK_CAP_HEIGHT_RATIO;
+
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_LIFT_BAND_RATIO =
+  PREGNANCY_RULED_NOTEBOOK_LIFT_BAND_RATIO;
+
+/** Baseline на штрихе для полей «Планы» / «Ощущения».
+ * Должен совпадать с RN ascent (Amatic/Связной ≈ 1.0), иначе глифы садятся ниже штриха.
+ * Раньше 0.86 давал systematic overlap линии в preview/export. */
+export const PREGNANCY_WEEKLY_GUIDE_STROKE_FONT_OFFSET = 1;
+
+/**
+ * Где заканчивается печатная подпись — доля body-anchor (не OCR-x).
+ * p9 PNG: «Планы на неделю:» ~34%, «Мои ощущения…» ~53%.
+ */
+export const PREGNANCY_WEEKLY_PLANS_LABEL_BODY_END_RATIO = 0.34;
+
+export const PREGNANCY_WEEKLY_FEELINGS_LABEL_BODY_END_RATIO = 0.53;
+
+/**
+ * @deprecated Используйте PREGNANCY_WEEKLY_*_LABEL_BODY_END_RATIO по continuationGroup.
+ */
+export const PREGNANCY_WEEKLY_LONG_LABEL_BODY_END_RATIO = 0.44;
+
+/** @deprecated OCR gap больше не используется для groups 3/5. */
+export const PREGNANCY_WEEKLY_LONG_LABEL_TAIL_GAP_THRESHOLD = 0.25;
+
+/**
+ * @deprecated Горизонталь берётся из OCR line-slots.json (p53/p60 различаются).
+ * Оставлено для совместимости тестовых скриптов.
+ */
+export const PREGNANCY_RULED_NOTEBOOK_LINE_LEFT_NORM = 0.1173;
+export const PREGNANCY_RULED_NOTEBOOK_LINE_WIDTH_NORM = 0.76691;
+
+/** Хвост после длинной подписи (ощущения): OCR-полоса выше обычной строки — доп. подъём первой строки. */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_EXTRA_LIFT_BAND_RATIO = 0.1;
+
+/**
+ * Доля ширины inline-tail слота, доступная для текста пользователя после печатной подписи.
+ * OCR-бокс label+tail шире реальной зоны ввода (короткая подпись «Планы на неделю»).
+ */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_WIDTH_RATIO = 0.55;
+
+/**
+ * Длинная подпись на той же строке («Мои ощущения…») — хвост уже, иначе весь текст
+ * остаётся в первом слоте и визуально «перепрыгивает» строки.
+ */
+export const PREGNANCY_WEEKLY_LONG_LABEL_INLINE_TAIL_WIDTH_RATIO = 0.15;
+
+/**
+ * OCR-бокс inline-tail начинается правее body-строки — подпись уже на PDF, не в слоте.
+ */
+export const PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP = 0.015;
+
+/**
+ * @deprecated Используйте PREGNANCY_WEEKLY_INLINE_TAIL_MIN_X_GAP + ширину до правого края линии.
+ */
+export const PREGNANCY_WEEKLY_TAIL_ONLY_X_THRESHOLD = 0.35;
+
+/** Компактные поля (дата): узкая OCR-полоса под одну строку. */
 export const PREGNANCY_WEEKLY_COMPACT_LINE_HEIGHT = 0.035;
 
 /** Обычная строка: штрих у нижнего края полосы. */
@@ -315,19 +261,14 @@ export const PREGNANCY_WEEKLY_STANDARD_LINE_HEIGHT = 0.045;
 /** Межстрочный шаг на недельных стр. (норм. Y центров соседних строк, page 9). */
 export const PREGNANCY_WEEKLY_LINE_PITCH = 0.0412;
 
-/**
- * Доп. зазор между низом текста и штрихом линии (доля fontSize).
- * Как на iOS (e24a739 kids month ~0.22): заметный просвет «текст → отступ → линия».
- * Доля fontSize + нормализованные слоты + page font scale → одинаково на разных
- * диагоналях Android без Platform/PixelRatio/fontScale.
- */
-export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.2;
+/** Эталонная ширина viewport для переносов текста (preview = export). */
+export const TEMPLATE_TEXT_DISTRIBUTE_REFERENCE_WIDTH = 2480;
 
 /**
- * @deprecated Больше не поднимаем kids отдельно — один offset для pregnancy/kids/diary,
- * иначе на разных Android текст «плавал» относительно линии.
+ * Доп. зазор между низом текста и штрихом линии (доля fontSize).
+ * Применяется к полям inputKind=line в preview и PDF.
  */
-export const KIDS48_EXTRA_STROKE_CLEARANCE_RATIO = 0;
+export const TEMPLATE_LINE_STROKE_CLEARANCE_RATIO = 0.06;
 
 export type KidsMonthAnswerLineLayout = {
   loveX: number;
@@ -448,7 +389,7 @@ const DEFAULT_TYPOGRAPHY: TemplateTypographyProfile = {
   charWidthRatio: 0.56,
   lineWidthSlackRatio: 0.97,
   lineCenterRatio: 0.5,
-  lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
+  lineFontOffsetRatio: 0.84,
   blockCenterRatio: 0.58,
   blockFontOffsetRatio: 0.66,
   blockMaxFontSize: 20,
@@ -458,9 +399,9 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_60: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.54,
-    lineWidthSlackRatio: 0.98,
+    lineWidthSlackRatio: 0.99,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
+    lineFontOffsetRatio: 0.8,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -468,9 +409,9 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
   pregnancy_a5: {
     fixedLineFontSize: 16,
     charWidthRatio: 0.54,
-    lineWidthSlackRatio: 0.98,
+    lineWidthSlackRatio: 0.99,
     lineCenterRatio: 0.5,
-    lineFontOffsetRatio: DIARY_UNIFORM_LINE_FONT_OFFSET,
+    lineFontOffsetRatio: 0.96,
     blockCenterRatio: 0.58,
     blockFontOffsetRatio: 0.66,
     blockMaxFontSize: 20,
@@ -480,7 +421,6 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     charWidthRatio: 0.54,
     lineWidthSlackRatio: 0.98,
     lineCenterRatio: 0.5,
-    /** Как iOS e24a739 — ближе к штриху, чем pregnancy uniform 0.85. */
     lineFontOffsetRatio: 0.98,
     blockCenterRatio: 0.56,
     blockFontOffsetRatio: 0.68,
@@ -492,7 +432,6 @@ const ALBUM_TYPOGRAPHY: Record<string, TemplateTypographyProfile> = {
     lineWidthSlackRatio: 0.97,
     lineCenterRatio: 0.34,
     lineFontOffsetRatio: 0.96,
-    /** Как на iOS (e24a739): вертикальный центр текста в белых pill. */
     blockCenterRatio: 0.5,
     blockFontOffsetRatio: 0.55,
     blockMaxFontSize: 20,

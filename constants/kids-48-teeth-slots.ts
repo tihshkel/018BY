@@ -3,7 +3,6 @@ import type { AlbumPageField, AlbumPageSchema } from '@/types/album-page-schema'
 /**
  * kids_48 p10 — порядок полей в форме (01→05 слева, 06→10 справа, затем низ)
  * → индексы line-slots по макету (сверху вниз у каждой стороны).
- * iOS e24a739.
  */
 export const KIDS_48_TEETH_FIELD_SLOT_INDEX: readonly number[] = [
   8, 6, 4, 2, 1,

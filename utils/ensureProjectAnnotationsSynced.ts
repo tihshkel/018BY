@@ -5,15 +5,13 @@ import type { Annotation } from '@/components/pdf-annotations';
 import { resolveLineGuideId } from '@/utils/albumImages';
 import { getSchemaForInstance } from '@/utils/albumProjectInit';
 import { migrateProjectToPageValues } from '@/utils/migrateToPageValues';
-import { resolveInstancePageImageUri } from '@/utils/resolveInstancePageImage';
 import {
   loadPageInstances,
   loadPageValuesMap,
 } from '@/utils/pageStorage';
 import {
-  buildSourceSizesByUri,
-  normalizeEditorViewportForLineGuide,
-  resolvePageSourceSizeByLineGuide,
+  getCachedPageSourceSize,
+  resolvePageSourceSize,
 } from '@/utils/pageSourceDimensions';
 import {
   loadProjectViewport,
@@ -24,14 +22,24 @@ import { syncPageValuesToAnnotationsStorage } from '@/utils/pageValuesAdapter';
 const { width: DEFAULT_VIEWPORT_WIDTH, height: DEFAULT_VIEWPORT_HEIGHT } =
   Dimensions.get('window');
 
-async function loadSourceSizesForInstances(
+async function loadSourceSizesForImages(
   imageUris: string[],
-  instances: Awaited<ReturnType<typeof loadPageInstances>>,
-): Promise<Map<string, { width: number; height: number }>> {
-  const uris = instances
-    .map((instance) => resolveInstancePageImageUri(imageUris, instance))
-    .filter((uri): uri is string => Boolean(uri));
-  return buildSourceSizesByUri(uris);
+  imageIndices: number[]
+): Promise<Map<number, { width: number; height: number }>> {
+  const sizes = new Map<number, { width: number; height: number }>();
+  const uniqueIndices = [...new Set(imageIndices)];
+
+  await Promise.all(
+    uniqueIndices.map(async (index) => {
+      const uri = imageUris[index];
+      if (!uri) return;
+      const cached = getCachedPageSourceSize(uri);
+      const size = cached ?? (await resolvePageSourceSize(uri));
+      if (size) sizes.set(index, size);
+    })
+  );
+
+  return sizes;
 }
 
 export async function ensureProjectAnnotationsSynced(projectId: string): Promise<Annotation[]> {
@@ -70,33 +78,30 @@ export async function ensureProjectAnnotationsSynced(projectId: string): Promise
     }
   }
 
-  const sourceSizesByUri = await loadSourceSizesForInstances(imageUris, instances);
+  const sourceSizesByImageIndex = await loadSourceSizesForImages(
+    imageUris,
+    instances.map((i) => i.imageIndex)
+  );
 
-  const firstInstance = [...instances].sort((a, b) => a.order - b.order)[0];
-  const firstUri = firstInstance
-    ? resolveInstancePageImageUri(imageUris, firstInstance)
+  const firstInstance = instances[0];
+  const firstSourceSize = firstInstance
+    ? sourceSizesByImageIndex.get(firstInstance.imageIndex)
     : undefined;
-  const firstSourceSize =
-    (firstUri ? sourceSizesByUri.get(firstUri) : undefined) ??
-    resolvePageSourceSizeByLineGuide(lineGuideId) ??
-    undefined;
 
   let viewportWidth: number;
   let viewportHeight: number;
   const savedViewport = await loadProjectViewport(projectId);
   if (savedViewport) {
-    const normalized = normalizeEditorViewportForLineGuide(savedViewport, lineGuideId);
-    viewportWidth = normalized.width;
-    viewportHeight = normalized.height;
+    viewportWidth = savedViewport.width;
+    viewportHeight = savedViewport.height;
   } else {
     const derived = resolveEditorCoordinateViewport({
       windowWidth: DEFAULT_VIEWPORT_WIDTH,
       sourceWidth: firstSourceSize?.width,
       sourceHeight: firstSourceSize?.height,
     });
-    const normalized = normalizeEditorViewportForLineGuide(derived, lineGuideId);
-    viewportWidth = normalized.width;
-    viewportHeight = normalized.height;
+    viewportWidth = derived.width;
+    viewportHeight = derived.height;
   }
 
   const annotations = syncPageValuesToAnnotationsStorage(
@@ -106,8 +111,7 @@ export async function ensureProjectAnnotationsSynced(projectId: string): Promise
     viewportWidth,
     viewportHeight,
     imageUris,
-    undefined,
-    sourceSizesByUri,
+    sourceSizesByImageIndex
   );
 
   await AsyncStorage.setItem(`@project_annotations_${projectId}`, JSON.stringify(annotations));

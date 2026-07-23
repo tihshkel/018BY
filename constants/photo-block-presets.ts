@@ -158,3 +158,58 @@ export const SINGLE_HORIZONTAL_PHOTO_BLOCK: PhotoBlockSchema = {
     },
   ],
 };
+
+/**
+ * kids_48 event-страницы: горизонтальные 4:3 и два фото стопкой
+ * (не side-by-side «башни» из узкого PDF «Место для фото»).
+ */
+export const KIDS_LANDSCAPE_EVENT_PHOTO_BLOCK: PhotoBlockSchema = {
+  blockId: 'main_photo',
+  label: 'Фото для страницы',
+  variants: [
+    {
+      variantId: 'one_large',
+      label: 'Одно фото',
+      slots: 1,
+      slotIndices: [0],
+    },
+    {
+      variantId: 'two_horizontal',
+      label: 'Два фото',
+      slots: 2,
+      slotIndices: [0, 1],
+    },
+    {
+      variantId: 'three_hero',
+      label: 'Три фото (коллаж)',
+      slots: 3,
+      slotIndices: [0, 1, 2],
+    },
+    {
+      variantId: 'four_grid',
+      label: 'Четыре фото (коллаж)',
+      slots: 4,
+      slotIndices: [0, 1, 2, 3],
+    },
+  ],
+};
+
+/** «Мои следы»: одно или два фото (руки / ноги). */
+export const FOOTPRINTS_PHOTO_BLOCK: PhotoBlockSchema = {
+  blockId: 'main_photo',
+  label: 'Фото следов',
+  variants: [
+    {
+      variantId: 'one_horizontal',
+      label: '1 фото',
+      slots: 1,
+      slotIndices: [0],
+    },
+    {
+      variantId: 'two_horizontal',
+      label: '2 фото (руки и ноги)',
+      slots: 2,
+      slotIndices: [0, 1],
+    },
+  ],
+};

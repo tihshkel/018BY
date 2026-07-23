@@ -1,55 +1,113 @@
 import React, { useMemo, useRef, memo, useCallback } from 'react';
-import {
-  Keyboard,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-import { FieldTextAlignButtons } from '@/components/album/field-text-align-buttons';
 import { AppDateField } from '@/components/ui/app-date-field';
 import { AppText } from '@/components/ui/app-text';
 import { useAppScreenScrollToField } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageField } from '@/types/album-page-schema';
+import type { AlbumPageField, FieldTextStyle } from '@/types/album-page-schema';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
 import { parseAlbumDate } from '@/utils/albumDateFormat';
-import {
-  getDefaultPageAspectRatio,
-  resolveEditorCoordinateViewport,
-} from '@/utils/exportViewport';
 import {
   clampFieldInput,
   countFieldCharacters,
   getFieldCharacterLimit,
+  getFieldLimitReferenceViewport,
 } from '@/utils/albumFieldLimits';
-import { getFieldKeyboardTypeForField } from '@/utils/albumFieldInput';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
+import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
 import {
-  resolveFieldTextAlign,
-  supportsFieldTextAlign,
-  type FieldTextAlign,
-} from '@/utils/albumFieldTextAlign';
-import { getMeasurementDigitLimit } from '@/utils/albumMeasurementFields';
-
-export const TODO_CHECKBOX_VALUE = '1';
-
-/** Diary «Настроение» sticker radio — hidden from the fill form. */
-function isHiddenDiaryMoodField(fieldId: string): boolean {
-  return /_mood$/i.test(fieldId);
-}
+  getFieldInputMode,
+  getFieldKeyboardTypeForField,
+} from '@/utils/albumFieldInput';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import { getBlankFieldDefaultTextAlign } from '@/utils/templateTextAnnotations';
 
 type PageFormFieldsProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
   onChange: (fieldId: string, value: string) => void;
-  textAligns?: Record<string, FieldTextAlign>;
-  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  fieldTextStyles?: Record<string, FieldTextStyle>;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   sectionTitle?: string;
   lineGuideId: string;
   sourcePageNumber: number;
+  fontId?: string | null;
 };
+
+const MIN_FIELD_FONT_SIZE = 10;
+const MAX_FIELD_FONT_SIZE = 28;
+
+const ALIGN_OPTIONS: {
+  id: 'left' | 'center' | 'right';
+  icon: 'format-align-left' | 'format-align-center' | 'format-align-right';
+  label: string;
+}[] = [
+  { id: 'left', icon: 'format-align-left', label: 'По левому краю' },
+  { id: 'center', icon: 'format-align-center', label: 'По центру' },
+  { id: 'right', icon: 'format-align-right', label: 'По правому краю' },
+];
+
+export function TextFieldStyleToolbar({
+  style,
+  defaultAlign,
+  defaultFontSize = 14,
+  onChange,
+}: {
+  style?: FieldTextStyle;
+  defaultAlign: 'left' | 'center' | 'right';
+  /** Базовый кегль альбома, когда пользователь ещё не выбирал размер. */
+  defaultFontSize?: number;
+  onChange: (patch: Partial<FieldTextStyle>) => void;
+}) {
+  const textAlign = style?.textAlign ?? defaultAlign;
+  const fontSize = style?.fontSize ?? defaultFontSize;
+
+  return (
+    <View style={styles.toolbar}>
+      <View style={styles.alignGroup}>
+        {ALIGN_OPTIONS.map((option) => {
+          const selected = textAlign === option.id;
+          return (
+            <Pressable
+              key={option.id}
+              onPress={() => onChange({ textAlign: option.id })}
+              style={[styles.alignButton, selected && styles.alignButtonSelected]}
+              accessibilityLabel={option.label}
+              accessibilityState={{ selected }}
+            >
+              <MaterialIcons
+                name={option.icon}
+                size={20}
+                color={selected ? colors.primary : colors.textSecondary}
+              />
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.fontSizeGroup}>
+        <Pressable
+          onPress={() => onChange({ fontSize: Math.max(MIN_FIELD_FONT_SIZE, fontSize - 1) })}
+          style={styles.fontSizeButton}
+          accessibilityLabel="Уменьшить шрифт"
+        >
+          <AppText variant="caption">A−</AppText>
+        </Pressable>
+        <AppText variant="caption" style={styles.fontSizeValue}>
+          {fontSize} pt
+        </AppText>
+        <Pressable
+          onPress={() => onChange({ fontSize: Math.min(MAX_FIELD_FONT_SIZE, fontSize + 1) })}
+          style={styles.fontSizeButton}
+          accessibilityLabel="Увеличить шрифт"
+        >
+          <AppText variant="caption">A+</AppText>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
 
 type TypedFormFieldProps = {
   field: AlbumPageField;
@@ -57,12 +115,12 @@ type TypedFormFieldProps = {
   onChange: (value: string) => void;
   characterLimit?: number;
   onInputFocus?: () => void;
-  textAlign?: FieldTextAlign;
+  textAlign?: 'left' | 'center' | 'right';
   layoutClamp?: {
     lineGuideId: string;
     sourcePageNumber: number;
-    viewportWidth: number;
-    viewportHeight: number;
+    fontId?: string | null;
+    fontSize?: number | null;
   };
 };
 
@@ -98,14 +156,14 @@ function handleTypedInput(
   text: string,
   onChange: (value: string) => void,
   characterLimit?: number,
-  layout?: {
+  layoutClamp?: {
     lineGuideId: string;
     sourcePageNumber: number;
-    viewportWidth: number;
-    viewportHeight: number;
+    fontId?: string | null;
+    fontSize?: number | null;
   },
 ) {
-  onChange(clampFieldInput(field, text, characterLimit, layout));
+  onChange(clampFieldInput(field, text, characterLimit, layoutClamp));
 }
 
 const MIN_ALBUM_DATE = new Date(1920, 0, 1);
@@ -117,7 +175,6 @@ function DateFormField({
   onChange,
   characterLimit,
   onInputFocus,
-  textAlign,
 }: TypedFormFieldProps) {
   const pickerValue = useMemo(() => parseAlbumDate(value) ?? new Date(), [value]);
 
@@ -135,7 +192,6 @@ function DateFormField({
       placeholder={field.placeholder ?? 'дд.мм.гггг'}
       accessibilityLabel={field.label}
       onInputFocus={onInputFocus}
-      textAlign={textAlign}
     />
   );
 }
@@ -162,23 +218,112 @@ function RadioFormField({ field, value, onChange }: TypedFormFieldProps) {
   );
 }
 
-function CheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
-  const checked = value === TODO_CHECKBOX_VALUE;
+function isTodoCheckboxField(field: AlbumPageField): boolean {
+  return field.type === 'radio' && /_(todo|purchased)_\d+$/.test(field.fieldId);
+}
+
+function getShoppingItemNumber(fieldId: string): number | null {
+  const match = /_item_(\d+)$/.exec(fieldId);
+  return match ? Number(match[1]) : null;
+}
+
+function getShoppingPurchasedNumber(fieldId: string): number | null {
+  const match = /_purchased_(\d+)$/.exec(fieldId);
+  return match ? Number(match[1]) : null;
+}
+
+type FormFieldEntry =
+  | { kind: 'field'; field: AlbumPageField }
+  | {
+      kind: 'shopping';
+      itemField: AlbumPageField;
+      purchasedField: AlbumPageField;
+    };
+
+function buildFormFieldEntries(fields: AlbumPageField[]): FormFieldEntry[] {
+  const purchasedByNumber = new Map<number, AlbumPageField>();
+  for (const field of fields) {
+    const purchasedNumber = getShoppingPurchasedNumber(field.fieldId);
+    if (purchasedNumber != null) {
+      purchasedByNumber.set(purchasedNumber, field);
+    }
+  }
+
+  const entries: FormFieldEntry[] = [];
+  const usedPurchased = new Set<string>();
+
+  for (const field of fields) {
+    const itemNumber = getShoppingItemNumber(field.fieldId);
+    if (itemNumber != null) {
+      const purchasedField = purchasedByNumber.get(itemNumber);
+      if (purchasedField) {
+        usedPurchased.add(purchasedField.fieldId);
+        entries.push({ kind: 'shopping', itemField: field, purchasedField });
+        continue;
+      }
+    }
+
+    if (usedPurchased.has(field.fieldId) || getShoppingPurchasedNumber(field.fieldId) != null) {
+      continue;
+    }
+
+    entries.push({ kind: 'field', field });
+  }
+
+  return entries;
+}
+
+function TodoCheckboxFormField({ field, value, onChange }: TypedFormFieldProps) {
+  const checked = value === 'Да';
 
   return (
     <Pressable
-      onPress={() => onChange(checked ? '' : TODO_CHECKBOX_VALUE)}
-      style={styles.checkboxRow}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       accessibilityLabel={field.label}
+      onPress={() => onChange(checked ? 'Нет' : 'Да')}
+      style={styles.todoCheckboxRow}
     >
-      <View style={[styles.checkboxBox, checked && styles.checkboxBoxChecked]} />
-      <AppText variant="body" style={styles.checkboxLabel}>
+      <View style={[styles.todoCheckboxBox, checked && styles.todoCheckboxBoxChecked]} />
+      <AppText variant="body" style={styles.todoCheckboxLabel}>
         {field.label}
       </AppText>
     </Pressable>
   );
+}
+
+function ShoppingPurchasedCheckbox({
+  field,
+  value,
+  onChange,
+}: {
+  field: AlbumPageField;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const checked = value === 'Да';
+
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked }}
+      accessibilityLabel={field.label}
+      onPress={() => onChange(checked ? 'Нет' : 'Да')}
+      style={styles.shoppingCheckboxHit}
+    >
+      <View style={[styles.todoCheckboxBox, checked && styles.todoCheckboxBoxChecked]} />
+    </Pressable>
+  );
+}
+
+function resolveFormFieldAutoCapitalize(field: AlbumPageField): 'none' | 'sentences' | 'words' {
+  if (field.type === 'date' || field.type === 'time' || field.type === 'number') {
+    return 'none';
+  }
+  if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') {
+    return 'sentences';
+  }
+  return 'none';
 }
 
 const TypedFormField = memo(function TypedFormField({
@@ -187,11 +332,10 @@ const TypedFormField = memo(function TypedFormField({
   onChange,
   characterLimit,
   onInputFocus,
-  layoutClamp,
   textAlign = 'left',
+  layoutClamp,
 }: TypedFormFieldProps) {
   const isMultiline = field.templateLineCount > 1;
-  const multilineMinHeight = 24 * field.templateLineCount + 24;
 
   return (
     <View>
@@ -199,8 +343,7 @@ const TypedFormField = memo(function TypedFormField({
         style={[
           styles.input,
           isMultiline && styles.inputMultiline,
-          isMultiline && { minHeight: multilineMinHeight },
-          isMultiline && Platform.OS === 'android' && styles.inputMultilineAndroid,
+          { textAlign },
         ]}
         value={value}
         onChangeText={(text) =>
@@ -211,24 +354,12 @@ const TypedFormField = memo(function TypedFormField({
         keyboardType={getFieldKeyboardTypeForField(field)}
         maxLength={characterLimit}
         multiline={isMultiline}
-        scrollEnabled={isMultiline}
-        textAlign={textAlign}
         textAlignVertical={isMultiline ? 'top' : 'center'}
-        textBreakStrategy={isMultiline ? 'simple' : undefined}
-        allowFontScaling={false}
-        maxFontSizeMultiplier={1}
-        inputMode={
-          getMeasurementDigitLimit(field) != null || field.type === 'number' || field.type === 'time'
-            ? 'numeric'
-            : 'text'
-        }
-        returnKeyType={isMultiline ? 'default' : 'done'}
-        returnKeyLabel={isMultiline ? undefined : 'OK'}
-        enterKeyHint={isMultiline ? 'enter' : 'done'}
-        blurOnSubmit={!isMultiline}
-        onSubmitEditing={isMultiline ? undefined : () => Keyboard.dismiss()}
+        inputMode={getFieldInputMode(field)}
         accessibilityLabel={field.label}
         onFocus={onInputFocus}
+        autoCapitalize={resolveFormFieldAutoCapitalize(field)}
+        autoCorrect={false}
       />
       <FieldCharacterCounter value={value} limit={characterLimit} />
     </View>
@@ -241,23 +372,27 @@ const AlbumFormField = memo(function AlbumFormField({
   fieldId,
   onFieldChange,
   characterLimit,
-  layoutClamp,
-  textAlign,
-  onTextAlignChange,
+  fieldStyle,
+  onFieldStyleChange,
+  showTextStyleToolbar,
+  lineGuideId,
+  sourcePageNumber,
+  fontId,
 }: {
   field: AlbumPageField;
   value: string;
   fieldId: string;
   onFieldChange: (fieldId: string, value: string) => void;
   characterLimit?: number;
-  layoutClamp?: TypedFormFieldProps['layoutClamp'];
-  textAlign?: FieldTextAlign;
-  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  fieldStyle?: FieldTextStyle;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
+  showTextStyleToolbar?: boolean;
+  lineGuideId: string;
+  sourcePageNumber: number;
+  fontId?: string | null;
 }) {
   const fieldRef = useRef<View>(null);
   const scrollToField = useAppScreenScrollToField();
-  const showAlign = supportsFieldTextAlign(field) && onTextAlignChange != null;
-  const resolvedAlign = textAlign ?? 'left';
 
   const handleInputFocus = () => {
     scrollToField?.(fieldRef);
@@ -268,49 +403,66 @@ const AlbumFormField = memo(function AlbumFormField({
     [fieldId, onFieldChange]
   );
 
-  const handleAlignChange = useCallback(
-    (align: FieldTextAlign) => onTextAlignChange?.(fieldId, align),
-    [fieldId, onTextAlignChange],
-  );
+  const defaultAlign = isBlankTemplateLineGuide(lineGuideId)
+    ? getBlankFieldDefaultTextAlign(field)
+    : field.fieldId.endsWith('_title') || field.label === 'Заголовок'
+      ? 'center'
+      : 'left';
+  const resolvedAlign = fieldStyle?.textAlign ?? defaultAlign;
+  const defaultFontSize =
+    getTemplateTypographyProfile(lineGuideId).fixedLineFontSize ?? 14;
+  const showToolbar =
+    showTextStyleToolbar &&
+    onFieldStyleChange &&
+    field.type !== 'date' &&
+    field.type !== 'radio';
+  const layoutClamp =
+    field.type === 'text' && usesTemplateLineTextEditing(lineGuideId)
+      ? { lineGuideId, sourcePageNumber, fontId, fontSize: fieldStyle?.fontSize }
+      : undefined;
 
   return (
     <View ref={fieldRef} style={styles.field} collapsable={false}>
-      {field.type === 'checkbox' ? (
-        <CheckboxFormField field={field} value={value} onChange={onChange} />
+      {!isTodoCheckboxField(field) ? (
+        <AppText variant="caption" style={styles.label}>
+          {field.label}
+        </AppText>
+      ) : null}
+      {showToolbar ? (
+        <TextFieldStyleToolbar
+          style={fieldStyle}
+          defaultAlign={defaultAlign}
+          defaultFontSize={defaultFontSize}
+          onChange={(patch) => onFieldStyleChange(fieldId, patch)}
+        />
+      ) : null}
+      {field.type === 'date' ? (
+        <View>
+          <DateFormField
+            field={field}
+            value={value}
+            onChange={onChange}
+            characterLimit={characterLimit}
+            onInputFocus={handleInputFocus}
+          />
+          <FieldCharacterCounter value={value} limit={characterLimit} />
+        </View>
+      ) : field.type === 'radio' ? (
+        isTodoCheckboxField(field) ? (
+          <TodoCheckboxFormField field={field} value={value} onChange={onChange} />
+        ) : (
+          <RadioFormField field={field} value={value} onChange={onChange} />
+        )
       ) : (
-        <>
-          <AppText variant="caption" style={styles.label}>
-            {field.label}
-          </AppText>
-          {showAlign ? (
-            <FieldTextAlignButtons value={resolvedAlign} onChange={handleAlignChange} />
-          ) : null}
-          {field.type === 'date' ? (
-            <View>
-              <DateFormField
-                field={field}
-                value={value}
-                onChange={onChange}
-                characterLimit={characterLimit}
-                onInputFocus={handleInputFocus}
-                textAlign={resolvedAlign}
-              />
-              <FieldCharacterCounter value={value} limit={characterLimit} />
-            </View>
-          ) : field.type === 'radio' ? (
-            <RadioFormField field={field} value={value} onChange={onChange} />
-          ) : (
-            <TypedFormField
-              field={field}
-              value={value}
-              onChange={onChange}
-              characterLimit={characterLimit}
-              onInputFocus={handleInputFocus}
-              layoutClamp={layoutClamp}
-              textAlign={resolvedAlign}
-            />
-          )}
-        </>
+        <TypedFormField
+          field={field}
+          value={value}
+          onChange={onChange}
+          characterLimit={characterLimit}
+          onInputFocus={handleInputFocus}
+          textAlign={resolvedAlign}
+          layoutClamp={layoutClamp}
+        />
       )}
     </View>
   );
@@ -320,54 +472,36 @@ export const PageFormFields = memo(function PageFormFields({
   fields,
   values,
   onChange,
-  textAligns,
-  onTextAlignChange,
+  fieldTextStyles,
+  onFieldStyleChange,
   sectionTitle,
   lineGuideId,
   sourcePageNumber,
+  fontId,
 }: PageFormFieldsProps) {
-  const { width: windowWidth } = useWindowDimensions();
-
-  const coordinateViewport = useMemo(
-    () =>
-      resolveEditorCoordinateViewport({
-        windowWidth,
-        lineGuideId,
-        imageAspectRatio: getDefaultPageAspectRatio({ lineGuideId }),
-      }),
-    [lineGuideId, windowWidth],
-  );
-
-  const visibleFields = useMemo(
-    () => fields.filter((field) => !isHiddenDiaryMoodField(field.fieldId)),
-    [fields],
-  );
-
+  const showTextStyleToolbar =
+    usesTemplateLineTextEditing(lineGuideId) || isBlankTemplateLineGuide(lineGuideId);
+  const resolvedFontId = normalizeAlbumFontId(fontId);
   const fieldLimits = useMemo(() => {
+    const referenceViewport = getFieldLimitReferenceViewport(lineGuideId);
     const limits: Record<string, number | undefined> = {};
-    for (const field of visibleFields) {
+    for (const field of fields) {
       limits[field.fieldId] = getFieldCharacterLimit({
         field,
         lineGuideId,
         sourcePageNumber,
-        viewportWidth: coordinateViewport.width,
-        viewportHeight: coordinateViewport.height,
+        fontId: resolvedFontId,
+        fontSize: fieldTextStyles?.[field.fieldId]?.fontSize,
+        viewportWidth: referenceViewport.width,
+        viewportHeight: referenceViewport.height,
       });
     }
     return limits;
-  }, [coordinateViewport.height, coordinateViewport.width, visibleFields, lineGuideId, sourcePageNumber]);
+  }, [fields, fieldTextStyles, lineGuideId, resolvedFontId, sourcePageNumber]);
 
-  const layoutClamp = useMemo(
-    () => ({
-      lineGuideId,
-      sourcePageNumber,
-      viewportWidth: coordinateViewport.width,
-      viewportHeight: coordinateViewport.height,
-    }),
-    [coordinateViewport.height, coordinateViewport.width, lineGuideId, sourcePageNumber],
-  );
+  if (fields.length === 0) return null;
 
-  if (visibleFields.length === 0) return null;
+  const entries = buildFormFieldEntries(fields);
 
   return (
     <View style={styles.section}>
@@ -376,7 +510,37 @@ export const PageFormFields = memo(function PageFormFields({
           {sectionTitle}
         </AppText>
       ) : null}
-      {visibleFields.map((field) => {
+      {entries.map((entry) => {
+        if (entry.kind === 'shopping') {
+          const { itemField, purchasedField } = entry;
+          const characterLimit = fieldLimits[itemField.fieldId];
+          return (
+            <View key={itemField.fieldId} style={styles.shoppingRow}>
+              <View style={styles.shoppingItemField}>
+                <AlbumFormField
+                  field={itemField}
+                  fieldId={itemField.fieldId}
+                  value={values[itemField.fieldId] ?? ''}
+                  onFieldChange={onChange}
+                  characterLimit={characterLimit}
+                  fieldStyle={fieldTextStyles?.[itemField.fieldId]}
+                  onFieldStyleChange={onFieldStyleChange}
+                  showTextStyleToolbar={showTextStyleToolbar}
+                  lineGuideId={lineGuideId}
+                  sourcePageNumber={sourcePageNumber}
+                  fontId={resolvedFontId}
+                />
+              </View>
+              <ShoppingPurchasedCheckbox
+                field={purchasedField}
+                value={values[purchasedField.fieldId] ?? ''}
+                onChange={(next) => onChange(purchasedField.fieldId, next)}
+              />
+            </View>
+          );
+        }
+
+        const { field } = entry;
         const characterLimit = fieldLimits[field.fieldId];
         const value = values[field.fieldId] ?? '';
 
@@ -388,9 +552,12 @@ export const PageFormFields = memo(function PageFormFields({
             value={value}
             onFieldChange={onChange}
             characterLimit={characterLimit}
-            layoutClamp={layoutClamp}
-            textAlign={resolveFieldTextAlign(field.fieldId, textAligns)}
-            onTextAlignChange={onTextAlignChange}
+            fieldStyle={fieldTextStyles?.[field.fieldId]}
+            onFieldStyleChange={onFieldStyleChange}
+            showTextStyleToolbar={showTextStyleToolbar}
+            lineGuideId={lineGuideId}
+            sourcePageNumber={sourcePageNumber}
+            fontId={resolvedFontId}
           />
         );
       })}
@@ -431,9 +598,6 @@ const styles = StyleSheet.create({
     minHeight: 88,
     paddingTop: 12,
   },
-  inputMultilineAndroid: {
-    includeFontPadding: false,
-  },
   counter: {
     alignSelf: 'flex-end',
     marginTop: 4,
@@ -471,25 +635,83 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.primary,
   },
-  checkboxRow: {
+  todoCheckboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: 10,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.sm,
   },
-  checkboxBox: {
-    width: 20,
-    height: 20,
+  todoCheckboxBox: {
+    width: 22,
+    height: 22,
     borderRadius: 4,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.pregnancyFormFill,
     backgroundColor: colors.white,
-    marginRight: spacing.sm,
   },
-  checkboxBoxChecked: {
+  todoCheckboxBoxChecked: {
     backgroundColor: colors.pregnancyFormFill,
     borderColor: colors.pregnancyFormFill,
   },
-  checkboxLabel: {
+  todoCheckboxLabel: {
     flex: 1,
+  },
+  shoppingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  shoppingItemField: {
+    flex: 1,
+  },
+  shoppingCheckboxHit: {
+    marginTop: 28,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  alignGroup: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  alignButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+  },
+  alignButtonSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySurface,
+  },
+  fontSizeGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fontSizeButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  fontSizeValue: {
+    color: colors.textSecondary,
+    minWidth: 44,
+    textAlign: 'center',
   },
 });

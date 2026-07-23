@@ -2,13 +2,18 @@ import type { ViewportRect } from '@/utils/photoBlockLayout';
 import { getPhotoOnlyPageBounds } from '@/constants/photo-print-margins';
 import {
   hasSparsePhotoConfig,
-  shouldSkipSparsePhotoExpansion,
+  isPregnancyWeeklyMiddlePage,
+  usesBlankPagePhotoFallback,
 } from '@/constants/sparse-photo-album-config';
 import { getContentRect, mapSourceNormToViewport, type ContentRect } from '@/utils/imageContentRect';
 import { getPdfPhotoPageLayouts } from '@/utils/pdfPhotoSlots';
 import { resolvePhotoPageLayouts } from '@/utils/resolvePhotoPageLayouts';
 import { getPhotoSlotViewportRect } from '@/utils/photoSlots';
-import { resolveSparsePhotoSafeZone, slotToSafeZone } from '@/utils/sparseTextPhotoSafeZone';
+import {
+  resolveSparsePhotoSafeZone,
+  resolveSparsePhotoZoomSafeZone,
+  slotToSafeZone,
+} from '@/utils/sparseTextPhotoSafeZone';
 
 type ResolvePhotoBlockSafeZoneParams = {
   lineGuideId: string;
@@ -20,7 +25,7 @@ type ResolvePhotoBlockSafeZoneParams = {
   sourceHeight?: number;
   templateLibraryId?: string;
   contentRect?: ContentRect;
-  /** Страница без полей ввода — почти весь лист с полем 2 см от края. */
+  /** Страница без полей ввода — почти весь лист (pregnancy 1.5 см, иначе 2 см от края). */
   photoOnlyPage?: boolean;
 };
 
@@ -38,7 +43,7 @@ function unionViewportRects(rects: ViewportRect[]): ViewportRect | null {
   };
 }
 
-/** Viewport-зона перемещения фото на photo-only страницах (2 см от края листа). */
+/** Viewport-зона перемещения фото на photo-only страницах (pregnancy 1.5 см, иначе 2 см). */
 export function resolvePhotoOnlyPageSafeZoneViewportRect(
   contentRect: ContentRect,
   lineGuideId: string,
@@ -70,15 +75,62 @@ export function resolvePhotoBlockSafeZoneViewportRect(
     return resolvePhotoOnlyPageSafeZoneViewportRect(contentRect, params.lineGuideId);
   }
 
+  // Blank Семья/Свадьба/Праздники: pinch до полей 1.5 см (как sparse zoom), не до bbox слота.
+  if (usesBlankPagePhotoFallback(params.lineGuideId)) {
+    return resolvePhotoOnlyPageSafeZoneViewportRect(contentRect, params.lineGuideId);
+  }
+
   const pdf = getPdfPhotoPageLayouts(params.lineGuideId, params.sourcePageNumber);
   const primarySlot = pdf?.variants?.[0]?.slots?.[0];
   if (primarySlot) {
-    const useSparse =
+    const usesSparseSafeZone =
       hasSparsePhotoConfig(params.lineGuideId) &&
-      !shouldSkipSparsePhotoExpansion(params.lineGuideId, params.sourcePageNumber);
-    const safeZone = useSparse
-      ? resolveSparsePhotoSafeZone(params.lineGuideId, params.sourcePageNumber, primarySlot)
+      !usesBlankPagePhotoFallback(params.lineGuideId);
+
+    // kids_48 / pregnancy weekly: pinch/pan — max zoom zone (пустые линии планов и т.п.),
+    // рамка layout/export остаётся уже — не раздуваем слот по умолчанию.
+    if (
+      usesSparseSafeZone &&
+      (params.lineGuideId === 'kids_48' ||
+        isPregnancyWeeklyMiddlePage(params.lineGuideId, params.sourcePageNumber))
+    ) {
+      const zoomSafe = resolveSparsePhotoZoomSafeZone(
+        params.lineGuideId,
+        params.sourcePageNumber,
+      );
+      return mapSourceNormToViewport(
+        zoomSafe.x,
+        zoomSafe.y,
+        zoomSafe.width,
+        zoomSafe.height,
+        contentRect,
+      );
+    }
+
+    const safeZone = usesSparseSafeZone
+      ? resolveSparsePhotoSafeZone(
+          params.lineGuideId,
+          params.sourcePageNumber,
+          primarySlot,
+        )
       : slotToSafeZone(primarySlot);
+    return mapSourceNormToViewport(
+      safeZone.x,
+      safeZone.y,
+      safeZone.width,
+      safeZone.height,
+      contentRect,
+    );
+  }
+
+  if (
+    hasSparsePhotoConfig(params.lineGuideId) &&
+    !usesBlankPagePhotoFallback(params.lineGuideId)
+  ) {
+    const safeZone = resolveSparsePhotoZoomSafeZone(
+      params.lineGuideId,
+      params.sourcePageNumber,
+    );
     return mapSourceNormToViewport(
       safeZone.x,
       safeZone.y,

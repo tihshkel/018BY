@@ -1,4 +1,4 @@
-import { Image, type ImageContentFit } from 'expo-image';
+import { Image, type ImageContentFit, type ImageStyle } from 'expo-image';
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
@@ -65,7 +65,7 @@ export function AlbumPhotoImageRaw({
   onError,
   prefetch = true,
   style,
-}: AlbumPhotoImageBaseProps & { style?: StyleProp<ViewStyle> }) {
+}: AlbumPhotoImageBaseProps & { style?: StyleProp<ImageStyle> }) {
   const normalizedUri = useMemo(() => normalizeAlbumPhotoUri(uri), [uri]);
 
   useEffect(() => {

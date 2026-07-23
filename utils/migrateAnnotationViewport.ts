@@ -5,7 +5,6 @@ import {
   mapSourceNormToViewport,
   type ContentRect,
 } from '@/utils/imageContentRect';
-import { resolveSlotPageNumber } from '@/utils/albumImages';
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { EDITOR_PAGE_VIEWPORT_WIDTH } from '@/utils/responsive';
 import {
@@ -13,7 +12,6 @@ import {
   hasLineGuides,
   layoutAnnotationFromSlot,
 } from '@/utils/textLineSlots';
-import { getCanonicalAlbumLineFontSize } from '@/utils/templateLineText';
 
 export const LEGACY_VIEWPORT_WIDTH_THRESHOLD = 500;
 
@@ -57,8 +55,7 @@ function migrateInteriorAnnotation(
   newViewport: { width: number; height: number },
   sourceWidth: number,
   sourceHeight: number,
-  lineGuideId?: string | null,
-  projectImages?: string[]
+  lineGuideId?: string | null
 ): Annotation {
   if (
     ann.type === 'text' &&
@@ -67,11 +64,9 @@ function migrateInteriorAnnotation(
     lineGuideId &&
     hasLineGuides(lineGuideId)
   ) {
-    const imageUri = projectImages?.[ann.page - 1];
-    const slotPage = resolveSlotPageNumber(imageUri, ann.page);
     const slots = getLineSlotsForPage({
       lineGuideId,
-      page: slotPage,
+      page: ann.page,
       viewportWidth: newViewport.width,
       viewportHeight: newViewport.height,
       sourceWidth,
@@ -79,12 +74,7 @@ function migrateInteriorAnnotation(
     });
     const slot = slots[ann.templateLineStart];
     if (slot) {
-      return {
-        ...ann,
-        ...layoutAnnotationFromSlot(slot),
-        // Кегль всегда канонический; page-scale только при рендере.
-        fontSize: getCanonicalAlbumLineFontSize(lineGuideId, ann.fontSize),
-      };
+      return { ...ann, ...layoutAnnotationFromSlot(slot) };
     }
   }
 
@@ -150,14 +140,12 @@ export async function maybeMigrateProjectViewport(params: {
   annotations: Annotation[];
   coverAnnotations: Annotation[];
   sampleImageUri?: string | null;
-  projectImages?: string[];
 }): Promise<{
   changed: boolean;
   annotations: Annotation[];
   coverAnnotations: Annotation[];
 }> {
-  const { projectId, lineGuideId, annotations, coverAnnotations, sampleImageUri, projectImages } =
-    params;
+  const { projectId, lineGuideId, annotations, coverAnnotations, sampleImageUri } = params;
   const flagKey = viewportMigrationFlagKey(projectId);
 
   if ((await AsyncStorage.getItem(flagKey)) === '1') {
@@ -199,8 +187,7 @@ export async function maybeMigrateProjectViewport(params: {
         newPagesViewport,
         sourceWidth,
         sourceHeight,
-        lineGuideId,
-        projectImages
+        lineGuideId
       )
     );
     await AsyncStorage.setItem(

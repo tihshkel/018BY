@@ -52,6 +52,7 @@ export const AlbumPhotoSlotGrid = React.memo(function AlbumPhotoSlotGrid({
       ? variant.slotIndices
       : undefined;
   const filledCount = slotUris.filter(Boolean).length;
+  const isMultiSlotCollage = slotCount > 1;
 
   const collageLayout = useMemo(
     () =>
@@ -93,7 +94,7 @@ export const AlbumPhotoSlotGrid = React.memo(function AlbumPhotoSlotGrid({
               : 'Нажмите на зону, чтобы добавить фото'
             : filledCount === 0
               ? `Добавьте до ${slotCount} фото в раскладку`
-              : 'Нажмите на фото, чтобы заменить. Перетаскивайте для кадрирования'}
+              : 'Нажмите на фото, чтобы заменить. Размер всей раскладки — в финальном предпросмотре'}
         </AppText>
       </View>
 
@@ -123,7 +124,7 @@ export const AlbumPhotoSlotGrid = React.memo(function AlbumPhotoSlotGrid({
                 slotIndex={slotIndex}
                 transform={transform}
                 chromeStyle="overlay"
-                gesturesEnabled={Boolean(slotUris[slotIndex])}
+                gesturesEnabled={Boolean(slotUris[slotIndex]) && !isMultiSlotCollage}
                 onPressEmpty={() => onPickPhoto(slotIndex)}
                 onReplacePhoto={() => onPickPhoto(slotIndex)}
                 onRemovePhoto={onRemovePhoto ? () => onRemovePhoto(slotIndex) : undefined}

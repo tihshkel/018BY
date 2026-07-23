@@ -1021,6 +1021,31 @@
               ]
             }
           ]
+        },
+        {
+          "variantId": "two_horizontal",
+          "slots": [
+            {
+              "x": 0.0968,
+              "y": 0.362,
+              "width": 0.8064,
+              "height": 0.252,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            },
+            {
+              "x": 0.0968,
+              "y": 0.626,
+              "width": 0.8064,
+              "height": 0.252,
+              "aspectRatio": [
+                4,
+                3
+              ]
+            }
+          ]
         }
       ]
     },

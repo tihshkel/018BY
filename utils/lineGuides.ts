@@ -59,6 +59,8 @@ function getNormalizedSlots(lineGuideId: string, page: number): readonly Normali
     y: normY,
     width: margins.width,
     height: 0.028,
+    hasLabel: false,
+    continuationGroup: 0,
   }));
 }
 

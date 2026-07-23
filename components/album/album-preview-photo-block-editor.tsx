@@ -1,5 +1,4 @@
-import { AlbumPhotoImage, prefetchAlbumPhotoUri } from '@/components/album/album-photo-image';
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,7 +7,8 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii } from '@/constants/design-tokens';
+import { PhotoSlotCropPreview } from '@/components/album/photo-slot-crop-preview';
+import { colors, BLANK_ALBUM_PHOTO_RADIUS } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { getContentRect } from '@/utils/imageContentRect';
 import {
@@ -21,13 +21,16 @@ import {
   clampPhotoBlockTransform,
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   normalizePhotoSlotTransform,
+  photoSlotTransformKey,
 } from '@/utils/photoSlotTransform';
 
 type AlbumPreviewPhotoBlockEditorProps = {
+  blockId: string;
   lineGuideId: string;
   sourcePageNumber: number;
   variantId: string;
   slotUris: (string | null)[];
+  slotTransforms?: Record<string, PhotoSlotTransform>;
   templateLibraryId?: string;
   groupTransform?: PhotoSlotTransform;
   safeBounds?: ViewportRect | null;
@@ -73,10 +76,12 @@ function cornerHandleStyle(corner: CornerId) {
 }
 
 export function AlbumPreviewPhotoBlockEditor({
+  blockId,
   lineGuideId,
   sourcePageNumber,
   variantId,
   slotUris,
+  slotTransforms = {},
   templateLibraryId,
   groupTransform = DEFAULT_PHOTO_SLOT_TRANSFORM,
   safeBounds,
@@ -87,10 +92,6 @@ export function AlbumPreviewPhotoBlockEditor({
   onGroupTransformChange,
 }: AlbumPreviewPhotoBlockEditorProps) {
   const [selected, setSelected] = useState(false);
-
-  useEffect(() => {
-    slotUris.forEach((uri) => prefetchAlbumPhotoUri(uri));
-  }, [slotUris]);
 
   const contentRect = useMemo(
     () =>
@@ -150,17 +151,17 @@ export function AlbumPreviewPhotoBlockEditor({
   const offsetX = useSharedValue(groupTransform.offsetX ?? 0);
   const offsetY = useSharedValue(groupTransform.offsetY ?? 0);
 
-  const baseX = useSharedValue(baseBlock?.x ?? 0);
-  const baseY = useSharedValue(baseBlock?.y ?? 0);
-  const baseW = useSharedValue(baseBlock?.width ?? 0);
-  const baseH = useSharedValue(baseBlock?.height ?? 0);
+  const baseX = useSharedValue(0);
+  const baseY = useSharedValue(0);
+  const baseW = useSharedValue(1);
+  const baseH = useSharedValue(1);
   const safeX = useSharedValue(0);
   const safeY = useSharedValue(0);
   const safeW = useSharedValue(0);
   const safeH = useSharedValue(0);
   const hasSafeBounds = useSharedValue(false);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!baseBlock) return;
     baseX.value = baseBlock.x;
     baseY.value = baseBlock.y;
@@ -212,7 +213,6 @@ export function AlbumPreviewPhotoBlockEditor({
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(selected)
         .onUpdate((event) => {
           const block = {
             x: baseX.value,
@@ -259,14 +259,12 @@ export function AlbumPreviewPhotoBlockEditor({
       savedOffsetY,
       savedScale,
       scale,
-      selected,
     ],
   );
 
   const pinchGesture = useMemo(
     () =>
       Gesture.Pinch()
-        .enabled(selected)
         .onUpdate((event) => {
           const block = {
             x: baseX.value,
@@ -313,7 +311,6 @@ export function AlbumPreviewPhotoBlockEditor({
       savedOffsetY,
       savedScale,
       scale,
-      selected,
     ],
   );
 
@@ -359,11 +356,11 @@ export function AlbumPreviewPhotoBlockEditor({
               : null;
             const delta =
               (event.translationX * sign.x + event.translationY * sign.y) /
-              Math.max(block.width, block.height, 1);
+              Math.max(Math.min(block.width, block.height), 1);
             const clamped = clampPhotoBlockTransform(
               block,
               {
-                scale: savedScale.value * (1 + delta * 0.85),
+                scale: savedScale.value * (1 + delta * 1.25),
                 offsetX: savedOffsetX.value,
                 offsetY: savedOffsetY.value,
               },
@@ -428,7 +425,7 @@ export function AlbumPreviewPhotoBlockEditor({
     };
   });
 
-  if (!layout || !baseBlock || baseBlock.width < 2 || baseBlock.height < 2) return null;
+  if (!layout || !baseBlock) return null;
 
   return (
     <View style={styles.wrap} pointerEvents="box-none">
@@ -448,7 +445,11 @@ export function AlbumPreviewPhotoBlockEditor({
           accessibilityRole={!selected ? 'button' : undefined}
           accessibilityLabel={!selected ? 'Выбрать блок фото' : undefined}
         >
-          <BlockPhotos layout={layout} />
+          <BlockPhotos
+            layout={layout}
+            blockId={blockId}
+            slotTransforms={slotTransforms}
+          />
 
           {selected ? (
             <>
@@ -475,8 +476,16 @@ export function AlbumPreviewPhotoBlockEditor({
   );
 }
 
-function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
-  const blockKey = `${Math.round(layout.baseBlock.width)}x${Math.round(layout.baseBlock.height)}`;
+function BlockPhotos({
+  layout,
+  blockId,
+  slotTransforms,
+}: {
+  layout: PhotoBlockLayout;
+  blockId: string;
+  slotTransforms: Record<string, PhotoSlotTransform>;
+}) {
+  const isMultiSlotCollage = layout.slots.length > 1;
 
   return (
     <>
@@ -492,11 +501,16 @@ function BlockPhotos({ layout }: { layout: PhotoBlockLayout }) {
               height: `${slot.relative.height * 100}%`,
             },
           ]}
+          pointerEvents="none"
         >
-          <AlbumPhotoImage
+          <PhotoSlotCropPreview
             uri={slot.uri}
-            style={styles.photo}
-            recyclingKey={`preview-slot-${slot.slotIndex}-${slot.uri}-${blockKey}`}
+            transform={
+              isMultiSlotCollage
+                ? DEFAULT_PHOTO_SLOT_TRANSFORM
+                : slotTransforms[photoSlotTransformKey(blockId, slot.slotIndex)] ??
+                  DEFAULT_PHOTO_SLOT_TRANSFORM
+            }
           />
         </View>
       ))}
@@ -520,10 +534,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     overflow: 'hidden',
     borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
   },
   selectionBorder: {
     ...StyleSheet.absoluteFillObject,

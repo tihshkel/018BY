@@ -69,8 +69,9 @@ function resolveFamilyTreeViewportDiameter(slot: NormalizedPhotoSlot): number {
   const base = Math.max(slot.width, slot.height);
   if (slot.branch === 'father') {
     const scale =
-      (slot.slotId && FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE_BY_SLOT[slot.slotId]) ??
-      FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE;
+      (slot.slotId
+        ? FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE_BY_SLOT[slot.slotId]
+        : undefined) ?? FAMILY_TREE_FATHER_VIEWPORT_DIAMETER_SCALE;
     return base * scale;
   }
   if (slot.branch === 'child') {
@@ -153,11 +154,11 @@ function resolveFamilyTreeViewportYOffset(slot: NormalizedPhotoSlot): number {
 }
 
 /** Схема выбора фото — сдвиг и размер как в превью (без bleed мамы). */
-export function refineFamilyTreeSlotForPicker(
+export function refineFamilyTreeSlotForPicker<T extends NormalizedPhotoSlot>(
   lineGuideId: string,
   page: number,
-  slot: NormalizedPhotoSlot,
-): NormalizedPhotoSlot {
+  slot: T,
+): T {
   if (lineGuideId !== 'kids_48' || page !== KIDS_FAMILY_TREE_PAGE || slot.shape !== 'circle') {
     return slot;
   }

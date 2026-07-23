@@ -1,14 +1,23 @@
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 
+export type { PhotoSlotTransform };
+
 export const DEFAULT_PHOTO_SLOT_TRANSFORM: PhotoSlotTransform = {
   scale: 1,
   offsetX: 0,
   offsetY: 0,
 };
 
-export const MIN_PHOTO_SCALE = 0.35;
+export const MIN_PHOTO_SCALE = 0.6;
 export const MAX_PHOTO_SCALE = 3.5;
 export const MAX_PHOTO_OFFSET = 1.2;
+/** Доп. зум в пределах safe zone (кадрирование в рамке «Место для фото»). */
+export const PHOTO_SAFE_ZONE_SCALE_HEADROOM = 2;
+
+export function clampPhotoScaleBetween(scale: number, minScale: number, maxScale = MAX_PHOTO_SCALE): number {
+  'worklet';
+  return Math.min(maxScale, Math.max(minScale, scale));
+}
 
 export function photoSlotTransformKey(blockId: string, slotIndex: number): string {
   return `${blockId}_${slotIndex}`;
@@ -53,6 +62,25 @@ export function isNonDefaultPhotoSlotTransform(
   );
 }
 
+/** Для предпросмотра/экспорта: groupTransform или кадрирование слота 0 из формы. */
+export function resolvePhotoGroupTransform(
+  values: {
+    photoGroupTransform?: PhotoSlotTransform | null;
+    photoSlotTransforms?: Record<string, PhotoSlotTransform>;
+  },
+  blockId: string,
+  slotIndex = 0,
+): PhotoSlotTransform {
+  if (isNonDefaultPhotoSlotTransform(values.photoGroupTransform)) {
+    return normalizePhotoSlotTransform(values.photoGroupTransform);
+  }
+  const slotTransform = values.photoSlotTransforms?.[photoSlotTransformKey(blockId, slotIndex)];
+  if (isNonDefaultPhotoSlotTransform(slotTransform)) {
+    return normalizePhotoSlotTransform(slotTransform);
+  }
+  return DEFAULT_PHOTO_SLOT_TRANSFORM;
+}
+
 function applyPhotoSlotTransformRaw(
   rect: { x: number; y: number; width: number; height: number },
   transform: PhotoSlotTransform,
@@ -68,11 +96,101 @@ function applyPhotoSlotTransformRaw(
   return { x, y, width, height };
 }
 
+function computePhotoCoverSizeWorklet(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+): { width: number; height: number } {
+  'worklet';
+  if (slotWidth <= 0 || slotHeight <= 0 || imageAspect <= 0) {
+    return { width: slotWidth, height: slotHeight };
+  }
+  const slotAspect = slotWidth / slotHeight;
+  if (imageAspect > slotAspect) {
+    const height = slotHeight;
+    return { width: height * imageAspect, height };
+  }
+  const width = slotWidth;
+  return { width, height: width / imageAspect };
+}
+
+export function computePhotoContainScaleWorklet(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+): number {
+  'worklet';
+  const cover = computePhotoCoverSizeWorklet(slotWidth, slotHeight, imageAspect);
+  if (cover.width <= 0 || cover.height <= 0) return 1;
+  return Math.min(slotWidth / cover.width, slotHeight / cover.height);
+}
+
+export function applyAspectAwarePhotoSlotTransform(
+  rect: { x: number; y: number; width: number; height: number },
+  transform: PhotoSlotTransform | null | undefined,
+  imageAspect: number,
+): { x: number; y: number; width: number; height: number } {
+  'worklet';
+  const slotW = rect.width;
+  const slotH = rect.height;
+  const scale = transform?.scale ?? 1;
+  const cover = computePhotoCoverSizeWorklet(slotW, slotH, imageAspect);
+  const width = cover.width * scale;
+  const height = cover.height * scale;
+  const offsetX = (transform?.offsetX ?? 0) * slotW;
+  const offsetY = (transform?.offsetY ?? 0) * slotH;
+  return {
+    x: rect.x + (slotW - width) / 2 + offsetX,
+    y: rect.y + (slotH - height) / 2 + offsetY,
+    width,
+    height,
+  };
+}
+
+export function clampAspectAwarePhotoOffset(
+  slotWidth: number,
+  slotHeight: number,
+  imageAspect: number,
+  scale: number,
+  offsetX: number,
+  offsetY: number,
+): { offsetX: number; offsetY: number } {
+  'worklet';
+  const cover = computePhotoCoverSizeWorklet(slotWidth, slotHeight, imageAspect);
+  const imgW = cover.width * scale;
+  const imgH = cover.height * scale;
+  const maxOffX = imgW > slotWidth ? (imgW - slotWidth) / (2 * slotWidth) : 0;
+  const maxOffY = imgH > slotHeight ? (imgH - slotHeight) / (2 * slotHeight) : 0;
+  return {
+    offsetX: Math.min(maxOffX, Math.max(-maxOffX, offsetX)),
+    offsetY: Math.min(maxOffY, Math.max(-maxOffY, offsetY)),
+  };
+}
+
+export function normalizePhotoSlotTransformWithMin(
+  transform: PhotoSlotTransform | null | undefined,
+  minScale: number,
+): PhotoSlotTransform {
+  'worklet';
+  if (!transform) {
+    return { scale: Math.max(minScale, 1), offsetX: 0, offsetY: 0 };
+  }
+  return {
+    scale: clampPhotoScaleBetween(transform.scale || 1, minScale),
+    offsetX: transform.offsetX ?? 0,
+    offsetY: transform.offsetY ?? 0,
+  };
+}
+
 export function applyPhotoSlotTransform(
   rect: { x: number; y: number; width: number; height: number },
   transform?: PhotoSlotTransform | null,
+  imageAspect?: number,
 ): { x: number; y: number; width: number; height: number } {
   'worklet';
+  if (imageAspect && imageAspect > 0) {
+    return applyAspectAwarePhotoSlotTransform(rect, transform, imageAspect);
+  }
   return applyPhotoSlotTransformRaw(rect, normalizePhotoSlotTransform(transform));
 }
 
@@ -103,8 +221,8 @@ export function clampPhotoBlockTransform(
   }
 
   const maxScale = Math.min(
-    safeBounds.width / Math.max(baseBlock.width, 1),
-    safeBounds.height / Math.max(baseBlock.height, 1),
+    (safeBounds.width / Math.max(baseBlock.width, 1)) * PHOTO_SAFE_ZONE_SCALE_HEADROOM,
+    (safeBounds.height / Math.max(baseBlock.height, 1)) * PHOTO_SAFE_ZONE_SCALE_HEADROOM,
     MAX_PHOTO_SCALE,
   );
   scale = Math.max(MIN_PHOTO_SCALE, Math.min(scale, maxScale));

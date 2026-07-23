@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -27,14 +27,12 @@ import { isRemotePhotoUri } from '@/utils/persistAlbumPhoto';
 
 type PhotoSlotChromeStyle = 'toolbar' | 'overlay' | 'none';
 
-type PhotoSlotGestureLayerProps = {
+type PhotoSlotHandleEditorProps = {
   uri: string | null;
   slotLabel: string;
   slotIndex: number;
   transform: PhotoSlotTransform;
   gesturesEnabled?: boolean;
-  /** @deprecated use chromeStyle="none" */
-  hideChrome?: boolean;
   chromeStyle?: PhotoSlotChromeStyle;
   onPressEmpty: () => void;
   onReplacePhoto?: () => void;
@@ -42,16 +40,41 @@ type PhotoSlotGestureLayerProps = {
   onTransformChange: (transform: PhotoSlotTransform) => void;
 };
 
-function resolveChromeStyle(
-  chromeStyle: PhotoSlotChromeStyle | undefined,
-  hideChrome: boolean | undefined,
-): PhotoSlotChromeStyle {
-  if (chromeStyle) return chromeStyle;
-  if (hideChrome) return 'none';
-  return 'toolbar';
+const HANDLE_SIZE = 22;
+const HANDLE_HIT = 36;
+
+type CornerId = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+
+const CORNERS: CornerId[] = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight'];
+
+function cornerSign(corner: CornerId): { x: number; y: number } {
+  switch (corner) {
+    case 'topLeft':
+      return { x: -1, y: -1 };
+    case 'topRight':
+      return { x: 1, y: -1 };
+    case 'bottomLeft':
+      return { x: -1, y: 1 };
+    default:
+      return { x: 1, y: 1 };
+  }
 }
 
-function PhotoSlotFilled({
+function cornerHandleStyle(corner: CornerId) {
+  const inset = -HANDLE_HIT / 2;
+  switch (corner) {
+    case 'topLeft':
+      return { left: inset, top: inset };
+    case 'topRight':
+      return { right: inset, top: inset };
+    case 'bottomLeft':
+      return { left: inset, bottom: inset };
+    default:
+      return { right: inset, bottom: inset };
+  }
+}
+
+function PhotoSlotHandleFilled({
   uri,
   slotLabel,
   slotIndex,
@@ -61,10 +84,12 @@ function PhotoSlotFilled({
   onReplacePhoto,
   onRemovePhoto,
   onTransformChange,
-}: Omit<PhotoSlotGestureLayerProps, 'onPressEmpty' | 'uri' | 'hideChrome'> & {
+}: Omit<PhotoSlotHandleEditorProps, 'onPressEmpty' | 'uri'> & {
   uri: string;
   chromeStyle: PhotoSlotChromeStyle;
 }) {
+  const [selected, setSelected] = useState(false);
+
   const savedScale = useSharedValue(transform.scale || 1);
   const savedOffsetX = useSharedValue(transform.offsetX || 0);
   const savedOffsetY = useSharedValue(transform.offsetY || 0);
@@ -167,46 +192,113 @@ function PhotoSlotFilled({
     );
   }, [imageAspect, minPhotoScale, onTransformChange, offsetX, offsetY, scale, slotHeight, slotWidth]);
 
-  const panGesture = Gesture.Pan()
-    .enabled(gesturesEnabled !== false)
-    .onUpdate((event) => {
-      const width = Math.max(slotWidth.value, 1);
-      const height = Math.max(slotHeight.value, 1);
-      const next = clampAspectAwarePhotoOffset(
-        width,
-        height,
-        imageAspect.value,
-        scale.value,
-        savedOffsetX.value + event.translationX / width,
-        savedOffsetY.value + event.translationY / height,
-      );
-      offsetX.value = next.offsetX;
-      offsetY.value = next.offsetY;
-    })
-    .onEnd(() => {
-      savedOffsetX.value = offsetX.value;
-      savedOffsetY.value = offsetY.value;
-      runOnJS(commitTransform)();
-    });
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(gesturesEnabled !== false && selected)
+        .onUpdate((event) => {
+          const width = Math.max(slotWidth.value, 1);
+          const height = Math.max(slotHeight.value, 1);
+          const next = clampAspectAwarePhotoOffset(
+            width,
+            height,
+            imageAspect.value,
+            scale.value,
+            savedOffsetX.value + event.translationX / width,
+            savedOffsetY.value + event.translationY / height,
+          );
+          offsetX.value = next.offsetX;
+          offsetY.value = next.offsetY;
+        })
+        .onEnd(() => {
+          savedOffsetX.value = offsetX.value;
+          savedOffsetY.value = offsetY.value;
+          runOnJS(commitTransform)();
+        }),
+    [
+      commitTransform,
+      gesturesEnabled,
+      imageAspect,
+      offsetX,
+      offsetY,
+      savedOffsetX,
+      savedOffsetY,
+      scale,
+      selected,
+      slotHeight,
+      slotWidth,
+    ],
+  );
 
-  const pinchGesture = Gesture.Pinch()
-    .enabled(gesturesEnabled !== false)
-    .onBegin(() => {
-      savedScale.value = scale.value;
-    })
-    .onUpdate((event) => {
-      scale.value = clampPhotoScaleBetween(
-        savedScale.value * event.scale,
-        minPhotoScale.value,
-        MAX_PHOTO_SCALE,
-      );
-    })
-    .onEnd(() => {
-      savedScale.value = scale.value;
-      runOnJS(commitTransform)();
-    });
+  const selectGesture = useMemo(
+    () =>
+      Gesture.Tap()
+        .enabled(gesturesEnabled !== false && !selected)
+        .onEnd(() => {
+          runOnJS(setSelected)(true);
+        }),
+    [gesturesEnabled, selected],
+  );
 
-  const composed = Gesture.Simultaneous(panGesture, pinchGesture);
+  const cornerGestures = useMemo(() => {
+    return CORNERS.reduce(
+      (acc, corner) => {
+        const sign = cornerSign(corner);
+        acc[corner] = Gesture.Pan()
+          .enabled(gesturesEnabled !== false && selected)
+          .onUpdate((event) => {
+            const width = Math.max(slotWidth.value, 1);
+            const height = Math.max(slotHeight.value, 1);
+            const delta =
+              (event.translationX * sign.x + event.translationY * sign.y) /
+              Math.max(width, height, 1);
+            const nextScale = clampPhotoScaleBetween(
+              savedScale.value * (1 + delta * 0.85),
+              minPhotoScale.value,
+              MAX_PHOTO_SCALE,
+            );
+            scale.value = nextScale;
+            const clamped = clampAspectAwarePhotoOffset(
+              width,
+              height,
+              imageAspect.value,
+              nextScale,
+              savedOffsetX.value,
+              savedOffsetY.value,
+            );
+            offsetX.value = clamped.offsetX;
+            offsetY.value = clamped.offsetY;
+          })
+          .onEnd(() => {
+            savedScale.value = scale.value;
+            savedOffsetX.value = offsetX.value;
+            savedOffsetY.value = offsetY.value;
+            runOnJS(commitTransform)();
+          });
+        return acc;
+      },
+      {} as Record<CornerId, ReturnType<typeof Gesture.Pan>>,
+    );
+  }, [
+    commitTransform,
+    gesturesEnabled,
+    imageAspect,
+    minPhotoScale,
+    offsetX,
+    offsetY,
+    savedOffsetX,
+    savedOffsetY,
+    savedScale,
+    scale,
+    selected,
+    slotHeight,
+    slotWidth,
+  ]);
+
+  const composedGesture = useMemo(
+    () => Gesture.Simultaneous(selectGesture, panGesture),
+    [panGesture, selectGesture],
+  );
 
   const imageStyle = useAnimatedStyle(() => {
     const rect = applyPhotoSlotTransform(
@@ -270,15 +362,45 @@ function PhotoSlotFilled({
       testID={`photo-slot-${slotIndex}`}
       style={[styles.filledWrap, isOverlay && styles.filledWrapOverlay]}
     >
+      {selected ? (
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setSelected(false)}
+          accessibilityLabel="Снять выделение фото"
+        />
+      ) : null}
+
       {canUseGestures ? (
-        <GestureDetector gesture={composed}>{imageContent}</GestureDetector>
+        <GestureDetector gesture={composedGesture}>
+          <View
+            style={styles.gestureWrap}
+            testID={!selected ? `photo-slot-select-${slotIndex}` : undefined}
+          >
+            {imageContent}
+            {selected ? (
+              <>
+                <View style={styles.selectionBorder} pointerEvents="none" />
+                {CORNERS.map((corner) => (
+                  <GestureDetector key={corner} gesture={cornerGestures[corner]}>
+                    <Animated.View
+                      style={[styles.handleHit, cornerHandleStyle(corner)]}
+                      accessibilityLabel="Изменить размер фото"
+                    >
+                      <View style={styles.handle} />
+                    </Animated.View>
+                  </GestureDetector>
+                ))}
+              </>
+            ) : null}
+          </View>
+        </GestureDetector>
       ) : (
         imageContent
       )}
 
       {isOverlay && canUseGestures ? (
         <AppText variant="caption" style={styles.overlayGestureHint} pointerEvents="none">
-          Щипок — масштаб, перетаскивание — позиция
+          {selected ? 'Углы — масштаб, перетаскивание — позиция' : 'Нажмите, чтобы выбрать фото'}
         </AppText>
       ) : null}
 
@@ -345,28 +467,25 @@ function PhotoSlotFilled({
 
       {chromeStyle === 'toolbar' && gesturesEnabled !== false ? (
         <AppText variant="caption" style={styles.gestureHint}>
-          Щипок — масштаб, перетаскивание — позиция
+          {selected ? 'Углы — масштаб, перетаскивание — позиция' : 'Нажмите на фото для кадрирования'}
         </AppText>
       ) : null}
     </View>
   );
 }
 
-export function PhotoSlotGestureLayer({
+export function PhotoSlotHandleEditor({
   uri,
   slotLabel,
   slotIndex,
   transform,
   gesturesEnabled = true,
-  hideChrome = false,
-  chromeStyle,
+  chromeStyle = 'toolbar',
   onPressEmpty,
   onReplacePhoto,
   onRemovePhoto,
   onTransformChange,
-}: PhotoSlotGestureLayerProps) {
-  const resolvedChromeStyle = resolveChromeStyle(chromeStyle, hideChrome);
-
+}: PhotoSlotHandleEditorProps) {
   if (!uri) {
     return (
       <Pressable
@@ -374,7 +493,7 @@ export function PhotoSlotGestureLayer({
         onPress={onPressEmpty}
         style={({ pressed }) => [
           styles.emptySlot,
-          resolvedChromeStyle === 'overlay' && styles.emptySlotOverlay,
+          chromeStyle === 'overlay' && styles.emptySlotOverlay,
           pressed && styles.emptyPressed,
         ]}
         accessibilityRole="button"
@@ -391,13 +510,13 @@ export function PhotoSlotGestureLayer({
   }
 
   return (
-    <PhotoSlotFilled
+    <PhotoSlotHandleFilled
       uri={uri}
       slotLabel={slotLabel}
       slotIndex={slotIndex}
       transform={transform}
       gesturesEnabled={gesturesEnabled}
-      chromeStyle={resolvedChromeStyle}
+      chromeStyle={chromeStyle}
       onReplacePhoto={onReplacePhoto}
       onRemovePhoto={onRemovePhoto}
       onTransformChange={onTransformChange}
@@ -418,6 +537,15 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: colors.primarySurface,
   },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
+  gestureWrap: {
+    flex: 1,
+    overflow: 'visible',
+    zIndex: 2,
+  },
   imageClip: {
     flex: 1,
     overflow: 'hidden',
@@ -432,11 +560,40 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  selectionBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: BLANK_ALBUM_PHOTO_RADIUS,
+    zIndex: 4,
+  },
+  handleHit: {
+    position: 'absolute',
+    width: HANDLE_HIT,
+    height: HANDLE_HIT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+  },
+  handle: {
+    width: HANDLE_SIZE,
+    height: HANDLE_SIZE,
+    borderRadius: HANDLE_SIZE / 2,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 3,
+    elevation: 2,
+  },
   overlayChrome: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     padding: 6,
+    zIndex: 6,
   },
   overlayActions: {
     flexDirection: 'row',
@@ -465,6 +622,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 6,
     overflow: 'hidden',
+    zIndex: 6,
   },
   toolbar: {
     flexDirection: 'row',

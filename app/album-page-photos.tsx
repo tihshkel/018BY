@@ -139,7 +139,6 @@ export default function AlbumPagePhotosScreen() {
           }
           showCaption={photoEditor.showCaption}
           showPerPhotoCaptions={photoEditor.showPerPhotoCaptions}
-          captionMaxLength={photoEditor.captionMaxLength}
         />
 
         <View style={styles.footer}>

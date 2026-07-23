@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { FamilyTreePhotoPicker } from '@/components/album/family-tree-photo-picker';
@@ -13,55 +13,22 @@ import {
   MonthPageForm,
   TeethForm,
 } from '@/components/album/editors/special-page-forms';
-import { PageFormFields } from '@/components/album/page-form-fields';
+import { PageFormFields, TextFieldStyleToolbar } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
-import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, BirthdayCustomFieldValue, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
-import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
+import type { AlbumPageSchema, BirthdayCustomFieldValue, FieldTextStyle, FreePageElement, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
+import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { getDefaultVariantIdForPage, getVariantPreviewThumbnails, resolvePhotoBlockVariant } from '@/utils/variantPreview';
-
-function CaptionKeyboardInput({
-  value,
-  onChangeText,
-  placeholder,
-  maxLength,
-  style,
-}: {
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  maxLength?: number;
-  style?: object;
-}) {
-  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
-  return (
-    <View ref={fieldRef} collapsable={false}>
-      <TextInput
-        style={style}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
-        maxLength={maxLength}
-        returnKeyType="done"
-        returnKeyLabel="OK"
-        enterKeyHint="done"
-        blurOnSubmit
-        onSubmitEditing={() => Keyboard.dismiss()}
-        onFocus={onInputFocus}
-      />
-    </View>
-  );
-}
 
 type AlbumPageUnifiedEditorProps = {
   schema: AlbumPageSchema;
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
-  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
+  onCaptionStyleChange?: (patch: Partial<FieldTextStyle>) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -82,7 +49,6 @@ type AlbumPageUnifiedEditorProps = {
   instanceId?: string;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
-  captionMaxLength?: number;
 };
 
 export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor({
@@ -90,7 +56,8 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   pageValues,
   lineGuideId,
   onFieldChange,
-  onFieldTextAlignChange,
+  onFieldStyleChange,
+  onCaptionStyleChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -107,15 +74,15 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   instanceId,
   showCaption,
   showPerPhotoCaptions,
-  captionMaxLength,
 }: AlbumPageUnifiedEditorProps) {
   const resolvedSchema = useMemo(
     () => enrichSchemaWithPhotoBlocks(schema),
     [schema],
   );
   const blocks = resolvedSchema.photoBlocks ?? [];
+  const photoBlocks = pageValues.photoBlocks ?? {};
   const primaryBlock = blocks[0];
-  const blockValues = primaryBlock ? pageValues.photoBlocks[primaryBlock.blockId] : undefined;
+  const blockValues = primaryBlock ? photoBlocks[primaryBlock.blockId] : undefined;
   const selectedVariantId =
     blockValues?.variantId ??
     getDefaultVariantIdForPage(lineGuideId, resolvedSchema.sourcePageNumber, primaryBlock) ??
@@ -126,11 +93,6 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
 
     const currentId = blockValues?.variantId;
     if (currentId) {
-      // Не сбрасываем на variants[0], если id есть в блоке — даже когда
-      // resolvePhotoBlockVariant временно не находит match из‑за нестабильного lineGuideId.
-      if (primaryBlock.variants.some((item) => item.variantId === currentId)) {
-        return;
-      }
       const resolved = resolvePhotoBlockVariant(
         primaryBlock.variants,
         currentId,
@@ -176,14 +138,17 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
   );
 
   const fields = resolvedSchema.fields ?? [];
+  const showTextStyleToolbar =
+    usesTemplateLineTextEditing(lineGuideId) || isBlankTemplateLineGuide(lineGuideId);
   const formProps = {
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
-    textAligns: pageValues.fieldTextAlign,
-    onTextAlignChange: onFieldTextAlignChange,
+    fieldTextStyles: pageValues.fieldTextStyles,
+    onFieldStyleChange,
     lineGuideId,
     sourcePageNumber: resolvedSchema.sourcePageNumber,
+    fontId: pageValues.textFontFamily,
   };
 
   const textForm = (() => {
@@ -194,7 +159,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           pageValues={pageValues}
           lineGuideId={lineGuideId}
           onFieldChange={onFieldChange}
-          onFieldTextAlignChange={onFieldTextAlignChange}
+          onFieldStyleChange={onFieldStyleChange}
           onPickPhoto={(slotIndex) => {
             if (!primaryBlock) return;
             onPickPhoto(primaryBlock.blockId, slotIndex);
@@ -289,7 +254,7 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
           ) : null}
 
           {blocks.map((block) => {
-            const values = pageValues.photoBlocks[block.blockId];
+            const values = photoBlocks[block.blockId];
             const variantId =
               values?.variantId ?? block.variants[0]?.variantId ?? 'default';
             const variant =
@@ -348,14 +313,21 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
                 <AppText variant="caption" style={styles.captionLabel}>
                   Подпись к фото {slotIndex + 1}
                 </AppText>
-                <CaptionKeyboardInput
+                {showTextStyleToolbar && onFieldStyleChange ? (
+                  <TextFieldStyleToolbar
+                    style={pageValues.fieldTextStyles?.[`caption${slotIndex + 1}`]}
+                    defaultAlign="center"
+                    onChange={(patch) => onFieldStyleChange(`caption${slotIndex + 1}`, patch)}
+                  />
+                ) : null}
+                <TextInput
                   style={styles.captionInput}
-                  value={
-                    pageValues.photoCaptions?.[slotIndex] ??
-                    (slotIndex === 0 ? pageValues.caption ?? '' : '')
-                  }
+                  value={pageValues.photoCaptions?.[slotIndex] ?? ''}
                   onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                   placeholder="Необязательно"
+                  placeholderTextColor={colors.placeholder}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </AppCard>
             ));
@@ -366,18 +338,22 @@ export const AlbumPageUnifiedEditor = React.memo(function AlbumPageUnifiedEditor
         <AppCard style={styles.captionCard}>
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
-            {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
-          <CaptionKeyboardInput
+          {showTextStyleToolbar && onCaptionStyleChange ? (
+            <TextFieldStyleToolbar
+              style={pageValues.captionTextStyle}
+              defaultAlign="center"
+              onChange={onCaptionStyleChange}
+            />
+          ) : null}
+          <TextInput
             style={styles.captionInput}
             value={pageValues.caption ?? ''}
-            onChangeText={(text) =>
-              onCaptionChange(
-                captionMaxLength != null ? text.slice(0, captionMaxLength) : text,
-              )
-            }
+            onChangeText={onCaptionChange}
             placeholder="Короткая подпись"
-            maxLength={captionMaxLength}
+            placeholderTextColor={colors.placeholder}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
         </AppCard>
       ) : null}

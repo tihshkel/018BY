@@ -1,26 +1,18 @@
 import type { Annotation } from '@/components/pdf-annotations';
-import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
 import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
-import { shouldRenderPhotoSlotCaptions } from '@/utils/photoCaptions';
 import { stableAnnotationId } from '@/utils/stableAnnotationId';
 import type { ContentRect } from '@/utils/imageContentRect';
-import {
-  computePhotoBlockLayout,
-  resolvePhotoBlockSlotRects,
-} from '@/utils/photoBlockLayout';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
   isBlankTemplateLineGuide,
 } from '@/utils/photoPageTemplateManifest';
-import { isNonDefaultPhotoSlotTransform } from '@/utils/photoSlotTransform';
 import { getTextBlockRect } from '@/utils/resolveTemplatePageLayout';
 import {
   estimateTemplateFontSize,
   fitTextToTemplateBlock,
   mapTemplateFrameToViewport,
 } from '@/utils/templateTextLayout';
-import { wrapTextToLines } from '@/utils/textWrap';
 
 type AppendParams = {
   schema: AlbumPageSchema;
@@ -35,6 +27,16 @@ type AppendParams = {
 
 function hasText(value: string | undefined | null): boolean {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+/** Default align for blank Семья/Свадьба/Праздники form fields. */
+export function getBlankFieldDefaultTextAlign(field: {
+  fieldId: string;
+  label?: string;
+}): 'left' | 'center' | 'right' {
+  if (field.fieldId.endsWith('_title') || field.label === 'Заголовок') return 'center';
+  // Body / «Текст» — left, so lines use the full template block width.
+  return 'left';
 }
 
 export function appendBlankTemplateTextAnnotations(params: AppendParams): {
@@ -62,27 +64,90 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   const layout = getTemplateLayout(schema.templateLibraryId, format);
   if (!layout) return { annotations, zIndex };
 
-  const pushText = (text: string, fieldIdSuffix: string) => {
+  // Timeline event titles share one font size so short/long rows look consistent.
+  let timelineDescriptionFontSize: number | undefined;
+  if (layout.pageType === 'timeline_page') {
+    const descSizes: number[] = [];
+    for (const field of schema.fields ?? []) {
+      if (!field.fieldId.endsWith('_description')) continue;
+      const text = values.fields[field.fieldId];
+      if (!hasText(text)) continue;
+      const block = getTextBlockRect(schema.templateLibraryId!, format, field.fieldId);
+      if (!block) continue;
+      const rect = mapTemplateFrameToViewport(block, editorContentRect);
+      const fieldStyle = values.fieldTextStyles?.[field.fieldId];
+      if (typeof fieldStyle?.fontSize === 'number') {
+        descSizes.push(fieldStyle.fontSize);
+        continue;
+      }
+      const preferredFontSize = Math.max(
+        18,
+        estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      );
+      const fitted = fitTextToTemplateBlock({
+        text: text!.trim(),
+        boxWidth: rect.width,
+        boxHeight: rect.height,
+        fontId: textFontFamily,
+        preferredFontSize,
+        preferSingleLine: false,
+        maxFontSize: 22,
+      });
+      if (fitted.lines.length > 0) descSizes.push(fitted.fontSize);
+    }
+    if (descSizes.length > 0) {
+      timelineDescriptionFontSize = Math.min(...descSizes);
+    }
+  }
+
+  const pushText = (
+    text: string,
+    fieldIdSuffix: string,
+    styleKey?: string,
+    defaultAlign: 'left' | 'center' | 'right' = 'left',
+  ) => {
     const block = getTextBlockRect(schema.templateLibraryId!, format, fieldIdSuffix);
     if (!block) return;
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
-    const preferredFontSize = estimateTemplateFontSize(block.h, viewportHeight) || fontSize;
+    const fieldStyle = styleKey ? values.fieldTextStyles?.[styleKey] : undefined;
+    const captionStyle =
+      fieldIdSuffix.includes('caption') && !styleKey ? values.captionTextStyle : undefined;
+    const textAlign =
+      fieldStyle?.textAlign ?? captionStyle?.textAlign ?? defaultAlign;
+    const isTimelineDescription = fieldIdSuffix.endsWith('_description');
+    const preferredFontSize =
+      fieldStyle?.fontSize ??
+      captionStyle?.fontSize ??
+      (isTimelineDescription && timelineDescriptionFontSize != null
+        ? timelineDescriptionFontSize
+        : isTimelineDescription
+          ? Math.max(18, estimateTemplateFontSize(block.h, viewportHeight) || fontSize)
+          : estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
     const fitted = fitTextToTemplateBlock({
       text,
       boxWidth: rect.width,
       boxHeight: rect.height,
       fontId: textFontFamily,
       preferredFontSize,
+      preferSingleLine: false,
+      maxFontSize: 22,
     });
     if (fitted.lines.length === 0) return;
     annotations.push({
       id: stableAnnotationId('blank-field', lineGuideId, schema.sourcePageNumber, fieldIdSuffix),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: fitted.lines.join('\n'),
-      fontSize: fitted.fontSize,
+      // Исходный текст — перенос по ширине блока в превью/экспорте, без «коротких» \n.
+      content: text.trim(),
+      fontSize:
+        fieldStyle?.fontSize ??
+        captionStyle?.fontSize ??
+        (isTimelineDescription && timelineDescriptionFontSize != null
+          ? timelineDescriptionFontSize
+          : fitted.fontSize),
       fontFamily: textFontFamily,
       color: '#3D3D3D',
+      textAlign,
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       x: rect.x,
@@ -93,39 +158,36 @@ export function appendBlankTemplateTextAnnotations(params: AppendParams): {
   };
 
   for (const field of schema.fields ?? []) {
+    // Caption fields / photoCaptions — через photoCaptionLayout (следуют за фото).
+    if (field.fieldId.includes('caption')) continue;
     const text = values.fields[field.fieldId];
     if (!hasText(text)) continue;
-    pushText(text!, field.fieldId);
+    pushText(
+      text!,
+      field.fieldId,
+      field.fieldId,
+      getBlankFieldDefaultTextAlign(field),
+    );
   }
 
-  const captionBlocks =
-    layout.textBlocks?.filter((block) => block.type === 'caption') ?? [];
-  const useSingleCaption =
-    captionBlocks.length === 1 && !layout.perPhotoCaptions && hasText(values.caption);
-
-  if (useSingleCaption && values.caption) {
-    pushText(values.caption, `_${captionBlocks[0]!.id}`);
-  }
-
-  if (layout.perPhotoCaptions && values.photoCaptions?.length) {
-    for (let i = 0; i < values.photoCaptions.length; i += 1) {
-      const text = values.photoCaptions[i];
-      if (!hasText(text)) continue;
-      pushText(text!, `_caption${i + 1}`);
-    }
-  }
+  // Fixed-frame captions отключены: blank captions рисует pageValuesAdapter
+  // через resolvePhotoCaptionViewportLayouts (паритет с designed).
 
   for (const element of values.freeElements ?? []) {
     if (element.type === 'text' && hasText(element.content)) {
       const rect = mapTemplateFrameToViewport(element, editorContentRect);
+      const elementStyle = values.fieldTextStyles?.[`free_${element.id}`];
       annotations.push({
         id: stableAnnotationId('free-text', lineGuideId, schema.sourcePageNumber, element.id),
         type: 'text',
         page: schema.sourcePageNumber,
         content: element.content!.trim(),
-        fontSize: estimateTemplateFontSize(element.h, viewportHeight) || fontSize,
+        fontSize:
+          elementStyle?.fontSize ??
+          (estimateTemplateFontSize(element.h, viewportHeight) || fontSize),
         fontFamily: textFontFamily,
         color: '#3D3D3D',
+        textAlign: elementStyle?.textAlign ?? 'left',
         zIndex: zIndex++,
         sourcePageNumber: schema.sourcePageNumber,
         x: rect.x,
@@ -179,15 +241,28 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
     if (!block) continue;
 
     const rect = mapTemplateFrameToViewport(block, editorContentRect);
+    const fieldStyle = values.fieldTextStyles?.[`caption${i + 1}`];
+    const preferredFontSize =
+      fieldStyle?.fontSize ??
+      (estimateTemplateFontSize(block.h, viewportHeight) || fontSize);
+    const fitted = fitTextToTemplateBlock({
+      text: text!.trim(),
+      boxWidth: rect.width,
+      boxHeight: rect.height,
+      fontId: textFontFamily,
+      preferredFontSize,
+    });
+    if (fitted.lines.length === 0) continue;
+
     annotations.push({
       id: stableAnnotationId('template-caption', lineGuideId, schema.sourcePageNumber, block.id, i),
       type: 'text',
       page: schema.sourcePageNumber,
-      content: text!.trim(),
-      fontSize: estimateTemplateFontSize(block.h, viewportHeight) || fontSize,
+      content: fitted.lines.join('\n'),
+      fontSize: fieldStyle?.fontSize ?? fitted.fontSize,
       fontFamily: textFontFamily,
       color: '#3D3D3D',
-      textAlign: 'center',
+      textAlign: fieldStyle?.textAlign ?? 'center',
       zIndex: zIndex++,
       sourcePageNumber: schema.sourcePageNumber,
       x: rect.x,
@@ -195,190 +270,6 @@ export function appendTemplatePhotoCaptionAnnotations(params: AppendParams): {
       width: rect.width,
       height: rect.height,
     });
-  }
-
-  return { annotations, zIndex };
-}
-
-type PhotoSlotCaptionParams = AppendParams & {
-  viewportWidth: number;
-  viewportHeight: number;
-  sourceWidth?: number;
-  sourceHeight?: number;
-};
-
-const PHOTO_CAPTION_LINE_HEIGHT = 1.15;
-const PHOTO_CAPTION_PADDING = 4;
-
-function layoutCaptionNearPhoto(params: {
-  text: string;
-  photoRect: { x: number; y: number; width: number; height: number };
-  contentRect: ContentRect;
-  fontSize: number;
-  textFontFamily: string;
-  /** Подпись над фото (верхний ряд в 3/4-коллаже). */
-  placeAbove: boolean;
-}): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  lines: string[];
-  fontSize: number;
-} | null {
-  const { text, photoRect, contentRect, fontSize, textFontFamily, placeAbove } = params;
-  const trimmed = text.trim();
-  if (!trimmed || photoRect.width <= 0) return null;
-
-  const gap = contentRect.height * 0.012;
-  const pageTop = contentRect.offsetY + contentRect.height * 0.04;
-  const pageBottom = contentRect.offsetY + contentRect.height * 0.94;
-  const maxHeight = placeAbove
-    ? Math.max(28, photoRect.y - gap - pageTop)
-    : Math.max(32, pageBottom - (photoRect.y + photoRect.height + gap));
-  const charWidthRatio =
-    0.62 * getAlbumFontCharWidthMultiplier(textFontFamily) * 1.04;
-  const preferredFontSize = Math.max(fontSize, 16);
-  const minFontSize = 12;
-
-  const buildLayout = (captionFontSize: number, lines: string[], height: number) => {
-    const captionY = placeAbove
-      ? Math.max(pageTop, photoRect.y - gap - height)
-      : photoRect.y + photoRect.height + gap;
-    return {
-      x: photoRect.x,
-      y: captionY,
-      width: photoRect.width,
-      height,
-      lines,
-      fontSize: captionFontSize,
-    };
-  };
-
-  for (let captionFontSize = preferredFontSize; captionFontSize >= minFontSize; captionFontSize -= 1) {
-    const lines = wrapTextToLines(trimmed, photoRect.width, captionFontSize, {
-      paddingPx: PHOTO_CAPTION_PADDING,
-      charWidthRatio,
-    });
-    const neededHeight =
-      lines.length * captionFontSize * PHOTO_CAPTION_LINE_HEIGHT + PHOTO_CAPTION_PADDING;
-    if (neededHeight <= maxHeight) {
-      return buildLayout(captionFontSize, lines, neededHeight);
-    }
-  }
-
-  const captionFontSize = minFontSize;
-  const lines = wrapTextToLines(trimmed, photoRect.width, captionFontSize, {
-    paddingPx: PHOTO_CAPTION_PADDING,
-    charWidthRatio,
-  });
-  const lineBlockHeight = captionFontSize * PHOTO_CAPTION_LINE_HEIGHT;
-  const maxLines = Math.max(1, Math.floor((maxHeight - PHOTO_CAPTION_PADDING) / lineBlockHeight));
-  const height = Math.min(maxHeight, maxLines * lineBlockHeight + PHOTO_CAPTION_PADDING);
-  return buildLayout(captionFontSize, lines.slice(0, maxLines), height);
-}
-
-/** 3 фото: верхний слот — подпись сверху; 4 фото: верхний ряд — сверху. */
-function shouldPlaceCaptionAbovePhoto(slotCount: number, slotIndex: number): boolean {
-  if (slotCount === 3) return slotIndex === 0;
-  if (slotCount === 4) return slotIndex <= 1;
-  return false;
-}
-
-/** Подписи под фото по позиции слота — для designed-альбомов без templateLibraryId и line-slots. */
-export function appendPhotoSlotCaptionAnnotations(params: PhotoSlotCaptionParams): {
-  annotations: Annotation[];
-  zIndex: number;
-} {
-  const {
-    schema,
-    values,
-    lineGuideId,
-    editorContentRect,
-    viewportWidth,
-    viewportHeight,
-    sourceWidth,
-    sourceHeight,
-    fontSize,
-    textFontFamily,
-  } = params;
-
-  let zIndex = params.zIndex;
-  const annotations: Annotation[] = [];
-
-  if (!shouldRenderPhotoSlotCaptions(schema) || !values.photoCaptions?.length) {
-    return { annotations, zIndex };
-  }
-
-  for (const block of schema.photoBlocks ?? []) {
-    const blockValues = values.photoBlocks?.[block.blockId];
-    if (!blockValues) continue;
-
-    const variant =
-      block.variants.find((item) => item.variantId === blockValues.variantId) ??
-      block.variants[0];
-    if (!variant) continue;
-
-    const blockLayout = computePhotoBlockLayout({
-      lineGuideId,
-      sourcePageNumber: schema.sourcePageNumber,
-      variantId: variant.variantId,
-      slotUris: blockValues.slots,
-      viewportWidth,
-      viewportHeight,
-      sourceWidth,
-      sourceHeight,
-      contentRect: editorContentRect,
-      templateLibraryId: schema.templateLibraryId,
-    });
-    if (!blockLayout) continue;
-
-    const groupTransform = isNonDefaultPhotoSlotTransform(values.photoGroupTransform)
-      ? values.photoGroupTransform
-      : null;
-    const slotRects = resolvePhotoBlockSlotRects(blockLayout, groupTransform);
-
-    for (let slotIndex = 0; slotIndex < variant.slots; slotIndex += 1) {
-      const text = values.photoCaptions[slotIndex];
-      if (!hasText(text)) continue;
-
-      const photoRect =
-        slotRects.find((slot) => slot.slotIndex === slotIndex)?.rect ?? null;
-      if (!photoRect) continue;
-
-      const layout = layoutCaptionNearPhoto({
-        text: text!,
-        photoRect,
-        contentRect: editorContentRect,
-        fontSize,
-        textFontFamily,
-        placeAbove: shouldPlaceCaptionAbovePhoto(variant.slots, slotIndex),
-      });
-      if (!layout || layout.lines.length === 0) continue;
-
-      annotations.push({
-        id: stableAnnotationId(
-          'photo-slot-caption',
-          lineGuideId,
-          schema.sourcePageNumber,
-          block.blockId,
-          slotIndex,
-        ),
-        type: 'text',
-        page: schema.sourcePageNumber,
-        content: layout.lines.join('\n'),
-        fontSize: layout.fontSize,
-        fontFamily: textFontFamily,
-        color: '#3D3D3D',
-        textAlign: 'center',
-        zIndex: zIndex++,
-        sourcePageNumber: schema.sourcePageNumber,
-        x: layout.x,
-        y: layout.y,
-        width: layout.width,
-        height: layout.height,
-      });
-    }
   }
 
   return { annotations, zIndex };
@@ -412,6 +303,7 @@ export function appendBlankTemplateFreeImageAnnotations(params: {
       height: rect.height,
       imageUri: element.content!,
       imageContentFit: 'cover',
+      imageSlotTransform: element.crop,
       sourcePageNumber: schema.sourcePageNumber,
       zIndex: zIndex++,
     });

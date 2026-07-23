@@ -5,8 +5,12 @@ import { AlbumPhotoSlotGrid } from '@/components/album/album-photo-slot-grid';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageField, AlbumPageSchema, PageValues } from '@/types/album-page-schema';
-import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
+import type {
+  AlbumPageField,
+  AlbumPageSchema,
+  FieldTextStyle,
+  PageValues,
+} from '@/types/album-page-schema';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -17,7 +21,7 @@ type TimelinePageEditorProps = {
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
-  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   onPickPhoto: (slotIndex: number) => void;
   onRemovePhoto: (slotIndex: number) => void;
 };
@@ -27,7 +31,7 @@ export const TimelinePageEditor = React.memo(function TimelinePageEditor({
   pageValues,
   lineGuideId,
   onFieldChange,
-  onFieldTextAlignChange,
+  onFieldStyleChange,
   onPickPhoto,
   onRemovePhoto,
 }: TimelinePageEditorProps) {
@@ -47,15 +51,37 @@ export const TimelinePageEditor = React.memo(function TimelinePageEditor({
     ? Array.from({ length: variant.slots }, (_, i) => blockValues?.slots[i] ?? null)
     : [];
 
+  const titleFields = useMemo(
+    () =>
+      (schema.fields ?? []).filter(
+        (field) => field.fieldId.endsWith('_title') || field.label === 'Заголовок',
+      ),
+    [schema.fields],
+  );
+
   if (!layout?.events?.length || !block || !variant) {
     return null;
   }
 
   return (
     <View style={styles.container}>
+      {titleFields.length > 0 ? (
+        <PageFormFields
+          fields={titleFields}
+          values={pageValues.fields}
+          onChange={onFieldChange}
+          fieldTextStyles={pageValues.fieldTextStyles}
+          onFieldStyleChange={onFieldStyleChange}
+          lineGuideId={lineGuideId}
+          sourcePageNumber={schema.sourcePageNumber}
+          fontId={pageValues.textFontFamily}
+        />
+      ) : null}
       {layout.events.map((event, index) => {
         const dateField = schema.fields?.find((f) => f.fieldId.endsWith(`_${event.date.id}`));
-        const descField = schema.fields?.find((f) => f.fieldId.endsWith(`_${event.description.id}`));
+        const descField = schema.fields?.find((f) =>
+          f.fieldId.endsWith(`_${event.description.id}`),
+        );
         const eventFields: AlbumPageField[] = [dateField, descField].filter(
           (field): field is AlbumPageField => Boolean(field),
         );
@@ -88,10 +114,11 @@ export const TimelinePageEditor = React.memo(function TimelinePageEditor({
                 fields={eventFields}
                 values={pageValues.fields}
                 onChange={onFieldChange}
-                textAligns={pageValues.fieldTextAlign}
-                onTextAlignChange={onFieldTextAlignChange}
+                fieldTextStyles={pageValues.fieldTextStyles}
+                onFieldStyleChange={onFieldStyleChange}
                 lineGuideId={lineGuideId}
                 sourcePageNumber={schema.sourcePageNumber}
+                fontId={pageValues.textFontFamily}
               />
             ) : null}
           </AppCard>

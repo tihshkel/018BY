@@ -22,7 +22,8 @@ export interface Annotation {
   clipShape?: 'circle';
   fillColor?: string;
   fillOpacity?: number;
-  fillCornerRadius?: number;
+  /** Corner radius as a fraction of min(width, height) for rect fills. */
+  fillCornerRadiusRatio?: number;
   imageSlotTransform?: PhotoSlotTransform;
 }
 

@@ -552,12 +552,14 @@ export default function AlbumPagePreviewScreen() {
                 middleLayer={
                   showPhotoBlockEditor && instance ? (
                     <AlbumPreviewPhotoBlockEditor
+                      blockId={primaryPhotoBlock!.blockId}
                       lineGuideId={resolvedLineGuideId}
                       sourcePageNumber={
                         instance.sourcePageNumber ?? schema.sourcePageNumber
                       }
                       variantId={primaryVariantId}
                       slotUris={primarySlotUris}
+                      slotTransforms={values?.photoSlotTransforms ?? {}}
                       templateLibraryId={schema.templateLibraryId}
                       groupTransform={values?.photoGroupTransform}
                       safeBounds={photoSafeBounds}

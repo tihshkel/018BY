@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 
 import { PhotoBlockPicker } from '@/components/album/photo-block-picker';
 import {
@@ -10,17 +10,19 @@ import {
 } from '@/components/album/editors/special-page-forms';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppCard, AppText } from '@/components/ui';
-import { useKeyboardAwareFieldRef } from '@/components/ui/app-screen';
 import { colors, radii, sansFont, spacing } from '@/constants/design-tokens';
-import type { AlbumPageSchema, PageValues } from '@/types/album-page-schema';
-import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
+import type {
+  AlbumPageSchema,
+  FieldTextStyle,
+  PageValues,
+} from '@/types/album-page-schema';
 
 type AlbumPageFillFormProps = {
   schema: AlbumPageSchema;
   pageValues: PageValues;
   lineGuideId: string;
   onFieldChange: (fieldId: string, value: string) => void;
-  onFieldTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   onCaptionChange: (text: string) => void;
   onPhotoCaptionChange: (slotIndex: number, text: string) => void;
   onSelectVariant: (blockId: string, variantId: string) => void;
@@ -29,48 +31,14 @@ type AlbumPageFillFormProps = {
   onRemovePhoto: (blockId: string, slotIndex: number) => void;
   showCaption: boolean;
   showPerPhotoCaptions: boolean;
-  captionMaxLength?: number;
 };
-
-function CaptionTextInput({
-  value,
-  onChangeText,
-  placeholder,
-  maxLength,
-}: {
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  maxLength?: number;
-}) {
-  const { fieldRef, onInputFocus } = useKeyboardAwareFieldRef();
-
-  return (
-    <View ref={fieldRef} collapsable={false}>
-      <TextInput
-        style={styles.captionInput}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
-        maxLength={maxLength}
-        returnKeyType="done"
-        returnKeyLabel="OK"
-        enterKeyHint="done"
-        blurOnSubmit
-        onSubmitEditing={() => Keyboard.dismiss()}
-        onFocus={onInputFocus}
-      />
-    </View>
-  );
-}
 
 export function AlbumPageFillForm({
   schema,
   pageValues,
   lineGuideId,
   onFieldChange,
-  onFieldTextAlignChange,
+  onFieldStyleChange,
   onCaptionChange,
   onPhotoCaptionChange,
   onSelectVariant,
@@ -79,11 +47,10 @@ export function AlbumPageFillForm({
   onRemovePhoto,
   showCaption,
   showPerPhotoCaptions,
-  captionMaxLength,
 }: AlbumPageFillFormProps) {
   const fields = schema.fields ?? [];
   const blocks = schema.photoBlocks ?? [];
-  const photoBlocks = pageValues.photoBlocks;
+  const photoBlocks = pageValues.photoBlocks ?? {};
   const photoCaptions = pageValues.photoCaptions ?? [];
   const caption = pageValues.caption ?? '';
 
@@ -91,10 +58,11 @@ export function AlbumPageFillForm({
     fields,
     values: pageValues.fields,
     onChange: onFieldChange,
-    textAligns: pageValues.fieldTextAlign,
-    onTextAlignChange: onFieldTextAlignChange,
+    fieldTextStyles: pageValues.fieldTextStyles,
+    onFieldStyleChange,
     lineGuideId,
     sourcePageNumber: schema.sourcePageNumber,
+    fontId: pageValues.textFontFamily,
   };
 
   const textForm = (() => {
@@ -142,14 +110,12 @@ export function AlbumPageFillForm({
                     <AppText variant="caption" style={styles.captionLabel}>
                       Подпись к фото {slotIndex + 1}
                     </AppText>
-                    <CaptionTextInput
-                      value={
-                        photoCaptions[slotIndex] ??
-                        (slotIndex === 0 ? caption : '') ??
-                        ''
-                      }
+                    <TextInput
+                      style={styles.captionInput}
+                      value={photoCaptions[slotIndex] ?? ''}
                       onChangeText={(text) => onPhotoCaptionChange(slotIndex, text)}
                       placeholder="Необязательно"
+                      placeholderTextColor={colors.placeholder}
                     />
                   </AppCard>
                 ))
@@ -164,17 +130,13 @@ export function AlbumPageFillForm({
         <AppCard style={styles.captionCard}>
           <AppText variant="caption" style={styles.captionLabel}>
             Подпись (необязательно)
-            {captionMaxLength != null ? ` · до ${captionMaxLength} символов` : ''}
           </AppText>
-          <CaptionTextInput
+          <TextInput
+            style={styles.captionInput}
             value={caption}
-            onChangeText={(text) =>
-              onCaptionChange(
-                captionMaxLength != null ? text.slice(0, captionMaxLength) : text,
-              )
-            }
+            onChangeText={onCaptionChange}
             placeholder="Короткая подпись"
-            maxLength={captionMaxLength}
+            placeholderTextColor={colors.placeholder}
           />
         </AppCard>
       ) : null}

@@ -1,27 +1,27 @@
-import { useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
-import { prefetchAlbumPhotoUriAsync } from '@/components/album/album-photo-image';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { flushAlbumProjectPersist } from '@/utils/albumProjectPersist';
 import { pickPhotoFromLibrary } from '@/utils/pickAlbumPhoto';
 import {
   buildAlbumPhotoStorageKey,
-  deleteManagedAlbumPhotoUri,
   persistAlbumPhotoUri,
+  withPhotoCacheBust,
 } from '@/utils/persistAlbumPhoto';
+import { computePhotoSlotTargetPixels } from '@/utils/albumPhotoResample';
 import { migratePhotoBlockOnVariantChange } from '@/utils/migratePhotoBlockOnVariantChange';
+import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransform';
+import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
+import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
 } from '@/utils/photoPageTemplateManifest';
 import { enrichSchemaWithPhotoBlocks } from '@/utils/schemaPhotoBlocks';
 import { resolvePhotoBlockVariant } from '@/utils/variantPreview';
-import {
-  resolvePhotoCaptionsForMigration,
-  shouldShowPerPhotoCaptions,
-} from '@/utils/photoCaptions';
 import {
   DEFAULT_PHOTO_SLOT_TRANSFORM,
   photoSlotTransformKey,
@@ -52,16 +52,58 @@ export function useAlbumPagePhotoEditor({
 
   const showCaption = resolvedSchema?.captionEnabled === true;
   const captionMaxLength = resolvedSchema?.captionMaxLength;
-  const templateHasPerPhotoCaptions = (() => {
-    if (!resolvedSchema?.templateLibraryId) return false;
+  const showPerPhotoCaptions = useMemo(() => {
+    if (!resolvedSchema) return false;
+    if (resolvedSchema.pageType === 'birthday_free_page') return true;
+    if (usesDesignedAlbumPerPhotoCaptions(resolvedSchema, resolvedSchema.lineGuideId)) {
+      return true;
+    }
+    if (!resolvedSchema.captionEnabled || !resolvedSchema.templateLibraryId) {
+      return false;
+    }
     const format = getPageFormatForLineGuide(resolvedSchema.lineGuideId);
     const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
     return Boolean(layout?.perPhotoCaptions);
-  })();
-  const showPerPhotoCaptions = shouldShowPerPhotoCaptions(
-    resolvedSchema,
-    templateHasPerPhotoCaptions,
-  );
+  }, [resolvedSchema]);
+
+  // Legacy page-level caption → per-photo captions[0] for designed photo pages.
+  useEffect(() => {
+    if (!showPerPhotoCaptions || !instanceId) return;
+    const legacy = pageValues.caption?.trim();
+    const legacyFieldCaption = Object.entries(pageValues.fields ?? {}).find(
+      ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
+    )?.[1]?.trim();
+    const source = legacy || legacyFieldCaption;
+    if (!source) return;
+    const hasPerPhoto = (pageValues.photoCaptions ?? []).some((c) => Boolean(c?.trim()));
+    if (hasPerPhoto) return;
+    commitPagePatch(instanceId, (prev) => {
+      if ((prev.photoCaptions ?? []).some((c) => Boolean(c?.trim()))) return prev;
+      const caption =
+        prev.caption?.trim() ||
+        Object.entries(prev.fields ?? {}).find(
+          ([fieldId, value]) => fieldId.endsWith('_caption') && Boolean(value?.trim()),
+        )?.[1]?.trim();
+      if (!caption) return prev;
+      const nextFields = { ...prev.fields };
+      for (const fieldId of Object.keys(nextFields)) {
+        if (fieldId.endsWith('_caption')) delete nextFields[fieldId];
+      }
+      return {
+        ...prev,
+        fields: nextFields,
+        photoCaptions: [caption],
+        caption: undefined,
+      };
+    });
+  }, [
+    showPerPhotoCaptions,
+    instanceId,
+    pageValues.caption,
+    pageValues.fields,
+    pageValues.photoCaptions,
+    commitPagePatch,
+  ]);
 
   const updatePageValues = useCallback(
     (updater: (prev: PageValues) => PageValues) => {
@@ -110,52 +152,72 @@ export function useAlbumPagePhotoEditor({
 
       const uri = await pickPhotoFromLibrary({
         ensurePermission: ensureMediaLibraryPermission,
-        aspect: resolvedSchema
-          ? getSlotAspectRatio({
-              lineGuideId: resolvedSchema.lineGuideId,
-              page: resolvedSchema.sourcePageNumber,
-              variantId,
-              slotIndex,
-            })
-          : undefined,
       });
       if (!uri) return;
 
-      const persistentUri =
-        pid && instanceId
-          ? await persistAlbumPhotoUri(
-              uri,
-              buildAlbumPhotoStorageKey({
-                projectId: pid,
-                instanceId,
-                blockId,
-                slotIndex,
-              }),
-            )
-          : uri;
+      const targetPixels = resolvedSchema
+        ? computePhotoSlotTargetPixels({
+            lineGuideId: resolvedSchema.lineGuideId,
+            page: resolvedSchema.sourcePageNumber,
+            variantId,
+            slotIndex,
+            templateLibraryId: resolvedSchema.templateLibraryId,
+          })
+        : null;
 
-      await prefetchAlbumPhotoUriAsync(persistentUri);
-
-      updatePageValues((prev) => {
-        const prevBlock = prev.photoBlocks[blockId] ?? {
-          variantId:
-            blocks.find((b) => b.blockId === blockId)?.variants[0]?.variantId ?? 'default',
-          slots: [],
-        };
-        const slots = [...prevBlock.slots];
-        const previousUri = slots[slotIndex];
-        slots[slotIndex] = persistentUri;
-        if (previousUri && previousUri !== persistentUri) {
-          void deleteManagedAlbumPhotoUri(previousUri);
+      let persistentUri = uri;
+      if (pid && instanceId) {
+        try {
+          persistentUri = await persistAlbumPhotoUri(
+            uri,
+            buildAlbumPhotoStorageKey({
+              projectId: pid,
+              instanceId,
+              blockId,
+              slotIndex,
+            }),
+            { targetPixels },
+          );
+          persistentUri = withPhotoCacheBust(persistentUri);
+        } catch (error) {
+          console.error('[handlePickPhoto] persist failed', error);
+          Alert.alert(
+            'Не удалось сохранить фото',
+            'Попробуйте выбрать снимок ещё раз. Если ошибка повторяется — перезапустите приложение.',
+          );
+          return;
         }
-        return {
-          ...prev,
-          photoBlocks: {
-            ...prev.photoBlocks,
-            [blockId]: { ...prevBlock, slots },
-          },
-        };
+      }
+
+      const slotAspect = resolvedSchema
+        ? getSlotAspectRatio({
+            lineGuideId: resolvedSchema.lineGuideId,
+            page: resolvedSchema.sourcePageNumber,
+            variantId,
+            slotIndex,
+          })
+        : undefined;
+      const imageSize = await resolvePageSourceSize(persistentUri);
+      const initialTransform = buildInitialPhotoSlotTransform({
+        slotAspect,
+        imageWidth: imageSize?.width,
+        imageHeight: imageSize?.height,
       });
+      const transformKey = photoSlotTransformKey(blockId, slotIndex);
+
+      updateBlock(blockId, (prev) => {
+        const slots = [...prev.slots];
+        slots[slotIndex] = persistentUri;
+        return { ...prev, slots };
+      });
+
+      updatePageValues((prev) => ({
+        ...prev,
+        photoSlotTransforms: {
+          ...prev.photoSlotTransforms,
+          [transformKey]: initialTransform,
+        },
+      }));
     },
     [
       blocks,
@@ -164,42 +226,27 @@ export function useAlbumPagePhotoEditor({
       photoBlocks,
       projectId,
       resolvedSchema,
+      updateBlock,
       updatePageValues,
     ],
   );
 
   const handleRemovePhoto = useCallback(
     (blockId: string, slotIndex: number) => {
-      // Один патч: два подряд updatePageValues ломали persist/snapshot (второй без eager updater).
-      updatePageValues((prev) => {
-        const prevBlock = prev.photoBlocks[blockId];
-        if (!prevBlock) return prev;
-
-        const slots = [...prevBlock.slots];
-        const removedUri = slots[slotIndex];
+      updateBlock(blockId, (prev) => {
+        const slots = [...prev.slots];
         slots[slotIndex] = null;
-        if (removedUri) {
-          void deleteManagedAlbumPhotoUri(removedUri);
-        }
-
-        const next: PageValues = {
-          ...prev,
-          photoBlocks: {
-            ...prev.photoBlocks,
-            [blockId]: { ...prevBlock, slots },
-          },
-        };
-
-        if (showPerPhotoCaptions) {
-          const captions = [...(prev.photoCaptions ?? [])];
-          captions[slotIndex] = null;
-          next.photoCaptions = captions;
-        }
-
-        return next;
+        return { ...prev, slots };
       });
+      if (showPerPhotoCaptions) {
+        updatePageValues((prev) => {
+          const next = [...(prev.photoCaptions ?? [])];
+          next[slotIndex] = null;
+          return { ...prev, photoCaptions: next };
+        });
+      }
     },
-    [showPerPhotoCaptions, updatePageValues],
+    [showPerPhotoCaptions, updateBlock, updatePageValues],
   );
 
   const handleSelectVariant = useCallback(
@@ -219,36 +266,30 @@ export function useAlbumPagePhotoEditor({
         blockId,
         prevSlots: prevBlock?.slots ?? [],
         newSlotCount: variant.slots,
-        prevCaptions: showPerPhotoCaptions
-          ? resolvePhotoCaptionsForMigration(pageValues.photoCaptions, pageValues.caption)
-          : pageValues.photoCaptions,
+        prevCaptions: pageValues.photoCaptions,
         prevSlotTransforms: pageValues.photoSlotTransforms,
       });
 
-      // Один патч: variant + captions + transforms — иначе snapshot мог публиковать старый layout.
+      updateBlock(blockId, () => ({
+        variantId: variant.variantId,
+        slots: migrated.slots,
+      }));
+
       updatePageValues((prev) => ({
         ...prev,
-        photoBlocks: {
-          ...prev.photoBlocks,
-          [blockId]: {
-            variantId: variant.variantId,
-            slots: migrated.slots,
-          },
-        },
         photoCaptions: showPerPhotoCaptions ? migrated.photoCaptions : prev.photoCaptions,
-        caption: showPerPhotoCaptions ? undefined : prev.caption,
         photoSlotTransforms: migrated.photoSlotTransforms,
         photoGroupTransform: { scale: 1, offsetX: 0, offsetY: 0 },
       }));
     },
     [
       blocks,
-      pageValues.caption,
       pageValues.photoCaptions,
       pageValues.photoSlotTransforms,
       photoBlocks,
       resolvedSchema?.lineGuideId,
       showPerPhotoCaptions,
+      updateBlock,
       updatePageValues,
     ],
   );

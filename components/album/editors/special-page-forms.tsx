@@ -4,32 +4,33 @@ import { StyleSheet, View } from 'react-native';
 import { PageFormFields } from '@/components/album/page-form-fields';
 import { AppText } from '@/components/ui';
 import { colors, spacing } from '@/constants/design-tokens';
-import type { AlbumPageField } from '@/types/album-page-schema';
-import type { FieldTextAlign } from '@/utils/albumFieldTextAlign';
+import type { AlbumPageField, FieldTextStyle } from '@/types/album-page-schema';
 
 type SpecialFormProps = {
   fields: AlbumPageField[];
   values: Record<string, string>;
   onChange: (fieldId: string, value: string) => void;
-  textAligns?: Record<string, FieldTextAlign>;
-  onTextAlignChange?: (fieldId: string, align: FieldTextAlign) => void;
+  fieldTextStyles?: Record<string, FieldTextStyle>;
+  onFieldStyleChange?: (fieldId: string, patch: Partial<FieldTextStyle>) => void;
   lineGuideId: string;
   sourcePageNumber: number;
+  fontId?: string | null;
 };
 
+function styleProps(props: SpecialFormProps) {
+  return {
+    fieldTextStyles: props.fieldTextStyles,
+    onFieldStyleChange: props.onFieldStyleChange,
+    fontId: props.fontId,
+  };
+}
+
 export function FamilyTreeForm(props: SpecialFormProps) {
-  const {
-    fields,
-    values,
-    onChange,
-    textAligns,
-    onTextAlignChange,
-    lineGuideId,
-    sourcePageNumber,
-  } = props;
-  const childFields = fields.filter((f) => f.fieldId.includes('child_name'));
-  const motherFields = fields.filter((f) => f.fieldId.includes('mother_'));
-  const fatherFields = fields.filter((f) => f.fieldId.includes('father_'));
+  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
+  const childFields = fields.filter((f) => f.fieldId.includes('_child_'));
+  const motherFields = fields.filter((f) => f.fieldId.includes('_mother_'));
+  const fatherFields = fields.filter((f) => f.fieldId.includes('_father_'));
+  const shared = styleProps(props);
 
   return (
     <View style={styles.wrap}>
@@ -37,51 +38,41 @@ export function FamilyTreeForm(props: SpecialFormProps) {
         fields={childFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Ребенок"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
       <PageFormFields
         fields={motherFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Линия мамы"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
       <PageFormFields
         fields={fatherFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Линия папы"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
     </View>
   );
 }
 
 export function TeethForm(props: SpecialFormProps) {
-  const {
-    fields,
-    values,
-    onChange,
-    textAligns,
-    onTextAlignChange,
-    lineGuideId,
-    sourcePageNumber,
-  } = props;
+  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
   const upperFields = fields.filter((f) => f.fieldId.includes('upper_'));
   const lowerFields = fields.filter((f) => f.fieldId.includes('lower_'));
   const extraFields = fields.filter(
     (f) => !f.fieldId.includes('upper_') && !f.fieldId.includes('lower_')
   );
+  const shared = styleProps(props);
 
   return (
     <View style={styles.wrap}>
@@ -92,46 +83,36 @@ export function TeethForm(props: SpecialFormProps) {
         fields={upperFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Верхняя челюсть"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
       <PageFormFields
         fields={lowerFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Нижняя челюсть"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
       <PageFormFields
         fields={extraFields}
         values={values}
         onChange={onChange}
-        textAligns={textAligns}
-        onTextAlignChange={onTextAlignChange}
         sectionTitle="Дополнительно"
         lineGuideId={lineGuideId}
         sourcePageNumber={sourcePageNumber}
+        {...shared}
       />
     </View>
   );
 }
 
 export function GrowthWeightForm(props: SpecialFormProps) {
-  const {
-    fields,
-    values,
-    onChange,
-    textAligns,
-    onTextAlignChange,
-    lineGuideId,
-    sourcePageNumber,
-  } = props;
+  const { fields, values, onChange, lineGuideId, sourcePageNumber } = props;
+  const shared = styleProps(props);
 
   const monthGroups: AlbumPageField[][] = [];
   for (let month = 1; month <= 12; month += 1) {
@@ -150,11 +131,10 @@ export function GrowthWeightForm(props: SpecialFormProps) {
             fields={group}
             values={values}
             onChange={onChange}
-            textAligns={textAligns}
-            onTextAlignChange={onTextAlignChange}
             sectionTitle={label}
             lineGuideId={lineGuideId}
             sourcePageNumber={sourcePageNumber}
+            {...shared}
           />
         );
       })}

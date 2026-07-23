@@ -9,7 +9,7 @@ export type FieldTextAlign = AnnotationTextAlign;
 
 /** Короткие значения на линии макета: дата, время, число, вес/рост, однострочный текст. */
 export function supportsFieldTextAlign(field: AlbumPageField): boolean {
-  if (field.type === 'radio' || field.type === 'checkbox') return false;
+  if (field.type === 'radio') return false;
   if ((field.templateLineCount ?? 1) > 1) return false;
 
   // kids_48: даты на линии макета — как iOS e24a739, без кнопок выравнивания.

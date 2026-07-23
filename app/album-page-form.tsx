@@ -125,7 +125,6 @@ export default function AlbumPageFormScreen() {
             instanceId={instanceId}
             lineGuideId={project.lineGuideId}
             projectId={project.projectId}
-            images={project.images}
             projectActions={projectActions}
             layout={layout}
             getInstanceTitle={project.getInstanceTitle}

@@ -7,14 +7,19 @@ import {
 } from '@/utils/imageContentRect';
 import {
   distributeTextForTemplateAnnotation,
-  getCanonicalAlbumLineFontSize,
   getContinuationGroupSlots,
   getEffectiveTemplateFontSize,
-  getTemplateLineFitSlot,
-  getTemplateLinePdfDrawLayout,
-  truncateTextToSlotWidth,
+  getTemplateBlockTextInsets,
+  resolveBirthQuestionnaireBlockTextAlign,
+  resolvePregnancyWeeklyFieldRowLayout,
+  resolveTemplateLineViewportBaseline,
+  resolveTemplateTextRenderBox,
+  shouldClipPregnancyWeeklyFieldRow,
+  type TextWidthMeasure,
 } from '@/utils/templateLineText';
-import { getLineSlotsForPage, getPregnancyWeeklyFieldStartIndex } from '@/utils/textLineSlots';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
+import { getLineSlotsForPage } from '@/utils/textLineSlots';
 
 type DrawTemplateTextParams = {
   page: PDFPage;
@@ -55,6 +60,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   if (ann.type !== 'text' || !ann.content) return false;
   if (typeof ann.templateLineStart !== 'number') return false;
 
+  const annContent = normalizeAlbumUserText(ann.content);
+
   const editorContentRect = getContentRect(
     pagesViewport.width,
     pagesViewport.height,
@@ -74,24 +81,15 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
   if (slots.length === 0) return false;
 
-  const fitSlots = slots.map((s) => ({
-    ...s,
-    ...getTemplateLineFitSlot(s, lineGuideId),
-  }));
-
   const startSlot = slots[ann.templateLineStart];
   if (!startSlot) return false;
 
-  const effectiveFontSize = getEffectiveTemplateFontSize(
-    lineGuideId,
-    startSlot,
-    getCanonicalAlbumLineFontSize(lineGuideId, ann.fontSize || 16),
-  );
+  const baseFontSize = ann.fontSize || 16;
+  const fontId = ann.fontFamily;
+  /** Те же метрики, что в read-only preview — иначе переносы строк расходятся с PDF. */
+  const measureTextWidth: TextWidthMeasure | undefined = resolveMeasureTextWidth(fontId);
 
   const { startSlotIndex } = getContinuationGroupSlots(slots, ann.templateLineStart);
-  const lineCount = ann.templateLineCount ?? 1;
-  const fieldStartForLayout =
-    lineCount > 1 ? ann.templateLineStart : getPregnancyWeeklyFieldStartIndex(ann.templateLineStart, slots);
 
   const pdfImageRect: ContentRect = {
     offsetX,
@@ -101,44 +99,42 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
   };
 
   const { scaleX, scaleY } = getViewportToPdfScale(editorContentRect, actualImageWidth, actualImageHeight);
-  const textAlign = ann.textAlign ?? 'left';
-  const fontId = ann.fontFamily;
 
-  const drawSegmentAtSlot = (
-    slotIndex: number,
-    content: string,
-    preDistributed = false,
-  ): void => {
+  const drawSegmentAtSlot = (slotIndex: number, content: string): void => {
     const slot = slots[slotIndex];
     if (!slot || !content) return;
 
-    const fitSlot = getTemplateLineFitSlot(slot, lineGuideId);
-
-    const drawLayout = getTemplateLinePdfDrawLayout({
-      slot,
-      fontSize: effectiveFontSize,
+    const segmentFontSize = getEffectiveTemplateFontSize(
       lineGuideId,
-      fontId,
-      allSlots: slots,
-      fieldStartIndex: fieldStartForLayout,
-      textContent: content,
-    });
+      slot,
+      baseFontSize,
+      { textContent: content, fontId },
+    );
+    const scaledFontSize = segmentFontSize * scaleY;
 
-    // Те же оценки ширины, что в превью — pdf-lib метрики иначе вмещают больше символов в строку.
-    const truncated = preDistributed
-      ? content
-      : truncateTextToSlotWidth(
+    const textInsets = getTemplateBlockTextInsets(slot, lineGuideId, slots);
+    const renderBox = shouldClipPregnancyWeeklyFieldRow(slot, lineGuideId, slots)
+      ? resolvePregnancyWeeklyFieldRowLayout(
+          slot,
           content,
-          fitSlot as typeof slot,
-          drawLayout.fontSize,
           lineGuideId,
+          slots,
+          segmentFontSize,
           fontId,
-        );
-    if (!truncated) return;
-
-    const relX = drawLayout.x - editorContentRect.offsetX;
-    const relBaseline = drawLayout.baselineY - editorContentRect.offsetY;
-    const scaledFontSize = drawLayout.fontSize * scaleY;
+          measureTextWidth,
+        )
+      : resolveTemplateTextRenderBox(slot, textInsets);
+    const textAlign =
+      ann.textAlign ?? resolveBirthQuestionnaireBlockTextAlign(slot, lineGuideId);
+    const relX = renderBox.viewLeft + renderBox.textLeft - editorContentRect.offsetX;
+    const viewportBaseline = resolveTemplateLineViewportBaseline({
+      slot,
+      fontSize: segmentFontSize,
+      lineGuideId,
+      allSlots: slots,
+      fontId,
+    });
+    const relBaseline = viewportBaseline - editorContentRect.offsetY;
 
     const scaledX = pdfImageRect.offsetX + relX * scaleX;
     const scaledY =
@@ -146,8 +142,8 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
 
     let drawX = scaledX;
     if (font && textAlign !== 'left') {
-      const textWidth = font.widthOfTextAtSize(truncated, scaledFontSize);
-      const slotWidth = drawLayout.width * scaleX;
+      const textWidth = font.widthOfTextAtSize(content, scaledFontSize);
+      const slotWidth = renderBox.textWidth * scaleX;
       if (textAlign === 'center') {
         drawX = scaledX + (slotWidth - textWidth) / 2;
       } else if (textAlign === 'right') {
@@ -155,7 +151,7 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
       }
     }
 
-    page.drawText(truncated, {
+    page.drawText(content, {
       x: drawX,
       y: scaledY,
       size: scaledFontSize,
@@ -164,25 +160,39 @@ export function drawTemplateTextOnPdfPage(params: DrawTemplateTextParams): boole
     });
   };
 
-  // Legacy split segments: draw only on their slot (not at group head).
-  if (startSlotIndex !== ann.templateLineStart) {
-    drawSegmentAtSlot(ann.templateLineStart, ann.content);
+  // Legacy split segments: single-line fragment on a non-head slot only.
+  const isLegacySplitSegment =
+    (ann.templateLineCount ?? 1) === 1 &&
+    startSlotIndex !== ann.templateLineStart;
+
+  if (isLegacySplitSegment) {
+    drawSegmentAtSlot(ann.templateLineStart, annContent);
     return true;
   }
 
+  // Кегль как при draw — иначе на узких слотах (зубные даты) distribute
+  // режет текст до shrinkFontSizeToFitSlotText.
+  const distributeFontSize = getEffectiveTemplateFontSize(
+    lineGuideId,
+    startSlot,
+    baseFontSize,
+    { textContent: annContent, fontId },
+  );
+
   const { segments } = distributeTextForTemplateAnnotation({
-    text: ann.content,
+    text: annContent,
     startSlotIndex: ann.templateLineStart,
-    slots: fitSlots,
-    fontSize: effectiveFontSize,
+    slots,
+    fontSize: distributeFontSize,
     lineGuideId,
     fontId,
-    lineCount,
+    lineCount: ann.templateLineCount ?? 1,
+    measureTextWidth,
   });
 
   for (const segment of segments) {
     if (!segment.content) continue;
-    drawSegmentAtSlot(segment.slotIndex, segment.content, true);
+    drawSegmentAtSlot(segment.slotIndex, segment.content);
   }
 
   return true;

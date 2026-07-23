@@ -1,4 +1,4 @@
-import { getAlbumFontCharWidthMultiplier } from '@/constants/album-fonts';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
 import type { ContentRect } from '@/utils/imageContentRect';
 import { mapSourceNormToViewport } from '@/utils/imageContentRect';
 import type { TemplateFrame } from '@/utils/photoPageTemplateManifest';
@@ -16,8 +16,25 @@ export function estimateTemplateFontSize(frameHeight: number, viewportHeight: nu
   return Math.max(12, Math.min(22, Math.round(pxHeight * 0.55)));
 }
 
-const TEMPLATE_BLOCK_CHAR_WIDTH_RATIO = 0.62;
+/**
+ * Avg glyph width / fontSize for blank-template wrapping (pdf-lib measured, +~12% slack).
+ * Do not reuse designed-album multipliers — those stay intentionally conservative for line slots.
+ */
+const TEMPLATE_BLOCK_CHAR_WIDTH_BY_FONT: Record<string, number> = {
+  'AmaticSC-Bold': 0.37,
+  'AmaticSC-Regular': 0.36,
+  SvyaznoyRF: 0.63,
+  'Nefelibata-Sans': 0.55,
+  'Nefelibata-PenSans': 0.47,
+};
+const TEMPLATE_BLOCK_CHAR_WIDTH_FALLBACK = 0.55;
 const TEMPLATE_BLOCK_LINE_HEIGHT = 1.15;
+
+/** Char-width ratio for blank template text blocks (preview + export parity). */
+export function getTemplateBlockCharWidthRatio(fontId?: string | null): number {
+  const id = normalizeAlbumFontId(fontId);
+  return TEMPLATE_BLOCK_CHAR_WIDTH_BY_FONT[id] ?? TEMPLATE_BLOCK_CHAR_WIDTH_FALLBACK;
+}
 
 /** Подбирает размер шрифта и строки, чтобы текст поместился в блок шаблона (хронология, подписи). */
 export function fitTextToTemplateBlock(params: {
@@ -27,6 +44,9 @@ export function fitTextToTemplateBlock(params: {
   fontId?: string | null;
   preferredFontSize?: number;
   minFontSize?: number;
+  /** Сначала пытаться уместить в одну строку (крупнее), иначе — до maxLines. */
+  preferSingleLine?: boolean;
+  maxFontSize?: number;
 }): { fontSize: number; lines: string[] } {
   const trimmed = params.text.trim();
   if (!trimmed || params.boxWidth <= 0 || params.boxHeight <= 0) {
@@ -34,12 +54,23 @@ export function fitTextToTemplateBlock(params: {
   }
 
   const minFontSize = params.minFontSize ?? 9;
-  const charWidthRatio =
-    TEMPLATE_BLOCK_CHAR_WIDTH_RATIO * getAlbumFontCharWidthMultiplier(params.fontId) * 1.04;
+  const maxFontSize = params.maxFontSize ?? 28;
+  const charWidthRatio = getTemplateBlockCharWidthRatio(params.fontId);
   const startFont = Math.min(
     params.preferredFontSize ?? Math.max(12, Math.min(22, Math.round(params.boxHeight * 0.55))),
-    22,
+    maxFontSize,
   );
+
+  const wrapOpts = { charWidthRatio, paddingPx: 4 };
+
+  if (params.preferSingleLine) {
+    for (let fontSize = startFont; fontSize >= minFontSize; fontSize -= 1) {
+      const lines = wrapTextToLines(trimmed, params.boxWidth, fontSize, wrapOpts);
+      if (lines.length <= 1) {
+        return { fontSize, lines };
+      }
+    }
+  }
 
   for (let fontSize = startFont; fontSize >= minFontSize; fontSize -= 1) {
     const maxLines = maxLinesForBoxHeight(
@@ -47,7 +78,7 @@ export function fitTextToTemplateBlock(params: {
       fontSize,
       TEMPLATE_BLOCK_LINE_HEIGHT,
     );
-    const lines = wrapTextToLines(trimmed, params.boxWidth, fontSize, { charWidthRatio });
+    const lines = wrapTextToLines(trimmed, params.boxWidth, fontSize, wrapOpts);
     if (lines.length <= maxLines) {
       return { fontSize, lines };
     }
@@ -55,6 +86,6 @@ export function fitTextToTemplateBlock(params: {
 
   const fontSize = minFontSize;
   const maxLines = maxLinesForBoxHeight(params.boxHeight, fontSize, TEMPLATE_BLOCK_LINE_HEIGHT);
-  const lines = wrapTextToLines(trimmed, params.boxWidth, fontSize, { charWidthRatio });
+  const lines = wrapTextToLines(trimmed, params.boxWidth, fontSize, wrapOpts);
   return { fontSize, lines: lines.slice(0, maxLines) };
 }

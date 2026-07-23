@@ -1,12 +1,22 @@
 import type { TextLineSlot } from '@/utils/textLineSlots';
 import {
-  distributeTextWithinFieldLines,
+  distributeTextWithinContinuationGroup,
   getActiveEditSlotIndex,
   getTemplateBlockTextInsets,
-  getTemplateLineReadOnlyTextLayout,
+  getTemplateLineRowInsets,
+  getTemplateLineTextTop,
+  getTemplateLineTypography,
+  getWishSlotInputKind,
+  getSlotTemplateTextAlign,
   mergeActiveLineEdit,
-  resolveTemplateSlotTextAlign,
+  resolvePregnancyWeeklyFieldRowLayout,
+  resolveTemplateLineRowLayout,
+  resolveTemplateLineFontSize,
+  resolveTemplateTextRenderBox,
+  shouldClipPregnancyWeeklyFieldRow,
+  truncateTextToSlotWidth,
 } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -60,22 +70,49 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   const slotsToRender = groupSlots.length > 0 ? groupSlots : [slot];
   const startSlotIndex = slot.index;
 
+  const measureTextWidth = useMemo(
+    () => resolveMeasureTextWidth(fontId),
+    [fontId],
+  );
+
   const { segments, segmentBySlotIndex } = useMemo(() => {
-    const distributed = distributeTextWithinFieldLines({
+    const distributed = distributeTextWithinContinuationGroup({
       text: value,
       startSlotIndex,
-      lineCount: slotsToRender.length,
       slots: allSlots,
       fontSize,
       lineGuideId,
       fontId,
+      slotCount: slotsToRender.length,
+      measureTextWidth,
     });
     const map = new Map<number, string>();
     for (const segment of distributed.segments) {
-      map.set(segment.slotIndex, segment.content);
+      const slotForSegment = allSlots[segment.slotIndex]!;
+      const displayContent =
+        lineGuideId === 'kids_48'
+          ? segment.content
+          : truncateTextToSlotWidth(
+              segment.content,
+              slotForSegment,
+              fontSize,
+              lineGuideId,
+              fontId,
+              measureTextWidth,
+            );
+      map.set(segment.slotIndex, displayContent);
     }
     return { segments: distributed.segments, segmentBySlotIndex: map };
-  }, [allSlots, fontId, fontSize, lineGuideId, startSlotIndex, value]);
+  }, [
+    allSlots,
+    fontId,
+    fontSize,
+    lineGuideId,
+    measureTextWidth,
+    slotsToRender.length,
+    startSlotIndex,
+    value,
+  ]);
 
   const activeInputSlotIndex = useMemo(
     () => getActiveEditSlotIndex(segments, startSlotIndex),
@@ -83,11 +120,6 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   );
 
   const inputValue = segmentBySlotIndex.get(activeInputSlotIndex) ?? '';
-  const effectiveTextAlign: TextAlign = resolveTemplateSlotTextAlign(
-    lineGuideId,
-    slot,
-    textAlign,
-  );
 
   const handleInputChange = useCallback(
     (newText: string) => {
@@ -101,10 +133,21 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
           fontSize,
           lineGuideId,
           fontId,
+          slotCount: slotsToRender.length,
         })
       );
     },
-    [activeInputSlotIndex, allSlots, fontId, fontSize, lineGuideId, onChangeText, startSlotIndex, value]
+    [
+      activeInputSlotIndex,
+      allSlots,
+      fontId,
+      fontSize,
+      lineGuideId,
+      onChangeText,
+      slotsToRender.length,
+      startSlotIndex,
+      value,
+    ]
   );
 
   useEffect(() => {
@@ -117,18 +160,66 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
   return (
     <>
       {slotsToRender.map((lineSlot) => {
+        const textTop = getTemplateLineTextTop(
+          lineSlot,
+          fontSize,
+          lineGuideId,
+          allSlots,
+          undefined,
+          fontId,
+        );
+        const lineTypography = getTemplateLineTypography(
+          fontSize,
+          lineSlot.lineHeight,
+          getWishSlotInputKind(lineSlot, lineGuideId),
+          lineGuideId
+        );
         const lineText = segmentBySlotIndex.get(lineSlot.index) ?? '';
-        const readOnlyLayout = getTemplateLineReadOnlyTextLayout({
-          slot: lineSlot,
+        const isInputSlot = lineSlot.index === activeInputSlotIndex;
+        const wishInputKind = getWishSlotInputKind(lineSlot, lineGuideId);
+        const rowFontSize = resolveTemplateLineFontSize(
+          lineText,
+          lineSlot,
           fontSize,
           lineGuideId,
           fontId,
+        );
+        const rowLineHeight =
+          lineTypography.lineHeight * (rowFontSize / lineTypography.fontSize);
+        const rowTextAlign = getSlotTemplateTextAlign(lineSlot, lineGuideId, textAlign);
+        const { viewportTopInset, textTopInset } = getTemplateLineRowInsets(
+          lineSlot,
+          rowFontSize,
+          wishInputKind,
+          lineGuideId
+        );
+        const usesWeeklyFieldLayout = shouldClipPregnancyWeeklyFieldRow(
+          lineSlot,
+          lineGuideId,
           allSlots,
-          fieldStartIndex: startSlotIndex,
-          textContent: lineText,
-        });
-        const isInputSlot = lineSlot.index === activeInputSlotIndex;
-        const textInsets = getTemplateBlockTextInsets(lineSlot, lineGuideId);
+        );
+        const rowLayout = usesWeeklyFieldLayout
+          ? resolveTemplateLineRowLayout({
+              lineSlot,
+              fontSize: rowFontSize,
+              lineGuideId,
+              lineSlots: allSlots,
+              fieldStartIndex: startSlotIndex,
+              fontId,
+            })
+          : null;
+        const textInsets = getTemplateBlockTextInsets(lineSlot, lineGuideId, allSlots);
+        const renderBox = usesWeeklyFieldLayout
+          ? resolvePregnancyWeeklyFieldRowLayout(
+              lineSlot,
+              lineText,
+              lineGuideId,
+              allSlots,
+              rowFontSize,
+              fontId,
+              measureTextWidth,
+            )
+          : resolveTemplateTextRenderBox(lineSlot, textInsets);
 
         return (
           <View
@@ -136,11 +227,10 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
             style={[
               styles.host,
               {
-                left: lineSlot.x,
-                top: readOnlyLayout.containerTop,
-                width: lineSlot.width,
-                height: readOnlyLayout.containerHeight,
-                overflow: readOnlyLayout.overflow,
+                left: renderBox.viewLeft,
+                top: rowLayout?.rowViewTop ?? textTop - viewportTopInset,
+                width: renderBox.viewWidth,
+                height: rowLayout?.rowViewHeight ?? lineTypography.inputHeight + viewportTopInset,
               },
             ]}
             pointerEvents={isInputSlot ? 'box-none' : 'none'}
@@ -153,22 +243,14 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.input,
                   {
                     color,
-                    fontSize: readOnlyLayout.fontSize,
+                    fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: readOnlyLayout.textLineHeight,
-                    height: Math.min(
-                      readOnlyLayout.containerHeight,
-                      Math.max(
-                        readOnlyLayout.textLineHeight,
-                        readOnlyLayout.containerHeight - readOnlyLayout.textTop,
-                      ),
-                    ),
-                    top: readOnlyLayout.textTop,
-                    left: textInsets.left,
-                    width: textInsets.width,
-                    textAlign: effectiveTextAlign,
-                    includeFontPadding: false,
-                    textAlignVertical: 'top',
+                    lineHeight: rowLineHeight,
+                    height: rowLayout?.lineHeight ?? rowLineHeight,
+                    top: rowLayout?.rowTextTop ?? textTopInset,
+                    left: renderBox.textLeft,
+                    width: renderBox.textWidth,
+                    textAlign: rowTextAlign,
                   },
                 ]}
                 value={inputValue}
@@ -181,14 +263,14 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 scrollEnabled={false}
                 autoFocus={autoFocus}
                 autoCorrect={false}
-                allowFontScaling={false}
-                maxFontSizeMultiplier={1}
+                autoCapitalize={lineSlot.hasLabel ? 'sentences' : 'none'}
                 placeholder=""
                 selectionColor={color}
                 underlineColorAndroid="transparent"
                 selectTextOnFocus={false}
                 caretHidden={false}
                 {...(Platform.OS === 'ios' ? { paddingTop: 0, paddingBottom: 0 } : {})}
+                {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
               />
             ) : (
               <Text
@@ -196,19 +278,17 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                   styles.lineText,
                   {
                     color,
-                    fontSize: readOnlyLayout.fontSize,
+                    fontSize: rowFontSize,
                     fontFamily: fontFamilyStyle,
-                    lineHeight: readOnlyLayout.textLineHeight,
-                    top: readOnlyLayout.textTop,
-                    left: textInsets.left,
-                    width: textInsets.width,
-                    textAlign: effectiveTextAlign,
+                    lineHeight: rowLineHeight,
+                    top: rowLayout?.rowTextTop ?? textTopInset,
+                    left: renderBox.textLeft,
+                    width: renderBox.textWidth,
+                    textAlign: rowTextAlign,
                   },
                 ]}
                 numberOfLines={1}
                 ellipsizeMode="clip"
-                allowFontScaling={false}
-                maxFontSizeMultiplier={1}
               >
                 {lineText}
               </Text>
@@ -224,6 +304,7 @@ const styles = StyleSheet.create({
   host: {
     position: 'absolute',
     zIndex: 100000,
+    overflow: 'visible',
   },
   lineText: {
     position: 'absolute',
@@ -244,6 +325,5 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     textAlign: 'left',
     textAlignVertical: 'top',
-    includeFontPadding: false,
   },
 });

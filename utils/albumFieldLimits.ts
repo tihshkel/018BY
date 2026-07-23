@@ -1,19 +1,43 @@
 import { getTemplateTypographyProfile } from '@/constants/album-text-margins';
-import type { AlbumPageField } from '@/types/album-page-schema';
+import { normalizeAlbumFontId } from '@/constants/album-fonts';
+import type { AlbumPageField, AlbumPageSchema, PageValues } from '@/types/album-page-schema';
 import {
   getMeasurementDigitLimit,
-  isWeightMeasurementField,
+  isKids48GrowthPageMeasurementField,
+  sanitizeKids48GrowthMeasurementInput,
   sanitizeMeasurementInput,
 } from '@/utils/albumMeasurementFields';
 import {
   getFieldMaxLength,
   sanitizeFieldInput,
 } from '@/utils/albumFieldInput';
-import { getLineSlotsForPage } from '@/utils/textLineSlots';
+import { getDefaultPageAspectRatio } from '@/utils/exportViewport';
+import { getLineSlotsForPage, resolveWeeklyFieldLineSlots } from '@/utils/textLineSlots';
 import { clampTextToFieldLines } from '@/utils/templateLineText';
+import { resolveMeasureTextWidth } from '@/utils/templateTextMeasure';
+import { usesTemplateLineTextEditing } from '@/utils/albumImages';
+import { EDITOR_PAGE_VIEWPORT_WIDTH } from '@/utils/responsive';
 
-const DEFAULT_VIEWPORT = { width: 390, height: 844 };
-const FIELD_LIMIT_PROBE = 'n'.repeat(500);
+/**
+ * Эталон лимитов = coordinate space редактора/экспорта (~390×aspect).
+ * Шрифт designed-альбомов фиксирован (~16pt), поэтому считать ёмкость на 2480×2480
+ * завышает лимит в ~6 раз относительно превью и PDF.
+ */
+export function getFieldLimitReferenceViewport(lineGuideId?: string): {
+  width: number;
+  height: number;
+} {
+  const width = EDITOR_PAGE_VIEWPORT_WIDTH;
+  const aspect = getDefaultPageAspectRatio({ lineGuideId });
+  return { width, height: Math.round(width * aspect) };
+}
+
+/** @deprecated Prefer getFieldLimitReferenceViewport(lineGuideId). */
+export const FIELD_LIMIT_REFERENCE_VIEWPORT = getFieldLimitReferenceViewport();
+
+/** Проза с пробелами — ближе к реальному вводу, чем сплошные ЗАГЛАВНЫЕ. */
+const FIELD_LIMIT_PROBE_CYRILLIC =
+  'Много отдыхать и радоваться жизни хочу купить арбуз и устроить пикник на выходных. '.repeat(20);
 
 type FieldLimitParams = {
   field: AlbumPageField;
@@ -21,21 +45,35 @@ type FieldLimitParams = {
   sourcePageNumber: number;
   viewportWidth?: number;
   viewportHeight?: number;
+  fontId?: string | null;
+  fontSize?: number | null;
 };
 
-type FieldClampLayoutParams = {
-  lineGuideId: string;
-  sourcePageNumber: number;
-  viewportWidth?: number;
-  viewportHeight?: number;
-};
+function resolveLayoutFontSize(lineGuideId: string, requested?: number | null): number {
+  const profile = getTemplateTypographyProfile(lineGuideId);
+  const base = profile.fixedLineFontSize ?? 16;
+  if (requested == null) return base;
+  // Дневник: лимит символов должен следовать выбранному A+/A−.
+  if (
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  ) {
+    return Math.min(Math.max(requested, 10), 28);
+  }
+  if (profile.fixedLineFontSize != null) {
+    return Math.min(requested, profile.fixedLineFontSize);
+  }
+  return requested;
+}
 
 function computeLayoutCharacterLimit(
   field: AlbumPageField,
   lineGuideId: string,
   sourcePageNumber: number,
   viewportWidth: number,
-  viewportHeight: number
+  viewportHeight: number,
+  fontId?: string | null,
+  fontSize?: number | null,
 ): number | undefined {
   const slots = getLineSlotsForPage({
     lineGuideId,
@@ -44,26 +82,76 @@ function computeLayoutCharacterLimit(
     viewportHeight,
   });
 
-  const fieldSlots = slots.slice(
+  const fieldSlots = resolveWeeklyFieldLineSlots(
+    slots,
     field.templateLineStart,
-    field.templateLineStart + field.templateLineCount
+    field.templateLineCount ?? 1,
+    lineGuideId,
   );
 
   if (fieldSlots.length === 0) return undefined;
 
   const profile = getTemplateTypographyProfile(lineGuideId);
-  const fontSize = profile.fixedLineFontSize ?? 16;
-
+  const resolvedFontSize = resolveLayoutFontSize(lineGuideId, fontSize);
+  const normalizedFontId = normalizeAlbumFontId(fontId);
+  const measureTextWidth = resolveMeasureTextWidth(normalizedFontId);
   const clamped = clampTextToFieldLines({
-    text: FIELD_LIMIT_PROBE,
+    text: FIELD_LIMIT_PROBE_CYRILLIC,
     startSlotIndex: field.templateLineStart,
-    lineCount: field.templateLineCount,
+    lineCount: field.templateLineCount ?? 1,
     slots,
-    fontSize,
+    fontSize: resolvedFontSize,
     lineGuideId,
+    fontId: normalizedFontId,
+    measureTextWidth,
   });
 
-  return clamped.length;
+  // Небольшой запас: пробельный ввод вмещает чуть больше, чем средний probe.
+  return Math.ceil(clamped.length * 1.1);
+}
+
+type LayoutClampParams = {
+  field: AlbumPageField;
+  text: string;
+  lineGuideId: string;
+  sourcePageNumber: number;
+  fontId?: string | null;
+  fontSize?: number | null;
+};
+
+/** Обрезает ввод по реальной вместимости line-slots (с учётом шрифта и weekly inline-tail). */
+export function clampFieldInputToLineLayout(params: LayoutClampParams): string {
+  const { field, text, lineGuideId, sourcePageNumber, fontId, fontSize } = params;
+  if (field.type !== 'text' || !usesTemplateLineTextEditing(lineGuideId)) {
+    return sanitizeFieldInput(field.type, text);
+  }
+
+  const sanitized = sanitizeFieldInput(field.type, text);
+  if (!sanitized) return sanitized;
+
+  const referenceViewport = getFieldLimitReferenceViewport(lineGuideId);
+  const slots = getLineSlotsForPage({
+    lineGuideId,
+    page: sourcePageNumber,
+    viewportWidth: referenceViewport.width,
+    viewportHeight: referenceViewport.height,
+  });
+  if (slots.length === 0) return sanitized;
+
+  const resolvedFontSize = resolveLayoutFontSize(lineGuideId, fontSize);
+  const normalizedFontId = normalizeAlbumFontId(fontId);
+  const lineCount = field.templateLineCount ?? 1;
+
+  return clampTextToFieldLines({
+    text: sanitized,
+    startSlotIndex: field.templateLineStart,
+    lineCount,
+    slots,
+    fontSize: resolvedFontSize,
+    lineGuideId,
+    fontId: normalizedFontId,
+    measureTextWidth: resolveMeasureTextWidth(normalizedFontId),
+  });
 }
 
 function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
@@ -88,69 +176,14 @@ function getBirthdayFieldLimit(params: FieldLimitParams): number | undefined {
   return undefined;
 }
 
-/** Семейное дерево (kids_48, стр. 5): имена под кругами — до 7 символов. */
-export const FAMILY_TREE_NAME_MAX_LENGTH = 7;
-
-function getFamilyTreeFieldLimit(params: FieldLimitParams): number | undefined {
-  if (params.lineGuideId !== 'kids_48' || params.sourcePageNumber !== 5) {
-    return undefined;
-  }
-  if (params.field.type !== 'text') {
-    return undefined;
-  }
-  return FAMILY_TREE_NAME_MAX_LENGTH;
-}
-
-/** Постановка на учёт: телефон — одна строка на макете, длинный ввод не помещается. */
-function getPregnancyFieldLimit(params: FieldLimitParams): number | undefined {
-  if (params.lineGuideId !== 'pregnancy_60' || params.sourcePageNumber !== 4) {
-    return undefined;
-  }
-
-  if (params.field.fieldId === 'pregnancy_60_p4_phone') {
-    return 25;
-  }
-
-  if (params.field.fieldId === 'pregnancy_60_p4_wellbeing') {
-    return 70;
-  }
-
-  return undefined;
-}
-
-/** «Кем я хочу стать» (коричневый дневник, стр. 6) — две строки ответа. */
-export const DIARY_BROWN_CAREER_WISH_MAX_LENGTH = 54;
-
-/** «Самое сокровенное» на странице «Мечты». */
-export const DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH = 10;
-
-function getDiaryFieldLimit(params: FieldLimitParams): number | undefined {
-  if (
-    (params.lineGuideId === 'diary_interior_brown' &&
-      params.field.fieldId === 'diary_interior_brown_p6_careerWish') ||
-    (params.lineGuideId === 'diary_interior_purple' &&
-      params.field.fieldId === 'diary_interior_purple_p5_careerWish')
-  ) {
-    return DIARY_BROWN_CAREER_WISH_MAX_LENGTH;
-  }
-
-  if (
-    params.lineGuideId === 'diary_interior_brown' &&
-    params.field.fieldId.endsWith('_secretMost')
-  ) {
-    return DIARY_BROWN_DREAMS_SECRET_MAX_LENGTH;
-  }
-
-  return undefined;
-}
-
 export function getFieldCharacterLimit(params: FieldLimitParams): number | undefined {
+  if (isKids48GrowthPageMeasurementField(params.field)) {
+    // «12,50» / «52,5»
+    return 5;
+  }
+
   const measurementLimit = getMeasurementDigitLimit(params.field);
   if (measurementLimit != null) {
-    // Вес: 4 цифры + одна запятая → до 5 символов ввода.
-    if (isWeightMeasurementField(params.field)) {
-      return measurementLimit + 1;
-    }
     return measurementLimit;
   }
 
@@ -159,36 +192,34 @@ export function getFieldCharacterLimit(params: FieldLimitParams): number | undef
     return birthdayLimit;
   }
 
-  const pregnancyLimit = getPregnancyFieldLimit(params);
-  if (pregnancyLimit != null) {
-    return pregnancyLimit;
-  }
-
-  const diaryLimit = getDiaryFieldLimit(params);
-  if (diaryLimit != null) {
-    return diaryLimit;
-  }
-
-  const familyTreeLimit = getFamilyTreeFieldLimit(params);
-  if (familyTreeLimit != null) {
-    return familyTreeLimit;
-  }
-
   const typeLimit = getFieldMaxLength(params.field.type);
-  // Дата и время имеют фиксированный формат (ДД.ММ.ГГГГ / ЧЧ:ММ), не зависят от ширины слота.
   if (params.field.type === 'date' || params.field.type === 'time') {
     return typeLimit;
   }
 
-  const viewportWidth = params.viewportWidth ?? DEFAULT_VIEWPORT.width;
-  const viewportHeight = params.viewportHeight ?? DEFAULT_VIEWPORT.height;
+  const referenceViewport = getFieldLimitReferenceViewport(params.lineGuideId);
+  const viewportWidth = params.viewportWidth ?? referenceViewport.width;
+  const viewportHeight = params.viewportHeight ?? referenceViewport.height;
   const layoutLimit = computeLayoutCharacterLimit(
     params.field,
     params.lineGuideId,
     params.sourcePageNumber,
     viewportWidth,
-    viewportHeight
+    viewportHeight,
+    params.fontId,
+    params.fontSize,
   );
+
+  if (params.lineGuideId === 'kids_48' && params.field.type === 'text') {
+    // p5 семейное дерево: всегда учитываем узкую полосу у круга.
+    const limits = [
+      params.field.maxLength,
+      typeLimit,
+      ...(params.sourcePageNumber === 5 ? [layoutLimit] : []),
+    ].filter((limit): limit is number => limit != null);
+    if (limits.length === 0) return layoutLimit;
+    return Math.min(...limits);
+  }
 
   const limits = [params.field.maxLength, typeLimit, layoutLimit].filter(
     (limit): limit is number => limit != null,
@@ -201,52 +232,70 @@ export function clampFieldInput(
   field: AlbumPageField,
   text: string,
   limit?: number,
-  layout?: FieldClampLayoutParams,
+  layoutClamp?: Omit<LayoutClampParams, 'field' | 'text'>,
 ): string {
+  if (isKids48GrowthPageMeasurementField(field)) {
+    return sanitizeKids48GrowthMeasurementInput(field, text);
+  }
+
   const measurementLimit = getMeasurementDigitLimit(field);
   if (measurementLimit != null) {
-    const allowDecimal = isWeightMeasurementField(field);
-    return sanitizeMeasurementInput(text, measurementLimit, allowDecimal);
+    const effectiveLimit = limit ?? measurementLimit;
+    return sanitizeMeasurementInput(text, Math.min(measurementLimit, effectiveLimit));
+  }
+
+  if (layoutClamp && field.type === 'text') {
+    return clampFieldInputToLineLayout({
+      field,
+      text,
+      ...layoutClamp,
+    });
   }
 
   const sanitized = sanitizeFieldInput(field.type, text);
-  let result = limit == null ? sanitized : sanitized.slice(0, limit);
-
-  if (field.templateLineCount > 1) {
-    result = result.replace(/\r?\n/g, ' ');
-  }
-
-  if (
-    layout &&
-    field.templateLineCount > 1 &&
-    result.length > 0
-  ) {
-    const viewportWidth = layout.viewportWidth ?? DEFAULT_VIEWPORT.width;
-    const viewportHeight = layout.viewportHeight ?? DEFAULT_VIEWPORT.height;
-    const slots = getLineSlotsForPage({
-      lineGuideId: layout.lineGuideId,
-      page: layout.sourcePageNumber,
-      viewportWidth,
-      viewportHeight,
-    });
-
-    if (slots.length > 0) {
-      const profile = getTemplateTypographyProfile(layout.lineGuideId);
-      const fontSize = profile.fixedLineFontSize ?? 16;
-      result = clampTextToFieldLines({
-        text: result,
-        startSlotIndex: field.templateLineStart,
-        lineCount: field.templateLineCount,
-        slots,
-        fontSize,
-        lineGuideId: layout.lineGuideId,
-      });
-    }
-  }
-
-  return result;
+  if (limit == null) return sanitized;
+  return sanitized.slice(0, limit);
 }
 
 export function countFieldCharacters(value: string): number {
   return value.length;
+}
+
+/** Пересчитывает многострочные поля при смене шрифта (превью / форма). */
+export function clampPageFieldValuesForLayoutFont(params: {
+  schema: AlbumPageSchema;
+  values: PageValues;
+  lineGuideId: string;
+  fontId?: string | null;
+}): PageValues {
+  const { schema, values, lineGuideId } = params;
+  if (!usesTemplateLineTextEditing(lineGuideId)) {
+    return values;
+  }
+
+  const normalizedFontId = normalizeAlbumFontId(params.fontId ?? values.textFontFamily);
+  let changed = false;
+  const nextFields = { ...values.fields };
+
+  for (const field of schema.fields ?? []) {
+    if (field.type !== 'text') continue;
+
+    const raw = nextFields[field.fieldId] ?? '';
+    if (!raw) continue;
+
+    const clamped = clampFieldInput(field, raw, undefined, {
+      lineGuideId,
+      sourcePageNumber: schema.sourcePageNumber,
+      fontId: normalizedFontId,
+      fontSize: values.fieldTextStyles?.[field.fieldId]?.fontSize,
+    });
+
+    if (clamped !== raw) {
+      nextFields[field.fieldId] = clamped;
+      changed = true;
+    }
+  }
+
+  if (!changed) return values;
+  return { ...values, fields: nextFields };
 }

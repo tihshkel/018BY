@@ -18,8 +18,10 @@ export function getBranchFillColor(branch?: NormalizedPhotoSlot['branch']): stri
 export function mapCircleSlotToViewport(
   slot: Pick<NormalizedPhotoSlot, 'x' | 'y' | 'width' | 'height'>,
   contentRect: ContentRect,
+  options?: { diameterBleed?: number },
 ): { x: number; y: number; width: number; height: number } {
-  const diameter = Math.max(slot.width, slot.height);
+  const bleed = options?.diameterBleed ?? 1;
+  const diameter = Math.max(slot.width, slot.height) * bleed;
   const size = diameter * contentRect.width;
   const centerX = contentRect.offsetX + slot.x * contentRect.width;
   const centerY = contentRect.offsetY + slot.y * contentRect.height;
@@ -71,4 +73,16 @@ export function buildContentRect(
     sourceWidth ?? viewportWidth,
     sourceHeight ?? viewportHeight,
   );
+}
+
+const DEFAULT_RECT_FILL_CORNER_RADIUS_RATIO = 0.22;
+
+/** Pixel corner radius for rect option fills (checkboxes, radio boxes). */
+export function resolveRectFillBorderRadius(
+  width: number,
+  height: number,
+  cornerRadiusRatio?: number,
+): number {
+  const ratio = cornerRadiusRatio ?? DEFAULT_RECT_FILL_CORNER_RADIUS_RATIO;
+  return Math.min(width, height) * ratio;
 }

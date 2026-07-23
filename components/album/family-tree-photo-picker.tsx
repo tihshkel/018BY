@@ -1,13 +1,12 @@
 import React, { useMemo } from 'react';
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
-
-import { AlbumPhotoImage } from '@/components/album/album-photo-image';
 
 import { AppText } from '@/components/ui';
 import { colors, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoBlockSchema } from '@/types/album-page-schema';
 import { getBranchFillColor } from '@/utils/circleSlotColors';
-import { getFamilyTreeSlots, refineFamilyTreeSlotForPicker } from '@/utils/familyTreeSlots';
+import { getFamilyTreeSlots } from '@/utils/familyTreeSlots';
 
 type FamilyTreePhotoPickerProps = {
   block: PhotoBlockSchema;
@@ -29,10 +28,7 @@ export function FamilyTreePhotoPicker({
   embedded = false,
 }: FamilyTreePhotoPickerProps) {
   const treeSlots = useMemo(
-    () =>
-      getFamilyTreeSlots(lineGuideId, sourcePageNumber).map((slot) =>
-        refineFamilyTreeSlotForPicker(lineGuideId, sourcePageNumber, slot),
-      ),
+    () => getFamilyTreeSlots(lineGuideId, sourcePageNumber),
     [lineGuideId, sourcePageNumber],
   );
 
@@ -77,7 +73,7 @@ export function FamilyTreePhotoPicker({
               accessibilityLabel={slot.label}
             >
               {uri ? (
-                <AlbumPhotoImage uri={uri} style={styles.slotImage} />
+                <Image source={{ uri }} style={styles.slotImage} contentFit="cover" />
               ) : (
                 <AppText variant="caption" style={styles.slotPlaceholder}>
                   +

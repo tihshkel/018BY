@@ -3,7 +3,7 @@ import {
   KIDS_MONTH_LINE_BAND_HEIGHT,
 } from '@/constants/album-text-margins';
 
-/** Ручная разметка на assets/debug/kids-48-date-lines/page_*_300dpi.png (2481×2481). iOS e24a739. */
+/** Ручная разметка на assets/debug/kids-48-date-lines/page_*_300dpi.png (2481×2481). */
 const REF = KIDS_48_EVENT_DATE_LINE_REF_PX;
 
 /** kids_48 p8 «Первый день дома» — штрих «ДАТА» (px: x=1031, y=2223). */
@@ -41,13 +41,4 @@ export function getKids48EventDateLineNorm(
   if (page === 8 && slotIndex === 0) return KIDS_48_P8_EVENT_DATE_LINE;
   if (page === 9 && slotIndex === 0) return KIDS_48_P9_EVENT_DATE_LINE;
   return null;
-}
-
-export function isKids48EventDateLineSlot(
-  lineGuideId: string,
-  page: number,
-  slotIndex: number,
-): boolean {
-  if (lineGuideId !== 'kids_48') return false;
-  return (page === 8 && slotIndex === 0) || (page === 9 && slotIndex === 0);
 }

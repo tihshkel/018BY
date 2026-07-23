@@ -88,6 +88,19 @@ export function getTemplateLayout(
   return manifest.templates[resolved]?.[format];
 }
 
+/** Подписи под фото: perPhotoCaptions или legacy SinglePhoto с caption-блоком. */
+export function isTemplateCaptionEditable(
+  templateId: string,
+  layout?: TemplateLayoutDef | null,
+): boolean {
+  if (layout?.perPhotoCaptions) return true;
+  const resolved = resolvePhotoPageTemplateId(templateId);
+  if (resolved === 'SinglePhotoTemplate') {
+    return Boolean(layout?.textBlocks?.some((block) => block.type === 'caption'));
+  }
+  return Boolean(layout?.textBlocks?.some((block) => block.type === 'caption'));
+}
+
 export function getPageFormatForLineGuide(lineGuideId: string): PageFormat {
   if (lineGuideId === 'family_blank_21x21' || lineGuideId === 'holidays_birthday_60') {
     return '21x21';
@@ -104,14 +117,27 @@ export function isBlankTemplateLineGuide(lineGuideId: string): boolean {
   );
 }
 
-export function listTemplatesForFormat(format: PageFormat): Array<{
+/** Семья / свадьба (family_blank*): без «Свободная страница». Праздники — оставляем. */
+export function isFreePageTemplateHiddenForLineGuide(lineGuideId?: string | null): boolean {
+  return lineGuideId === 'family_blank' || lineGuideId === 'family_blank_21x21';
+}
+
+export function listTemplatesForFormat(
+  format: PageFormat,
+  options?: { lineGuideId?: string | null },
+): Array<{
   id: PhotoPageTemplateId;
   title: string;
   description: string;
   maxPhotos: number;
   layout: TemplateLayoutDef;
 }> {
-  return PHOTO_PAGE_TEMPLATE_IDS.filter((id) => manifest.templates[id]?.[format]).map((id) => ({
+  const hideFreePage = isFreePageTemplateHiddenForLineGuide(options?.lineGuideId);
+  return PHOTO_PAGE_TEMPLATE_IDS.filter((id) => {
+    if (!manifest.templates[id]?.[format]) return false;
+    if (hideFreePage && id === 'FreePageTemplate') return false;
+    return true;
+  }).map((id) => ({
     id,
     title: manifest.meta[id].title,
     description: manifest.meta[id].description,

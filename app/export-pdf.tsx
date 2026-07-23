@@ -17,14 +17,20 @@ import {
   getAlbumPageCount,
   getAlbumImageUris,
   getBlankInteriorPageUri,
+  BLANK_INTERIOR_PAGE_HEIGHT,
+  BLANK_INTERIOR_PAGE_WIDTH,
+  BLANK_SQUARE_PAGE_HEIGHT,
+  BLANK_SQUARE_PAGE_WIDTH,
   resolveLineGuideId,
 } from '@/utils/albumImages';
 import { drawTemplateTextOnPdfPage } from '@/utils/exportTemplateText';
+import { normalizeAlbumUserText } from '@/utils/normalizeAlbumUserText';
 import { normalizePhotoOrientation } from '@/utils/normalizePhotoOrientation';
 import {
   flushAlbumProjectPersist,
   hasPendingAlbumProjectPersist,
 } from '@/utils/albumProjectPersist';
+import { getAlbumProjectSnapshot } from '@/utils/albumProjectStateSync';
 import {
   getExportFormatOptions,
   type ExportFormatType,
@@ -39,9 +45,12 @@ import {
   type ExportPageBundle,
 } from '@/utils/exportPageSelection';
 import { resolveProjectViewportForExport, resolveEditorCoordinateViewport } from '@/utils/exportViewport';
+import { ensureProjectAnnotationsSynced } from '@/utils/ensureProjectAnnotationsSynced';
 import type { AlbumPageSchema, PageInstance } from '@/types/album-page-schema';
 import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
-import { loadPageInstances, loadPageValuesMapMerged } from '@/utils/pageStorage';
+import { migrateAlbumPhotosMap } from '@/utils/migrateBlankAlbumPhotos';
+import { loadPageInstances, loadPageValuesMapMerged, savePageValuesMap } from '@/utils/pageStorage';
+import { sanitizePageValuesMapPhotos } from '@/utils/persistAlbumPhoto';
 import {
   getContentRect,
   mapViewportAnnotationToPdf,
@@ -81,7 +90,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import { PDFDocument, cmyk, rgb, clip, endPath, popGraphicsState, pushGraphicsState, rectangle, type Color, type PDFPage, type PDFFont } from 'pdf-lib';
+import { PDFDocument, cmyk, rgb, clip, endPath, popGraphicsState, pushGraphicsState, rectangle, type Color, type PDFImage, type PDFPage, type PDFFont } from 'pdf-lib';
 
 function hexToColor(hex: string, useCmyk: boolean) {
   const r = parseInt(hex.substring(1, 3), 16) / 255;
@@ -91,6 +100,33 @@ function hexToColor(hex: string, useCmyk: boolean) {
   const k = 1 - Math.max(r, g, b);
   if (k >= 1) return cmyk(0, 0, 0, 1);
   return cmyk((1 - r - k) / (1 - k), (1 - g - k) / (1 - k), (1 - b - k) / (1 - k), k);
+}
+
+function drawExportCoverFullBleed(
+  page: PDFPage,
+  embeddedImage: PDFImage,
+  pageWidth: number,
+  pageHeight: number,
+): { x: number; y: number; width: number; height: number } {
+  page.drawImage(embeddedImage, {
+    x: 0,
+    y: 0,
+    width: pageWidth,
+    height: pageHeight,
+  });
+  return { x: 0, y: 0, width: pageWidth, height: pageHeight };
+}
+
+function getPrintRasterMaxSide(
+  kind: 'page' | 'cover',
+  pageWidth: number,
+  pageHeight: number,
+  contentWidth: number,
+  contentHeight: number,
+): number {
+  const width = kind === 'cover' ? pageWidth : contentWidth;
+  const height = kind === 'cover' ? pageHeight : contentHeight;
+  return Math.ceil((Math.max(width, height) * 300) / 72);
 }
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -174,7 +210,7 @@ function drawTextAnnotationOnPdfPage(params: {
     sourceHeight
   );
 
-  const text = ann.content ?? '';
+  const text = normalizeAlbumUserText(ann.content ?? '');
   if (!text.trim()) return;
 
   const mapped = mapViewportAnnotationToPdf({
@@ -248,6 +284,7 @@ async function resolveExportPageSourceSize(
   optimizedPageUri: string,
   bundle?: ExportPageBundle,
   fallback?: { width: number; height: number },
+  lineGuideId?: string | null,
 ): Promise<{ width: number; height: number }> {
   if (bundle?.sourceSize?.width && bundle?.sourceSize?.height) {
     return bundle.sourceSize;
@@ -258,6 +295,17 @@ async function resolveExportPageSourceSize(
   const resolved = await resolvePageSourceSize(imageUri);
   if (resolved) return resolved;
   if (fallback) return fallback;
+  if (
+    lineGuideId === 'pregnancy_60' ||
+    lineGuideId === 'pregnancy_a5' ||
+    lineGuideId === 'diary_interior_brown' ||
+    lineGuideId === 'diary_interior_purple'
+  ) {
+    return { width: BLANK_INTERIOR_PAGE_WIDTH, height: BLANK_INTERIOR_PAGE_HEIGHT };
+  }
+  if (lineGuideId === 'kids_48' || lineGuideId === 'family_blank_21x21') {
+    return { width: BLANK_SQUARE_PAGE_WIDTH, height: BLANK_SQUARE_PAGE_HEIGHT };
+  }
   return { width: 2480, height: 3508 };
 }
 
@@ -709,41 +757,114 @@ export default function ExportPdfScreen() {
             (k) => AsyncStorage.getItem(k),
             projectId,
           );
-          const pageValuesMap = await loadPageValuesMapMerged(
+          const memorySnapshot = getAlbumProjectSnapshot(projectId);
+          const resolvedInstances =
+            memorySnapshot?.instances?.length ? memorySnapshot.instances : instances;
+          if (memorySnapshot?.images?.length) {
+            images = memorySnapshot.images;
+          }
+          const asyncPageValuesMap = await loadPageValuesMapMerged(
             (k) => AsyncStorage.getItem(k),
             projectId,
-            instances.map((item) => item.instanceId),
+            resolvedInstances.map((item) => item.instanceId),
           );
+          let pageValuesMap = {
+            ...asyncPageValuesMap,
+            ...(memorySnapshot?.pageValuesMap ?? {}),
+          };
+
+          const migratedPhotos = await migrateAlbumPhotosMap(
+            projectId,
+            resolvedInstances,
+            pageValuesMap,
+            lineGuideId,
+          );
+          if (migratedPhotos.changed) {
+            pageValuesMap = migratedPhotos.pageValuesMap;
+          }
+
+          const sanitizedPhotos = await sanitizePageValuesMapPhotos(projectId, pageValuesMap);
+          if (sanitizedPhotos.changed || migratedPhotos.changed) {
+            pageValuesMap = sanitizedPhotos.pageValuesMap;
+            await savePageValuesMap(
+              (k, v) => AsyncStorage.setItem(k, v),
+              projectId,
+              pageValuesMap,
+            );
+          }
 
           const getSchema = (instance: PageInstance) =>
             getSchemaForInstance(instance, lineGuideId);
 
+          const exportSelectionFormat =
+            formatToUse.type === 'electronic' ? 'electronic' : 'print';
+          const validInstanceIds = new Set(
+            resolvedInstances.map((instance) => instance.instanceId),
+          );
           let includedIds: string[];
           const selectionRaw = await AsyncStorage.getItem(
             getExportSelectionStorageKey(projectId),
           );
           if (selectionRaw) {
-            const storedIds = JSON.parse(selectionRaw) as string[];
-            includedIds = mergeStaticPagesIntoExportSelection({
-              instances,
-              includedInstanceIds: storedIds,
-              getSchema,
-            });
+            try {
+              const storedIds = JSON.parse(selectionRaw) as string[];
+              includedIds = storedIds.filter((id) => validInstanceIds.has(id));
+            } catch {
+              includedIds = [];
+            }
           } else {
+            includedIds = [];
+          }
+          if (includedIds.length === 0) {
             includedIds = buildExportSelection({
-              instances,
+              instances: resolvedInstances,
               pageValuesMap,
               getSchema,
               getTitle: (instance) => getInstanceTitle(instance, lineGuideId),
             }).includedInstanceIds;
+          }
+          includedIds = mergeStaticPagesIntoExportSelection({
+            instances: resolvedInstances,
+            includedInstanceIds: includedIds,
+            getSchema,
+          });
+          console.log(
+            `[PDF Export] Selection (${exportSelectionFormat}, ${selectionRaw ? 'stored' : 'computed'}): ${includedIds.length} pages`,
+          );
+          for (const instanceId of includedIds) {
+            const instance = resolvedInstances.find((item) => item.instanceId === instanceId);
+            if (!instance) continue;
+            const values = pageValuesMap[instanceId];
+            const fieldCount = Object.values(values?.fields ?? {}).filter(
+              (value) => typeof value === 'string' && value.trim().length > 0,
+            ).length;
+            console.log(
+              `[PDF Export]   • ${getInstanceTitle(instance, lineGuideId)} | sourcePage=${instance.sourcePageNumber} | fields=${fieldCount}`,
+            );
           }
 
           const sourceSizesByImageIndex = new Map<
             number,
             { width: number; height: number }
           >();
+          const sourceSizesBySourcePage = new Map<
+            number,
+            { width: number; height: number }
+          >();
+          let templatePageUris: string[] | undefined;
+          const interiorAlbumId = projectInteriorType ?? albumId;
+          if (interiorAlbumId) {
+            try {
+              templatePageUris = await ensureAlbumPagesCachedForExport(
+                interiorAlbumId,
+                projectCategory,
+              );
+            } catch (templateError) {
+              console.warn('[PDF Export] Каталог шаблонов не загружен до фильтра:', templateError);
+            }
+          }
           await Promise.all(
-            [...new Set(instances.map((instance) => instance.imageIndex))].map(
+            [...new Set(resolvedInstances.map((instance) => instance.imageIndex))].map(
               async (index) => {
                 const uri = images[index];
                 if (!uri) return;
@@ -753,12 +874,27 @@ export default function ExportPdfScreen() {
               },
             ),
           );
+          if (templatePageUris?.length) {
+            await Promise.all(
+              templatePageUris.map(async (uri, templateIndex) => {
+                if (!uri) return;
+                const cached = getCachedPageSourceSize(uri);
+                const size = cached ?? (await resolvePageSourceSize(uri));
+                if (size) sourceSizesBySourcePage.set(templateIndex + 1, size);
+              }),
+            );
+            for (const instance of resolvedInstances) {
+              const templateUri = templatePageUris[instance.sourcePageNumber - 1];
+              if (templateUri) images[instance.imageIndex] = templateUri;
+            }
+          }
 
-          const sampleInstance = instances.find((instance) =>
+          const sampleInstance = resolvedInstances.find((instance) =>
             includedIds.includes(instance.instanceId),
           );
           const sampleSize = sampleInstance
-            ? sourceSizesByImageIndex.get(sampleInstance.imageIndex)
+            ? sourceSizesBySourcePage.get(sampleInstance.sourcePageNumber) ??
+              sourceSizesByImageIndex.get(sampleInstance.imageIndex)
             : undefined;
           exportSampleSourceSize = sampleSize;
 
@@ -770,11 +906,11 @@ export default function ExportPdfScreen() {
             lineGuideId,
           );
 
-          if (instances.length === 0) {
+          if (resolvedInstances.length === 0) {
             annotations = await ensureProjectAnnotationsSynced(projectId);
           } else {
             const filtered = filterProjectDataForExport({
-              instances,
+              instances: resolvedInstances,
               images,
               pageValuesMap,
               lineGuideId,
@@ -785,9 +921,20 @@ export default function ExportPdfScreen() {
               sourceSizesByImageIndex,
               getSchema,
             });
-            images = filtered.images;
+            images = filtered.images.map((imageUri, index) => {
+              const sourcePageNumber = filtered.pages[index]?.instance.sourcePageNumber;
+              return templatePageUris?.[sourcePageNumber - 1] ?? imageUri;
+            });
             annotations = filtered.annotations;
-            exportPages = filtered.pages;
+            exportPages = filtered.pages.map((bundle, index) => {
+              const sourcePageNumber = bundle.instance.sourcePageNumber;
+              return {
+                ...bundle,
+                imageUri: images[index] ?? bundle.imageUri,
+                sourceSize:
+                  sourceSizesBySourcePage.get(sourcePageNumber) ?? bundle.sourceSize,
+              };
+            });
             console.log(
               `[PDF Export] Instance filter: ${images.length} pages (${includedIds.length} instances selected)`,
             );
@@ -1043,22 +1190,30 @@ export default function ExportPdfScreen() {
 
         const isElectronicExport = formatToUse.type === 'electronic';
         const maxSide = isElectronicExport
-          ? getElectronicRasterMaxSide(kind, pageWidth, pageHeight, contentWidth, contentHeight)
-          : kind === 'cover'
-            ? 2400
-            : isLargeDoc
-              ? 1100
-              : 2000;
+          ? getElectronicRasterMaxSide(
+              kind,
+              pageWidth,
+              pageHeight,
+              contentWidth,
+              contentHeight,
+            )
+          : getPrintRasterMaxSide(
+              kind,
+              pageWidth,
+              pageHeight,
+              contentWidth,
+              contentHeight,
+            );
         const quality = isElectronicExport
           ? getElectronicJpegQuality(kind)
           : kind === 'cover'
-            ? 0.9
+            ? 0.95
             : isLargeDoc
-              ? 0.72
-              : 0.9;
+              ? 0.9
+              : 0.95;
 
-        const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}`);
-        const outUri = `${FileSystem.cacheDirectory}pdf_fast_${kind}_${cacheKey}.jpg`;
+        const cacheKey = hashStringToHex(`${normalizedUri}|${kind}|${maxSide}|${quality}|v2`);
+        const outUri = `${FileSystem.cacheDirectory}pdf_hq_${kind}_${cacheKey}.jpg`;
         try {
           const existing = await FileSystem.getInfoAsync(outUri);
           if (existing.exists) return outUri;
@@ -1067,18 +1222,39 @@ export default function ExportPdfScreen() {
         }
 
         try {
-          const useLargeDocFallback = kind === 'page' && isLargeDoc && !isElectronicExport;
-          const sidesToTry = useLargeDocFallback ? [1100, 800, 560] : [maxSide];
+          const sourceSize =
+            getCachedPageSourceSize(normalizedUri) ??
+            getCachedPageSourceSize(uri) ??
+            (await resolvePageSourceSize(normalizedUri));
+          const sourceLongSide = sourceSize
+            ? Math.max(sourceSize.width, sourceSize.height)
+            : 0;
+          const primarySide =
+            sourceLongSide > 0 ? Math.min(maxSide, sourceLongSide) : maxSide;
+          const sidesToTry =
+            kind === 'page' && isLargeDoc
+              ? [
+                  primarySide,
+                  Math.max(1800, Math.round(primarySide * 0.85)),
+                  Math.max(1600, Math.round(primarySide * 0.7)),
+                ]
+              : [primarySide];
 
           for (const side of sidesToTry) {
             try {
+              const resizeAction =
+                sourceSize && sourceSize.height > sourceSize.width
+                  ? { resize: { height: side } }
+                  : { resize: { width: side } };
+              const actions =
+                sourceLongSide > 0 && sourceLongSide <= side ? [] : [resizeAction];
               const result = await withTimeout({
                 label: `ImageManipulator(${kind},${side})`,
                 timeoutMs: isLargeDoc ? 45000 : 12000,
                 task: async () =>
                   ImageManipulator.manipulateAsync(
                     normalizedUri,
-                    [{ resize: { width: side } }],
+                    actions,
                     { compress: quality, format: ImageManipulator.SaveFormat.JPEG }
                   ),
               });
@@ -1538,8 +1714,8 @@ export default function ExportPdfScreen() {
       const isElectronicExport = formatToUse.type === 'electronic';
       const yieldDuringPrep = () => new Promise<void>((r) => setImmediate(r));
       captureSettingsRef.current = {
-        scale: isElectronicExport ? ELECTRONIC_CAPTURE_SCALE : isLargeDoc ? 1.2 : 1.35,
-        quality: isElectronicExport ? ELECTRONIC_CAPTURE_QUALITY : isLargeDoc ? 0.88 : 0.92,
+        scale: isElectronicExport ? ELECTRONIC_CAPTURE_SCALE : isLargeDoc ? 2.5 : 3,
+        quality: isElectronicExport ? ELECTRONIC_CAPTURE_QUALITY : isLargeDoc ? 0.92 : 0.95,
       };
 
       const LARGE_DOC_OPTIMIZE_BATCH = Platform.OS === 'android' ? 2 : 3;
@@ -1617,10 +1793,13 @@ export default function ExportPdfScreen() {
           batch.map(async (uri) => {
             try {
               const normalizedUri = await normalizePhotoOrientation(uri);
+              const uriForExport = isElectronicExport
+                ? await optimizeImageForExport(normalizedUri, 'page', isLargeDoc)
+                : normalizedUri;
               return await withTimeout({
                 label: `load annotation image`,
                 timeoutMs: 20000,
-                task: async () => loadImageAsBytes(normalizedUri),
+                task: async () => loadImageAsBytes(uriForExport),
               });
             } catch {
               return null;
@@ -1912,7 +2091,7 @@ export default function ExportPdfScreen() {
                   const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
                   
                   // Рисуем текст на странице с выбранным шрифтом
-                  coverPage.drawText(ann.content, {
+                  coverPage.drawText(normalizeAlbumUserText(ann.content), {
                     x: scaledX,
                     y: scaledY,
                     size: fontSize,
@@ -1946,15 +2125,13 @@ export default function ExportPdfScreen() {
           if (firstCoverBytes) {
             const isJpg = firstCoverBytes[0] === 0xFF && firstCoverBytes[1] === 0xD8;
             const embeddedFirst = isJpg ? await pdfDoc.embedJpg(firstCoverBytes) : await pdfDoc.embedPng(firstCoverBytes);
-            const dims = embeddedFirst.scale(1);
-            const ar = dims.width / dims.height;
-            const pageAr = pageWidth / pageHeight;
-            let w = pageWidth, h = pageHeight;
-            if (ar > pageAr) { h = pageWidth / ar; } else { w = pageHeight * ar; }
             const coverPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            const cx = (pageWidth - w) / 2;
-            const cy = (pageHeight - h) / 2;
-            coverPage.drawImage(embeddedFirst, { x: cx, y: cy, width: w, height: h });
+            const { x: cx, y: cy, width: w, height: h } = drawExportCoverFullBleed(
+              coverPage,
+              embeddedFirst,
+              pageWidth,
+              pageHeight,
+            );
 
             // Cover annotations на первой странице
             const sortedCoverAnns = [...coverAnnotations].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
@@ -1969,7 +2146,7 @@ export default function ExportPdfScreen() {
                   const colorHex = ann.color || '#000000';
                   const fontId = ann.fontFamily || 'default';
                   const font = fontId !== 'default' ? fontsMap.get(fontId) : undefined;
-                  coverPage.drawText(ann.content, {
+                  coverPage.drawText(normalizeAlbumUserText(ann.content), {
                     x: scaledX, y: scaledY, size: fontSize,
                     color: hexToColor(colorHex, true), font,
                   });
@@ -1997,15 +2174,21 @@ export default function ExportPdfScreen() {
         try {
           setGenerationStatus(`Сборка PDF ${pageNumber}/${totalImages}…`);
           setGenerationProgress({ current: pageIndex, total: images.length });
+          const exportPageBundle = exportPages[pageIndex];
+          const sourcePageNumber =
+            exportPageBundle?.schema.sourcePageNumber ??
+            exportPageBundle?.instance.sourcePageNumber ??
+            pageNumber;
           
           // Логируем реже для производительности (каждые 10 страниц)
           if (pageIndex % 10 === 0) {
-            console.log(`[PDF Export] Обработка страницы ${pageNumber}/${totalImages}...`);
+            console.log(
+              `[PDF Export] Обработка страницы ${pageNumber}/${totalImages} (source=${sourcePageNumber})...`,
+            );
           }
           
           // Фильтруем аннотации для текущей страницы — пересобираем с теми же
           // sourceWidth/Height, что и при рисовании (как в предпросмотре).
-          const exportPageBundle = exportPages[pageIndex];
           const resolvedLineGuideId = lineGuideAlbumId
             ? resolveLineGuideId(lineGuideAlbumId, projectCategory)
             : '';
@@ -2014,6 +2197,8 @@ export default function ExportPdfScreen() {
             imageUri,
             optimizedPageUri,
             exportPageBundle,
+            undefined,
+            resolvedLineGuideId || exportLineGuideId,
           );
 
           const buildPageAnnotations = (sourceW: number, sourceH: number): Annotation[] => {
@@ -2077,8 +2262,7 @@ export default function ExportPdfScreen() {
                       imageUri: optimizedPageUri,
                       annotations: pageAnnotations,
                       pageNumber,
-                      sourcePageNumber:
-                        exportPageBundle?.schema.sourcePageNumber ?? pageNumber,
+                      sourcePageNumber,
                       viewport: pagesViewport,
                       lineGuideId: resolvedLineGuideId || undefined,
                       sourceWidth: pageSourceSize.width,
@@ -2228,25 +2412,27 @@ export default function ExportPdfScreen() {
 
           const page = pdfDoc.addPage([pageWidth, pageHeight]);
           const imageDims = embeddedImage.scale(1);
-          const imageAspectRatio = imageDims.width / imageDims.height;
-          const contentAspectRatio = contentWidth / contentHeight;
-
-          let sourceWidth = imageDims.width;
-          let sourceHeight = imageDims.height;
-          const cachedSource = getCachedPageSourceSize(imageUri) ?? getCachedPageSourceSize(optimizedPageUri);
-          if (cachedSource) {
-            sourceWidth = cachedSource.width;
-            sourceHeight = cachedSource.height;
-          } else {
-            const resolvedSource = await resolvePageSourceSize(imageUri);
-            if (resolvedSource) {
-              sourceWidth = resolvedSource.width;
-              sourceHeight = resolvedSource.height;
+          let sourceWidth = pageSourceSize.width;
+          let sourceHeight = pageSourceSize.height;
+          if (!sourceWidth || !sourceHeight) {
+            const cachedSource =
+              getCachedPageSourceSize(imageUri) ?? getCachedPageSourceSize(optimizedPageUri);
+            if (cachedSource) {
+              sourceWidth = cachedSource.width;
+              sourceHeight = cachedSource.height;
+            } else {
+              sourceWidth = imageDims.width;
+              sourceHeight = imageDims.height;
             }
           }
 
+          const imageAspectRatio =
+            sourceWidth > 0 && sourceHeight > 0
+              ? sourceWidth / sourceHeight
+              : imageDims.width / imageDims.height;
+          const contentAspectRatio = contentWidth / contentHeight;
           pageAnnotations = buildPageAnnotations(sourceWidth, sourceHeight);
-          
+
           // Для электронной и мягкой версии первая и последняя страница (внутренние) без полей
           const isFirstOrLastPage =
             useFullBleedInterior ||
@@ -2379,15 +2565,8 @@ export default function ExportPdfScreen() {
           if (lastBytes) {
             const isJpg = lastBytes[0] === 0xFF && lastBytes[1] === 0xD8;
             const embeddedLast = isJpg ? await pdfDoc.embedJpg(lastBytes) : await pdfDoc.embedPng(lastBytes);
-            const dims = embeddedLast.scale(1);
-            const ar = dims.width / dims.height;
-            const pageAr = pageWidth / pageHeight;
-            let w = pageWidth, h = pageHeight;
-            if (ar > pageAr) { h = pageWidth / ar; } else { w = pageHeight * ar; }
             const lastPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            const lx = (pageWidth - w) / 2;
-            const ly = (pageHeight - h) / 2;
-            lastPage.drawImage(embeddedLast, { x: lx, y: ly, width: w, height: h });
+            drawExportCoverFullBleed(lastPage, embeddedLast, pageWidth, pageHeight);
             processedCount++;
             console.log('[PDF Export] ✓ Последняя страница обложки добавлена');
           }

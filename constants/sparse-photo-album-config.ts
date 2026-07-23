@@ -1,16 +1,17 @@
 import { LINE_SLOTS, type NormalizedLineSlot } from '@/constants/line-slots';
 import type { SafeZone } from '@/constants/photo-layout-templates';
 
+/** Sync with SPARSE_PHOTO_ZOOM_MARGIN_MM in photo-print-margins.ts (avoid cycle). */
+const BLANK_PRINT_MARGIN_MM = 15;
+
 export type AlbumSparsePhotoConfig = {
   eventSafe: SafeZone;
   gapMm: number;
+  /** @deprecated use pageWidthMm/pageHeightMm for non-square albums */
   pageSizeMm: number;
+  pageWidthMm?: number;
+  pageHeightMm?: number;
   sparseMaxLineSlots: number;
-  /**
-   * Доп. зазор под декоративные подписи на PDF («Планы на неделю», «Фото, где мы вместе»),
-   * которых нет в line-slots — иначе фото налазит на статичный текст.
-   */
-  staticLabelClearanceMm?: number;
   sideBySideTwoPhotoPages?: ReadonlySet<number>;
   excludePages?: ReadonlySet<number>;
   photoBandMaxBottom?: number;
@@ -19,40 +20,47 @@ export type AlbumSparsePhotoConfig = {
   minPhotoSafeHeight?: number;
 };
 
-/**
- * Единый стандарт: страницы «для фото» во всех альбомах —
- * шаблоны занимают ~80% страницы.
- */
-export const PHOTO_ONLY_PAGE_SAFE: SafeZone = {
-  x: 0.1,
-  y: 0.1,
-  width: 0.8,
-  height: 0.8,
+export const EVENT_PHOTO_SAFE: SafeZone = {
+  x: 0.05,
+  y: 0.18,
+  width: 0.9,
+  height: 0.64,
 };
 
-/** Event / diary / kids / birthday free — тот же 80% стандарт. */
-export const EVENT_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
-
-/** Blank / свободные страницы — тот же 80% стандарт. */
-export const BLANK_PAGE_PHOTO_SAFE: SafeZone = PHOTO_ONLY_PAGE_SAFE;
-
-/**
- * Pregnancy weekly / mixed — широкая зона между текстом (как iOS e24a739 + чуть выше),
- * чтобы фото на страницах с полями занимали больше места.
- */
 export const PREGNANCY_PHOTO_SAFE: SafeZone = {
-  x: 0.06,
-  y: 0.22,
-  width: 0.88,
-  height: 0.58,
+  // Шире — ближе к ширине текстовых строк анкеты (поля ~1.5 см).
+  x: 0.08,
+  y: 0.26,
+  width: 0.84,
+  height: 0.5,
 };
 
-/** Крупная зона (≥ ~72%) — заполняем слоты без сжатия 4:3/3:4. */
-export function isLargePhotoSafeZone(safeZone: SafeZone): boolean {
-  return safeZone.width >= 0.72 && safeZone.height >= 0.72;
+/** Printable zone for blank pages — 15 mm from trim (same as sparse zoom). */
+export function getBlankPagePhotoSafe(widthMm: number, heightMm: number): SafeZone {
+  const left = BLANK_PRINT_MARGIN_MM / widthMm;
+  const top = BLANK_PRINT_MARGIN_MM / heightMm;
+  return {
+    x: left,
+    y: top,
+    width: 1 - 2 * left,
+    height: 1 - 2 * top,
+  };
 }
 
-const KIDS_SIDE_BY_SIDE = new Set([1, 3, 4, 8, 13, 21]);
+/** 180×240 mm blank (family / holidays portrait). */
+export const BLANK_PAGE_PHOTO_SAFE_18X24: SafeZone = getBlankPagePhotoSafe(180, 240);
+
+/** 210×210 mm blank (wedding / family square). */
+export const BLANK_PAGE_PHOTO_SAFE_21X21: SafeZone = getBlankPagePhotoSafe(210, 210);
+
+/** @deprecated Prefer format-specific safe zones; kept as 18×24 alias. */
+export const BLANK_PAGE_PHOTO_SAFE: SafeZone = BLANK_PAGE_PHOTO_SAFE_18X24;
+
+/** Side-by-side two-photo + полная ширина band (в т.ч. стою / крещение / месяцы). */
+const KIDS_SIDE_BY_SIDE = new Set([
+  1, 3, 4, 8, 13, 19, 20, 21,
+  22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
+]);
 const KIDS_EXCLUDE = new Set([5, 10, 11]);
 const BIRTHDAY_EXCLUDE_PAGES = new Set([1, 40, 48]);
 
@@ -60,23 +68,21 @@ const DEFAULTS = {
   gapMm: 4,
   pageSizeMm: 210,
   sparseMaxLineSlots: 4,
-  photoBandMaxBottom: 0.96,
-  stackedTwoMinBandHeight: 0.68,
-  minFullWidthBandHeight: 0.28,
-  minPhotoSafeHeight: 0.16,
+  photoBandMaxBottom: 0.86,
+  stackedTwoMinBandHeight: 0.54,
+  minFullWidthBandHeight: 0.35,
+  minPhotoSafeHeight: 0.12,
 };
 
 function config(partial: Omit<AlbumSparsePhotoConfig, 'gapMm' | 'pageSizeMm' | 'sparseMaxLineSlots'> & {
   gapMm?: number;
   pageSizeMm?: number;
   sparseMaxLineSlots?: number;
-  staticLabelClearanceMm?: number;
 }): AlbumSparsePhotoConfig {
   return {
     gapMm: partial.gapMm ?? DEFAULTS.gapMm,
     pageSizeMm: partial.pageSizeMm ?? DEFAULTS.pageSizeMm,
     sparseMaxLineSlots: partial.sparseMaxLineSlots ?? DEFAULTS.sparseMaxLineSlots,
-    staticLabelClearanceMm: partial.staticLabelClearanceMm,
     photoBandMaxBottom: partial.photoBandMaxBottom ?? DEFAULTS.photoBandMaxBottom,
     stackedTwoMinBandHeight: partial.stackedTwoMinBandHeight ?? DEFAULTS.stackedTwoMinBandHeight,
     minFullWidthBandHeight: partial.minFullWidthBandHeight ?? DEFAULTS.minFullWidthBandHeight,
@@ -90,26 +96,23 @@ function config(partial: Omit<AlbumSparsePhotoConfig, 'gapMm' | 'pageSizeMm' | '
 export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> = {
   kids_48: config({
     eventSafe: EVENT_PHOTO_SAFE,
-    gapMm: 5,
-    staticLabelClearanceMm: 4,
     sideBySideTwoPhotoPages: KIDS_SIDE_BY_SIDE,
     excludePages: KIDS_EXCLUDE,
+    // Рамки layout/export — умеренный band; max pinch — через getSparsePhotoZoomBounds (1.5 см).
+    photoBandMaxBottom: 0.86,
   }),
   pregnancy_60: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
-    pageSizeMm: 210,
-    gapMm: 3,
-    staticLabelClearanceMm: 4,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
+    // Низ зоны = поле 1.5 см (см. SPARSE_PHOTO_ZOOM_MARGIN_MM), не 0.86.
     photoBandMaxBottom: 0.95,
-    minPhotoSafeHeight: 0.2,
   }),
   pregnancy_a5: config({
     eventSafe: PREGNANCY_PHOTO_SAFE,
     pageSizeMm: 210,
-    gapMm: 3,
-    staticLabelClearanceMm: 4,
     photoBandMaxBottom: 0.95,
-    minPhotoSafeHeight: 0.2,
   }),
   holidays_birthday_60: config({
     eventSafe: EVENT_PHOTO_SAFE,
@@ -123,13 +126,25 @@ export const SPARSE_PHOTO_ALBUM_CONFIG: Record<string, AlbumSparsePhotoConfig> =
     gapMm: 3,
   }),
   family_blank: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 240,
   }),
   holidays_blank: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_18X24,
+    pageSizeMm: 180,
+    pageWidthMm: 180,
+    pageHeightMm: 240,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 240,
   }),
   family_blank_21x21: config({
-    eventSafe: BLANK_PAGE_PHOTO_SAFE,
+    eventSafe: BLANK_PAGE_PHOTO_SAFE_21X21,
+    pageSizeMm: 210,
+    pageWidthMm: 210,
+    pageHeightMm: 210,
+    photoBandMaxBottom: 1 - BLANK_PRINT_MARGIN_MM / 210,
   }),
 };
 
@@ -173,14 +188,6 @@ export function isPregnancyUpperBandPage(lineGuideId: string, page: number): boo
   if (lineGuideId === 'pregnancy_60') return page === 54;
   if (lineGuideId === 'pregnancy_a5') return page === 46 || page === 48;
   return false;
-}
-
-/** Страница «Уже мама» — фото в верхней полосе над анкетой. */
-export function isAlreadyMomPhotoPage(lineGuideId: string, page: number): boolean {
-  return (
-    (lineGuideId === 'pregnancy_60' && page === 54) ||
-    (lineGuideId === 'pregnancy_a5' && page === 46)
-  );
 }
 
 /** PDF-рамка фото без sparse expansion — все designed-альбомы с PDF-слотом. */
@@ -229,6 +236,14 @@ export function classifyPhotoSafeZoneStrategy(
 ): PhotoSafeZoneStrategy {
   if (isPregnancyWeeklyMiddlePage(lineGuideId, page)) return 'weekly_middle';
   if (isPregnancyUpperBandPage(lineGuideId, page)) return 'upper_band';
+  // p1 «У нас будет малыш» — фото под анкетой. Ложный OCR внизу A5
+  // иначе даёт weekly_middle и узкую полосу.
+  if (
+    (lineGuideId === 'pregnancy_60' || lineGuideId === 'pregnancy_a5') &&
+    page === 1
+  ) {
+    return 'bottom_band';
+  }
 
   const slots = getPageLineSlots(lineGuideId, page);
   if (!slots.length) return 'photo_only';
@@ -241,8 +256,7 @@ export function classifyPhotoSafeZoneStrategy(
   if (minTextTop > 0.55) return 'upper_band';
 
   const maxTextBottom = Math.max(...slots.map((slot) => slot.y + slot.height / 2));
-  // Чуть выше 0.55: на «Будущий папа» textBottom ≈0.55, иначе уходит в mixed и фото лезет на подпись
-  if (maxTextBottom < 0.58) return 'bottom_band';
+  if (maxTextBottom < 0.55) return 'bottom_band';
 
   return 'mixed';
 }
