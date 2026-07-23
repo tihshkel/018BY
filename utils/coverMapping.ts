@@ -1,5 +1,10 @@
 import { getAlbumTemplateById } from '@/albums';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
+import {
+  getDiaryFullCoverById,
+  getDiaryFullCoverBySku,
+} from '@/utils/diaryCoverFullPages';
+import { getDiaryCoverById } from '@/utils/diaryCovers';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import type { ImageSourcePropType } from 'react-native';
@@ -83,6 +88,14 @@ export function isPregnancyAlbum(albumId: string | null): boolean {
  */
 export function getCoverForExport(albumId: string | null, category?: string): ImageSourcePropType | null {
   if (!albumId) return null;
+
+  // Дневники: в экспорт — полный first_page, не каталожный thumb из списка.
+  if (category === 'diary' || albumId.startsWith('diary_dd')) {
+    const full =
+      getDiaryFullCoverById(albumId) ??
+      getDiaryFullCoverBySku(getDiaryCoverById(albumId)?.sku ?? '');
+    if (full) return full;
+  }
 
   const pickerImage = getCoverPickerImage(albumId, category);
   if (pickerImage) return pickerImage;

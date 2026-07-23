@@ -68,6 +68,27 @@ export function shouldRenderPhotoSlotCaptions(schema: AlbumPageSchema | undefine
   );
 }
 
+/**
+ * Единый gate для UI и экспорта: смешанные страницы (value-поля + фото) — без подписей;
+ * photo-only / blank perPhotoCaptions — подписи оставить.
+ */
+export function shouldShowAnyPhotoCaption(
+  schema: AlbumPageSchema | undefined,
+  templateHasPerPhotoCaptions = false,
+): boolean {
+  if (!schema) return false;
+  if (schemaHasUserValueFields(schema) && !isPhotoCollageCaptionPage(schema)) {
+    return false;
+  }
+  if (schema.pageType === 'birthday_free_page') {
+    return false;
+  }
+  if (shouldShowPerPhotoCaptions(schema, templateHasPerPhotoCaptions)) {
+    return true;
+  }
+  return shouldRenderPhotoSlotCaptions(schema);
+}
+
 /** Seed из legacy `caption`, если `photoCaptions` ещё пустые. */
 export function resolvePhotoCaptionsForMigration(
   photoCaptions: (string | null)[] | undefined,

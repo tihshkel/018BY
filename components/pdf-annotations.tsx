@@ -2869,15 +2869,18 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
               height: annotation.height,
               zIndex: annotation.zIndex,
             },
+            isCircle ? photoClipStyle : null,
             isSelected && styles.annotationSelected,
             isDragging && isSelected && styles.annotationDragging,
           ]}
+          collapsable={isCircle && Platform.OS === 'android' ? false : undefined}
         >
           {/* Основной PanResponder для перетаскивания - всегда в режиме редактирования для выбора при тапе */}
           <View
             {...(isEditing && panResponder ? panResponder.panHandlers : {})}
             style={[styles.imageContainer, photoClipStyle, isBlankAlbumPhoto && styles.blankAlbumImageContainer]}
             pointerEvents={isEditing ? 'auto' : 'box-none'}
+            collapsable={isCircle && Platform.OS === 'android' ? false : undefined}
           >
             {annotation.fillColor ? (
               <View
@@ -3465,6 +3468,7 @@ const styles = StyleSheet.create({
   circleImageAnnotation: {
     borderWidth: 0,
     borderRadius: 9999,
+    overflow: 'hidden',
   },
   imageControls: {
     position: 'absolute',

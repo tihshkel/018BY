@@ -21,7 +21,7 @@ import Animated, {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Asset } from 'expo-asset';
-import { getAllDiaryInteriors } from '@/utils/diaryAlbumsLoader';
+import { getAllDiaryInteriors } from '@/utils/diaryInteriors';
 import { githubRawFileUrl } from '@/utils/githubRawAssets';
 import { normalizeRouteParam } from '@/utils/routeParams';
 

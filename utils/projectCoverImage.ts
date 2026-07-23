@@ -42,7 +42,7 @@ function getCategoryFallbackImage(category?: string | null): ImageSourcePropType
     case 'holidays':
       return CategoryAlbumImages.travel;
     case 'diary':
-      return require('@/albums/diary/DD1/first_page.png');
+      return require('@/assets/images/albums/DD_1.png');
     default:
       return null;
   }

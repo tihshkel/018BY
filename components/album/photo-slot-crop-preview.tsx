@@ -1,7 +1,7 @@
-import { Image } from 'expo-image';
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { AlbumPhotoImageRaw } from '@/components/album/album-photo-image';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
 import { resolvePageSourceSize, setPageSourceSize } from '@/utils/pageSourceDimensions';
 import { resolvePhotoSlotTransformForDisplay } from '@/utils/photoSlotInitialTransform';
@@ -53,8 +53,10 @@ export function PhotoSlotCropPreview({
   const scale = displayTransform.scale ?? 1;
   const isZoomedIn = scale > 1.02;
 
-  const innerStyle = useMemo(() => {
-    if (!isZoomedIn || slotSize.width <= 0 || slotSize.height <= 0) return null;
+  const frameStyle = useMemo(() => {
+    if (!isZoomedIn || slotSize.width <= 0 || slotSize.height <= 0) {
+      return styles.fallback;
+    }
 
     const rect = applyPhotoSlotTransform(
       { x: 0, y: 0, width: slotSize.width, height: slotSize.height },
@@ -62,6 +64,7 @@ export function PhotoSlotCropPreview({
       imageAspect > 0 ? imageAspect : undefined,
     );
     return {
+      ...styles.inner,
       left: rect.x,
       top: rect.y,
       width: rect.width,
@@ -80,37 +83,21 @@ export function PhotoSlotCropPreview({
         }
       }}
     >
-      {innerStyle ? (
-        <View style={[styles.inner, innerStyle]}>
-          <Image
-            source={{ uri }}
-            style={styles.image}
-            contentFit="cover"
-            recyclingKey={uri}
-            onLoad={(event) => {
-              const { width, height } = event.source;
-              if (width > 0 && height > 0) {
-                setPageSourceSize(uri, { width, height });
-                setImageAspect(width / height);
-              }
-            }}
-          />
-        </View>
-      ) : (
-        <Image
-          source={{ uri }}
-          style={styles.fallback}
-          contentFit="cover"
+      <View style={frameStyle}>
+        <AlbumPhotoImageRaw
+          uri={uri}
+          style={styles.image}
           recyclingKey={uri}
-          onLoad={(event) => {
-            const { width, height } = event.source;
-            if (width > 0 && height > 0) {
-              setPageSourceSize(uri, { width, height });
-              setImageAspect(width / height);
-            }
+          onLoad={() => {
+            void resolvePageSourceSize(uri).then((size) => {
+              if (size?.width && size?.height) {
+                setPageSourceSize(uri, size);
+                setImageAspect(size.width / size.height);
+              }
+            });
           }}
         />
-      )}
+      </View>
     </View>
   );
 }

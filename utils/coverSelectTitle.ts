@@ -1,6 +1,6 @@
 import { getGiftDisplayTitle } from '@/utils/albumGiftMapping';
 import { getCoverSku } from '@/utils/coverSkuMapping';
-import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
+import { getDiaryCoverById } from '@/utils/diaryCovers';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_COVER_DESIGNS } from '@/utils/kidsCoverDesigns';

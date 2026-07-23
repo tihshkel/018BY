@@ -61,7 +61,7 @@ import {
 } from '@/utils/albumProjectStateSync';
 import { scheduleDeferredAlbumCloudSync, addProjectToSyncedList } from '@/utils/account-sync';
 import { runDedupedAlbumProjectCreation } from '@/utils/albumProjectCreationLock';
-import { getDiaryInteriorImageUris } from '@/utils/diaryAlbumsLoader';
+import { getDiaryInteriorImageUris } from '@/utils/diaryInteriors';
 
 export type AlbumProjectMeta = {
   id: string;

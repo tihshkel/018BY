@@ -42,7 +42,7 @@ import {
   resolveLineGuideId,
 } from "@/utils/albumImages";
 import { navigateToAlbumPages, type AlbumFlowParams } from "@/utils/albumNavigation";
-import { getDiaryInteriorImageUris } from "@/utils/diaryAlbumsLoader";
+import { getDiaryInteriorImageUris } from "@/utils/diaryInteriors";
 import { resolveInstancePageImageUri } from "@/utils/resolveInstancePageImage";
 import { PICKER_CONTENT_MAX_WIDTH } from "@/utils/responsive";
 

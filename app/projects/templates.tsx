@@ -19,7 +19,7 @@ import { getRemindersStorageKey } from '@/utils/account-sync';
 import { withTimeout } from '@/utils/asyncTimeout';
 import { runDueDateBackgroundSetup } from '@/utils/dueDateBackgroundSetup';
 import { getAccountSyncId } from '@/utils/account-identity';
-import { getAllDiaryCovers } from '@/utils/diaryAlbumsLoader';
+import { getAllDiaryCovers } from '@/utils/diaryCovers';
 import {
   getGridColumnCount,
   getGridColumnWrapperStyle,
@@ -533,6 +533,7 @@ export default function ProjectTemplatesScreen() {
                 cachePolicy="disk"
                 transition={0}
                 fadeDuration={0}
+                allowDownscaling
                 recyclingKey={row.id}
               />
             ) : (

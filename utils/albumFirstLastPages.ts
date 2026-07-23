@@ -2,7 +2,7 @@ import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
 import { getPregnancyCoverPdf } from './coverPdfMapping';
 import { getCoverForExport } from './coverMapping';
-import { getDiaryCoverById } from './diaryAlbumsLoader';
+import { getDiaryCoverById } from './diaryCovers';
 import { FAMILY_COVER_DESIGNS } from './familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from './holidayCoverDesigns';
 import { githubRawFileUrl } from './githubRawAssets';

@@ -15,7 +15,7 @@ import {
   WEDDING_COVER_DESIGNS,
 } from '@/utils/weddingCoverDesigns';
 import { getCoverSelectTitleBySku } from '@/utils/coverSelectTitle';
-import { getAllDiaryCovers } from '@/utils/diaryAlbumsLoader';
+import { getAllDiaryCovers } from '@/utils/diaryCovers';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AlbumDateSheet, getAlbumCategoryDateBounds } from '@/components/album/album-date-sheet';
@@ -606,9 +606,10 @@ export default function SelectCoverScreen() {
                   style={styles.cardImage}
                   contentFit="cover"
                   priority="high"
-                  cachePolicy="memory-disk"
+                  cachePolicy="disk"
                   transition={0}
                   fadeDuration={0}
+                  allowDownscaling
                   recyclingKey={cover.id}
                   placeholderContentFit="cover"
                 />

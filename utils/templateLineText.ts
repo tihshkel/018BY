@@ -1,5 +1,8 @@
+import { Platform } from 'react-native';
+
 import {
   DIARY_AMATIC_VISUAL_SINK_RATIO,
+  DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO,
   DIARY_LINE_FONT_OFFSET,
   getTemplateTypographyProfile,
   isKidsMonthPage,
@@ -1057,7 +1060,12 @@ function resolveDiaryBrownBlockRatios(
 }
 
 function applyDiaryAmaticVisualSink(fontOffsetRatio: number): number {
-  return Math.max(0.68, fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO);
+  const androidExtra =
+    Platform.OS === 'android' ? DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO : 0;
+  return Math.max(
+    0.68,
+    fontOffsetRatio - DIARY_AMATIC_VISUAL_SINK_RATIO - androidExtra,
+  );
 }
 
 function resolveDiaryBrownLineFontOffset(slot: DiaryBrownSlotGeometry): number | null {

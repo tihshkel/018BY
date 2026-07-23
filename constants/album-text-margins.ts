@@ -168,6 +168,12 @@ export const DIARY_LINE_FONT_OFFSET = 0.78;
  */
 export const DIARY_AMATIC_VISUAL_SINK_RATIO = 0.08;
 
+/**
+ * Android: Amatic SC метрики выше iOS при том же fontOffset — доп. sink к штриху
+ * (доля fontSize). iOS не трогаем.
+ */
+export const DIARY_ANDROID_AMATIC_EXTRA_SINK_RATIO = 0.03;
+
 /** Baseline на штрихе для недельных строк (доля fontSize от top Text до baseline). */
 export const PREGNANCY_WEEKLY_CAP_HEIGHT_RATIO = 1.08;
 

@@ -446,7 +446,9 @@ function main() {
   report.diaryInteriors = {
     brown: listDiaryInteriorFiles('albums/diary/interiors/brown'),
     purple: listDiaryInteriorFiles('albums/diary/interiors/purple'),
-    loaderMentionsAscii: (readWork('utils/diaryAlbumsLoader.ts') || '').includes(
+    loaderMentionsAscii: (readWork('utils/diaryInteriors.ts') || '').includes(
+      'ASCII',
+    ) && (readWork('utils/diaryInteriorAssets.generated.ts') || '').includes(
       'interiors/brown',
     ),
   };

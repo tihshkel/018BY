@@ -1,7 +1,7 @@
 import { useFonts } from 'expo-font';
 import { Image } from 'expo-image';
 import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import type { Annotation } from '@/components/pdf-annotations';
 import { resolveRectFillBorderRadius } from '@/utils/circleSlotColors';
@@ -525,15 +525,24 @@ function ReadOnlyPageAnnotationsInner({
                 height: annotation.height,
                 zIndex: annotation.zIndex,
               },
+              photoClipStyle,
             ]}
             pointerEvents="none"
+            collapsable={isCircle && Platform.OS === 'android' ? false : undefined}
           >
-            <View style={[styles.imageClip, photoClipStyle]}>
+            <View
+              style={[styles.imageClip, photoClipStyle]}
+              collapsable={isCircle && Platform.OS === 'android' ? false : undefined}
+            >
               {innerStyle ? (
                 <View style={[styles.imageInner, photoClipStyle, innerStyle]}>
                   <Image
                     source={{ uri: annotation.imageUri }}
-                    style={[styles.imageFill, photoClipStyle]}
+                    style={[
+                      styles.imageFill,
+                      photoClipStyle,
+                      isCircle && styles.circleImage,
+                    ]}
                     contentFit={annotation.imageContentFit ?? 'cover'}
                     cachePolicy="disk"
                     transition={0}
@@ -547,7 +556,11 @@ function ReadOnlyPageAnnotationsInner({
               ) : (
                 <Image
                   source={{ uri: annotation.imageUri }}
-                  style={[styles.imageFill, photoClipStyle]}
+                  style={[
+                    styles.imageFill,
+                    photoClipStyle,
+                    isCircle && styles.circleImage,
+                  ]}
                   contentFit={annotation.imageContentFit ?? 'cover'}
                   cachePolicy="disk"
                   transition={0}
@@ -597,6 +610,7 @@ const styles = StyleSheet.create({
   },
   text: {
     includeFontPadding: false,
+    textAlignVertical: 'top',
   },
   imageClip: {
     width: '100%',
@@ -610,5 +624,9 @@ const styles = StyleSheet.create({
   imageFill: {
     width: '100%',
     height: '100%',
+  },
+  circleImage: {
+    borderRadius: 9999,
+    overflow: 'hidden',
   },
 });

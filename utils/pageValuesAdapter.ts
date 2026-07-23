@@ -41,7 +41,11 @@ import {
   type RectFillTarget,
 } from '@/utils/pdfCircleSlots';
 import { getNormalizedPhotoSlot } from '@/utils/photoSlots';
-import { isBlankTemplateLineGuide } from '@/utils/photoPageTemplateManifest';
+import {
+  getPageFormatForLineGuide,
+  getTemplateLayout,
+  isBlankTemplateLineGuide,
+} from '@/utils/photoPageTemplateManifest';
 import { TRAVEL_MAP_COLORS } from '@/constants/travel-world-map';
 import { mapMarkerToViewport } from '@/utils/travelMap';
 import {
@@ -50,6 +54,7 @@ import {
   appendTemplatePhotoCaptionAnnotations,
 } from '@/utils/templateTextAnnotations';
 import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
+import { shouldShowAnyPhotoCaption } from '@/utils/photoCaptions';
 
 const DEFAULT_VIEWPORT = { width: 390, height: 844 };
 /** Text annotations render above photo overlays in preview and PageRenderer snapshots. */
@@ -174,11 +179,27 @@ function buildSlotParams(
   };
 }
 
+function resolveTemplateHasPerPhotoCaptions(
+  schema: AlbumPageSchema,
+  lineGuideId: string,
+): boolean {
+  if (usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId)) return true;
+  if (!schema.templateLibraryId) return false;
+  const format = getPageFormatForLineGuide(lineGuideId);
+  const layout = getTemplateLayout(schema.templateLibraryId, format);
+  return Boolean(layout?.perPhotoCaptions);
+}
+
 function resolveEffectivePhotoCaptions(
   schema: AlbumPageSchema,
   lineGuideId: string,
   values: PageValues,
 ): (string | null)[] | undefined {
+  if (
+    !shouldShowAnyPhotoCaption(schema, resolveTemplateHasPerPhotoCaptions(schema, lineGuideId))
+  ) {
+    return undefined;
+  }
   if (values.photoCaptions?.some((c) => Boolean(c?.trim()))) {
     return values.photoCaptions;
   }
@@ -223,6 +244,15 @@ function appendBlankPhotoCaptionsFollowingPhotos(params: {
   let zIndex = params.zIndex;
 
   if (!schema.captionEnabled && schema.pageType !== 'caption_photo_page') {
+    return zIndex;
+  }
+
+  if (
+    !shouldShowAnyPhotoCaption(
+      schema,
+      resolveTemplateHasPerPhotoCaptions(schema, lineGuideId),
+    )
+  ) {
     return zIndex;
   }
 
@@ -714,13 +744,16 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
   }
 
   const designedPerPhotoCaptions = usesDesignedAlbumPerPhotoCaptions(schema, lineGuideId);
-  const effectivePhotoCaptions = resolveEffectivePhotoCaptions(
+  const allowPhotoCaptions = shouldShowAnyPhotoCaption(
     schema,
-    lineGuideId,
-    values,
+    resolveTemplateHasPerPhotoCaptions(schema, lineGuideId),
   );
+  const effectivePhotoCaptions = allowPhotoCaptions
+    ? resolveEffectivePhotoCaptions(schema, lineGuideId, values)
+    : undefined;
 
   if (
+    allowPhotoCaptions &&
     !isBlankTemplate &&
     values.caption?.trim() &&
     !(designedPerPhotoCaptions && effectivePhotoCaptions?.some((c) => Boolean(c?.trim())))
@@ -779,7 +812,7 @@ export function pageValuesToAnnotations(params: AdapterParams): Annotation[] {
     }
   }
 
-  if (!isBlankTemplate && effectivePhotoCaptions?.length) {
+  if (allowPhotoCaptions && !isBlankTemplate && effectivePhotoCaptions?.length) {
     const templateCaptions = appendTemplatePhotoCaptionAnnotations({
       schema,
       values: { ...values, photoCaptions: effectivePhotoCaptions },

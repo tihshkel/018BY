@@ -1,4 +1,4 @@
-import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
+import { getDiaryCoverById } from '@/utils/diaryCovers';
 import { extractDFANumber } from '@/utils/albumFirstLastPages';
 import { getWeddingCoverById } from '@/utils/weddingCoverDesigns';
 

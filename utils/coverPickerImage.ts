@@ -1,5 +1,5 @@
 import { isPregnancyAlbum } from '@/utils/coverMapping';
-import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
+import { getDiaryCoverById } from '@/utils/diaryCovers';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { KIDS_FIRST_PAGE_BY_ID } from '@/utils/kidsCoverPickerAssets.generated';

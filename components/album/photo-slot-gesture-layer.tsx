@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import React, { useCallback, useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -9,6 +8,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
+import { AlbumPhotoImageRaw } from '@/components/album/album-photo-image';
 import { AppText } from '@/components/ui';
 import { colors, BLANK_ALBUM_PHOTO_RADIUS, radii, spacing, surfaces } from '@/constants/design-tokens';
 import type { PhotoSlotTransform } from '@/types/album-page-schema';
@@ -250,10 +250,9 @@ function PhotoSlotFilled({
       }}
     >
       <Animated.View style={[styles.imageInner, imageStyle]}>
-        <Image
-          source={{ uri }}
+        <AlbumPhotoImageRaw
+          uri={uri}
           style={styles.image}
-          contentFit="cover"
           recyclingKey={uri}
           onError={() => {
             if (!isRemotePhotoUri(uri)) {

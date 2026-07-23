@@ -1,6 +1,7 @@
 import { Alert } from 'react-native';
 import { useCallback, useEffect, useMemo } from 'react';
 
+import { prefetchAlbumPhotoUriAsync } from '@/components/album/album-photo-image';
 import { useMediaLibraryPermission } from '@/components/media-library-permission-provider';
 import type { AlbumPageSchema, PageValues, PhotoSlotTransform } from '@/types/album-page-schema';
 import { flushAlbumProjectPersist } from '@/utils/albumProjectPersist';
@@ -16,6 +17,10 @@ import { buildInitialPhotoSlotTransform } from '@/utils/photoSlotInitialTransfor
 import { resolvePageSourceSize } from '@/utils/pageSourceDimensions';
 import { getSlotAspectRatio } from '@/utils/photoVariantAspect';
 import { usesDesignedAlbumPerPhotoCaptions } from '@/utils/designedAlbumPerPhotoCaptions';
+import {
+  shouldShowAnyPhotoCaption,
+  shouldShowPerPhotoCaptions,
+} from '@/utils/photoCaptions';
 import {
   getPageFormatForLineGuide,
   getTemplateLayout,
@@ -50,21 +55,27 @@ export function useAlbumPagePhotoEditor({
   const blocks = resolvedSchema?.photoBlocks ?? [];
   const photoBlocks = pageValues.photoBlocks;
 
-  const showCaption = resolvedSchema?.captionEnabled === true;
   const captionMaxLength = resolvedSchema?.captionMaxLength;
-  const showPerPhotoCaptions = useMemo(() => {
+  const templateHasPerPhotoCaptions = useMemo(() => {
     if (!resolvedSchema) return false;
-    if (resolvedSchema.pageType === 'birthday_free_page') return true;
     if (usesDesignedAlbumPerPhotoCaptions(resolvedSchema, resolvedSchema.lineGuideId)) {
       return true;
     }
-    if (!resolvedSchema.captionEnabled || !resolvedSchema.templateLibraryId) {
-      return false;
-    }
+    if (!resolvedSchema.templateLibraryId) return false;
     const format = getPageFormatForLineGuide(resolvedSchema.lineGuideId);
     const layout = getTemplateLayout(resolvedSchema.templateLibraryId, format);
     return Boolean(layout?.perPhotoCaptions);
   }, [resolvedSchema]);
+
+  const showPerPhotoCaptions = useMemo(
+    () => shouldShowPerPhotoCaptions(resolvedSchema, templateHasPerPhotoCaptions),
+    [resolvedSchema, templateHasPerPhotoCaptions],
+  );
+
+  const showCaption = useMemo(
+    () => shouldShowAnyPhotoCaption(resolvedSchema, templateHasPerPhotoCaptions),
+    [resolvedSchema, templateHasPerPhotoCaptions],
+  );
 
   // Legacy page-level caption → per-photo captions[0] for designed photo pages.
   useEffect(() => {
@@ -188,6 +199,8 @@ export function useAlbumPagePhotoEditor({
           return;
         }
       }
+
+      await prefetchAlbumPhotoUriAsync(persistentUri);
 
       const slotAspect = resolvedSchema
         ? getSlotAspectRatio({

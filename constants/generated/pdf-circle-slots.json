@@ -185,10 +185,10 @@
             {
               "slotId": "child",
               "branch": "child",
-              "x": 0.4451,
-              "y": 0.1805,
-              "width": 0.1526,
-              "height": 0.1526,
+              "x": 0.4449,
+              "y": 0.1803,
+              "width": 0.1343,
+              "height": 0.1343,
               "shape": "circle"
             },
             {

@@ -4,7 +4,7 @@ import { getAlbumTemplateById } from '@/albums';
 import { getWildberriesLink } from '@/utils/albumGiftMapping';
 import { getCoverPickerImage } from '@/utils/coverPickerImage';
 import { getCoverSelectTitle } from '@/utils/coverSelectTitle';
-import { getDiaryCoverById } from '@/utils/diaryAlbumsLoader';
+import { getDiaryCoverById } from '@/utils/diaryCovers';
 import { FAMILY_COVER_DESIGNS } from '@/utils/familyCoverDesigns';
 import { HOLIDAY_COVER_DESIGNS } from '@/utils/holidayCoverDesigns';
 import { PREGNANCY_COVER_DESIGNS } from '@/utils/pregnancyCoverDesigns';
