@@ -79,6 +79,7 @@ function WrappedTemplateText({
       {lines.map((line, lineIndex) => (
         <Text
           key={`${lineIndex}-${line.slice(0, 8)}`}
+          allowFontScaling={false}
           style={[
             styles.text,
             {
@@ -347,6 +348,7 @@ function ReadOnlyPageAnnotationsInner({
                       pointerEvents="none"
                     >
                       <Text
+                        allowFontScaling={false}
                         style={[
                           styles.text,
                           {

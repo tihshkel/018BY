@@ -340,6 +340,7 @@ const TypedFormField = memo(function TypedFormField({
   return (
     <View>
       <TextInput
+        allowFontScaling={false}
         style={[
           styles.input,
           isMultiline && styles.inputMultiline,

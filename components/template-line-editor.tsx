@@ -269,11 +269,13 @@ export const TemplateLineEditor = React.memo(function TemplateLineEditor({
                 underlineColorAndroid="transparent"
                 selectTextOnFocus={false}
                 caretHidden={false}
+                allowFontScaling={false}
                 {...(Platform.OS === 'ios' ? { paddingTop: 0, paddingBottom: 0 } : {})}
                 {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
               />
             ) : (
               <Text
+                allowFontScaling={false}
                 style={[
                   styles.lineText,
                   {

@@ -2488,6 +2488,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                   pointerEvents="none"
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.textAnnotation,
                       styles.templateLineText,
@@ -2631,6 +2632,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                     <View pointerEvents={isDraggingWhileEditing ? 'none' : 'auto'}>
                       <TextInput
                         ref={textInputRef}
+                        allowFontScaling={false}
                         style={[
                           styles.textAnnotation,
                           styles.floatingTextInput,
@@ -2692,6 +2694,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       return (
                         <Text
                           key={`${annotation.id}-line-${lineIndex}`}
+                          allowFontScaling={false}
                           style={[
                             styles.textAnnotation,
                             styles.templateLineText,
@@ -2730,6 +2733,7 @@ const PdfAnnotations = React.forwardRef<PdfAnnotationsRef, PdfAnnotationsProps>(
                       return fitted.lines.map((line, lineIndex) => (
                         <Text
                           key={`${annotation.id}-block-line-${lineIndex}`}
+                          allowFontScaling={false}
                           style={[
                             styles.textAnnotation,
                             {
